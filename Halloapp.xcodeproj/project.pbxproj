@@ -1,0 +1,791 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 51;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		29B91BFAD5E7C9E96185289E /* Pods_Halloapp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */; };
+		EA0D20072363AC4D008B8289 /* Landing.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20062363AC4D008B8289 /* Landing.swift */; };
+		EA0D20092363AD74008B8289 /* AuthRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20082363AD74008B8289 /* AuthRouter.swift */; };
+		EA0D200B2363AD87008B8289 /* HomeRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D200A2363AD87008B8289 /* HomeRouter.swift */; };
+		EA0D200F2363D2E1008B8289 /* HomeRouteData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D200E2363D2E1008B8289 /* HomeRouteData.swift */; };
+		EA0D20112363E38E008B8289 /* HomeInit.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20102363E38E008B8289 /* HomeInit.swift */; };
+		EA0D20132363E404008B8289 /* XMPP.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20122363E404008B8289 /* XMPP.swift */; };
+		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
+		EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0E64CA234BF4BC006A22EB /* XMPPController.swift */; };
+		EA3861ED23342C7C00705943 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3861EC23342C7C00705943 /* Login.swift */; };
+		EA454B5E234E6A2A002B960D /* Navi.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B5D234E6A2A002B960D /* Navi.swift */; };
+		EA454B60234E767C002B960D /* Messaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B5F234E767C002B960D /* Messaging.swift */; };
+		EA454B64234E769F002B960D /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* Profile.swift */; };
+		EA56404E233D373800E68A7E /* Verification.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA56404D233D373800E68A7E /* Verification.swift */; };
+		EA564054233D443600E68A7E /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA564053233D443600E68A7E /* Feed.swift */; };
+		EA72F2122335A0A3008B696F /* UserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA72F2112335A0A3008B696F /* UserData.swift */; };
+		EA80ADFB235A8325002F7680 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA80ADFA235A8325002F7680 /* Utils.swift */; };
+		EA8D4721233C25B8006E2BA5 /* Verify.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* Verify.swift */; };
+		EA8D4725233C3459006E2BA5 /* AuthRouteData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4724233C3459006E2BA5 /* AuthRouteData.swift */; };
+		EAC4AF23233E8DAB00739B2B /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */; };
+		EAE721332351394D0003D5C7 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAE721322351394D0003D5C7 /* Contacts.swift */; };
+		EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C22334191E00805FF9 /* AppDelegate.swift */; };
+		EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */; };
+		EAF3A1C72334191E00805FF9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C62334191E00805FF9 /* ContentView.swift */; };
+		EAF3A1C92334192000805FF9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
+		EAF3A1CC2334192000805FF9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1CB2334192000805FF9 /* Preview Assets.xcassets */; };
+		EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */; };
+		EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1D92334192000805FF9 /* HalloappTests.swift */; };
+		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		EAF3A1D62334192000805FF9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EAF3A1BE2334191E00805FF9;
+			remoteInfo = Halloapp;
+		};
+		EAF3A1E12334192000805FF9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EAF3A1BE2334191E00805FF9;
+			remoteInfo = Halloapp;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.debug.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.debug.xcconfig"; sourceTree = "<group>"; };
+		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
+		36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Halloapp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		EA0D20062363AC4D008B8289 /* Landing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Landing.swift; sourceTree = "<group>"; };
+		EA0D20082363AD74008B8289 /* AuthRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRouter.swift; sourceTree = "<group>"; };
+		EA0D200A2363AD87008B8289 /* HomeRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRouter.swift; sourceTree = "<group>"; };
+		EA0D200E2363D2E1008B8289 /* HomeRouteData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRouteData.swift; sourceTree = "<group>"; };
+		EA0D20102363E38E008B8289 /* HomeInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeInit.swift; sourceTree = "<group>"; };
+		EA0D20122363E404008B8289 /* XMPP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPP.swift; sourceTree = "<group>"; };
+		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
+		EA0E64CA234BF4BC006A22EB /* XMPPController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPController.swift; sourceTree = "<group>"; };
+		EA3861EC23342C7C00705943 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
+		EA454B5D234E6A2A002B960D /* Navi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navi.swift; sourceTree = "<group>"; };
+		EA454B5F234E767C002B960D /* Messaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Messaging.swift; sourceTree = "<group>"; };
+		EA454B63234E769F002B960D /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
+		EA56404D233D373800E68A7E /* Verification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Verification.swift; sourceTree = "<group>"; };
+		EA564053233D443600E68A7E /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
+		EA72F2112335A0A3008B696F /* UserData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserData.swift; sourceTree = "<group>"; };
+		EA80ADFA235A8325002F7680 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		EA8D4720233C25B8006E2BA5 /* Verify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Verify.swift; sourceTree = "<group>"; };
+		EA8D4724233C3459006E2BA5 /* AuthRouteData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRouteData.swift; sourceTree = "<group>"; };
+		EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
+		EAE721322351394D0003D5C7 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
+		EAF3A1BF2334191E00805FF9 /* Halloapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Halloapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EAF3A1C22334191E00805FF9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		EAF3A1C62334191E00805FF9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		EAF3A1C82334192000805FF9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		EAF3A1CB2334192000805FF9 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		EAF3A1CE2334192000805FF9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		EAF3A1D02334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EAF3A1D52334192000805FF9 /* HalloappTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HalloappTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		EAF3A1D92334192000805FF9 /* HalloappTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloappTests.swift; sourceTree = "<group>"; };
+		EAF3A1DB2334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EAF3A1E02334192000805FF9 /* HalloappUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HalloappUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		EAF3A1E42334192000805FF9 /* HalloappUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloappUITests.swift; sourceTree = "<group>"; };
+		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		EAF3A1BC2334191E00805FF9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				29B91BFAD5E7C9E96185289E /* Pods_Halloapp.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EAF3A1D22334192000805FF9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EAF3A1DD2334192000805FF9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		58B000E2ED3FD4F3ACBF0837 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */,
+				368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		8295BD88471C9D5DC2D30C41 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		EA3861EB23342C3800705943 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				EA80ADFA235A8325002F7680 /* Utils.swift */,
+				EA8D4724233C3459006E2BA5 /* AuthRouteData.swift */,
+				EA72F2112335A0A3008B696F /* UserData.swift */,
+				EA56404D233D373800E68A7E /* Verification.swift */,
+				EA0D20122363E404008B8289 /* XMPP.swift */,
+				EA0E64CA234BF4BC006A22EB /* XMPPController.swift */,
+				EA0D200E2363D2E1008B8289 /* HomeRouteData.swift */,
+				EAE721322351394D0003D5C7 /* Contacts.swift */,
+				EA0D20142368B04B008B8289 /* FeedData.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		EA5AD43C23342B8C00429643 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				EA0D20062363AC4D008B8289 /* Landing.swift */,
+				EAC4AF1E233E7F6500739B2B /* common */,
+				EA880C3A2368EE3C008965CF /* auth */,
+				EA880C3B2368EE53008965CF /* home */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		EA880C3A2368EE3C008965CF /* auth */ = {
+			isa = PBXGroup;
+			children = (
+				EA0D20082363AD74008B8289 /* AuthRouter.swift */,
+				EA3861EC23342C7C00705943 /* Login.swift */,
+				EA8D4720233C25B8006E2BA5 /* Verify.swift */,
+			);
+			path = auth;
+			sourceTree = "<group>";
+		};
+		EA880C3B2368EE53008965CF /* home */ = {
+			isa = PBXGroup;
+			children = (
+				EA0D20102363E38E008B8289 /* HomeInit.swift */,
+				EA0D200A2363AD87008B8289 /* HomeRouter.swift */,
+				EA564053233D443600E68A7E /* Feed.swift */,
+				EA454B5F234E767C002B960D /* Messaging.swift */,
+				EA454B63234E769F002B960D /* Profile.swift */,
+			);
+			path = home;
+			sourceTree = "<group>";
+		};
+		EAC4AF1E233E7F6500739B2B /* common */ = {
+			isa = PBXGroup;
+			children = (
+				EA454B5D234E6A2A002B960D /* Navi.swift */,
+			);
+			path = common;
+			sourceTree = "<group>";
+		};
+		EAC4AF21233E8D9700739B2B /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		EAF3A1B62334191E00805FF9 = {
+			isa = PBXGroup;
+			children = (
+				EAF3A1C12334191E00805FF9 /* Halloapp */,
+				EAF3A1D82334192000805FF9 /* HalloappTests */,
+				EAF3A1E32334192000805FF9 /* HalloappUITests */,
+				EAF3A1C02334191E00805FF9 /* Products */,
+				58B000E2ED3FD4F3ACBF0837 /* Pods */,
+				8295BD88471C9D5DC2D30C41 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		EAF3A1C02334191E00805FF9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				EAF3A1BF2334191E00805FF9 /* Halloapp.app */,
+				EAF3A1D52334192000805FF9 /* HalloappTests.xctest */,
+				EAF3A1E02334192000805FF9 /* HalloappUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		EAF3A1C12334191E00805FF9 /* Halloapp */ = {
+			isa = PBXGroup;
+			children = (
+				EAC4AF21233E8D9700739B2B /* Network */,
+				EA3861EB23342C3800705943 /* Models */,
+				EA5AD43C23342B8C00429643 /* Views */,
+				EAF3A1C22334191E00805FF9 /* AppDelegate.swift */,
+				EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */,
+				EAF3A1C62334191E00805FF9 /* ContentView.swift */,
+				EAF3A1C82334192000805FF9 /* Assets.xcassets */,
+				EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */,
+				EAF3A1D02334192000805FF9 /* Info.plist */,
+				EAF3A1CA2334192000805FF9 /* Preview Content */,
+			);
+			path = Halloapp;
+			sourceTree = "<group>";
+		};
+		EAF3A1CA2334192000805FF9 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				EAF3A1CB2334192000805FF9 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		EAF3A1D82334192000805FF9 /* HalloappTests */ = {
+			isa = PBXGroup;
+			children = (
+				EAF3A1D92334192000805FF9 /* HalloappTests.swift */,
+				EAF3A1DB2334192000805FF9 /* Info.plist */,
+			);
+			path = HalloappTests;
+			sourceTree = "<group>";
+		};
+		EAF3A1E32334192000805FF9 /* HalloappUITests */ = {
+			isa = PBXGroup;
+			children = (
+				EAF3A1E42334192000805FF9 /* HalloappUITests.swift */,
+				EAF3A1E62334192000805FF9 /* Info.plist */,
+			);
+			path = HalloappUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		EAF3A1BE2334191E00805FF9 /* Halloapp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EAF3A1E92334192000805FF9 /* Build configuration list for PBXNativeTarget "Halloapp" */;
+			buildPhases = (
+				A4AC85EF7BFDCB135FC900FF /* [CP] Check Pods Manifest.lock */,
+				EAF3A1BB2334191E00805FF9 /* Sources */,
+				EAF3A1BC2334191E00805FF9 /* Frameworks */,
+				EAF3A1BD2334191E00805FF9 /* Resources */,
+				D51A16EB7C89AD8DAF43C14C /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Halloapp;
+			productName = Halloapp;
+			productReference = EAF3A1BF2334191E00805FF9 /* Halloapp.app */;
+			productType = "com.apple.product-type.application";
+		};
+		EAF3A1D42334192000805FF9 /* HalloappTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EAF3A1EC2334192000805FF9 /* Build configuration list for PBXNativeTarget "HalloappTests" */;
+			buildPhases = (
+				EAF3A1D12334192000805FF9 /* Sources */,
+				EAF3A1D22334192000805FF9 /* Frameworks */,
+				EAF3A1D32334192000805FF9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EAF3A1D72334192000805FF9 /* PBXTargetDependency */,
+			);
+			name = HalloappTests;
+			productName = HalloappTests;
+			productReference = EAF3A1D52334192000805FF9 /* HalloappTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		EAF3A1DF2334192000805FF9 /* HalloappUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EAF3A1EF2334192000805FF9 /* Build configuration list for PBXNativeTarget "HalloappUITests" */;
+			buildPhases = (
+				EAF3A1DC2334192000805FF9 /* Sources */,
+				EAF3A1DD2334192000805FF9 /* Frameworks */,
+				EAF3A1DE2334192000805FF9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EAF3A1E22334192000805FF9 /* PBXTargetDependency */,
+			);
+			name = HalloappUITests;
+			productName = HalloappUITests;
+			productReference = EAF3A1E02334192000805FF9 /* HalloappUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EAF3A1B72334191E00805FF9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1100;
+				LastUpgradeCheck = 1100;
+				ORGANIZATIONNAME = "Halloapp, Inc.";
+				TargetAttributes = {
+					EAF3A1BE2334191E00805FF9 = {
+						CreatedOnToolsVersion = 11.0;
+					};
+					EAF3A1D42334192000805FF9 = {
+						CreatedOnToolsVersion = 11.0;
+						TestTargetID = EAF3A1BE2334191E00805FF9;
+					};
+					EAF3A1DF2334192000805FF9 = {
+						CreatedOnToolsVersion = 11.0;
+						TestTargetID = EAF3A1BE2334191E00805FF9;
+					};
+				};
+			};
+			buildConfigurationList = EAF3A1BA2334191E00805FF9 /* Build configuration list for PBXProject "Halloapp" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = EAF3A1B62334191E00805FF9;
+			productRefGroup = EAF3A1C02334191E00805FF9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				EAF3A1BE2334191E00805FF9 /* Halloapp */,
+				EAF3A1D42334192000805FF9 /* HalloappTests */,
+				EAF3A1DF2334192000805FF9 /* HalloappUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		EAF3A1BD2334191E00805FF9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */,
+				EAF3A1CC2334192000805FF9 /* Preview Assets.xcassets in Resources */,
+				EAF3A1C92334192000805FF9 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EAF3A1D32334192000805FF9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EAF3A1DE2334192000805FF9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A4AC85EF7BFDCB135FC900FF /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Halloapp-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D51A16EB7C89AD8DAF43C14C /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Halloapp/Pods-Halloapp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Halloapp/Pods-Halloapp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Halloapp/Pods-Halloapp-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		EAF3A1BB2334191E00805FF9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA454B60234E767C002B960D /* Messaging.swift in Sources */,
+				EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */,
+				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
+				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
+				EAE721332351394D0003D5C7 /* Contacts.swift in Sources */,
+				EAF3A1C72334191E00805FF9 /* ContentView.swift in Sources */,
+				EA564054233D443600E68A7E /* Feed.swift in Sources */,
+				EA72F2122335A0A3008B696F /* UserData.swift in Sources */,
+				EA0D200F2363D2E1008B8289 /* HomeRouteData.swift in Sources */,
+				EA8D4721233C25B8006E2BA5 /* Verify.swift in Sources */,
+				EA0D200B2363AD87008B8289 /* HomeRouter.swift in Sources */,
+				EA56404E233D373800E68A7E /* Verification.swift in Sources */,
+				EA3861ED23342C7C00705943 /* Login.swift in Sources */,
+				EA8D4725233C3459006E2BA5 /* AuthRouteData.swift in Sources */,
+				EA80ADFB235A8325002F7680 /* Utils.swift in Sources */,
+				EA0D20092363AD74008B8289 /* AuthRouter.swift in Sources */,
+				EA0D20132363E404008B8289 /* XMPP.swift in Sources */,
+				EA454B5E234E6A2A002B960D /* Navi.swift in Sources */,
+				EA0D20072363AC4D008B8289 /* Landing.swift in Sources */,
+				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
+				EA0D20112363E38E008B8289 /* HomeInit.swift in Sources */,
+				EAC4AF23233E8DAB00739B2B /* ImageLoader.swift in Sources */,
+				EA454B64234E769F002B960D /* Profile.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EAF3A1D12334192000805FF9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EAF3A1DC2334192000805FF9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		EAF3A1D72334192000805FF9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EAF3A1BE2334191E00805FF9 /* Halloapp */;
+			targetProxy = EAF3A1D62334192000805FF9 /* PBXContainerItemProxy */;
+		};
+		EAF3A1E22334192000805FF9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EAF3A1BE2334191E00805FF9 /* Halloapp */;
+			targetProxy = EAF3A1E12334192000805FF9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				EAF3A1CE2334192000805FF9 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		EAF3A1E72334192000805FF9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		EAF3A1E82334192000805FF9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		EAF3A1EA2334192000805FF9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_ASSET_PATHS = "\"Halloapp/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = Halloapp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.Halloapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		EAF3A1EB2334192000805FF9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_ASSET_PATHS = "\"Halloapp/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = Halloapp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.Halloapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		EAF3A1ED2334192000805FF9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = HalloappTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.HalloappTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Halloapp.app/Halloapp";
+			};
+			name = Debug;
+		};
+		EAF3A1EE2334192000805FF9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = HalloappTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.HalloappTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Halloapp.app/Halloapp";
+			};
+			name = Release;
+		};
+		EAF3A1F02334192000805FF9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = HalloappUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.HalloappUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Halloapp;
+			};
+			name = Debug;
+		};
+		EAF3A1F12334192000805FF9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = HalloappUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.HalloappUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Halloapp;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		EAF3A1BA2334191E00805FF9 /* Build configuration list for PBXProject "Halloapp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EAF3A1E72334192000805FF9 /* Debug */,
+				EAF3A1E82334192000805FF9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EAF3A1E92334192000805FF9 /* Build configuration list for PBXNativeTarget "Halloapp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EAF3A1EA2334192000805FF9 /* Debug */,
+				EAF3A1EB2334192000805FF9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EAF3A1EC2334192000805FF9 /* Build configuration list for PBXNativeTarget "HalloappTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EAF3A1ED2334192000805FF9 /* Debug */,
+				EAF3A1EE2334192000805FF9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EAF3A1EF2334192000805FF9 /* Build configuration list for PBXNativeTarget "HalloappUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EAF3A1F02334192000805FF9 /* Debug */,
+				EAF3A1F12334192000805FF9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = EAF3A1B72334191E00805FF9 /* Project object */;
+}
