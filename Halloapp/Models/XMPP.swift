@@ -7,7 +7,8 @@
 //
 
 import Foundation
-
+import Combine
+import XMPPFramework
 
 class XMPP: ObservableObject {
 
@@ -15,20 +16,41 @@ class XMPP: ObservableObject {
     
     @Published var xmppController: XMPPController!
     
-    init(user: String, password: String) {
-        self.isReady = true
+    private var cancellableSet: Set<AnyCancellable> = []
+    
+    @Published var userData: UserData
+    
+    @Published var metaData: MetaData
+    
+    init(userData: UserData, metaData: MetaData) {
+
+        print("XMPP Init")
+        
+        self.userData = userData
+        self.metaData = metaData
+        
         do {
-            try self.xmppController = XMPPController(user: user, password: password)
+            
+            try self.xmppController = XMPPController(userData: self.userData, metaData: self.metaData)
             
             self.xmppController.xmppStream.addDelegate(self, delegateQueue: DispatchQueue.main)
-            
-//            self.xmppController.connect()
-            
-//            self.isReady = true
             
         } catch {
             print("error connecting to xmpp server")
         }
+        
+        
+        self.cancellableSet.insert(
+         
+            self.xmppController.didConnect.sink(receiveValue: { value in
+
+                self.isReady = true
+
+            })
+
+        )
+        
+        
     }
     
 }

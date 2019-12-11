@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -16,26 +16,42 @@
 		EA0D20132363E404008B8289 /* XMPP.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20122363E404008B8289 /* XMPP.swift */; };
 		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
 		EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0E64CA234BF4BC006A22EB /* XMPPController.swift */; };
+		EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */; };
 		EA3861ED23342C7C00705943 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3861EC23342C7C00705943 /* Login.swift */; };
 		EA454B5E234E6A2A002B960D /* Navi.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B5D234E6A2A002B960D /* Navi.swift */; };
 		EA454B60234E767C002B960D /* Messaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B5F234E767C002B960D /* Messaging.swift */; };
 		EA454B64234E769F002B960D /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* Profile.swift */; };
 		EA56404E233D373800E68A7E /* Verification.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA56404D233D373800E68A7E /* Verification.swift */; };
 		EA564054233D443600E68A7E /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA564053233D443600E68A7E /* Feed.swift */; };
+		EA5B9FC5237CF2B300184F76 /* PicPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B9FC4237CF2B300184F76 /* PicPicker.swift */; };
+		EA6057B9239885E3005DED66 /* ActivityIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA6057B8239885E3005DED66 /* ActivityIndicator.swift */; };
+		EA6057BB239AD26D005DED66 /* MetaData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA6057BA239AD26D005DED66 /* MetaData.swift */; };
 		EA72F2122335A0A3008B696F /* UserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA72F2112335A0A3008B696F /* UserData.swift */; };
 		EA80ADFB235A8325002F7680 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA80ADFA235A8325002F7680 /* Utils.swift */; };
 		EA8D4721233C25B8006E2BA5 /* Verify.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* Verify.swift */; };
 		EA8D4725233C3459006E2BA5 /* AuthRouteData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4724233C3459006E2BA5 /* AuthRouteData.swift */; };
+		EAA6DEBE2381344800C6D9C8 /* Blur.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEBD2381344800C6D9C8 /* Blur.swift */; };
+		EAA6DEC02381D7DD00C6D9C8 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEBF2381D7DD00C6D9C8 /* Notifications.swift */; };
+		EAA6DEC223836A3C00C6D9C8 /* PostTextSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEC123836A3C00C6D9C8 /* PostTextSheet.swift */; };
+		EAA6DEC42383A4E800C6D9C8 /* TextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEC32383A4E800C6D9C8 /* TextView.swift */; };
+		EAA6DEC62383AD8400C6D9C8 /* MessageUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEC52383AD8400C6D9C8 /* MessageUser.swift */; };
+		EAA6DEC82383AE1900C6D9C8 /* Commenting.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEC72383AE1900C6D9C8 /* Commenting.swift */; };
+		EAA739F623720637002CB6DE /* PostText.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA739F523720637002CB6DE /* PostText.swift */; };
+		EAA739F823735B9E002CB6DE /* XMPPRegister.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA739F723735B9E002CB6DE /* XMPPRegister.swift */; };
 		EAC4AF23233E8DAB00739B2B /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */; };
+		EAC7E8F92385A6B700F5E711 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC7E8F82385A6B700F5E711 /* Settings.swift */; };
+		EAC7E8FC2385A8AA00F5E711 /* QGrid in Frameworks */ = {isa = PBXBuildFile; productRef = EAC7E8FB2385A8AA00F5E711 /* QGrid */; };
+		EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = EAE6152D23970FDC00BB4552 /* Halloapp.xcdatamodeld */; };
 		EAE721332351394D0003D5C7 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAE721322351394D0003D5C7 /* Contacts.swift */; };
 		EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C22334191E00805FF9 /* AppDelegate.swift */; };
 		EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */; };
-		EAF3A1C72334191E00805FF9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C62334191E00805FF9 /* ContentView.swift */; };
 		EAF3A1C92334192000805FF9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
 		EAF3A1CC2334192000805FF9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1CB2334192000805FF9 /* Preview Assets.xcassets */; };
 		EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */; };
 		EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1D92334192000805FF9 /* HalloappTests.swift */; };
 		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
+		EAF4F734237DE9AC006885F0 /* ExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF4F733237DE9AC006885F0 /* ExampleViewController.swift */; };
+		EAF4F736237DEC2C006885F0 /* YPPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF4F735237DEC2C006885F0 /* YPPicker.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,22 +83,35 @@
 		EA0D20122363E404008B8289 /* XMPP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPP.swift; sourceTree = "<group>"; };
 		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
 		EA0E64CA234BF4BC006A22EB /* XMPPController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPController.swift; sourceTree = "<group>"; };
+		EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTimer.swift; sourceTree = "<group>"; };
 		EA3861EC23342C7C00705943 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		EA454B5D234E6A2A002B960D /* Navi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navi.swift; sourceTree = "<group>"; };
 		EA454B5F234E767C002B960D /* Messaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Messaging.swift; sourceTree = "<group>"; };
 		EA454B63234E769F002B960D /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		EA56404D233D373800E68A7E /* Verification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Verification.swift; sourceTree = "<group>"; };
 		EA564053233D443600E68A7E /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
+		EA5B9FC4237CF2B300184F76 /* PicPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPicker.swift; sourceTree = "<group>"; };
+		EA6057B8239885E3005DED66 /* ActivityIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityIndicator.swift; sourceTree = "<group>"; };
+		EA6057BA239AD26D005DED66 /* MetaData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaData.swift; sourceTree = "<group>"; };
 		EA72F2112335A0A3008B696F /* UserData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserData.swift; sourceTree = "<group>"; };
 		EA80ADFA235A8325002F7680 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		EA8D4720233C25B8006E2BA5 /* Verify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Verify.swift; sourceTree = "<group>"; };
 		EA8D4724233C3459006E2BA5 /* AuthRouteData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRouteData.swift; sourceTree = "<group>"; };
+		EAA6DEBD2381344800C6D9C8 /* Blur.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blur.swift; sourceTree = "<group>"; };
+		EAA6DEBF2381D7DD00C6D9C8 /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		EAA6DEC123836A3C00C6D9C8 /* PostTextSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostTextSheet.swift; sourceTree = "<group>"; };
+		EAA6DEC32383A4E800C6D9C8 /* TextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextView.swift; sourceTree = "<group>"; };
+		EAA6DEC52383AD8400C6D9C8 /* MessageUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageUser.swift; sourceTree = "<group>"; };
+		EAA6DEC72383AE1900C6D9C8 /* Commenting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Commenting.swift; sourceTree = "<group>"; };
+		EAA739F523720637002CB6DE /* PostText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostText.swift; sourceTree = "<group>"; };
+		EAA739F723735B9E002CB6DE /* XMPPRegister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPRegister.swift; sourceTree = "<group>"; };
 		EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
+		EAC7E8F82385A6B700F5E711 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		EAE6152E23970FDC00BB4552 /* Halloapp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Halloapp.xcdatamodel; sourceTree = "<group>"; };
 		EAE721322351394D0003D5C7 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
 		EAF3A1BF2334191E00805FF9 /* Halloapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Halloapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1C22334191E00805FF9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		EAF3A1C62334191E00805FF9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EAF3A1C82334192000805FF9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EAF3A1CB2334192000805FF9 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		EAF3A1CE2334192000805FF9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -93,6 +122,8 @@
 		EAF3A1E02334192000805FF9 /* HalloappUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HalloappUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1E42334192000805FF9 /* HalloappUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloappUITests.swift; sourceTree = "<group>"; };
 		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EAF4F733237DE9AC006885F0 /* ExampleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleViewController.swift; sourceTree = "<group>"; };
+		EAF4F735237DEC2C006885F0 /* YPPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YPPicker.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +131,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EAC7E8FC2385A8AA00F5E711 /* QGrid in Frameworks */,
 				29B91BFAD5E7C9E96185289E /* Pods_Halloapp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -145,13 +177,49 @@
 				EA8D4724233C3459006E2BA5 /* AuthRouteData.swift */,
 				EA72F2112335A0A3008B696F /* UserData.swift */,
 				EA56404D233D373800E68A7E /* Verification.swift */,
+				EAA739F723735B9E002CB6DE /* XMPPRegister.swift */,
 				EA0D20122363E404008B8289 /* XMPP.swift */,
 				EA0E64CA234BF4BC006A22EB /* XMPPController.swift */,
 				EA0D200E2363D2E1008B8289 /* HomeRouteData.swift */,
 				EAE721322351394D0003D5C7 /* Contacts.swift */,
 				EA0D20142368B04B008B8289 /* FeedData.swift */,
+				EAA6DEBD2381344800C6D9C8 /* Blur.swift */,
+				EA6057BA239AD26D005DED66 /* MetaData.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		EA38843423A15C9D00E8BF92 /* feed */ = {
+			isa = PBXGroup;
+			children = (
+				EA564053233D443600E68A7E /* Feed.swift */,
+				EA6057B8239885E3005DED66 /* ActivityIndicator.swift */,
+				EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */,
+				EAA6DEBF2381D7DD00C6D9C8 /* Notifications.swift */,
+				EAA739F523720637002CB6DE /* PostText.swift */,
+				EAA6DEC123836A3C00C6D9C8 /* PostTextSheet.swift */,
+				EAA6DEC52383AD8400C6D9C8 /* MessageUser.swift */,
+				EAA6DEC72383AE1900C6D9C8 /* Commenting.swift */,
+				EAA6DEC32383A4E800C6D9C8 /* TextView.swift */,
+			);
+			path = feed;
+			sourceTree = "<group>";
+		};
+		EA38843523A15D2C00E8BF92 /* messaging */ = {
+			isa = PBXGroup;
+			children = (
+				EA454B5F234E767C002B960D /* Messaging.swift */,
+			);
+			path = messaging;
+			sourceTree = "<group>";
+		};
+		EA38843623A15D4800E8BF92 /* profile */ = {
+			isa = PBXGroup;
+			children = (
+				EA454B63234E769F002B960D /* Profile.swift */,
+				EAC7E8F82385A6B700F5E711 /* Settings.swift */,
+			);
+			path = profile;
 			sourceTree = "<group>";
 		};
 		EA5AD43C23342B8C00429643 /* Views */ = {
@@ -180,9 +248,9 @@
 			children = (
 				EA0D20102363E38E008B8289 /* HomeInit.swift */,
 				EA0D200A2363AD87008B8289 /* HomeRouter.swift */,
-				EA564053233D443600E68A7E /* Feed.swift */,
-				EA454B5F234E767C002B960D /* Messaging.swift */,
-				EA454B63234E769F002B960D /* Profile.swift */,
+				EA38843423A15C9D00E8BF92 /* feed */,
+				EA38843523A15D2C00E8BF92 /* messaging */,
+				EA38843623A15D4800E8BF92 /* profile */,
 			);
 			path = home;
 			sourceTree = "<group>";
@@ -191,6 +259,7 @@
 			isa = PBXGroup;
 			children = (
 				EA454B5D234E6A2A002B960D /* Navi.swift */,
+				EAF4F733237DE9AC006885F0 /* ExampleViewController.swift */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -199,6 +268,8 @@
 			isa = PBXGroup;
 			children = (
 				EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */,
+				EA5B9FC4237CF2B300184F76 /* PicPicker.swift */,
+				EAF4F735237DEC2C006885F0 /* YPPicker.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -231,12 +302,12 @@
 				EAC4AF21233E8D9700739B2B /* Network */,
 				EA3861EB23342C3800705943 /* Models */,
 				EA5AD43C23342B8C00429643 /* Views */,
+				EAF3A1D02334192000805FF9 /* Info.plist */,
 				EAF3A1C22334191E00805FF9 /* AppDelegate.swift */,
 				EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */,
-				EAF3A1C62334191E00805FF9 /* ContentView.swift */,
-				EAF3A1C82334192000805FF9 /* Assets.xcassets */,
 				EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */,
-				EAF3A1D02334192000805FF9 /* Info.plist */,
+				EAF3A1C82334192000805FF9 /* Assets.xcassets */,
+				EAE6152D23970FDC00BB4552 /* Halloapp.xcdatamodeld */,
 				EAF3A1CA2334192000805FF9 /* Preview Content */,
 			);
 			path = Halloapp;
@@ -286,6 +357,9 @@
 			dependencies = (
 			);
 			name = Halloapp;
+			packageProductDependencies = (
+				EAC7E8FB2385A8AA00F5E711 /* QGrid */,
+			);
 			productName = Halloapp;
 			productReference = EAF3A1BF2334191E00805FF9 /* Halloapp.app */;
 			productType = "com.apple.product-type.application";
@@ -358,6 +432,9 @@
 				Base,
 			);
 			mainGroup = EAF3A1B62334191E00805FF9;
+			packageReferences = (
+				EAC7E8FA2385A8AA00F5E711 /* XCRemoteSwiftPackageReference "QGrid" */,
+			);
 			productRefGroup = EAF3A1C02334191E00805FF9 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -445,25 +522,40 @@
 			files = (
 				EA454B60234E767C002B960D /* Messaging.swift in Sources */,
 				EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */,
+				EA6057B9239885E3005DED66 /* ActivityIndicator.swift in Sources */,
+				EAA6DEC62383AD8400C6D9C8 /* MessageUser.swift in Sources */,
+				EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */,
+				EAF4F734237DE9AC006885F0 /* ExampleViewController.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
+				EAC7E8F92385A6B700F5E711 /* Settings.swift in Sources */,
 				EAE721332351394D0003D5C7 /* Contacts.swift in Sources */,
-				EAF3A1C72334191E00805FF9 /* ContentView.swift in Sources */,
+				EA6057BB239AD26D005DED66 /* MetaData.swift in Sources */,
 				EA564054233D443600E68A7E /* Feed.swift in Sources */,
 				EA72F2122335A0A3008B696F /* UserData.swift in Sources */,
 				EA0D200F2363D2E1008B8289 /* HomeRouteData.swift in Sources */,
+				EA5B9FC5237CF2B300184F76 /* PicPicker.swift in Sources */,
+				EAA6DEC42383A4E800C6D9C8 /* TextView.swift in Sources */,
+				EAA6DEBE2381344800C6D9C8 /* Blur.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* Verify.swift in Sources */,
 				EA0D200B2363AD87008B8289 /* HomeRouter.swift in Sources */,
 				EA56404E233D373800E68A7E /* Verification.swift in Sources */,
+				EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */,
+				EAA739F623720637002CB6DE /* PostText.swift in Sources */,
 				EA3861ED23342C7C00705943 /* Login.swift in Sources */,
+				EAA6DEC223836A3C00C6D9C8 /* PostTextSheet.swift in Sources */,
 				EA8D4725233C3459006E2BA5 /* AuthRouteData.swift in Sources */,
 				EA80ADFB235A8325002F7680 /* Utils.swift in Sources */,
 				EA0D20092363AD74008B8289 /* AuthRouter.swift in Sources */,
 				EA0D20132363E404008B8289 /* XMPP.swift in Sources */,
 				EA454B5E234E6A2A002B960D /* Navi.swift in Sources */,
+				EAA739F823735B9E002CB6DE /* XMPPRegister.swift in Sources */,
+				EAF4F736237DEC2C006885F0 /* YPPicker.swift in Sources */,
+				EAA6DEC82383AE1900C6D9C8 /* Commenting.swift in Sources */,
 				EA0D20072363AC4D008B8289 /* Landing.swift in Sources */,
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				EA0D20112363E38E008B8289 /* HomeInit.swift in Sources */,
+				EAA6DEC02381D7DD00C6D9C8 /* Notifications.swift in Sources */,
 				EAC4AF23233E8DAB00739B2B /* ImageLoader.swift in Sources */,
 				EA454B64234E769F002B960D /* Profile.swift in Sources */,
 			);
@@ -633,6 +725,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"Halloapp/Preview Content\"";
+				DEVELOPMENT_TEAM = 69YJHWQ4KS;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -653,6 +746,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"Halloapp/Preview Content\"";
+				DEVELOPMENT_TEAM = 69YJHWQ4KS;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -786,6 +880,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		EAC7E8FA2385A8AA00F5E711 /* XCRemoteSwiftPackageReference "QGrid" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Q-Mobile/QGrid";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EAC7E8FB2385A8AA00F5E711 /* QGrid */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EAC7E8FA2385A8AA00F5E711 /* XCRemoteSwiftPackageReference "QGrid" */;
+			productName = QGrid;
+		};
+/* End XCSwiftPackageProductDependency section */
+
+/* Begin XCVersionGroup section */
+		EAE6152D23970FDC00BB4552 /* Halloapp.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				EAE6152E23970FDC00BB4552 /* Halloapp.xcdatamodel */,
+			);
+			currentVersion = EAE6152E23970FDC00BB4552 /* Halloapp.xcdatamodel */;
+			path = Halloapp.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = EAF3A1B72334191E00805FF9 /* Project object */;
 }

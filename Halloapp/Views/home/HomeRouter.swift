@@ -20,26 +20,30 @@ struct HomeRouter: View {
         VStack {
             
             if (homeRouteData.homePage == "feed") {
-                Feed(feedData: feedData)
+                Feed(feedData: feedData, contacts: contacts)
             } else if homeRouteData.homePage == "messaging" {
                 Messaging(contacts: contacts)
             } else if homeRouteData.homePage == "profile" {
-                Profile()
+                Profile(feedData: feedData)
+            } else if homeRouteData.homePage == "postText" {
+                PostText(feedData: feedData)
+            } else if homeRouteData.homePage == "postVideo" {
+                PickerWrapper()
             }
 
         }
     }
 }
 
-struct HomeRouter_Previews: PreviewProvider {
-    static var previews: some View {
-        HomeRouter(
-            xmpp: XMPP(user: "xx", password: "xx"),
-            contacts: Contacts(xmpp: XMPP(user: "xx", password: "xx")),
-            feedData: FeedData(xmpp: XMPP(user: "xx", password: "xx"))
-        )
-            .environmentObject(AuthRouteData())
-            .environmentObject(UserData())
-            
-    }
-}
+//struct HomeRouter_Previews: PreviewProvider {
+//    static var previews: some View {
+//        HomeRouter(
+//            xmpp: XMPP(userData: UserData()),
+//            contacts: Contacts(xmpp: XMPP(userData: UserData())),
+//            feedData: FeedData(xmpp: XMPP(userData: UserData()))
+//        )
+//            .environmentObject(AuthRouteData())
+//            .environmentObject(UserData())
+//            
+//    }
+//}

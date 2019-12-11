@@ -12,12 +12,12 @@ struct Landing: View {
     
     @EnvironmentObject var authRouteData: AuthRouteData
     @EnvironmentObject var userData: UserData
-
+    @EnvironmentObject var metaData: MetaData
     
     var body: some View {
         VStack {
-            if (authRouteData.isLoggedIn) {
-                HomeInit(xmpp: XMPP(user: self.userData.userJIDString, password: self.userData.password))
+            if (userData.isLoggedIn) {
+                HomeInit(xmpp: XMPP(userData: userData, metaData: metaData))
             } else {
                 AuthRouter()
             }

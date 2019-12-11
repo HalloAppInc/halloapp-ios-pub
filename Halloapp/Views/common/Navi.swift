@@ -17,36 +17,64 @@ struct Navi: View {
         VStack(spacing: 0) {
             Divider()
             HStack {
+                VStack {
+                    Button(action: {
+                        self.homeRouteData.gotoPage(page: "feed")
+                    }) {
+                        Image(systemName: "house")
+                            .imageScale(.large)
+                            .foregroundColor(homeRouteData.homePage == "feed" ? Color.black : Color.black)
+                            .padding(EdgeInsets(top: 20, leading: 25, bottom: 7, trailing: 25))
+                            
+                    }
 
-                Button(action: {
-                    self.homeRouteData.gotoPage(page: "feed")
-                }) {
-                    Image(systemName: "house")
-                        .imageScale(.large)
-                        .foregroundColor(homeRouteData.homePage == "feed" ? Color.blue : Color.white)
-                }.padding()
+                    Image(systemName: "circle")
+                        .font(.system(size: 7, weight: .heavy))
+                        .foregroundColor(homeRouteData.homePage == "feed" ? Color(red:  40/255, green:  40/255, blue:  40/255) : Color.clear)
+                        .padding(0)
+                }
+                
                 Spacer()
-                Button(action: {
-                    self.homeRouteData.gotoPage(page: "messaging")
-                }) {
-                    Image(systemName: "bookmark")
-                        .imageScale(.large)
-                        .foregroundColor(homeRouteData.homePage == "messaging" ? Color.blue : Color.white)
-                }.padding()
+                
+                VStack {
+                    Button(action: {
+                        self.homeRouteData.gotoPage(page: "messaging")
+                    }) {
+                        Image(systemName: "envelope")
+                            .imageScale(.large)
+                            .foregroundColor(homeRouteData.homePage == "messaging" ? Color.black : Color.black)
+                            .padding(EdgeInsets(top: 20, leading: 25, bottom: 5, trailing: 25))
+                            
+                    }
+                    
+                    Image(systemName: "circle")
+                         .font(.system(size: 7, weight: .heavy))
+                        .foregroundColor(homeRouteData.homePage == "messaging" ? Color(red: 40/255, green: 40/255, blue: 40/255) : Color.clear)
+                     .padding(0)
+                    
+                }
                 Spacer()
-                Button(action: {
-                    self.homeRouteData.gotoPage(page: "profile")
-                }) {
-                    Image(systemName: "person.crop.circle")
-                        .imageScale(.large)
-                        .foregroundColor(homeRouteData.homePage == "profile" ? Color.blue : Color.white)
-                }.padding()
-
+                VStack {
+                    Button(action: {
+                        self.homeRouteData.gotoPage(page: "profile")
+                    }) {
+                        Image(systemName: "person")
+                            .imageScale(.large)
+                            .foregroundColor(homeRouteData.homePage == "profile" ? Color.black : Color.black)
+                            .padding(EdgeInsets(top: 20, leading: 25, bottom: 5, trailing: 25))
+                            
+                    }
+                    
+                    Image(systemName: "circle")
+                         .font(.system(size: 7, weight: .heavy))
+                        .foregroundColor(homeRouteData.homePage == "profile" ? Color(red:  40/255, green:  40/255, blue:  40/255) : Color.clear)
+                     .padding(0)
+                    
+                }
 
             }
-            .padding(.leading, 45)
-            .padding(.trailing, 45)
-            .background(Color(red: 64/255, green: 224/255, blue: 208/255))
+            .padding(EdgeInsets(top: 0, leading: 40, bottom: 35, trailing: 40))
+            .background(Color.clear)
         }
     }
 }

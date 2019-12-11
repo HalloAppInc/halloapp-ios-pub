@@ -9,21 +9,15 @@
 import Foundation
 import SwiftUI
 import Combine
+import CoreData
 
 final class AuthRouteData: ObservableObject {
 
-//    @Published var isLoggedIn = false
-//    @Published var currentPage = "login"
-    
-    @Published var isLoggedIn = true
-    @Published var currentPage = "feed"
-    
+    @Published var currentPage = "login"
 
     func gotoPage(page: String) {
         self.currentPage = page
     }
     
-    func setIsLoggedIn(value: Bool) {
-        self.isLoggedIn = value
-    }
+
 }

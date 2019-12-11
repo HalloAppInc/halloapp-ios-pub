@@ -11,6 +11,7 @@ import SwiftUI
 struct Verify: View {
 
     @EnvironmentObject var authRouteData: AuthRouteData
+    @EnvironmentObject var userData: UserData
     @EnvironmentObject var verification: Verification
     
     var body: some View {
@@ -40,7 +41,7 @@ struct Verify: View {
             
             Button(action: {
                 if self.verification.validate() {
-                    self.authRouteData.setIsLoggedIn(value: true)
+                    self.userData.setIsLoggedIn(value: true)
                     self.authRouteData.gotoPage(page: "feed")
                 } else {
                     

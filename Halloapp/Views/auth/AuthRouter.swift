@@ -11,13 +11,14 @@ import SwiftUI
 struct AuthRouter: View {
     
     @EnvironmentObject var authRouteData: AuthRouteData
+    @EnvironmentObject var userData: UserData
     
     var body: some View {
         
         VStack {
-            if authRouteData.currentPage == "login" {
+            if !userData.isRegistered {
                 Login()
-            } else if authRouteData.currentPage == "verify" {
+            } else if (userData.isRegistered) {
                 Verify()
             }
         }

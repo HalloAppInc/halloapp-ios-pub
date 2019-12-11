@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="15508" systemVersion="19C57" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="ContactsCore" representedClassName="ContactsCore" syncable="YES" codeGenerationType="class">
+        <attribute name="isConnected" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isWhiteListed" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="phone" optional="YES" attributeType="String"/>
+        <attribute name="timeLastChecked" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="FeedCore" representedClassName="FeedCore" syncable="YES" codeGenerationType="class">
+        <attribute name="imageBlob" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="imageUrl" optional="YES" attributeType="String"/>
+        <attribute name="itemId" optional="YES" attributeType="String"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="userImageUrl" optional="YES" attributeType="String"/>
+        <attribute name="username" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="User" representedClassName="User" syncable="YES" codeGenerationType="class">
+        <attribute name="haveContactsSub" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="haveFeedSub" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isLoggedIn" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="phone" optional="YES" attributeType="String"/>
+    </entity>
+    <elements>
+        <element name="ContactsCore" positionX="-63" positionY="36" width="128" height="118"/>
+        <element name="FeedCore" positionX="-63" positionY="0" width="128" height="148"/>
+        <element name="User" positionX="-63" positionY="-18" width="128" height="103"/>
+    </elements>
+</model>

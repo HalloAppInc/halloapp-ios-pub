@@ -21,25 +21,27 @@ final class Verification: ObservableObject {
     
     func validate() -> Bool {
 
-      if (self.code == "") {
-          self.status = "Please enter a verification code"
-          self.highlight = true
-          DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-              self.status = ""
-              self.highlight = false
-          }
-          return false
-      } else if (self.code.count < 6) {
-          self.status = "Please enter a valid verification code"
-          self.highlight = true
-          DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-              self.status = ""
-              self.highlight = false
-          }
-          return false
-      } else {
-          return true
-      }
+        if (self.code == "") {
+            self.status = "Please enter a verification code"
+            self.highlight = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                self.status = ""
+                self.highlight = false
+            }
+            return false
+        } else if (self.code.count < 6) {
+            self.status = "Please enter a valid verification code"
+            self.highlight = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                self.status = ""
+                self.highlight = false
+            }
+            return false
+        } else {
+
+            self.code = ""
+            return true
+        }
     }
     
     
