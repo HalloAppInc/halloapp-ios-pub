@@ -61,13 +61,21 @@ class FeedData: ObservableObject {
         /* getting feed items */
         cancellableSet.insert(
             
-            xmppController.didChangeFeedItem.sink(receiveValue: { value in
- 
-                let textItem = Utils().parseFeedItem(value)
+            xmppController.didGetNewFeedItem.sink(receiveValue: { value in
+//
+//                let textItem = Utils().parseFeedItem(value)
+//
+//                self.pushItem(item: textItem)
+
+                let event = value.element(forName: "event")
                 
-                self.pushItem(item: textItem)
+                let textItem = Utils().parseFeedItems(event)
                 
-                // self.createData(item: item)
+                 
+                 for item in textItem {
+                     self.pushItem(item: item)
+                 }
+                
 
             })
        
@@ -77,19 +85,30 @@ class FeedData: ObservableObject {
         /* getting the entire list of items back */
         cancellableSet.insert(
            
-            xmppController.didGetItems.sink(receiveValue: { value in
+            xmppController.didGetFeedItems.sink(receiveValue: { value in
                 
-                var textItem = Utils().parseListItems(value)
-               
+//                var textItem = Utils().parseFeedItems(value)
+//
+//                textItem.sort {
+//                    $0.timestamp > $1.timestamp
+//                }
+//
+//                for item in textItem {
+//                    self.pushItem(item: item)
+//                }
+
+                let pubsub = value.element(forName: "pubsub")
+                var textItem = Utils().parseFeedItems(pubsub)
+
                 textItem.sort {
                     $0.timestamp > $1.timestamp
                 }
-                
+
                 for item in textItem {
                     self.pushItem(item: item)
                 }
                 
-               // self.createData(item: item)
+                
 
            })
 

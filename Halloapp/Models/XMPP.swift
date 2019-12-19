@@ -24,7 +24,7 @@ class XMPP: ObservableObject {
     
     init(userData: UserData, metaData: MetaData) {
 
-        print("XMPP Init")
+//        print("XMPP Init")
         
         self.userData = userData
         self.metaData = metaData

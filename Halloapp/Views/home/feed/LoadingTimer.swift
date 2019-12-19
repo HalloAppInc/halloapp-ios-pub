@@ -10,7 +10,7 @@ import SwiftUI
 
 struct LoadingTimer: View {
     
-    @State var timeRemaining = 20
+    @State var timeRemaining = 10
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {

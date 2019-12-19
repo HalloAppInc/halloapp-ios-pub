@@ -13,9 +13,13 @@ import Combine
 final class HomeRouteData: ObservableObject {
 
     @Published var homePage = "feed"
+    public var isGoingBack = false
     
     func gotoPage(page: String) {
         self.homePage = page
     }
     
+    func setIsGoingBack(value: Bool) {
+        self.isGoingBack = value
+    }
 }

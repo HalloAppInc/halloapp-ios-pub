@@ -14,6 +14,10 @@ import CoreData
 
 final class UserData: ObservableObject {
 
+    @Published var countryCode = "1"
+    
+    @Published var phoneInput = ""
+    
     @Published var phone = ""
     @Published var isLoggedIn = false
     
@@ -22,10 +26,14 @@ final class UserData: ObservableObject {
     
     @Published var isOffline = true
     
-    @Published var status = ""
+    @Published var status: String = ""
     @Published var highlight = false
+    
+    @Published var highlightCountryCode = false
 
-    @Published var hostName = "d.halloapp.dev"
+//    @Published var hostName = "d.halloapp.dev"
+    @Published var hostName = "s.halloapp.net" // will be new host
+    
 //  @Published var userJIDString = "14154121848@s.halloapp.net/iphone"
 //  @Published var userJIDString = "14088922686@s.halloapp.net/iphone"
     
@@ -42,6 +50,12 @@ final class UserData: ObservableObject {
 
     init() {
 
+        let locale = Locale.current
+        print("country: \(locale.regionCode)")
+        print(locale.localizedString(forRegionCode: locale.regionCode!))
+        
+//        print(Utils().getCountryFromCode("1"))
+        
         self.getData()
         
         subCancellable = $phone.sink { val in
@@ -95,12 +109,14 @@ final class UserData: ObservableObject {
     }
     
     func logout() {
+        
         deleteAllData(entityName: "User")
         deleteAllData(entityName: "ContactsCore")
         deleteAllData(entityName: "FeedCore")
         
         
         /* wipe in memory data */
+        self.countryCode = "1"
         self.phone = ""
         self.isRegistered = false
         
@@ -108,11 +124,28 @@ final class UserData: ObservableObject {
         self.haveFeedSub = false
         
         self.isLoggedIn = false
+        
     }
     
     func validate() -> Bool {
   
-        if (self.phone == "") {
+        if (self.countryCode == "" || (Int(self.countryCode) ?? 0) < 1) {
+            self.status = "Please enter a country code"
+            self.highlightCountryCode = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+              self.status = ""
+              self.highlightCountryCode = false
+            }
+            return false
+        } else if (self.countryCode.count > 5) {
+            self.status = "Country Code is too long"
+            self.highlightCountryCode = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+              self.status = ""
+              self.highlightCountryCode = false
+            }
+            return false
+        } else if (self.phoneInput == "") {
             self.status = "Please enter a phone number"
             self.highlight = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
@@ -120,7 +153,7 @@ final class UserData: ObservableObject {
                 self.highlight = false
             }
             return false
-        } else if (self.phone.count < 5) {
+        } else if (self.phoneInput.count < 5) {
             self.status = "Please enter valid phone number"
             self.highlight = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
@@ -129,6 +162,9 @@ final class UserData: ObservableObject {
             }
             return false
         } else {
+            
+            self.phone = "\(self.countryCode)\(self.phoneInput)"
+            
             if (self.isDataPresent()) {
                 self.saveData()
             } else {
@@ -140,50 +176,83 @@ final class UserData: ObservableObject {
     }
     
     func register() {
-        
-        do {
+    
+        let session = URLSession.shared
+        let url = URL(string: "https://\(self.hostName)/cgi-bin/request.sh?user=\(self.phone)")!
+
+        let task = session.dataTask(with: url, completionHandler: { data, response, error in
+
             
-            try self.xmppRegister = XMPPRegister(phone: self.phone, password: self.password)
-            
-            if (self.xmppRegister != nil) {
-            
-                self.xmppRegister!.xmppStream.addDelegate(self, delegateQueue: DispatchQueue.main)
+            struct registerRes: Codable {
+                let user: String
+                let result: String
                 
-                self.cancellableSet.insert(
-                 
-                    self.xmppRegister!.didConnect.sink(receiveValue: { value in
-
-                        print(value)
-                        
-                        if (value == "exists") {
-                            self.isRegistered = true
-                        } else if (value == "success") {
-                            self.isRegistered = true
-                        } else if (value == "too quick") {
-                            self.status = "Error, please try again in 10 minutes"
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                                self.status = ""
-                            }
-                            self.isRegistered = false
-                        } else if (value == "error") {
-                            self.status = "Could not login, please try again later"
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                                self.status = ""
-                            }
-                            self.isRegistered = false
-                        }
-                        
-                        self.xmppRegister!.xmppStream.disconnect()
-
-                    })
-
-                )
             }
             
-        } catch {
-            print("error connecting to xmpp register server")
-        }
+            if let data = data {
+                do {
+                    let res = try JSONDecoder().decode(registerRes.self, from: data)
+                    print("user: \(res.user)")
+                    print("result: \(res.result)")
+                    
+                    DispatchQueue.main.async {
+                    
+                        self.isRegistered = true
+                        
+                    }
+                    
+                } catch let error {
+                   print(error)
+                }
+             }
+
+        })
+        task.resume()
         
+//
+//        do {
+//
+//            try self.xmppRegister = XMPPRegister(phone: self.phone, password: self.password)
+//
+//            if (self.xmppRegister != nil) {
+//
+//                self.xmppRegister!.xmppStream.addDelegate(self, delegateQueue: DispatchQueue.main)
+//
+//                self.cancellableSet.insert(
+//
+//                    self.xmppRegister!.didConnect.sink(receiveValue: { value in
+//
+//                        print(value)
+//
+//                        if (value == "exists") {
+//                            self.isRegistered = true
+//                        } else if (value == "success") {
+//                            self.isRegistered = true
+//                        } else if (value == "too quick") {
+//                            self.status = "Error, please try again in 10 minutes"
+//                            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+//                                self.status = ""
+//                            }
+//                            self.isRegistered = false
+//                        } else if (value == "error") {
+//                            self.status = "Could not login, please try again later"
+//                            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+//                                self.status = ""
+//                            }
+//                            self.isRegistered = false
+//                        }
+//
+//                        self.xmppRegister!.xmppStream.disconnect()
+//
+//                    })
+//
+//                )
+//            }
+//
+//        } catch {
+//            print("error connecting to xmpp register server")
+//        }
+//
 
         
         
@@ -197,7 +266,10 @@ final class UserData: ObservableObject {
         let userEntity = NSEntityDescription.entity(forEntityName: "User", in: managedContext)!
         
         let user = NSManagedObject(entity: userEntity, insertInto: managedContext)
+        user.setValue(self.countryCode, forKeyPath: "countryCode")
+        user.setValue(self.phoneInput, forKeyPath: "phoneInput")
         user.setValue(self.phone, forKeyPath: "phone")
+        user.setValue(self.password, forKeyPath: "password")
         user.setValue(self.isLoggedIn, forKeyPath: "isLoggedIn")
         user.setValue(self.haveContactsSub, forKeyPath: "haveContactsSub")
         user.setValue(self.haveFeedSub, forKeyPath: "haveFeedSub")
@@ -222,6 +294,9 @@ final class UserData: ObservableObject {
             let result = try managedContext.fetch(fetchRequest)
 
             let objectUpdate = result[0] as! NSManagedObject
+            objectUpdate.setValue(self.countryCode, forKey: "countryCode")
+            objectUpdate.setValue(self.phoneInput, forKey: "phoneInput")
+            objectUpdate.setValue(self.password, forKey: "password")
             objectUpdate.setValue(self.phone, forKey: "phone")
             objectUpdate.setValue(self.isLoggedIn, forKey: "isLoggedIn")
             objectUpdate.setValue(self.haveContactsSub, forKey: "haveContactsSub")
@@ -267,9 +342,22 @@ final class UserData: ObservableObject {
             let result = try managedContext.fetch(fetchRequest)
             
             for data in result as! [NSManagedObject] {
-                self.phone = data.value(forKey: "phone") as! String
 
-//                print(data.value(forKey: "haveFeedSub") as! Bool?)
+                if let countryCode = data.value(forKey: "countryCode") as! String? {
+                    self.countryCode = countryCode
+                }
+                
+                if let phoneInput = data.value(forKey: "phoneInput") as! String? {
+                    self.phoneInput = phoneInput
+                }
+                
+                self.phone = data.value(forKey: "phone") as! String
+                
+                                
+                if let password = data.value(forKey: "password") as! String? {
+                    self.password = password
+                }
+                    
                 if let isLoggedIn = data.value(forKey: "isLoggedIn") as! Bool? {
                     self.isLoggedIn = isLoggedIn
                 } else {

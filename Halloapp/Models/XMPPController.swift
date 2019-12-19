@@ -22,19 +22,26 @@ class XMPPController: NSObject, ObservableObject {
     
     var didChangeMessage = PassthroughSubject<XMPPMessage, Never>()
     
-    var didChangeFeedItem = PassthroughSubject<XMPPMessage, Never>()
-    var didGetItems = PassthroughSubject<XMPPIQ, Never>()
+    var didGetNewFeedItem = PassthroughSubject<XMPPMessage, Never>()
+    var didGetNewContactsItem = PassthroughSubject<XMPPMessage, Never>()
+
+    var didGetFeedItems = PassthroughSubject<XMPPIQ, Never>()
+    var didGetContactsItems = PassthroughSubject<XMPPIQ, Never>()
     
-    var didGetAllAffiliations = PassthroughSubject<XMPPIQ, Never>()
+    var didGetOwnAffiliations = PassthroughSubject<XMPPIQ, Never>() // all of the user's own affiliations
+    var didGetAllAffiliations = PassthroughSubject<XMPPIQ, Never>() // all the affiliations that others have the user on
     var didGetIq = PassthroughSubject<XMPPIQ, Never>()
     var didSubscribeToContact = PassthroughSubject<String, Never>()
     var didNotSubscribeToContact = PassthroughSubject<String, Never>()
+    
+    var didGetSubscriptions = PassthroughSubject<XMPPIQ, Never>()
     
     var xmppStream: XMPPStream
     var xmppPubSub: XMPPPubSub
     var xmppReconnect: XMPPReconnect
 
-    var hostName = "d.halloapp.dev"
+//    var hostName = "d.halloapp.dev"
+    var hostName = "s.halloapp.net" // will be new host
     var userJID: XMPPJID?
     var hostPort: UInt16 = 5222
     var password: String?
@@ -149,24 +156,6 @@ class XMPPController: NSObject, ObservableObject {
 //
 //        self.xmppStream.send(iq)
 
-        /* see affiliation */
-//        let affiliations = XMLElement(name: "affiliations")
-//        affiliations.addAttribute(withName: "node", stringValue: "contacts-14088922686")
-//
-//        let pubsub = XMLElement(name: "pubsub")
-//        pubsub.addAttribute(withName: "xmlns", stringValue: "http://jabber.org/protocol/pubsub#owner")
-//        pubsub.addChild(affiliations)
-//
-//        let iq = XMLElement(name: "iq")
-//        iq.addAttribute(withName: "type", stringValue: "get")
-//        iq.addAttribute(withName: "from", stringValue: "\(userData.phone)@s.halloapp.net/iphone")
-//        iq.addAttribute(withName: "to", stringValue: "pubsub.s.halloapp.net")
-//        iq.addAttribute(withName: "id", stringValue: "3")
-//        iq.addChild(pubsub)
-//
-//        self.xmppStream.send(iq)
-        
-
         
     }
 
@@ -190,7 +179,20 @@ extension XMPPController: XMPPStreamDelegate {
             
             let affiliations = pubsub?.element(forName: "affiliations")
             if affiliations != nil {
-                self.didGetAllAffiliations.send(iq)
+//                print("Stream: didReceive \(iq)")
+                
+                let node = affiliations?.attributeStringValue(forName: "node")
+                
+                if node != nil && node == "contacts-\(self.userData.phone)" {
+                    self.didGetOwnAffiliations.send(iq)
+                } else {
+                    self.didGetAllAffiliations.send(iq)
+                }
+                return false
+            }
+            
+            let subscriptions = pubsub?.element(forName: "subscriptions")
+            if subscriptions != nil {
                 return false
             }
             
@@ -252,6 +254,8 @@ extension XMPPController: XMPPStreamDelegate {
     func xmppStreamDidConnect(_ stream: XMPPStream) {
         print("Stream: Connected")
 //        self.userData.setIsOffline(value: false)
+        
+
         try! stream.authenticate(withPassword: self.password ?? "")
     }
 
@@ -301,10 +305,12 @@ extension XMPPReconnect: XMPPReconnectDelegate {
 
 extension XMPPController: XMPPPubSubDelegate {
 
-//    func xmppPubSub(_ sender: XMPPPubSub, didRetrieveSubscriptions iq: XMPPIQ) {
+    func xmppPubSub(_ sender: XMPPPubSub, didRetrieveSubscriptions iq: XMPPIQ) {
 //        print("PubSub: didRetrieveSubscriptions - \(iq)")
-//    }
-//
+        self.didGetSubscriptions.send(iq)
+        
+    }
+
 //    func xmppPubSub(_ sender: XMPPPubSub, didNotRetrieveSubscriptions iq: XMPPIQ) {
 //        print("PubSub: didNotRetrieveSubscriptions - \(iq)")
 //    }
@@ -379,7 +385,19 @@ extension XMPPController: XMPPPubSubDelegate {
         
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveItems iq: XMPPIQ, fromNode node: String) {
 //        print("PubSub: didRetrieveItems - \(iq)")
-        self.didGetItems.send(iq)
+        
+        let pubsub = iq.element(forName: "pubsub")
+        let items = pubsub?.element(forName: "items")
+        let node = items?.attributeStringValue(forName: "node")
+        
+        let nodeParts = node!.components(separatedBy: "-")
+        
+        if (nodeParts[0] == "feed") {
+            self.didGetFeedItems.send(iq)
+        } else if (nodeParts[0] == "contacts") {
+            self.didGetContactsItems.send(iq)
+        }
+        
     }
     
 //    func xmppPubSub(_ sender: XMPPPubSub, didNotRetrieveItems iq: XMPPIQ, fromNode node: String) {
@@ -388,7 +406,20 @@ extension XMPPController: XMPPPubSubDelegate {
 
     func xmppPubSub(_ sender: XMPPPubSub, didReceive message: XMPPMessage) {
         print("PubSub: didReceiveMessage - \(message)")
-        self.didChangeFeedItem.send(message)
+        
+
+        let event = message.element(forName: "event")
+        let items = event?.element(forName: "items")
+        let node = items?.attributeStringValue(forName: "node")
+        
+        let nodeParts = node!.components(separatedBy: "-")
+        
+        if (nodeParts[0] == "feed") {
+            self.didGetNewFeedItem.send(message)
+        } else if (nodeParts[0] == "contacts") {
+            self.didGetNewContactsItem.send(message)
+        }
+        
     }
             
 }

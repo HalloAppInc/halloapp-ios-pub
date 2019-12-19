@@ -15,13 +15,13 @@ struct GridCell: View {
 
     var body: some View {
         VStack() {
-          
+     
             ZStack() {
                 if (item.imageUrl != "") {
                     Image(uiImage: item.image)
                         .resizable()
+                        .aspectRatio(item.image.size, contentMode: .fill)
                         .frame(width: UIScreen.main.bounds.size.width/3 - 10, height: UIScreen.main.bounds.size.width/3 - 10)
-                        .aspectRatio(contentMode: .fit)
                         .background(Color.gray)
                         .cornerRadius(5)
                         .padding(0)
@@ -57,6 +57,9 @@ struct Profile: View {
     
     @EnvironmentObject var userData: UserData
     @EnvironmentObject var authRouteData: AuthRouteData
+    
+    
+    @EnvironmentObject var homeRouteData: HomeRouteData
     
     @State var msgToSend = ""
     
@@ -126,8 +129,11 @@ struct Profile: View {
                       vPadding: 0,
                       hPadding: 0) { item in
                         GridCell(item: item, phone: self.userData.phone)
-                }
+                    }
+               
+
                 
+                Spacer()
                 
 
                 
@@ -173,8 +179,10 @@ struct Profile: View {
                 }.padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
                 .hidden()
                 
+
+                
             }
-            .padding(EdgeInsets(top: 120, leading: 20, bottom: 50, trailing: 10))
+            .padding(EdgeInsets(top: 120, leading: 10, bottom: 0, trailing: 10))
 
         }
         .background(Color(red: 248/255, green: 248/255, blue: 248/255))
@@ -209,6 +217,7 @@ struct Profile: View {
                     .padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 18))
 
                     Button(action: {
+                        self.showSettings = true
                       self.showSheet = true
                     }) {
                       Image(systemName: "person.crop.square.fill")
@@ -245,16 +254,17 @@ struct Profile: View {
 
                 Settings(onDismiss: {
                     self.showSheet = false
+                    
               
                     
-                }).environmentObject(self.userData)
+                })
+                .environmentObject(self.userData)
+                .environmentObject(self.homeRouteData)
                 
             } else if (self.showSheet) {
-                Commenting(onDismiss: {
-                    self.showSheet = false
-               
-                    
-                })
+
+                
+                
             }
         })
     }

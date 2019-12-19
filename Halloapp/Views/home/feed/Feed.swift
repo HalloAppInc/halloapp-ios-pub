@@ -10,6 +10,8 @@ import SwiftUI
 
 struct Feed: View {
     
+    @EnvironmentObject var feedRouterData: FeedRouterData
+    
     @EnvironmentObject var homeRouteData: HomeRouteData
     @EnvironmentObject var userData: UserData
 
@@ -28,7 +30,6 @@ struct Feed: View {
 
     @State private var showMiscActions = false
     @State private var showMessages = false
-    @State private var showComments = false
     
     @State private var UserImage = Image(systemName: "nosign")
     @State private var pickedUIImage: UIImage = UIImage(systemName: "nosign")!
@@ -38,136 +39,177 @@ struct Feed: View {
     
     @EnvironmentObject var metaData: MetaData
     
+    @State private var detailsPage = ""
+    
     var body: some View {
-                        
+        
+        
         return VStack() {
-
-            ScrollView() {
-     
-                Divider()
-                    .frame(height: 75)
-                    .hidden()
+            
+            List() {
                 
-                if (feedData.feedDataItems.count == 0) {
-                    LoadingTimer()
-                } else {
-                    ForEach(feedData.feedDataItems) { item in
-                        VStack(spacing: 0) {
+                /*
+                 crash alert: "precondition failure: invalid value type for attribute"
+                 this crash might happen when scrolling up and down the List, a strange
+                 workaround is to wrap a VStack inside List
+                */
+                VStack(spacing: 0) {
+                    
+                    Divider()
+                        .frame(height: 70)
+                        .hidden()
+                    
+                    if (self.feedData.feedDataItems.count == 0) {
+                        LoadingTimer()
+                    } else {
+                        ForEach(self.feedData.feedDataItems) { item in
                             
-                            HStack() {
-
+                                
+                            VStack(spacing: 0) {
+                                
                                 HStack() {
 
-                                    Image(uiImage: item.userImage)
-                                        .resizable()
+                                    HStack() {
 
-                                        .scaledToFit()
-                                        .background(Color(red: 192/255, green: 192/255, blue: 192/255))
-                                        .clipShape(Circle())
+                                        Image(uiImage: item.userImage)
+                                            .resizable()
 
-                                        .frame(width: 30, height: 30, alignment: .center)
-                                        .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 0))
+                                            .scaledToFit()
+                                            .background(Color(red: 192/255, green: 192/255, blue: 192/255))
+                                            .clipShape(Circle())
 
-                                    Text(self.contacts.getName(phone: item.username))
-                                        .font(.system(size: 14, weight: .regular))
+                                            .frame(width: 30, height: 30, alignment: .center)
+                                            .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 0))
 
-                                    Text(Utils().timeForm(dateStr: String(item.timestamp)))
-                                        .foregroundColor(Color.gray)
+                                        Text(self.contacts.getName(phone: item.username))
+                                            .font(.system(size: 14, weight: .regular))
+
+                                        Text(Utils().timeForm(dateStr: String(item.timestamp)))
+                                            .foregroundColor(Color.gray)
+                                    }
+
+                                    Spacer()
+
+                                    Button(action: {
+                                        self.showMiscActions = true
+
+                                    }) {
+                                        Image(systemName: "ellipsis")
+                                            .font(Font.title.weight(.regular))
+                                            .foregroundColor(Color.gray)
+                                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 25))
+                                    }
+                                    
                                 }
-
-                                Spacer()
-
-                                Button(action: {
-                                    self.showMiscActions = true
-
-                                }) {
-                                    Image(systemName: "ellipsis")
-                                        .font(Font.title.weight(.regular))
-                                        .foregroundColor(Color.gray)
-                                        .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 25))
-                                }
-                            }
-                            .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
-              
-                            
-                            if (item.imageUrl != "") {
+                                .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
+                                .buttonStyle(BorderlessButtonStyle())
+                  
+                                
+                                if (item.imageUrl != "") {
 
                                     Image(uiImage: item.image)
 
                                         .resizable()
-                                        .aspectRatio(item.image.size, contentMode: .fill)
+                                        .aspectRatio(item.image.size, contentMode: .fit)
                                         .background(Color.gray)
                                         .cornerRadius(10)
                                         .padding(EdgeInsets(top: 10, leading: 10, bottom: 15, trailing: 10))
-
-
-
-
-                            } else {
+                                        
+                                } else {
+                                    Divider()
+                                        .frame(height: 10)
+                                        .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
+                                        .hidden()
+                                }
+                               
+                                
+                                HStack() {
+                                    Text(item.text)
+                                        .font(.system(size: 16, weight: .light))
+                                    Spacer()
+                                }.padding(EdgeInsets(top: 0, leading: 20, bottom: 15, trailing: 20))
+                                
                                 Divider()
-                                    .frame(height: 10)
-                                    .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
-                                    .hidden()
-                            }
+
+                                
+                                HStack {
+                                   
+ 
+                                        Button(action: {
+                                            self.showMessages = true
+                                            self.showSheet = true
+//                                            self.feedRouterData.gotoPage(page: "commenting")
+
+                                        }) {
+                                            HStack {
+                                                 Image(systemName: "message")
+                                                     .font(.system(size: 20, weight: .regular))
+                                                     .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                                 Text("Comments")
+                                            }
+                                         }
                            
-                            
-                            HStack() {
-                                Text(item.text)
-                                    .font(.system(size: 16, weight: .light))
-                                Spacer()
-                            }.padding(EdgeInsets(top: 0, leading: 20, bottom: 15, trailing: 20))
-                            
-                            Divider()
+                                        
 
-                            
-                            HStack {
-                                 Button(action: {
-                                     self.showComments = true
-                                    self.showSheet = true
+                                    Spacer()
 
-                                 }) {
-                                     Image(systemName: "message")
-                                         .font(.system(size: 20, weight: .regular))
-                                         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                                     Text("Comments")
-                                 }
+                                    Button(action: {
+                                        
+                                        self.showMessages = true
+                                        self.showSheet = true
 
-                                Spacer()
+                                     }) {
+                                        HStack {
+                                             Image(systemName: "envelope")
+                                                 .font(.system(size: 20, weight: .regular))
+                                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                                
+                                             Text("Message")
+                                        }
+                                     }
 
-                                 Button(action: {
-                                     self.showMessages = true
-                                    self.showSheet = true
-
-                                 }) {
-                                     Image(systemName: "envelope")
-                                         .font(.system(size: 20, weight: .regular))
-                                         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                                     Text("Message")
-                                 }
-
+                                }
+                                .foregroundColor(Color.black)
+                                .padding(EdgeInsets(top: 20, leading: 35, bottom: 20, trailing: 35))
+                                .buttonStyle(BorderlessButtonStyle())
+                                
                             }
-                            .foregroundColor(Color.black)
-                            .padding(EdgeInsets(top: 20, leading: 35, bottom: 20, trailing: 35))
+                                
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .shadow(color: Color(red: 220/255, green: 220/255, blue: 220/255), radius: 5)
+
+                            .padding(EdgeInsets(top: 50, leading: 0, bottom: 0, trailing: 0))
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                             
+
                         }
-                            
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        .shadow(color: Color(red: 220/255, green: 220/255, blue: 220/255), radius: 5)
 
-                        .padding(EdgeInsets(top: 50, leading: 10, bottom: 0, trailing: 10))
-                        
                     }
-
+                    Divider()
+                        .frame(height: 100)
+                        .hidden()
                 }
-                Divider()
-                    .frame(height: 100)
-                    .hidden()
+                .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowInsets(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
             }
         
+
+            .onAppear {
+                UITableViewCell.appearance().selectionStyle = .none
+                UITableView.appearance().backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 248/255, alpha: 1)
+                UITableViewCell.appearance().backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 248/255, alpha: 1)
+                UITableView.appearance().separatorStyle = .none
+                
+            }
+            
+                
         }
+        
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
         .background(Color(red: 248/255, green: 248/255, blue: 248/255))
+            
+        
             
         .overlay(
             BlurView(style: .extraLight)
@@ -185,7 +227,7 @@ struct Feed: View {
                     .padding()
                 
                 
-//                Text(String(self.metaData.isOffline))
+        //                Text(String(self.metaData.isOffline))
                 
                 Spacer()
 
@@ -210,10 +252,12 @@ struct Feed: View {
                             Image(systemName: "plus")
                               .font(Font.title.weight(.regular))
                                 .foregroundColor(Color.black)
+                                
+                                .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 25))
+
                         }
                         
-                        .padding(.leading, 10)
-                        .padding(.trailing, 25)
+            
                         
                     }
                 }
@@ -224,7 +268,7 @@ struct Feed: View {
             .background(Color.clear),
             alignment: .top
         )
-        
+
         .overlay(
             BlurView(style: .extraLight)
                 .frame(height: 85),
@@ -237,7 +281,6 @@ struct Feed: View {
           alignment: .bottom
         )
         .edgesIgnoringSafeArea(.all)
-            
 
         .sheet(isPresented: self.$showSheet, content: {
             
@@ -253,11 +296,11 @@ struct Feed: View {
                             pickerStatus: self.$pickerStatus,
                             callback: {
                        
-//                                self.feedData.postText(self.userData.phone, "", self.imageUrl)
-//                                self.pickerStatus = "success"
-//                                self.imageUrl = ""
+        //                                self.feedData.postText(self.userData.phone, "", self.imageUrl)
+        //                                self.pickerStatus = "success"
+        //                                self.imageUrl = ""
                                 
-//                                self.showPostText = true
+        //                                self.showPostText = true
                                 
                                 
                             }
@@ -290,12 +333,6 @@ struct Feed: View {
                 .environmentObject(self.userData)
 
                 
-            } else if (self.showComments) {
-                Commenting(onDismiss: {
-                    self.showSheet = false
-                    self.showComments = false
-                    
-                })
             } else if (self.showMessages) {
                 MessageUser(onDismiss: {
                     self.showSheet = false
@@ -346,11 +383,12 @@ struct Feed: View {
                 ]
             )
         }
-        .alert(isPresented: $showMiscActions) {
-             Alert(title: Text("More actions coming soon"), message: Text(""), dismissButton: .default(Text("OK")))
-         }
+        .alert(isPresented: self.$showMiscActions) {
+            Alert(title: Text("More actions coming soon"), message: Text(""), dismissButton: .default(Text("OK")))
+        }
+        
 
-
+        
         
     }
     

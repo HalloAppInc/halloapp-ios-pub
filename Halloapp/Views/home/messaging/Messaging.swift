@@ -12,9 +12,11 @@ import Contacts
 struct Messaging: View {
     
     @EnvironmentObject var authRouteData: AuthRouteData
+    
 
     @ObservedObject var contacts: Contacts
     
+    @EnvironmentObject var homeRouteData: HomeRouteData
     
     
 @State var showSheet = false
@@ -24,18 +26,19 @@ struct Messaging: View {
     var body: some View {
         return VStack() {
             
-            ScrollView () {
+            List() {
             
                 Divider()
                     .frame(height: 100)
                     .hidden()
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 
                 ForEach(contacts.normalizedContacts.filter( {
-                    
-                    return $0.isConnected
-                    
-                } )) { (contact: NormContact) in
 
+                    return $0.isConnected
+
+                } )) { (contact: NormContact) in
+                
                     HStack {
                         
                         Image(systemName: "circle.fill")
@@ -66,7 +69,8 @@ struct Messaging: View {
                         }
                         
                         Spacer()
-    
+                        
+
                         Button(action: {
                             self.showCameraAll = true
                             self.showSheet = true
@@ -76,18 +80,40 @@ struct Messaging: View {
                               .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
                         }.padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 10))
                             
-                    }.padding(EdgeInsets(top: 5, leading: 5, bottom: 0, trailing: 5))
+                    }.padding(EdgeInsets(top: 10, leading: 5, bottom: 0, trailing: 5))
 
+                }.listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                
+                if contacts.normalizedContacts.filter( {return $0.isConnected } ).count == 0 {
+                    Divider()
+                        .frame(height: 75)
+                        .hidden()
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    Text("Your contacts aren't on Hallo yet")
                 }
                 
+                
+                
                 Divider()
-                    .frame(height: 75)
+                    .frame(height: 100)
                     .hidden()
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+       
             }
             
+            .onAppear {
+                UITableView.appearance().backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 248/255, alpha: 1)
+                UITableViewCell.appearance().backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 248/255, alpha: 1)
+                UITableView.appearance().separatorStyle = .none
+            }
+            .background(Color(red: 248/255, green: 248/255, blue: 248/255))
+        
+
         }
         .background(Color(red: 248/255, green: 248/255, blue: 248/255))
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+
+        
             
         .overlay(
             BlurView(style: .extraLight)
@@ -110,6 +136,7 @@ struct Messaging: View {
 
                     if (self.contacts.idsToWhiteList.count > 0) {
                         Text(String(self.contacts.idsToWhiteList.count))
+                            .font(.system(size: 8, weight: .regular))
                             .padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 18))
                             .foregroundColor(Color.gray)
                     }
@@ -141,10 +168,9 @@ struct Messaging: View {
                 
             }
             .padding(EdgeInsets(top: 25, leading: 0, bottom: 0, trailing: 0))
-            .background(Color.clear),
-            alignment: .top
+            .background(Color.clear), alignment: .top
         )
-            
+
         .overlay(
             BlurView(style: .extraLight)
                 .frame(height: 85),
@@ -162,22 +188,27 @@ struct Messaging: View {
             
             if (self.showCameraAll) {
 
-                Commenting(onDismiss: {
-                    self.showSheet = false
-                    self.showCameraAll = false
+                  MessageUser(onDismiss: {
                     
-                })
+                      self.showSheet = false
+                      
+                
+                      
+                  })
                 
             } else if (self.showWrite) {
-                Commenting(onDismiss: {
-                    self.showSheet = false
-                    self.showWrite = false
+                  MessageUser(onDismiss: {
                     
-                })
+                      self.showSheet = false
+                      
+                
+                      
+                  })
             }
         })
         
     }
+    
 }
 
 struct Messaging_Previews: PreviewProvider {

@@ -69,6 +69,27 @@ class Contacts: ObservableObject {
     
     var store = CNContactStore()
     
+    
+    
+    func getOwnAffiliations() {
+        
+        let affiliations = XMLElement(name: "affiliations")
+        affiliations.addAttribute(withName: "node", stringValue: "contacts-\(self.xmpp.userData.phone)")
+
+        let pubsub = XMLElement(name: "pubsub")
+        pubsub.addAttribute(withName: "xmlns", stringValue: "http://jabber.org/protocol/pubsub#owner")
+        pubsub.addChild(affiliations)
+
+        let iq = XMLElement(name: "iq")
+        iq.addAttribute(withName: "type", stringValue: "get")
+        iq.addAttribute(withName: "from", stringValue: "\(self.xmpp.userData.phone)@s.halloapp.net/iphone")
+        iq.addAttribute(withName: "to", stringValue: "pubsub.s.halloapp.net")
+        iq.addAttribute(withName: "id", stringValue: "own aff")
+        iq.addChild(pubsub)
+
+        self.xmppController.xmppStream.send(iq)
+    }
+    
     func getAllAffiliations() {
         let affiliations = XMLElement(name: "affiliations")
 
@@ -128,8 +149,7 @@ class Contacts: ObservableObject {
 
     
     init(xmpp: XMPP) {
-        
-        print("contacts init")
+//        print("contacts init")
         
         self.xmpp = xmpp
         self.xmppController = self.xmpp.xmppController
@@ -153,10 +173,10 @@ class Contacts: ObservableObject {
          
             xmppController.didGetAllAffiliations.sink(receiveValue: { iq in
 
-                /* reconcile contacts with others contacts */
                 let affList = Utils().parseAffList(iq)
                 
                 print("got affiliations: \(affList)")
+                
                 
                 for (conIndex, con) in self.normalizedContacts.enumerated() {
                     
@@ -168,17 +188,18 @@ class Contacts: ObservableObject {
                         if (index != nil) {
                             self.normalizedContacts[conIndex].isConnected = true
                             self.normalizedContacts[conIndex].timeLastChecked = Date().timeIntervalSince1970
-                            
                             self.updateData(item: self.normalizedContacts[conIndex])
-                            self.normalizedContacts[conIndex].isConnected = true
-                            self.normalizedContacts[conIndex].timeLastChecked = Date().timeIntervalSince1970
-                            
+
                             self.xmppController.xmppPubSub.subscribe(toNode: "feed-\(con.phone)")
                             
-                            /* do this first so the other user does not have to wait */
+                            /*  redundant whitelisting but useful if the user is new and has > 1k contacts as this will whitelist
+                                these users first
+                             */
                             Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: con.phone, role: "member")
                             Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: con.phone, role: "member")
                         
+                            self.notifyUser(con.phone)
+                            
                         }
                         
                     } else {
@@ -193,12 +214,8 @@ class Contacts: ObservableObject {
                             self.xmppController.xmppPubSub.unsubscribe(fromNode: "feed-\(con.phone)")
                             self.xmppController.xmppPubSub.unsubscribe(fromNode: "contacts-\(con.phone)")
                         }
-                        
                     }
-                    
                 }
-
-                
                 
                 /* get all the items  */
                 let connected = self.normalizedContacts.filter() { $0.isConnected }
@@ -206,14 +223,92 @@ class Contacts: ObservableObject {
                     self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\($0.phone)")
                 }
                 
+                    
                 /* get your own items */
                 self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(self.xmpp.userData.phone)")
+                
+//                self.xmppController.xmppPubSub.retrieveItems(fromNode: "contacts-\(self.xmpp.userData.phone)")
+                
+                /* edge case: currently used only for removing extra affiliations */
+                self.getOwnAffiliations()
+                
+                /*
+                    edge case: currently only used for removing subscriptions that user does not have the contact for anymore
+                    ie. user have contact A connected, then user removes app and remove contact A, after reinstalling app, user
+                    will not have contact A anymore but is still subscribed
+                 */
+                self.xmppController.xmppPubSub.retrieveSubscriptions()
+                
+            })
+        )
+        
+        
+        cancellableSet.insert(
+         
+            xmppController.didGetNewContactsItem.sink(receiveValue: { iq in
+                // basically a refresh
+                self.getAllAffiliations()
+                
+                // todo: should also delete everything from list, ie remove users from subscriber lists
                 
             })
 
         )
         
+        cancellableSet.insert(
+         
+            xmppController.didGetSubscriptions.sink(receiveValue: { iq in
 
+                let list = Utils().parseSubsForExtras(iq)
+//                print("parsed subscriptions: \(list)")
+                                
+                for sub in list {
+                    
+                    if (sub == self.xmpp.userData.phone) {
+                        continue
+                    }
+                    
+                    let index = self.normalizedContacts.firstIndex { $0.phone == sub }
+                    
+                    if index == nil {
+                        print("remove extra subscription: \(sub)")
+                        
+                        self.xmppController.xmppPubSub.unsubscribe(fromNode: "feed-\(sub)")
+                        self.xmppController.xmppPubSub.unsubscribe(fromNode: "contacts-\(sub)")
+
+                    }
+
+                }
+            
+            })
+
+        )
+        
+        cancellableSet.insert(
+         
+            xmppController.didGetOwnAffiliations.sink(receiveValue: { iq in
+
+                let affList = Utils().parseOwnAffList(iq)
+//                print("got own affiliations: \(affList)")
+                
+                for aff in affList {
+                    
+                    let index = self.normalizedContacts.firstIndex { $0.phone == aff }
+                    
+                    if index == nil {
+                        print("remove extra whitelist: \(aff)")
+                        Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: aff, role: "none")
+                        Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: aff, role: "none")
+
+                    }
+
+                }
+            
+            })
+
+        )
+        
+        
         cancellableSet.insert(
          
             xmppController.didGetIq.sink(receiveValue: { iq in
@@ -294,34 +389,75 @@ class Contacts: ObservableObject {
             })
 
         )
+        
+        
+        
+        /* might be redundant to remove first, but just in case */
+        NotificationCenter.default.removeObserver(
+            self,
+            name: NSNotification.Name.CNContactStoreDidChange,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(addressBookDidChange),
+            name: NSNotification.Name.CNContactStoreDidChange,
+            object: nil)
 
     }
 
+    @objc func addressBookDidChange(notification: NSNotification) {
 
-    func postActive(_ user: String, _ text: String, _ imageUrl: String) {
-        print("postText: " + text)
+        print("notification: \(notification)")
+            
+        /* for some reason, notifications get fired twice so we remove it after the first */
+        NotificationCenter.default.removeObserver(
+            self,
+            name: NSNotification.Name.CNContactStoreDidChange,
+            object: nil
+        )
         
-        let text = XMLElement(name: "text", stringValue: text)
-        let username = XMLElement(name: "username", stringValue: self.xmpp.userData.phone)
-        let imageUrl = XMLElement(name: "imageUrl", stringValue: imageUrl)
-        let userImageUrl = XMLElement(name: "userImageUrl", stringValue: "")
+        self.fetch()
+        
+        /*
+         after we remove the observer we need to add it back so we can observe the next time,
+         but we delay for 2 seconds or else an immediate observer will actually catch the 2nd firing
+         note: 2nd firing could actually be an iOS issue
+         */
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(self.addressBookDidChange),
+                name: NSNotification.Name.CNContactStoreDidChange,
+                object: nil)
+        }
+        
+
+    }
+    
+    
+    func notifyUser(_ user: String) {
+        
+        print("notifyUser: \(user)")
+        
+        let text = XMLElement(name: "type", stringValue: "newUser")
+        let username = XMLElement(name: "user", stringValue: self.xmpp.userData.phone)
         let timestamp = XMLElement(name: "timestamp", stringValue: String(Date().timeIntervalSince1970))
 
         let root = XMLElement(name: "entry")
         
         root.addChild(username)
-        root.addChild(userImageUrl)
-        root.addChild(imageUrl)
         root.addChild(timestamp)
         root.addChild(text)
         
-        self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: root)
+        self.xmppController.xmppPubSub.publish(toNode: "contacts-\(user)", entry: root)
                 
     }
     
     
     func fetch() {
-        print("fetch contacts")
+//        print("fetch contacts")
         
         DispatchQueue.global(qos: .background).async {
            
@@ -486,12 +622,10 @@ class Contacts: ObservableObject {
                     
                 }
                 
+                
                 self.normalizedContacts.removeAll(where: { !$0.isMatched } )
                 
-                
-                
-                
-                print("Contacts: \(self.normalizedContacts.count)")
+                print("Fetched Contacts: \(self.normalizedContacts.count)")
                 
 
             }

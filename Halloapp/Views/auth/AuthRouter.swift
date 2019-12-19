@@ -10,8 +10,8 @@ import SwiftUI
 
 struct AuthRouter: View {
     
-    @EnvironmentObject var authRouteData: AuthRouteData
     @EnvironmentObject var userData: UserData
+    @EnvironmentObject var authRouteData: AuthRouteData
     
     var body: some View {
         

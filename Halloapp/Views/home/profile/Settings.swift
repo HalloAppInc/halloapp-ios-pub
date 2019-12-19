@@ -11,8 +11,11 @@ import SwiftUI
 struct Settings: View {
     
     @EnvironmentObject var userData: UserData
+    @EnvironmentObject var homeRouteData: HomeRouteData
     
     var onDismiss: () -> ()
+    
+    @State private var isButtonVisible = true
     
     var body: some View {
         VStack() {
@@ -29,10 +32,13 @@ struct Settings: View {
                 }
             }
             Spacer()
-            Text("0.0.3")
+            
+
+            
+            Text("0.0.4")
             Button(action: {
-//                self.userData.setIsLoggedIn(value: false)
                 self.userData.logout()
+                self.homeRouteData.gotoPage(page: "feed")
             }) {
                 Text("Log out")
                     .padding(10)
@@ -42,6 +48,8 @@ struct Settings: View {
                     .shadow(radius: 2)
             }
             .padding(.top, 100)
+            
+            
             Spacer()
 
         }

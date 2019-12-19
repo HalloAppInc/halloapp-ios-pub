@@ -26,7 +26,7 @@ struct MessageUser: View {
                 }
             }
             Spacer()
-            Text("Messaging coming very soon")
+            Text("coming very soon")
             Spacer()
 
         }

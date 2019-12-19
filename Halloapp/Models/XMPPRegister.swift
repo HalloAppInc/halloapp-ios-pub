@@ -11,7 +11,8 @@ class XMPPRegister: NSObject, ObservableObject {
 
     var xmppStream: XMPPStream
 
-    var hostName = "d.halloapp.dev"
+//    var hostName = "d.halloapp.dev"
+    var hostName = "s.halloapp.net" // will be new host
     var userJID: XMPPJID?
     var hostPort: UInt16 = 5222
     var password: String

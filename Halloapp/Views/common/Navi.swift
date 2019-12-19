@@ -23,14 +23,14 @@ struct Navi: View {
                     }) {
                         Image(systemName: "house")
                             .imageScale(.large)
-                            .foregroundColor(homeRouteData.homePage == "feed" ? Color.black : Color.black)
+                            .foregroundColor((homeRouteData.homePage == "feed" || homeRouteData.homePage == "back-to-feed") ? Color.black : Color.black)
                             .padding(EdgeInsets(top: 20, leading: 25, bottom: 7, trailing: 25))
                             
                     }
 
                     Image(systemName: "circle")
                         .font(.system(size: 7, weight: .heavy))
-                        .foregroundColor(homeRouteData.homePage == "feed" ? Color(red:  40/255, green:  40/255, blue:  40/255) : Color.clear)
+                        .foregroundColor((homeRouteData.homePage == "feed" || homeRouteData.homePage == "back-to-feed") ? Color(red:  40/255, green:  40/255, blue:  40/255) : Color.clear)
                         .padding(0)
                 }
                 
@@ -73,7 +73,7 @@ struct Navi: View {
                 }
 
             }
-            .padding(EdgeInsets(top: 0, leading: 40, bottom: 35, trailing: 40))
+            .padding(EdgeInsets(top: 0, leading: 40, bottom: 33, trailing: 40))
             .background(Color.clear)
         }
     }
