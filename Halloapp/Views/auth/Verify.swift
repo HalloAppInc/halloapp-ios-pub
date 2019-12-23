@@ -25,15 +25,14 @@ struct Verify: View {
                 Text("Please enter the verification code")
                 
                 VStack(spacing: 0) {
-                    
+                                        
                     TextField("Verification Code", text: self.$verification.code, onEditingChanged: { (changed) in
 
                         }) {
                             // pressing enter
                             self.verification.verify(userData: self.userData)
-                                
                         }
-                        .textContentType(.oneTimeCode) // probably not yet working in xcode 11.3
+                        .textContentType(.oneTimeCode) // note: SMS needs to have the word "code" in it
                         .keyboardType(.numberPad)
                         
                         .multilineTextAlignment(.center)

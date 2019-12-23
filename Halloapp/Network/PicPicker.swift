@@ -130,7 +130,7 @@ struct ImagePicker: UIViewControllerRepresentable {
                                     let str = data["uploadedFiles"][0]["name"].stringValue
                                     
                                     print("DATA PARSED: \(str)")
-                                    self.parent.imageUrl = str
+                                    self.parent.imageUrl = "https://cdn.image4.io/hallo\(str)"
                                     self.parent.pickerStatus = ""
                                     
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0) {

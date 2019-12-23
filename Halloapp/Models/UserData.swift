@@ -14,6 +14,8 @@ import CoreData
 
 final class UserData: ObservableObject {
 
+    var didLogOff = PassthroughSubject<Void, Never>()
+    
     @Published var countryCode = "1"
     
     @Published var phoneInput = ""
@@ -31,10 +33,9 @@ final class UserData: ObservableObject {
     
     @Published var highlightCountryCode = false
 
-//    @Published var hostName = "d.halloapp.dev"
-    @Published var hostName = "s.halloapp.net" // will be new host
+    @Published var hostName = "s.halloapp.net"
+//    @Published var hostName = "ec2-18-219-161-182.us-east-2.compute.amazonaws.com"
     
-//  @Published var userJIDString = "14154121848@s.halloapp.net/iphone"
 //  @Published var userJIDString = "14088922686@s.halloapp.net/iphone"
     
     @Published var password = "11111111"
@@ -45,14 +46,12 @@ final class UserData: ObservableObject {
     
     private var subCancellable: AnyCancellable!
     private var validCharSet = CharacterSet(charactersIn: "1234567890+.-_ ")
-    
-    var xmppRegister: XMPPRegister?
 
     init() {
 
-        let locale = Locale.current
-        print("country: \(locale.regionCode)")
-        print(locale.localizedString(forRegionCode: locale.regionCode!))
+//        let locale = Locale.current
+//        print("country: \(locale.regionCode)")
+//        print(locale.localizedString(forRegionCode: locale.regionCode!))
         
 //        print(Utils().getCountryFromCode("1"))
         
@@ -114,6 +113,7 @@ final class UserData: ObservableObject {
         deleteAllData(entityName: "ContactsCore")
         deleteAllData(entityName: "FeedCore")
         
+        self.didLogOff.send()
         
         /* wipe in memory data */
         self.countryCode = "1"
@@ -208,53 +208,6 @@ final class UserData: ObservableObject {
 
         })
         task.resume()
-        
-//
-//        do {
-//
-//            try self.xmppRegister = XMPPRegister(phone: self.phone, password: self.password)
-//
-//            if (self.xmppRegister != nil) {
-//
-//                self.xmppRegister!.xmppStream.addDelegate(self, delegateQueue: DispatchQueue.main)
-//
-//                self.cancellableSet.insert(
-//
-//                    self.xmppRegister!.didConnect.sink(receiveValue: { value in
-//
-//                        print(value)
-//
-//                        if (value == "exists") {
-//                            self.isRegistered = true
-//                        } else if (value == "success") {
-//                            self.isRegistered = true
-//                        } else if (value == "too quick") {
-//                            self.status = "Error, please try again in 10 minutes"
-//                            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-//                                self.status = ""
-//                            }
-//                            self.isRegistered = false
-//                        } else if (value == "error") {
-//                            self.status = "Could not login, please try again later"
-//                            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-//                                self.status = ""
-//                            }
-//                            self.isRegistered = false
-//                        }
-//
-//                        self.xmppRegister!.xmppStream.disconnect()
-//
-//                    })
-//
-//                )
-//            }
-//
-//        } catch {
-//            print("error connecting to xmpp register server")
-//        }
-//
-
-        
         
     }
     

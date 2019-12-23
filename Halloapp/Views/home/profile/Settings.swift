@@ -35,10 +35,11 @@ struct Settings: View {
             
 
             
-            Text("0.0.4")
+            Text("1.0.3")
             Button(action: {
                 self.userData.logout()
                 self.homeRouteData.gotoPage(page: "feed")
+                
             }) {
                 Text("Log out")
                     .padding(10)

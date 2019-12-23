@@ -22,11 +22,18 @@ class ImageLoader: ObservableObject {
     }
     
     init(urlString: String) {
-        guard let url = URL(string: urlString) else {
+        
+        if urlString == "" {
             return
         }
         
-        guard let formedUrl = URL(string: "https://cdn.image4.io/hallo\(urlString)") else {
+        var url = urlString
+        
+        if !urlString.lowercased().hasPrefix("http") {
+            url = "https://cdn.image4.io/hallo\(url)"
+        }
+        
+        guard let formedUrl = URL(string: url) else {
             return
         }
         

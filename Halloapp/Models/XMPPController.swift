@@ -30,7 +30,10 @@ class XMPPController: NSObject, ObservableObject {
     
     var didGetOwnAffiliations = PassthroughSubject<XMPPIQ, Never>() // all of the user's own affiliations
     var didGetAllAffiliations = PassthroughSubject<XMPPIQ, Never>() // all the affiliations that others have the user on
-    var didGetIq = PassthroughSubject<XMPPIQ, Never>()
+    
+    var didGetNormBatch = PassthroughSubject<XMPPIQ, Never>()
+    var didGetAffBatch = PassthroughSubject<XMPPIQ, Never>()
+    
     var didSubscribeToContact = PassthroughSubject<String, Never>()
     var didNotSubscribeToContact = PassthroughSubject<String, Never>()
     
@@ -40,11 +43,8 @@ class XMPPController: NSObject, ObservableObject {
     var xmppPubSub: XMPPPubSub
     var xmppReconnect: XMPPReconnect
 
-//    var hostName = "d.halloapp.dev"
-    var hostName = "s.halloapp.net" // will be new host
     var userJID: XMPPJID?
     var hostPort: UInt16 = 5222
-    var password: String?
 
     var userData: UserData
     var metaData: MetaData
@@ -57,12 +57,10 @@ class XMPPController: NSObject, ObservableObject {
         let user = "\(self.userData.phone)@s.halloapp.net/iphone"
         
         self.userJID = XMPPJID(string: user)
-        
-        self.password = self.userData.password
 
         // Stream Configuration
         self.xmppStream = XMPPStream()
-        self.xmppStream.hostName = hostName
+        self.xmppStream.hostName = self.userData.hostName
         self.xmppStream.hostPort = hostPort
         self.xmppStream.myJID = self.userJID
         
@@ -202,28 +200,37 @@ extension XMPPController: XMPPStreamDelegate {
             }
             
             print("Stream: didReceive \(iq)")
-            self.didGetIq.send(iq) // for batch affiliations
+            self.didGetAffBatch.send(iq) // for batch affiliations
 
         } else {
         
-            print("Stream: didReceive \(iq)")
-        }
-        
-        let idx = self.metaData.whiteListIds.firstIndex(where: {$0 == iq.elementID})
-        
-        if (idx != nil) {
+            let contactList = iq.element(forName: "contact_list")
             
+            if contactList != nil {
+                
+                self.didGetNormBatch.send(iq)
+                
+            } else {
             
-            let miniElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartWhitelist
-            print("\(self.metaData.whiteListIds[idx!]) perf: \(Int(miniElapsed))")
-            
-            self.metaData.whiteListIds.remove(at: idx!)
-            
-            if self.metaData.whiteListIds.count == 0 {
-                let timeElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartWhitelist
-                print("total perf: \(Int(timeElapsed)/60)")
+                print("Stream: didReceive \(iq)")
             }
         }
+        
+//        let idx = self.metaData.whiteListIds.firstIndex(where: {$0 == iq.elementID})
+//
+//        if (idx != nil) {
+//
+//
+//            let miniElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartWhitelist
+//            print("\(self.metaData.whiteListIds[idx!]) perf: \(Int(miniElapsed))")
+//
+//            self.metaData.whiteListIds.remove(at: idx!)
+//
+//            if self.metaData.whiteListIds.count == 0 {
+//                let timeElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartWhitelist
+//                print("total perf: \(Int(timeElapsed)/60)")
+//            }
+//        }
         
         return false
     }
@@ -255,8 +262,7 @@ extension XMPPController: XMPPStreamDelegate {
         print("Stream: Connected")
 //        self.userData.setIsOffline(value: false)
         
-
-        try! stream.authenticate(withPassword: self.password ?? "")
+        try! stream.authenticate(withPassword: self.userData.password)
     }
 
     func xmppStreamDidDisconnect(_ stream: XMPPStream) {
@@ -281,6 +287,8 @@ extension XMPPController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: DDXMLElement) {
         print("Stream: Fail to Authenticate")
+        self.userData.logout()
+        
     }
     
     func xmppStream(_ sender: XMPPStream, didReceiveError error: DDXMLElement) {

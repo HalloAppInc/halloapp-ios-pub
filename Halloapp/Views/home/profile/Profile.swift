@@ -69,165 +69,220 @@ struct Profile: View {
     @ObservedObject var feedData: FeedData
     
     var body: some View {
-        return VStack {
-            VStack() {
-                HStack {
-                    
-                    Image(systemName: "circle.fill")
-                        .resizable()
-                    
-                        .scaledToFit()
-                        .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
-                        .clipShape(Circle())
-                    
-                        .frame(width: 30, height: 30, alignment: .center)
-                        .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 0))
-                        
-                    
-                    Text("\(userData.phone)")
-                    
-                    Button(action: {
-                        self.showSheet = true
-                    }) {
-                        Text("edit")
-                            .padding(.leading, 10)
-                    }
-                    
-                    Spacer()
-                }
-                Spacer()
+        
+        return VStack(spacing: 0) {
                 
-//                ScrollView() {
-//                    VStack(spacing: 0) {
-//                        ForEach(feedData.feedDataItems) { item in
-//
-//                            if (item.imageUrl != "") {
-//                                Image(uiImage: item.image)
-//                                    .resizable()
-//                                    .frame(width: 100, height: 100)
-//                                    .aspectRatio(contentMode: .fit)
-//                                    .background(Color.gray)
-//                                    .cornerRadius(5)
-//                                    .padding(EdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5))
-//                            }
-//
-//
-//                        }
-//
-//                    }
-//                    .padding(EdgeInsets(top: 20, leading: 0, bottom: 0, trailing: 0))
-//                }
+            List() {
                 
-
-                QGrid(feedData.feedDataItems.filter({
-                    return $0.username == self.userData.phone
-                }),
-                      columns: 3,
-                      columnsInLandscape: 4,
-                      vSpacing: 5,
-                      hSpacing: 5,
-                      vPadding: 0,
-                      hPadding: 0) { item in
-                        GridCell(item: item, phone: self.userData.phone)
-                    }
-               
-
-                
-                Spacer()
-                
-
-                
-                HStack {
-                    TextField("", text: $msgToSend, onEditingChanged: { (changed) in
-                        if changed {
+                /*
+                 crash alert: "precondition failure: invalid value type for attribute"
+                 this crash might happen when scrolling up and down the List, a strange
+                 workaround is to wrap a VStack inside List
+                */
+                VStack(spacing: 0) {
+                    
+                    Divider()
+                        .frame(height: 150)
+                        .hidden()
+                    
+                    if (self.feedData.feedDataItems.count == 0) {
+                        LoadingTimer()
+                    } else {
+                        ForEach(self.feedData.feedDataItems) { item in
                             
-                        } else {
-                
-                        }
-                    }) {
+                            if item.username == self.userData.phone {
+                            
+                                VStack(spacing: 0) {
+                                                          
+                                    
+                                    if (item.imageUrl != "") {
 
-                        if (self.msgToSend != "") {
-                            // self.feedModel2.sendMessage(text: self.msgToSend)
-                            self.msgToSend = ""
+                                        Image(uiImage: item.image)
+
+                                            .resizable()
+                                            .aspectRatio(item.image.size, contentMode: .fit)
+                                            .background(Color.gray)
+                                            .cornerRadius(10)
+                                            .padding(EdgeInsets(top: 10, leading: 10, bottom: 15, trailing: 10))
+                                            
+                                    } else {
+                                        Divider()
+                                            .frame(height: 10)
+                                            .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
+                                            .hidden()
+                                    }
+                                   
+                //                                Text(String(item.imageUrl))
+                                    
+                                    HStack() {
+                                        Text(item.text)
+                                            .font(.system(size: 16, weight: .light))
+                                        Spacer()
+                                    }.padding(EdgeInsets(top: 0, leading: 20, bottom: 15, trailing: 20))
+                                    
+                                    Divider()
+
+                                    
+                                    HStack {
+                                       
+
+                                            Button(action: {
+                //                                            self.showComments = true
+                //                                            self.showSheet = true
+                                                
+                //                                            self.feedRouterData.gotoPage(page: "commenting")
+
+                                            }) {
+                                                HStack {
+
+                                                    Image(systemName: "circle.fill")
+                                                        .resizable()
+                                                    
+                                                        .scaledToFit()
+                                                        .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
+                                                        .clipShape(Circle())
+
+                                                        .frame(width: 25, height: 25, alignment: .center)
+                                                        
+                                                    
+                                                     Text("Add a comment or tag a friend...")
+                                                        .foregroundColor(Color.gray)
+                                                }
+                                             }
+                               
+                                            
+
+                                        Spacer()
+
+                                    }
+                                    .foregroundColor(Color.black)
+                                    .padding(EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 35))
+                                    .buttonStyle(BorderlessButtonStyle())
+                                    
+                                }
+                                    
+                                .background(Color.white)
+                                .cornerRadius(10)
+                                .shadow(color: Color(red: 220/255, green: 220/255, blue: 220/255), radius: 5)
+
+                                .padding(EdgeInsets(top: 50, leading: 0, bottom: 0, trailing: 0))
+                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                            
+                            }
+                                
                         }
+
                     }
-                    .padding(.all)
-                    .background(Color(red: 239.0/255.0, green: 243.0/255.0, blue: 244.0/255.0, opacity: 1.0))
+                    Divider()
+                        .frame(height: 100)
+                        .hidden()
+                }
+                .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .listRowInsets(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
+            }
 
-                    .cornerRadius(10)
-                    
-                    
-                    Button(action: {
-                        if (self.msgToSend != "") {
-                            self.feedData.sendMessage(text: self.msgToSend)
-                            self.msgToSend = ""
-                        }
 
-                    }) {
-    //                    Image(systemName: "paperplane.fill")
-    //                        .imageScale(.large)
-    //                        .foregroundColor(Color.blue)
-                        Text("SEND")
-
-                            .padding(10)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(20)
-                            .shadow(radius: 2)
-           
-                    }
-                }.padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
-                .hidden()
-                
-
+            .onAppear {
+                UITableViewCell.appearance().selectionStyle = .none
+                UITableView.appearance().backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 248/255, alpha: 1)
+                UITableViewCell.appearance().backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 248/255, alpha: 1)
+                UITableView.appearance().separatorStyle = .none
                 
             }
-            .padding(EdgeInsets(top: 120, leading: 10, bottom: 0, trailing: 10))
+            
 
+//                QGrid(feedData.feedDataItems.filter({
+//                    return $0.username == self.userData.phone
+//                }),
+//                      columns: 3,
+//                      columnsInLandscape: 4,
+//                      vSpacing: 5,
+//                      hSpacing: 5,
+//                      vPadding: 0,
+//                      hPadding: 0) { item in
+//                        GridCell(item: item, phone: self.userData.phone)
+//                    }
+           
+            Spacer()
+            
         }
-        .background(Color(red: 248/255, green: 248/255, blue: 248/255))
+        .background(Color.red)
+//        .background(Color(red: 248/255, green: 248/255, blue: 248/255))
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
         .overlay(
             BlurView(style: .extraLight)
-                .frame(height: 96),
+                .frame(height: 190),
             alignment: .top
         )
                         
         .overlay(
             HStack() {
                 
-                Text("profile")
-                    .font(.custom("Arial", size: 36))
-                    .fontWeight(.heavy)
-                    .foregroundColor(Color(red: 220/255, green: 220/255, blue: 220/255))
-                    .padding()
-                
-                Spacer()
- 
-                HStack {
+                VStack(spacing: 0) {
+                    
+                    HStack() {
+                        Text("Profile")
+                            .font(.custom("Arial", size: 36))
+                            .fontWeight(.heavy)
+                            .foregroundColor(Color(red: 220/255, green: 220/255, blue: 220/255))
+                            .padding()
+                        
+                        
+                        Spacer()
+         
+                        HStack {
 
-                    Button(action: {
-                        self.showSettings = true
-                      self.showSheet = true
-                    }) {
-                      Image(systemName: "gear")
-                          .font(Font.title.weight(.regular))
-                          .foregroundColor(Color.black)
-                    }
-                    .padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 18))
+                            Button(action: {
+                                self.showSettings = true
+                                self.showSheet = true
+                            }) {
+                              Image(systemName: "person.crop.square.fill")
+                                  .font(Font.title.weight(.regular))
+                                  .foregroundColor(Color.black)
+                            }
+                            .padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 18))
 
-                    Button(action: {
-                        self.showSettings = true
-                      self.showSheet = true
-                    }) {
-                      Image(systemName: "person.crop.square.fill")
-                        .font(Font.title.weight(.regular))
-                          .foregroundColor(Color.black)
+                            Button(action: {
+                                self.showSettings = true
+                                self.showSheet = true
+                            }) {
+                              Image(systemName: "gear")
+                                .font(Font.title.weight(.regular))
+                                  .foregroundColor(Color.black)
+                            }
+                            .padding(EdgeInsets(top: 5, leading: 10, bottom: 0, trailing: 25))
+                          
+                        }.padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                     }
-                    .padding(EdgeInsets(top: 5, leading: 10, bottom: 0, trailing: 25))
-                  
+                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+
+                    
+                    HStack {
+                        Spacer()
+                        VStack(spacing: 0) {
+                            Image(systemName: "circle.fill")
+                                .resizable()
+                            
+                                .scaledToFit()
+                                .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
+                                .clipShape(Circle())
+                            
+                                .frame(width: 50, height: 50, alignment: .center)
+                                .padding(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
+                                
+                            
+                            Text("\(userData.phone)")
+                        }
+
+                        
+                        Spacer()
+                    }
+                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    
+                    
                 }
-                
+                .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+               
                 
             }
             .padding(EdgeInsets(top: 25, leading: 0, bottom: 0, trailing: 0))

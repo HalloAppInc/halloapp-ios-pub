@@ -36,16 +36,21 @@ struct BatchId: Identifiable {
     var id = UUID()
     
     var phone: String = ""
+    var normalizedPhone: String = ""
     var batch: String = ""
 }
 
 struct NormContact: Identifiable {
     var id = UUID()
     
-    var name: String
     var phone: String
+    var normPhone: String = ""
+    
+    var name: String
+
     var isConnected: Bool = false
     var isWhiteListed: Bool = false
+    var isNormalized: Bool = false
     var timeLastChecked: Double
     
     var isMatched: Bool = false // not saved in Core Data, used only for checking
@@ -57,6 +62,7 @@ class Contacts: ObservableObject {
     @Published var error: Error? = nil
     
     @Published var normalizedContacts: [NormContact] = []
+    @Published var idsToNormalize: [BatchId] = []
     @Published var idsToWhiteList: [BatchId] = []
     
     var allPhonesString = ""
@@ -113,7 +119,7 @@ class Contacts: ObservableObject {
             return "Me"
         }
         
-        let idx = self.normalizedContacts.firstIndex(where: {$0.phone == phone})
+        let idx = self.normalizedContacts.firstIndex(where: {($0.normPhone != "" ? $0.normPhone : $0.phone) == phone})
         
         if (idx == nil) {
             return "Unknown"
@@ -154,7 +160,9 @@ class Contacts: ObservableObject {
         self.xmpp = xmpp
         self.xmppController = self.xmpp.xmppController
         
+//        self.normalizedContacts.removeAll()
         self.getAllData()
+        
         
         store.requestAccess(for: .contacts, completionHandler: { (granted, error) in
             
@@ -175,12 +183,12 @@ class Contacts: ObservableObject {
 
                 let affList = Utils().parseAffList(iq)
                 
-                print("got affiliations: \(affList)")
-                
-                
+                print("Aff: \(affList)")
+          
                 for (conIndex, con) in self.normalizedContacts.enumerated() {
                     
-                    let index = affList.firstIndex { $0 == con.phone }
+                    let targetUser = con.normPhone != "" ? con.normPhone : con.phone
+                    let index = affList.firstIndex { $0 == targetUser }
                     
                     if !con.isConnected {
                         
@@ -190,20 +198,21 @@ class Contacts: ObservableObject {
                             self.normalizedContacts[conIndex].timeLastChecked = Date().timeIntervalSince1970
                             self.updateData(item: self.normalizedContacts[conIndex])
 
-                            self.xmppController.xmppPubSub.subscribe(toNode: "feed-\(con.phone)")
+                            self.xmppController.xmppPubSub.subscribe(toNode: "feed-\(targetUser)")
                             
                             /*  redundant whitelisting but useful if the user is new and has > 1k contacts as this will whitelist
                                 these users first
                              */
-                            Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: con.phone, role: "member")
-                            Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: con.phone, role: "member")
+                            Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "member")
+                            Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "member")
                         
-                            self.notifyUser(con.phone)
+                            self.notifyUser(targetUser)
                             
                         }
                         
                     } else {
                         
+
                         /* other user have removed you */
                         if (index == nil) {
 
@@ -211,16 +220,20 @@ class Contacts: ObservableObject {
                             self.normalizedContacts[conIndex].timeLastChecked = Date().timeIntervalSince1970
                             self.updateData(item: self.normalizedContacts[conIndex])
                             
-                            self.xmppController.xmppPubSub.unsubscribe(fromNode: "feed-\(con.phone)")
-                            self.xmppController.xmppPubSub.unsubscribe(fromNode: "contacts-\(con.phone)")
+                            self.xmppController.xmppPubSub.unsubscribe(fromNode: "feed-\(targetUser)")
+                            self.xmppController.xmppPubSub.unsubscribe(fromNode: "contacts-\(targetUser)")
                         }
+                        
+                        
+                        
                     }
                 }
                 
                 /* get all the items  */
                 let connected = self.normalizedContacts.filter() { $0.isConnected }
                 connected.forEach {
-                    self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\($0.phone)")
+                    let targetUser = $0.normPhone != "" ? $0.normPhone : $0.phone
+                    self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(targetUser)")
                 }
                 
                     
@@ -229,15 +242,25 @@ class Contacts: ObservableObject {
                 
 //                self.xmppController.xmppPubSub.retrieveItems(fromNode: "contacts-\(self.xmpp.userData.phone)")
                 
-                /* edge case: currently used only for removing extra affiliations */
-                self.getOwnAffiliations()
+                let unprocessed = self.normalizedContacts.filter() { !$0.isNormalized || !$0.isWhiteListed }
                 
-                /*
-                    edge case: currently only used for removing subscriptions that user does not have the contact for anymore
-                    ie. user have contact A connected, then user removes app and remove contact A, after reinstalling app, user
-                    will not have contact A anymore but is still subscribed
-                 */
-                self.xmppController.xmppPubSub.retrieveSubscriptions()
+                print("unprocessed: \(unprocessed.count)")
+                /* only do cleanup duty when everything else has been done */
+                if (unprocessed.count == 0) {
+                
+                    print("clean up")
+                    
+                    /* edge case: currently used only for removing extra affiliations */
+                    self.getOwnAffiliations()
+                    
+                    /*
+                        edge case: currently only used for removing subscriptions that user does not have the contact for anymore
+                        ie. user have contact A connected, then user removes app and remove contact A, after reinstalling app, user
+                        will not have contact A anymore but is still subscribed
+                     */
+                    self.xmppController.xmppPubSub.retrieveSubscriptions()
+                    
+                }
                 
             })
         )
@@ -292,8 +315,10 @@ class Contacts: ObservableObject {
 //                print("got own affiliations: \(affList)")
                 
                 for aff in affList {
-                    
-                    let index = self.normalizedContacts.firstIndex { $0.phone == aff }
+                
+                    let index = self.normalizedContacts.firstIndex {
+                        ($0.normPhone != "" ? $0.normPhone : $0.phone) == aff
+                    }
                     
                     if index == nil {
                         print("remove extra whitelist: \(aff)")
@@ -308,10 +333,84 @@ class Contacts: ObservableObject {
 
         )
         
+        /* norm batch */
+        cancellableSet.insert(
+
+           xmppController.didGetNormBatch.sink(receiveValue: { iq in
+
+               if let idParts = iq.elementID?.components(separatedBy: "-") {
+                   if (idParts[0] == "batchNorm") {
+
+                        let normList = Utils().parseRawContacts(iq)
+                    
+                        var whiteList: [BatchId] = []
+                        var batchLabel = "batchAff-unknown"
+                        var batchFeedLabel = "batchAffFeed-unknown"
+                    
+                        if let batchNum = Int(idParts[1]) {
+                            let num = batchNum + 9000
+                            batchLabel = "batchAff-\(String(num))"
+                            batchFeedLabel = "batchAffFeed-\(String(num))"
+                        }
+                        
+                        for norm in normList {
+                            
+                            let index = self.normalizedContacts.firstIndex { $0.phone == norm.phone }
+
+                            if index != nil {
+
+                                print("normalized: \(norm.phone)")
+
+                                self.idsToNormalize.removeAll(where: { $0.phone == norm.phone } )
+
+                                if (norm.normalizedPhone != "") {
+                                    self.normalizedContacts[index!].normPhone = norm.normalizedPhone
+                                }
+                                
+                                self.normalizedContacts[index!].isNormalized = true
+
+                                self.updateData(item: self.normalizedContacts[index!])
+                               
+                                /* after normalizing, send it in to whitelist */
+                                var item = BatchId()
+                                item.phone = norm.normalizedPhone != "" ? norm.normalizedPhone : norm.phone
+                                item.batch = batchLabel
+                                whiteList.append(item)
+                                
+                            }
+                               
+                        }
+                    
+                        Utils().sendAffBatch(
+                            xmppStream: self.xmppController.xmppStream,
+                            node: "contacts-\(self.xmpp.userData.phone)",
+                            from: "\(self.xmpp.userData.phone)",
+                            users: whiteList,
+                            role: "member",
+                            id: batchLabel)
+
+                        Utils().sendAffBatch(
+                            xmppStream: self.xmppController.xmppStream,
+                            node: "feed-\(self.xmpp.userData.phone)",
+                            from: "\(self.xmpp.userData.phone)",
+                            users: whiteList,
+                            role: "member",
+                            id: batchFeedLabel)
+                    
+                        self.idsToWhiteList.append(contentsOf: whiteList)
+                       
+                   }
+               }
+
+           })
+
+        )
         
+        
+        /* aff batch */
         cancellableSet.insert(
          
-            xmppController.didGetIq.sink(receiveValue: { iq in
+            xmppController.didGetAffBatch.sink(receiveValue: { iq in
 
                 if let idParts = iq.elementID?.components(separatedBy: "-") {
                     if (idParts[0] == "batchAff") {
@@ -321,10 +420,13 @@ class Contacts: ObservableObject {
                         let connected = self.idsToWhiteList.filter() { $0.batch == iq.elementID! }
                         
                         print("count: \(connected.count)")
+//                        print("list: \(self.idsToWhiteList)")
                         
                         connected.forEach { con in
                             
-                            let index = self.normalizedContacts.firstIndex { $0.phone == con.phone }
+                            let index = self.normalizedContacts.firstIndex {
+                                ($0.normPhone != "" ? $0.normPhone : $0.phone) == con.phone
+                            }
                             
                             if index != nil {
 
@@ -488,14 +590,22 @@ class Contacts: ObservableObject {
                 }
             }
                   
-        
+            
+//            for n in 1...100 {
+//                rawContacts.append(String(n))
+//            }
+//            sleep(20)
+            
             DispatchQueue.main.async {
-        
+                    
                 self.allPhonesString = ""
                 let characterSet = CharacterSet(charactersIn: "01234567890")
                 
-                self.idsToWhiteList.removeAll()
-
+                var localIdsToNormalize: [BatchId] = []
+                var localIdsToWhiteList: [BatchId] = []
+                
+                var localContactsStr: [String] = []
+                
                 for c in localContacts {
 
                     /* for users with TrueCaller installed, it'll have a SPAM contact that has a lot of phone numbers */
@@ -515,124 +625,241 @@ class Contacts: ObservableObject {
                             continue
                         }
 
+                        localContactsStr.append(pn)
+                        
                         let idx = self.normalizedContacts.firstIndex(where: {$0.phone == pn})
 
-                        if (idx == nil) {
+                        if (idx == nil) { // can't find contact
 
+                            print("== \(c.name) @ \(pn)")
                             self.pushItem(item: NormContact(
-                                    name: c.name,
                                     phone: pn,
+                                    normPhone: "",
+                                    name: c.name,
                                     isConnected: false,
                                     isWhiteListed: false,
+                                    isNormalized: false,
                                     timeLastChecked: Date().timeIntervalSince1970,
                                     isMatched: true
                                 )
                             )
-
-                            print("new whitelist \(pn)")
-                            self.idsToWhiteList.append(BatchId(phone: pn))
+                        
+                            print("new normalize \(pn)")
+                            localIdsToNormalize.append(BatchId(phone: pn))
                             
-                        } else {
-
-                            self.normalizedContacts[idx!].isMatched = true
-
-                            // see if contact has updated info
+                            
+                        } else { // found contact
+                            
+                            /*
+                                see if contact has updated info,
+                                gotcha: we do allow contacts with no name, just phone number
+                            */
                             if self.normalizedContacts[idx!].name != c.name {
                                 self.normalizedContacts[idx!].name = c.name
                                 self.updateData(item: self.normalizedContacts[idx!])
                             }
 
-                            // if contact is not connected, check
-                            if !self.normalizedContacts[idx!].isConnected {
+
+                            if (!self.normalizedContacts[idx!].isNormalized) {
+                                print("old normalize \(self.normalizedContacts[idx!].phone)")
+                                localIdsToNormalize.append(BatchId(phone: pn))
+                            } else {
+                            
                                 if (!self.normalizedContacts[idx!].isWhiteListed) {
                                     print("old whitelist \(self.normalizedContacts[idx!].phone)")
-                                    self.idsToWhiteList.append(BatchId(phone: pn))
+                                    let nPhone = self.normalizedContacts[idx!].normPhone != "" ? self.normalizedContacts[idx!].normPhone : self.normalizedContacts[idx!].phone
+                                    localIdsToWhiteList.append(BatchId(phone: nPhone))
                                 }
+                                
                             }
+
+                            
+       
                         }
                     }
                 }
                 
                 
-//                for n in 1...5000 {
-//                    self.idsToWhiteList.append(BatchId(phone: String(n)))
-//                }
+                let timeAfterNormalizing = self.processNormalizeChunks(localIdsToNormalize)
                 
-                let numChunk = 50
-                let idsToWhiteListChunked = self.idsToWhiteList.chunked(by: numChunk)
-                var timeCounter = 0.0
-                
-                for (index, idsArr) in idsToWhiteListChunked.enumerated() {
-                    
-                    timeCounter += Double(index) + 2.0
-                    DispatchQueue.main.asyncAfter(deadline: .now() + timeCounter) {
-
-                        let labelContacts = "batchAff-\(index)"
-                        let labelFeed = "batchAffFeed-\(index)"
-                        
-                        for (_, id) in idsArr.enumerated() {
-                            
-                            let idx = self.idsToWhiteList.firstIndex(where: {$0.phone == id.phone})
-                            
-                            if (idx != nil) {
-                                self.idsToWhiteList[idx!].batch = labelContacts
-                            }
-                            
-                        }
-                        
-                        
-                        Utils().sendAffBatch(
-                            xmppStream: self.xmppController.xmppStream,
-                            node: "contacts-\(self.xmpp.userData.phone)",
-                            from: "\(self.xmpp.userData.phone)",
-                            users: idsArr,
-                            role: "member",
-                            id: labelContacts)
-                        
-                        Utils().sendAffBatch(
-                            xmppStream: self.xmppController.xmppStream,
-                            node: "feed-\(self.xmpp.userData.phone)",
-                            from: "\(self.xmpp.userData.phone)",
-                            users: idsArr,
-                            role: "member",
-                            id: labelFeed)
-                        
+                /* do an extra check if there are normalizations that had to be done */
+                if (timeAfterNormalizing > 0) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + (timeAfterNormalizing + 2)) {
+                        self.getAllAffiliations()
                     }
-                    
                 }
+                
+                self.processWhiteListChunks(localIdsToWhiteList, timeAfterNormalizing)
 
+                /* always do one check first */
                 self.getAllAffiliations()
                 
-                /* find everything that's not matched, and send deletes to Core and everywhere else */
-                let unmatched = self.normalizedContacts.filter() { !$0.isMatched }
-                               
-                unmatched.forEach {
-                                                
-                    /* remove contact from whitelist */
-                    Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: $0.phone, role: "none")
-                    Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: $0.phone, role: "none")
-
-                    /* unsubscribe to contact's lists */
-                    if ($0.isConnected) {
-                        self.xmppController.xmppPubSub.unsubscribe(fromNode: "feed-\($0.phone)")
-                        self.xmppController.xmppPubSub.unsubscribe(fromNode: "contacts-\($0.phone)")
-                    }
-                    
-                    self.deleteData(item: $0)
-                    
-                }
                 
+                self.afterFetch(localContactsStr)
                 
-                self.normalizedContacts.removeAll(where: { !$0.isMatched } )
-                
-                print("Fetched Contacts: \(self.normalizedContacts.count)")
-                
-
             }
-        
+            
         }
                 
     }
+    
+    
+    func processNormalizeChunks(_ fromList: [BatchId]) -> Double {
+        
+        if (fromList.count < 1) { return 0.0 }
+        
+        var list = fromList
+        
+        let numChunk = 50
+        let listChunked = list.chunked(by: numChunk)
+        var timeCounter = 0.0
+        
+        for (index, idsArr) in listChunked.enumerated() {
+            
+            timeCounter += Double(index) + 2.0
+            
+            let label = "batchNorm-\(index)"
+            
+            for (_, id) in idsArr.enumerated() {
+                
+                let idx = list.firstIndex(where: {$0.phone == id.phone})
+                
+                if (idx != nil) {
+                    list[idx!].batch = label
+                }
+                
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + timeCounter) {
+                
+                Utils().sendRawContacts(
+                    xmppStream: self.xmppController.xmppStream,
+                    user: "\(self.xmpp.userData.phone)",
+                    rawContacts: idsArr,
+                    id: label)
+                
+            }
+            
+        }
+        
+        self.idsToNormalize.removeAll()
+        self.idsToNormalize.append(contentsOf: list)
+        
+        return timeCounter
+    }
+    
+    
+    func processWhiteListChunks(_ fromList: [BatchId], _ timeToStart: Double) {
+        
+        if (fromList.count < 1) { return}
+        
+        var list = fromList
+        
+        let numChunk = 50
+        let idsToWhiteListChunked = list.chunked(by: numChunk)
+        var timeCounter = timeToStart
+        
+        for (index, idsArr) in idsToWhiteListChunked.enumerated() {
+            
+            timeCounter += Double(index) + 2.0
+            
+            let labelContacts = "batchAff-\(index)"
+            let labelFeed = "batchAffFeed-\(index)"
+            
+            for (_, id) in idsArr.enumerated() {
+                
+                let idx = list.firstIndex(where: {$0.phone == id.phone})
+                
+                if (idx != nil) {
+                    list[idx!].batch = labelContacts
+                }
+                
+            }
+            
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + timeCounter) {
+        
+                Utils().sendAffBatch(
+                    xmppStream: self.xmppController.xmppStream,
+                    node: "contacts-\(self.xmpp.userData.phone)",
+                    from: "\(self.xmpp.userData.phone)",
+                    users: idsArr,
+                    role: "member",
+                    id: labelContacts)
+                
+                Utils().sendAffBatch(
+                    xmppStream: self.xmppController.xmppStream,
+                    node: "feed-\(self.xmpp.userData.phone)",
+                    from: "\(self.xmpp.userData.phone)",
+                    users: idsArr,
+                    role: "member",
+                    id: labelFeed)
+            }
+                
+        }
+        
+        self.idsToWhiteList.removeAll()
+        self.idsToWhiteList.append(contentsOf: list)
+        
+    }
+    
+    func afterFetch(_ localContactsStr: [String]) {
+
+        var unmatched: [NormContact] = []
+        
+        for con in self.normalizedContacts {
+            
+            /* do not use normPhone because here we are matching Core Data Store to our local storage, which keys off the orig number */
+            let idx = localContactsStr.firstIndex(where: {$0 == con.phone})
+            
+            /* this item is unmatched */
+            if (idx == nil) {
+                let item = NormContact(
+                    phone: con.phone,
+                    normPhone: con.normPhone,
+                    name: con.name,
+                    isConnected: con.isConnected,
+                    isWhiteListed: con.isWhiteListed,
+                    isNormalized: con.isNormalized,
+                    timeLastChecked: con.timeLastChecked,
+                    isMatched: con.isMatched
+                )
+                unmatched.append(item)
+            }
+            
+        }
+        
+        
+        /* find everything that's not matched, and send deletes to Core and everywhere else */
+        print("unmatched: \(unmatched)")
+        
+        unmatched.forEach { con in
+                                  
+            let targetUser = con.normPhone != "" ? con.normPhone : con.phone
+            
+            /* remove contact from whitelist */
+            Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "none")
+            Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "none")
+
+            /* unsubscribe to contact's lists */
+            if (con.isConnected) {
+                self.xmppController.xmppPubSub.unsubscribe(fromNode: "feed-\(targetUser)")
+                self.xmppController.xmppPubSub.unsubscribe(fromNode: "contacts-\(targetUser)")
+            }
+            
+            self.deleteData(item: con)
+            
+            
+            self.normalizedContacts.removeAll(where: { $0.phone == con.phone } )
+        }
+
+        
+//        print("Fetched Contacts: \(self.normalizedContacts.count)")
+        
+//        print("\(self.normalizedContacts)")
+        
+    }
+    
     
     func createData(item: NormContact) {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
@@ -641,11 +868,19 @@ class Contacts: ObservableObject {
         let userEntity = NSEntityDescription.entity(forEntityName: "ContactsCore", in: managedContext)!
         
         let obj = NSManagedObject(entity: userEntity, insertInto: managedContext)
-        obj.setValue(item.name, forKeyPath: "name")
+        
         obj.setValue(item.phone, forKeyPath: "phone")
-        obj.setValue(item.timeLastChecked, forKeyPath: "timeLastChecked")
+        obj.setValue(item.normPhone, forKeyPath: "normPhone")
+        
+        obj.setValue(item.name, forKeyPath: "name")
+        
         obj.setValue(item.isConnected, forKeyPath: "isConnected")
         obj.setValue(item.isWhiteListed, forKeyPath: "isWhiteListed")
+        obj.setValue(item.isNormalized, forKeyPath: "isNormalized")
+        
+        obj.setValue(item.timeLastChecked, forKeyPath: "timeLastChecked")
+        
+        
         
         do {
             try managedContext.save()
@@ -673,11 +908,15 @@ class Contacts: ObservableObject {
             }
             
             let objectUpdate = result[0] as! NSManagedObject
-            objectUpdate.setValue(item.name, forKey: "name")
             objectUpdate.setValue(item.phone, forKey: "phone")
+            objectUpdate.setValue(item.normPhone, forKey: "normPhone")
+            objectUpdate.setValue(item.name, forKey: "name")
+            
             objectUpdate.setValue(item.isConnected, forKey: "isConnected")
-            objectUpdate.setValue(item.timeLastChecked, forKey: "timeLastChecked")
             objectUpdate.setValue(item.isWhiteListed, forKey: "isWhiteListed")
+            objectUpdate.setValue(item.isNormalized, forKey: "isNormalized")
+            objectUpdate.setValue(item.timeLastChecked, forKey: "timeLastChecked")
+            
             
             do {
                 try managedContext.save()
@@ -737,15 +976,23 @@ class Contacts: ObservableObject {
             
             for data in result as! [NSManagedObject] {
                 var item = NormContact(
-                    name: data.value(forKey: "name") as! String,
                     phone: data.value(forKey: "phone") as! String,
+                    name: data.value(forKey: "name") as! String,
+                    
                     isConnected: data.value(forKey: "isConnected") as! Bool,
                     timeLastChecked: data.value(forKey: "timeLastChecked") as! Double
                 )
                 
+                if let normPhone = data.value(forKey: "normPhone") as? String {
+                    item.normPhone = normPhone
+                }
                 
-                if let isListed = data.value(forKey: "isWhiteListed") as? Bool {
-                    item.isWhiteListed = isListed
+                if let isWhiteListed = data.value(forKey: "isWhiteListed") as? Bool {
+                    item.isWhiteListed = isWhiteListed
+                }
+
+                if let isNormalized = data.value(forKey: "isNormalized") as? Bool {
+                    item.isNormalized = isNormalized
                 }
                 
                 self.pushItem(item: item)

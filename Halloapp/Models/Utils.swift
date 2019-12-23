@@ -65,13 +65,21 @@ class Utils {
         var diff = 0
         
         if let origDateDouble = origDateDouble {
-            let origDate = Int(origDateDouble)
+            var origDate = Int(origDateDouble)
             
             let current = Int(Date().timeIntervalSince1970)
             
             let calendar = Calendar.current
             
             diff = current - origDate
+            
+            /* one-off account for if time was in milliseconds */
+            if diff < 0 {
+                origDate = origDate/1000
+                diff = current - origDate
+            }
+            
+            
             if (diff <= 3) {
                 result = "now"
             } else if (diff <= 59) {
@@ -248,7 +256,39 @@ class Utils {
        
         return result
     }
+
     
+    func parseRawContacts(_ value: XMPPIQ) -> [BatchId] {
+       
+        var result: [BatchId] = []
+       
+        let contactList = value.element(forName: "contact_list")
+        
+        let contactArr = contactList?.elements(forName: "contact")
+
+        for con in contactArr ?? [] {
+            
+             var item = BatchId()
+        
+             if let raw = con.element(forName: "raw") {
+                if let rawValue = raw.stringValue {
+                    item.phone = rawValue
+                }
+             }
+            
+            if let normalized = con.element(forName: "normalized") {
+               if let normalizedValue = normalized.stringValue {
+                   item.normalizedPhone = normalizedValue
+               }
+            }
+            
+            result.append(item)
+           
+        }
+       
+    
+        return result
+    }
 
     func parseAffList(_ value: XMPPIQ) -> [String] {
        
@@ -408,10 +448,12 @@ class Utils {
            
          
         }
-       
-       
+              
         return feedList
     }
+    
+
+
     
     /*
      role: [owner|member|none]
@@ -447,7 +489,7 @@ class Utils {
      role: [owner|member|none]
      */
     func sendAff(xmppStream: XMPPStream, node: String, from: String, user: String, role: String) {
-//        print("sendAff")
+//        print("sendAff")e
         
         let item = XMLElement(name: "affiliation")
         item.addAttribute(withName: "jid", stringValue: "\(user)@s.halloapp.net")
@@ -468,6 +510,39 @@ class Utils {
         iq.addAttribute(withName: "id", stringValue: "aff: \(user)")
         iq.addChild(pubsub)
         
+        xmppStream.send(iq)
+    }
+    
+
+    func sendRawContacts(xmppStream: XMPPStream, user: String, rawContacts: [BatchId], id: String) {
+//        print("sendAff")
+    
+        let contactList = XMLElement(name: "contact_list")
+        contactList.addAttribute(withName: "xmlns", stringValue: "ns:phonenumber:normalization")
+        
+        for rc in rawContacts {
+            
+            let raw = XMLElement(name: "raw")
+            raw.stringValue = rc.phone
+            
+            let contact = XMLElement(name: "contact")
+            contact.addChild(raw)
+            
+            contactList.addChild(contact)
+        }
+        
+
+        let iq = XMLElement(name: "iq")
+        iq.addAttribute(withName: "type", stringValue: "get")
+        
+        iq.addAttribute(withName: "from", stringValue: "\(user)@s.halloapp.net/iphone")
+    
+        iq.addAttribute(withName: "to", stringValue: "\(xmppStream.hostName!)")
+        
+        iq.addAttribute(withName: "id", stringValue: "\(id)")
+        iq.addChild(contactList)
+        
+        print ("sending: \(iq)")
         xmppStream.send(iq)
     }
     

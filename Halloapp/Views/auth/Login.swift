@@ -14,6 +14,8 @@ struct Login: View {
     @EnvironmentObject var authRouteData: AuthRouteData
     @EnvironmentObject var userData: UserData
     
+    @State var isButtonClicked = false
+    
     var body: some View {
         
         Background {
@@ -95,21 +97,32 @@ struct Login: View {
                     .padding(.bottom, 0)
                     
                 
+                    
+                
                     Button(action: {
+                        self.isButtonClicked = true
+                        
                         if self.userData.validate() {
                             self.authRouteData.gotoPage(page: "verify")
+
                         } else {
-                            
+
                         }
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            self.isButtonClicked = false
+                        }
+                        
                     }) {
-                        Text("JOIN US")
+                        Text("Sign In")
 
                             .padding(15)
-                            .background(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.green]), startPoint: .leading, endPoint: .trailing))
-                            .foregroundColor(.white)
+                            .background(self.isButtonClicked ? Color.white : Color.blue)
+                            .foregroundColor(self.isButtonClicked ? .gray : .white)
                             .cornerRadius(40)
                             .shadow(radius: 5)
                     }
+                    .disabled(self.isButtonClicked)
 
                     Spacer()
             }

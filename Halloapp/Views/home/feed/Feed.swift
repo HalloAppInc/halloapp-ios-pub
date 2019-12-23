@@ -29,6 +29,7 @@ struct Feed: View {
     @State private var showMoreActions = false
 
     @State private var showMiscActions = false
+    @State private var showComments = false
     @State private var showMessages = false
     
     @State private var UserImage = Image(systemName: "nosign")
@@ -84,20 +85,22 @@ struct Feed: View {
                                         Text(self.contacts.getName(phone: item.username))
                                             .font(.system(size: 14, weight: .regular))
 
-                                        Text(Utils().timeForm(dateStr: String(item.timestamp)))
-                                            .foregroundColor(Color.gray)
+ 
                                     }
 
                                     Spacer()
 
                                     Button(action: {
-                                        self.showMiscActions = true
+//                                        self.showMiscActions = true
 
                                     }) {
-                                        Image(systemName: "ellipsis")
-                                            .font(Font.title.weight(.regular))
-                                            .foregroundColor(Color.gray)
-                                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 25))
+//                                        Image(systemName: "ellipsis")
+//                                            .font(Font.title.weight(.regular))
+//                                            .foregroundColor(Color.gray)
+//                                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 25))
+                                        Text(Utils().timeForm(dateStr: String(item.timestamp)))
+                                             .foregroundColor(Color.gray)
+                                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 15))
                                     }
                                     
                                 }
@@ -115,6 +118,7 @@ struct Feed: View {
                                         .cornerRadius(10)
                                         .padding(EdgeInsets(top: 10, leading: 10, bottom: 15, trailing: 10))
                                         
+                                        
                                 } else {
                                     Divider()
                                         .frame(height: 10)
@@ -122,6 +126,7 @@ struct Feed: View {
                                         .hidden()
                                 }
                                
+//                                Text(String(item.imageUrl))
                                 
                                 HStack() {
                                     Text(item.text)
@@ -136,8 +141,9 @@ struct Feed: View {
                                    
  
                                         Button(action: {
-                                            self.showMessages = true
-                                            self.showSheet = true
+//                                            self.showComments = true
+//                                            self.showSheet = true
+                                            
 //                                            self.feedRouterData.gotoPage(page: "commenting")
 
                                         }) {
@@ -220,7 +226,7 @@ struct Feed: View {
         .overlay(
             HStack() {
                 
-                Text("home")
+                Text("Home")
                     .font(.custom("Arial", size: 36))
                     .fontWeight(.heavy)
                     .foregroundColor(Color(red: 220/255, green: 220/255, blue: 220/255))
@@ -336,7 +342,13 @@ struct Feed: View {
             } else if (self.showMessages) {
                 MessageUser(onDismiss: {
                     self.showSheet = false
-                    self.showPostText = false
+                    self.showMessages = false
+                    
+                })
+            } else if (self.showComments) {
+                Comments(onDismiss: {
+                    self.showSheet = false
+                    self.showComments = false
                     
                 })
             } else {

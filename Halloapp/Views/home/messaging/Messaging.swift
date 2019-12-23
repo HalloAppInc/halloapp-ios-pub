@@ -59,7 +59,7 @@ struct Messaging: View {
                                 Spacer()
                             }
                             HStack() {
-                                Text(contact.phone)
+                                Text(contact.normPhone != "" ? contact.normPhone : contact.phone)
                                     .font(.system(size: 12, weight: .regular))
                                      .padding(EdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0))
                                     .foregroundColor(Color(red: 162/255, green: 162/255, blue: 162/255))
@@ -71,14 +71,14 @@ struct Messaging: View {
                         Spacer()
                         
 
-                        Button(action: {
-                            self.showCameraAll = true
-                            self.showSheet = true
-                        }) {
-                          Image(systemName: "photo")
-                              .font(Font.title.weight(.regular))
-                              .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
-                        }.padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 10))
+//                        Button(action: {
+//                            self.showCameraAll = true
+//                            self.showSheet = true
+//                        }) {
+//                          Image(systemName: "photo")
+//                              .font(Font.title.weight(.regular))
+//                              .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
+//                        }.padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 10))
                             
                     }.padding(EdgeInsets(top: 10, leading: 5, bottom: 0, trailing: 5))
 
@@ -124,7 +124,7 @@ struct Messaging: View {
         .overlay(
             HStack() {
                 
-                Text("messages")
+                Text("Messages")
                     .font(.custom("Arial", size: 36))
                     .fontWeight(.heavy)
                     .foregroundColor(Color(red: 220/255, green: 220/255, blue: 220/255))
@@ -145,7 +145,7 @@ struct Messaging: View {
                         self.showCameraAll = true
                         self.showSheet = true
                     }) {
-                        Image(systemName: "camera.circle.fill")
+                        Image(systemName: "magnifyingglass")
                             .font(Font.title.weight(.regular))
                             .foregroundColor(Color.black)
                     }

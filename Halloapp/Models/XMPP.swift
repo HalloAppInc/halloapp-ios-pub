@@ -50,6 +50,31 @@ class XMPP: ObservableObject {
 
         )
         
+
+        self.cancellableSet.insert(
+         
+            self.xmppController.didConnect.sink(receiveValue: { value in
+
+                self.isReady = true
+
+            })
+
+        )
+        
+        self.cancellableSet.insert(
+         
+            self.userData.didLogOff.sink(receiveValue: {
+                print("got log off signal, disconnecting")
+                
+                self.xmppController.xmppStream.removeDelegate(self)
+                self.xmppController.xmppReconnect.deactivate()
+                self.xmppController.xmppStream.disconnect()
+                
+
+            })
+
+        )
+        
         
     }
     

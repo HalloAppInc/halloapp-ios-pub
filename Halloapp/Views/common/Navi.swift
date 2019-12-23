@@ -21,10 +21,12 @@ struct Navi: View {
                     Button(action: {
                         self.homeRouteData.gotoPage(page: "feed")
                     }) {
-                        Image(systemName: "house")
+                       
+                        Image(systemName: "house.fill")
                             .imageScale(.large)
-                            .foregroundColor((homeRouteData.homePage == "feed" || homeRouteData.homePage == "back-to-feed") ? Color.black : Color.black)
+                            .foregroundColor(homeRouteData.homePage == "feed" ? Color.black : Color.gray)
                             .padding(EdgeInsets(top: 20, leading: 25, bottom: 7, trailing: 25))
+                        
                             
                     }
 
@@ -32,6 +34,7 @@ struct Navi: View {
                         .font(.system(size: 7, weight: .heavy))
                         .foregroundColor((homeRouteData.homePage == "feed" || homeRouteData.homePage == "back-to-feed") ? Color(red:  40/255, green:  40/255, blue:  40/255) : Color.clear)
                         .padding(0)
+                    .hidden()
                 }
                 
                 Spacer()
@@ -40,17 +43,19 @@ struct Navi: View {
                     Button(action: {
                         self.homeRouteData.gotoPage(page: "messaging")
                     }) {
-                        Image(systemName: "envelope")
+                        
+                        Image(systemName: "envelope.fill")
                             .imageScale(.large)
-                            .foregroundColor(homeRouteData.homePage == "messaging" ? Color.black : Color.black)
+                            .foregroundColor(homeRouteData.homePage == "messaging" ? Color.black : Color.gray)
                             .padding(EdgeInsets(top: 20, leading: 25, bottom: 5, trailing: 25))
-                            
+                       
                     }
                     
                     Image(systemName: "circle")
                          .font(.system(size: 7, weight: .heavy))
                         .foregroundColor(homeRouteData.homePage == "messaging" ? Color(red: 40/255, green: 40/255, blue: 40/255) : Color.clear)
                      .padding(0)
+                    .hidden()
                     
                 }
                 Spacer()
@@ -58,9 +63,9 @@ struct Navi: View {
                     Button(action: {
                         self.homeRouteData.gotoPage(page: "profile")
                     }) {
-                        Image(systemName: "person")
+                        Image(systemName: "person.fill")
                             .imageScale(.large)
-                            .foregroundColor(homeRouteData.homePage == "profile" ? Color.black : Color.black)
+                            .foregroundColor(homeRouteData.homePage == "profile" ? Color.black : Color.gray)
                             .padding(EdgeInsets(top: 20, leading: 25, bottom: 5, trailing: 25))
                             
                     }
@@ -69,6 +74,7 @@ struct Navi: View {
                          .font(.system(size: 7, weight: .heavy))
                         .foregroundColor(homeRouteData.homePage == "profile" ? Color(red:  40/255, green:  40/255, blue:  40/255) : Color.clear)
                      .padding(0)
+                    .hidden()
                     
                 }
 
