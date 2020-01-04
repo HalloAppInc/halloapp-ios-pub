@@ -122,7 +122,7 @@ class Contacts: ObservableObject {
         let idx = self.normalizedContacts.firstIndex(where: {($0.normPhone != "" ? $0.normPhone : $0.phone) == phone})
         
         if (idx == nil) {
-            return "Unknown"
+            return phone // Modified it only for temporary use.
         } else {
             return self.normalizedContacts[idx!].name
         }

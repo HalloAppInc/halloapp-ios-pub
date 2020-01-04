@@ -391,67 +391,100 @@ class Utils {
     }
     
 
-    func parseFeedItems(_ value: XMLElement?) -> [FeedDataItem] {
-       
+    func parseFeedItems(_ value: XMLElement?) -> ([FeedDataItem], [FeedCommentItem]) {
         var feedList: [FeedDataItem] = []
+        var commentList: [FeedCommentItem] = []
        
 //        let pubsub = value.element(forName: "pubsub")
         let items = value?.element(forName: "items")
-        
         let itemList = items?.elements(forName: "item")
 
-
         for item in itemList ?? [] {
-            
-            let feedItem = FeedDataItem()
-
             let entry = item.element(forName: "entry")
-       
             let itemId = item.attributeStringValue(forName: "id")
-            feedItem.itemId = itemId!
             
-            if let text = entry?.element(forName: "text") {
-               if let textValue = text.stringValue {
-                   feedItem.text = textValue
-               }
-            }
-           
-            if let username = entry?.element(forName: "username") {
-               if let usernameValue = username.stringValue {
-                   feedItem.username = usernameValue
-               }
-            }
-           
-            if let userImageUrl = entry?.element(forName: "userImageUrl") {
-               if let userImageUrlValue = userImageUrl.stringValue {
-                   feedItem.userImageUrl = userImageUrlValue
-               }
-            }
-
-            if let imageUrl = entry?.element(forName: "imageUrl") {
-                if let imageUrlValue = imageUrl.stringValue {
-                   feedItem.imageUrl = imageUrlValue
+            // Parse feed posts.
+            if let post = entry?.element(forName: "feedpost") {
+                
+                let feedItem = FeedDataItem()
+                feedItem.itemId = itemId!
+                
+                if let text = post.element(forName: "text") {
+                    if let textValue = text.stringValue {
+                        feedItem.text = textValue
+                    }
                 }
-            }
-           
-            if let timestamp = entry?.element(forName: "timestamp") {
-               if let timestampValue = timestamp.stringValue {
-                   
-                   if let convertedTimestampValue = Double(timestampValue) {
-                       feedItem.timestamp = convertedTimestampValue
-                   }
-                   
-               }
+                
+                if let username = post.element(forName: "username") {
+                    if let usernameValue = username.stringValue {
+                        feedItem.username = usernameValue
+                    }
+                }
+                
+                if let userImageUrl = post.element(forName: "userImageUrl") {
+                    if let userImageUrlValue = userImageUrl.stringValue {
+                        feedItem.userImageUrl = userImageUrlValue
+                    }
+                }
+                
+                if let imageUrl = post.element(forName: "imageUrl") {
+                    if let imageUrlValue = imageUrl.stringValue {
+                        feedItem.imageUrl = imageUrlValue
+                    }
+                }
+                
+                if let timestamp = post.element(forName: "timestamp") {
+                    if let timestampValue = timestamp.stringValue {
+                        if let convertedTimestampValue = Double(timestampValue) {
+                            feedItem.timestamp = convertedTimestampValue
+                        }
+                    }
+                }
+                feedList.append(feedItem)
+                print ("feed data item: \(feedItem)")
             }
             
-            feedList.append(feedItem)
-           
-         
-        }
+            if let post = entry?.element(forName: "comment") {
+                let commentItem = FeedCommentItem()
+                commentItem.commentItemId = itemId!
+                
+                if let text = post.element(forName: "text") {
+                  if let textValue = text.stringValue {
+                        commentItem.text = textValue
+                    }
+                }
               
-        return feedList
+                if let username = post.element(forName: "username") {
+                    if let usernameValue = username.stringValue {
+                        commentItem.username = usernameValue
+                    }
+                }
+                
+                if let userImageUrl = post.element(forName: "userImageUrl") {
+                    if let userImageUrlValue = userImageUrl.stringValue {
+                        commentItem.userImageUrl = userImageUrlValue
+                    }
+                }
+                
+                if let feedItemId = post.element(forName: "feedItemId") {
+                    if let feedItemId = feedItemId.stringValue {
+                        commentItem.feedItemId = feedItemId
+                    }
+                }
+                
+                if let timestamp = post.element(forName: "timestamp") {
+                    if let timestampValue = timestamp.stringValue {
+                        if let convertedTimestampValue = Double(timestampValue) {
+                            commentItem.timestamp = convertedTimestampValue
+                        }
+                    }
+                }
+                commentList.append(commentItem)
+                print ("comment item: \(commentItem)")
+            }
+        }
+        return (feedList, commentList)
     }
-    
 
 
     

@@ -30,6 +30,8 @@ struct Feed: View {
 
     @State private var showMiscActions = false
     @State private var showComments = false
+    @State private var postId = ""
+    @State private var username = ""
     @State private var showMessages = false
     
     @State private var UserImage = Image(systemName: "nosign")
@@ -138,14 +140,14 @@ struct Feed: View {
 
                                 
                                 HStack {
-                                   
- 
+                                    
+                                    
                                         Button(action: {
-//                                            self.showComments = true
-//                                            self.showSheet = true
-                                            
+                                            self.showComments = true
+                                            self.showSheet = true
+                                            self.postId = item.itemId
+                                            self.username = item.username
 //                                            self.feedRouterData.gotoPage(page: "commenting")
-
                                         }) {
                                             HStack {
                                                  Image(systemName: "message")
@@ -346,11 +348,15 @@ struct Feed: View {
                     
                 })
             } else if (self.showComments) {
-                Comments(onDismiss: {
-                    self.showSheet = false
-                    self.showComments = false
-                    
-                })
+                Comments(feedData: self.feedData,
+                         postId: self.$postId,
+                         username: self.$username,
+                         onDismiss: {
+                            self.showSheet = false
+                            self.showComments = false
+                            self.postId = ""
+                            self.username = ""
+                        }).environmentObject(self.userData)
             } else {
                 MessageUser(onDismiss: {
                     self.showSheet = false
