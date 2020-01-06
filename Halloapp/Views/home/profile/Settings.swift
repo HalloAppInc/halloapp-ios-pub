@@ -35,7 +35,7 @@ struct Settings: View {
             
 
             
-            Text("1.0.3")
+            Text("1.0.4")
             Button(action: {
                 self.userData.logout()
                 self.homeRouteData.gotoPage(page: "feed")

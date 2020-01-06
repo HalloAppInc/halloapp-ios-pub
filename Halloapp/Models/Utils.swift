@@ -542,7 +542,7 @@ class Utils {
         iq.addAttribute(withName: "id", stringValue: "\(id)")
         iq.addChild(contactList)
         
-        print ("sending: \(iq)")
+//        print ("sending: \(iq)")
         xmppStream.send(iq)
     }
     

@@ -109,7 +109,7 @@ struct Feed: View {
                   
                                 
                                 if (item.imageUrl != "") {
-
+                               
                                     Image(uiImage: item.image)
 
                                         .resizable()
