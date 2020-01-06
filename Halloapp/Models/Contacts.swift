@@ -276,12 +276,13 @@ class Contacts: ObservableObject {
                 }
                 
                 
+                // No longer needed once we use the normal style of notifications from pubsub.
                 /* get all the items  */
-                let connected = self.normalizedContacts.filter() { $0.isConnected }
-                connected.forEach {
-                    let targetUser = $0.normPhone != "" ? $0.normPhone : $0.phone
-                    self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(targetUser)")
-                }
+//                let connected = self.normalizedContacts.filter() { $0.isConnected }
+//                connected.forEach {
+//                    let targetUser = $0.normPhone != "" ? $0.normPhone : $0.phone
+//                    self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(targetUser)")
+//                }
                 
                     
                 /* get your own items */
