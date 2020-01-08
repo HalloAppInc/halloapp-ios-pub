@@ -64,7 +64,8 @@ class XMPPController: NSObject, ObservableObject {
         self.xmppStream.hostPort = hostPort
         self.xmppStream.myJID = self.userJID
         
-        self.xmppStream.startTLSPolicy = XMPPStreamStartTLSPolicy.allowed
+        /* probably should be "required" once all servers including test servers are secured */
+        self.xmppStream.startTLSPolicy = XMPPStreamStartTLSPolicy.preferred
         
 //        self.xmppStream.keepAliveInterval = 0.5;
         
@@ -101,7 +102,8 @@ class XMPPController: NSObject, ObservableObject {
             "pubsub#send_last_published_item": "never",
             "pubsub#max_items": "10", // must not go over max or else error
             "pubsub#notify_retract": "0",
-            "pubsub#notify_delete": "0"
+            "pubsub#notify_delete": "0",
+            "pubsub#notification_type": "normal"
         ]
         
         if (!self.userData.haveContactsSub) {
@@ -116,12 +118,17 @@ class XMPPController: NSObject, ObservableObject {
             self.xmppPubSub.createNode("feed-\(node)", withOptions: options)
             Utils().sendAff(xmppStream: self.xmppStream, node: "feed-\(self.userData.phone)", from: "\(self.userData.phone)", user: self.userData.phone, role: "owner")
             self.xmppPubSub.subscribe(toNode: "feed-\(self.userData.phone)")
+            self.xmppPubSub.retrieveItems(fromNode: "feed-\(self.userData.phone)") // if the user logs off, then logs back in
         }
         
 
+        /*
+            uncommenting for now to make sure all nodes are configured with the new option
+            pubsub#notification_type (from build 5)
+         */
+        self.xmppPubSub.configureNode("feed-\(node)", withOptions: options)
+        self.xmppPubSub.configureNode("contacts-\(node)", withOptions: options)
         
-//        self.xmppPubSub.configureNode("feed-\(node)", withOptions: options)
-//        self.xmppPubSub.configureNode("contacts-\(node)", withOptions: options)
         
         /* see node metadata */
 //        let query = XMLElement(name: "query")
@@ -299,7 +306,8 @@ extension XMPPController: XMPPStreamDelegate {
         self.didConnect.send("didConnect")
         
         self.createNodes()
-        // self.xmppStream.send(XMPPPresence())
+        self.xmppStream.send(XMPPPresence())
+        
     }
     
     func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: DDXMLElement) {

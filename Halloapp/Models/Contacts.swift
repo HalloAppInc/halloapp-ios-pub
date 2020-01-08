@@ -215,6 +215,7 @@ class Contacts: ObservableObject {
                                 }
 
                                 self.xmppController.xmppPubSub.subscribe(toNode: "feed-\(targetUser)")
+                                self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(targetUser)") // get newly connected user's past feed items
                                 
                                 /*  redundant whitelisting but useful if the user is new and has > 1k contacts as this will whitelist
                                     these users first
@@ -255,11 +256,11 @@ class Contacts: ObservableObject {
                         print("Unprocessed: \(unprocessed.count)")
                         
                         /*
-                         if processing hasn't finished yet, do one extra check on the affiliations so the user
-                         doesn't have to wait too long to get connected
+                            if processing hasn't finished yet, do one extra check on the affiliations so the user
+                            doesn't have to wait too long to get connected, if there are still leftover users on the affList
                          */
                         if (unprocessed.count > 0 && !self.sentPreemptiveNormalize && affList.count > 0) {
-                            print("found hit")
+               
                             var idsArr: [BatchId] = []
                             let label = "batchNorm-9999"
                             
@@ -270,9 +271,7 @@ class Contacts: ObservableObject {
                                     var bId = BatchId()
                                     bId.phone = localNormalizedContacts[index!].phone
                                     bId.batch = label
-                                    
-                                    print("found phone: \(bId)")
-                                    
+                        
                                     idsArr.append(bId)
                                     DispatchQueue.main.async {
                                         self.idsToNormalize.append(bId)
@@ -304,16 +303,16 @@ class Contacts: ObservableObject {
                     
                         
                     /* get all the items  */
-                    let connected = localNormalizedContacts.filter() { $0.isConnected }
-        
-                    connected.forEach {
-                        let targetUser = $0.normPhone != "" ? $0.normPhone : $0.phone
-                        self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(targetUser)")
-                    }
-                    
-                    
-                    /* get your own items */
-                    self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(self.xmpp.userData.phone)")
+//                    let connected = localNormalizedContacts.filter() { $0.isConnected }
+//        
+//                    connected.forEach {
+//                        let targetUser = $0.normPhone != "" ? $0.normPhone : $0.phone
+//                        self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(targetUser)")
+//                    }
+//                    
+//                    
+//                    /* get your own items */
+//                    self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(self.xmpp.userData.phone)")
                     
     //                self.xmppController.xmppPubSub.retrieveItems(fromNode: "contacts-\(self.xmpp.userData.phone)")
                     
@@ -554,47 +553,47 @@ class Contacts: ObservableObject {
         )
         
         /* unused */
-        cancellableSet.insert(
-         
-            xmppController.didSubscribeToContact.sink(receiveValue: { phone in
-
-                /* do this first so that new users don't have to wait too long to get a feed */
-                self.xmppController.xmppPubSub.subscribe(toNode: "feed-\(phone)") // contact's feed
-                self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(phone)") // get contact's feed items
-                
-                let index = self.normalizedContacts.firstIndex { $0.phone == phone }
-                
-                if index != nil {
-                    self.normalizedContacts[index!].isConnected = true
-                    
-                    self.normalizedContacts[index!].timeLastChecked = Date().timeIntervalSince1970
-                    
-                    self.updateData(item: self.normalizedContacts[index!])
-                    
-                }
-                
-            })
-
-        )
+//        cancellableSet.insert(
+//
+//            xmppController.didSubscribeToContact.sink(receiveValue: { phone in
+//
+//                /* do this first so that new users don't have to wait too long to get a feed */
+//                self.xmppController.xmppPubSub.subscribe(toNode: "feed-\(phone)") // contact's feed
+//                self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(phone)") // get contact's feed items
+//
+//                let index = self.normalizedContacts.firstIndex { $0.phone == phone }
+//
+//                if index != nil {
+//                    self.normalizedContacts[index!].isConnected = true
+//
+//                    self.normalizedContacts[index!].timeLastChecked = Date().timeIntervalSince1970
+//
+//                    self.updateData(item: self.normalizedContacts[index!])
+//
+//                }
+//
+//            })
+//
+//        )
         
         /* unused */
-        cancellableSet.insert(
-         
-            xmppController.didNotSubscribeToContact.sink(receiveValue: { phone in
-
-                let index = self.normalizedContacts.firstIndex { $0.phone == phone }
-                
-                if index != nil {
-                    
-                    self.normalizedContacts[index!].isConnected = false
-                    self.normalizedContacts[index!].timeLastChecked = Date().timeIntervalSince1970
-                    self.updateData(item: self.normalizedContacts[index!])
-                    
-                }
-                
-            })
-
-        )
+//        cancellableSet.insert(
+//
+//            xmppController.didNotSubscribeToContact.sink(receiveValue: { phone in
+//
+//                let index = self.normalizedContacts.firstIndex { $0.phone == phone }
+//
+//                if index != nil {
+//
+//                    self.normalizedContacts[index!].isConnected = false
+//                    self.normalizedContacts[index!].timeLastChecked = Date().timeIntervalSince1970
+//                    self.updateData(item: self.normalizedContacts[index!])
+//
+//                }
+//
+//            })
+//
+//        )
         
         
         
@@ -801,10 +800,12 @@ class Contacts: ObservableObject {
 
             let timeAfterNormalizing = self.processNormalizeChunks(localIdsToNormalize)
 
-
-            /* do an extra check if there are normalizations that had to be done */
+            /*
+                do an extra check AFTER all the normalizations are done
+                if there are normalizations
+             */
             if (timeAfterNormalizing > 0) {
-                DispatchQueue.main.asyncAfter(deadline: .now() + (timeAfterNormalizing + 3)) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + (timeAfterNormalizing + 5)) {
                     self.getAllAffiliations()
                 }
             }
