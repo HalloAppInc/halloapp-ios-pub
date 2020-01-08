@@ -97,25 +97,31 @@ class XMPPController: NSObject, ObservableObject {
             node = userJID.user!
         }
 
-        let options: [String:String] = [
+        let node_options: [String:String] = [
             "pubsub#access_model": "whitelist",
             "pubsub#send_last_published_item": "never",
             "pubsub#max_items": "10", // must not go over max or else error
             "pubsub#notify_retract": "0",
             "pubsub#notify_delete": "0",
             "pubsub#notification_type": "normal" // Updating the notification type to be normal, so that feed updates could be stored by the server when offline.
+
         ]
         
         if (!self.userData.haveContactsSub) {
             print("creating contacts node")
-            self.xmppPubSub.createNode("contacts-\(node)", withOptions: options)
+            self.xmppPubSub.createNode("contacts-\(node)", withOptions: node_options)
             Utils().sendAff(xmppStream: self.xmppStream, node: "contacts-\(self.userData.phone)", from: "\(self.userData.phone)", user: self.userData.phone, role: "owner")
             self.xmppPubSub.subscribe(toNode: "contacts-\(self.userData.phone)")
         }
         
+        var feed_options = node_options
+        feed_options.merge(["pubsub#publish_model": "subscribers"]) { (current, new) -> String in
+            return new
+        }
+        
         if (!self.userData.haveFeedSub) {
-            print("creating feed node")
-            self.xmppPubSub.createNode("feed-\(node)", withOptions: options)
+            print("creating feed node: feed-\(node)")
+            self.xmppPubSub.createNode("feed-\(node)", withOptions: feed_options)
             Utils().sendAff(xmppStream: self.xmppStream, node: "feed-\(self.userData.phone)", from: "\(self.userData.phone)", user: self.userData.phone, role: "owner")
             self.xmppPubSub.subscribe(toNode: "feed-\(self.userData.phone)")
             self.xmppPubSub.retrieveItems(fromNode: "feed-\(self.userData.phone)") // if the user logs off, then logs back in

@@ -9,6 +9,11 @@
 import SwiftUI
 
 struct Comments: View {
+    @ObservedObject var feedData: FeedData
+    @Binding var postId: String
+    @Binding var username: String
+    @EnvironmentObject var userData: UserData
+    
     var onDismiss: () -> ()
     
     @State var msgToSend = ""
@@ -32,8 +37,27 @@ struct Comments: View {
             }
             Spacer()
             
-            WUICollectionView()
-                .background(Color.red)
+            ForEach(self.feedData.feedCommentItems.reversed()) { item in
+                if item.feedItemId  == self.postId {
+                    VStack(spacing: 0) {
+                        HStack() {
+                            Text(item.username + " -> " + item.text)
+                                .font(.system(size: 16, weight: .light))
+                            Spacer()
+                        }.padding(EdgeInsets(top: 0, leading: 20, bottom: 15, trailing: 20))
+                        Divider()
+                    }
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .shadow(color: Color(red: 220/255, green: 220/255, blue: 220/255), radius: 5)
+
+                    .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                }
+            }
+            
+//            WUICollectionView()
+//                .background(Color.red)
             
             HStack {
                 TextField("", text: $msgToSend, onEditingChanged: { (changed) in
@@ -57,7 +81,7 @@ struct Comments: View {
                 
                 Button(action: {
                     if (self.msgToSend != "") {
-//                         self.feedData.sendMessage(text: self.msgToSend)
+                        self.feedData.postComment(self.postId, self.username, self.msgToSend)
                         self.msgToSend = ""
                     }
 
