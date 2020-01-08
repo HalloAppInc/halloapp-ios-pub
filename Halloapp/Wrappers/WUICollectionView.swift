@@ -56,9 +56,6 @@ struct WUICollectionView: UIViewRepresentable {
 //        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
         
         
-
-        
-        
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "myCell")
         
         let dataSource = UICollectionViewDiffableDataSource<MySection, MyModelObject>(collectionView: collectionView) { collectionView, indexPath, myModelObject in

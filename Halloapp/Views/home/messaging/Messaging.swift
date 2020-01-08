@@ -38,9 +38,9 @@ struct Messaging: View {
                     return $0.isConnected
 
                 } )) { (contact: NormContact) in
-                
+
                     HStack {
-                        
+
                         Image(systemName: "circle.fill")
                             .resizable()
 
@@ -50,11 +50,11 @@ struct Messaging: View {
 
                             .frame(width: 50, height: 50, alignment: .center)
                             .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 0))
-                        
+
                         VStack {
                             HStack() {
                                 Text(contact.name)
-                                   
+
                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                                 Spacer()
                             }
@@ -63,13 +63,13 @@ struct Messaging: View {
                                     .font(.system(size: 12, weight: .regular))
                                      .padding(EdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0))
                                     .foregroundColor(Color(red: 162/255, green: 162/255, blue: 162/255))
-                                    
+
                                 Spacer()
                             }
                         }
-                        
+
                         Spacer()
-                        
+
 
 //                        Button(action: {
 //                            self.showCameraAll = true
@@ -79,7 +79,7 @@ struct Messaging: View {
 //                              .font(Font.title.weight(.regular))
 //                              .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
 //                        }.padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 10))
-                            
+
                     }.padding(EdgeInsets(top: 10, leading: 5, bottom: 0, trailing: 5))
 
                 }.listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))

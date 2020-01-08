@@ -111,7 +111,7 @@ struct Feed: View {
                   
                                 
                                 if (item.imageUrl != "") {
-
+                               
                                     Image(uiImage: item.image)
 
                                         .resizable()
@@ -143,11 +143,17 @@ struct Feed: View {
                                     
                                     
                                         Button(action: {
+
                                             self.showComments = true
                                             self.showSheet = true
                                             self.postId = item.itemId
                                             self.username = item.username
+
+//                                            self.showComments = true
+//                                            self.showSheet = true                                            
+
 //                                            self.feedRouterData.gotoPage(page: "commenting")
+                                          
                                         }) {
                                             HStack {
                                                  Image(systemName: "message")

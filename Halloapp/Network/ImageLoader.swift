@@ -45,7 +45,7 @@ class ImageLoader: ObservableObject {
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue("Basic \(base64!)", forHTTPHeaderField: "Authorization")
         
-        print("fetching image")
+//          print("fetching image")
         
         let task = URLSession.shared.dataTask(with: urlRequest) { data, response, error in
             
