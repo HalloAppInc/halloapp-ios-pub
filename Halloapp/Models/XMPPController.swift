@@ -64,7 +64,8 @@ class XMPPController: NSObject, ObservableObject {
         self.xmppStream.hostPort = hostPort
         self.xmppStream.myJID = self.userJID
         
-        self.xmppStream.startTLSPolicy = XMPPStreamStartTLSPolicy.allowed
+        /* probably should be "required" once all servers including test servers are secured */
+        self.xmppStream.startTLSPolicy = XMPPStreamStartTLSPolicy.preferred
         
 //        self.xmppStream.keepAliveInterval = 0.5;
         
@@ -117,12 +118,17 @@ class XMPPController: NSObject, ObservableObject {
             self.xmppPubSub.createNode("feed-\(node)", withOptions: options)
             Utils().sendAff(xmppStream: self.xmppStream, node: "feed-\(self.userData.phone)", from: "\(self.userData.phone)", user: self.userData.phone, role: "owner")
             self.xmppPubSub.subscribe(toNode: "feed-\(self.userData.phone)")
+            self.xmppPubSub.retrieveItems(fromNode: "feed-\(self.userData.phone)") // if the user logs off, then logs back in
         }
         
 
+        /*
+            uncommenting for now to make sure all nodes are configured with the new option
+            pubsub#notification_type (from build 5)
+         */
+        self.xmppPubSub.configureNode("feed-\(node)", withOptions: options)
+        self.xmppPubSub.configureNode("contacts-\(node)", withOptions: options)
         
-//        self.xmppPubSub.configureNode("feed-\(node)", withOptions: options)
-//        self.xmppPubSub.configureNode("contacts-\(node)", withOptions: options)
         
         /* see node metadata */
 //        let query = XMLElement(name: "query")
@@ -248,23 +254,33 @@ extension XMPPController: XMPPStreamDelegate {
         print("Stream: Start Negotiation")
     }
     
-/* ssl */
+    /* ssl */
     func xmppStream(_ sender: XMPPStream, willSecureWithSettings settings: NSMutableDictionary) {
-        print("Stream: willSecureWithSettings: \(settings)")
-        // The following key in settings has to be set only for self-signed certificates (or)
-        // those certificates that cannot be validated using the default settings as in SecTrustEvaluate.
-        // settings.setObject(true, forKey:GCDAsyncSocketManuallyEvaluateTrust as NSCopying)
+        print("Stream: willSecureWithSettings")
+        settings.setObject(true, forKey:GCDAsyncSocketManuallyEvaluateTrust as NSCopying)
     }
 
+    func xmppStream(_ sender: XMPPStream, didReceive trust: SecTrust, completionHandler: ((Bool) -> Void)) {
+        print("Stream: didReceive trust")
+
+//        let certificate = SecTrustGetCertificateAtIndex(trust, 0)
+//        var cn: CFString?
+//        SecCertificateCopyCommonName(certificate!, &cn)
+//        print(cn)
+        
+        let result = SecTrustEvaluateWithError(trust, nil)
+        
+        if result {
+            completionHandler(true)
+        } else {
+            //todo: handle gracefully and reflect in global state
+            completionHandler(false)
+        }
+    }
+    
     func xmppStreamDidSecure(_ sender: XMPPStream) {
-        print("Stream: xmppStreamDidSecure.")
+        print("Stream: xmppStreamDidSecure")
     }
-
-// The following function has to be called only if the certificate has to be manually trusted in the xmppStream:willSecureWithSettings function.
-//    func xmppStream(_ sender: XMPPStream, didReceive trust: SecTrust, completionHandler: ((Bool) -> Void)) {
-//        print("Stream: didReceive trust")
-//        completionHandler(true)
-//    }
     
     func xmppStreamDidConnect(_ stream: XMPPStream) {
         print("Stream: Connected")
@@ -290,6 +306,7 @@ extension XMPPController: XMPPStreamDelegate {
         self.didConnect.send("didConnect")
         
         self.createNodes()
+
         // This function sends an initial presence stanza to the server indicating that the user is online.
         // This is necessary so that the server will then respond with all the offline messages for the client.
         // stanza: <presence />

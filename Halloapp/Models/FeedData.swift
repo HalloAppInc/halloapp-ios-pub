@@ -108,14 +108,38 @@ class FeedData: ObservableObject {
                     self.pushItem(item: item)
                 }
                 
-                
-
            })
 
         )
         
     }
     
+    
+    func pushAllItems(items: [FeedDataItem]) {
+        self.feedDataItems = items
+        
+        self.feedDataItems.sort {
+            
+            let a = $0
+            let b = $1
+            
+            var at = Int(a.timestamp)
+            var bt = Int(b.timestamp)
+            
+            let current = Int(Date().timeIntervalSince1970)
+        
+            if current - at < 0 {
+                at = at/1000
+            }
+            
+            if current - bt < 0 {
+                bt = bt/1000
+            }
+            
+            return at > bt
+        }
+    }
+
     
     func pushItem(item: FeedDataItem) {
         
@@ -329,6 +353,8 @@ class FeedData: ObservableObject {
         do {
             let result = try managedContext.fetch(fetchRequest)
             
+            var feedArr: [FeedDataItem] = []
+            
             for data in result as! [NSManagedObject] {
                 let item = FeedDataItem(
                     itemId: data.value(forKey: "itemId") as! String,
@@ -345,9 +371,11 @@ class FeedData: ObservableObject {
                     }
                 }
                 
-                self.pushItem(item: item)
+                feedArr.append(item)
 
             }
+            
+            self.pushAllItems(items: feedArr)
             
         } catch  {
             print("failed")

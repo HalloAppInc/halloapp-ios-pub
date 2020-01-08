@@ -143,7 +143,7 @@ struct Feed: View {
                                         Button(action: {
 //                                            self.showComments = true
 //                                            self.showSheet = true
-                                            
+//                                            
 //                                            self.feedRouterData.gotoPage(page: "commenting")
 
                                         }) {
