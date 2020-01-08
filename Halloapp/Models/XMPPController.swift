@@ -103,7 +103,7 @@ class XMPPController: NSObject, ObservableObject {
             "pubsub#max_items": "10", // must not go over max or else error
             "pubsub#notify_retract": "0",
             "pubsub#notify_delete": "0",
-            "pubsub#notification_type": "normal"
+            "pubsub#notification_type": "normal" // Updating the notification type to be normal, so that feed updates could be stored by the server when offline.
         ]
         
         if (!self.userData.haveContactsSub) {
@@ -306,8 +306,11 @@ extension XMPPController: XMPPStreamDelegate {
         self.didConnect.send("didConnect")
         
         self.createNodes()
+
+        // This function sends an initial presence stanza to the server indicating that the user is online.
+        // This is necessary so that the server will then respond with all the offline messages for the client.
+        // stanza: <presence />
         self.xmppStream.send(XMPPPresence())
-        
     }
     
     func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: DDXMLElement) {

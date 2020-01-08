@@ -314,9 +314,7 @@ class Contacts: ObservableObject {
 //                    /* get your own items */
 //                    self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(self.xmpp.userData.phone)")
                     
-    //                self.xmppController.xmppPubSub.retrieveItems(fromNode: "contacts-\(self.xmpp.userData.phone)")
-                    
-                    
+                  
                     /* only do cleanup duty when everything else has been done */
                     if (unprocessed.count == 0) {
                     
