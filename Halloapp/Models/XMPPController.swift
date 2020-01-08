@@ -247,23 +247,33 @@ extension XMPPController: XMPPStreamDelegate {
         print("Stream: Start Negotiation")
     }
     
-/* ssl */
+    /* ssl */
     func xmppStream(_ sender: XMPPStream, willSecureWithSettings settings: NSMutableDictionary) {
-        print("Stream: willSecureWithSettings: \(settings)")
-        // The following key in settings has to be set only for self-signed certificates (or)
-        // those certificates that cannot be validated using the default settings as in SecTrustEvaluate.
-        // settings.setObject(true, forKey:GCDAsyncSocketManuallyEvaluateTrust as NSCopying)
+        print("Stream: willSecureWithSettings")
+        settings.setObject(true, forKey:GCDAsyncSocketManuallyEvaluateTrust as NSCopying)
     }
 
+    func xmppStream(_ sender: XMPPStream, didReceive trust: SecTrust, completionHandler: ((Bool) -> Void)) {
+        print("Stream: didReceive trust")
+
+//        let certificate = SecTrustGetCertificateAtIndex(trust, 0)
+//        var cn: CFString?
+//        SecCertificateCopyCommonName(certificate!, &cn)
+//        print(cn)
+        
+        let result = SecTrustEvaluateWithError(trust, nil)
+        
+        if result {
+            completionHandler(true)
+        } else {
+            //todo: handle gracefully and reflect in global state
+            completionHandler(false)
+        }
+    }
+    
     func xmppStreamDidSecure(_ sender: XMPPStream) {
-        print("Stream: xmppStreamDidSecure.")
+        print("Stream: xmppStreamDidSecure")
     }
-
-// The following function has to be called only if the certificate has to be manually trusted in the xmppStream:willSecureWithSettings function.
-//    func xmppStream(_ sender: XMPPStream, didReceive trust: SecTrust, completionHandler: ((Bool) -> Void)) {
-//        print("Stream: didReceive trust")
-//        completionHandler(true)
-//    }
     
     func xmppStreamDidConnect(_ stream: XMPPStream) {
         print("Stream: Connected")
