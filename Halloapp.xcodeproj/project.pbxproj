@@ -27,6 +27,7 @@
 		EA454B5E234E6A2A002B960D /* Navi.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B5D234E6A2A002B960D /* Navi.swift */; };
 		EA454B60234E767C002B960D /* Messaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B5F234E767C002B960D /* Messaging.swift */; };
 		EA454B64234E769F002B960D /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* Profile.swift */; };
+		EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */; };
 		EA56404E233D373800E68A7E /* Verification.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA56404D233D373800E68A7E /* Verification.swift */; };
 		EA564054233D443600E68A7E /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA564053233D443600E68A7E /* Feed.swift */; };
 		EA5B9FC5237CF2B300184F76 /* PicPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B9FC4237CF2B300184F76 /* PicPicker.swift */; };
@@ -102,6 +103,7 @@
 		EA454B5D234E6A2A002B960D /* Navi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navi.swift; sourceTree = "<group>"; };
 		EA454B5F234E767C002B960D /* Messaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Messaging.swift; sourceTree = "<group>"; };
 		EA454B63234E769F002B960D /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
+		EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
 		EA56404D233D373800E68A7E /* Verification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Verification.swift; sourceTree = "<group>"; };
 		EA564053233D443600E68A7E /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		EA5B9FC4237CF2B300184F76 /* PicPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPicker.swift; sourceTree = "<group>"; };
@@ -201,6 +203,7 @@
 				EAA6DEBD2381344800C6D9C8 /* Blur.swift */,
 				EA6057BA239AD26D005DED66 /* MetaData.swift */,
 				EA1B517723A877D200460662 /* FeedRouterData.swift */,
+				EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -578,6 +581,7 @@
 				EA56404E233D373800E68A7E /* Verification.swift in Sources */,
 				EA23CFB623A9439100AEBBB9 /* GroupChat.swift in Sources */,
 				EA23CFB423A9437D00AEBBB9 /* Content.swift in Sources */,
+				EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */,
 				EA1B517823A877D400460662 /* FeedRouterData.swift in Sources */,
 				EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */,
 				EAA739F623720637002CB6DE /* PostText.swift in Sources */,
@@ -764,11 +768,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"Halloapp/Preview Content\"";
 				DEVELOPMENT_TEAM = 69YJHWQ4KS;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -786,11 +791,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"Halloapp/Preview Content\"";
 				DEVELOPMENT_TEAM = 69YJHWQ4KS;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

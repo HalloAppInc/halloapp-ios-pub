@@ -78,6 +78,8 @@ class Contacts: ObservableObject {
     
     private var sentPreemptiveNormalize = false
     
+    private var getMissedPostsAndComments = false
+    
     func getOwnAffiliations() {
         
         let affiliations = XMLElement(name: "affiliations")
@@ -210,8 +212,9 @@ class Contacts: ObservableObject {
                             if (index != nil) {
                                 localNormalizedContacts[conIndex].isConnected = true
                                 localNormalizedContacts[conIndex].timeLastChecked = Date().timeIntervalSince1970
+                                let updateItem = localNormalizedContacts[conIndex]
                                 DispatchQueue.main.async {
-                                    self.updateData(item: localNormalizedContacts[conIndex])
+                                    self.updateData(item: updateItem)
                                 }
 
                                 self.xmppController.xmppPubSub.subscribe(toNode: "feed-\(targetUser)")
@@ -220,10 +223,10 @@ class Contacts: ObservableObject {
                                 /*  redundant whitelisting but useful if the user is new and has > 1k contacts as this will whitelist
                                     these users first
                                  */
-                                Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "member")
+                                Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "publish-only")
                                 Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "member")
                             
-                                self.notifyUser(targetUser)
+                                self.notifyUser(user: targetUser, type: "add")
                                 
                             }
                             
@@ -234,8 +237,9 @@ class Contacts: ObservableObject {
 
                                 localNormalizedContacts[conIndex].isConnected = false
                                 localNormalizedContacts[conIndex].timeLastChecked = Date().timeIntervalSince1970
+                                let updateItem = localNormalizedContacts[conIndex]
                                 DispatchQueue.main.async {
-                                    self.updateData(item: localNormalizedContacts[conIndex])
+                                    self.updateData(item: updateItem)
                                 }
                                 
                                 self.xmppController.xmppPubSub.unsubscribe(fromNode: "feed-\(targetUser)")
@@ -273,8 +277,10 @@ class Contacts: ObservableObject {
                                     bId.batch = label
                         
                                     idsArr.append(bId)
+                                    
+                                    let updateBId = bId
                                     DispatchQueue.main.async {
-                                        self.idsToNormalize.append(bId)
+                                        self.idsToNormalize.append(updateBId)
                                     }
                                 }
                             }
@@ -303,22 +309,28 @@ class Contacts: ObservableObject {
                     
                         
                     /* get all the items  */
-//                    let connected = localNormalizedContacts.filter() { $0.isConnected }
-//        
-//                    connected.forEach {
-//                        let targetUser = $0.normPhone != "" ? $0.normPhone : $0.phone
-//                        self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(targetUser)")
-//                    }
-//                    
-//                    
-//                    /* get your own items */
-//                    self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(self.xmpp.userData.phone)")
+                    /* temporary (only in build 5): getting all the missed items */
+                    if !self.getMissedPostsAndComments {
+                        print("getting missed posts and comments")
+                        let connected = localNormalizedContacts.filter() { $0.isConnected }
+            
+                        connected.forEach {
+                            let targetUser = $0.normPhone != "" ? $0.normPhone : $0.phone
+                            self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(targetUser)")
+                        }
+                        
+                        
+                        /* get your own items */
+                        self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(self.xmpp.userData.phone)")
+                        
+                        self.getMissedPostsAndComments = true
+                    }
                     
                   
                     /* only do cleanup duty when everything else has been done */
                     if (unprocessed.count == 0) {
                     
-    //                    print("Clean Up")
+    //                    print("Contacts Clean Up")
                         
                         /* edge case: currently used only for removing extra affiliations */
                         self.getOwnAffiliations()
@@ -470,7 +482,7 @@ class Contacts: ObservableObject {
                             node: "contacts-\(self.xmpp.userData.phone)",
                             from: "\(self.xmpp.userData.phone)",
                             users: whiteList,
-                            role: "member",
+                            role: "publish-only",
                             id: batchLabel)
 
                         Utils().sendAffBatch(
@@ -640,11 +652,11 @@ class Contacts: ObservableObject {
     }
     
     
-    func notifyUser(_ user: String) {
+    func notifyUser(user: String, type: String) {
         
-        print("notifyUser: \(user)")
+        print("notifyUser: \(user) - \(type)")
         
-        let text = XMLElement(name: "type", stringValue: "newUser")
+        let text = XMLElement(name: "type", stringValue: type)
         let username = XMLElement(name: "user", stringValue: self.xmpp.userData.phone)
         let timestamp = XMLElement(name: "timestamp", stringValue: String(Date().timeIntervalSince1970))
 
@@ -655,6 +667,7 @@ class Contacts: ObservableObject {
         root.addChild(text)
         
         self.xmppController.xmppPubSub.publish(toNode: "contacts-\(user)", entry: root)
+        
     }
     
     
@@ -746,9 +759,10 @@ class Contacts: ObservableObject {
                     
                         localNormalizedContacts.append(item)
                                                 
+                        let updateItem = item
                         DispatchQueue.main.async {
-                            if (!self.isDataPresent(phone: item.phone)) {
-                                self.createData(item: item)
+                            if (!self.isDataPresent(phone: updateItem.phone)) {
+                                self.createData(item: updateItem)
                             }
                         }
                         
@@ -766,13 +780,14 @@ class Contacts: ObservableObject {
        
                             localNormalizedContacts[idx!].name = c.name
                             
+                            let updateItem = localNormalizedContacts[idx!]
                             DispatchQueue.main.async {
-                                self.updateData(item: localNormalizedContacts[idx!])
+                                self.updateData(item: updateItem)
                             }
                         }
 
 
-                        if (!self.normalizedContacts[idx!].isNormalized) {
+                        if (!localNormalizedContacts[idx!].isNormalized) {
 //                                print("old normalize \(self.normalizedContacts[idx!].phone)")
                             localIdsToNormalize.append(BatchId(phone: pn))
                         } else {
@@ -811,7 +826,7 @@ class Contacts: ObservableObject {
             self.processWhiteListChunks(localIdsToWhiteList, timeAfterNormalizing)
 
             
-            self.afterFetch(localContactsStr)
+            localNormalizedContacts = self.afterFetch(localAddressBook: localContactsStr, localContacts: localNormalizedContacts)
             
             localNormalizedContacts.sort {
                 $0.name < $1.name
@@ -823,6 +838,8 @@ class Contacts: ObservableObject {
                 
                 /* always do one check first */
                 self.getAllAffiliations()
+                
+                print("Contacts: \(self.normalizedContacts.count)")
                 
             }
             
@@ -913,7 +930,7 @@ class Contacts: ObservableObject {
                     node: "contacts-\(self.xmpp.userData.phone)",
                     from: "\(self.xmpp.userData.phone)",
                     users: idsArr,
-                    role: "member",
+                    role: "publish-only",
                     id: labelContacts)
                 
                 Utils().sendAffBatch(
@@ -933,14 +950,16 @@ class Contacts: ObservableObject {
         }
     }
     
-    func afterFetch(_ localContactsStr: [String]) {
+    
+    func afterFetch(localAddressBook: [String], localContacts: [NormContact]) -> [NormContact] {
 
+        var contacts = localContacts
         var unmatched: [NormContact] = []
         
-        for con in self.normalizedContacts {
+        for con in contacts {
             
             /* do not use normPhone because here we are matching Core Data Store to our local storage, which keys off the orig number */
-            let idx = localContactsStr.firstIndex(where: {$0 == con.phone})
+            let idx = localAddressBook.firstIndex(where: {$0 == con.phone})
             
             /* this item is unmatched */
             if (idx == nil) {
@@ -975,20 +994,21 @@ class Contacts: ObservableObject {
                 /* unsubscribe to contact's lists */
                 if (con.isConnected) {
                     self.xmppController.xmppPubSub.unsubscribe(fromNode: "feed-\(targetUser)")
-                    self.xmppController.xmppPubSub.unsubscribe(fromNode: "contacts-\(targetUser)")
+                    self.notifyUser(user: targetUser, type: "remove")
                 }
                 
+                contacts.removeAll(where: { $0.phone == con.phone } )
                 
+                let updateItem = con
                 DispatchQueue.main.async {
-                    self.deleteData(item: con)
-                    self.normalizedContacts.removeAll(where: { $0.phone == con.phone } )
+                    self.deleteData(item: updateItem)
                 }
+                
                 
             }
         }
 
-        
-        print("Contacts: \(self.normalizedContacts.count)")
+        return contacts
         
     }
     

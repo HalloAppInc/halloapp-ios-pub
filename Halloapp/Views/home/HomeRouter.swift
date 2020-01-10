@@ -58,7 +58,6 @@ struct HomeRouter: View {
 
                 Messaging(contacts: contacts)
 
-
             } else if homeRouteData.homePage == "profile" {
                 Profile(feedData: feedData)
             } else if homeRouteData.homePage == "postText" {
@@ -70,8 +69,11 @@ struct HomeRouter: View {
                     .animation(.easeInOut) // spring does not seem to work
                     .transition(.moveAndFade)
             }
+            
 
         }
+        
+        
     }
 }
 

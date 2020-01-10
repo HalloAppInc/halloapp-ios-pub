@@ -97,31 +97,37 @@ class XMPPController: NSObject, ObservableObject {
             node = userJID.user!
         }
 
-        let node_options: [String:String] = [
+        let nodeOptions: [String:String] = [
             "pubsub#access_model": "whitelist",
             "pubsub#send_last_published_item": "never",
             "pubsub#max_items": "10", // must not go over max or else error
             "pubsub#notify_retract": "0",
             "pubsub#notify_delete": "0",
             "pubsub#notification_type": "normal" // Updating the notification type to be normal, so that feed updates could be stored by the server when offline.
-
         ]
+
+        var contactsNodeOptions = nodeOptions
+        contactsNodeOptions.merge(["pubsub#max_items": "3"]) { (current, new) -> String in
+            return new
+        }
+        
+        print("contacts node: \(contactsNodeOptions)")
         
         if (!self.userData.haveContactsSub) {
             print("creating contacts node")
-            self.xmppPubSub.createNode("contacts-\(node)", withOptions: node_options)
+            self.xmppPubSub.createNode("contacts-\(node)", withOptions: nodeOptions)
             Utils().sendAff(xmppStream: self.xmppStream, node: "contacts-\(self.userData.phone)", from: "\(self.userData.phone)", user: self.userData.phone, role: "owner")
             self.xmppPubSub.subscribe(toNode: "contacts-\(self.userData.phone)")
         }
         
-        var feed_options = node_options
-        feed_options.merge(["pubsub#publish_model": "subscribers"]) { (current, new) -> String in
+        var feedNodeOptions = nodeOptions
+        feedNodeOptions.merge(["pubsub#publish_model": "subscribers"]) { (current, new) -> String in
             return new
         }
         
         if (!self.userData.haveFeedSub) {
             print("creating feed node: feed-\(node)")
-            self.xmppPubSub.createNode("feed-\(node)", withOptions: feed_options)
+            self.xmppPubSub.createNode("feed-\(node)", withOptions: feedNodeOptions)
             Utils().sendAff(xmppStream: self.xmppStream, node: "feed-\(self.userData.phone)", from: "\(self.userData.phone)", user: self.userData.phone, role: "owner")
             self.xmppPubSub.subscribe(toNode: "feed-\(self.userData.phone)")
             self.xmppPubSub.retrieveItems(fromNode: "feed-\(self.userData.phone)") // if the user logs off, then logs back in
@@ -132,8 +138,8 @@ class XMPPController: NSObject, ObservableObject {
             uncommenting for now to make sure all nodes are configured with the new option
             pubsub#notification_type (from build 5)
          */
-        self.xmppPubSub.configureNode("feed-\(node)", withOptions: options)
-        self.xmppPubSub.configureNode("contacts-\(node)", withOptions: options)
+        self.xmppPubSub.configureNode("feed-\(node)", withOptions: feedNodeOptions)
+        self.xmppPubSub.configureNode("contacts-\(node)", withOptions: nodeOptions)
         
         
         /* see node metadata */

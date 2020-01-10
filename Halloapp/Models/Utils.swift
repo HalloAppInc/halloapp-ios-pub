@@ -48,7 +48,7 @@ class Utils {
         var result = ""
         
         if let origDateDouble = origDateDouble {
-        var now = Date(timeIntervalSince1970: origDateDouble)
+        let now = Date(timeIntervalSince1970: origDateDouble)
         result = now.timeAgoDisplay()
         }
         
@@ -73,7 +73,7 @@ class Utils {
             
             diff = current - origDate
             
-            /* one-off account for if time was in milliseconds */
+            /* one-off": account for if time was in milliseconds */
             if diff < 0 {
                 origDate = origDate/1000
                 diff = current - origDate
@@ -305,7 +305,7 @@ class Utils {
             let node = aff.attributeStringValue(forName: "node")
             let status = aff.attributeStringValue(forName: "affiliation")
             
-            if (status == "member" || status == "publisher") {
+            if (status == "publish-only" || status == "member" || status == "publisher") {
 
                 if node != nil {
                     
@@ -344,7 +344,7 @@ class Utils {
             let jid = aff.attributeStringValue(forName: "jid")
             let status = aff.attributeStringValue(forName: "affiliation")
             
-            if (status == "member" || status == "publisher") {
+            if (status == "publish-only" || status == "member" || status == "publisher") {
 
                 if jid != nil {
                     
@@ -442,9 +442,9 @@ class Utils {
                 }
                 feedList.append(feedItem)
                 print ("feed data item: \(feedItem)")
-            }
-            
-            if let post = entry?.element(forName: "comment") {
+                
+            } else if let post = entry?.element(forName: "comment") {
+                
                 let commentItem = FeedCommentItem()
                 commentItem.commentItemId = itemId!
                 
@@ -481,6 +481,46 @@ class Utils {
                 }
                 commentList.append(commentItem)
                 print ("comment item: \(commentItem)")
+                
+            } else if (entry?.element(forName: "text")) != nil {
+                
+                let feedItem = FeedDataItem()
+                feedItem.itemId = itemId!
+                
+                if let text = entry?.element(forName: "text") {
+                    if let textValue = text.stringValue {
+                        feedItem.text = textValue
+                    }
+                }
+                
+                if let username = entry?.element(forName: "username") {
+                    if let usernameValue = username.stringValue {
+                        feedItem.username = usernameValue
+                    }
+                }
+                
+                if let userImageUrl = entry?.element(forName: "userImageUrl") {
+                    if let userImageUrlValue = userImageUrl.stringValue {
+                        feedItem.userImageUrl = userImageUrlValue
+                    }
+                }
+                
+                if let imageUrl = entry?.element(forName: "imageUrl") {
+                    if let imageUrlValue = imageUrl.stringValue {
+                        feedItem.imageUrl = imageUrlValue
+                    }
+                }
+                
+                if let timestamp = entry?.element(forName: "timestamp") {
+                    if let timestampValue = timestamp.stringValue {
+                        if let convertedTimestampValue = Double(timestampValue) {
+                            feedItem.timestamp = convertedTimestampValue
+                        }
+                    }
+                }
+                feedList.append(feedItem)
+                print ("legacy (pre build 5) item: \(feedItem)")
+                
             }
         }
         return (feedList, commentList)
@@ -589,19 +629,19 @@ class Utils {
     
     func getCountryFromCode(countryCode:String) -> [String: [String]] {
         
-        var result = ["Unknown": ["Unknown", "Unknown"]]
+        let result = ["Unknown": ["Unknown", "Unknown"]]
         
-        let prefix: [String: [String]] = self.getCountryList()
-        
-        let idx = prefix.firstIndex(where: {$0.1[1] == countryCode})
-        
-        if (idx != nil) {
-            
-                print(idx)
-//            countryDialingCode = prefix[idx] {
-//            return countryDialingCode!
-            
-        }
+//        let prefix: [String: [String]] = self.getCountryList()
+//
+//        let idx = prefix.firstIndex(where: {$0.1[1] == countryCode})
+//
+//        if (idx != nil) {
+//
+//                print(idx)
+////            countryDialingCode = prefix[idx] {
+////            return countryDialingCode!
+//
+//        }
         
         return result
     }

@@ -85,8 +85,70 @@ struct ImagePicker: UIViewControllerRepresentable {
             parent.showSheet = false
         }
         
-
         func upload(uiImage: UIImage) {
+            
+            /* note: compression below a certain point (0.2?) is the same */
+            if let imgData = uiImage.jpegData(compressionQuality: 0.1) {
+
+                print("img: \(imgData.count)")
+                
+                let parameters = ["upload_preset":"nobiaovp"]
+                
+                Alamofire.upload(
+                    multipartFormData: { multipartFormData in
+                        multipartFormData.append(imgData, withName: "file", fileName: "file.jpg", mimeType: "image/jpg")
+                        for (key, value) in parameters {
+                                multipartFormData.append(value.data(using: String.Encoding.utf8)!, withName: key)
+                            } //Optional for extra parameters
+                    },
+                    to: "https://api.cloudinary.com/v1_1/halloapp/image/upload"
+                    
+                )
+                { (result) in
+                    switch result {
+                    case .success(let upload, _, _):
+
+                        upload.uploadProgress(closure: { (progress) in
+                            print("Upload Progress: \(progress.fractionCompleted)")
+                        })
+
+                        upload.responseJSON { response in
+                      
+                            if let json = response.data {
+                                do {
+                                    let data = try JSON(data: json)
+                                    let str = data["secure_url"].stringValue
+                                    
+                                    print("raw json data: \(data)")
+                                    
+                                    print("name: \(str)")
+                                    self.parent.imageUrl = "\(str)"
+                                    self.parent.pickerStatus = ""
+                                    
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0) {
+                                        self.parent.callback()
+                                    }
+                                    
+                                    
+                                }
+                                catch{
+                                print("JSON Error")
+                                }
+
+                            }
+                            
+                        }
+
+                    case .failure(let encodingError):
+                        print(encodingError)
+                    }
+                }
+            }
+            
+        }
+        
+        /* unused as image4io broke */
+        func upload2(uiImage: UIImage) {
             
             /* note: compression below a certain point (0.2?) is the same */
             if let imgData = uiImage.jpegData(compressionQuality: 0.1) {
@@ -105,7 +167,7 @@ struct ImagePicker: UIViewControllerRepresentable {
                 
                 Alamofire.upload(
                     multipartFormData: { multipartFormData in
-                        multipartFormData.append(imgData, withName: "fileset",fileName: "file.jpg", mimeType: "image/jpg")
+                        multipartFormData.append(imgData, withName: "fileset", fileName: "file.jpg", mimeType: "image/jpg")
                         for (key, value) in parameters {
                                 multipartFormData.append(value.data(using: String.Encoding.utf8)!, withName: key)
                             } //Optional for extra parameters
@@ -129,7 +191,9 @@ struct ImagePicker: UIViewControllerRepresentable {
                                     let data = try JSON(data: json)
                                     let str = data["uploadedFiles"][0]["name"].stringValue
                                     
-                                    print("DATA PARSED: \(str)")
+                                    print("raw json data: \(data)")
+                                    
+                                    print("name: \(str)")
                                     self.parent.imageUrl = "https://cdn.image4.io/hallo\(str)"
                                     self.parent.pickerStatus = ""
                                     

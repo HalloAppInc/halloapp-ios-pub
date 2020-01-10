@@ -22,6 +22,53 @@ class FeedData: ObservableObject {
     
     private var cancellableSet: Set<AnyCancellable> = []
     
+    
+    func processExpires() {
+        
+        let current = Int(Date().timeIntervalSince1970)
+        
+        let month = 60*60*24*30
+    
+        for item in feedDataItems {
+            let diff = current - Int(item.timestamp)
+            if (diff > month) {
+            
+                if (item.imageUrl != "") {
+            
+                    var imageToDelete = ""
+                    let prefix = "https://res.cloudinary.com/halloapp/image/upload/"
+                    
+                    if item.imageUrl.hasPrefix(prefix) {
+                     
+                        let partial = String(item.imageUrl.dropFirst(prefix.count))
+                        
+                        var components = partial.components(separatedBy: "/")
+                        
+                        if components.count > 1 {
+                            components.removeFirst()
+                        }
+                        
+                        components = components[0].components(separatedBy: ".")
+                        
+                        if components.count > 1 {
+                            components.removeLast()
+                        }
+                        
+                        imageToDelete = components[0]
+                 
+                    }
+                    
+                    if imageToDelete != "" {
+                        print("delete: \(imageToDelete)")
+                        ImageServer().deleteImage(item: imageToDelete)
+                    }
+                    
+                }
+                
+            }
+        }
+    }
+    
     init(xmpp: XMPP) {
         
         self.xmpp = xmpp
@@ -31,35 +78,7 @@ class FeedData: ObservableObject {
         
         self.getAllComments()
 
-//        self.feedDataItems = [
-//            FeedDataItem(username: "Robert",
-//                          imageUrl: "https://cdn.pixabay.com/photo/2015/12/01/20/28/road-1072823_960_720.jpg",
-//                          userImageUrl: "https://cdn.pixabay.com/photo/2016/11/18/19/07/happy-1836445_1280.jpg",
-//                          text: ""),
-//            FeedDataItem(username: "Jessica",
-//                          imageUrl: "https://cdn.pixabay.com/photo/2019/09/24/01/05/flower-4499972_640.jpg",
-//                          userImageUrl: "https://cdn.pixabay.com/photo/2018/01/25/14/12/nature-3106213_1280.jpg",
-//                          text: ""),
-//            FeedDataItem(username: "Timothy",
-//                          imageUrl: "https://cdn.pixabay.com/photo/2019/09/21/06/59/dog-4493182_640.jpg",
-//                          userImageUrl: "https://cdn.pixabay.com/photo/2012/05/29/00/43/car-49278_1280.jpg",
-//                          text: ""),
-//            FeedDataItem(username: "Ashley",
-//                          imageUrl: "https://cdn.pixabay.com/photo/2019/09/25/15/12/chapel-4503926_640.jpg",
-//                          userImageUrl: "https://cdn.pixabay.com/photo/2016/11/23/17/25/beach-1853939_1280.jpg",
-//                          text: "")
-//        ]
-
-//        self.feedDataItems.forEach({
-//            let c = $0.objectWillChange.sink(receiveValue: {
-//                self.firstItemId = self.feedDataItems[0].id.uuidString
-//                self.objectWillChange.send()
-//
-//            })
-//
-//            self.cancellableSet.insert(c)
-//        })
-        
+//        self.processExpires()
         
         /* getting feed items */
         cancellableSet.insert(
@@ -73,9 +92,9 @@ class FeedData: ObservableObject {
                 let event = value.element(forName: "event")
                 let (feedDataItems, feedCommentItems)  = Utils().parseFeedItems(event)
                  
-                 for item in feedDataItems {
-                     self.pushItem(item: item)
-                 }
+                for item in feedDataItems {
+                    self.pushItem(item: item)
+                }
                 
                 for item in feedCommentItems {
                     self.insertComment(item: item)
@@ -198,7 +217,6 @@ class FeedData: ObservableObject {
 //            print("do no insert: \(item.text)")
         }
         
-        
     }
     
     // Inserts the comments into the list and into CoreData.
@@ -228,6 +246,9 @@ class FeedData: ObservableObject {
         let childroot = XMLElement(name: "feedpost")
         let mainroot = XMLElement(name: "entry")
         
+    
+        
+        
         childroot.addChild(username)
         childroot.addChild(userImageUrl)
         childroot.addChild(imageUrl)
@@ -236,7 +257,8 @@ class FeedData: ObservableObject {
         
         mainroot.addChild(childroot)
         print ("Final pubsub payload: \(mainroot)")
-        self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: mainroot)
+        let id = UUID().uuidString
+        self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: mainroot, withItemID: id)
                 
     }
     
@@ -261,7 +283,8 @@ class FeedData: ObservableObject {
     
         mainroot.addChild(childroot)
         print ("Final pubsub payload: \(mainroot)")
-        self.xmppController.xmppPubSub.publish(toNode: "feed-\(postUser)", entry: mainroot)
+        let id = UUID().uuidString
+        self.xmppController.xmppPubSub.publish(toNode: "feed-\(postUser)", entry: mainroot, withItemID: id)
     }
     
     

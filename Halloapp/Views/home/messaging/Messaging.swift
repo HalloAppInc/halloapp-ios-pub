@@ -84,13 +84,15 @@ struct Messaging: View {
 
                 }.listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 
-                if contacts.normalizedContacts.filter( {return $0.isConnected } ).count == 0 {
-                    Divider()
-                        .frame(height: 75)
-                        .hidden()
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                    Text("Your contacts aren't on Hallo yet")
-                }
+                /* todo: this is crashing when the contacts list is empty, filter and then rendering might be too
+                 intensive for the ui */
+//                if contacts.normalizedContacts.filter( {return $0.isConnected } ).isEmpty {
+//                    Divider()
+//                        .frame(height: 75)
+//                        .hidden()
+//                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+//                    Text("Your contacts aren't on Hallo yet")
+//                }
                 
                 
                 
