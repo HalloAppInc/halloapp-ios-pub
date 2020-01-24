@@ -34,6 +34,7 @@ final class UserData: ObservableObject {
     @Published var highlightCountryCode = false
 
     @Published var hostName = "s.halloapp.net"
+    
 //    @Published var hostName = "s-test.halloapp.net"
     
 //  @Published var userJIDString = "14088922686@s.halloapp.net/iphone"
@@ -112,10 +113,15 @@ final class UserData: ObservableObject {
         deleteAllData(entityName: "User")
         deleteAllData(entityName: "ContactsCore")
         deleteAllData(entityName: "FeedCore")
+        deleteAllData(entityName: "FeedComments")
+        deleteAllData(entityName: "ContactsAvatar")
         
         self.didLogOff.send()
         
         /* wipe in memory data */
+        
+        //todo: delete user avatar also
+        
         self.countryCode = "1"
         self.phone = ""
         self.isRegistered = false

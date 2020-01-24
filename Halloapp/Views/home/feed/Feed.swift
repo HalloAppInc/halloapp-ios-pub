@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct Feed: View {
     
@@ -19,6 +20,7 @@ struct Feed: View {
     @ObservedObject var contacts: Contacts
     
     @State private var showSheet = false
+    
     @State private var showImagePicker = false
     @State private var showNotifications = false
     @State private var showPostText = false
@@ -40,13 +42,35 @@ struct Feed: View {
 
     @State private var pickerStatus: String = ""
     
+    @State private var uploadStatus: String = ""
+    
+    @State private var imageGetUrl: String = ""
+    @State private var imagePutUrl: String = ""
+    
     @EnvironmentObject var metaData: MetaData
     
     @State private var detailsPage = ""
     
+    @State var cancellableSet: Set<AnyCancellable> = []
+    
+    @State private var commentClickable = true
+    @State private var lastClickedComment = ""
+    
     var body: some View {
         
-        
+        DispatchQueue.main.async {
+//            print("insert listener")
+            self.cancellableSet.insert(
+
+                self.feedData.xmppController.didGetUploadUrl.sink(receiveValue: { iq in
+                    
+                    (self.imageGetUrl, self.imagePutUrl) = Utils().parseMediaUrl(iq)
+                    
+                })
+
+            )
+        }
+
         return VStack() {
             
             List() {
@@ -67,7 +91,6 @@ struct Feed: View {
                     } else {
                         ForEach(self.feedData.feedDataItems) { item in
                             
-                                
                             VStack(spacing: 0) {
                                 
                                 HStack() {
@@ -141,9 +164,18 @@ struct Feed: View {
                                 
                                 HStack {
                                     
-                                    
                                         Button(action: {
-
+                                            
+                                            if !self.homeRouteData.isGoingBack ||
+                                                self.homeRouteData.lastClickedComment == item.itemId {
+   
+                                                self.lastClickedComment = item.itemId
+                                                
+                                                self.homeRouteData.setItem(value: item)
+                                                self.homeRouteData.gotoPage(page: "commenting")
+                                            }
+                                            
+                                            
 //                                            self.showComments = true
 //                                            self.showSheet = true
 //                                            self.postId = item.itemId
@@ -159,8 +191,28 @@ struct Feed: View {
                                                  Image(systemName: "message")
                                                      .font(.system(size: 20, weight: .regular))
                                                      .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                                                 Text("Comments")
+                                                    
+                                                Text("Comments")
+                                                    
+                                                if (item.unreadComments > 0) {
+                                                    Image(systemName: "circle.fill")
+                                                        .resizable()
+
+                                                        .scaledToFit()
+                                                        .foregroundColor(Color.green)
+                                                        .clipShape(Circle())
+                                                        
+                                                        
+                                                        
+                                                        .frame(width: 10, height: 10, alignment: .center)
+                                                        .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 0))
+                                                    
+                                                }
                                             }
+                                            .padding(EdgeInsets(top: 10, leading: 25, bottom: 10, trailing: 25))
+//                                            .cornerRadius(10)
+//                                            .border((self.lastClickedComment == item.itemId) ? Color.red : Color.blue)
+//
                                          }
                            
                                         
@@ -180,11 +232,13 @@ struct Feed: View {
                                                 
                                              Text("Message")
                                         }
+                                        .padding(EdgeInsets(top: 10, leading: 25, bottom: 10, trailing: 25))
+                                        
                                      }
 
                                 }
                                 .foregroundColor(Color.black)
-                                .padding(EdgeInsets(top: 20, leading: 35, bottom: 20, trailing: 35))
+                                .padding(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
                                 .buttonStyle(BorderlessButtonStyle())
                                 
                             }
@@ -208,29 +262,28 @@ struct Feed: View {
                 .listRowInsets(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
             }
         
-
             .onAppear {
+                
                 UITableViewCell.appearance().selectionStyle = .none
                 UITableView.appearance().backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 248/255, alpha: 1)
                 UITableViewCell.appearance().backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 248/255, alpha: 1)
                 UITableView.appearance().separatorStyle = .none
                 
+                UITableView.appearance().showsVerticalScrollIndicator = false // mainly so transitions won't show it
+                
             }
             
-                
         }
         
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
         .background(Color(red: 248/255, green: 248/255, blue: 248/255))
             
-        
             
         .overlay(
             BlurView(style: .extraLight)
                 .frame(height: 96),
-            alignment: .top
+                alignment: .top
         )
-            
         .overlay(
             HStack() {
                 
@@ -240,8 +293,7 @@ struct Feed: View {
                     .foregroundColor(Color(red: 220/255, green: 220/255, blue: 220/255))
                     .padding()
                 
-                
-        //                Text(String(self.metaData.isOffline))
+//                Text(String(self.metaData.isOffline))
                 
                 Spacer()
 
@@ -271,12 +323,9 @@ struct Feed: View {
 
                         }
                         
-            
-                        
                     }
                 }
                 
-
             }
             .padding(EdgeInsets(top: 25, leading: 0, bottom: 0, trailing: 0))
             .background(Color.clear),
@@ -289,11 +338,10 @@ struct Feed: View {
             alignment: .bottom
         )
         .overlay(
-
           Navi(),
-
           alignment: .bottom
         )
+            
         .edgesIgnoringSafeArea(.all)
 
         .sheet(isPresented: self.$showSheet, content: {
@@ -308,15 +356,11 @@ struct Feed: View {
                             pickedUIImage: self.$pickedUIImage,
                             imageUrl: self.$imageUrl,
                             pickerStatus: self.$pickerStatus,
-                            callback: {
-                       
-        //                                self.feedData.postText(self.userData.phone, "", self.imageUrl)
-        //                                self.pickerStatus = "success"
-        //                                self.imageUrl = ""
-                                
-        //                                self.showPostText = true
-                                
-                                
+                            uploadStatus: self.$uploadStatus,
+                            imageGetUrl: self.$imageGetUrl,
+                            imagePutUrl: self.$imagePutUrl,
+                            requestUrl: {
+                                Utils().requestUploadUrl(xmppStream: self.feedData.xmppController.xmppStream)
                             }
                 )
                 

@@ -41,7 +41,7 @@ struct PostText: View {
             Button(action: {
                 
                 if (self.msgToSend != "") {
-                    self.feedData.postText(self.userData.phone, self.msgToSend, self.imageUrl)
+                    self.feedData.postText(self.userData.phone, self.msgToSend, self.imageUrl, 0, 0)
                     
                     self.msgToSend = ""
                     

@@ -11,6 +11,22 @@ import XMPPFramework
 
 import SwiftDate
 
+public class Debouncer {
+    private let delay: TimeInterval
+    private var workItem: DispatchWorkItem?
+
+    public init(delay: TimeInterval) {
+        self.delay = delay
+    }
+
+    /// Trigger the action after some delay
+    public func run(action: @escaping () -> Void) {
+        workItem?.cancel()
+        workItem = DispatchWorkItem(block: action)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem!)
+    }
+}
+
 extension Date {
     func timeAgoDisplay() -> String {
 
@@ -391,9 +407,9 @@ class Utils {
     }
     
 
-    func parseFeedItems(_ value: XMLElement?) -> ([FeedDataItem], [FeedCommentItem]) {
+    func parseFeedItems(_ value: XMLElement?) -> ([FeedDataItem], [FeedComment]) {
         var feedList: [FeedDataItem] = []
-        var commentList: [FeedCommentItem] = []
+        var commentList: [FeedComment] = []
        
 //        let pubsub = value.element(forName: "pubsub")
         let items = value?.element(forName: "items")
@@ -402,6 +418,7 @@ class Utils {
         for item in itemList ?? [] {
             let entry = item.element(forName: "entry")
             let itemId = item.attributeStringValue(forName: "id")
+            let serverTimestamp = item.attributeStringValue(forName: "timestamp")
             
             // Parse feed posts.
             if let post = entry?.element(forName: "feedpost") {
@@ -433,20 +450,32 @@ class Utils {
                     }
                 }
                 
-                if let timestamp = post.element(forName: "timestamp") {
-                    if let timestampValue = timestamp.stringValue {
-                        if let convertedTimestampValue = Double(timestampValue) {
-                            feedItem.timestamp = convertedTimestampValue
+                if serverTimestamp != nil {
+                    if let convertedServerTimestamp = Double(serverTimestamp!) {
+                        feedItem.timestamp = convertedServerTimestamp
+                    }
+                } else {
+                    if let timestamp = post.element(forName: "timestamp") {
+                        if let timestampValue = timestamp.stringValue {
+                            if let convertedTimestampValue = Double(timestampValue) {
+                                feedItem.timestamp = convertedTimestampValue
+                            }
                         }
                     }
                 }
+                
                 feedList.append(feedItem)
-                print ("feed data item: \(feedItem)")
+//                print ("feed data item: \(feedItem.username) - \(feedItem.text)")
                 
             } else if let post = entry?.element(forName: "comment") {
                 
-                let commentItem = FeedCommentItem()
-                commentItem.commentItemId = itemId!
+                var commentItem = FeedComment(id: itemId!)
+                
+                if let text = post.element(forName: "parentCommentId") {
+                  if let textValue = text.stringValue {
+                        commentItem.parentCommentId = textValue
+                    }
+                }
                 
                 if let text = post.element(forName: "text") {
                   if let textValue = text.stringValue {
@@ -472,15 +501,22 @@ class Utils {
                     }
                 }
                 
-                if let timestamp = post.element(forName: "timestamp") {
-                    if let timestampValue = timestamp.stringValue {
-                        if let convertedTimestampValue = Double(timestampValue) {
-                            commentItem.timestamp = convertedTimestampValue
+                if serverTimestamp != nil {
+                    if let convertedServerTimestamp = Double(serverTimestamp!) {
+                        commentItem.timestamp = convertedServerTimestamp
+                    }
+                } else {
+                    if let timestamp = post.element(forName: "timestamp") {
+                        if let timestampValue = timestamp.stringValue {
+                            if let convertedTimestampValue = Double(timestampValue) {
+                                commentItem.timestamp = convertedTimestampValue
+                            }
                         }
                     }
                 }
+                
                 commentList.append(commentItem)
-                print ("comment item: \(commentItem)")
+//                print ("comment item: \(commentItem.username) - \(commentItem.text)")
                 
             } else if (entry?.element(forName: "text")) != nil {
                 
@@ -519,7 +555,7 @@ class Utils {
                     }
                 }
                 feedList.append(feedItem)
-                print ("legacy (pre build 5) item: \(feedItem)")
+                print ("legacy (pre build 5) item: \(feedItem.text)")
                 
             }
         }
@@ -900,5 +936,87 @@ class Utils {
     }
     
     
+    func requestUploadUrl(xmppStream: XMPPStream) {
+        
+        let uploadMedia = XMLElement(name: "upload_media")
+        uploadMedia.addAttribute(withName: "xmlns", stringValue: "ns:upload_media")
+
+        let iq = XMLElement(name: "iq")
+        iq.addAttribute(withName: "type", stringValue: "get")
+        iq.addAttribute(withName: "to", stringValue: "s.halloapp.net")
+        iq.addAttribute(withName: "id", stringValue: UUID().uuidString)
+        iq.addChild(uploadMedia)
+        
+        xmppStream.send(iq)
+    }
     
+    func parseMediaUrl(_ value: XMPPIQ) -> (String, String) {
+       
+        let uploadMedia = value.element(forName: "upload_media")
+        
+        let mediaUrls = uploadMedia?.element(forName: "media_urls")
+        
+        let getUrl = mediaUrls!.attributeStringValue(forName: "get")!
+                            
+        let putUrl = mediaUrls!.attributeStringValue(forName: "put")!.removingPercentEncoding
+                            
+        return (getUrl, putUrl!)
+        
+    }
+    
+    func sortComments(comments: [FeedComment]) -> [FeedComment] {
+        
+        var commentsArr = comments
+        
+        var map: [String: FeedComment] = [:]
+        
+        var result: [FeedComment] = []
+        
+        func findAncestorRec(child: String) -> String {
+            if map[child] == nil || map[child]?.parentCommentId == "" { // found ancestor
+                return child
+            } else {
+                return findAncestorRec(child: map[child]!.parentCommentId)
+            }
+        }
+        
+        // create a hashmap for fast find
+        for com in commentsArr {
+            map[com.id] = com
+        }
+        
+        // get the primary comments
+//        let primaryComments = commentsArr.filter {
+//            $0.parentCommentId == ""
+//        }
+//        
+//        commentsArr.removeAll { $0.parentCommentId == "" }
+        
+        
+        
+        func findChildrenRec(parent: String) {
+            
+            var children = commentsArr.filter {
+                $0.parentCommentId == parent
+            }
+            
+            commentsArr.removeAll { $0.parentCommentId == parent }
+
+            children.sort {
+                $0.timestamp > $1.timestamp
+            }
+            
+            
+            for child in children {
+                result.append(child)
+                findChildrenRec(parent: child.id)
+            }
+            
+        }
+        
+        findChildrenRec(parent: "")
+
+        
+        return result
+    }
 }

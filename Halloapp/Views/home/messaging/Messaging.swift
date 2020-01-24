@@ -24,82 +24,92 @@ struct Messaging: View {
     @State var showCameraAll = false
        
     var body: some View {
-        return VStack() {
+        return VStack(spacing: 0) {
             
             List() {
             
-                Divider()
-                    .frame(height: 100)
-                    .hidden()
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                
-                ForEach(contacts.normalizedContacts.filter( {
+                /*
+                 crash alert: "precondition failure: invalid value type for attribute"
+                 this crash might happen when scrolling up and down the List, a strange
+                 workaround is to wrap a VStack inside List
+                */
+                VStack(spacing: 0) {
+                    Divider()
+                        .frame(height: 100)
+                        .hidden()
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    
+    //                ForEach(contacts.normalizedContacts.filter( {
+    //
+    //                    return $0.isConnected
+    //
+    //                } )) { (contact: NormContact) in
+                        
+                    ForEach(contacts.normalizedContacts) { contact in
+                        if (contact.isConnected) {
+                            HStack {
 
-                    return $0.isConnected
+                                Image(systemName: "circle.fill")
+                                    .resizable()
 
-                } )) { (contact: NormContact) in
+                                    .scaledToFit()
+                                    .foregroundColor(Color(red: 142/255, green: 142/255, blue: 142/255))
+                                    .clipShape(Circle())
 
-                    HStack {
+                                    .frame(width: 50, height: 50, alignment: .center)
+                                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
 
-                        Image(systemName: "circle.fill")
-                            .resizable()
+                                VStack {
+                                    HStack() {
+                                        Text(contact.name)
 
-                            .scaledToFit()
-                            .foregroundColor(Color(red: 142/255, green: 142/255, blue: 142/255))
-                            .clipShape(Circle())
+                                        .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                        Spacer()
+                                    }
+                                    HStack() {
+                                        Text(contact.normPhone != "" ? contact.normPhone : contact.phone)
+                                            .font(.system(size: 12, weight: .regular))
+                                             .padding(EdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0))
+                                            .foregroundColor(Color(red: 162/255, green: 162/255, blue: 162/255))
 
-                            .frame(width: 50, height: 50, alignment: .center)
-                            .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 0))
+                                        Spacer()
+                                    }
+                                }
 
-                        VStack {
-                            HStack() {
-                                Text(contact.name)
-
-                                .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                                 Spacer()
-                            }
-                            HStack() {
-                                Text(contact.normPhone != "" ? contact.normPhone : contact.phone)
-                                    .font(.system(size: 12, weight: .regular))
-                                     .padding(EdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0))
-                                    .foregroundColor(Color(red: 162/255, green: 162/255, blue: 162/255))
 
-                                Spacer()
-                            }
+
+        //                        Button(action: {
+        //                            self.showCameraAll = true
+        //                            self.showSheet = true
+        //                        }) {
+        //                          Image(systemName: "photo")
+        //                              .font(Font.title.weight(.regular))
+        //                              .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
+        //                        }.padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 10))
+
+                            }.padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 5))
                         }
 
-                        Spacer()
-
-
-//                        Button(action: {
-//                            self.showCameraAll = true
-//                            self.showSheet = true
-//                        }) {
-//                          Image(systemName: "photo")
-//                              .font(Font.title.weight(.regular))
-//                              .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
-//                        }.padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 10))
-
-                    }.padding(EdgeInsets(top: 10, leading: 5, bottom: 0, trailing: 5))
-
-                }.listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                
-                /* todo: this is crashing when the contacts list is empty, filter and then rendering might be too
-                 intensive for the ui */
-//                if contacts.normalizedContacts.filter( {return $0.isConnected } ).isEmpty {
-//                    Divider()
-//                        .frame(height: 75)
-//                        .hidden()
-//                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-//                    Text("Your contacts aren't on Hallo yet")
-//                }
-                
-                
-                
-                Divider()
-                    .frame(height: 100)
-                    .hidden()
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    }.listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    
+                    /* todo: this is crashing when the contacts list is empty, filter and then rendering might be too
+                     intensive for the ui */
+    //                if contacts.normalizedContacts.filter( {return $0.isConnected } ).isEmpty {
+    //                    Divider()
+    //                        .frame(height: 75)
+    //                        .hidden()
+    //                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+    //                    Text("Your contacts aren't on Hallo yet")
+    //                }
+                    
+                    
+                    
+                    Divider()
+                        .frame(height: 100)
+                        .hidden()
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                }
        
             }
             

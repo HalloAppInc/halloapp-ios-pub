@@ -10,7 +10,7 @@ PODS:
   - libidn (1.35)
   - PryntTrimmerView (4.0.0)
   - SteviaLayout (4.6.1)
-  - SwiftDate (4.5.1)
+  - SwiftDate (6.0.3)
   - SwiftyJSON (5.0.0)
   - XMPPFramework/default (4.0.0):
     - CocoaAsyncSocket (~> 7.6)
@@ -26,7 +26,7 @@ PODS:
 
 DEPENDENCIES:
   - Alamofire
-  - SwiftDate (~> 4.0)
+  - SwiftDate (~> 6.0.0)
   - SwiftyJSON
   - XMPPFramework/Swift
   - YPImagePicker
@@ -53,11 +53,11 @@ SPEC CHECKSUMS:
   libidn: e4576a956b797c584c77aaedfc6e3dd639b61bdc
   PryntTrimmerView: 67e67573ffd4c073f1308effa66aefd0cfa667a0
   SteviaLayout: 0c83442390c8a369c21f975ffbd812d11532645b
-  SwiftDate: 7b56d42a221f582047287deb256b23fc5ed49a60
+  SwiftDate: 8d4f14bf1ef68e95094511504856547bf9e3e1a6
   SwiftyJSON: 36413e04c44ee145039d332b4f4e2d3e8d6c4db7
   XMPPFramework: 5d31ff9f73dce031b24bc49bcf88093627a3a86e
   YPImagePicker: bdaa46782668e260fdd9709f19043a9f469fd2ad
 
-PODFILE CHECKSUM: 45b727d89b0e28e25c0088241675073ad29cf1f6
+PODFILE CHECKSUM: e8362bdc687ead2f165acca3ae4f94f574fe3770
 
 COCOAPODS: 1.8.3

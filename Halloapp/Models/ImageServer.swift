@@ -27,7 +27,43 @@ extension String {
 
 class ImageServer {
 
-    func deleteImage(item: String) {
+    func deleteImage(imageUrl: String) {
+
+        if imageUrl == "" {
+            return
+        }
+        
+        var imageToDelete = ""
+        let prefix = "https://res.cloudinary.com/halloapp/image/upload/"
+
+        if imageUrl.hasPrefix(prefix) {
+
+           let partial = String(imageUrl.dropFirst(prefix.count))
+           
+           var components = partial.components(separatedBy: "/")
+           
+           if components.count > 1 {
+               components.removeFirst()
+           }
+           
+           components = components[0].components(separatedBy: ".")
+           
+           if components.count > 1 {
+               components.removeLast()
+           }
+           
+           imageToDelete = components[0]
+
+        }
+
+        if imageToDelete != "" {
+           print("delete: \(imageToDelete)")
+           ImageServer().deleteImageFromCloudinary(item: imageToDelete)
+        }
+        
+    }
+    
+    func deleteImageFromCloudinary(item: String) {
 
         let url = "https://api.cloudinary.com/v1_1/halloapp/image/destroy"
         

@@ -15,7 +15,14 @@ import XMPPFramework
 class FeedData: ObservableObject {
     
     @Published var feedDataItems : [FeedDataItem] = []
-    @Published var feedCommentItems : [FeedCommentItem] = []
+    @Published var feedCommentItems : [FeedComment] = []
+    
+    @Published var feedCommentItems2 : [FeedComment] = [] {
+        willSet {
+            self.objectWillChange.send()
+        }
+    }
+    
     
     var xmpp: XMPP
     var xmppController: XMPPController
@@ -29,39 +36,20 @@ class FeedData: ObservableObject {
         
         let month = 60*60*24*30
     
-        for item in feedDataItems {
+        for (i, item) in feedDataItems.enumerated().reversed() {
             let diff = current - Int(item.timestamp)
             if (diff > month) {
-            
+
+                if (item.username != self.xmpp.userData.phone) {
+                    self.deleteData(itemId: item.itemId)
+                    feedDataItems.remove(at: i)
+                }
+                
+                /* temporary: for keeping our usage small on cloudinary */
                 if (item.imageUrl != "") {
             
-                    var imageToDelete = ""
-                    let prefix = "https://res.cloudinary.com/halloapp/image/upload/"
-                    
-                    if item.imageUrl.hasPrefix(prefix) {
-                     
-                        let partial = String(item.imageUrl.dropFirst(prefix.count))
-                        
-                        var components = partial.components(separatedBy: "/")
-                        
-                        if components.count > 1 {
-                            components.removeFirst()
-                        }
-                        
-                        components = components[0].components(separatedBy: ".")
-                        
-                        if components.count > 1 {
-                            components.removeLast()
-                        }
-                        
-                        imageToDelete = components[0]
-                 
-                    }
-                    
-                    if imageToDelete != "" {
-                        print("delete: \(imageToDelete)")
-                        ImageServer().deleteImage(item: imageToDelete)
-                    }
+                    ImageServer().deleteImage(imageUrl: item.imageUrl)
+
                     
                 }
                 
@@ -75,19 +63,14 @@ class FeedData: ObservableObject {
         self.xmppController = self.xmpp.xmppController
 
         self.getAllData()
-        
         self.getAllComments()
-
-//        self.processExpires()
         
-        /* getting feed items */
+        self.processExpires()
+        
+        /* getting new items, usually one */
         cancellableSet.insert(
             
             xmppController.didGetNewFeedItem.sink(receiveValue: { value in
-//
-//                let textItem = Utils().parseFeedItem(value)
-//
-//                self.pushItem(item: textItem)
 
                 let event = value.element(forName: "event")
                 let (feedDataItems, feedCommentItems)  = Utils().parseFeedItems(event)
@@ -119,6 +102,8 @@ class FeedData: ObservableObject {
 //                for item in textItem {
 //                    self.pushItem(item: item)
 //                }
+                
+//                print("got items: \(value)")
 
                 let pubsub = value.element(forName: "pubsub")
                 var (feedDataItems, feedCommentItems) = Utils().parseFeedItems(pubsub)
@@ -184,7 +169,6 @@ class FeedData: ObservableObject {
                 item.loadImage()
             }
 
-            // note: 15 items is the max before there's a slight UI (in milliseconds) slowdown in rendering the view
             self.feedDataItems.insert(item, at: 0)
             
             self.feedDataItems.sort {
@@ -220,26 +204,64 @@ class FeedData: ObservableObject {
     }
     
     // Inserts the comments into the list and into CoreData.
-    func insertComment(item: FeedCommentItem) {
-       if let idx = self.feedCommentItems.firstIndex(where: {$0.commentItemId == item.commentItemId}) {
-            print ("Failed to insert comment: \(item.commentItemId), \(self.feedCommentItems[idx].commentItemId)")
+    func insertComment(item: FeedComment) {
+       if let idx = self.feedCommentItems.firstIndex(where: {$0.id == item.id}) {
+//            print ("Comment already exist: \(item.id)")
         } else {
             self.feedCommentItems.insert(item, at: 0)
-            if (!self.isCommentPresent(commentId: item.commentItemId)) {
+        
+            self.increaseFeedItemUnreadComments(comment: item, num: 1)
+        
+            if (!self.isCommentPresent(commentId: item.id)) {
                 self.createComment(item: item)
             } else {
-                print ("Comment is already present in coredata with same id: \(item.commentItemId)")
+                print ("Comment already in CoreData: \(item.id)")
             }
         }
     }
     
+    func increaseFeedItemUnreadComments(comment: FeedComment, num: Int) {
+        
+        let idx = self.feedDataItems.firstIndex(where: {$0.itemId == comment.feedItemId})
+        
+        if idx == nil {
+            return
+        } else {
+            self.feedDataItems[idx!].unreadComments += num
+        }
+         
+        self.updateFeedItem(item: self.feedDataItems[idx!])
+        
+        
+    }
+    
+    func markFeedItemUnreadComments(comment: FeedComment) {
+        
+        let idx = self.feedDataItems.firstIndex(where: {$0.itemId == comment.feedItemId})
+        
+        if idx == nil {
+            return
+        } else {
+            if (self.feedDataItems[idx!].unreadComments > 0) {
+                self.feedDataItems[idx!].unreadComments = 0
+
+                self.updateFeedItem(item: self.feedDataItems[idx!])
+            }
+        }
+        
+    }
+    
     // Publishes the post to the user's feed pubsub node.
-    func postText(_ user: String, _ text: String, _ imageUrl: String) {
+    func postText(_ user: String, _ text: String, _ imageUrl: String, _ imageWidth: Int, _ imageHeight: Int) {
         print("postText: " + text)
         
         let text = XMLElement(name: "text", stringValue: text)
         let username = XMLElement(name: "username", stringValue: self.xmpp.userData.phone)
         let imageUrl = XMLElement(name: "imageUrl", stringValue: imageUrl)
+        
+        imageUrl.addAttribute(withName: "width", stringValue: String(imageWidth))
+        imageUrl.addAttribute(withName: "height", stringValue: String(imageHeight))
+        
         let userImageUrl = XMLElement(name: "userImageUrl", stringValue: "")
         let timestamp = XMLElement(name: "timestamp", stringValue: String(Date().timeIntervalSince1970))
         
@@ -263,11 +285,12 @@ class FeedData: ObservableObject {
     }
     
     // Publishes the comment 'text' on post 'feedItemId' to the user 'postUser' feed pubsub node.
-    func postComment(_ feedItemId: String, _ postUser: String, _ text: String) {
+    func postComment(_ feedItemId: String, _ postUser: String, _ text: String, _ parentCommentId: String) {
         print("postComment: " + text)
         
         let text = XMLElement(name: "text", stringValue: text)
         let feedItem = XMLElement(name: "feedItemId", stringValue: feedItemId)
+        let parentCommentId = XMLElement(name: "parentCommentId", stringValue: parentCommentId)
         let username = XMLElement(name: "username", stringValue: self.xmpp.userData.phone)
         let userImageUrl = XMLElement(name: "userImageUrl", stringValue: "")
         let timestamp = XMLElement(name: "timestamp", stringValue: String(Date().timeIntervalSince1970))
@@ -278,9 +301,10 @@ class FeedData: ObservableObject {
         childroot.addChild(username)
         childroot.addChild(userImageUrl)
         childroot.addChild(feedItem)
+        childroot.addChild(parentCommentId)
         childroot.addChild(timestamp)
         childroot.addChild(text)
-    
+        
         mainroot.addChild(childroot)
         print ("Final pubsub payload: \(mainroot)")
         let id = UUID().uuidString
@@ -355,8 +379,7 @@ class FeedData: ObservableObject {
 //    }
     
     
-    
- 
+
     func createData(item: FeedDataItem) {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
         let managedContext = appDelegate.persistentContainer.viewContext
@@ -370,7 +393,7 @@ class FeedData: ObservableObject {
         obj.setValue(item.imageUrl, forKeyPath: "imageUrl")
         obj.setValue(item.timestamp, forKeyPath: "timestamp")
         obj.setValue(item.text, forKeyPath: "text")
-        
+        obj.setValue(item.unreadComments, forKeyPath: "unreadComments")
         
         do {
             try managedContext.save()
@@ -379,7 +402,71 @@ class FeedData: ObservableObject {
         }
     }
     
+    func deleteData(itemId: String) {
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+        let managedContext = appDelegate.persistentContainer.viewContext
+        
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FeedCore")
+        
+        fetchRequest.predicate = NSPredicate(format: "itemId == %@", itemId)
+        
+        do {
+            let result = try managedContext.fetch(fetchRequest)
 
+            if (result.count < 1) {
+                return
+            }
+            
+            let objectToDelete = result[0] as! NSManagedObject
+            managedContext.delete(objectToDelete)
+            
+            do {
+                try managedContext.save()
+            } catch {
+                print(error)
+            }
+            
+        } catch  {
+            print("failed")
+        }
+    }
+    
+    func updateFeedItem(item: FeedDataItem) {
+        
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+        
+        let managedContext = appDelegate.persistentContainer.viewContext
+        
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FeedCore")
+        fetchRequest.predicate = NSPredicate(format: "itemId == %@", item.itemId)
+        
+        do {
+            let result = try managedContext.fetch(fetchRequest)
+            
+            if (result.count < 1) {
+                return
+            }
+            
+            let objectUpdate = result[0] as! NSManagedObject
+            objectUpdate.setValue(item.unreadComments, forKey: "unreadComments")
+            
+            do {
+                try managedContext.save()
+            } catch {
+                print(error)
+            }
+        
+            do {
+                try managedContext.save()
+            } catch {
+                print(error)
+            }
+            
+        } catch  {
+            print("failed")
+        }
+    }
+    
     func updateImageData(itemId: String, image: UIImage) {
         
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
@@ -434,6 +521,7 @@ class FeedData: ObservableObject {
                     imageUrl: data.value(forKey: "imageUrl") as! String,
                     userImageUrl: data.value(forKey: "userImageUrl") as! String,
                     text: (data.value(forKey: "text") as? String) ?? "",
+                    unreadComments: (data.value(forKey: "unreadComments") as? Int) ?? 0,
                     timestamp: data.value(forKey: "timestamp") as! Double
                 )
                 
@@ -463,7 +551,7 @@ class FeedData: ObservableObject {
         do {
             let result = try managedContext.fetch(fetchRequest)
             for data in result as! [NSManagedObject] {
-                let item = FeedCommentItem(commentItemId: data.value(forKey: "commentId") as! String,
+                let item = FeedComment(id: data.value(forKey: "commentId") as! String,
                                            feedItemId: data.value(forKey: "feedItemId") as! String,
                                            parentCommentId: data.value(forKey: "parentCommentId") as! String,
                                            username: data.value(forKey: "username") as! String,
@@ -509,12 +597,12 @@ class FeedData: ObservableObject {
     }
     
     // Inserts the comment item into the FeedComments entity of CoreData.
-    func createComment(item: FeedCommentItem) {
+    func createComment(item: FeedComment) {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
         let managedContext = appDelegate.persistentContainer.viewContext
         let userEntity = NSEntityDescription.entity(forEntityName: "FeedComments", in: managedContext)!
         let obj = NSManagedObject(entity: userEntity, insertInto: managedContext)
-        obj.setValue(item.commentItemId, forKeyPath: "commentId")
+        obj.setValue(item.id, forKeyPath: "commentId")
         obj.setValue(item.username, forKeyPath: "username")
         obj.setValue(item.userImageUrl, forKeyPath: "userImageUrl")
         obj.setValue(item.feedItemId, forKeyPath: "feedItemId")
@@ -564,6 +652,8 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable {
     
     var text: String
     
+    var unreadComments: Int
+    
     var timestamp: Double = 0
     
     @Published var userImage: UIImage = UIImage()
@@ -583,6 +673,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable {
             imageUrl: String = "",
             userImageUrl: String = "",
             text: String = "",
+            unreadComments: Int = 0,
             timestamp: Double = 0) {
         
         self.itemId = itemId
@@ -590,6 +681,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable {
         self.userImageUrl = userImageUrl
         self.imageUrl = imageUrl
         self.text = text
+        self.unreadComments = unreadComments
         self.timestamp = timestamp
     }
     
@@ -628,18 +720,25 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable {
     
 }
 
-// FeedCommentItem object to hold all the properties of a comment item on a post.
-class FeedCommentItem: Identifiable, Equatable {
-    var id = UUID()
-    var commentItemId: String
-    var feedItemId: String
-    var parentCommentId: String
-    var username: String
-    var userImageUrl: String
-    var text: String
+
+struct FeedComment: Identifiable, Equatable, Hashable {
+    var id: String
+    var feedItemId: String = ""
+    var parentCommentId: String = ""
+    var username: String = ""
+    var userImageUrl: String = ""
+    var text: String = ""
     var timestamp: Double = 0
     
-    init(commentItemId: String = "",
+    init() {
+        self.id = UUID().uuidString
+    }
+    
+    init(id: String) {
+        self.id = id
+    }
+    
+    init(id: String,
          feedItemId: String = "",
          parentCommentId: String = "",
          username: String = "",
@@ -647,7 +746,7 @@ class FeedCommentItem: Identifiable, Equatable {
          text: String = "",
          timestamp: Double = 0) {
         
-        self.commentItemId = commentItemId
+        self.id = id
         self.feedItemId = feedItemId
         self.parentCommentId = parentCommentId
         self.username = username
@@ -655,9 +754,13 @@ class FeedCommentItem: Identifiable, Equatable {
         self.text = text
         self.timestamp = timestamp
     }
-    // Using commentItemId for now.
-    static func == (lhs: FeedCommentItem, rhs: FeedCommentItem) -> Bool {
-        return lhs.commentItemId == rhs.commentItemId
+    
+    static func == (lhs: FeedComment, rhs: FeedComment) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
     
 }

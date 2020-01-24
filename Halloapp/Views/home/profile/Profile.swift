@@ -15,7 +15,7 @@ struct GridCell: View {
 
     var body: some View {
         VStack() {
-     
+            
             ZStack() {
                 if (item.imageUrl != "") {
                     Image(uiImage: item.image)
@@ -61,17 +61,36 @@ struct Profile: View {
     
     @EnvironmentObject var homeRouteData: HomeRouteData
     
+    @ObservedObject var feedData: FeedData
+    
     @State var msgToSend = ""
     
+    @State var showMoreActions = false
+    
     @State var showSheet = false
+    @State var showImagePicker = false
+    @State private var showPostText = false // ?
     @State var showSettings = false
     
-    @ObservedObject var feedData: FeedData
+    @State private var cameraMode = "library"
+    
+    @State private var UserImage = Image(systemName: "nosign")
+    @State private var pickedUIImage: UIImage = UIImage(systemName: "nosign")!
+    @State private var imageUrl: String = ""
+
+    @State private var pickerStatus: String = ""
+    
+    @State private var uploadStatus: String = ""
+    
+    @State private var imageGetUrl: String = ""
+    @State private var imagePutUrl: String = ""
+    
+    
     
     var body: some View {
         
         return VStack(spacing: 0) {
-                
+            
             List() {
                 
                 /*
@@ -82,8 +101,36 @@ struct Profile: View {
                 VStack(spacing: 0) {
                     
                     Divider()
-                        .frame(height: 150)
+                        .frame(height: 100)
                         .hidden()
+                    
+                    HStack {
+                        Spacer()
+                        VStack(spacing: 0) {
+                            
+                            Button(action: {
+//                                self.showMoreActions = true
+                            }) {
+                                Image(systemName: "circle.fill")
+                                    .resizable()
+                                
+                                    .scaledToFit()
+                                    .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
+                                    .clipShape(Circle())
+                                
+                                    .frame(width: 50, height: 50, alignment: .center)
+                                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
+
+                            }
+                                
+                            Text("\(userData.phone)")
+                        }
+
+                        
+                        Spacer()
+                    }
+                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    
                     
                     if (self.feedData.feedDataItems.count == 0) {
                         LoadingTimer()
@@ -211,7 +258,7 @@ struct Profile: View {
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
         .overlay(
             BlurView(style: .extraLight)
-                .frame(height: 190),
+                .frame(height: 100),
             alignment: .top
         )
                         
@@ -257,27 +304,7 @@ struct Profile: View {
                     .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
 
                     
-                    HStack {
-                        Spacer()
-                        VStack(spacing: 0) {
-                            Image(systemName: "circle.fill")
-                                .resizable()
-                            
-                                .scaledToFit()
-                                .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
-                                .clipShape(Circle())
-                            
-                                .frame(width: 50, height: 50, alignment: .center)
-                                .padding(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
-                                
-                            
-                            Text("\(userData.phone)")
-                        }
 
-                        
-                        Spacer()
-                    }
-                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                     
                     
                 }
@@ -305,23 +332,65 @@ struct Profile: View {
         
         .sheet(isPresented: self.$showSheet, content: {
             
-            if (self.showSettings) {
+            if (self.showImagePicker) {
+
+                ImagePicker(showPostText: self.$showPostText,
+                            showSheet: self.$showSheet,
+                            showImagePicker: self.$showImagePicker,
+                            cameraMode: self.$cameraMode,
+                            pickedImage: self.$UserImage,
+                            pickedUIImage: self.$pickedUIImage,
+                            imageUrl: self.$imageUrl,
+                            pickerStatus: self.$pickerStatus,
+                            uploadStatus: self.$uploadStatus,
+                            imageGetUrl: self.$imageGetUrl,
+                            imagePutUrl: self.$imagePutUrl,
+                            requestUrl: {
+                                Utils().requestUploadUrl(xmppStream: self.feedData.xmppController.xmppStream)
+                            }
+                )
+            
+            } else if (self.showSettings) {
 
                 Settings(onDismiss: {
                     self.showSheet = false
-                    
-              
-                    
                 })
                 .environmentObject(self.userData)
                 .environmentObject(self.homeRouteData)
                 
             } else if (self.showSheet) {
 
-                
-                
             }
         })
+        
+            
+        .actionSheet(isPresented: self.$showMoreActions) {
+            ActionSheet(
+                title: Text(""),
+                buttons: [
+                    .default(Text("Photo Library"), action: {
+                    
+                        self.cameraMode = "library"
+                        self.showImagePicker = true
+                        self.showSheet = true
+                        self.showMoreActions = false
+                        
+                        
+                    }),
+                    .default(Text("Camera"), action: {
+                        self.cameraMode = "camera"
+                        self.showImagePicker = true
+                        self.showSheet = true
+                        self.showMoreActions = false
+                        
+                        
+                    }),
+                    .destructive(Text("Cancel"), action: {
+                        self.showMoreActions = false
+                    })
+                ]
+            )
+        }
     }
 }
 

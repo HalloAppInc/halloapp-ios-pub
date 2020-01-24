@@ -28,6 +28,7 @@
 		EA454B60234E767C002B960D /* Messaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B5F234E767C002B960D /* Messaging.swift */; };
 		EA454B64234E769F002B960D /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* Profile.swift */; };
 		EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */; };
+		EA53556923CCF0CD001DF10F /* KeyboardAwarePadding.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA53556823CCF0CD001DF10F /* KeyboardAwarePadding.swift */; };
 		EA56404E233D373800E68A7E /* Verification.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA56404D233D373800E68A7E /* Verification.swift */; };
 		EA564054233D443600E68A7E /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA564053233D443600E68A7E /* Feed.swift */; };
 		EA5B9FC5237CF2B300184F76 /* PicPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B9FC4237CF2B300184F76 /* PicPicker.swift */; };
@@ -37,12 +38,14 @@
 		EA80ADFB235A8325002F7680 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA80ADFA235A8325002F7680 /* Utils.swift */; };
 		EA8D4721233C25B8006E2BA5 /* Verify.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* Verify.swift */; };
 		EA8D4725233C3459006E2BA5 /* AuthRouteData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4724233C3459006E2BA5 /* AuthRouteData.swift */; };
+		EAA43DA123DA15AE00B9C0CA /* CommentHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA43DA023DA15AE00B9C0CA /* CommentHeader.swift */; };
 		EAA6DEBE2381344800C6D9C8 /* Blur.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEBD2381344800C6D9C8 /* Blur.swift */; };
 		EAA6DEC02381D7DD00C6D9C8 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEBF2381D7DD00C6D9C8 /* Notifications.swift */; };
 		EAA6DEC223836A3C00C6D9C8 /* PostTextSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEC123836A3C00C6D9C8 /* PostTextSheet.swift */; };
 		EAA6DEC42383A4E800C6D9C8 /* TextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEC32383A4E800C6D9C8 /* TextView.swift */; };
 		EAA6DEC62383AD8400C6D9C8 /* MessageUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEC52383AD8400C6D9C8 /* MessageUser.swift */; };
 		EAA739F623720637002CB6DE /* PostText.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA739F523720637002CB6DE /* PostText.swift */; };
+		EABA86BD23CE96A400BD180D /* CommentSubCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABA86BC23CE96A400BD180D /* CommentSubCell.swift */; };
 		EABCE13D23AB009D000C68B7 /* Comments.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABCE13C23AB009D000C68B7 /* Comments.swift */; };
 		EAC4AF23233E8DAB00739B2B /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */; };
 		EAC7E8F92385A6B700F5E711 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC7E8F82385A6B700F5E711 /* Settings.swift */; };
@@ -104,6 +107,7 @@
 		EA454B5F234E767C002B960D /* Messaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Messaging.swift; sourceTree = "<group>"; };
 		EA454B63234E769F002B960D /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
+		EA53556823CCF0CD001DF10F /* KeyboardAwarePadding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardAwarePadding.swift; sourceTree = "<group>"; };
 		EA56404D233D373800E68A7E /* Verification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Verification.swift; sourceTree = "<group>"; };
 		EA564053233D443600E68A7E /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		EA5B9FC4237CF2B300184F76 /* PicPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPicker.swift; sourceTree = "<group>"; };
@@ -113,12 +117,15 @@
 		EA80ADFA235A8325002F7680 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		EA8D4720233C25B8006E2BA5 /* Verify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Verify.swift; sourceTree = "<group>"; };
 		EA8D4724233C3459006E2BA5 /* AuthRouteData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRouteData.swift; sourceTree = "<group>"; };
+		EAA43DA023DA15AE00B9C0CA /* CommentHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentHeader.swift; sourceTree = "<group>"; };
+		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAA6DEBD2381344800C6D9C8 /* Blur.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blur.swift; sourceTree = "<group>"; };
 		EAA6DEBF2381D7DD00C6D9C8 /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		EAA6DEC123836A3C00C6D9C8 /* PostTextSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostTextSheet.swift; sourceTree = "<group>"; };
 		EAA6DEC32383A4E800C6D9C8 /* TextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextView.swift; sourceTree = "<group>"; };
 		EAA6DEC52383AD8400C6D9C8 /* MessageUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageUser.swift; sourceTree = "<group>"; };
 		EAA739F523720637002CB6DE /* PostText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostText.swift; sourceTree = "<group>"; };
+		EABA86BC23CE96A400BD180D /* CommentSubCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentSubCell.swift; sourceTree = "<group>"; };
 		EABCE13C23AB009D000C68B7 /* Comments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Comments.swift; sourceTree = "<group>"; };
 		EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
 		EAC7E8F82385A6B700F5E711 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
@@ -213,13 +220,13 @@
 			children = (
 				EA1B517923A8787800460662 /* FeedRouter.swift */,
 				EA564053233D443600E68A7E /* Feed.swift */,
+				EA2E4A5E23A42529009A2ABD /* Commenting.swift */,
 				EA6057B8239885E3005DED66 /* ActivityIndicator.swift */,
 				EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */,
 				EAA6DEBF2381D7DD00C6D9C8 /* Notifications.swift */,
 				EAA739F523720637002CB6DE /* PostText.swift */,
 				EAA6DEC123836A3C00C6D9C8 /* PostTextSheet.swift */,
 				EAA6DEC32383A4E800C6D9C8 /* TextView.swift */,
-				EA2E4A5E23A42529009A2ABD /* Commenting.swift */,
 				EAA6DEC52383AD8400C6D9C8 /* MessageUser.swift */,
 				EA23CFB323A9437D00AEBBB9 /* Content.swift */,
 				EA23CFB523A9439100AEBBB9 /* GroupChat.swift */,
@@ -284,6 +291,9 @@
 			children = (
 				EA454B5D234E6A2A002B960D /* Navi.swift */,
 				EAF4F733237DE9AC006885F0 /* ExampleViewController.swift */,
+				EA53556823CCF0CD001DF10F /* KeyboardAwarePadding.swift */,
+				EABA86BC23CE96A400BD180D /* CommentSubCell.swift */,
+				EAA43DA023DA15AE00B9C0CA /* CommentHeader.swift */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -323,6 +333,7 @@
 		EAF3A1C12334191E00805FF9 /* Halloapp */ = {
 			isa = PBXGroup;
 			children = (
+				EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */,
 				EAFA65D823AC2428004C36F7 /* Wrappers */,
 				EAC4AF21233E8D9700739B2B /* Network */,
 				EA3861EB23342C3800705943 /* Models */,
@@ -563,11 +574,13 @@
 				EAF4F734237DE9AC006885F0 /* ExampleViewController.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
+				EAA43DA123DA15AE00B9C0CA /* CommentHeader.swift in Sources */,
 				EA2E4A5F23A4252A009A2ABD /* Commenting.swift in Sources */,
 				EAC7E8F92385A6B700F5E711 /* Settings.swift in Sources */,
 				EAE721332351394D0003D5C7 /* Contacts.swift in Sources */,
 				EA6057BB239AD26D005DED66 /* MetaData.swift in Sources */,
 				EA564054233D443600E68A7E /* Feed.swift in Sources */,
+				EA53556923CCF0CD001DF10F /* KeyboardAwarePadding.swift in Sources */,
 				EA72F2122335A0A3008B696F /* UserData.swift in Sources */,
 				EA0D200F2363D2E1008B8289 /* HomeRouteData.swift in Sources */,
 				EABCE13D23AB009D000C68B7 /* Comments.swift in Sources */,
@@ -597,6 +610,7 @@
 				EAF4F736237DEC2C006885F0 /* YPPicker.swift in Sources */,
 				EA0D20072363AC4D008B8289 /* Landing.swift in Sources */,
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
+				EABA86BD23CE96A400BD180D /* CommentSubCell.swift in Sources */,
 				EAFA65DA23AC245B004C36F7 /* WUITableView.swift in Sources */,
 				EA0D20112363E38E008B8289 /* HomeInit.swift in Sources */,
 				EAA6DEC02381D7DD00C6D9C8 /* Notifications.swift in Sources */,
@@ -767,8 +781,9 @@
 			baseConfigurationReference = 0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"Halloapp/Preview Content\"";
 				DEVELOPMENT_TEAM = 69YJHWQ4KS;
 				ENABLE_PREVIEWS = YES;
@@ -790,8 +805,9 @@
 			baseConfigurationReference = 368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"Halloapp/Preview Content\"";
 				DEVELOPMENT_TEAM = 69YJHWQ4KS;
 				ENABLE_PREVIEWS = YES;

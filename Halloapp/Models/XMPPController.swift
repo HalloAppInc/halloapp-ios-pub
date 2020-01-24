@@ -34,6 +34,8 @@ class XMPPController: NSObject, ObservableObject {
     var didGetNormBatch = PassthroughSubject<XMPPIQ, Never>()
     var didGetAffBatch = PassthroughSubject<XMPPIQ, Never>()
     
+    var didGetUploadUrl = PassthroughSubject<XMPPIQ, Never>()
+    
     var didSubscribeToContact = PassthroughSubject<String, Never>()
     var didNotSubscribeToContact = PassthroughSubject<String, Never>()
     
@@ -100,7 +102,7 @@ class XMPPController: NSObject, ObservableObject {
         let nodeOptions: [String:String] = [
             "pubsub#access_model": "whitelist",
             "pubsub#send_last_published_item": "never",
-            "pubsub#max_items": "10", // must not go over max or else error
+            "pubsub#max_items": "1000", // must not go over max or else error
             "pubsub#notify_retract": "0",
             "pubsub#notify_delete": "0",
             "pubsub#notification_type": "normal" // Updating the notification type to be normal, so that feed updates could be stored by the server when offline.
@@ -110,8 +112,6 @@ class XMPPController: NSObject, ObservableObject {
         contactsNodeOptions.merge(["pubsub#max_items": "3"]) { (current, new) -> String in
             return new
         }
-        
-        print("contacts node: \(contactsNodeOptions)")
         
         if (!self.userData.haveContactsSub) {
             print("creating contacts node")
@@ -145,7 +145,7 @@ class XMPPController: NSObject, ObservableObject {
         /* see node metadata */
 //        let query = XMLElement(name: "query")
 //        query.addAttribute(withName: "xmlns", stringValue: "http://jabber.org/protocol/disco#info")
-//        query.addAttribute(withName: "node", stringValue: "feed-16503363079")
+//        query.addAttribute(withName: "node", stringValue: "feed-\(userData.phone)")
 //
 //        let iq = XMLElement(name: "iq")
 //        iq.addAttribute(withName: "type", stringValue: "get")
@@ -158,7 +158,7 @@ class XMPPController: NSObject, ObservableObject {
         
         /* see configuration */
 //        let configure = XMLElement(name: "configure")
-//        configure.addAttribute(withName: "node", stringValue: "contacts-\(userData.phone)")
+//        configure.addAttribute(withName: "node", stringValue: "feed-\(userData.phone)")
 //
 //        let pubsub = XMLElement(name: "pubsub")
 //        pubsub.addAttribute(withName: "xmlns", stringValue: "http://jabber.org/protocol/pubsub#owner")
@@ -225,9 +225,16 @@ extension XMPPController: XMPPStreamDelegate {
         
             let contactList = iq.element(forName: "contact_list")
             
+            let uploadMedia = iq.element(forName: "upload_media")
+            
             if contactList != nil {
                 
                 self.didGetNormBatch.send(iq)
+                
+            } else if uploadMedia != nil {
+                
+                print("hey")
+                self.didGetUploadUrl.send(iq)
                 
             } else {
             

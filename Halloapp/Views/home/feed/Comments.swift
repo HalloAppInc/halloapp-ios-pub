@@ -81,7 +81,7 @@ struct Comments: View {
                 
                 Button(action: {
                     if (self.msgToSend != "") {
-                        self.feedData.postComment(self.postId, self.username, self.msgToSend)
+//                        self.feedData.postComment(self.postId, self.username, self.msgToSend)
                         self.msgToSend = ""
                     }
 

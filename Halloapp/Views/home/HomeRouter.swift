@@ -9,13 +9,25 @@
 import SwiftUI
 
 extension AnyTransition {
+    
     static var moveAndFade: AnyTransition {
         let insertion = AnyTransition.move(edge: .trailing)
             .combined(with: .opacity)
-        let removal = AnyTransition.scale
+        let removal = AnyTransition.move(edge: .leading)
             .combined(with: .opacity)
+  
         return .asymmetric(insertion: insertion, removal: removal)
     }
+    
+    static var moveAndFadeReverse: AnyTransition {
+        let insertion = AnyTransition.move(edge: .leading)
+            .combined(with: .opacity)
+        let removal = AnyTransition.scale
+            .combined(with: .opacity)
+            
+        return .asymmetric(insertion: insertion, removal: removal)
+    }
+    
 }
 
 struct HomeRouter: View {
@@ -30,45 +42,70 @@ struct HomeRouter: View {
         
         VStack {
             
-            
-//            ZStack {
+            ZStack {
+
+                if (homeRouteData.homePage == "commenting") {
+                    Commenting(feedData, homeRouteData.getItem(), contacts )
+                        .zIndex(2.0)
+//                        .animation(.easeInOut(duration: 1.0)) // spring does not seem to work
+                        .transition(.move(edge: .trailing))
+//                        .animation(.easeInOut(duration: 0.5))
+                        .animation(.spring())
+                }
+
+                if (homeRouteData.homePage == "feed" || homeRouteData.homePage == "commenting") {
+                    FeedRouter(feedData: feedData, contacts: contacts)
+                        .environmentObject(FeedRouterData())
+    //                    .opacity((homeRouteData.homePage == "feed" || homeRouteData.homePage == "commenting") ? 1.0 : 0.0)
+                        .zIndex((homeRouteData.homePage == "feed" || homeRouteData.homePage == "commenting") ? 1.0 : 0.0)
+                        .offset(x: homeRouteData.homePage == "commenting" ? -1*UIScreen.main.bounds.size.width : 0.0, y: 0.0)
+                        
+                        .animation(.spring())
+                        
+                }
+                    
+                else if (homeRouteData.homePage == "messaging") {
+                    Messaging(contacts: contacts)
+    //                    .opacity(homeRouteData.homePage == "messaging" ? 1.0 : 0.0)
+                        .zIndex(homeRouteData.homePage == "messaging" ? 1.0 : 0.0)
+                }
+
+                else if (homeRouteData.homePage == "profile") {
+                    Profile(feedData: feedData)
+    //                    .opacity(homeRouteData.homePage == "profile" ? 1.0 : 0.0)
+                        .zIndex(homeRouteData.homePage == "profile" ? 1.0 : 0.0)
+                }
+
+            }
+
+
+
+//            if (homeRouteData.homePage == "feed") {
+////                Feed(feedData: feedData, contacts: contacts)
 //                FeedRouter(feedData: feedData, contacts: contacts)
 //                    .environmentObject(FeedRouterData())
-//                    .zIndex(homeRouteData.homePage == "feed" ? 1.0 : 0.0)
+//                .animation(.easeInOut) // spring does not seem to work
+//                .transition(.moveAndFadeReverse)
+//
+//            } else if (homeRouteData.homePage == "back-to-feed") {
+//                Feed(feedData: feedData, contacts: contacts)
+//                    .animation(.easeInOut)
+//                    .transition(.move(edge: .leading))
+//            } else if homeRouteData.homePage == "messaging" {
 //
 //                Messaging(contacts: contacts)
-//                    .zIndex(homeRouteData.homePage == "messaging" ? 1.0 : 0.0)
 //
+//            } else if homeRouteData.homePage == "profile" {
 //                Profile(feedData: feedData)
-//                    .zIndex(homeRouteData.homePage == "profile" ? 1.0 : 0.0)
-//
+//            } else if homeRouteData.homePage == "postText" {
+//                PostText(feedData: feedData)
+//            } else if homeRouteData.homePage == "postVideo" {
+//                PickerWrapper()
+//            } else if homeRouteData.homePage == "commenting" {
+//                Commenting()
+//                    .animation(.easeInOut) // spring does not seem to work
+//                    .transition(.moveAndFade)
 //            }
-
-
-
-            if (homeRouteData.homePage == "feed") {
-//                Feed(feedData: feedData, contacts: contacts)
-                FeedRouter(feedData: feedData, contacts: contacts)
-                    .environmentObject(FeedRouterData())
-            } else if (homeRouteData.homePage == "back-to-feed") {
-                Feed(feedData: feedData, contacts: contacts)
-                    .animation(.easeInOut)
-                    .transition(.move(edge: .leading))
-            } else if homeRouteData.homePage == "messaging" {
-
-                Messaging(contacts: contacts)
-
-            } else if homeRouteData.homePage == "profile" {
-                Profile(feedData: feedData)
-            } else if homeRouteData.homePage == "postText" {
-                PostText(feedData: feedData)
-            } else if homeRouteData.homePage == "postVideo" {
-                PickerWrapper()
-            } else if homeRouteData.homePage == "commenting" {
-                Commenting()
-                    .animation(.easeInOut) // spring does not seem to work
-                    .transition(.moveAndFade)
-            }
             
 
         }

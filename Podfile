@@ -9,6 +9,6 @@ target 'Halloapp' do
   pod 'YPImagePicker'
   pod 'Alamofire'
   pod 'SwiftyJSON'
-  pod 'SwiftDate', '~> 4.0'
+  pod 'SwiftDate', '~> 6.0.0'
 
 end

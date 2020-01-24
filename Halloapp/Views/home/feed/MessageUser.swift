@@ -27,6 +27,8 @@ struct MessageUser: View {
             }
             Spacer()
             Text("coming very soon")
+//            WUICollectionView()
+//                .background(Color.red)
             Spacer()
 
         }

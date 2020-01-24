@@ -19,6 +19,8 @@ struct Settings: View {
     
     var body: some View {
         VStack() {
+//            WUICollectionView()
+//                .background(Color.red)
             HStack() {
                 Spacer()
                 Button(action: {
@@ -33,9 +35,7 @@ struct Settings: View {
             }
             Spacer()
             
-
-            
-            Text("1.0.5")
+            Text("1.0.6")
             Button(action: {
                 self.userData.logout()
                 self.homeRouteData.gotoPage(page: "feed")

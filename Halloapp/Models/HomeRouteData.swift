@@ -13,7 +13,11 @@ import Combine
 final class HomeRouteData: ObservableObject {
 
     @Published var homePage = "feed"
-    public var isGoingBack = false
+    @Published var isGoingBack = false
+    
+    public var lastClickedComment = ""
+    
+    public var item = FeedDataItem()
     
     func gotoPage(page: String) {
         self.homePage = page
@@ -21,5 +25,21 @@ final class HomeRouteData: ObservableObject {
     
     func setIsGoingBack(value: Bool) {
         self.isGoingBack = value
+        
+        // 1.3 is too quick, 1.4 works
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.35) {
+            if self.lastClickedComment == self.item.itemId { // todo: debouncing this is preferred
+                self.isGoingBack = false
+            }
+        }
     }
+    
+    func setItem(value: FeedDataItem) {
+        self.item = value
+    }
+    
+    func getItem() -> FeedDataItem {
+        return self.item
+    }
+    
 }

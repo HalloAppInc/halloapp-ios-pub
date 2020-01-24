@@ -48,7 +48,10 @@ struct PostTextSheet: View {
                 HStack() {
                     Spacer()
                     Button(action: {
-                        self.isJustText = true
+                        if (!self.isJustText) {
+                            ImageServer().deleteImage(imageUrl: self.imageUrl)
+                            self.isJustText = true
+                        }
                         self.onDismiss()
                         
                     }) {
@@ -99,7 +102,18 @@ struct PostTextSheet: View {
                         (self.isJustText && self.msgToSend != "") ||
                             (!self.isJustText && self.pickerStatus != "uploading")
                         ) {
-                        self.feedData.postText(self.userData.phone, self.msgToSend, self.imageUrl)
+                        
+                        
+                        var imageWidth = 0
+                        var imageHeight = 0
+                        
+                        if !self.isJustText {
+                            imageWidth = Int(self.pickedUIImage.size.width)
+                            imageHeight = Int(self.pickedUIImage.size.height)
+                        }
+                        
+                        
+                        self.feedData.postText(self.userData.phone, self.msgToSend, self.imageUrl, imageWidth, imageHeight)
                         
                         
                         self.msgToSend = ""
@@ -139,6 +153,7 @@ struct PostTextSheet: View {
                     .filter({$0.isKeyWindow}).first
             keyWindow?.endEditing(true)
         }
+        
 
     }
 }

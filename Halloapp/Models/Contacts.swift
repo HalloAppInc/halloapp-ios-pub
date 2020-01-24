@@ -854,13 +854,13 @@ class Contacts: ObservableObject {
         
         var list = fromList
         
-        let numChunk = 100
+        let numChunk = 50 // 50 seems to work better than 100
         let listChunked = list.chunked(by: numChunk)
         var timeCounter = 0.0
         
         for (index, idsArr) in listChunked.enumerated() {
             
-            timeCounter += Double(index) + 2.0
+            timeCounter += Double(index) + 4.0 // 5 works but too long,
             
             let label = "batchNorm-\(index)"
             
@@ -901,13 +901,13 @@ class Contacts: ObservableObject {
         
         var list = fromList
         
-        let numChunk = 100
+        let numChunk = 50
         let idsToWhiteListChunked = list.chunked(by: numChunk)
         var timeCounter = timeToStart
         
         for (index, idsArr) in idsToWhiteListChunked.enumerated() {
             
-            timeCounter += Double(index) + 2.0
+            timeCounter += Double(index) + 4.0
             
             let labelContacts = "batchAff-\(index)"
             let labelFeed = "batchAffFeed-\(index)"
@@ -983,6 +983,7 @@ class Contacts: ObservableObject {
         if (unmatched.count > 0) {
             print("Unmatched: \(unmatched)")
             
+            // todo: split and chunk this if it's more than 1000
             unmatched.forEach { con in
                                       
                 let targetUser = con.normPhone != "" ? con.normPhone : con.phone
