@@ -20,8 +20,6 @@
 		EA1B517823A877D400460662 /* FeedRouterData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1B517723A877D200460662 /* FeedRouterData.swift */; };
 		EA1B517A23A8787800460662 /* FeedRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1B517923A8787800460662 /* FeedRouter.swift */; };
 		EA23CFB423A9437D00AEBBB9 /* Content.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA23CFB323A9437D00AEBBB9 /* Content.swift */; };
-		EA23CFB623A9439100AEBBB9 /* GroupChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA23CFB523A9439100AEBBB9 /* GroupChat.swift */; };
-		EA23CFB823A945B500AEBBB9 /* Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA23CFB723A945B500AEBBB9 /* Test.swift */; };
 		EA2E4A5F23A4252A009A2ABD /* Commenting.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA2E4A5E23A42529009A2ABD /* Commenting.swift */; };
 		EA3861ED23342C7C00705943 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3861EC23342C7C00705943 /* Login.swift */; };
 		EA454B5E234E6A2A002B960D /* Navi.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B5D234E6A2A002B960D /* Navi.swift */; };
@@ -99,8 +97,6 @@
 		EA1B517723A877D200460662 /* FeedRouterData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedRouterData.swift; sourceTree = "<group>"; };
 		EA1B517923A8787800460662 /* FeedRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedRouter.swift; sourceTree = "<group>"; };
 		EA23CFB323A9437D00AEBBB9 /* Content.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Content.swift; sourceTree = "<group>"; };
-		EA23CFB523A9439100AEBBB9 /* GroupChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupChat.swift; sourceTree = "<group>"; };
-		EA23CFB723A945B500AEBBB9 /* Test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Test.swift; sourceTree = "<group>"; };
 		EA2E4A5E23A42529009A2ABD /* Commenting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Commenting.swift; sourceTree = "<group>"; };
 		EA3861EC23342C7C00705943 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		EA454B5D234E6A2A002B960D /* Navi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navi.swift; sourceTree = "<group>"; };
@@ -229,8 +225,6 @@
 				EAA6DEC32383A4E800C6D9C8 /* TextView.swift */,
 				EAA6DEC52383AD8400C6D9C8 /* MessageUser.swift */,
 				EA23CFB323A9437D00AEBBB9 /* Content.swift */,
-				EA23CFB523A9439100AEBBB9 /* GroupChat.swift */,
-				EA23CFB723A945B500AEBBB9 /* Test.swift */,
 				EABCE13C23AB009D000C68B7 /* Comments.swift */,
 			);
 			path = feed;
@@ -592,7 +586,6 @@
 				EA8D4721233C25B8006E2BA5 /* Verify.swift in Sources */,
 				EA0D200B2363AD87008B8289 /* HomeRouter.swift in Sources */,
 				EA56404E233D373800E68A7E /* Verification.swift in Sources */,
-				EA23CFB623A9439100AEBBB9 /* GroupChat.swift in Sources */,
 				EA23CFB423A9437D00AEBBB9 /* Content.swift in Sources */,
 				EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */,
 				EA1B517823A877D400460662 /* FeedRouterData.swift in Sources */,
@@ -602,7 +595,6 @@
 				EAA6DEC223836A3C00C6D9C8 /* PostTextSheet.swift in Sources */,
 				EA8D4725233C3459006E2BA5 /* AuthRouteData.swift in Sources */,
 				EA80ADFB235A8325002F7680 /* Utils.swift in Sources */,
-				EA23CFB823A945B500AEBBB9 /* Test.swift in Sources */,
 				EA0D20092363AD74008B8289 /* AuthRouter.swift in Sources */,
 				EA0D20132363E404008B8289 /* XMPP.swift in Sources */,
 				EA454B5E234E6A2A002B960D /* Navi.swift in Sources */,

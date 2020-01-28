@@ -102,10 +102,9 @@ struct Commenting: View {
         }
   
 
-        
         .overlay(
             BlurView(style: .extraLight)
-                .frame(height: 96),
+                .frame(height: UIScreen.main.bounds.height < 812 ? 76 : 96),
                 alignment: .top
         )
                       
@@ -132,9 +131,9 @@ struct Commenting: View {
                             self.homeRouteData.gotoPage(page: "feed")
                         }) {
                             Image(systemName: "chevron.left")
-                              .font(Font.title.weight(.regular))
+                                .font(Font.title.weight(.regular))
                                 .foregroundColor(Color.black)
-                                
+
                                 .padding(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 25))
 
                         }
@@ -171,7 +170,7 @@ struct Commenting: View {
                 
               
             }
-            .padding(EdgeInsets(top: 30, leading: 0, bottom: 0, trailing: 0))
+            .padding(EdgeInsets(top: UIScreen.main.bounds.height < 812 ? 5 : 25, leading: 0, bottom: 0, trailing: 0))
             .background(Color.clear),
             alignment: .top
 
@@ -179,7 +178,7 @@ struct Commenting: View {
 
         .overlay(
             BlurView(style: .extraLight)
-                .frame(height: 100),
+                .frame(height: UIScreen.main.bounds.height < 812 ? 80 : 100),
                 alignment: .bottom
         )
         .overlay(
@@ -226,14 +225,17 @@ struct Commenting: View {
                     }) {
 
                         if (self.msgToSend != "") {
-                            self.scroll = "0"
+                            
+                            self.feedData.postComment(self.item.itemId, self.item.username, self.msgToSend, self.replyTo)
+                            
+                            self.msgToSend = ""
+                            self.replyTo = ""
+                            self.replyToName = ""
+                            
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                self.feedData.postComment(self.item.itemId, self.item.username, self.msgToSend, self.replyTo)
-                                
-                                self.msgToSend = ""
-                                self.replyTo = ""
-                                self.replyToName = ""
+                                self.scroll = "0"
                             }
+                            
                         }
                         
                     }
@@ -246,13 +248,15 @@ struct Commenting: View {
                     Button(action: {
                         
                         if (self.msgToSend != "") {
-                            self.scroll = "0"
+                            
+                            self.feedData.postComment(self.item.itemId, self.item.username, self.msgToSend, self.replyTo)
+                            
+                            self.msgToSend = ""
+                            self.replyTo = ""
+                            self.replyToName = ""
+                        
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                self.feedData.postComment(self.item.itemId, self.item.username, self.msgToSend, self.replyTo)
-                                
-                                self.msgToSend = ""
-                                self.replyTo = ""
-                                self.replyToName = ""
+                                self.scroll = "0"
                             }
                             
                         }
@@ -287,8 +291,7 @@ struct Commenting: View {
                 }
                 .padding(EdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 15))
             }
-//            .padding(EdgeInsets(top: 10, leading: 15, bottom: 45, trailing: 15)),
-            .padding(EdgeInsets(top: 10, leading: 0, bottom: 45, trailing: 0)),
+            .padding(EdgeInsets(top: 10, leading: 0, bottom: UIScreen.main.bounds.height < 812 ? 20 : 45, trailing: 0)),
             alignment: .bottom
         )
         

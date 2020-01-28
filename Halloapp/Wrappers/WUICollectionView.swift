@@ -225,7 +225,7 @@ struct WUICollectionView: UIViewRepresentable {
             
             UIView.animate(withDuration: 0.5, animations: {
 //                uiView.setContentOffset(CGPoint(x: 0, y: 0), animated: false)
-                uiView.scrollToItem(at: IndexPath(item: 0, section: 0), at: UICollectionView.ScrollPosition.bottom, animated: false)
+                uiView.scrollToItem(at: IndexPath(item: uiView.numberOfItems(inSection: 0) - 1, section: 0), at: UICollectionView.ScrollPosition.bottom, animated: false)
             })
             
 //            uiView.scrollToItem(

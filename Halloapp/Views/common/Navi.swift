@@ -79,7 +79,8 @@ struct Navi: View {
                 }
 
             }
-            .padding(EdgeInsets(top: 0, leading: 40, bottom: 33, trailing: 40))
+            // 30 instead of 40 on sides cause it looks better on older phones
+            .padding(EdgeInsets(top: 0, leading: 30, bottom: UIScreen.main.bounds.height < 812 ? 8 : 33, trailing: 30))
             .background(Color.clear)
         }
     }

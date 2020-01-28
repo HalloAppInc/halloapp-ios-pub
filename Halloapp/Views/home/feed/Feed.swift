@@ -83,7 +83,7 @@ struct Feed: View {
                 VStack(spacing: 0) {
                     
                     Divider()
-                        .frame(height: 70)
+                        .frame(height: UIScreen.main.bounds.height < 812 ? 40 : 70)
                         .hidden()
                     
                     if (self.feedData.feedDataItems.count == 0) {
@@ -192,7 +192,7 @@ struct Feed: View {
                                                      .font(.system(size: 20, weight: .regular))
                                                      .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                                                     
-                                                Text("Comments")
+                                                Text("Comment")
                                                     
                                                 if (item.unreadComments > 0) {
                                                     Image(systemName: "circle.fill")
@@ -202,14 +202,13 @@ struct Feed: View {
                                                         .foregroundColor(Color.green)
                                                         .clipShape(Circle())
                                                         
-                                                        
-                                                        
                                                         .frame(width: 10, height: 10, alignment: .center)
                                                         .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 0))
                                                     
                                                 }
                                             }
-                                            .padding(EdgeInsets(top: 10, leading: 25, bottom: 10, trailing: 25))
+                                            // careful on padding, greater than 15 on sides wraps on smaller phones
+                                            .padding(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
 //                                            .cornerRadius(10)
 //                                            .border((self.lastClickedComment == item.itemId) ? Color.red : Color.blue)
 //
@@ -281,7 +280,7 @@ struct Feed: View {
             
         .overlay(
             BlurView(style: .extraLight)
-                .frame(height: 96),
+                .frame(height: UIScreen.main.bounds.height < 812 ? 76 : 96),
                 alignment: .top
         )
         .overlay(
@@ -292,6 +291,7 @@ struct Feed: View {
                     .fontWeight(.heavy)
                     .foregroundColor(Color(red: 220/255, green: 220/255, blue: 220/255))
                     .padding()
+                
                 
 //                Text(String(self.metaData.isOffline))
                 
@@ -316,25 +316,27 @@ struct Feed: View {
                             self.showMoreActions = true
                         }) {
                             Image(systemName: "plus")
-                              .font(Font.title.weight(.regular))
+                                .font(Font.title.weight(.regular))
                                 .foregroundColor(Color.black)
-                                
+
                                 .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 25))
 
                         }
                         
                     }
                 }
+               
                 
             }
-            .padding(EdgeInsets(top: 25, leading: 0, bottom: 0, trailing: 0))
+            .padding(EdgeInsets(top: UIScreen.main.bounds.height < 812 ? 5 : 25, leading: 0, bottom: 0, trailing: 0))
+            
             .background(Color.clear),
             alignment: .top
         )
 
         .overlay(
             BlurView(style: .extraLight)
-                .frame(height: 85),
+                .frame(height: UIScreen.main.bounds.height < 812 ? 60 : 85),
             alignment: .bottom
         )
         .overlay(

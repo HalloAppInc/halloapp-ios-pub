@@ -35,7 +35,7 @@ struct Messaging: View {
                 */
                 VStack(spacing: 0) {
                     Divider()
-                        .frame(height: 100)
+                        .frame(height: UIScreen.main.bounds.height < 812 ? 70 : 100)
                         .hidden()
                         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                     
@@ -129,7 +129,7 @@ struct Messaging: View {
             
         .overlay(
             BlurView(style: .extraLight)
-                .frame(height: 96),
+                .frame(height: UIScreen.main.bounds.height < 812 ? 76 : 96),
             alignment: .top
         )
                         
@@ -179,13 +179,13 @@ struct Messaging: View {
                 }
                 
             }
-            .padding(EdgeInsets(top: 25, leading: 0, bottom: 0, trailing: 0))
+            .padding(EdgeInsets(top: UIScreen.main.bounds.height < 812 ? 5 : 25, leading: 0, bottom: 0, trailing: 0))
             .background(Color.clear), alignment: .top
         )
 
         .overlay(
             BlurView(style: .extraLight)
-                .frame(height: 85),
+                .frame(height: UIScreen.main.bounds.height < 812 ? 60 : 85),
             alignment: .bottom
         )
         .overlay(

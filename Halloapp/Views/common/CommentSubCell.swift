@@ -29,10 +29,12 @@ struct CommentSubCell: View {
 
                 VStack (spacing: 0) {
                     Button(action: {
-                        self.scroll = "0"
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            self.scroll = ""
-                        }
+                  
+//                        self.scroll = "0"
+//                 
+//                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+//                            self.scroll = ""
+//                        }
                     }) {
                        
                         Image(systemName: "circle.fill")
@@ -74,7 +76,11 @@ struct CommentSubCell: View {
                             
                             self.replyTo = self.comment.id
                             self.replyToName = self.contacts.getName(phone: self.comment.username)
-                            self.msgToSend = "@\(self.replyToName) "
+                            if (self.replyToName != "Me") {
+                                self.msgToSend = "@\(self.replyToName) "
+                            } else {
+                                self.msgToSend = ""
+                            }
                             
                             
                         }) {

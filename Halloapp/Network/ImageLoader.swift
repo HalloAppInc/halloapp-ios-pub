@@ -10,7 +10,9 @@ import Combine
 import SwiftUI
 
 class ImageLoader: ObservableObject {
+    
     var didChange = PassthroughSubject<Data, Never>()
+    
     var data = Data() {
         didSet {
             didChange.send(data)

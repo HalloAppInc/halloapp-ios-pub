@@ -47,9 +47,9 @@ struct HomeRouter: View {
                 if (homeRouteData.homePage == "commenting") {
                     Commenting(feedData, homeRouteData.getItem(), contacts )
                         .zIndex(2.0)
-//                        .animation(.easeInOut(duration: 1.0)) // spring does not seem to work
+           
                         .transition(.move(edge: .trailing))
-//                        .animation(.easeInOut(duration: 0.5))
+//                        .animation(Animation.easeInOut(duration: 0.3).delay(0.1))
                         .animation(.spring())
                 }
 
@@ -60,11 +60,14 @@ struct HomeRouter: View {
                         .zIndex((homeRouteData.homePage == "feed" || homeRouteData.homePage == "commenting") ? 1.0 : 0.0)
                         .offset(x: homeRouteData.homePage == "commenting" ? -1*UIScreen.main.bounds.size.width : 0.0, y: 0.0)
                         
+//                        .animation(Animation.easeInOut(duration: 0.3).delay(0.1))
                         .animation(.spring())
                         
                 }
                     
                 else if (homeRouteData.homePage == "messaging") {
+                    
+//                    PickerWrapper()
                     Messaging(contacts: contacts)
     //                    .opacity(homeRouteData.homePage == "messaging" ? 1.0 : 0.0)
                         .zIndex(homeRouteData.homePage == "messaging" ? 1.0 : 0.0)

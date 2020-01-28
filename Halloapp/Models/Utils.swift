@@ -449,6 +449,17 @@ class Utils {
                         feedItem.imageUrl = imageUrlValue
                     }
                 }
+            
+                
+                let media = post.element(forName: "media")
+                let urls = media?.elements(forName: "url")
+                
+//                print("count of media urls: \(urls?.count)")
+                
+//                for url in urls ?? [] {
+//
+//                }
+            
                 
                 if serverTimestamp != nil {
                     if let convertedServerTimestamp = Double(serverTimestamp!) {
@@ -1003,7 +1014,7 @@ class Utils {
             commentsArr.removeAll { $0.parentCommentId == parent }
 
             children.sort {
-                $0.timestamp > $1.timestamp
+                $0.timestamp < $1.timestamp
             }
             
             
