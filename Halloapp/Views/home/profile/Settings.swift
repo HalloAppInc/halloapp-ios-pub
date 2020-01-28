@@ -35,7 +35,7 @@ struct Settings: View {
             }
             Spacer()
             
-            Text("1.0.6")
+            Text("1.0.7")
             Button(action: {
                 self.userData.logout()
                 self.homeRouteData.gotoPage(page: "feed")

@@ -77,7 +77,8 @@ struct CommentSubCell: View {
                             self.replyTo = self.comment.id
                             self.replyToName = self.contacts.getName(phone: self.comment.username)
                             if (self.replyToName != "Me") {
-                                self.msgToSend = "@\(self.replyToName) "
+//                                self.msgToSend = "@\(self.replyToName) "
+                                self.msgToSend = ""
                             } else {
                                 self.msgToSend = ""
                             }

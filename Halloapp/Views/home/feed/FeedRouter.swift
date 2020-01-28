@@ -23,7 +23,7 @@ struct FeedRouter: View {
             if (self.feedRouterData.currentPage == "feed") {
                 Feed(feedData: feedData, contacts: contacts)
             } else if self.feedRouterData.currentPage == "commenting" {
-//nice p
+
             }
 
         }
