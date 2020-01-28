@@ -91,6 +91,29 @@ class XMPPController: NSObject, ObservableObject {
 
     }
 
+    func sendApnsPushTokenFromUserDefault() {
+        let userDefault = UserDefaults.standard
+        let tokenStr = userDefault.string(forKey: "apnsPushToken")
+
+        let pushToken = XMLElement(name: "push_token")
+        pushToken.addAttribute(withName: "os", stringValue: "ios")
+        pushToken.stringValue = tokenStr
+
+        let pushRegister = XMLElement(name: "push_register")
+        pushRegister.addAttribute(withName: "xmlns", stringValue: "halloapp:push:notifications")
+        pushRegister.addChild(pushToken)
+
+        let iq = XMLElement(name: "iq")
+        iq.addAttribute(withName: "type", stringValue: "set")
+        iq.addAttribute(withName: "from", stringValue: "\(self.userData.phone)@s.halloapp.net/iphone")
+        iq.addAttribute(withName: "to", stringValue: "s.halloapp.net")
+        iq.addAttribute(withName: "id", stringValue: "apnsPushToken")
+
+        iq.addChild(pushRegister)
+
+        print ("sending the iq with push token here. \(iq)")
+        self.xmppStream.send(iq)
+    }
     
     func createNodes() {
 
@@ -324,6 +347,7 @@ extension XMPPController: XMPPStreamDelegate {
         print("Stream: Authenticated")
         self.didConnect.send("didConnect")
         
+        self.sendApnsPushTokenFromUserDefault()
         self.createNodes()
 
         // This function sends an initial presence stanza to the server indicating that the user is online.

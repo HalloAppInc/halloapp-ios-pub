@@ -11,6 +11,13 @@ import XMPPFramework
 
 import SwiftDate
 
+extension Data {
+    var hexString: String {
+        let hexString = map { String(format: "%02.2hhx", $0) }.joined()
+        return hexString
+    }
+}
+
 public class Debouncer {
     private let delay: TimeInterval
     private var workItem: DispatchWorkItem?
