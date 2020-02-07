@@ -52,8 +52,19 @@ struct HomeRouter: View {
 //                        .animation(Animation.easeInOut(duration: 0.3).delay(0.1))
                         .animation(.spring())
                 }
+                
+                if (homeRouteData.homePage == "media") {
+                    Media(feedData: feedData)
+                        .environmentObject(homeRouteData)
+                        .zIndex(2.0)
+           
+                        .transition(.move(edge: .bottom))
+//                        .animation(Animation.easeInOut(duration: 0.3).delay(0.1))
+                        .animation(.spring())
+                }
 
-                if (homeRouteData.homePage == "feed" || homeRouteData.homePage == "commenting") {
+                
+                if (homeRouteData.homePage == "feed" || homeRouteData.homePage == "commenting" || homeRouteData.homePage == "media") {
                     FeedRouter(feedData: feedData, contacts: contacts)
                         .environmentObject(FeedRouterData())
     //                    .opacity((homeRouteData.homePage == "feed" || homeRouteData.homePage == "commenting") ? 1.0 : 0.0)

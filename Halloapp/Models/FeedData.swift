@@ -14,68 +14,64 @@ import XMPPFramework
 
 class FeedData: ObservableObject {
     
+    @Published var feedMedia : [FeedMedia] = []
+    
     @Published var feedDataItems : [FeedDataItem] = []
     @Published var feedCommentItems : [FeedComment] = []
-    
-    @Published var feedCommentItems2 : [FeedComment] = [] {
-        willSet {
-            self.objectWillChange.send()
-        }
-    }
-    
-    
+        
     var xmpp: XMPP
     var xmppController: XMPPController
     
     private var cancellableSet: Set<AnyCancellable> = []
     
-    
-    func processExpires() {
-        
-        let current = Int(Date().timeIntervalSince1970)
-        
-        let month = 60*60*24*30
-    
-        for (i, item) in feedDataItems.enumerated().reversed() {
-            let diff = current - Int(item.timestamp)
-            if (diff > month) {
-
-                if (item.username != self.xmpp.userData.phone) {
-                    self.deleteData(itemId: item.itemId)
-                    feedDataItems.remove(at: i)
-                }
-                
-                /* temporary: for keeping our usage small on cloudinary */
-                if (item.imageUrl != "") {
-            
-                    ImageServer().deleteImage(imageUrl: item.imageUrl)
-
-                    
-                }
-                
-            }
-        }
-    }
+    let feedItemCore = FeedItemCore()
+    let feedCommentCore = FeedCommentCore()
+    let feedMediaCore = FeedMediaCore()
     
     init(xmpp: XMPP) {
         
         self.xmpp = xmpp
         self.xmppController = self.xmpp.xmppController
 
-        self.getAllData()
+//        self.feedMedia.append(contentsOf: FeedMediaCore().getAll())
+//        print("count: \(self.feedMedia.count)")
+        
+        self.pushAllItems(items: feedItemCore.getAll())
+        
         self.getAllComments()
         
         self.processExpires()
+
+        DispatchQueue.global(qos: .background).async {
+            ImageServer().processPending()
+        }
+        
+        self.cancellableSet.insert(
+         
+            self.xmpp.userData.didLogOff.sink(receiveValue: {
+                
+                print("wiping feed data")
+                
+                self.feedMedia.removeAll()
+                self.feedCommentItems.removeAll()
+                self.feedDataItems.removeAll()
+                print("feedDataItemss Count: \(self.feedDataItems.count)")
+                
+            })
+
+        )
         
         /* getting new items, usually one */
         cancellableSet.insert(
             
             xmppController.didGetNewFeedItem.sink(receiveValue: { value in
 
+                
                 let event = value.element(forName: "event")
                 let (feedDataItems, feedCommentItems)  = Utils().parseFeedItems(event)
                  
                 for item in feedDataItems {
+                    
                     self.pushItem(item: item)
                 }
                 
@@ -92,17 +88,7 @@ class FeedData: ObservableObject {
         cancellableSet.insert(
            
             xmppController.didGetFeedItems.sink(receiveValue: { value in
-                
-//                var textItem = Utils().parseFeedItems(value)
-//
-//                textItem.sort {
-//                    $0.timestamp > $1.timestamp
-//                }
-//
-//                for item in textItem {
-//                    self.pushItem(item: item)
-//                }
-                
+                                
 //                print("got items: \(value)")
 
                 let pubsub = value.element(forName: "pubsub")
@@ -115,7 +101,7 @@ class FeedData: ObservableObject {
                 for item in feedDataItems {
                     self.pushItem(item: item)
                 }
-                
+
                 for item in feedCommentItems {
                     self.insertComment(item: item)
                 }
@@ -128,96 +114,112 @@ class FeedData: ObservableObject {
     
     
     func pushAllItems(items: [FeedDataItem]) {
-        self.feedDataItems = items
-        
-        self.feedDataItems.sort {
-            
-            let a = $0
-            let b = $1
-            
-            var at = Int(a.timestamp)
-            var bt = Int(b.timestamp)
-            
-            let current = Int(Date().timeIntervalSince1970)
-        
-            if current - at < 0 {
-                at = at/1000
-            }
-            
-            if current - bt < 0 {
-                bt = bt/1000
-            }
-            
-            return at > bt
+
+        if self.feedDataItems.count > 0 {
+            return
         }
+        
+        self.feedDataItems = items
+            
+        self.feedDataItems.sort {
+            return Int($0.timestamp) > Int($1.timestamp)
+        }
+
+        for item in self.feedDataItems {
+            
+//            item.media = self.feedMedia.filter { $0.feedItemId == item.itemId }
+            item.media = self.feedMediaCore.get(feedItemId: item.itemId)
+                    
+
+            item.media.sort {
+                return $0.order < $1.order
+            }
+
+            
+            // support pre-build 8 image format
+            if item.imageUrl != "" && item.media.count == 0 {
+                
+                let med: FeedMedia = FeedMedia()
+                med.feedItemId = item.itemId
+                med.order = 1
+                med.type = "image"
+                med.url = item.imageUrl
+                
+                item.media.append(med)
+                
+                DispatchQueue.global(qos: .background).async {
+                    self.feedMediaCore.create(item: med)
+                }
+              
+            }
+            
+            
+            item.loadMedia()
+            
+        }
+    
     }
 
     
     func pushItem(item: FeedDataItem) {
         
+        let feedMediaCore = FeedMediaCore()
+        
         let idx = self.feedDataItems.firstIndex(where: {$0.itemId == item.itemId})
         
-        if (idx == nil) {
+        if !self.feedItemCore.isPresent(itemId: item.itemId) && idx == nil {
+   
+//        if (idx == nil) {
             
-            let c = item.didChange.sink(receiveValue: {
-                self.objectWillChange.send()
-                self.updateImageData(itemId: item.itemId, image: item.image)
-            })
-            self.cancellableSet.insert(c)
-            
-            if item.imageUrl != "" && item.image.size.width == 0 {
-                item.loadImage()
-            }
-
             self.feedDataItems.insert(item, at: 0)
             
             self.feedDataItems.sort {
-                
-                let a = $0
-                let b = $1
-                
-                var at = Int(a.timestamp)
-                var bt = Int(b.timestamp)
-                
-                let current = Int(Date().timeIntervalSince1970)
-            
-                if current - at < 0 {
-                    at = at/1000
-                }
-                
-                if current - bt < 0 {
-                    bt = bt/1000
-                }
-                
-                return at > bt
+                return Int($0.timestamp) > Int($1.timestamp)
             }
                         
-            if (!self.isDataPresent(itemId: item.itemId)) {
-                self.createData(item: item)
+            DispatchQueue.global(qos: .background).async {
+                self.feedItemCore.create(item: item)
+                
+                for med in item.media {
+                    feedMediaCore.create(item: med)
+                }
             }
             
+            item.loadMedia()
             
         } else {
-//            print("do no insert: \(item.text)")
+            
+            // redundant, in case feedItem got into coredata but the feedMedia did not, as in the case of older posts
+            
+            for med in item.media {
+                
+                DispatchQueue.global(qos: .background).async {
+                
+//                    med.feedItemId = item.itemId // can be removed after build 8
+
+                    feedMediaCore.create(item: med)
+
+                }
+                
+            }
+
         }
         
     }
     
-    // Inserts the comments into the list and into CoreData.
     func insertComment(item: FeedComment) {
-       if let idx = self.feedCommentItems.firstIndex(where: {$0.id == item.id}) {
-//            print ("Comment already exist: \(item.id)")
-        } else {
+        let idx = self.feedCommentItems.firstIndex(where: {$0.id == item.id})
+
+        if idx == nil {
             self.feedCommentItems.insert(item, at: 0)
         
             self.increaseFeedItemUnreadComments(comment: item, num: 1)
         
-            if (!self.isCommentPresent(commentId: item.id)) {
-                self.createComment(item: item)
-            } else {
-                print ("Comment already in CoreData: \(item.id)")
+            DispatchQueue.global(qos: .background).async {
+                self.feedCommentCore.create(item: item)
             }
         }
+
     }
     
     func increaseFeedItemUnreadComments(comment: FeedComment, num: Int) {
@@ -229,8 +231,13 @@ class FeedData: ObservableObject {
         } else {
             self.feedDataItems[idx!].unreadComments += num
         }
-         
-        self.updateFeedItem(item: self.feedDataItems[idx!])
+        
+        
+        DispatchQueue.global(qos: .background).async {
+            if (self.feedDataItems.count > idx!) {
+                self.feedItemCore.update(item: self.feedDataItems[idx!])
+            }
+        }
         
         
     }
@@ -245,39 +252,104 @@ class FeedData: ObservableObject {
             if (self.feedDataItems[idx!].unreadComments > 0) {
                 self.feedDataItems[idx!].unreadComments = 0
 
-                self.updateFeedItem(item: self.feedDataItems[idx!])
+                DispatchQueue.global(qos: .background).async {
+                    self.feedItemCore.update(item: self.feedDataItems[idx!])
+                }
             }
         }
         
     }
     
+    func postText2(_ user: String, _ text: String, _ media: [FeedMedia]) {
+        
+        print("postText2: " + text)
+        
+        let text = XMLElement(name: "text", stringValue: text)
+        
+        let username = XMLElement(name: "username", stringValue: self.xmpp.userData.phone)
+        let userImageUrl = XMLElement(name: "userImageUrl", stringValue: "")
+        
+        let childroot = XMLElement(name: "feedpost")
+        let mainroot = XMLElement(name: "entry")
+        
+        if media.count > 0 {
+            let mediaEl = XMLElement(name: "media")
+            
+            for med in media {
+                let medEl = XMLElement(name: "url", stringValue: med.url)
+                medEl.addAttribute(withName: "type", stringValue: med.type)
+                medEl.addAttribute(withName: "width", stringValue: String(med.width))
+                medEl.addAttribute(withName: "height", stringValue: String(med.height))
+                 
+                mediaEl.addChild(medEl)
+            }
+            
+            childroot.addChild(mediaEl)
+        }
+
+        childroot.addChild(username)
+        childroot.addChild(userImageUrl)
+        childroot.addChild(text)
+        
+        mainroot.addChild(childroot)
+        
+        print ("Final pubsub payload: \(mainroot)")
+        let id = UUID().uuidString
+        self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: mainroot, withItemID: id)
+                
+    }
+    
     // Publishes the post to the user's feed pubsub node.
-    func postText(_ user: String, _ text: String, _ imageUrl: String, _ imageWidth: Int, _ imageHeight: Int) {
+    func postText(_ user: String, _ text: String, _ media: [FeedMedia]) {
+        
+        var url: String = ""
+        var imageWidth: Int = 0
+        var imageHeight: Int = 0
+        
+        if media.count > 0 {
+            url = media[0].url
+            imageWidth = media[0].width
+            imageHeight = media[0].height
+        }
+        
         print("postText: " + text)
         
         let text = XMLElement(name: "text", stringValue: text)
         let username = XMLElement(name: "username", stringValue: self.xmpp.userData.phone)
-        let imageUrl = XMLElement(name: "imageUrl", stringValue: imageUrl)
+        let imageUrl = XMLElement(name: "imageUrl", stringValue: url)
         
         imageUrl.addAttribute(withName: "width", stringValue: String(imageWidth))
         imageUrl.addAttribute(withName: "height", stringValue: String(imageHeight))
         
         let userImageUrl = XMLElement(name: "userImageUrl", stringValue: "")
-        let timestamp = XMLElement(name: "timestamp", stringValue: String(Date().timeIntervalSince1970))
-        
+
         let childroot = XMLElement(name: "feedpost")
         let mainroot = XMLElement(name: "entry")
         
-    
-        
+        if media.count > 0 {
+            let mediaEl = XMLElement(name: "media")
+            
+            for med in media {
+                let medEl = XMLElement(name: "url", stringValue: med.url)
+                medEl.addAttribute(withName: "type", stringValue: med.type)
+                medEl.addAttribute(withName: "width", stringValue: String(med.width))
+                medEl.addAttribute(withName: "height", stringValue: String(med.height))
+                 
+                mediaEl.addChild(medEl)
+            }
+            
+            childroot.addChild(mediaEl)
+        }
         
         childroot.addChild(username)
         childroot.addChild(userImageUrl)
         childroot.addChild(imageUrl)
-        childroot.addChild(timestamp)
+//        childroot.addChild(timestamp)
         childroot.addChild(text)
         
+        
         mainroot.addChild(childroot)
+        
         print ("Final pubsub payload: \(mainroot)")
         let id = UUID().uuidString
         self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: mainroot, withItemID: id)
@@ -293,7 +365,6 @@ class FeedData: ObservableObject {
         let parentCommentId = XMLElement(name: "parentCommentId", stringValue: parentCommentId)
         let username = XMLElement(name: "username", stringValue: self.xmpp.userData.phone)
         let userImageUrl = XMLElement(name: "userImageUrl", stringValue: "")
-        let timestamp = XMLElement(name: "timestamp", stringValue: String(Date().timeIntervalSince1970))
 
         let mainroot = XMLElement(name: "entry")
         let childroot = XMLElement(name: "comment")
@@ -302,7 +373,7 @@ class FeedData: ObservableObject {
         childroot.addChild(userImageUrl)
         childroot.addChild(feedItem)
         childroot.addChild(parentCommentId)
-        childroot.addChild(timestamp)
+
         childroot.addChild(text)
         
         mainroot.addChild(childroot)
@@ -379,173 +450,39 @@ class FeedData: ObservableObject {
 //    }
     
     
+    func processExpires() {
+        
+        let current = Int(Date().timeIntervalSince1970)
+        
+        let month = 60*60*24*30
+        
+        let feedItemCore = FeedItemCore()
+    
+        for (i, item) in feedDataItems.enumerated().reversed() {
+            let diff = current - Int(item.timestamp)
+            
+            if (diff > month) {
 
-    func createData(item: FeedDataItem) {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let userEntity = NSEntityDescription.entity(forEntityName: "FeedCore", in: managedContext)!
-        
-        let obj = NSManagedObject(entity: userEntity, insertInto: managedContext)
-        obj.setValue(item.itemId, forKeyPath: "itemId")
-        obj.setValue(item.username, forKeyPath: "username")
-        obj.setValue(item.userImageUrl, forKeyPath: "userImageUrl")
-        obj.setValue(item.imageUrl, forKeyPath: "imageUrl")
-        obj.setValue(item.timestamp, forKeyPath: "timestamp")
-        obj.setValue(item.text, forKeyPath: "text")
-        obj.setValue(item.unreadComments, forKeyPath: "unreadComments")
-        
-        do {
-            try managedContext.save()
-        } catch let error as NSError {
-            print("could not save. \(error), \(error.userInfo)")
-        }
-    }
-    
-    func deleteData(itemId: String) {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FeedCore")
-        
-        fetchRequest.predicate = NSPredicate(format: "itemId == %@", itemId)
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-
-            if (result.count < 1) {
-                return
-            }
-            
-            let objectToDelete = result[0] as! NSManagedObject
-            managedContext.delete(objectToDelete)
-            
-            do {
-                try managedContext.save()
-            } catch {
-                print(error)
-            }
-            
-        } catch  {
-            print("failed")
-        }
-    }
-    
-    func updateFeedItem(item: FeedDataItem) {
-        
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FeedCore")
-        fetchRequest.predicate = NSPredicate(format: "itemId == %@", item.itemId)
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            
-            if (result.count < 1) {
-                return
-            }
-            
-            let objectUpdate = result[0] as! NSManagedObject
-            objectUpdate.setValue(item.unreadComments, forKey: "unreadComments")
-            
-            do {
-                try managedContext.save()
-            } catch {
-                print(error)
-            }
-        
-            do {
-                try managedContext.save()
-            } catch {
-                print(error)
-            }
-            
-        } catch  {
-            print("failed")
-        }
-    }
-    
-    func updateImageData(itemId: String, image: UIImage) {
-        
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FeedCore")
-        fetchRequest.predicate = NSPredicate(format: "itemId == %@", itemId)
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            
-            let obj = result[0] as! NSManagedObject
-            
-            let data = image.jpegData(compressionQuality: 1.0)
-            
-            if data != nil {
-                obj.setValue(data, forKeyPath: "imageBlob")
-            }
-            
-        
-            do {
-                try managedContext.save()
-            } catch {
-                print(error)
-            }
-            
-        } catch  {
-            print("failed")
-        }
-    }
-    
-    func getAllData() {
-        
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FeedCore")
-        
-        fetchRequest.sortDescriptors = [NSSortDescriptor.init(key: "timestamp", ascending: false)]
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            
-            var feedArr: [FeedDataItem] = []
-            
-            for data in result as! [NSManagedObject] {
-                let item = FeedDataItem(
-                    itemId: data.value(forKey: "itemId") as! String,
-                    username: data.value(forKey: "username") as! String,
-                    imageUrl: data.value(forKey: "imageUrl") as! String,
-                    userImageUrl: data.value(forKey: "userImageUrl") as! String,
-                    text: (data.value(forKey: "text") as? String) ?? "",
-                    unreadComments: (data.value(forKey: "unreadComments") as? Int) ?? 0,
-                    timestamp: data.value(forKey: "timestamp") as! Double
-                )
-                
-                if let imageData = data.value(forKey: "imageBlob") as? Data {
-                    if let imageData2 = UIImage(data: imageData) {
-                        item.image = imageData2
-                    }
+                if (item.username != self.xmpp.userData.phone) {
+                    feedItemCore.delete(itemId: item.itemId)
+                    feedDataItems.remove(at: i)
                 }
                 
-                feedArr.append(item)
-
             }
             
-            self.pushAllItems(items: feedArr)
-            
-        } catch  {
-            print("failed")
         }
     }
+    
+
+
+    
+
     
     // Retrieves all the comments from the database.
     func getAllComments() {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        let managedContext = appDelegate.persistentContainer.viewContext
+        
+        let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
+        
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FeedComments")
         fetchRequest.sortDescriptors = [NSSortDescriptor.init(key: "timestamp", ascending: false)]
         do {
@@ -566,201 +503,10 @@ class FeedData: ObservableObject {
     }
     
     
-    func isDataPresent(itemId: String) -> Bool {
-        
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            return false
-        }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FeedCore")
-        
-        fetchRequest.predicate = NSPredicate(format: "itemId == %@", itemId)
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            
-            if (result.count > 0) {
 
-                return true
-            } else {
+    
 
-                return false
-            }
-            
-        } catch  {
-            print("failed")
-        }
-        
-        return false
-    }
-    
-    // Inserts the comment item into the FeedComments entity of CoreData.
-    func createComment(item: FeedComment) {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        let managedContext = appDelegate.persistentContainer.viewContext
-        let userEntity = NSEntityDescription.entity(forEntityName: "FeedComments", in: managedContext)!
-        let obj = NSManagedObject(entity: userEntity, insertInto: managedContext)
-        obj.setValue(item.id, forKeyPath: "commentId")
-        obj.setValue(item.username, forKeyPath: "username")
-        obj.setValue(item.userImageUrl, forKeyPath: "userImageUrl")
-        obj.setValue(item.feedItemId, forKeyPath: "feedItemId")
-        obj.setValue(item.parentCommentId, forKeyPath: "parentCommentId")
-        obj.setValue(item.timestamp, forKeyPath: "timestamp")
-        obj.setValue(item.text, forKeyPath: "text")
-        
-        do {
-            try managedContext.save()
-        } catch let error as NSError {
-            print("could not save. \(error), \(error.userInfo)")
-        }
-    }
-    
-    // Check if a comment already exists in the FeedComments entity with the same commentId.
-    func isCommentPresent(commentId: String) -> Bool {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            return false
-        }
-        let managedContext = appDelegate.persistentContainer.viewContext
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FeedComments")
-        fetchRequest.predicate = NSPredicate(format: "commentId == %@", commentId)
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            if (result.count > 0) {
-                return true
-            } else {
-                return false
-            }
-        } catch  {
-            print("failed")
-        }
-        return false
-    }
     
 }
 
 
-class FeedDataItem: Identifiable, ObservableObject, Equatable {
-    
-    var id = UUID()
-    
-    var itemId: String
-    
-    var username: String
-    var userImageUrl: String
-    
-    var text: String
-    
-    var unreadComments: Int
-    
-    var timestamp: Double = 0
-    
-    @Published var userImage: UIImage = UIImage()
-    
-    var imageUrl: String
-    
-    @Published var image: UIImage = UIImage()
-    
-    @ObservedObject var imageLoader: ImageLoader = ImageLoader()
-    @ObservedObject var userImageLoader: ImageLoader = ImageLoader()
-    
-    var didChange = PassthroughSubject<Void, Never>()
-    private var cancellableSet: Set<AnyCancellable> = []
-    
-    init(   itemId: String = "",
-            username: String = "",
-            imageUrl: String = "",
-            userImageUrl: String = "",
-            text: String = "",
-            unreadComments: Int = 0,
-            timestamp: Double = 0) {
-        
-        self.itemId = itemId
-        self.username = username
-        self.userImageUrl = userImageUrl
-        self.imageUrl = imageUrl
-        self.text = text
-        self.unreadComments = unreadComments
-        self.timestamp = timestamp
-    }
-    
-    static func == (lhs: FeedDataItem, rhs: FeedDataItem) -> Bool {
-        return lhs.id == rhs.id
-    }
-    
-    func loadImage() {
-        if (self.imageUrl != "") {
-            imageLoader = ImageLoader(urlString: self.imageUrl)
-            cancellableSet.insert(
-                imageLoader.didChange.sink(receiveValue: { [weak self] _ in
-                    guard let self = self else { return }
-                    self.image = UIImage(data: self.imageLoader.data) ?? UIImage()
-                    
-                    self.didChange.send()
-                    
-                })
-            )
-        }
-    }
-    
-    func loadUserImage() {
-        if (self.userImageUrl != "") {
-            userImageLoader = ImageLoader(urlString: self.userImageUrl)
-            cancellableSet.insert(
-                userImageLoader.didChange.sink(receiveValue: { [weak self] _ in
-                    guard let self = self else { return }
-                    self.userImage = UIImage(data: self.userImageLoader.data) ?? UIImage()
-                    
-                    self.didChange.send()
-                })
-            )
-        }
-    }
-    
-}
-
-
-struct FeedComment: Identifiable, Equatable, Hashable {
-    var id: String
-    var feedItemId: String = ""
-    var parentCommentId: String = ""
-    var username: String = ""
-    var userImageUrl: String = ""
-    var text: String = ""
-    var timestamp: Double = 0
-    
-    init() {
-        self.id = UUID().uuidString
-    }
-    
-    init(id: String) {
-        self.id = id
-    }
-    
-    init(id: String,
-         feedItemId: String = "",
-         parentCommentId: String = "",
-         username: String = "",
-         userImageUrl: String = "",
-         text: String = "",
-         timestamp: Double = 0) {
-        
-        self.id = id
-        self.feedItemId = feedItemId
-        self.parentCommentId = parentCommentId
-        self.username = username
-        self.userImageUrl = userImageUrl
-        self.text = text
-        self.timestamp = timestamp
-    }
-    
-    static func == (lhs: FeedComment, rhs: FeedComment) -> Bool {
-        return lhs.id == rhs.id
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-    
-}

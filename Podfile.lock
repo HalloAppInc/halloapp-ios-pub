@@ -9,7 +9,7 @@ PODS:
   - KissXML (5.2.3)
   - libidn (1.35)
   - PryntTrimmerView (4.0.0)
-  - SteviaLayout (4.6.1)
+  - SteviaLayout (4.7.3)
   - SwiftDate (6.0.3)
   - SwiftyJSON (5.0.0)
   - XMPPFramework/default (4.0.0):
@@ -20,16 +20,16 @@ PODS:
   - XMPPFramework/Swift (4.0.0):
     - CocoaLumberjack/Swift
     - XMPPFramework/default
-  - YPImagePicker (4.1.2):
+  - YPImagePicker (4.2.0):
     - PryntTrimmerView (~> 4.0.0)
-    - SteviaLayout (~> 4.6.0)
+    - SteviaLayout (~> 4.7.3)
 
 DEPENDENCIES:
   - Alamofire
   - SwiftDate (~> 6.0.0)
   - SwiftyJSON
   - XMPPFramework/Swift
-  - YPImagePicker
+  - YPImagePicker (~> 4.2.0)
 
 SPEC REPOS:
   trunk:
@@ -52,12 +52,12 @@ SPEC CHECKSUMS:
   KissXML: 09f88ff8161fd058d67b70740b8b516687b52823
   libidn: e4576a956b797c584c77aaedfc6e3dd639b61bdc
   PryntTrimmerView: 67e67573ffd4c073f1308effa66aefd0cfa667a0
-  SteviaLayout: 0c83442390c8a369c21f975ffbd812d11532645b
+  SteviaLayout: c2ecdcff57d44e38fd2f65e54ad52aeae28ca0c4
   SwiftDate: 8d4f14bf1ef68e95094511504856547bf9e3e1a6
   SwiftyJSON: 36413e04c44ee145039d332b4f4e2d3e8d6c4db7
   XMPPFramework: 5d31ff9f73dce031b24bc49bcf88093627a3a86e
-  YPImagePicker: bdaa46782668e260fdd9709f19043a9f469fd2ad
+  YPImagePicker: accf310f9526641a84372c0ecf943547d9b1e52c
 
-PODFILE CHECKSUM: e8362bdc687ead2f165acca3ae4f94f574fe3770
+PODFILE CHECKSUM: eabde6475ba215919efc7575e9ec0fc66908af24
 
-COCOAPODS: 1.8.3
+COCOAPODS: 1.8.4

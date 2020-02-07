@@ -142,22 +142,33 @@ struct Profile: View {
                                 VStack(spacing: 0) {
                                                           
                                     
-                                    if (item.imageUrl != "") {
-
-                                        Image(uiImage: item.image)
-
-                                            .resizable()
-                                            .aspectRatio(item.image.size, contentMode: .fit)
-                                            .background(Color.gray)
-                                            .cornerRadius(10)
-                                            .padding(EdgeInsets(top: 10, leading: 10, bottom: 15, trailing: 10))
-                                            
+                                    if item.media.count > 0 {
+                                        
+                                        Carousel(item, item.mediaHeight)
+                                           
                                     } else {
                                         Divider()
                                             .frame(height: 10)
                                             .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
                                             .hidden()
                                     }
+                                    
+//                                    if (item.imageUrl != "") {
+//
+//                                        Image(uiImage: item.image)
+//
+//                                            .resizable()
+//                                            .aspectRatio(item.image.size, contentMode: .fit)
+//                                            .background(Color.gray)
+//                                            .cornerRadius(10)
+//                                            .padding(EdgeInsets(top: 10, leading: 10, bottom: 15, trailing: 10))
+//                                            
+//                                    } else {
+//                                        Divider()
+//                                            .frame(height: 10)
+//                                            .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
+//                                            .hidden()
+//                                    }
                                    
                 //                                Text(String(item.imageUrl))
                                     

@@ -425,6 +425,7 @@ class Utils {
         for item in itemList ?? [] {
             let entry = item.element(forName: "entry")
             let itemId = item.attributeStringValue(forName: "id")
+            let jid = item.attributeStringValue(forName: "jid")
             let serverTimestamp = item.attributeStringValue(forName: "timestamp")
             
             // Parse feed posts.
@@ -439,11 +440,20 @@ class Utils {
                     }
                 }
                 
-                if let username = post.element(forName: "username") {
+                
+                if jid != nil {
+                    
+                    if let jidParts = jid?.components(separatedBy: "@") {
+                        feedItem.username = jidParts[0]
+                    }
+   
+                    
+                } else if let username = post.element(forName: "username") {
                     if let usernameValue = username.stringValue {
                         feedItem.username = usernameValue
                     }
                 }
+                
                 
                 if let userImageUrl = post.element(forName: "userImageUrl") {
                     if let userImageUrlValue = userImageUrl.stringValue {
@@ -451,22 +461,80 @@ class Utils {
                     }
                 }
                 
+                var legacyUrl = ""
+                var legacyWidth = 0
+                var legacyHeight = 0
+                
                 if let imageUrl = post.element(forName: "imageUrl") {
                     if let imageUrlValue = imageUrl.stringValue {
                         feedItem.imageUrl = imageUrlValue
+                        legacyUrl = imageUrlValue
                     }
+                    
+                    if let imageUrlWidth = imageUrl.attributeStringValue(forName: "width") {
+                        legacyWidth = Int(imageUrlWidth) ?? 0
+                    }
+                    
+                    if let imageUrlHeight = imageUrl.attributeStringValue(forName: "height") {
+                        legacyHeight = Int(imageUrlHeight) ?? 0
+                    }
+                    
                 }
             
                 
                 let media = post.element(forName: "media")
                 let urls = media?.elements(forName: "url")
                 
-//                print("count of media urls: \(urls?.count)")
+                var medArr: [FeedMedia] = []
                 
-//                for url in urls ?? [] {
-//
-//                }
+                // support old images for now
+                if post.element(forName: "imageUrl") != nil && legacyUrl != "" && media == nil {
+//                    print("legacy post")
+                    let med: FeedMedia = FeedMedia()
+                    
+                    med.feedItemId = feedItem.itemId
+                    med.order = 1
+                    med.type = "image"
+                    med.url = legacyUrl
+                    med.width = legacyWidth
+                    med.height = legacyHeight
+                    
+                    medArr.append(med)
+                }
+                
+                var order = 1
+                
+                for url in urls ?? [] {
+                    
+                    let med: FeedMedia = FeedMedia()
+                    
+                    med.feedItemId = feedItem.itemId
+                    med.order = order
+                    order += 1
+                    
+                    if let medType = url.attributeStringValue(forName: "type") {
+                        med.type = medType
+                    }
+                    
+                    if let medWidth = url.attributeStringValue(forName: "width") {
+                        med.width = Int(medWidth) ?? 0
+                    }
+                    
+                    if let medHeight = url.attributeStringValue(forName: "height") {
+                        med.height = Int(medHeight) ?? 0
+                    }
+ 
+                    if let medUrl = url.stringValue {
+                        med.url = medUrl
+                        
+                        if med.url != "" {
+                            medArr.append(med)
+                        }
+                    }
+                    
+                }
             
+                feedItem.media = medArr
                 
                 if serverTimestamp != nil {
                     if let convertedServerTimestamp = Double(serverTimestamp!) {
@@ -483,7 +551,7 @@ class Utils {
                 }
                 
                 feedList.append(feedItem)
-//                print ("feed data item: \(feedItem.username) - \(feedItem.text)")
+//                print ("feed data item: \(feedItem.media.count)")
                 
             } else if let post = entry?.element(forName: "comment") {
                 
@@ -501,7 +569,14 @@ class Utils {
                     }
                 }
               
-                if let username = post.element(forName: "username") {
+                if jid != nil {
+                    
+                    if let jidParts = jid?.components(separatedBy: "@") {
+                        commentItem.username = jidParts[0]
+                    }
+                    
+                    
+                } else if let username = post.element(forName: "username") {
                     if let usernameValue = username.stringValue {
                         commentItem.username = usernameValue
                     }
@@ -954,6 +1029,14 @@ class Utils {
     }
     
     
+    func requestMultipleUploadUrl(xmppStream: XMPPStream, num: Int) {
+        
+        for _ in 1...num {
+            print("requesting")
+            requestUploadUrl(xmppStream: xmppStream)
+        }
+    }
+        
     func requestUploadUrl(xmppStream: XMPPStream) {
         
         let uploadMedia = XMLElement(name: "upload_media")

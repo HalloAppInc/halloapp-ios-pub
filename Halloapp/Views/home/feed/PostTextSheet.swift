@@ -42,7 +42,7 @@ struct PostTextSheet: View {
             VStack {
                 
                 Divider()
-                    .frame(height: 35)
+                    .frame(height: UIScreen.main.bounds.height < 812 ? 10 : 40)
                     .hidden()
                 
                 HStack() {
@@ -56,9 +56,9 @@ struct PostTextSheet: View {
                         
                     }) {
                         Text("Cancel")
-                            .font(.system(size: 20, weight: .semibold))
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(Color.gray)
-                            .padding()
+                            .padding(EdgeInsets(top: 15, leading: 20, bottom: 0, trailing: 15))
                     }
                 }
                 
@@ -104,16 +104,26 @@ struct PostTextSheet: View {
                         ) {
                         
                         
+                        var media: [FeedMedia] = []
+                        
                         var imageWidth = 0
                         var imageHeight = 0
                         
-                        if !self.isJustText {
+                         if !self.isJustText {
                             imageWidth = Int(self.pickedUIImage.size.width)
                             imageHeight = Int(self.pickedUIImage.size.height)
+                            
+                            let mediaItem: FeedMedia = FeedMedia()
+                            mediaItem.type = "image"
+                            mediaItem.width = Int(imageWidth)
+                            mediaItem.height = Int(imageHeight)
+                            mediaItem.url = self.imageUrl
+                            media.append(mediaItem)
+                            
                         }
                         
                         
-                        self.feedData.postText(self.userData.phone, self.msgToSend, self.imageUrl, imageWidth, imageHeight)
+                        self.feedData.postText(self.userData.phone, self.msgToSend, media)
                         
                         
                         self.msgToSend = ""

@@ -6,7 +6,7 @@ target 'Halloapp' do
 
   use_frameworks!
   pod 'XMPPFramework/Swift'
-  pod 'YPImagePicker'
+  pod 'YPImagePicker', '~> 4.2.0'
   pod 'Alamofire'
   pod 'SwiftyJSON'
   pod 'SwiftDate', '~> 6.0.0'

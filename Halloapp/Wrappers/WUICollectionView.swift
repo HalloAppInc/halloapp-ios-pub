@@ -21,7 +21,6 @@ class MyHeaderFooterClass: UICollectionReusableView {
         
         controller = UIHostingController(rootView: CommentHeader(comment: model, contacts: contacts))
 
-
         controller.view.frame = self.bounds
 
         self.addSubview(controller.view)
@@ -30,20 +29,11 @@ class MyHeaderFooterClass: UICollectionReusableView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.backgroundColor = UIColor.purple
-
-        // Customize here
-
     }
 
     required init?(coder aDecoder: NSCoder) {
-        
         super.init(coder: aDecoder)
-
     }
-    
-    
-
     
 }
 

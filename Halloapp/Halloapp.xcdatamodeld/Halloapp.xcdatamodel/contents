@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="15702" systemVersion="19C57" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="ContactsAvatar" representedClassName="ContactsAvatar" syncable="YES" codeGenerationType="class">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="15702" systemVersion="19D76" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="CContactsAvatar" representedClassName="CContactsAvatar" syncable="YES" codeGenerationType="class">
         <attribute name="imageBlob" optional="YES" attributeType="Binary"/>
         <attribute name="imageUrl" optional="YES" attributeType="String"/>
         <attribute name="phone" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="CFeedImage" representedClassName="CFeedImage" syncable="YES" codeGenerationType="class">
+        <attribute name="blob" optional="YES" attributeType="Binary"/>
+        <attribute name="feedItemId" optional="YES" attributeType="String"/>
+        <attribute name="height" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="smallBlob" optional="YES" attributeType="Binary"/>
+        <attribute name="url" optional="YES" attributeType="String"/>
+        <attribute name="width" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <entity name="ContactsCore" representedClassName="ContactsCore" syncable="YES" codeGenerationType="class">
         <attribute name="isConnected" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
@@ -13,6 +22,11 @@
         <attribute name="normPhone" optional="YES" attributeType="String"/>
         <attribute name="phone" optional="YES" attributeType="String"/>
         <attribute name="timeLastChecked" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="CPending" representedClassName="CPending" syncable="YES" codeGenerationType="class">
+        <attribute name="blob" optional="YES" attributeType="Binary"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <attribute name="url" optional="YES" attributeType="String"/>
     </entity>
     <entity name="FeedComments" representedClassName="FeedComments" syncable="YES" codeGenerationType="class">
         <attribute name="commentId" optional="YES" attributeType="String"/>
@@ -45,10 +59,12 @@
         <attribute name="phoneInput" optional="YES" attributeType="String"/>
     </entity>
     <elements>
+        <element name="CContactsAvatar" positionX="-54" positionY="81" width="128" height="88"/>
+        <element name="CFeedImage" positionX="-54" positionY="81" width="128" height="148"/>
         <element name="ContactsCore" positionX="-63" positionY="36" width="128" height="148"/>
         <element name="FeedComments" positionX="-45" positionY="81" width="128" height="148"/>
         <element name="FeedCore" positionX="-63" positionY="0" width="128" height="163"/>
         <element name="User" positionX="-63" positionY="-18" width="128" height="178"/>
-        <element name="ContactsAvatar" positionX="-54" positionY="81" width="128" height="88"/>
+        <element name="CPending" positionX="-54" positionY="81" width="128" height="88"/>
     </elements>
 </model>

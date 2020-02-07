@@ -19,17 +19,41 @@ class ImageLoader: ObservableObject {
         }
     }
     
+    private var retries = 0
+    
     init() {
         
     }
 
     init(urlString: String) {
         
-        if urlString == "" {
+        tryLoad(url: urlString)
+        
+    }
+    
+    func tryLoad(url: String) {
+        
+        
+        print("fetch image remotely, retry no: \(self.retries)")
+        
+        if self.retries < 3 {
+            
+            let delay = (self.retries < 1) ? 0.0 : 10.0
+            
+            DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + delay) {
+                self.load(url: url)
+            }
+        }
+        self.retries += 1
+    }
+
+    func load(url: String) {
+        
+        if url == "" {
             return
         }
 
-        guard let formedUrl = URL(string: urlString) else {
+        guard let formedUrl = URL(string: url) else {
             return
         }
         
@@ -38,17 +62,40 @@ class ImageLoader: ObservableObject {
         
         let task = URLSession.shared.dataTask(with: urlRequest) { data, response, error in
             
-            guard let data = data else { return }
-
-//            print("\(response)")
+            if error == nil {
+                
+                if let httpResponse = response as? HTTPURLResponse {
+//                    print("response \(httpResponse.statusCode)")
+                    
+                    if httpResponse.statusCode != 200 {
+                        self.tryLoad(url: url)
+                    }
+                }
+                
+                guard let data = data else {
+                    
+                    self.tryLoad(url: url)
+                    
+                    return
+                }
+                
+                
+                
+                DispatchQueue.main.async {
+                    
+                    self.data = data
             
-            DispatchQueue.main.async {
-                self.data = data
-        
+                }
+                
+            } else {
+         
+                self.tryLoad(url: url)
+             
             }
             
         }
         task.resume()
+        
     }
-
+    
 }

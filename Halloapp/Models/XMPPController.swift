@@ -156,13 +156,8 @@ class XMPPController: NSObject, ObservableObject {
             self.xmppPubSub.retrieveItems(fromNode: "feed-\(self.userData.phone)") // if the user logs off, then logs back in
         }
         
-
-        /*
-            uncommenting for now to make sure all nodes are configured with the new option
-            pubsub#notification_type (from build 5)
-         */
-        self.xmppPubSub.configureNode("feed-\(node)", withOptions: feedNodeOptions)
-        self.xmppPubSub.configureNode("contacts-\(node)", withOptions: nodeOptions)
+//        self.xmppPubSub.configureNode("feed-\(node)", withOptions: feedNodeOptions)
+//        self.xmppPubSub.configureNode("contacts-\(node)", withOptions: nodeOptions)
         
         
         /* see node metadata */
@@ -256,7 +251,6 @@ extension XMPPController: XMPPStreamDelegate {
                 
             } else if uploadMedia != nil {
                 
-                print("hey")
                 self.didGetUploadUrl.send(iq)
                 
             } else {

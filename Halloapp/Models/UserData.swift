@@ -47,6 +47,8 @@ final class UserData: ObservableObject {
     
     private var subCancellable: AnyCancellable!
     private var validCharSet = CharacterSet(charactersIn: "1234567890+.-_ ")
+    
+    let userCore = UserCore()
 
     init() {
 
@@ -56,7 +58,13 @@ final class UserData: ObservableObject {
         
 //        print(Utils().getCountryFromCode("1"))
         
-        self.getData()
+        (self.countryCode,
+        self.phoneInput,
+        self.password,
+        self.phone,
+        self.isLoggedIn,
+        self.haveContactsSub,
+        self.haveFeedSub) = userCore.get()
         
         subCancellable = $phone.sink { val in
             
@@ -85,6 +93,18 @@ final class UserData: ObservableObject {
         }
     }
 
+    func save() {
+        DispatchQueue.global(qos: .background).async {
+            self.userCore.update(countryCode: self.countryCode,
+                                 phoneInput: self.phoneInput,
+                                 password: self.password,
+                                 phone: self.phone,
+                                 isLoggedIn: self.isLoggedIn,
+                                 haveContactsSub: self.haveContactsSub,
+                                 haveFeedSub: self.haveFeedSub)
+        }
+    }
+    
     deinit {
         subCancellable.cancel()
     }
@@ -95,17 +115,17 @@ final class UserData: ObservableObject {
     
     func setIsLoggedIn(value: Bool) {
         self.isLoggedIn = value
-        self.saveData()
+        self.save()
     }
     
     func setHaveContactsSub(value: Bool) {
         self.haveContactsSub = value
-        self.saveData()
+        self.save()
     }
     
     func setHaveFeedSub(value: Bool) {
         self.haveFeedSub = value
-        self.saveData()
+        self.save()
     }
     
     func logout() {
@@ -114,13 +134,16 @@ final class UserData: ObservableObject {
         deleteAllData(entityName: "ContactsCore")
         deleteAllData(entityName: "FeedCore")
         deleteAllData(entityName: "FeedComments")
-        deleteAllData(entityName: "ContactsAvatar")
+        deleteAllData(entityName: "CContactsAvatar")
+        deleteAllData(entityName: "CFeedImage")
+        deleteAllData(entityName: "CPending")
         
         self.didLogOff.send()
         
         /* wipe in memory data */
         
-        //todo: delete user avatar also
+        // delete all the feed items, messages in memory
+        // todo: delete user avatar also
         
         self.countryCode = "1"
         self.phone = ""
@@ -171,10 +194,20 @@ final class UserData: ObservableObject {
             
             self.phone = "\(self.countryCode)\(self.phoneInput)"
             
-            if (self.isDataPresent()) {
-                self.saveData()
+            if (self.userCore.isPresent()) {
+     
+                self.save()
+
             } else {
-                self.createData()
+                DispatchQueue.global(qos: .background).async {
+                    self.userCore.create(countryCode: self.countryCode,
+                                         phoneInput: self.phoneInput,
+                                         password: self.password,
+                                         phone: self.phone,
+                                         isLoggedIn: self.isLoggedIn,
+                                         haveContactsSub: self.haveContactsSub,
+                                         haveFeedSub: self.haveFeedSub)
+                }
             }
             self.register()
             return true
@@ -218,156 +251,25 @@ final class UserData: ObservableObject {
     }
     
     
-    func createData() {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let userEntity = NSEntityDescription.entity(forEntityName: "User", in: managedContext)!
-        
-        let user = NSManagedObject(entity: userEntity, insertInto: managedContext)
-        user.setValue(self.countryCode, forKeyPath: "countryCode")
-        user.setValue(self.phoneInput, forKeyPath: "phoneInput")
-        user.setValue(self.phone, forKeyPath: "phone")
-        user.setValue(self.password, forKeyPath: "password")
-        user.setValue(self.isLoggedIn, forKeyPath: "isLoggedIn")
-        user.setValue(self.haveContactsSub, forKeyPath: "haveContactsSub")
-        user.setValue(self.haveFeedSub, forKeyPath: "haveFeedSub")
-        
-        do {
-            try managedContext.save()
-        } catch let error as NSError {
-            print("could not save. \(error), \(error.userInfo)")
-        }
-    }
-    
-
-    func saveData() {
-        
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-
-            let objectUpdate = result[0] as! NSManagedObject
-            objectUpdate.setValue(self.countryCode, forKey: "countryCode")
-            objectUpdate.setValue(self.phoneInput, forKey: "phoneInput")
-            objectUpdate.setValue(self.password, forKey: "password")
-            objectUpdate.setValue(self.phone, forKey: "phone")
-            objectUpdate.setValue(self.isLoggedIn, forKey: "isLoggedIn")
-            objectUpdate.setValue(self.haveContactsSub, forKey: "haveContactsSub")
-            objectUpdate.setValue(self.haveFeedSub, forKey: "haveFeedSub")
-            do {
-                try managedContext.save()
-            } catch {
-                print(error)
-            }
-            
-        } catch  {
-            print("failed")
-        }
-    }
     
     func deleteAllData(entityName: String) {
         
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
-        let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        let managedContext = CoreDataManager.sharedManager.bgContext
 
-        do {
-            try managedContext.execute(batchDeleteRequest)
-            print("Deleting \(entityName)")
-        } catch {
-            print("Delete error for \(entityName) error :", error)
-        }
+        managedContext.perform {
         
-    }
-    
-    func getData() {
-        
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            
-            for data in result as! [NSManagedObject] {
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
 
-                if let countryCode = data.value(forKey: "countryCode") as! String? {
-                    self.countryCode = countryCode
-                }
-                
-                if let phoneInput = data.value(forKey: "phoneInput") as! String? {
-                    self.phoneInput = phoneInput
-                }
-                
-                self.phone = data.value(forKey: "phone") as! String
-                
-                                
-                if let password = data.value(forKey: "password") as! String? {
-                    self.password = password
-                }
-                    
-                if let isLoggedIn = data.value(forKey: "isLoggedIn") as! Bool? {
-                    self.isLoggedIn = isLoggedIn
-                } else {
-                    self.isLoggedIn = false
-                }
-
-                if let haveContactsSub = data.value(forKey: "haveContactsSub") as! Bool? {
-                    self.haveContactsSub = haveContactsSub
-                } else {
-                    self.haveContactsSub = false
-                }
-                
-                if let haveFeedSub = data.value(forKey: "haveFeedSub") as! Bool? {
-                    self.haveFeedSub = haveFeedSub
-                } else {
-                    self.haveFeedSub = false
-                }
-                
+            do {
+                try managedContext.execute(batchDeleteRequest)
+                print("Deleting \(entityName)")
+            } catch {
+                print("Delete error for \(entityName) error :", error)
             }
-            
-        } catch  {
-            print("failed")
         }
+        
     }
     
-    func isDataPresent() -> Bool {
-        
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            return false
-        }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            
-            if (result.count > 0) {
-            
-                return true
-            } else {
-            
-                return false
-            }
-            
-        } catch  {
-            print("failed")
-        }
-        
-        return false
-    }
-    
+
 }

@@ -42,8 +42,6 @@ struct Commenting: View {
         
         self._item = State(initialValue: item)
         
-
-        
 //        self._comments = State(initialValue: self.feedData.feedCommentItems.filter {
 //            $0.feedItemId == self.itemToBe.itemId
 //        })
@@ -63,10 +61,16 @@ struct Commenting: View {
             
             if self.comments.count > 0 {
                 if self.item.unreadComments > 0 {
-                    print("marking")
+//                    print("marking")
                     self.feedData.markFeedItemUnreadComments(comment: self.comments[0])
                 }
             }
+            
+            self.cancellableSet.forEach {
+//                print("cancelling")
+                $0.cancel()
+            }
+            self.cancellableSet.removeAll()
             
             self.cancellableSet.insert(
 
@@ -87,8 +91,6 @@ struct Commenting: View {
         
         return VStack() {
 
-            
-            
             WUICollectionView(
                 item: $item,
                 comments: $comments,
@@ -187,7 +189,7 @@ struct Commenting: View {
                 if (replyTo != "") {
                     
                     HStack() {
-                        Text("Replying to \(replyToName)")
+                        Text("Replying to \(replyToName != "Me" ? replyToName : "myself" )")
                             .foregroundColor(Color.gray)
                             
                             .padding(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 15))
@@ -262,7 +264,7 @@ struct Commenting: View {
                         }
                         
                         // slight delay for better UX
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                             let keyWindow = UIApplication.shared.connectedScenes
                                     .filter({$0.activationState == .foregroundActive})
                                     .map({$0 as? UIWindowScene})
@@ -311,6 +313,14 @@ struct Commenting: View {
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             
         .edgesIgnoringSafeArea(.all)
+            
+        .onDisappear {
+            self.cancellableSet.forEach {
+//                print("cancelling")
+                $0.cancel()
+            }
+            self.cancellableSet.removeAll()
+        }
     }
     
 

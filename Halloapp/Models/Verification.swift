@@ -80,7 +80,7 @@ final class Verification: ObservableObject {
                             
                             userData.password = password
                             userData.setIsLoggedIn(value: true)
-                            userData.saveData()
+                            userData.save()
 
                             self.code = ""
                         } else {

@@ -1,0 +1,197 @@
+//
+//  UserCore.swift
+//  Halloapp
+//
+//  Created by Tony Jiang on 2/4/20.
+//  Copyright © 2020 Halloapp, Inc. All rights reserved.
+//
+
+import Foundation
+
+import Foundation
+import SwiftUI
+import Combine
+import CoreData
+
+class UserCore {
+
+    func get() -> ( String,
+                    String,
+                    String,
+                    String,
+                    Bool,
+                    Bool,
+                    Bool) {
+                        
+        var countryCode: String = "1"
+        var phoneInput: String = ""
+        var password: String = ""
+        var phone: String = ""
+        var isLoggedIn: Bool = false
+        var haveContactsSub: Bool = false
+        var haveFeedSub: Bool = false
+                        
+        let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
+        
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
+        
+        do {
+            let result = try managedContext.fetch(fetchRequest)
+            
+            for data in result as! [NSManagedObject] {
+
+                if let countryCodeData = data.value(forKey: "countryCode") as! String? {
+                    countryCode = countryCodeData
+                }
+                
+                if let phoneInputData = data.value(forKey: "phoneInput") as! String? {
+                    phoneInput = phoneInputData
+                }
+                
+                phone = data.value(forKey: "phone") as! String
+                
+                                
+                if let passwordData = data.value(forKey: "password") as! String? {
+                    password = passwordData
+                }
+                    
+                if let isLoggedInData = data.value(forKey: "isLoggedIn") as! Bool? {
+                    isLoggedIn = isLoggedInData
+                } else {
+                    isLoggedIn = false
+                }
+
+                if let haveContactsSubData = data.value(forKey: "haveContactsSub") as! Bool? {
+                    haveContactsSub = haveContactsSubData
+                } else {
+                    haveContactsSub = false
+                }
+                
+                if let haveFeedSubData = data.value(forKey: "haveFeedSub") as! Bool? {
+                    haveFeedSub = haveFeedSubData
+                } else {
+                    haveFeedSub = false
+                }
+                
+            }
+            
+        } catch  {
+            print("failed")
+        }
+                        
+        return (countryCode, phoneInput, password, phone, isLoggedIn, haveContactsSub, haveFeedSub)
+    }
+    
+    func create(countryCode: String,
+                phoneInput: String,
+                password: String,
+                phone: String,
+                isLoggedIn: Bool,
+                haveContactsSub: Bool,
+                haveFeedSub: Bool) {
+        let managedContext = CoreDataManager.sharedManager.bgContext
+
+        managedContext.perform {
+        
+            let userEntity = NSEntityDescription.entity(forEntityName: "User", in: managedContext)!
+            
+            let user = NSManagedObject(entity: userEntity, insertInto: managedContext)
+            user.setValue(countryCode, forKeyPath: "countryCode")
+            user.setValue(phoneInput, forKeyPath: "phoneInput")
+            user.setValue(phone, forKeyPath: "phone")
+            user.setValue(password, forKeyPath: "password")
+            user.setValue(isLoggedIn, forKeyPath: "isLoggedIn")
+            user.setValue(haveContactsSub, forKeyPath: "haveContactsSub")
+            user.setValue(haveFeedSub, forKeyPath: "haveFeedSub")
+            
+            do {
+                try managedContext.save()
+            } catch let error as NSError {
+                print("could not save. \(error), \(error.userInfo)")
+            }
+        }
+    }
+    
+    func update(countryCode: String,
+                phoneInput: String,
+                password: String,
+                phone: String,
+                isLoggedIn: Bool,
+                haveContactsSub: Bool,
+                haveFeedSub: Bool) {
+        
+        let managedContext = CoreDataManager.sharedManager.bgContext
+
+        managedContext.perform {
+            
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
+            
+            do {
+                let result = try managedContext.fetch(fetchRequest)
+                
+                if (result.count == 0) {
+                    return
+                }
+                
+                let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
+                
+                do {
+                    let result = try managedContext.fetch(fetchRequest)
+
+                    let objectUpdate = result[0] as! NSManagedObject
+                    objectUpdate.setValue(countryCode, forKey: "countryCode")
+                    objectUpdate.setValue(phoneInput, forKey: "phoneInput")
+                    objectUpdate.setValue(password, forKey: "password")
+                    objectUpdate.setValue(phone, forKey: "phone")
+                    objectUpdate.setValue(isLoggedIn, forKey: "isLoggedIn")
+                    objectUpdate.setValue(haveContactsSub, forKey: "haveContactsSub")
+                    objectUpdate.setValue(haveFeedSub, forKey: "haveFeedSub")
+                    
+                    do {
+                        try managedContext.save()
+                    } catch {
+                        print(error)
+                    }
+                    
+                } catch  {
+                    print("failed")
+                }
+                
+                
+            } catch  {
+                print("failed")
+            }
+            
+            
+
+        }
+        
+    }
+    
+    
+    func isPresent() -> Bool {
+        
+        let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
+        
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
+        
+        do {
+            let result = try managedContext.fetch(fetchRequest)
+            
+            if (result.count > 0) {
+            
+                return true
+            } else {
+            
+                return false
+            }
+            
+        } catch  {
+            print("failed")
+        }
+        
+        return false
+    }
+    
+    
+}

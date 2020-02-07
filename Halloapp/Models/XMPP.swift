@@ -44,22 +44,18 @@ class XMPP: ObservableObject {
          
             self.xmppController.didConnect.sink(receiveValue: { value in
 
-                self.isReady = true
+                print("got sink for didConnect")
+                if (!self.isReady) {
+                    self.isReady = true
+                } else {
+                    /* reconnected but app is already in isReady state, we should check for changes */
+                    
+                }
 
             })
 
         )
         
-
-        self.cancellableSet.insert(
-         
-            self.xmppController.didConnect.sink(receiveValue: { value in
-
-                self.isReady = true
-
-            })
-
-        )
         
         self.cancellableSet.insert(
          

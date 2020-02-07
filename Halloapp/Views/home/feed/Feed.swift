@@ -21,6 +21,9 @@ struct Feed: View {
     
     @State private var showSheet = false
     
+    @State private var showMediaPicker = false
+    @State private var showPostMedia = false
+    
     @State private var showImagePicker = false
     @State private var showNotifications = false
     @State private var showPostText = false
@@ -31,7 +34,6 @@ struct Feed: View {
     @State private var showMoreActions = false
 
     @State private var showMiscActions = false
-    @State private var showComments = false
     @State private var postId = ""
     @State private var username = ""
     @State private var showMessages = false
@@ -59,7 +61,13 @@ struct Feed: View {
     var body: some View {
         
         DispatchQueue.main.async {
-//            print("insert listener")
+            self.cancellableSet.forEach {
+//                print("cancelling")
+                $0.cancel()
+            }
+            self.cancellableSet.removeAll()
+            
+            print("insert listener \(self.cancellableSet.count)")
             self.cancellableSet.insert(
 
                 self.feedData.xmppController.didGetUploadUrl.sink(receiveValue: { iq in
@@ -133,16 +141,9 @@ struct Feed: View {
                                 .buttonStyle(BorderlessButtonStyle())
                   
                                 
-                                if (item.imageUrl != "") {
+                                if item.media.count > 0 {
                                
-                                    Image(uiImage: item.image)
-
-                                        .resizable()
-                                        .aspectRatio(item.image.size, contentMode: .fit)
-                                        .background(Color.gray)
-                                        .cornerRadius(10)
-                                        .padding(EdgeInsets(top: 10, leading: 10, bottom: 15, trailing: 10))
-                                        
+                                    Carousel(item, item.mediaHeight)
                                         
                                 } else {
                                     Divider()
@@ -174,17 +175,6 @@ struct Feed: View {
                                                 self.homeRouteData.setItem(value: item)
                                                 self.homeRouteData.gotoPage(page: "commenting")
                                             }
-                                            
-                                            
-//                                            self.showComments = true
-//                                            self.showSheet = true
-//                                            self.postId = item.itemId
-//                                            self.username = item.username
-
-//                                            self.showComments = true
-//                                            self.showSheet = true                                            
-
-//                                            self.feedRouterData.gotoPage(page: "commenting")
                                           
                                         }) {
                                             HStack {
@@ -215,7 +205,6 @@ struct Feed: View {
                                          }
                            
                                         
-
                                     Spacer()
 
                                     Button(action: {
@@ -347,7 +336,7 @@ struct Feed: View {
         .edgesIgnoringSafeArea(.all)
 
         .sheet(isPresented: self.$showSheet, content: {
-            
+        
             if (self.showImagePicker) {
 
                 ImagePicker(showPostText: self.$showPostText,
@@ -392,23 +381,6 @@ struct Feed: View {
                 })
                 .environmentObject(self.userData)
 
-                
-            } else if (self.showMessages) {
-                MessageUser(onDismiss: {
-                    self.showSheet = false
-                    self.showMessages = false
-                    
-                })
-            } else if (self.showComments) {
-                Comments(feedData: self.feedData,
-                         postId: self.$postId,
-                         username: self.$username,
-                         onDismiss: {
-                            self.showSheet = false
-                            self.showComments = false
-                            self.postId = ""
-                            self.username = ""
-                        }).environmentObject(self.userData)
             } else {
                 MessageUser(onDismiss: {
                     self.showSheet = false
@@ -422,14 +394,22 @@ struct Feed: View {
             ActionSheet(
                 title: Text(""),
                 buttons: [
+//                    .default(Text("Media"), action: {
+//                        self.isJustText = false
+//
+//
+//                        self.homeRouteData.gotoPage(page: "media")
+//                    }),
                     .default(Text("Photo Library"), action: {
-                        self.isJustText = false
-                        self.cameraMode = "library"
-                        self.showImagePicker = true
-                        self.showSheet = true
-                        self.showMoreActions = false
                         
+                          self.isJustText = false
                         
+                          self.homeRouteData.gotoPage(page: "media")
+//                        self.isJustText = false
+//                        self.cameraMode = "library"
+//                        self.showImagePicker = true
+//                        self.showSheet = true
+//                        self.showMoreActions = false
                     }),
                     .default(Text("Camera"), action: {
                         self.isJustText = false
@@ -437,8 +417,6 @@ struct Feed: View {
                         self.showImagePicker = true
                         self.showSheet = true
                         self.showMoreActions = false
-                        
-                        
                     }),
                     .default(Text("Text"), action: {
                         self.isJustText = true
@@ -456,7 +434,13 @@ struct Feed: View {
         .alert(isPresented: self.$showMiscActions) {
             Alert(title: Text("More actions coming soon"), message: Text(""), dismissButton: .default(Text("OK")))
         }
-        
+        .onDisappear {
+            self.cancellableSet.forEach {
+//                print("cancelling")
+                $0.cancel()
+            }
+            self.cancellableSet.removeAll()
+        }
 
         
         

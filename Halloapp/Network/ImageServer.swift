@@ -9,7 +9,7 @@
 import Foundation
 
 import XMPPFramework
-
+import Alamofire
 
 import CommonCrypto
 
@@ -27,6 +27,64 @@ extension String {
 
 class ImageServer {
 
+    func uploadMultiple(media: [FeedMedia]) {
+        
+        let pendingCore = PendingCore()
+        
+        for med in media {
+            
+            upload(med: med)
+   
+            DispatchQueue.global(qos: .background).async {
+                pendingCore.create(item: med)
+            }
+        }
+        
+    }
+    
+    func upload(med: FeedMedia) {
+            
+        let uploadUrl = med.url
+        
+        /* note: compression below a certain point (0.2?) is the same */
+        if let imgData = med.image.jpegData(compressionQuality: 0.1) {
+
+            let headers = [
+                "Content-Type": "image/jpeg"
+            ]
+
+            Alamofire.upload(imgData, to: uploadUrl, method: .put, headers: headers)
+                .uploadProgress(closure: { (progress) in
+//                    print(progress.fractionCompleted)
+                })
+                .responseData { response in
+
+                    if (response.response != nil) {
+                        print("success uploading")
+          
+                        DispatchQueue.global(qos: .background).async {
+                            PendingCore().delete(url: uploadUrl)
+                        }
+
+                    }
+
+                }
+
+        }
+          
+    }
+    
+    
+    func processPending() {
+        var pending: [FeedMedia] = []
+        
+        pending = PendingCore().getAll()
+        
+        print("process pending: \(pending.count)")
+        
+        uploadMultiple(media: pending)
+    }
+    
     func deleteImage(imageUrl: String) {
 
         if imageUrl == "" {

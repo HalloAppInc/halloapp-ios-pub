@@ -36,6 +36,9 @@ struct ImagePicker: UIViewControllerRepresentable {
     
     
     func makeUIViewController(context: UIViewControllerRepresentableContext<ImagePicker>) -> UIImagePickerController {
+        
+        self.requestUrl()
+        
         let imagePicker = UIImagePickerController()
         if (cameraMode == "camera") {
             imagePicker.sourceType = .camera
@@ -46,8 +49,6 @@ struct ImagePicker: UIViewControllerRepresentable {
 //        imagePicker.allowsEditing = true
         
         imagePicker.delegate = context.coordinator
-        
-        self.requestUrl()
         
         return imagePicker
     }
@@ -66,23 +67,25 @@ struct ImagePicker: UIViewControllerRepresentable {
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
 
-            if self.parent.imagePutUrl == "" {
+            if self.parent.imagePutUrl == "" || self.parent.imageGetUrl == "" {
                 print("no url")
                 return
             }
             
-            let preUiImage = info[UIImagePickerController.InfoKey.originalImage] as! UIImage
+            self.parent.imageUrl = self.parent.imageGetUrl
+            print("get url: \(self.parent.imageUrl)")
             
+            let preUiImage = info[UIImagePickerController.InfoKey.originalImage] as! UIImage
             let uiImage = preUiImage.correctlyOrientedImage()
             
-            parent.pickedImage = Image(uiImage: uiImage)
-            parent.pickedUIImage = uiImage
+            self.parent.pickedImage = Image(uiImage: uiImage)
+            self.parent.pickedUIImage = uiImage
             
-            parent.pickerStatus = "uploading"
+            self.parent.pickerStatus = "uploading"
             self.upload(uiImage: uiImage)
         
-            parent.showImagePicker = false
-            parent.showPostText = true
+            self.parent.showImagePicker = false
+            self.parent.showPostText = true
         }
         
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
@@ -111,8 +114,7 @@ struct ImagePicker: UIViewControllerRepresentable {
 
                         if (response.response != nil) {
                             print("success uploading")
-                            self.parent.imageUrl = "\(self.parent.imageGetUrl)"
-                            
+              
                             self.parent.pickerStatus = ""
                             
                             self.parent.imageGetUrl = ""
@@ -123,69 +125,6 @@ struct ImagePicker: UIViewControllerRepresentable {
 
             }
               
-        }
-        
-        
-        func upload_cloudinary(uiImage: UIImage) {
-            
-            /* note: compression below a certain point (0.2?) is the same */
-            if let imgData = uiImage.jpegData(compressionQuality: 0.1) {
-
-                print("img: \(imgData.count)")
-                
-                let parameters = ["upload_preset":"nobiaovp"]
-                
-                Alamofire.upload(
-                    multipartFormData: { multipartFormData in
-                        multipartFormData.append(imgData, withName: "file", fileName: "file.jpg", mimeType: "image/jpg")
-                        for (key, value) in parameters {
-                                multipartFormData.append(value.data(using: String.Encoding.utf8)!, withName: key)
-                            } //Optional for extra parameters
-                    },
-                    to: "https://api.cloudinary.com/v1_1/halloapp/image/upload"
-                    
-                )
-                { (result) in
-                    switch result {
-                    case .success(let upload, _, _):
-
-                        upload.uploadProgress(closure: { (progress) in
-                            print("Upload Progress: \(progress.fractionCompleted)")
-                        })
-
-                        upload.responseJSON { response in
-                      
-                            if let json = response.data {
-                                do {
-                                    let data = try JSON(data: json)
-                                    let str = data["secure_url"].stringValue
-                                    
-                                    print("raw json data: \(data)")
-                                    
-                                    print("name: \(str)")
-                                    self.parent.imageUrl = "\(str)"
-                                    self.parent.pickerStatus = ""
-                                    
-//                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0) {
-//                                        self.parent.callback()
-//                                    }
-                                    
-                                    
-                                }
-                                catch{
-                                print("JSON Error")
-                                }
-
-                            }
-                            
-                        }
-
-                    case .failure(let encodingError):
-                        print(encodingError)
-                    }
-                }
-            }
-            
         }
         
 

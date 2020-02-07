@@ -80,6 +80,8 @@ class Contacts: ObservableObject {
     
     private var getMissedPostsAndComments = false
     
+    let contactCore = ContactCore()
+    
     func getOwnAffiliations() {
         
         let affiliations = XMLElement(name: "affiliations")
@@ -156,10 +158,10 @@ class Contacts: ObservableObject {
                 $0.name < $1.name
             }
             
-            
-            if (!self.isDataPresent(phone: item.phone)) {
-                self.createData(item: item)
+            DispatchQueue.global(qos: .background).async {
+                self.contactCore.create(item: item)
             }
+            
             
         } else {
 //            print("do no insert: \(item.text)")
@@ -174,9 +176,7 @@ class Contacts: ObservableObject {
         self.xmpp = xmpp
         self.xmppController = self.xmpp.xmppController
         
-        
-        self.getAllData()
-        
+        self.pushAllItems(items: self.contactCore.getAll())
         
         store.requestAccess(for: .contacts, completionHandler: { (granted, error) in
             
@@ -189,17 +189,35 @@ class Contacts: ObservableObject {
         })
         
         
+        self.cancellableSet.insert(
+         
+            self.xmpp.userData.didLogOff.sink(receiveValue: {
+                print("got log off signal in Contacts")
+                
+                // tried this, it started removing extra whitelist for some reason, need more testing
+                
+//                self.contacts.removeAll()
+//                self.normalizedContacts.removeAll()
+//                self.idsToWhiteList.removeAll()
+//                self.idsToNormalize.removeAll()
+                
+
+            })
+
+        )
+        
         cancellableSet.insert(
          
             xmppController.didGetAllAffiliations.sink(receiveValue: { iq in
 
-                DispatchQueue.global(qos: .background).async {
+                DispatchQueue.global(qos: .utility).async {
                     
                     var localNormalizedContacts: [NormContact] = self.normalizedContacts
+                    var numChanges: Int = 0
                     
                     var affList = Utils().parseAffList(iq)
                     
-                    print("Aff: \(affList)")
+                    print("Aff List: \(affList)")
               
                     for (conIndex, con) in localNormalizedContacts.enumerated() {
                         
@@ -212,11 +230,13 @@ class Contacts: ObservableObject {
                             if (index != nil) {
                                 localNormalizedContacts[conIndex].isConnected = true
                                 localNormalizedContacts[conIndex].timeLastChecked = Date().timeIntervalSince1970
+                                numChanges += 1
                                 let updateItem = localNormalizedContacts[conIndex]
-                                DispatchQueue.main.async {
-                                    self.updateData(item: updateItem)
+                                
+                                DispatchQueue.global(qos: .background).async {
+                                    self.contactCore.update(item: updateItem)
                                 }
-
+                                
                                 self.xmppController.xmppPubSub.subscribe(toNode: "feed-\(targetUser)")
                                 self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(targetUser)") // get newly connected user's past feed items
                                 
@@ -226,6 +246,7 @@ class Contacts: ObservableObject {
                                 Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "publish-only")
                                 Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "member")
                             
+                                // temp, to prevent extra notifications for now
                                 self.notifyUser(user: targetUser, type: "add")
                                 
                             }
@@ -237,10 +258,13 @@ class Contacts: ObservableObject {
 
                                 localNormalizedContacts[conIndex].isConnected = false
                                 localNormalizedContacts[conIndex].timeLastChecked = Date().timeIntervalSince1970
+                                numChanges += 1
                                 let updateItem = localNormalizedContacts[conIndex]
-                                DispatchQueue.main.async {
-                                    self.updateData(item: updateItem)
+                                
+                                DispatchQueue.global(qos: .background).async {
+                                    self.contactCore.update(item: updateItem)
                                 }
+                                
                                 
                                 self.xmppController.xmppPubSub.unsubscribe(fromNode: "feed-\(targetUser)")
                                 self.xmppController.xmppPubSub.unsubscribe(fromNode: "contacts-\(targetUser)")
@@ -264,51 +288,52 @@ class Contacts: ObservableObject {
                             doesn't have to wait too long to get connected, if there are still leftover users on the affList
                          */
                         if (unprocessed.count > 0 && !self.sentPreemptiveNormalize && affList.count > 0) {
-               
+
                             var idsArr: [BatchId] = []
                             let label = "batchNorm-9999"
-                            
+
                             for aff in affList {
                                 let index = localNormalizedContacts.firstIndex { aff.contains($0.phone) }
                                 if (index != nil) {
-                                    
+
                                     var bId = BatchId()
                                     bId.phone = localNormalizedContacts[index!].phone
                                     bId.batch = label
-                        
+
                                     idsArr.append(bId)
-                                    
+
                                     let updateBId = bId
                                     DispatchQueue.main.async {
                                         self.idsToNormalize.append(updateBId)
                                     }
                                 }
                             }
-                            
+
                             if (idsArr.count > 0) {
-                                
+
                                 Utils().sendRawContacts(
                                     xmppStream: self.xmppController.xmppStream,
                                     user: "\(self.xmpp.userData.phone)",
                                     rawContacts: idsArr,
                                     id: label)
-                                
-                                
+
+
                                 DispatchQueue.main.async {
                                     self.sentPreemptiveNormalize = true
                                 }
-                                
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+
+                                DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 1.0) { // 0.2 is too little
                                     self.getAllAffiliations()
                                 }
-                                
+
                             }
-                            
+
                         }
+                        
                     }
                     
                         
-                    /* get all the items  */
+                    /* get all the items, just once per wake up */
                     /* temporary (only in build 5): getting all the missed items */
                     if !self.getMissedPostsAndComments {
                         print("getting missed posts and comments")
@@ -344,10 +369,11 @@ class Contacts: ObservableObject {
                         
                     }
                     
-                    DispatchQueue.main.async {
-                        self.normalizedContacts = localNormalizedContacts
+                    if numChanges > 0 {
+                        DispatchQueue.main.async {
+                            self.normalizedContacts = localNormalizedContacts
+                        }
                     }
-                    
                 }
                 
             })
@@ -416,9 +442,10 @@ class Contacts: ObservableObject {
                         
                         if index == nil {
                             print("remove extra whitelist: \(aff)")
+                            
                             Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: aff, role: "none")
                             Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: aff, role: "none")
-
+                        
                         }
 
                     }
@@ -439,6 +466,9 @@ class Contacts: ObservableObject {
 
                         let normList = Utils().parseRawContacts(iq)
                     
+                        print("-- got \(iq.elementID!) num: \(normList.count) numNorm: \(self.normalizedContacts.count)")
+//                        print("got \(iq)")
+                    
                         var whiteList: [BatchId] = []
                         var batchLabel = "batchAff-unknown"
                         var batchFeedLabel = "batchAffFeed-unknown"
@@ -453,6 +483,8 @@ class Contacts: ObservableObject {
                             
                             let index = self.normalizedContacts.firstIndex { $0.phone == norm.phone }
 
+                            
+                            
                             if index != nil {
 
 //                                    print("normalized: \(norm.phone)")
@@ -464,37 +496,45 @@ class Contacts: ObservableObject {
                                 }
 
                                 self.normalizedContacts[index!].isNormalized = true
-                                self.updateData(item: self.normalizedContacts[index!])
+                                DispatchQueue.global(qos: .background).async {
+                                    self.contactCore.update(item: self.normalizedContacts[index!])
+                                }
                        
 
                                 /* after normalizing, send it in to whitelist */
                                 var item = BatchId()
                                 item.phone = norm.normalizedPhone != "" ? norm.normalizedPhone : norm.phone
                                 item.batch = batchLabel
+                                
                                 whiteList.append(item)
+                                
                                 
                             }
                                
                         }
                     
-                        Utils().sendAffBatch(
-                            xmppStream: self.xmppController.xmppStream,
-                            node: "contacts-\(self.xmpp.userData.phone)",
-                            from: "\(self.xmpp.userData.phone)",
-                            users: whiteList,
-                            role: "publish-only",
-                            id: batchLabel)
+                        DispatchQueue.global(qos: .utility).async {
+                            
+                            Utils().sendAffBatch(
+                                xmppStream: self.xmppController.xmppStream,
+                                node: "contacts-\(self.xmpp.userData.phone)",
+                                from: "\(self.xmpp.userData.phone)",
+                                users: whiteList,
+                                role: "publish-only",
+                                id: batchLabel)
 
-                        Utils().sendAffBatch(
-                            xmppStream: self.xmppController.xmppStream,
-                            node: "feed-\(self.xmpp.userData.phone)",
-                            from: "\(self.xmpp.userData.phone)",
-                            users: whiteList,
-                            role: "member",
-                            id: batchFeedLabel)
+                            Utils().sendAffBatch(
+                                xmppStream: self.xmppController.xmppStream,
+                                node: "feed-\(self.xmpp.userData.phone)",
+                                from: "\(self.xmpp.userData.phone)",
+                                users: whiteList,
+                                role: "member",
+                                id: batchFeedLabel)
+                        }
                     
-
+      
                         self.idsToWhiteList.append(contentsOf: whiteList)
+ 
 
                        
                    }
@@ -511,17 +551,13 @@ class Contacts: ObservableObject {
          
             xmppController.didGetAffBatch.sink(receiveValue: { iq in
 
-                
-                    
                 if let idParts = iq.elementID?.components(separatedBy: "-") {
                     if (idParts[0] == "batchAff") {
  
-                        print("got \(iq.elementID!)")
-                        
                         let connected = self.idsToWhiteList.filter() { $0.batch == iq.elementID! }
-                        
-                        print("count: \(connected.count)")
-//                        print("list: \(self.idsToWhiteList)")
+ 
+                        print("got \(iq.elementID!) count: \(connected.count) whitelist: \(self.idsToWhiteList.count)")
+//                        print("got \(iq)")
                         
                         connected.forEach { con in
                             
@@ -543,8 +579,9 @@ class Contacts: ObservableObject {
                                 
                                 self.normalizedContacts[index!].isWhiteListed = true
                                 
-                 
-                                self.updateData(item: self.normalizedContacts[index!])
+                                DispatchQueue.global(qos: .background).async {
+                                    self.contactCore.update(item: self.normalizedContacts[index!])
+                                }
                    
 
                             }
@@ -673,7 +710,7 @@ class Contacts: ObservableObject {
     
     func fetch() {
         
-        DispatchQueue.global(qos: .background).async {
+        DispatchQueue.global(qos: .utility).async {
            
             var localContacts: [CNContact] = []
             
@@ -712,6 +749,8 @@ class Contacts: ObservableObject {
 //            sleep(20)
             
             var localNormalizedContacts = self.normalizedContacts
+            
+            var numChanges: Int = 0
             
             self.allPhonesString = ""
             let characterSet = CharacterSet(charactersIn: "01234567890")
@@ -758,17 +797,16 @@ class Contacts: ObservableObject {
                             )
                     
                         localNormalizedContacts.append(item)
+                        numChanges += 1
                                                 
                         let updateItem = item
-                        DispatchQueue.main.async {
-                            if (!self.isDataPresent(phone: updateItem.phone)) {
-                                self.createData(item: updateItem)
-                            }
+                        
+                        DispatchQueue.global(qos: .background).async {
+                            self.contactCore.create(item: updateItem)
                         }
                         
 //                            print("new normalize \(pn)")
                         localIdsToNormalize.append(BatchId(phone: pn))
-                        
                         
                     } else { // found contact
                         
@@ -780,10 +818,13 @@ class Contacts: ObservableObject {
        
                             localNormalizedContacts[idx!].name = c.name
                             
+                            numChanges += 1
                             let updateItem = localNormalizedContacts[idx!]
-                            DispatchQueue.main.async {
-                                self.updateData(item: updateItem)
+                            
+                            DispatchQueue.global(qos: .background).async {
+                                self.contactCore.update(item: updateItem)
                             }
+                            
                         }
 
 
@@ -809,38 +850,41 @@ class Contacts: ObservableObject {
                 
             }
              
-            
-
-            let timeAfterNormalizing = self.processNormalizeChunks(localIdsToNormalize)
-
-            /*
-                do an extra check AFTER all the normalizations are done
-                if there are normalizations
-             */
-            if (timeAfterNormalizing > 0) {
-                DispatchQueue.main.asyncAfter(deadline: .now() + (timeAfterNormalizing + 5)) {
-                    self.getAllAffiliations()
-                }
-            }
-
-            self.processWhiteListChunks(localIdsToWhiteList, timeAfterNormalizing)
-
-            
-            localNormalizedContacts = self.afterFetch(localAddressBook: localContactsStr, localContacts: localNormalizedContacts)
-            
             localNormalizedContacts.sort {
                 $0.name < $1.name
             }
                 
-            DispatchQueue.main.async {
-
+            let timeAfterNormalizing = self.processNormalizeChunks(localIdsToNormalize)
+            
+            /* no need to do this on new accounts */
+            if self.normalizedContacts.count > 0 {
+                
+                self.processWhiteListChunks(localIdsToWhiteList, timeAfterNormalizing)
+                
+                localNormalizedContacts = self.afterFetch(localAddressBook: localContactsStr, localContacts: localNormalizedContacts, numChanges: &numChanges)
+            }
+                
+            /* the logic is that this getAllAffiliations should run first before processNormalizeChunks */
+//            if self.normalizedContacts.count == 0 || numChanges > 0 {
+//
+//                DispatchQueue.main.async() {
+//                    self.normalizedContacts = localNormalizedContacts
+//
+//                    self.getAllAffiliations()
+//                }
+//            }
+            
+            DispatchQueue.main.async() {
                 self.normalizedContacts = localNormalizedContacts
                 
-                /* always do one check first */
                 self.getAllAffiliations()
+            }
+            
+            if (timeAfterNormalizing > 3.0) {
                 
-                print("Contacts: \(self.normalizedContacts.count)")
-                
+                DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + (timeAfterNormalizing + 3.0)) {
+                    self.getAllAffiliations()
+                }
             }
             
         }
@@ -854,14 +898,15 @@ class Contacts: ObservableObject {
         
         var list = fromList
         
-        let numChunk = 50 // 50 seems to work better than 100
+        let numChunk = 1000
         let listChunked = list.chunked(by: numChunk)
-        var timeCounter = 0.0
+        var timeCounter = 3.0
+    
         
         for (index, idsArr) in listChunked.enumerated() {
             
-            timeCounter += Double(index) + 4.0 // 5 works but too long,
-            
+            timeCounter += Double(index) + 1.0
+                        
             let label = "batchNorm-\(index)"
             
             for (_, id) in idsArr.enumerated() {
@@ -874,7 +919,8 @@ class Contacts: ObservableObject {
                 
             }
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + timeCounter) {
+            
+            DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + timeCounter) {
                 
                 Utils().sendRawContacts(
                     xmppStream: self.xmppController.xmppStream,
@@ -901,13 +947,13 @@ class Contacts: ObservableObject {
         
         var list = fromList
         
-        let numChunk = 50
+        let numChunk = 1000
         let idsToWhiteListChunked = list.chunked(by: numChunk)
         var timeCounter = timeToStart
         
         for (index, idsArr) in idsToWhiteListChunked.enumerated() {
             
-            timeCounter += Double(index) + 4.0
+            timeCounter += Double(index) + 1.0
             
             let labelContacts = "batchAff-\(index)"
             let labelFeed = "batchAffFeed-\(index)"
@@ -923,7 +969,7 @@ class Contacts: ObservableObject {
             }
             
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + timeCounter) {
+            DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + timeCounter) {
         
                 Utils().sendAffBatch(
                     xmppStream: self.xmppController.xmppStream,
@@ -951,7 +997,7 @@ class Contacts: ObservableObject {
     }
     
     
-    func afterFetch(localAddressBook: [String], localContacts: [NormContact]) -> [NormContact] {
+    func afterFetch(localAddressBook: [String], localContacts: [NormContact], numChanges: inout Int) -> [NormContact] {
 
         var contacts = localContacts
         var unmatched: [NormContact] = []
@@ -974,6 +1020,7 @@ class Contacts: ObservableObject {
                     isMatched: con.isMatched
                 )
                 unmatched.append(item)
+                numChanges += 1
             }
             
         }
@@ -995,14 +1042,16 @@ class Contacts: ObservableObject {
                 /* unsubscribe to contact's lists */
                 if (con.isConnected) {
                     self.xmppController.xmppPubSub.unsubscribe(fromNode: "feed-\(targetUser)")
+                    
+                    // temp, to prevent extra notifications for now
                     self.notifyUser(user: targetUser, type: "remove")
                 }
                 
                 contacts.removeAll(where: { $0.phone == con.phone } )
                 
                 let updateItem = con
-                DispatchQueue.main.async {
-                    self.deleteData(item: updateItem)
+                DispatchQueue.global(qos: .background).async {
+                    self.contactCore.delete(item: updateItem)
                 }
                 
                 
@@ -1012,226 +1061,6 @@ class Contacts: ObservableObject {
         return contacts
         
     }
-    
-    
-    func createData(item: NormContact) {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let userEntity = NSEntityDescription.entity(forEntityName: "ContactsCore", in: managedContext)!
-        
-        let obj = NSManagedObject(entity: userEntity, insertInto: managedContext)
-        
-        obj.setValue(item.phone, forKeyPath: "phone")
-        obj.setValue(item.normPhone, forKeyPath: "normPhone")
-        
-        obj.setValue(item.name, forKeyPath: "name")
-        
-        obj.setValue(item.isConnected, forKeyPath: "isConnected")
-        obj.setValue(item.isWhiteListed, forKeyPath: "isWhiteListed")
-        obj.setValue(item.isNormalized, forKeyPath: "isNormalized")
-        
-        obj.setValue(item.timeLastChecked, forKeyPath: "timeLastChecked")
-        
-        do {
-            try managedContext.save()
-        } catch let error as NSError {
-            print("could not save. \(error), \(error.userInfo)")
-        }
-    }
-    
-
-    func updateData(item: NormContact) {
-        
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ContactsCore")
-        
-        fetchRequest.predicate = NSPredicate(format: "phone == %@", item.phone)
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-
-            if (result.count < 1) {
-                return
-            }
-            
-            let objectUpdate = result[0] as! NSManagedObject
-            objectUpdate.setValue(item.phone, forKey: "phone")
-            objectUpdate.setValue(item.normPhone, forKey: "normPhone")
-            objectUpdate.setValue(item.name, forKey: "name")
-            
-            objectUpdate.setValue(item.isConnected, forKey: "isConnected")
-            objectUpdate.setValue(item.isWhiteListed, forKey: "isWhiteListed")
-            objectUpdate.setValue(item.isNormalized, forKey: "isNormalized")
-            objectUpdate.setValue(item.timeLastChecked, forKey: "timeLastChecked")
-            
-            do {
-                try managedContext.save()
-            } catch {
-                print(error)
-            }
-            
-        } catch  {
-            print("failed")
-        }
-    }
-    
-    
-    func deleteData(item: NormContact) {
-        
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ContactsCore")
-        
-        fetchRequest.predicate = NSPredicate(format: "phone == %@", item.phone)
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-
-            if (result.count < 1) {
-                return
-            }
-            
-            let objectToDelete = result[0] as! NSManagedObject
-            managedContext.delete(objectToDelete)
-            
-            do {
-                try managedContext.save()
-            } catch {
-                print(error)
-            }
-            
-        } catch  {
-            print("failed")
-        }
-    }
-    
-    func getAllData() {
-        
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ContactsCore")
-        
-        fetchRequest.sortDescriptors = [NSSortDescriptor.init(key: "name", ascending: false)]
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            
-            var contactsArr: [NormContact] = []
-            
-            for data in result as! [NSManagedObject] {
-                var item = NormContact(
-                    phone: data.value(forKey: "phone") as! String,
-                    name: data.value(forKey: "name") as! String,
-                    
-                    isConnected: data.value(forKey: "isConnected") as! Bool,
-                    timeLastChecked: data.value(forKey: "timeLastChecked") as! Double
-                )
-                
-                if let normPhone = data.value(forKey: "normPhone") as? String {
-                    item.normPhone = normPhone
-                }
-                
-                if let isWhiteListed = data.value(forKey: "isWhiteListed") as? Bool {
-                    item.isWhiteListed = isWhiteListed
-                }
-
-                if let isNormalized = data.value(forKey: "isNormalized") as? Bool {
-                    item.isNormalized = isNormalized
-                }
-                
-                contactsArr.append(item)
-
-            }
-            
-            self.pushAllItems(items: contactsArr)
-            
-        } catch  {
-            print("failed")
-        }
-    }
-    
-    func isDataPresent(phone: String) -> Bool {
-        
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            return false
-        }
-        
-        let managedContext = appDelegate.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ContactsCore")
-        
-        fetchRequest.predicate = NSPredicate(format: "phone == %@", phone)
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            
-            if (result.count > 0) {
-                return true
-            } else {
-
-                return false
-            }
-            
-        } catch  {
-            print("failed")
-        }
-        
-        return false
-    }
-    
-    
-    func getData(phone: String) -> Bool {
-         
-         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-             return false
-         }
-         
-         let managedContext = appDelegate.persistentContainer.viewContext
-         
-         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ContactsCore")
-         
-         fetchRequest.predicate = NSPredicate(format: "phone == %@", phone)
-         
-         do {
-             let result = try managedContext.fetch(fetchRequest)
-             
-             for data in result as! [NSManagedObject] {
-                 var item = NormContact(
-                     phone: data.value(forKey: "phone") as! String,
-                     name: data.value(forKey: "name") as! String,
-                     
-                     isConnected: data.value(forKey: "isConnected") as! Bool,
-                     timeLastChecked: data.value(forKey: "timeLastChecked") as! Double
-                 )
-                 
-                 if let normPhone = data.value(forKey: "normPhone") as? String {
-                     item.normPhone = normPhone
-                 }
-                 
-                 if let isWhiteListed = data.value(forKey: "isWhiteListed") as? Bool {
-                     item.isWhiteListed = isWhiteListed
-                 }
-
-                 if let isNormalized = data.value(forKey: "isNormalized") as? Bool {
-                     item.isNormalized = isNormalized
-                 }
-                 
-             }
-             
-         } catch  {
-             print("failed")
-         }
-         
-         return false
-     }
     
 }
 
