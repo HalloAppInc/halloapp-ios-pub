@@ -6,12 +6,9 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Foundation
-import SwiftUI
-import Combine
 import CoreData
 
-class ContactCore {
+class ContactsCD {
 
     func getAll() -> [NormContact] {
     
@@ -30,21 +27,15 @@ class ContactCore {
                 var item = NormContact(
                     phone: data.value(forKey: "phone") as! String,
                     name: data.value(forKey: "name") as! String,
-                    
-                    isConnected: data.value(forKey: "isConnected") as! Bool,
-                    timeLastChecked: data.value(forKey: "timeLastChecked") as! Double
+                    isConnected: data.value(forKey: "isConnected") as! Bool
                 )
                 
                 if let normPhone = data.value(forKey: "normPhone") as? String {
                     item.normPhone = normPhone
                 }
                 
-                if let isWhiteListed = data.value(forKey: "isWhiteListed") as? Bool {
-                    item.isWhiteListed = isWhiteListed
-                }
-
-                if let isNormalized = data.value(forKey: "isNormalized") as? Bool {
-                    item.isNormalized = isNormalized
+                if let isProcessed = data.value(forKey: "isProcessed") as? Bool {
+                    item.isProcessed = isProcessed
                 }
                 
                 contactsArr.append(item)
@@ -79,20 +70,15 @@ class ContactCore {
                     phone: data.value(forKey: "phone") as! String,
                     name: data.value(forKey: "name") as! String,
 
-                    isConnected: data.value(forKey: "isConnected") as! Bool,
-                    timeLastChecked: data.value(forKey: "timeLastChecked") as! Double
+                    isConnected: data.value(forKey: "isConnected") as! Bool
                 )
 
                 if let normPhone = data.value(forKey: "normPhone") as? String {
                     item.normPhone = normPhone
                 }
 
-                if let isWhiteListed = data.value(forKey: "isWhiteListed") as? Bool {
-                    item.isWhiteListed = isWhiteListed
-                }
-
-                if let isNormalized = data.value(forKey: "isNormalized") as? Bool {
-                    item.isNormalized = isNormalized
+                if let isProcessed = data.value(forKey: "isProcessed") as? Bool {
+                    item.isProcessed = isProcessed
                 }
              
             }
@@ -156,10 +142,7 @@ class ContactCore {
                 obj.setValue(item.name, forKeyPath: "name")
                 
                 obj.setValue(item.isConnected, forKeyPath: "isConnected")
-                obj.setValue(item.isWhiteListed, forKeyPath: "isWhiteListed")
-                obj.setValue(item.isNormalized, forKeyPath: "isNormalized")
-                
-                obj.setValue(item.timeLastChecked, forKeyPath: "timeLastChecked")
+                obj.setValue(item.isProcessed, forKeyPath: "isProcessed")
                 
                 do {
                     try managedContext.save()
@@ -197,9 +180,7 @@ class ContactCore {
                 objectUpdate.setValue(item.name, forKey: "name")
                 
                 objectUpdate.setValue(item.isConnected, forKey: "isConnected")
-                objectUpdate.setValue(item.isWhiteListed, forKey: "isWhiteListed")
-                objectUpdate.setValue(item.isNormalized, forKey: "isNormalized")
-                objectUpdate.setValue(item.timeLastChecked, forKey: "timeLastChecked")
+                objectUpdate.setValue(item.isProcessed, forKey: "isProcessed")
                 
                 do {
                     try managedContext.save()

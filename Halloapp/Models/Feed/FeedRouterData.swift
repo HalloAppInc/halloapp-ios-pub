@@ -6,11 +6,8 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
-
-import Foundation
 import SwiftUI
 import Combine
-import CoreData
 
 final class FeedRouterData: ObservableObject {
 

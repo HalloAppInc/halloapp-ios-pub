@@ -80,7 +80,7 @@ class ImageServer {
         
         pending = PendingCore().getAll()
         
-        print("process pending: \(pending.count)")
+//        print("process pending: \(pending.count)")
         
         uploadMultiple(media: pending)
     }

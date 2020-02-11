@@ -56,8 +56,11 @@ struct Commenting: View {
             let filteredComments = self.feedData.feedCommentItems.filter {
                 return $0.feedItemId == self.item.itemId
             }
-            
+
             self.comments = Utils().sortComments(comments: filteredComments)
+            
+//            let filteredComments = FeedCommentCore().get(feedItemId: self.item.itemId)
+//            self.comments = Utils().sortComments(comments: filteredComments)
             
             if self.comments.count > 0 {
                 if self.item.unreadComments > 0 {
@@ -81,6 +84,9 @@ struct Commenting: View {
                     }
                     
                     self.comments = Utils().sortComments(comments: filteredComments)
+                    
+//                    let filteredComments = FeedCommentCore().get(feedItemId: self.item.itemId)
+//                    self.comments = Utils().sortComments(comments: filteredComments)
                     
                     
                 })

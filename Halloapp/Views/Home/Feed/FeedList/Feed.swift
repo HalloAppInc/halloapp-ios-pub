@@ -67,7 +67,7 @@ struct Feed: View {
             }
             self.cancellableSet.removeAll()
             
-            print("insert listener \(self.cancellableSet.count)")
+//            print("insert listener \(self.cancellableSet.count)")
             self.cancellableSet.insert(
 
                 self.feedData.xmppController.didGetUploadUrl.sink(receiveValue: { iq in
@@ -105,7 +105,7 @@ struct Feed: View {
 
                                     HStack() {
 
-                                        Image(uiImage: item.userImage)
+                                        Image(uiImage: UIImage())
                                             .resizable()
 
                                             .scaledToFit()
@@ -143,7 +143,7 @@ struct Feed: View {
                                 
                                 if item.media.count > 0 {
                                
-                                    Carousel(item, item.mediaHeight)
+                                    MediaSlider(item, item.mediaHeight)
                                         
                                 } else {
                                     Divider()

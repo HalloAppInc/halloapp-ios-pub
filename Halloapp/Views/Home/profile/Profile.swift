@@ -7,51 +7,6 @@
 //
 
 import SwiftUI
-import QGrid
-
-struct GridCell: View {
-    var item: FeedDataItem
-    var phone: String
-
-    var body: some View {
-        VStack() {
-            
-            ZStack() {
-                if (item.imageUrl != "") {
-                    Image(uiImage: item.image)
-                        .resizable()
-                        .aspectRatio(item.image.size, contentMode: .fill)
-                        .frame(width: UIScreen.main.bounds.size.width/3 - 10, height: UIScreen.main.bounds.size.width/3 - 10)
-                        .background(Color.gray)
-                        .cornerRadius(5)
-                        .padding(0)
-                } else {
-                    
-                    Text(item.text)
-                        .font(.system(size: 12, weight: .light))
-                        .frame(width: UIScreen.main.bounds.size.width/3 - 10, height: UIScreen.main.bounds.size.width/3 - 10)
-                        .aspectRatio(contentMode: .fit)
-                        .background(Color.white)
-                        .cornerRadius(5)
-                        .padding(0)
-                        .multilineTextAlignment(.leading)
-
-                }
-                
-//                Button(action: {
-//                }) {
-//                    Image(systemName: "circle.fill")
-//                        .font(.system(size: 8, weight: .regular))
-//                        .foregroundColor(Color.green)
-//                }
-//                .offset(x: UIScreen.main.bounds.size.width/3/2 - 15, y: UIScreen.main.bounds.size.width/3/2 - 15)
-                
-
-            }
-   
-        }
-    }
-}
 
 struct Profile: View {
     
@@ -144,7 +99,7 @@ struct Profile: View {
                                     
                                     if item.media.count > 0 {
                                         
-                                        Carousel(item, item.mediaHeight)
+                                        MediaSlider(item, item.mediaHeight)
                                            
                                     } else {
                                         Divider()

@@ -5,11 +5,9 @@
 //  Created by Tony Jiang on 10/1/19.
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
-
 import Foundation
 import SwiftUI
 import Combine
-
 import XMPPFramework
 
 class FeedData: ObservableObject {
@@ -29,7 +27,7 @@ class FeedData: ObservableObject {
     let feedMediaCore = FeedMediaCore()
     
     init(xmpp: XMPP) {
-        
+                
         self.xmpp = xmpp
         self.xmppController = self.xmpp.xmppController
 
@@ -37,14 +35,33 @@ class FeedData: ObservableObject {
 //        print("count: \(self.feedMedia.count)")
         
         self.pushAllItems(items: feedItemCore.getAll())
+                
         
-        self.getAllComments()
+        self.feedCommentItems = feedCommentCore.getAll()
         
         self.processExpires()
 
         DispatchQueue.global(qos: .background).async {
             ImageServer().processPending()
         }
+        
+        // when app resumes, xmpp reconnects, feed should try uploading any pending again
+        self.cancellableSet.insert(
+            self.xmpp.xmppController.didConnect.sink(receiveValue: { value in
+
+                print("got sink for didConnect in Feed")
+                
+                DispatchQueue.global(qos: .background).async {
+                    ImageServer().processPending()
+                }
+
+                // should try to load images again if there are unfinished ones
+                for item in self.feedDataItems {
+                    item.loadMedia()
+                }
+                
+            })
+        )
         
         self.cancellableSet.insert(
          
@@ -113,6 +130,71 @@ class FeedData: ObservableObject {
     }
     
     
+    func smartFetch(pageNum: Int) {
+        
+        print("smart fetching")
+        pushAllItems2(items: feedItemCore.getSmart(pageNum: pageNum))
+        
+//        var arr: [FeedDataItem] = feedItemCore.getSmart(pageNum: pageNum)
+        
+//        self.feedDataItems.append(contentsOf: arr)
+        
+        print("gotten \(self.feedDataItems.count)")
+
+    }
+    
+    func pushAllItems2(items: [FeedDataItem]) {
+
+//        self.feedDataItems = items
+        
+        self.feedDataItems.append(contentsOf: items)
+            
+        
+        
+        
+//        self.feedDataItems.sort {
+//            return Int($0.timestamp) > Int($1.timestamp)
+//        }
+
+        
+        
+        
+        
+        for item in self.feedDataItems {
+            
+//            item.media = self.feedMedia.filter { $0.feedItemId == item.itemId }
+            item.media = self.feedMediaCore.get(feedItemId: item.itemId)
+
+            item.media.sort {
+                return $0.order < $1.order
+            }
+
+//            item.comments = self.feedCommentCore.get(feedItemId: item.itemId)
+
+            // support pre-build 8 image format
+            if item.imageUrl != "" && item.media.count == 0 {
+                
+                let med: FeedMedia = FeedMedia()
+                med.feedItemId = item.itemId
+                med.order = 1
+                med.type = "image"
+                med.url = item.imageUrl
+                
+                item.media.append(med)
+                
+                DispatchQueue.global(qos: .background).async {
+                    self.feedMediaCore.create(item: med)
+                }
+              
+            }
+            
+            
+            item.loadMedia()
+            
+        }
+    
+    }
+    
     func pushAllItems(items: [FeedDataItem]) {
 
         if self.feedDataItems.count > 0 {
@@ -127,15 +209,18 @@ class FeedData: ObservableObject {
 
         for item in self.feedDataItems {
             
-//            item.media = self.feedMedia.filter { $0.feedItemId == item.itemId }
             item.media = self.feedMediaCore.get(feedItemId: item.itemId)
-                    
 
+//            if (item.media.count > 0) {
+//                item.media[0] = HAC().encrypt(med: item.media[0])
+//            }
+            
             item.media.sort {
                 return $0.order < $1.order
             }
 
-            
+//            item.comments = self.feedCommentCore.get(feedItemId: item.itemId)
+
             // support pre-build 8 image format
             if item.imageUrl != "" && item.media.count == 0 {
                 
@@ -347,7 +432,6 @@ class FeedData: ObservableObject {
 //        childroot.addChild(timestamp)
         childroot.addChild(text)
         
-        
         mainroot.addChild(childroot)
         
         print ("Final pubsub payload: \(mainroot)")
@@ -391,65 +475,9 @@ class FeedData: ObservableObject {
         self.xmppController.xmppStream.send(msg)
 
 
-      /* storing private data */
-        
-//        let item = XMLElement(name: "item", stringValue: "Rebecca")
-
-//        let wrapper = XMLElement(name: "list")
-//        wrapper.addAttribute(withName: "xmlns", stringValue: "feed:disallow")
-////        wrapper.addChild(item)
-//
-//        let query = XMLElement(name: "query")
-//        query.addAttribute(withName: "xmlns", stringValue: "jabber:iq:private")
-//        query.addChild(wrapper)
-//
-//        let iq = XMLElement(name: "iq")
-//        iq.addAttribute(withName: "type", stringValue: "set")
-//        iq.addAttribute(withName: "id", stringValue: "1")
-//        iq.addChild(query)
-//        print("sending: \(iq)")
-//        self.xmppController.xmppStream.send(iq)
-        
-        
-        // get private data
-//        let wrapper = XMLElement(name: "list")
-//        wrapper.addAttribute(withName: "xmlns", stringValue: "feed:disallow")
-//
-//        let query = XMLElement(name: "query")
-//        query.addAttribute(withName: "xmlns", stringValue: "jabber:iq:private")
-//
-//        query.addChild(wrapper)
-//
-//        let iq = XMLElement(name: "iq")
-//        iq.addAttribute(withName: "type", stringValue: "get")
-//        iq.addAttribute(withName: "id", stringValue: "1")
-//        iq.addChild(query)
-//        print("sending: \(iq)")
-//        self.xmppController.xmppStream.send(iq)
-
-        // let user2 = XMPPJID(string: "14154121848@s.halloapp.net")
-        // self.xmppController.xmppRoster.addUser(user2!, withNickname: nil)
-        
-//        if let user2 = XMPPJID(string: "14154121848@s.halloapp.net")
-//        {
-//            self.xmppController.xmppRoster.addUser(user2)
-//        }
-        
-        
     }
     
-//   func getRoster() {
-//        print("getRoster")
-//        let user = XMPPJID(string: "14088922686@s.halloapp.net")
-//
-//        self.xmppController.xmppStream.send(msg)
-//    }
-    
-//    func addEntryToRoster(id: String) {
-//
-//    }
-    
-    
+
     func processExpires() {
         
         let current = Int(Date().timeIntervalSince1970)
@@ -473,39 +501,6 @@ class FeedData: ObservableObject {
         }
     }
     
-
-
-    
-
-    
-    // Retrieves all the comments from the database.
-    func getAllComments() {
-        
-        let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FeedComments")
-        fetchRequest.sortDescriptors = [NSSortDescriptor.init(key: "timestamp", ascending: false)]
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            for data in result as! [NSManagedObject] {
-                let item = FeedComment(id: data.value(forKey: "commentId") as! String,
-                                           feedItemId: data.value(forKey: "feedItemId") as! String,
-                                           parentCommentId: data.value(forKey: "parentCommentId") as! String,
-                                           username: data.value(forKey: "username") as! String,
-                                           userImageUrl: data.value(forKey: "userImageUrl") as! String,
-                                           text: data.value(forKey: "text") as! String,
-                                           timestamp: data.value(forKey: "timestamp") as! Double)
-                self.feedCommentItems.insert(item, at: 0)
-            }
-        } catch  {
-            print("failed")
-        }
-    }
-    
-    
-
-    
-
     
 }
 

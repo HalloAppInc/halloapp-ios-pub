@@ -13,13 +13,11 @@ struct Messaging: View {
     
     @EnvironmentObject var authRouteData: AuthRouteData
     
-
     @ObservedObject var contacts: Contacts
     
     @EnvironmentObject var homeRouteData: HomeRouteData
     
-    
-@State var showSheet = false
+    @State var showSheet = false
     @State var showWrite = false
     @State var showCameraAll = false
        
@@ -45,51 +43,51 @@ struct Messaging: View {
     //
     //                } )) { (contact: NormContact) in
                         
-                    ForEach(contacts.normalizedContacts) { contact in
-                        if (contact.isConnected) {
-                            HStack {
+                    ForEach(contacts.connectedContacts) { contact in
+                    
+                        HStack {
 
-                                Image(systemName: "circle.fill")
-                                    .resizable()
+                            Image(systemName: "circle.fill")
+                                .resizable()
 
-                                    .scaledToFit()
-                                    .foregroundColor(Color(red: 142/255, green: 142/255, blue: 142/255))
-                                    .clipShape(Circle())
+                                .scaledToFit()
+                                .foregroundColor(Color(red: 142/255, green: 142/255, blue: 142/255))
+                                .clipShape(Circle())
 
-                                    .frame(width: 50, height: 50, alignment: .center)
+                                .frame(width: 50, height: 50, alignment: .center)
+                                .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+
+                            VStack {
+                                HStack() {
+                                    Text(contact.name)
+
                                     .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-
-                                VStack {
-                                    HStack() {
-                                        Text(contact.name)
-
-                                        .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                                        Spacer()
-                                    }
-                                    HStack() {
-                                        Text(contact.normPhone != "" ? contact.normPhone : contact.phone)
-                                            .font(.system(size: 12, weight: .regular))
-                                             .padding(EdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0))
-                                            .foregroundColor(Color(red: 162/255, green: 162/255, blue: 162/255))
-
-                                        Spacer()
-                                    }
+                                    Spacer()
                                 }
+                                HStack() {
+                                    Text(contact.normPhone != "" ? contact.normPhone : contact.phone)
+                                        .font(.system(size: 12, weight: .regular))
+                                         .padding(EdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0))
+                                        .foregroundColor(Color(red: 162/255, green: 162/255, blue: 162/255))
 
-                                Spacer()
+                                    Spacer()
+                                }
+                            }
+
+                            Spacer()
 
 
-        //                        Button(action: {
-        //                            self.showCameraAll = true
-        //                            self.showSheet = true
-        //                        }) {
-        //                          Image(systemName: "photo")
-        //                              .font(Font.title.weight(.regular))
-        //                              .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
-        //                        }.padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 10))
+    //                        Button(action: {
+    //                            self.showCameraAll = true
+    //                            self.showSheet = true
+    //                        }) {
+    //                          Image(systemName: "photo")
+    //                              .font(Font.title.weight(.regular))
+    //                              .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
+    //                        }.padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 10))
 
-                            }.padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 5))
-                        }
+                        }.padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 5))
+
 
                     }.listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                     
@@ -145,13 +143,6 @@ struct Messaging: View {
                 Spacer()
                 
                 HStack {
-
-                    if (self.contacts.idsToWhiteList.count > 0) {
-                        Text(String(self.contacts.idsToWhiteList.count))
-                            .font(.system(size: 8, weight: .regular))
-                            .padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 18))
-                            .foregroundColor(Color.gray)
-                    }
                     
                     Button(action: {
                         self.showCameraAll = true

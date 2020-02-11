@@ -1,5 +1,4 @@
-//
-//  Carousel.swift
+
 //  Halloapp
 //
 //  Created by Tony Jiang on 1/29/20.
@@ -9,7 +8,7 @@
 import SwiftUI
 import Combine
 
-struct Carousel: View {
+struct MediaSlider: View {
     
     @ObservedObject var item: FeedDataItem
     var mediaHeight: CGFloat
@@ -101,7 +100,6 @@ struct Carousel: View {
             
             VStack(spacing: 0) {
                 
-                
                 WMediaSlider (
                     media: $media,
                     scroll: $scroll,
@@ -109,7 +107,6 @@ struct Carousel: View {
                     pageNum: $pageNum)
 
                     .frame(height: self.height)
-                
                 
 
                 if (self.media.count > 1) {

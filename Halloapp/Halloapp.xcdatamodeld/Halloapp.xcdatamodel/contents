@@ -17,6 +17,7 @@
     <entity name="ContactsCore" representedClassName="ContactsCore" syncable="YES" codeGenerationType="class">
         <attribute name="isConnected" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isNormalized" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isProcessed" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isWhiteListed" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="normPhone" optional="YES" attributeType="String"/>
@@ -61,10 +62,10 @@
     <elements>
         <element name="CContactsAvatar" positionX="-54" positionY="81" width="128" height="88"/>
         <element name="CFeedImage" positionX="-54" positionY="81" width="128" height="148"/>
-        <element name="ContactsCore" positionX="-63" positionY="36" width="128" height="148"/>
+        <element name="ContactsCore" positionX="-63" positionY="36" width="128" height="163"/>
+        <element name="CPending" positionX="-54" positionY="81" width="128" height="88"/>
         <element name="FeedComments" positionX="-45" positionY="81" width="128" height="148"/>
         <element name="FeedCore" positionX="-63" positionY="0" width="128" height="163"/>
         <element name="User" positionX="-63" positionY="-18" width="128" height="178"/>
-        <element name="CPending" positionX="-54" positionY="81" width="128" height="88"/>
     </elements>
 </model>

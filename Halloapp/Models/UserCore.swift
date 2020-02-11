@@ -6,11 +6,6 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Foundation
-
-import Foundation
-import SwiftUI
-import Combine
 import CoreData
 
 class UserCore {

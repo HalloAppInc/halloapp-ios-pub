@@ -23,6 +23,7 @@ struct PostMedia: View {
     
     @State var fetchedUrls: [urlContainer] = []
     
+    @State var isShareClicked: Bool = false
     
     var body: some View {
 
@@ -114,7 +115,7 @@ struct PostMedia: View {
 
 //                if item.media.count > 0 {
 //
-//                    Carousel(item, item.mediaHeight)
+//                    MediaSlider(item, item.mediaHeight)
 //                }
               
                 if (self.pickedImages.count > 1) {
@@ -159,7 +160,13 @@ struct PostMedia: View {
                 
                 Button(action: {
                         
+                    if self.isShareClicked {
+                        return
+                    }
+                    
                     if (self.fetchedUrls.count >= self.pickedImages.count) {
+                        
+                        self.isShareClicked = true
                         
                         var media: [FeedMedia] = []
                         var index: Int = 0
@@ -183,9 +190,13 @@ struct PostMedia: View {
 
                         self.feedData.postText2(self.feedData.xmpp.userData.phone, self.msgToSend, media)
 
+                        self.homeRouteData.gotoPage(page: "feed")
+                        
                         self.msgToSend = ""
 
-                        self.homeRouteData.gotoPage(page: "feed")
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                            self.isShareClicked = false
+                        }
 
                     }
 

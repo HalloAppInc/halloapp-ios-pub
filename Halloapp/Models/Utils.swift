@@ -248,7 +248,6 @@ class Utils {
         
         let subList = subscriptions?.elements(forName: "subscription")
         
-
         for sub in subList ?? [] {
             
             let status = sub.attributeStringValue(forName: "subscription")
@@ -260,7 +259,7 @@ class Utils {
                     
                     let nodeParts = node!.components(separatedBy: "-")
 
-                    if (nodeParts[0] == "feed") {
+                    if (nodeParts[0] != "feed") {
                         continue
                     }
 

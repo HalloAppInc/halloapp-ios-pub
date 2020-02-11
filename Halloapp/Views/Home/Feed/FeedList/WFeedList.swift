@@ -8,76 +8,6 @@
 
 import SwiftUI
 
-// When using UICollectionViewDiffableDataSource, the model must be Hashable (which enums already are)
-enum WFeedListSection {
-    case main
-}
-
-class WFeedListHeader: UICollectionReusableView {
-
-    public func configure() {
-        
-        var controller: UIViewController
-        
-        controller = UIHostingController(rootView: FeedListHeader())
-
-        controller.view.frame = self.bounds
-
-        self.addSubview(controller.view)
-    }
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        // Customize here
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-    }
-}
-
-
-class WFeedListCell: UICollectionViewCell {
-
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        // Initialization code
-    }
-    
-    public func configure(item: FeedDataItem,
-                          showSheet: Binding<Bool>,
-                          showMessages: Binding<Bool>,
-                          lastClickedComment: Binding<String>,
-                          scroll: Binding<String>,
-                          contacts: Contacts) {
-        
-        var controller: UIViewController
-        
-        controller = UIHostingController(rootView: FeedListCell(
-                                                                item: item,
-                                                                showSheet: showSheet,
-                                                                showMessages: showMessages,
-                                                                lastClickedComment: lastClickedComment,
-                                                                scroll: scroll,
-                                                                contacts: contacts))
-
-        controller.view.frame = self.bounds
-
-        self.addSubview(controller.view)
-        
-    }
-    
-    override func prepareForReuse() {
-        let theSubviews: Array = (self.subviews)
-        for view in theSubviews
-        {
-            view.removeFromSuperview()
-        }
-    }
-
-}
-
-
 struct WFeedList: UIViewRepresentable {
     
     @Binding var items: [FeedDataItem]
@@ -90,7 +20,11 @@ struct WFeedList: UIViewRepresentable {
     
     @Binding var scroll: String
     
+    @Binding var pageNum: Int
+    
     @ObservedObject var contacts: Contacts
+    
+    var paging: (Int) -> Void
     
     func makeUIView(context: Context) -> UICollectionView {
   
@@ -112,6 +46,9 @@ struct WFeedList: UIViewRepresentable {
 //        collectionView.backgroundColor = UIColor(displayP3Red: 248.0/255.0, green: 248.0/255.0, blue: 248.0/255.0, alpha: 1.0)
         collectionView.backgroundColor = UIColor.white
         
+//        collectionView.isPagingEnabled = true
+//        collectionView.showsHorizontalScrollIndicator = false
+//        
         let dataSource = UICollectionViewDiffableDataSource<WFeedListSection, FeedDataItem>(collectionView: collectionView) { collectionView, indexPath, model in
 
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "WFeedListCell", for: indexPath) as? WFeedListCell {
@@ -186,6 +123,7 @@ struct WFeedList: UIViewRepresentable {
  
         snapshot.appendSections([.main])
 
+        print("items count: \(items.count)")
         snapshot.appendItems(self.items)
         
         dataSource.apply(snapshot, animatingDifferences: true)
@@ -218,13 +156,14 @@ struct WFeedList: UIViewRepresentable {
                             sizeForItemAt indexPath: IndexPath) -> CGSize {
 
             let item = dataSource!.itemIdentifier(for: indexPath)
-            
+
             let controller = UIHostingController(rootView: FeedListCell(item: item!,
                                                                         showSheet: self.$showSheet,
                                                                         showMessages: self.$showMessages,
                                                                         lastClickedComment: self.$lastClickedComment,
                                                                         scroll: self.$temp,
                                                                         contacts: self.parent.contacts))
+
             let size = controller.view.sizeThatFits(CGSize(width: collectionView.frame.width, height: CGFloat.greatestFiniteMagnitude))
 
             return CGSize(width: collectionView.frame.width, height: size.height)
@@ -239,7 +178,84 @@ struct WFeedList: UIViewRepresentable {
             return CGSize(width: collectionView.frame.width, height: size.height)
         }
         
+        func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+            let pageHeight = scrollView.frame.size.height
+            let page = Int(floor((scrollView.contentOffset.y - pageHeight / 2) / pageHeight) + 1)
+            self.parent.pageNum = page
+            
+            print("-->  page: \(page)")
+            self.parent.paging(page)
+            
+        }
         
     }
 }
 
+// When using UICollectionViewDiffableDataSource, the model must be Hashable (which enums already are)
+enum WFeedListSection {
+    case main
+}
+
+class WFeedListHeader: UICollectionReusableView {
+
+    public func configure() {
+        
+        var controller: UIViewController
+        
+        controller = UIHostingController(rootView: FeedListHeader())
+
+        controller.view.frame = self.bounds
+
+        self.addSubview(controller.view)
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        // Customize here
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+}
+
+
+class WFeedListCell: UICollectionViewCell {
+
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        // Initialization code
+    }
+    
+    public func configure(item: FeedDataItem,
+                          showSheet: Binding<Bool>,
+                          showMessages: Binding<Bool>,
+                          lastClickedComment: Binding<String>,
+                          scroll: Binding<String>,
+                          contacts: Contacts) {
+        
+        var controller: UIViewController
+        
+        controller = UIHostingController(rootView: FeedListCell(
+                                                                item: item,
+                                                                showSheet: showSheet,
+                                                                showMessages: showMessages,
+                                                                lastClickedComment: lastClickedComment,
+                                                                scroll: scroll,
+                                                                contacts: contacts))
+
+        controller.view.frame = self.bounds
+
+        self.addSubview(controller.view)
+        
+    }
+    
+    override func prepareForReuse() {
+        let theSubviews: Array = (self.subviews)
+        for view in theSubviews
+        {
+            view.removeFromSuperview()
+        }
+    }
+
+}

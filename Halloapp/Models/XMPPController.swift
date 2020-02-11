@@ -32,7 +32,8 @@ class XMPPController: NSObject, ObservableObject {
     var didGetAllAffiliations = PassthroughSubject<XMPPIQ, Never>() // all the affiliations that others have the user on
     
     var didGetNormBatch = PassthroughSubject<XMPPIQ, Never>()
-    var didGetAffBatch = PassthroughSubject<XMPPIQ, Never>()
+    var didGetAffContactsBatch = PassthroughSubject<XMPPIQ, Never>()
+    var didGetAffFeedBatch = PassthroughSubject<XMPPIQ, Never>()
     
     var didGetUploadUrl = PassthroughSubject<XMPPIQ, Never>()
     
@@ -111,7 +112,8 @@ class XMPPController: NSObject, ObservableObject {
 
         iq.addChild(pushRegister)
 
-        print ("sending the iq with push token here. \(iq)")
+//        print ("sending the iq with push token here. \(iq)")
+        print ("sending the iq with push token here.")
         self.xmppStream.send(iq)
     }
     
@@ -201,7 +203,7 @@ extension XMPPController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream, didReceive message: XMPPMessage) {
         if (message.fromStr! != "pubsub.s.halloapp.net") {
-            print("Stream: didReceive \(message)")
+//            print("Stream: didReceive \(message)")
         }
         
     }
@@ -236,8 +238,16 @@ extension XMPPController: XMPPStreamDelegate {
                 return false
             }
             
-            print("Stream: didReceive \(iq)")
-            self.didGetAffBatch.send(iq) // for batch affiliations
+//            print("Stream: didReceive \(iq)")
+            
+            if let idParts = iq.elementID?.components(separatedBy: "-") {
+                if (idParts[0] == "batchAff") {
+                    self.didGetAffContactsBatch.send(iq) // for batch affiliations
+                } else if (idParts[0] == "batchAffFeed") {
+                    self.didGetAffFeedBatch.send(iq) // for batch affiliations
+                }
+            }
+            
 
         } else {
         
@@ -255,7 +265,7 @@ extension XMPPController: XMPPStreamDelegate {
                 
             } else {
             
-                print("Stream: didReceive \(iq)")
+//                print("Stream: didReceive \(iq)")
             }
         }
         
@@ -297,7 +307,7 @@ extension XMPPController: XMPPStreamDelegate {
     }
 
     func xmppStream(_ sender: XMPPStream, didReceive trust: SecTrust, completionHandler: ((Bool) -> Void)) {
-        print("Stream: didReceive trust")
+//        print("Stream: didReceive trust")
 
 //        let certificate = SecTrustGetCertificateAtIndex(trust, 0)
 //        var cn: CFString?
@@ -341,7 +351,12 @@ extension XMPPController: XMPPStreamDelegate {
         print("Stream: Authenticated")
         self.didConnect.send("didConnect")
         
-        self.sendApnsPushTokenFromUserDefault()
+        #if targetEnvironment(simulator)
+            // Simulator
+        #else
+            self.sendApnsPushTokenFromUserDefault()
+        #endif
+        
         self.createNodes()
 
         // This function sends an initial presence stanza to the server indicating that the user is online.

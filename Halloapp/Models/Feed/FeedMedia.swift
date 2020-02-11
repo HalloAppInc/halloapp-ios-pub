@@ -59,8 +59,6 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
                     
                         let thumb = orig.getThumbnail() ?? UIImage()
 
-                        
-                        
                         DispatchQueue.main.async {
                             
                             self.image = thumb

@@ -1,6 +1,6 @@
 # Uncomment the next line to define a global platform for your project
 
-platform :ios, '9.0'
+platform :ios, '13.0'
 
 target 'Halloapp' do
 
@@ -10,5 +10,6 @@ target 'Halloapp' do
   pod 'Alamofire'
   pod 'SwiftyJSON'
   pod 'SwiftDate', '~> 6.0.0'
+  pod 'CryptoSwift', '~> 1.0'
 
 end

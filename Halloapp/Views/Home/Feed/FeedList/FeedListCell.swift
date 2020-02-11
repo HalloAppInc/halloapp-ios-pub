@@ -29,7 +29,7 @@ struct FeedListCell: View {
 
                 HStack() {
 
-                    Image(uiImage: item.userImage)
+                    Image(uiImage: UIImage())
                         .resizable()
 
                         .scaledToFit()
@@ -66,7 +66,7 @@ struct FeedListCell: View {
             
             if item.media.count > 0 {
            
-                Carousel(item, item.mediaHeight)
+                MediaSlider(item, item.mediaHeight)
                     
             } else {
                 Divider()

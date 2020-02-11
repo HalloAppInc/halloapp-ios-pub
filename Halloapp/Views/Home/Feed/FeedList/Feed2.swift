@@ -57,6 +57,8 @@ struct Feed2: View {
     
     @State private var detailsPage = ""
     
+    @State private var pageNum: Int = 0
+    
     @State var cancellableSet: Set<AnyCancellable> = []
     
     @State private var commentClickable = true
@@ -75,7 +77,16 @@ struct Feed2: View {
         
         DispatchQueue.main.async {
             
-            
+
+//            self.cancellableSet.insert(
+//
+//                self.feedData.feedDataItems.objectDidChange.sink(receiveValue: { iq in
+//
+//                    self.items = self.feedData.feedDataItems
+//
+//                })
+//
+//            )
             
 //            print("insert listener")
             self.cancellableSet.insert(
@@ -97,7 +108,13 @@ struct Feed2: View {
                 showMessages: $showMessages,
                 lastClickedComment: $lastClickedComment,
                 scroll: $scroll,
-                contacts: contacts)
+                pageNum: $pageNum,
+                contacts: contacts,
+                paging: { num in
+                    print("pagenum: \(num)")
+                    self.feedData.smartFetch(pageNum: num)
+                    self.items = self.feedData.feedDataItems
+                })
                 .background(Color.red)
             
         }

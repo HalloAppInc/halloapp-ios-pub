@@ -34,7 +34,7 @@ class ImageLoader: ObservableObject {
     func tryLoad(url: String) {
         
         
-        print("fetch image remotely, retry no: \(self.retries)")
+//        print("fetch image remotely, retry no: \(self.retries)")
         
         if self.retries < 3 {
             

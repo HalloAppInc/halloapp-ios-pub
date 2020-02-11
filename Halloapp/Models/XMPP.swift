@@ -44,7 +44,7 @@ class XMPP: ObservableObject {
          
             self.xmppController.didConnect.sink(receiveValue: { value in
 
-                print("got sink for didConnect")
+//                print("got sink for didConnect")
                 if (!self.isReady) {
                     self.isReady = true
                 } else {

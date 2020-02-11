@@ -5,11 +5,9 @@
 //  Created by Tony Jiang on 1/30/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
-
 import Foundation
 import SwiftUI
 import Combine
-
 
 class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     
@@ -24,21 +22,15 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     
     var text: String
     
-    var unreadComments: Int
-    
     var timestamp: Double = 0
     
-    @Published var userImage: UIImage = UIImage()
-    
     var imageUrl: String
-    
-    @Published var image: UIImage = UIImage()
     
     @Published var media: [FeedMedia] = []
     @Published var mediaHeight: CGFloat = 0
     
-    @ObservedObject var imageLoader: ImageLoader = ImageLoader()
-    @ObservedObject var userImageLoader: ImageLoader = ImageLoader()
+    @Published var comments: [FeedComment] = []
+    var unreadComments: Int
     
     private var cancellableSet: Set<AnyCancellable> = []
     
@@ -57,15 +49,6 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
         self.text = text
         self.unreadComments = unreadComments
         self.timestamp = timestamp
-        
-    }
-    
-    static func == (lhs: FeedDataItem, rhs: FeedDataItem) -> Bool {
-        return lhs.itemId == rhs.itemId
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(itemId)
     }
     
     func loadMedia() {
@@ -95,18 +78,12 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     }
     
     
-    func loadUserImage() {
-        if (self.userImageUrl != "") {
-            userImageLoader = ImageLoader(urlString: self.userImageUrl)
-            cancellableSet.insert(
-                userImageLoader.didChange.sink(receiveValue: { [weak self] _ in
-                    guard let self = self else { return }
-                    self.userImage = UIImage(data: self.userImageLoader.data) ?? UIImage()
-                    
-                    self.didChange.send()
-                })
-            )
-        }
+    static func == (lhs: FeedDataItem, rhs: FeedDataItem) -> Bool {
+        return lhs.itemId == rhs.itemId
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(itemId)
     }
     
 }
