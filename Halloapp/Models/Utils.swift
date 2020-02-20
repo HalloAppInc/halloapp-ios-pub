@@ -1058,9 +1058,9 @@ class Utils {
         
         let getUrl = mediaUrls!.attributeStringValue(forName: "get")!
                             
-        let putUrl = mediaUrls!.attributeStringValue(forName: "put")!.removingPercentEncoding
-                            
-        return (getUrl, putUrl!)
+        let putUrl = mediaUrls!.attributeStringValue(forName: "put")!
+
+        return (getUrl, putUrl)
         
     }
     
