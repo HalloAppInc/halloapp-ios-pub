@@ -11,5 +11,6 @@ target 'Halloapp' do
   pod 'SwiftyJSON'
   pod 'SwiftDate', '~> 6.0.0'
   pod 'CryptoSwift', '~> 1.0'
+  pod 'Zip', '~> 1.1'
 
 end

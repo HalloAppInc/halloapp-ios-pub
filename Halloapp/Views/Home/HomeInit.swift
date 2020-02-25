@@ -14,8 +14,7 @@ struct HomeInit: View {
     
     var body: some View {
         VStack {
-            if (xmpp.isReady) {
-        
+            if (xmpp.userData.isLoggedIn) {
                 HomeRouter(
                     xmpp: xmpp,
                     contacts: Contacts(xmpp: xmpp),
@@ -31,9 +30,9 @@ struct HomeInit: View {
     }
 }
 
-struct HomeInit_Previews: PreviewProvider {
-    static var previews: some View {
-        HomeInit(xmpp: XMPP(userData: UserData(), metaData: MetaData()))
-        
-    }
-}
+//struct HomeInit_Previews: PreviewProvider {
+//    static var previews: some View {
+//        HomeInit(xmpp: XMPP(userData: UserData(), metaData: MetaData()))
+//        
+//    }
+//}

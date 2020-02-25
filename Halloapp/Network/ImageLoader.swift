@@ -34,19 +34,19 @@ class ImageLoader: ObservableObject {
     func tryLoad(url: String) {
         
         
-//        print("fetch image remotely, retry no: \(self.retries)")
+        print("fetch image remotely, retry no: \(self.retries)")
         
         if self.retries < 3 {
             
             let delay = (self.retries < 1) ? 0.0 : 10.0
             
-            DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + delay) {
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + delay) {
                 self.load(url: url)
             }
         }
         self.retries += 1
     }
-
+    
     func load(url: String) {
         
         if url == "" {
@@ -65,10 +65,11 @@ class ImageLoader: ObservableObject {
             if error == nil {
                 
                 if let httpResponse = response as? HTTPURLResponse {
-//                    print("response \(httpResponse.statusCode)")
+                    print("response \(httpResponse.statusCode)")
                     
                     if httpResponse.statusCode != 200 {
                         self.tryLoad(url: url)
+                        return
                     }
                 }
                 
@@ -82,6 +83,9 @@ class ImageLoader: ObservableObject {
                 
                 
                 DispatchQueue.main.async {
+                    
+                    print("Got Media Data: \(data.count)")
+//                    print("\(response)")
                     
                     self.data = data
             

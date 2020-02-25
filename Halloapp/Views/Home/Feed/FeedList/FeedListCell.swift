@@ -10,6 +10,7 @@ import SwiftUI
 
 struct FeedListCell: View {
     
+    var isOnProfilePage: Bool
     var item: FeedDataItem
     
     @Binding var showSheet: Bool
@@ -19,8 +20,9 @@ struct FeedListCell: View {
 
     @Binding var scroll: String
     
+    @ObservedObject var homeRouteData: HomeRouteData
     @ObservedObject var contacts: Contacts
-  
+    
     var body: some View {
       
         return VStack(spacing: 0) {
@@ -90,14 +92,17 @@ struct FeedListCell: View {
                 
                     Button(action: {
                         
-//                        if !self.homeRouteData.isGoingBack ||
-//                            self.homeRouteData.lastClickedComment == item.itemId {
-//
-//                            self.lastClickedComment = self.item.itemId
-//                            
-//                            self.homeRouteData.setItem(value: item)
-//                            self.homeRouteData.gotoPage(page: "commenting")
-//                        }
+                        if !self.homeRouteData.isGoingBack ||
+                            self.homeRouteData.lastClickedComment == self.item.itemId {
+
+                            self.lastClickedComment = self.item.itemId
+                            
+                            self.homeRouteData.setItem(value: self.item)
+                            if (self.isOnProfilePage) {
+                                self.homeRouteData.fromPage = "profile"
+                            }
+                            self.homeRouteData.gotoPage(page: "commenting")
+                        }
                       
                     }) {
                         HStack {
@@ -130,22 +135,24 @@ struct FeedListCell: View {
                     
                 Spacer()
 
-                Button(action: {
-                    
-                    self.showMessages = true
-                    self.showSheet = true
+                if (self.contacts.xmpp.userData.phone != item.username) {
+                    Button(action: {
+                        
+                        self.showMessages = true
+                        self.showSheet = true
 
-                 }) {
-                    HStack {
-                         Image(systemName: "envelope")
-                             .font(.system(size: 20, weight: .regular))
-                             .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            
-                         Text("Message")
-                    }
-                    .padding(EdgeInsets(top: 10, leading: 25, bottom: 10, trailing: 25))
-                    
-                 }
+                     }) {
+                        HStack {
+                             Image(systemName: "envelope")
+                                 .font(.system(size: 20, weight: .regular))
+                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                
+                             Text("Message")
+                        }
+                        .padding(EdgeInsets(top: 10, leading: 25, bottom: 10, trailing: 25))
+                        
+                     }
+                }
 
             }
             .foregroundColor(Color.black)
@@ -154,7 +161,13 @@ struct FeedListCell: View {
             
 
         }
+            
+        .background(Color.white)
+        .cornerRadius(10)
+        .shadow(color: Color(red: 220/255, green: 220/255, blue: 220/255), radius: 5)
+        .padding(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
         
     }
+
     
 }

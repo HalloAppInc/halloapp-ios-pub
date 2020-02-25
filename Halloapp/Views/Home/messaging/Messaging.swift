@@ -37,13 +37,18 @@ struct Messaging: View {
                         .hidden()
                         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                     
-    //                ForEach(contacts.normalizedContacts.filter( {
-    //
-    //                    return $0.isConnected
-    //
-    //                } )) { (contact: NormContact) in
+                    
+//                    Divider()
+//                        .frame(height: 100)
+//                        .hidden()
+                    
+//                    PlayerContainerView(
+//                        url: URL(string: "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8")!)
+//                        .frame(width: 300, height: 100)
                         
-                    ForEach(contacts.connectedContacts) { contact in
+ 
+                    /* id is required else it crashes every now and then */
+                    ForEach(contacts.connectedContacts, id: \.id) { contact in
                     
                         HStack {
 
@@ -214,9 +219,9 @@ struct Messaging: View {
     
 }
 
-struct Messaging_Previews: PreviewProvider {
-    static var previews: some View {
-        Messaging(contacts: Contacts(xmpp: XMPP(userData: UserData(), metaData: MetaData())))
-            .environmentObject(AuthRouteData())
-    }
-}
+//struct Messaging_Previews: PreviewProvider {
+//    static var previews: some View {
+//        Messaging(contacts: Contacts(xmpp: XMPP(userData: UserData(), metaData: MetaData())))
+//            .environmentObject(AuthRouteData())
+//    }
+//}

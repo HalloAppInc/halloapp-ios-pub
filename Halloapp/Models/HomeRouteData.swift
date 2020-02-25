@@ -19,6 +19,8 @@ final class HomeRouteData: ObservableObject {
     
     public var item = FeedDataItem()
     
+    public var fromPage = ""
+    
     func gotoPage(page: String) {
         self.homePage = page
     }

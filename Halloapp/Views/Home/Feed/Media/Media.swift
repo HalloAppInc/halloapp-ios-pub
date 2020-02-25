@@ -16,7 +16,7 @@ struct Media: View {
     @ObservedObject var feedData: FeedData
     
     @State private var showPostMedia = false
-    @State private var pickedImages: [UIImage] = []
+    @State private var pickedImages: [FeedMedia] = []
     
     var body: some View {
         return VStack(spacing: 0) {
@@ -26,18 +26,18 @@ struct Media: View {
                     goBack: {
                         self.homeRouteData.gotoPage(page: "feed")
                     },
-                    requestUrls: {
-                        Utils().requestMultipleUploadUrl(xmppStream: self.feedData.xmppController.xmppStream, num: self.pickedImages.count)
-                    },
                     goToPostMedia: {
                         self.showPostMedia = true
+                        Utils().requestMultipleUploadUrl(xmppStream: self.feedData.xmppController.xmppStream, num: self.pickedImages.count)
                     }
                 )
             } else {
                 
                 PostMedia(
                     feedData: feedData,
-                    pickedImages: self.pickedImages
+                    pickedImages: self.pickedImages,
+                    onDismiss: {
+                    }
                 )
                 .environmentObject(homeRouteData)
                 

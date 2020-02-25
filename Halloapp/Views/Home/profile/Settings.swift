@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import MessageUI
 
 struct Settings: View {
     
@@ -15,17 +16,15 @@ struct Settings: View {
     
     var onDismiss: () -> ()
     
-    @State private var isButtonVisible = true
+    @State var result: Result<MFMailComposeResult, Error>? = nil
+    @State var isShowingMailView = false
     
     var body: some View {
         VStack() {
-//            WUICollectionView()
-//                .background(Color.red)
             HStack() {
                 Spacer()
                 Button(action: {
                     self.onDismiss()
-                    
                 }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 20, weight: .semibold))
@@ -33,10 +32,39 @@ struct Settings: View {
                         .padding()
                 }
             }
+            
+//            Button(action: {
+//                self.userData.resyncContacts()
+//                self.homeRouteData.gotoPage(page: "messaging")
+//            }) {
+//                Text("Sync Contacts Again")
+//                    .padding(10)
+//                    .background(Color.blue)
+//                    .foregroundColor(.white)
+//                    .cornerRadius(20)
+//                    .shadow(radius: 2)
+//            }
+//            .padding(.top, 100)
+            
+//            Button(action: {
+//                self.userData.hostName = "s-test.halloapp.net"
+//            }) {
+//                Text("Switch To Test Network")
+//                    .padding(10)
+//                    .background(Color.blue)
+//                    .foregroundColor(.white)
+//                    .cornerRadius(20)
+//                    .shadow(radius: 2)
+//            }
+//            .padding(.top, 100)
+            
             Spacer()
             
-            Text("1.0.12")
+            Text("1.0.13")
+            Text("\(self.userData.hostName)")
+            
             Button(action: {
+                print("lgoging")
                 self.userData.logout()
                 self.homeRouteData.gotoPage(page: "feed")
                 
@@ -52,7 +80,26 @@ struct Settings: View {
             
             
             Spacer()
+            
+            Button(action: {
+                self.isShowingMailView.toggle()
+            }) {
+                Text("Send Logs")
+                    .padding(10)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(20)
+                    .shadow(radius: 2)
+            }
+            .padding(.top, 100)
+            
+            Spacer()
 
+        }
+        
+//        .disabled(!MFMailComposeViewController.canSendMail())
+        .sheet(isPresented: self.$isShowingMailView) {
+            MailView(result: self.$result, logs: self.userData.logging)
         }
     }
 }

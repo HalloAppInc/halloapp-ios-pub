@@ -9,6 +9,27 @@
 import UIKit
 import SwiftUI
 
+/* to dismiss keyboard on tap out */
+class AnyGestureRecognizer: UIGestureRecognizer {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        state = .began
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+       state = .ended
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        state = .cancelled
+    }
+}
+
+/* to dismiss keyboard on tap out */
+extension SceneDelegate: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+}
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -17,6 +38,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var backed = false
     
 //    var userData = UserData()
+    
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -36,7 +58,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             )
             self.window = window
             window.makeKeyAndVisible()
+            
+            /* to dismiss keyboard on tap out */
+            let gesture = AnyGestureRecognizer(target: window, action:#selector(UIView.endEditing))
+            gesture.requiresExclusiveTouchType = false
+            gesture.cancelsTouchesInView = false
+            gesture.delegate = self // don't use window as delegate to minimize possible side effects
+            window.addGestureRecognizer(gesture)
+            
         }
+        
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -87,6 +118,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
     }
+
+    
 
 
 }

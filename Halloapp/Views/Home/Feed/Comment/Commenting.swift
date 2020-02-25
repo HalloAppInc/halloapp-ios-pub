@@ -34,6 +34,8 @@ struct Commenting: View {
     
     @State var cancellableSet: Set<AnyCancellable> = []
     
+    @State private var showNetworkAlert = false
+    
     
     init(_ feedData: FeedData, _ item: FeedDataItem, _ contacts: Contacts) {
         self.feedData = feedData
@@ -136,7 +138,15 @@ struct Commenting: View {
                                     .filter({$0.isKeyWindow}).first
                             keyWindow?.endEditing(true)
                             
-                            self.homeRouteData.gotoPage(page: "feed")
+                        
+                            if self.homeRouteData.fromPage == "profile" {
+                                self.homeRouteData.gotoPage(page: "profile")
+                                self.homeRouteData.fromPage = ""
+                            } else {
+                                self.homeRouteData.gotoPage(page: "feed")
+                            }
+                            
+                            
                         }) {
                             Image(systemName: "chevron.left")
                                 .font(Font.title.weight(.regular))
@@ -255,6 +265,11 @@ struct Commenting: View {
 
                     Button(action: {
                         
+                        if (self.feedData.isConnecting) {
+                            self.showNetworkAlert = true
+                            return
+                        }
+                        
                         if (self.msgToSend != "") {
                             
                             self.feedData.postComment(self.item.itemId, self.item.username, self.msgToSend, self.replyTo)
@@ -319,6 +334,10 @@ struct Commenting: View {
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             
         .edgesIgnoringSafeArea(.all)
+            
+        .alert(isPresented: $showNetworkAlert) {
+            Alert(title: Text("Couldn't connect to Halloapp"), message: Text("We'll keep trying, but there may be a problem with your connection"), dismissButton: .default(Text("Ok")))
+        }
             
         .onDisappear {
             self.cancellableSet.forEach {

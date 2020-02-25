@@ -8,6 +8,8 @@
 
 import Foundation
 import CryptoSwift
+import CryptoKit
+
 
 class HAC {
     
@@ -25,12 +27,47 @@ class HAC {
         return key
     }
     
-    func generateExpandedKey() -> [UInt8] {
+    func base64ToByteArray(base64String: String) -> [UInt8]? {
+        if let nsdata = Data(base64Encoded: base64String) {
+            var bytes = [UInt8](repeating: 0, count: nsdata.count)
+            nsdata.copyBytes(to: &bytes, count: nsdata.count)
+              return bytes
+          }
+          return nil // Invalid input
+    }
+    
+    func generateExpandedKeyFrom(fromKey:String, type: String) -> [UInt8] {
+
+        print("generateExpandedKeyFrom: \(fromKey)")
+        
+        if let key = base64ToByteArray(base64String: fromKey) {
+        
+            var info = "HalloApp image".bytes
+            
+            if type == "video" {
+                info = "HalloApp video".bytes
+            }
+            
+            let expandedKey = try! HKDF(password: key, info: info, keyLength: 80, variant: .sha256).calculate()
+
+    //        print("expandedKey:")
+    //        print("\(expandedKey)")
+            
+            return expandedKey
+        }
+        return []
+    }
+    
+    func generateNewExpandedKey(type: String) -> (String, [UInt8]) {
 
         // generate key
         let key = generateKey(numBytes: 32)
         
-        let info = "HalloApp image".bytes
+        var info = "HalloApp image".bytes
+        
+        if type == "video" {
+            info = "HalloApp video".bytes
+        }
         
 //        let result = try! HMAC(key: key, variant: .sha256).authenticate(message.bytes)
         
@@ -39,85 +76,100 @@ class HAC {
 //        print("expandedKey:")
 //        print("\(expandedKey)")
         
-        return expandedKey
+        let keyData = Data(bytes: key, count: key.count)
+        
+        // Convert to Base64
+        let base64StringKey = keyData.base64EncodedString()
+        
+        return (base64StringKey, expandedKey)
     }
     
-    func encrypt(med: FeedMedia) -> FeedMedia {
-        
-        guard let data = med.image.pngData() as Data? else { return med }
-        
-        let med2 = med
+    func encryptData(data: Data, type: String) -> (Data?, String, String) {
         
         let target: [UInt8] = [UInt8](data)
-        print("target: \(target.count)")
-        
-        let expandedKey = generateExpandedKey()
+
+        let (base64Key, expandedKey) = generateNewExpandedKey(type: "image")
         
         let randomIV = Array(expandedKey[0...15])
         let AESKey = Array(expandedKey[16...47])
         let SHAKey = Array(expandedKey[48...79])
-
-//        print("randomIV: \(randomIV)")
-//        print("AESKey: \(AESKey)")
-//        print("SHAKey: \(SHAKey)")
         
         do {
             let aes = try AES(key: AESKey, blockMode: CBC(iv: randomIV), padding: .pkcs5)
         
-            let encrypted = try aes.encrypt(target)
-//            let strToBe = "Tony is here"
-//            print("strToBe: \(strToBe.count)")
-//            let encrypted = try aes.encrypt(Array(strToBe.utf8))
-            
-            print("encrypted: \(encrypted.count)")
-            
-//            let MAC = try HMAC(key: SHAKey, variant: .sha256).authenticate(encrypted)
-//
-//            print("MAC:")
-//            print("\(MAC)")
-            
-            let decrypted = try AES(key: AESKey, blockMode: CBC(iv: randomIV), padding: .pkcs5).decrypt(encrypted)
-            
-//            if let encryptedString = String(bytes: encrypted, encoding: .utf8) {
-//                print(encryptedString)
-//            } else {
-//                print("not a valid UTF-8 sequence")
-//            }
-            
-//            if let string = String(bytes: decrypted, encoding: .utf8) {
-//                print(string)
-//            } else {
-//                print("not a valid UTF-8 sequence")
-//            }
-            
-            let data2 = Data(bytes: decrypted, count: decrypted.count)
+            var encrypted = try aes.encrypt(target)
 
+            let MAC = try HMAC(key: SHAKey, variant: .sha256).authenticate(encrypted)
             
-            print("decrypted: \(decrypted.count)")
+            print("MAC: \(MAC.count)")
             
-            let image = UIImage(data: data2)
+            encrypted.append(contentsOf: MAC)
             
-            print("image size: \(image!.size.width)")
-
-            if image != nil {
-                print("hit")
-                med2.image = image!
-            } else {
-                print("miss")
-            }
+            print("encrypted w/authen: \(encrypted.count)")
             
+            let digest = SHA256.hash(data: encrypted)
+            
+            let base64Hash = digest.data.base64EncodedString()
+            
+            let encryptedData = Data(bytes: encrypted, count: encrypted.count)
+            
+            return (encryptedData, base64Key, base64Hash)
             
         } catch {
             
         }
         
-        
-
-        
-        
-        return med2
+        return (nil, "", "")
     }
     
+    func decryptData(data: Data, key: String, hash: String, type: String) -> Data? {
+                
+        var target: [UInt8] = [UInt8](data)
+        
+        let expandedKey = generateExpandedKeyFrom(fromKey: key, type: type)
+        
+        let randomIV = Array(expandedKey[0...15])
+        let AESKey = Array(expandedKey[16...47])
+        let SHAKey = Array(expandedKey[48...79])
 
+        do {
+            
+            let digest = SHA256.hash(data: target)
+            let base64String = digest.data.base64EncodedString()
+            
+            if base64String != hash {
+                print(base64String)
+                print("sha256 hash does not match, abort")
+                return nil
+            }
+            
+            let attachedMAC = Array(target.suffix(32))
+            
+            target.removeLast(32)
+            
+            let MAC = try HMAC(key: SHAKey, variant: .sha256).authenticate(target)
+            
+            print("\(attachedMAC)")
+            print("\(MAC)")
+            
+            if attachedMAC != MAC {
+                print("MAC does not match, abort")
+                return nil
+            }
+            
+            let decrypted = try AES(key: AESKey, blockMode: CBC(iv: randomIV), padding: .pkcs5).decrypt(target)
+            
+            let decryptedData = Data(bytes: decrypted, count: decrypted.count)
+
+            print("decrypted: \(decryptedData.count)")
+            
+            return decryptedData
+            
+        } catch {
+            
+        }
+        
+        return nil
+    }
     
 }

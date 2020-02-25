@@ -23,11 +23,22 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
     var url: String = ""
     var width: Int = 0
     var height: Int = 0
+    var numTries: Int = 0
+    
+    var key: String = ""
+    var hash: String = ""
+    @Published var encryptedData: Data?
     
     @Published var image: UIImage = UIImage()
+    
+    @Published var data: Data?
+    @Published var tempUrl: URL?
+    
     @Published var origImage: UIImage = UIImage()
+    
     @ObservedObject var imageLoader: ImageLoader = ImageLoader()
     
+
     private var cancellableSet: Set<AnyCancellable> = []
     
     init(   feedItemId: String = "",
@@ -35,7 +46,8 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
             type: String = "",
             url: String = "",
             width: Int = 0,
-            height: Int = 0) {
+            height: Int = 0,
+            numTries: Int = 0) {
         
         self.feedItemId = feedItemId
         self.order = order
@@ -43,32 +55,91 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
         self.url = url
         self.width = width
         self.height = height
+        self.numTries = numTries
     }
     
     func loadImage() {
         if (self.url != "") {
+
+            
+            DispatchQueue.global(qos: .default).async {
+                print("updating numTries on media count to \(self.numTries + 1)")
+                FeedMediaCore().updateNumTries(feedItemId: self.feedItemId, url: self.url, numTries: self.numTries + 1)
+            }
+            
             imageLoader = ImageLoader(urlString: self.url)
             cancellableSet.insert(
                 imageLoader.didChange.sink(receiveValue: { [weak self] _ in
                     
+                    print("got didchange")
+                    
                     guard let self = self else { return }
                     
-                    DispatchQueue.global(qos: .background).async {
+                    DispatchQueue.global(qos: .userInitiated).async {
                         
-                        let orig = UIImage(data: self.imageLoader.data) ?? UIImage()
+                        print("processing media for \(self.feedItemId)")
+                        
+                        var imageData: Data = Data()
+                        
+                        var isEncryptedMedia: Bool = false
+                        var isEncryptedMediaSafe: Bool = false
+                        
+                        if self.key != "" && self.hash != "" {
+                        
+                            isEncryptedMedia = true
+                            print("encrypted media")
+                            
+                            if let decryptedData = HAC().decryptData(   data: self.imageLoader.data,
+                                                                        key: self.key,
+                                                                        hash: self.hash,
+                                                                        type: "image") {
+                                isEncryptedMediaSafe = true
+                                imageData = decryptedData
+                            }
+                            
+                        }
+                        
+                        if isEncryptedMedia {
+                            if !isEncryptedMediaSafe {
+                                print("encrypted media is not safe, abort")
+                                return
+                            }
+                        } else {
+                            print("not encrypted for \(self.feedItemId) \(self.imageLoader.data.count)")
+                            imageData = self.imageLoader.data
+                        }
+   
+                        
+                        let orig = UIImage(data: imageData) ?? UIImage()
                     
-                        let thumb = orig.getThumbnail() ?? UIImage()
+                        /* we could have an uploaded image that is corrupted */
+                        if (orig.size.width > 0) {
+                        
+                            var res: Int = 1024
 
-                        DispatchQueue.main.async {
+                            if UIScreen.main.bounds.width <= 375 {
+                                res = 800
+                            }
                             
-                            self.image = thumb
-                            self.didChange.send()
+                            let thumb = orig.getNewSize(res: res) ?? UIImage()
+
+
+                            
+                            DispatchQueue.main.async {
+                                
+                                self.image = thumb
+                                
+                                self.didChange.send()
+                                
+                            }
+                            
+                            DispatchQueue.global(qos: .default).async {
+                                print("updating media \(self.feedItemId) \(orig.size.width)")
+                                FeedMediaCore().updateImage(feedItemId: self.feedItemId, url: self.url, thumb: thumb, orig: orig)
+                            }
                             
                         }
                         
-                        DispatchQueue.global(qos: .background).async {
-                            FeedMediaCore().updateImage(feedItemId: self.feedItemId, url: self.url, thumb: thumb, orig: orig)
-                        }
                         
                     }
                         

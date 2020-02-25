@@ -29,6 +29,8 @@ struct Profile: View {
     
     @State private var cameraMode = "library"
     
+    @State private var pickedImages: [FeedMedia] = []
+    
     @State private var UserImage = Image(systemName: "nosign")
     @State private var pickedUIImage: UIImage = UIImage(systemName: "nosign")!
     @State private var imageUrl: String = ""
@@ -96,7 +98,6 @@ struct Profile: View {
                             
                                 VStack(spacing: 0) {
                                                           
-                                    
                                     if item.media.count > 0 {
                                         
                                         MediaSlider(item, item.mediaHeight)
@@ -117,7 +118,7 @@ struct Profile: View {
 //                                            .background(Color.gray)
 //                                            .cornerRadius(10)
 //                                            .padding(EdgeInsets(top: 10, leading: 10, bottom: 15, trailing: 10))
-//                                            
+//
 //                                    } else {
 //                                        Divider()
 //                                            .frame(height: 10)
@@ -298,25 +299,7 @@ struct Profile: View {
         
         .sheet(isPresented: self.$showSheet, content: {
             
-            if (self.showImagePicker) {
-
-                ImagePicker(showPostText: self.$showPostText,
-                            showSheet: self.$showSheet,
-                            showImagePicker: self.$showImagePicker,
-                            cameraMode: self.$cameraMode,
-                            pickedImage: self.$UserImage,
-                            pickedUIImage: self.$pickedUIImage,
-                            imageUrl: self.$imageUrl,
-                            pickerStatus: self.$pickerStatus,
-                            uploadStatus: self.$uploadStatus,
-                            imageGetUrl: self.$imageGetUrl,
-                            imagePutUrl: self.$imagePutUrl,
-                            requestUrl: {
-                                Utils().requestUploadUrl(xmppStream: self.feedData.xmppController.xmppStream)
-                            }
-                )
-            
-            } else if (self.showSettings) {
+            if (self.showSettings) {
 
                 Settings(onDismiss: {
                     self.showSheet = false
@@ -360,11 +343,11 @@ struct Profile: View {
     }
 }
 
-struct Profile_Previews: PreviewProvider {
-    static var previews: some View {
-        Profile(feedData: FeedData(xmpp: XMPP(userData: UserData(), metaData: MetaData())))
-            .environmentObject(AuthRouteData())
-            .environmentObject(UserData())
-   
-    }
-}
+//struct Profile_Previews: PreviewProvider {
+//    static var previews: some View {
+//        Profile(feedData: FeedData(xmpp: XMPP(userData: UserData(), metaData: MetaData())))
+//            .environmentObject(AuthRouteData())
+//            .environmentObject(UserData())
+//
+//    }
+//}

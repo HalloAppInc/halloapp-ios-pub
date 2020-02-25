@@ -33,13 +33,51 @@ class ImageServer {
         
         for med in media {
             
-            upload(med: med)
-   
-            DispatchQueue.global(qos: .background).async {
-                pendingCore.create(item: med)
+            if med.key != "" {
+                uploadData(med: med)
+                med.type += "-encrypted"
+            } else {
+                upload(med: med)
+                
+                /* only doing pending for unencrypted items for now */
+                DispatchQueue.global(qos: .default).async {
+                    pendingCore.create(item: med)
+                }
+                
             }
+   
+
         }
         
+    }
+    
+    func uploadData(med: FeedMedia) {
+            
+        let uploadUrl = med.url
+        
+        let headers = [
+            "Content-Type": "image/jpeg"
+        ]
+
+        Alamofire.upload(med.encryptedData!, to: uploadUrl, method: .put, headers: headers)
+            .uploadProgress(closure: { (progress) in
+//                    print(progress.fractionCompleted)
+            })
+            .responseData { response in
+
+                if (response.response != nil) {
+                    print("success uploading")
+      
+                    DispatchQueue.global(qos: .default).async {
+                        PendingCore().delete(url: uploadUrl)
+                    }
+
+                }
+
+            }
+
+        
+          
     }
     
     func upload(med: FeedMedia) {
@@ -62,7 +100,7 @@ class ImageServer {
                     if (response.response != nil) {
                         print("success uploading")
           
-                        DispatchQueue.global(qos: .background).async {
+                        DispatchQueue.global(qos: .default).async {
                             PendingCore().delete(url: uploadUrl)
                         }
 

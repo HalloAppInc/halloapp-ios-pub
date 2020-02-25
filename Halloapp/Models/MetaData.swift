@@ -19,10 +19,5 @@ final class MetaData: ObservableObject {
     
     public var timeStartCheck = 0.0
     public var checkIds: [String] = []
-    
-    @Published var isOffline = true
-    
-    func setIsOffline(value: Bool) {
-        self.isOffline = value
-    }
+
 }

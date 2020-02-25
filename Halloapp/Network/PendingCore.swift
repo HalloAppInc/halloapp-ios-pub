@@ -29,7 +29,7 @@ class PendingCore {
             
             for data in result as! [NSManagedObject] {
                 let item = FeedMedia(
-                    type: "image",
+                    type: data.value(forKey: "type") as! String,
                     url: data.value(forKey: "url") as! String
                 )
                 

@@ -27,12 +27,17 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     var imageUrl: String
     
     @Published var media: [FeedMedia] = []
-    @Published var mediaHeight: CGFloat = 0
+    
+    @Published var mediaHeight: Int = -1
+    @Published var cellHeight: Int = -1
     
     @Published var comments: [FeedComment] = []
     var unreadComments: Int
     
+    var numTries: Int = 0
+    
     private var cancellableSet: Set<AnyCancellable> = []
+    
     
     init(   itemId: String = "",
             username: String = "",
@@ -40,6 +45,8 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
             userImageUrl: String = "",
             text: String = "",
             unreadComments: Int = 0,
+            mediaHeight: Int = -1,
+            cellHeight: Int = -1,
             timestamp: Double = 0) {
         
         self.itemId = itemId
@@ -48,14 +55,16 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
         self.imageUrl = imageUrl
         self.text = text
         self.unreadComments = unreadComments
+        self.mediaHeight = mediaHeight
+        self.cellHeight = cellHeight
         self.timestamp = timestamp
     }
     
     func loadMedia() {
-        
+
         for med in self.media {
             
-            if (med.url != "" && med.image.size.width < 1) {
+            if (med.url != "" && med.image.size.width < 1 && med.numTries < 3) {
                                 
                 cancellableSet.insert(
                     med.didChange.sink(receiveValue: { [weak self] _ in
@@ -68,9 +77,11 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
                         
                     })
                 )
-//                print("load image \(med.url) \(med.width) \(med.height)")
-
+                
+                print("load media for: \(itemId) \(med.url) trying for: \(med.numTries)")
                 med.loadImage()
+                                
+                
             }
             
         }

@@ -126,8 +126,6 @@ struct WMediaSlider: UIViewRepresentable {
         
         var dataSource: UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>?
         
-
-
         init(_ view: WMediaSlider) {
             self.parent = view
         }

@@ -24,6 +24,7 @@ PODS:
   - YPImagePicker (4.2.0):
     - PryntTrimmerView (~> 4.0.0)
     - SteviaLayout (~> 4.7.3)
+  - Zip (1.1.0)
 
 DEPENDENCIES:
   - Alamofire
@@ -32,6 +33,7 @@ DEPENDENCIES:
   - SwiftyJSON
   - XMPPFramework/Swift
   - YPImagePicker (~> 4.2.0)
+  - Zip (~> 1.1)
 
 SPEC REPOS:
   trunk:
@@ -47,6 +49,7 @@ SPEC REPOS:
     - SwiftyJSON
     - XMPPFramework
     - YPImagePicker
+    - Zip
 
 SPEC CHECKSUMS:
   Alamofire: 85e8a02c69d6020a0d734f6054870d7ecb75cf18
@@ -61,7 +64,8 @@ SPEC CHECKSUMS:
   SwiftyJSON: 36413e04c44ee145039d332b4f4e2d3e8d6c4db7
   XMPPFramework: 5d31ff9f73dce031b24bc49bcf88093627a3a86e
   YPImagePicker: accf310f9526641a84372c0ecf943547d9b1e52c
+  Zip: 8877eede3dda76bcac281225c20e71c25270774c
 
-PODFILE CHECKSUM: 9fa5ba583886e683d5c24af2638385730a7f7eca
+PODFILE CHECKSUM: 763b9d75216f0ec980ba13893ddf65143c7c2b4c
 
 COCOAPODS: 1.8.4

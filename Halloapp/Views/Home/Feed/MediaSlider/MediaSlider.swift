@@ -11,7 +11,6 @@ import Combine
 struct MediaSlider: View {
     
     @ObservedObject var item: FeedDataItem
-    var mediaHeight: CGFloat
     
     let landscapeHeight: CGFloat = 300 // seems optimal, 260?
     
@@ -21,53 +20,55 @@ struct MediaSlider: View {
     
     @State var cancellableSet: Set<AnyCancellable> = []
     
-    @State var height: CGFloat = 525.33 // change to desired height to reduce screen shift, can customize for different devices
+    @State var mediaHeight: CGFloat
+    
+//    @State var height: CGFloat = 525.33 // change to desired height to reduce screen shift, can customize for different devices
     
     @State var pageNum: Int = 0
     
-    init(_ item: FeedDataItem, _ mediaHeight: CGFloat) {
+    init(_ item: FeedDataItem, _ mediaHeight: Int) {
         
         self.item = item
-        self.mediaHeight = mediaHeight
+        
+        self._mediaHeight = State(initialValue: CGFloat(mediaHeight))
         self._media = State(initialValue: self.item.media)
        
     }
     
-    func calHeight() {
-        
-        var maxHeight = 0
-        var width = 0
-        
-        for med in self.media {
-            if med.height > maxHeight {
-
-                maxHeight = med.height
-                width = med.width
-            }
-        }
-        
-        if maxHeight < 1 {
-            return
-        }
-        
-        let desiredAspectRatio: Float = 4/3 // 1.33 for portrait
-        
-        // can be customized for different devices
-        let desiredViewWidth = Float(UIScreen.main.bounds.width) - 20 // account for padding on left and right
-        
-        let desiredTallness = desiredAspectRatio * desiredViewWidth
-        
-        let ratio = Float(maxHeight)/Float(width) // image ratio
-
-        let actualTallness = ratio * desiredViewWidth
-
-        if actualTallness >= desiredTallness {
-            self.height = CGFloat(desiredTallness)
-        } else {
-            self.height = CGFloat(actualTallness + 10)
-        }
-        
-    }
+//    func calHeight() {
+//
+//        var maxHeight = 0
+//        var width = 0
+//
+//        for med in self.media {
+//            if med.height > maxHeight {
+//                maxHeight = med.height
+//                width = med.width
+//            }
+//        }
+//
+//        if maxHeight < 1 {
+//            return
+//        }
+//
+//        let desiredAspectRatio: Float = 5/4 // 1.25 for portrait
+//
+//        // can be customized for different devices
+//        let desiredViewWidth = Float(UIScreen.main.bounds.width) - 20 // account for padding on left and right
+//
+//        let desiredTallness = desiredAspectRatio * desiredViewWidth
+//
+//        let ratio = Float(maxHeight)/Float(width) // image ratio
+//
+//        let actualTallness = ratio * desiredViewWidth
+//
+//        if actualTallness >= desiredTallness {
+//            self.height = CGFloat(desiredTallness)
+//        } else {
+//            self.height = CGFloat(actualTallness + 10)
+//        }
+//
+//    }
     
 
     
@@ -77,7 +78,7 @@ struct MediaSlider: View {
 
             self.media = self.item.media
      
-            self.calHeight()
+//            self.calHeight()
             
             self.cancellableSet.insert(
 
@@ -86,9 +87,7 @@ struct MediaSlider: View {
                     
                     self.media = self.item.media
                     
-                    self.calHeight()
-                    
-
+//                    self.calHeight()
                     
                 })
 
@@ -103,10 +102,10 @@ struct MediaSlider: View {
                 WMediaSlider (
                     media: $media,
                     scroll: $scroll,
-                    height: $height,
+                    height: $mediaHeight,
                     pageNum: $pageNum)
 
-                    .frame(height: self.height)
+                    .frame(height: self.mediaHeight)
                 
 
                 if (self.media.count > 1) {
@@ -156,7 +155,11 @@ struct MediaSlider: View {
 //                print("cancelling")
                 $0.cancel()
             }
-            self.cancellableSet.removeAll()
+            
+            DispatchQueue.main.async() {
+                self.cancellableSet.removeAll()
+            }
+
         }
         
     }

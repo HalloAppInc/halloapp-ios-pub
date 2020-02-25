@@ -6,9 +6,10 @@
         <attribute name="phone" optional="YES" attributeType="String"/>
     </entity>
     <entity name="CFeedImage" representedClassName="CFeedImage" syncable="YES" codeGenerationType="class">
-        <attribute name="blob" optional="YES" attributeType="Binary"/>
+        <attribute name="blob" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="feedItemId" optional="YES" attributeType="String"/>
         <attribute name="height" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="numTries" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="smallBlob" optional="YES" attributeType="Binary"/>
         <attribute name="url" optional="YES" attributeType="String"/>
@@ -39,9 +40,11 @@
         <attribute name="username" optional="YES" attributeType="String"/>
     </entity>
     <entity name="FeedCore" representedClassName="FeedCore" syncable="YES" codeGenerationType="class">
+        <attribute name="cellHeight" optional="YES" attributeType="Integer 16" defaultValueString="-1" usesScalarValueType="YES"/>
         <attribute name="imageBlob" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="imageUrl" optional="YES" attributeType="String"/>
         <attribute name="itemId" optional="YES" attributeType="String"/>
+        <attribute name="mediaHeight" optional="YES" attributeType="Integer 16" defaultValueString="-1" usesScalarValueType="YES"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="unreadComments" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -61,11 +64,11 @@
     </entity>
     <elements>
         <element name="CContactsAvatar" positionX="-54" positionY="81" width="128" height="88"/>
-        <element name="CFeedImage" positionX="-54" positionY="81" width="128" height="148"/>
+        <element name="CFeedImage" positionX="-54" positionY="81" width="128" height="28"/>
         <element name="ContactsCore" positionX="-63" positionY="36" width="128" height="163"/>
         <element name="CPending" positionX="-54" positionY="81" width="128" height="88"/>
         <element name="FeedComments" positionX="-45" positionY="81" width="128" height="148"/>
-        <element name="FeedCore" positionX="-63" positionY="0" width="128" height="163"/>
+        <element name="FeedCore" positionX="-63" positionY="0" width="128" height="28"/>
         <element name="User" positionX="-63" positionY="-18" width="128" height="178"/>
     </elements>
 </model>

@@ -10,14 +10,47 @@ import SwiftUI
 
 struct FeedListHeader: View {
         
+    var isOnProfilePage: Bool
+    @ObservedObject var contacts: Contacts
+    
     var body: some View {
       
         VStack(spacing: 0) {
 
+            if (isOnProfilePage) {
+                HStack {
+                    Spacer()
+                    VStack(spacing: 0) {
+                        
+                        Button(action: {
+        //                                self.showMoreActions = true
+                        }) {
+                            Image(systemName: "circle.fill")
+                                .resizable()
+                            
+                                .scaledToFit()
+                                .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
+                                .clipShape(Circle())
+                            
+                                .frame(width: 50, height: 50, alignment: .center)
+                                .padding(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
+
+                        }
+                            
+                        Text("\(self.contacts.xmpp.userData.phone)")
+                    }
+
+                    
+                    Spacer()
+                }
+                .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+            }
+            
+            
+            
             HStack() {
 
                 VStack (spacing: 0) {
-
                     
                     Spacer()
                 }
@@ -28,11 +61,11 @@ struct FeedListHeader: View {
             
             Spacer()
             
-            Divider()
-                .padding(EdgeInsets(top: 5, leading: 0, bottom: 5, trailing: 0))
+
         }
-      
-        .padding(EdgeInsets(top: 65, leading: 0, bottom: 10, trailing: 0))
+        
+        .padding(EdgeInsets(top: 30, leading: 0, bottom: 10, trailing: 0))
+        .background(Color(red: 248/255, green: 248/255, blue: 248/255))
     
         
     }

@@ -6,6 +6,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import MessageUI
 import Foundation
 import SwiftUI
 import Combine
@@ -16,6 +17,8 @@ final class UserData: ObservableObject {
 
     var didLogOff = PassthroughSubject<Void, Never>()
     
+    var didResyncContacts = PassthroughSubject<Void, Never>()
+    
     @Published var countryCode = "1"
     
     @Published var phoneInput = ""
@@ -25,8 +28,6 @@ final class UserData: ObservableObject {
     
     public var haveContactsSub = false
     public var haveFeedSub = false
-    
-    @Published var isOffline = true
     
     @Published var status: String = ""
     @Published var highlight = false
@@ -47,6 +48,10 @@ final class UserData: ObservableObject {
     
     private var subCancellable: AnyCancellable!
     private var validCharSet = CharacterSet(charactersIn: "1234567890+.-_ ")
+    
+    public var logging = ""
+    
+    public var loggingTimestamp = Int(Date().timeIntervalSince1970)
     
     let userCore = UserCore()
 
@@ -93,8 +98,32 @@ final class UserData: ObservableObject {
         }
     }
 
+    func log(_ str: String) {
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMdd'T'HH:mmssZ"
+        let time = formatter.string(from: Date())
+        
+        var log = "\(time) \(str)"
+        print(log)
+        log += "\r\n"
+        self.logging += log
+    }
+    
+    func devLog(_ str: String) {
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMdd'T'HH:mmssZ"
+        let time = formatter.string(from: Date())
+        
+        var log = "\(time) \(str)"
+        
+        log += "\r\n"
+        self.logging += log
+    }
+    
     func save() {
-        DispatchQueue.global(qos: .background).async {
+        DispatchQueue.global(qos: .default).async {
             self.userCore.update(countryCode: self.countryCode,
                                  phoneInput: self.phoneInput,
                                  password: self.password,
@@ -107,10 +136,6 @@ final class UserData: ObservableObject {
     
     deinit {
         subCancellable.cancel()
-    }
-    
-    func setIsOffline(value: Bool) {
-        self.isOffline = value
     }
     
     func setIsLoggedIn(value: Bool) {
@@ -126,6 +151,11 @@ final class UserData: ObservableObject {
     func setHaveFeedSub(value: Bool) {
         self.haveFeedSub = value
         self.save()
+    }
+        
+    func resyncContacts() {
+        deleteAllData(entityName: "ContactsCore")
+        self.didResyncContacts.send()
     }
     
     func logout() {
@@ -199,7 +229,7 @@ final class UserData: ObservableObject {
                 self.save()
 
             } else {
-                DispatchQueue.global(qos: .background).async {
+                DispatchQueue.global(qos: .default).async {
                     self.userCore.create(countryCode: self.countryCode,
                                          phoneInput: self.phoneInput,
                                          password: self.password,

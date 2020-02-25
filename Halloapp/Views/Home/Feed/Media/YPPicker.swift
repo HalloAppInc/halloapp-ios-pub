@@ -16,15 +16,19 @@ import AVFoundation
 import AVKit
 import Photos
 
+private func resolutionForLocalVideo(url: URL) -> CGSize? {
+    guard let track = AVURLAsset(url: url).tracks(withMediaType: AVMediaType.video).first else { return nil }
+   let size = track.naturalSize.applying(track.preferredTransform)
+    return CGSize(width: abs(size.width), height: abs(size.height))
+}
+
 struct PickerWrapper: UIViewControllerRepresentable {
 
     typealias UIViewControllerType = YPImagePicker
 
-    @Binding var pickedImages: [UIImage]
+    @Binding var pickedImages: [FeedMedia]
 
     var goBack: () -> Void
-    
-    var requestUrls: () -> Void
     
     var goToPostMedia: () -> Void
     
@@ -69,7 +73,6 @@ struct PickerWrapper: UIViewControllerRepresentable {
         picker.didFinishPicking { [unowned picker] items, cancelled in
 
             if cancelled {
-
                 picker.dismiss(animated: true, completion: nil)
                 self.goBack()
                 return
@@ -78,15 +81,69 @@ struct PickerWrapper: UIViewControllerRepresentable {
             for item in items {
                 switch item {
                 case .photo(let photo):
+                    
+                    let mediaItem = FeedMedia()
+                    mediaItem.type = "image"
+                    mediaItem.image = photo.image
+                    
+                    var imageWidth = 0
+                    var imageHeight = 0
 
-                    self.pickedImages.append(photo.image)
+                    imageWidth = Int(photo.image.size.width)
+                    imageHeight = Int(photo.image.size.height)
+
+                    mediaItem.width = imageWidth
+                    mediaItem.height = imageHeight
+                    
+                    self.pickedImages.append(mediaItem)
 
                 case .video(let video):
+                    
+                    let mediaItem = FeedMedia()
+                    mediaItem.type = "video"
+  
+                    
+                    if let videoData = try? Data(contentsOf: video.url) {
+                        mediaItem.data = videoData
+
+
+                        let fileUrl = URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("video").appendingPathExtension("mp4")
+                            
+                        let wasFileWritten = (try? videoData.write(to: fileUrl, options: [.atomic])) != nil
+                        
+                        if !wasFileWritten{
+                            print("File was NOT Written")
+                        }
+                            
+                        mediaItem.tempUrl = fileUrl
+                        
+//                        if let tempFileUrl = try? String(contentsOf: fileUrl) {
+//                            
+//                            mediaItem.tempUrl = tempFileUrl
+//                        }
+                        
+                        
+
+                    }
+                    
+                    if let videoSize = resolutionForLocalVideo(url: video.url) {
+                    
+                        mediaItem.width = Int(videoSize.width)
+                        mediaItem.height = Int(videoSize.height)
+                        
+                        print("video width: \(mediaItem.width)")
+                        print("video height: \(mediaItem.height)")
+                    }
+                        
+
+
+                    
+                    self.pickedImages.append(mediaItem)
+                    
                     print(video)
                 }
             }
 
-            self.requestUrls()
             self.goToPostMedia()
             picker.dismiss(animated: true, completion: nil)
             return

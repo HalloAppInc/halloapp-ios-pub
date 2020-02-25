@@ -45,12 +45,9 @@ class XMPP: ObservableObject {
             self.xmppController.didConnect.sink(receiveValue: { value in
 
 //                print("got sink for didConnect")
-                if (!self.isReady) {
-                    self.isReady = true
-                } else {
-                    /* reconnected but app is already in isReady state, we should check for changes */
-                    
-                }
+//                if (self.metaData.isOffline) {
+//                    self.metaData.isOffline = false
+//                }
 
             })
 

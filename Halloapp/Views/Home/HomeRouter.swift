@@ -53,6 +53,7 @@ struct HomeRouter: View {
                         .animation(.spring())
                 }
                 
+                
                 if (homeRouteData.homePage == "media") {
                     Media(feedData: feedData)
                         .environmentObject(homeRouteData)
@@ -84,10 +85,13 @@ struct HomeRouter: View {
                         .zIndex(homeRouteData.homePage == "messaging" ? 1.0 : 0.0)
                 }
 
-                else if (homeRouteData.homePage == "profile") {
-                    Profile(feedData: feedData)
+                if (homeRouteData.homePage == "profile" || homeRouteData.homePage == "commenting") {
+//                    Profile(feedData: feedData)
+                    Profile2(feedData: feedData, contacts: contacts)
     //                    .opacity(homeRouteData.homePage == "profile" ? 1.0 : 0.0)
-                        .zIndex(homeRouteData.homePage == "profile" ? 1.0 : 0.0)
+                        .zIndex((homeRouteData.homePage == "profile" || homeRouteData.homePage == "commenting") ? 1.0 : 0.0)
+                        .offset(x: homeRouteData.homePage == "commenting" ? -1*UIScreen.main.bounds.size.width : 0.0, y: 0.0)
+                        .animation(.spring())
                 }
 
             }

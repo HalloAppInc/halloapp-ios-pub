@@ -417,14 +417,13 @@ class Utils {
         var feedList: [FeedDataItem] = []
         var commentList: [FeedComment] = []
        
-//        let pubsub = value.element(forName: "pubsub")
         let items = value?.element(forName: "items")
         let itemList = items?.elements(forName: "item")
 
         for item in itemList ?? [] {
             let entry = item.element(forName: "entry")
             let itemId = item.attributeStringValue(forName: "id")
-            let jid = item.attributeStringValue(forName: "jid")
+            let jid = item.attributeStringValue(forName: "publisher")
             let serverTimestamp = item.attributeStringValue(forName: "timestamp")
             
             // Parse feed posts.
@@ -439,67 +438,20 @@ class Utils {
                     }
                 }
                 
-                
                 if jid != nil {
-                    
                     if let jidParts = jid?.components(separatedBy: "@") {
                         feedItem.username = jidParts[0]
                     }
-   
-                    
                 } else if let username = post.element(forName: "username") {
                     if let usernameValue = username.stringValue {
                         feedItem.username = usernameValue
                     }
                 }
                 
-                
-                if let userImageUrl = post.element(forName: "userImageUrl") {
-                    if let userImageUrlValue = userImageUrl.stringValue {
-                        feedItem.userImageUrl = userImageUrlValue
-                    }
-                }
-                
-                var legacyUrl = ""
-                var legacyWidth = 0
-                var legacyHeight = 0
-                
-                if let imageUrl = post.element(forName: "imageUrl") {
-                    if let imageUrlValue = imageUrl.stringValue {
-                        feedItem.imageUrl = imageUrlValue
-                        legacyUrl = imageUrlValue
-                    }
-                    
-                    if let imageUrlWidth = imageUrl.attributeStringValue(forName: "width") {
-                        legacyWidth = Int(imageUrlWidth) ?? 0
-                    }
-                    
-                    if let imageUrlHeight = imageUrl.attributeStringValue(forName: "height") {
-                        legacyHeight = Int(imageUrlHeight) ?? 0
-                    }
-                    
-                }
-            
-                
                 let media = post.element(forName: "media")
                 let urls = media?.elements(forName: "url")
                 
                 var medArr: [FeedMedia] = []
-                
-                // support old images for now
-                if post.element(forName: "imageUrl") != nil && legacyUrl != "" && media == nil {
-//                    print("legacy post")
-                    let med: FeedMedia = FeedMedia()
-                    
-                    med.feedItemId = feedItem.itemId
-                    med.order = 1
-                    med.type = "image"
-                    med.url = legacyUrl
-                    med.width = legacyWidth
-                    med.height = legacyHeight
-                    
-                    medArr.append(med)
-                }
                 
                 var order = 1
                 
@@ -521,6 +473,14 @@ class Utils {
                     
                     if let medHeight = url.attributeStringValue(forName: "height") {
                         med.height = Int(medHeight) ?? 0
+                    }
+                    
+                    if let key = url.attributeStringValue(forName: "key") {
+                        med.key = key
+                    }
+                    
+                    if let hash = url.attributeStringValue(forName: "sha256hash") {
+                        med.hash = hash
                     }
  
                     if let medUrl = url.stringValue {
@@ -574,16 +534,9 @@ class Utils {
                         commentItem.username = jidParts[0]
                     }
                     
-                    
                 } else if let username = post.element(forName: "username") {
                     if let usernameValue = username.stringValue {
                         commentItem.username = usernameValue
-                    }
-                }
-                
-                if let userImageUrl = post.element(forName: "userImageUrl") {
-                    if let userImageUrlValue = userImageUrl.stringValue {
-                        commentItem.userImageUrl = userImageUrlValue
                     }
                 }
                 
@@ -609,45 +562,6 @@ class Utils {
                 
                 commentList.append(commentItem)
 //                print ("comment item: \(commentItem.username) - \(commentItem.text)")
-                
-            } else if (entry?.element(forName: "text")) != nil {
-                
-                let feedItem = FeedDataItem()
-                feedItem.itemId = itemId!
-                
-                if let text = entry?.element(forName: "text") {
-                    if let textValue = text.stringValue {
-                        feedItem.text = textValue
-                    }
-                }
-                
-                if let username = entry?.element(forName: "username") {
-                    if let usernameValue = username.stringValue {
-                        feedItem.username = usernameValue
-                    }
-                }
-                
-                if let userImageUrl = entry?.element(forName: "userImageUrl") {
-                    if let userImageUrlValue = userImageUrl.stringValue {
-                        feedItem.userImageUrl = userImageUrlValue
-                    }
-                }
-                
-                if let imageUrl = entry?.element(forName: "imageUrl") {
-                    if let imageUrlValue = imageUrl.stringValue {
-                        feedItem.imageUrl = imageUrlValue
-                    }
-                }
-                
-                if let timestamp = entry?.element(forName: "timestamp") {
-                    if let timestampValue = timestamp.stringValue {
-                        if let convertedTimestampValue = Double(timestampValue) {
-                            feedItem.timestamp = convertedTimestampValue
-                        }
-                    }
-                }
-                feedList.append(feedItem)
-                print ("legacy (pre build 5) item: \(feedItem.text)")
                 
             }
         }
@@ -738,12 +652,13 @@ class Utils {
         
         iq.addAttribute(withName: "from", stringValue: "\(user)@s.halloapp.net/iphone")
     
-        iq.addAttribute(withName: "to", stringValue: "\(xmppStream.hostName!)")
+        /* this should remain as s.halloapp.net even when pointing at s-test server */
+        iq.addAttribute(withName: "to", stringValue: "s.halloapp.net")
         
         iq.addAttribute(withName: "id", stringValue: "\(id)")
         iq.addChild(contactList)
         
-//        print ("sending: \(iq)")
+        print ("sending normalization iq: \(iq)")
         xmppStream.send(iq)
     }
     
@@ -1030,10 +945,15 @@ class Utils {
     
     func requestMultipleUploadUrl(xmppStream: XMPPStream, num: Int) {
         
+        if (num < 1) {
+            return
+        }
+        
         for _ in 1...num {
-            print("requesting")
+            print("requesting urls")
             requestUploadUrl(xmppStream: xmppStream)
         }
+        
     }
         
     func requestUploadUrl(xmppStream: XMPPStream) {
@@ -1048,6 +968,7 @@ class Utils {
         iq.addChild(uploadMedia)
         
         xmppStream.send(iq)
+        
     }
     
     func parseMediaUrl(_ value: XMPPIQ) -> (String, String) {
@@ -1062,6 +983,16 @@ class Utils {
 
         return (getUrl, putUrl)
         
+    }
+    
+    func sendAck(xmppStream: XMPPStream, id: String, from: String) {
+    
+        let ack = XMLElement(name: "ack")
+        ack.addAttribute(withName: "from", stringValue: "\(from)@s.halloapp.net/iphone")
+        ack.addAttribute(withName: "to", stringValue: "pubsub.s.halloapp.net")
+        ack.addAttribute(withName: "id", stringValue: id)
+        
+        xmppStream.send(ack)
     }
     
     func sortComments(comments: [FeedComment]) -> [FeedComment] {
