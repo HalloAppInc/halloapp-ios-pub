@@ -16,8 +16,19 @@ struct Settings: View {
     var onDismiss: () -> ()
     
     @State private var isButtonVisible = true
-    
+
+    func appVersion() -> String {
+        guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
+            return ""
+        }
+        guard let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String else {
+            return "Version \(version)"
+        }
+        return "Version \(version) (\(buildNumber))"
+    }
+
     var body: some View {
+
         VStack() {
 //            WUICollectionView()
 //                .background(Color.red)
@@ -34,8 +45,8 @@ struct Settings: View {
                 }
             }
             Spacer()
-            
-            Text("1.0.12")
+
+            Text(appVersion())
             Button(action: {
                 self.userData.logout()
                 self.homeRouteData.gotoPage(page: "feed")
