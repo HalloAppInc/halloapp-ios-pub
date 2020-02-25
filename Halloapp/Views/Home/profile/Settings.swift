@@ -19,7 +19,20 @@ struct Settings: View {
     @State var result: Result<MFMailComposeResult, Error>? = nil
     @State var isShowingMailView = false
     
+    @State private var isButtonVisible = true
+
+    func appVersion() -> String {
+        guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
+            return ""
+        }
+        guard let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String else {
+            return "Version \(version)"
+        }
+        return "Version \(version) (\(buildNumber))"
+    }
+
     var body: some View {
+
         VStack() {
             HStack() {
                 Spacer()
@@ -59,10 +72,10 @@ struct Settings: View {
 //            .padding(.top, 100)
             
             Spacer()
-            
-            Text("1.0.13")
+
+            Text(appVersion())
             Text("\(self.userData.hostName)")
-            
+
             Button(action: {
                 print("lgoging")
                 self.userData.logout()
