@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		146B93742405F35000768AC6 /* GothamBook.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 146B93732405F35000768AC6 /* GothamBook.ttf */; };
+		146B93772405F3AE00768AC6 /* GothamMedium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 146B93762405F3AE00768AC6 /* GothamMedium.ttf */; };
+		146B93792405F40500768AC6 /* FontExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* FontExtension.swift */; };
 		29B91BFAD5E7C9E96185289E /* Pods_Halloapp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */; };
 		EA0C315723EB97C800016EDB /* PostMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostMedia.swift */; };
 		EA0D20072363AC4D008B8289 /* Landing.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20062363AC4D008B8289 /* Landing.swift */; };
@@ -106,6 +109,9 @@
 
 /* Begin PBXFileReference section */
 		0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.debug.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.debug.xcconfig"; sourceTree = "<group>"; };
+		146B93732405F35000768AC6 /* GothamBook.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = GothamBook.ttf; sourceTree = "<group>"; };
+		146B93762405F3AE00768AC6 /* GothamMedium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = GothamMedium.ttf; sourceTree = "<group>"; };
+		146B93782405F40500768AC6 /* FontExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtension.swift; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
 		36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Halloapp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EA0C315623EB97C800016EDB /* PostMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostMedia.swift; sourceTree = "<group>"; };
@@ -220,6 +226,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		146B93702405F2F900768AC6 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				146B93752405F35E00768AC6 /* Fonts */,
+				EAF3A1C82334192000805FF9 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		146B93752405F35E00768AC6 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				146B93762405F3AE00768AC6 /* GothamMedium.ttf */,
+				146B93732405F35000768AC6 /* GothamBook.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
 		58B000E2ED3FD4F3ACBF0837 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -422,6 +446,7 @@
 				EA5414D823EE18CF00390EF6 /* General */,
 				EAB03B7A2400517500643EB6 /* MailView.swift */,
 				EA454B5D234E6A2A002B960D /* Navi.swift */,
+				146B93782405F40500768AC6 /* FontExtension.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -466,6 +491,7 @@
 				EA5AD43C23342B8C00429643 /* Views */,
 				EA0D20062363AC4D008B8289 /* Landing.swift */,
 				EAC4AF21233E8D9700739B2B /* Network */,
+				146B93702405F2F900768AC6 /* Resources */,
 				EABF312423EE1EDF0039B5A6 /* Extension */,
 				EAF3A1CA2334192000805FF9 /* Preview Content */,
 				EAF3A1D02334192000805FF9 /* Info.plist */,
@@ -473,7 +499,6 @@
 				EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */,
 				EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */,
 				EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */,
-				EAF3A1C82334192000805FF9 /* Assets.xcassets */,
 				EAE6152D23970FDC00BB4552 /* Halloapp.xcdatamodeld */,
 			);
 			path = Halloapp;
@@ -616,7 +641,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */,
+				146B93742405F35000768AC6 /* GothamBook.ttf in Resources */,
 				EAF3A1CC2334192000805FF9 /* Preview Assets.xcassets in Resources */,
+				146B93772405F3AE00768AC6 /* GothamMedium.ttf in Resources */,
 				EAF3A1C92334192000805FF9 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -747,6 +774,7 @@
 				EAFA65DA23AC245B004C36F7 /* WUITableView.swift in Sources */,
 				EAB03B812400FB4100643EB6 /* Feed2.swift in Sources */,
 				EA0D20112363E38E008B8289 /* HomeInit.swift in Sources */,
+				146B93792405F40500768AC6 /* FontExtension.swift in Sources */,
 				EAA6DEC02381D7DD00C6D9C8 /* Notifications.swift in Sources */,
 				EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */,
 				EA45712D23EB7D7E008C2E44 /* FeedCommentCore.swift in Sources */,
