@@ -7,8 +7,6 @@
 //
 import SwiftUI
 
-
-
 struct Login: View {
     
     @EnvironmentObject var authRouteData: AuthRouteData
@@ -17,27 +15,22 @@ struct Login: View {
     @State var isButtonClicked = false
     
     var body: some View {
-        
-
         VStack() {
             Divider()
                 .frame(height: 80)
                 .hidden()
             
             Text("Hallo")
-                .font(.custom("Gotham", size: 80))
+                .font(.gothamMedium(80))
                 .fontWeight(.heavy)
                 .multilineTextAlignment(.center)
-                .foregroundColor(Color.black)
+                .foregroundColor(Color.primary)
                 
             VStack(spacing: 0) {
-                
                 HStack {
-                    
                     Image(systemName: "plus")
-                        .font(.system(size: 22, weight: .regular))
                         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        .foregroundColor(Color.gray)
+                        .foregroundColor(Color(UIColor.systemGray))
                     
                     /* Country Code */
                     TextField("", text: self.$userData.countryCode, onEditingChanged: { (changed) in
@@ -46,17 +39,16 @@ struct Login: View {
                         // pressing enter should go to the phone number input box, if it's empty
                         
                     }
-                    .font(.system(size: 20, weight: .regular))
+                    .font(.gothamBody)
                     .frame(minWidth: 0, maxWidth: 60, minHeight: 20, maxHeight: 20)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.center)
                     .padding(EdgeInsets(top: 15, leading: 10, bottom: 15, trailing: 10))
-                    .background(Color(red: 239.0/255.0, green: 243.0/255.0, blue: 244.0/255.0, opacity: 1.0))
-
+                    .background(Color(UIColor.systemGray6))
                     .cornerRadius(10)
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(self.userData.highlight ? Color.red : Color.clear, lineWidth: 2)
+                            .stroke(self.userData.highlight ? Color(UIColor.systemRed) : Color.clear, lineWidth: 2)
                     )
                 
                     /* Phone Number */
@@ -69,73 +61,51 @@ struct Login: View {
                              
                          }
                     }
-                    .font(.system(size: 20, weight: .regular))
+                    .font(.gothamBody)
                     .frame(height: 20)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.center)
                     .padding(EdgeInsets(top: 15, leading: 10, bottom: 15, trailing: 10))
-                    .background(Color(red: 239.0/255.0, green: 243.0/255.0, blue: 244.0/255.0, opacity: 1.0))
-
+                    .background(Color(UIColor.systemGray6))
                     .cornerRadius(10)
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(self.userData.highlight ? Color.red : Color.clear, lineWidth: 2)
+                            .stroke(self.userData.highlight ? Color(UIColor.systemRed) : Color.clear, lineWidth: 2)
                     )
                 }
                 
-                
-
                 /* error messages */
-                Text(self.userData.status)
+                    Text(self.userData.status)
                         .multilineTextAlignment(.center)
-                        .foregroundColor(Color.orange)
+                        .foregroundColor(Color(UIColor.systemOrange))
                         .frame(height: 50)
                 }
                 .padding(.horizontal, 40)
                 .padding(.bottom, 0)
+
+            Button(action: {
+                self.isButtonClicked = true
                 
-            
-                Button(action: {
-                    self.isButtonClicked = true
-                    
-                    if self.userData.validate() {
-                        
-                        self.authRouteData.gotoPage(page: "verify")
-
-                    } else {
-
-                    }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                        self.isButtonClicked = false
-                    }
-                    
-                }) {
-                    Text("Sign In")
-
-                        .padding(15)
-                        .background(self.isButtonClicked ? Color.white : Color.blue)
-                        .foregroundColor(self.isButtonClicked ? .gray : .white)
-                        .cornerRadius(40)
-                        .shadow(radius: 5)
+                if self.userData.validate() {
+                    self.authRouteData.gotoPage(page: "verify")
                 }
-                .disabled(self.isButtonClicked)
-
-                Spacer()
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    self.isButtonClicked = false
+                }
+            }) {
+                Text("Sign In")
+                    .font(Font.gothamBody)
+                    .padding(15)
+                    .background(self.isButtonClicked ? Color(UIColor.systemGray5) : Color(UIColor.systemBlue))
+                    .foregroundColor(self.isButtonClicked ? .gray : .white)
+                    .cornerRadius(40)
+                    .shadow(radius: 5)
+            }
+            .disabled(self.isButtonClicked)
+            
+            Spacer()
         }
         .padding(.horizontal, 0)
-
-        
     }
-
-
 }
-
-
-//struct Login_Previews: PreviewProvider {
-//    static var previews: some View {
-//        Login()
-//            .environmentObject(AuthRouteData())
-//            .environmentObject(UserData())
-//    }
-//}
