@@ -78,12 +78,14 @@ struct FeedListCell: View {
             }
            
 //                                Text(String(item.imageUrl))
-            
-            HStack() {
-                Text(item.text)
-                    .font(.system(size: 16, weight: .light))
-                Spacer()
-            }.padding(EdgeInsets(top: 0, leading: 20, bottom: 15, trailing: 20))
+
+            if (!item.text.isEmpty) {
+                HStack() {
+                    Text(item.text)
+                        .font(.system(size: 16, weight: .light))
+                    Spacer()
+                }.padding(EdgeInsets(top: 0, leading: 20, bottom: 15, trailing: 20))
+            }
             
             Divider()
 
