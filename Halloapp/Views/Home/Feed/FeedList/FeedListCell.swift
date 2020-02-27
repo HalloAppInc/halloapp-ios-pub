@@ -35,7 +35,7 @@ struct FeedListCell: View {
                         .resizable()
 
                         .scaledToFit()
-                        .background(Color(red: 192/255, green: 192/255, blue: 192/255))
+                        .background(Color(UIColor.systemGray3))
                         .clipShape(Circle())
 
                         .frame(width: 30, height: 30, alignment: .center)
@@ -54,10 +54,10 @@ struct FeedListCell: View {
                 }) {
 //                                        Image(systemName: "ellipsis")
 //                                            .font(Font.title.weight(.regular))
-//                                            .foregroundColor(Color.gray)
+//                                            .foregroundColor(Color.secondary)
 //                                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 25))
                     Text(Utils().timeForm(dateStr: String(item.timestamp)))
-                         .foregroundColor(Color.gray)
+                         .foregroundColor(Color.secondary)
                         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 15))
                 }
                 
@@ -157,16 +157,16 @@ struct FeedListCell: View {
                 }
 
             }
-            .foregroundColor(Color.black)
+            .foregroundColor(Color.primary)
             .padding(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
             .buttonStyle(BorderlessButtonStyle())
             
 
         }
-            
-        .background(Color.white)
+
+        .background(Color(UIColor.secondarySystemGroupedBackground))
         .cornerRadius(10)
-        .shadow(color: Color(red: 220/255, green: 220/255, blue: 220/255), radius: 5)
+        .shadow(color: Color(UIColor.systemGray5), radius: 5)
         .padding(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
         
     }

@@ -51,16 +51,9 @@ struct WFeedList: UIViewRepresentable {
         
         collectionView.register(WFeedListHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "WFeedListHeader")
         collectionView.register(WFeedListCell.self, forCellWithReuseIdentifier: "WFeedListCell")
-        
-        collectionView.backgroundColor = UIColor(displayP3Red: 248.0/255.0, green: 248.0/255.0, blue: 248.0/255.0, alpha: 1.0)
-//        collectionView.backgroundColor = UIColor.black
-        
-//        collectionView.isPagingEnabled = true
-//        collectionView.showsHorizontalScrollIndicator = false
-        
+
+        collectionView.backgroundColor = UIColor.systemGroupedBackground
         collectionView.showsVerticalScrollIndicator = false
-//
-        
 
         let dataSource = UICollectionViewDiffableDataSource<WFeedListSection, FeedDataItem>(collectionView: collectionView) { collectionView, indexPath, model in
             
@@ -290,10 +283,7 @@ struct WFeedList: UIViewRepresentable {
                                                                     contacts: self.parent.contacts))
 
             controller.view.frame = cell.bounds
-//            controller.view.backgroundColor = UIColor.green
-
-            controller.view.backgroundColor = UIColor(displayP3Red: 248.0/255.0, green: 248.0/255.0, blue: 248.0/255.0, alpha: 1.0)
-            
+            controller.view.backgroundColor = UIColor.systemGroupedBackground
             cell.addSubview(controller.view)
         
             

@@ -29,7 +29,7 @@ struct FeedListHeader: View {
                                 .resizable()
                             
                                 .scaledToFit()
-                                .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
+                                .foregroundColor(Color(UIColor.systemGray3))
                                 .clipShape(Circle())
                             
                                 .frame(width: 50, height: 50, alignment: .center)
@@ -65,9 +65,7 @@ struct FeedListHeader: View {
         }
         
         .padding(EdgeInsets(top: 30, leading: 0, bottom: 10, trailing: 0))
-        .background(Color(red: 248/255, green: 248/255, blue: 248/255))
-    
-        
+        .background(Color(UIColor.systemGroupedBackground))
     }
     
 

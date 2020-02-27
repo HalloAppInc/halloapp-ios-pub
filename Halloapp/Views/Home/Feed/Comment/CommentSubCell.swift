@@ -43,7 +43,7 @@ struct CommentSubCell: View {
                             .scaledToFit()
 
                             .clipShape(Circle())
-                            .foregroundColor(Color(red: 142/255, green: 142/255, blue: 142/255))
+                            .foregroundColor(Color.gray)
 
                             .frame(width: 30, height: 30, alignment: .center)
                             .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 0))
@@ -69,9 +69,8 @@ struct CommentSubCell: View {
                     HStack() {
                         Text(Utils().timeForm(dateStr: String(comment.timestamp)))
                             .font(.system(size: 14, weight: .regular))
-                            .foregroundColor(Color.gray)
-                        
-                        
+                            .foregroundColor(Color.secondary)
+
                         Button(action: {
                             
                             self.replyTo = self.comment.id
@@ -88,7 +87,7 @@ struct CommentSubCell: View {
                             Text("Reply")
                                 .font(.system(size: 13, weight: .bold))
                                 .padding(EdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 20))
-                                .foregroundColor(Color.gray)
+                                .foregroundColor(Color.secondary)
 
                         }
                         

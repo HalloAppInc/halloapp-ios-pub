@@ -68,7 +68,7 @@ struct Profile2: View {
                             .resizable()
 
                             .scaledToFit()
-                            .foregroundColor(Color(red: 192/255, green: 192/255, blue: 192/255))
+                            .foregroundColor(Color(UIColor.systemGray3))
                             .clipShape(Circle())
 
                             .frame(width: 50, height: 50, alignment: .center)
@@ -106,10 +106,10 @@ struct Profile2: View {
             
         }
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-        .background(Color(red: 248/255, green: 248/255, blue: 248/255))
-        
+        .background(Color(UIColor.systemGroupedBackground))
+
         .overlay(
-            BlurView(style: .extraLight)
+            BlurView(style: .systemChromeMaterial)
                 .frame(height: UIScreen.main.bounds.height < 812 ? 80 : 100),
             alignment: .top
         )
@@ -123,7 +123,7 @@ struct Profile2: View {
                         Text("Profile")
                             .font(.custom("Arial", size: 36))
                             .fontWeight(.heavy)
-                            .foregroundColor(Color(red: 220/255, green: 220/255, blue: 220/255))
+                            .foregroundColor(Color(UIColor.systemGray3))
                             .padding()
                         
                         
@@ -137,7 +137,7 @@ struct Profile2: View {
                             }) {
                               Image(systemName: "person.crop.square.fill")
                                   .font(Font.title.weight(.regular))
-                                  .foregroundColor(Color.black)
+                                  .foregroundColor(Color.primary)
                             }
                             .padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 18))
 
@@ -147,7 +147,7 @@ struct Profile2: View {
                             }) {
                               Image(systemName: "gear")
                                 .font(Font.title.weight(.regular))
-                                  .foregroundColor(Color.black)
+                                  .foregroundColor(Color.primary)
                             }
                             .padding(EdgeInsets(top: 5, leading: 10, bottom: 0, trailing: 25))
                           
@@ -170,7 +170,7 @@ struct Profile2: View {
         )
             
         .overlay(
-            BlurView(style: .extraLight)
+            BlurView(style: .systemChromeMaterial)
                 .frame(height: UIScreen.main.bounds.height < 812 ? 60 : 85),
             alignment: .bottom
         )

@@ -22,6 +22,7 @@ class MediaSliderCell: UICollectionViewCell {
         var controller: UIViewController
         controller = UIHostingController(rootView: MediaCell(med: med, height: height, numMedia: numMedia))
         controller.view.frame = self.bounds
+        controller.view.backgroundColor = UIColor.secondarySystemGroupedBackground
         self.addSubview(controller.view)
     }
     
@@ -65,11 +66,9 @@ struct WMediaSlider: UIViewRepresentable {
     
         collectionView.register(MediaSliderCell.self, forCellWithReuseIdentifier: "MediaSliderCell")
         
-        collectionView.backgroundColor = UIColor.white
-//        collectionView.backgroundColor = UIColor(displayP3Red: 248.0/255.0, green: 248.0/255.0, blue: 248.0/255.0, alpha: 1.0)
-        
         collectionView.isPagingEnabled = true
         collectionView.showsHorizontalScrollIndicator = false
+        collectionView.backgroundColor = UIColor.clear
         
         let dataSource = UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>(collectionView: collectionView) { collectionView, indexPath, modelObj in
 

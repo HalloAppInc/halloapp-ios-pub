@@ -86,12 +86,10 @@ struct Feed2: View {
             
         }
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-        .background(Color(red: 248/255, green: 248/255, blue: 248/255))
-            
-            
-            
+        .background(Color(UIColor.systemGroupedBackground))
+
         .overlay(
-            BlurView(style: .extraLight)
+            BlurView(style: .systemChromeMaterial)
                 .frame(height: UIScreen.main.bounds.height < 812 ? 76 : 96),
                 alignment: .top
         )
@@ -101,7 +99,7 @@ struct Feed2: View {
                 Text("Home")
                     .font(.custom("Arial", size: 36))
                     .fontWeight(.heavy)
-                    .foregroundColor(Color(red: 220/255, green: 220/255, blue: 220/255))
+                    .foregroundColor(Color(UIColor.systemGray3))
                     .padding()
                 
                 
@@ -122,7 +120,7 @@ struct Feed2: View {
                         }) {
                             Image(systemName: "bell")
                                 .font(Font.title.weight(.regular))
-                                .foregroundColor(Color.black)
+                                .foregroundColor(Color.primary)
                         }
                         .padding()
                         .padding(.trailing, 0)
@@ -137,8 +135,7 @@ struct Feed2: View {
                         }) {
                             Image(systemName: "plus")
                                 .font(Font.title.weight(.regular))
-                                .foregroundColor(Color.black)
-
+                                .foregroundColor(Color.primary)
                                 .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 25))
 
                         }
@@ -155,7 +152,7 @@ struct Feed2: View {
         )
 
         .overlay(
-            BlurView(style: .extraLight)
+            BlurView(style: .systemChromeMaterial)
                 .frame(height: UIScreen.main.bounds.height < 812 ? 60 : 85),
             alignment: .bottom
         )

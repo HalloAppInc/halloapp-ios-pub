@@ -24,7 +24,7 @@ struct Navi: View {
                        
                         Image(systemName: "house.fill")
                             .imageScale(.large)
-                            .foregroundColor(homeRouteData.homePage == "feed" ? Color.black : Color.gray)
+                            .foregroundColor(homeRouteData.homePage == "feed" ? Color.primary : Color.gray)
                             .padding(EdgeInsets(top: 20, leading: 25, bottom: 7, trailing: 25))
                         
                             
@@ -46,7 +46,7 @@ struct Navi: View {
                         
                         Image(systemName: "envelope.fill")
                             .imageScale(.large)
-                            .foregroundColor(homeRouteData.homePage == "messaging" ? Color.black : Color.gray)
+                            .foregroundColor(homeRouteData.homePage == "messaging" ? Color.primary : Color.gray)
                             .padding(EdgeInsets(top: 20, leading: 25, bottom: 5, trailing: 25))
                        
                     }
@@ -65,7 +65,7 @@ struct Navi: View {
                     }) {
                         Image(systemName: "person.fill")
                             .imageScale(.large)
-                            .foregroundColor(homeRouteData.homePage == "profile" ? Color.black : Color.gray)
+                            .foregroundColor(homeRouteData.homePage == "profile" ? Color.primary : Color.gray)
                             .padding(EdgeInsets(top: 20, leading: 25, bottom: 5, trailing: 25))
                             
                     }

@@ -56,7 +56,7 @@ struct Messaging: View {
                                 .resizable()
 
                                 .scaledToFit()
-                                .foregroundColor(Color(red: 142/255, green: 142/255, blue: 142/255))
+                                .foregroundColor(Color.gray)
                                 .clipShape(Circle())
 
                                 .frame(width: 50, height: 50, alignment: .center)
@@ -65,21 +65,21 @@ struct Messaging: View {
                             VStack {
                                 HStack() {
                                     Text(contact.name)
-
-                                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                        .foregroundColor(Color.primary)
+                                        .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                                     Spacer()
                                 }
                                 HStack() {
                                     Text(contact.normPhone != "" ? contact.normPhone : contact.phone)
                                         .font(.system(size: 12, weight: .regular))
-                                         .padding(EdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0))
-                                        .foregroundColor(Color(red: 162/255, green: 162/255, blue: 162/255))
+                                        .padding(EdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0))
+                                        .foregroundColor(Color.secondary)
 
                                     Spacer()
                                 }
                             }
 
-                            Spacer()
+                            Divider()
 
 
     //                        Button(action: {
@@ -117,21 +117,15 @@ struct Messaging: View {
             }
             
             .onAppear {
-                UITableView.appearance().backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 248/255, alpha: 1)
-                UITableViewCell.appearance().backgroundColor = UIColor(red: 248/255, green: 248/255, blue: 248/255, alpha: 1)
                 UITableView.appearance().separatorStyle = .none
             }
-            .background(Color(red: 248/255, green: 248/255, blue: 248/255))
-        
-
         }
-        .background(Color(red: 248/255, green: 248/255, blue: 248/255))
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
 
         
             
         .overlay(
-            BlurView(style: .extraLight)
+            BlurView(style: .systemChromeMaterial)
                 .frame(height: UIScreen.main.bounds.height < 812 ? 76 : 96),
             alignment: .top
         )
@@ -142,7 +136,7 @@ struct Messaging: View {
                 Text("Messages")
                     .font(.custom("Arial", size: 36))
                     .fontWeight(.heavy)
-                    .foregroundColor(Color(red: 220/255, green: 220/255, blue: 220/255))
+                    .foregroundColor(Color(UIColor.systemGray3))
                     .padding()
                 
                 Spacer()
@@ -155,7 +149,7 @@ struct Messaging: View {
                     }) {
                         Image(systemName: "magnifyingglass")
                             .font(Font.title.weight(.regular))
-                            .foregroundColor(Color.black)
+                            .foregroundColor(Color.primary)
                     }
   
                     .padding(EdgeInsets(top: 7, leading: 0, bottom: 0, trailing: 18))
@@ -167,7 +161,7 @@ struct Messaging: View {
                     }) {
                         Image(systemName: "square.and.pencil")
                           .font(Font.title.weight(.regular))
-                            .foregroundColor(Color.black)
+                            .foregroundColor(Color.primary)
                     }
                     
                     .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 25))
@@ -180,7 +174,7 @@ struct Messaging: View {
         )
 
         .overlay(
-            BlurView(style: .extraLight)
+            BlurView(style: .systemChromeMaterial)
                 .frame(height: UIScreen.main.bounds.height < 812 ? 60 : 85),
             alignment: .bottom
         )

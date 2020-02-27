@@ -21,7 +21,7 @@ struct Notifications: View {
                 }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(Color.black)
+                        .foregroundColor(Color.primary)
                         .padding()
                 }
             }

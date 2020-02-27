@@ -36,7 +36,7 @@ struct Verify: View {
                     
                     .multilineTextAlignment(.center)
                     .padding(.all)
-                    .background(Color(red: 239.0/255.0, green: 243.0/255.0, blue: 244.0/255.0, opacity: 1.0))
+                    .background(Color(UIColor.systemGray6))
                     .cornerRadius(10)
                     .frame(width: 200, height: nil)
                     .font(Font.system(size: 22, design: .default))
@@ -60,7 +60,7 @@ struct Verify: View {
                 Text("CONTINUE")
 
                     .padding(15)
-                    .background(LinearGradient(gradient: Gradient(colors: [Color.green, Color.green]), startPoint: .leading, endPoint: .trailing))
+                    .background(Color.green)
                     .foregroundColor(.white)
                     .cornerRadius(40)
                     .shadow(radius: 5)

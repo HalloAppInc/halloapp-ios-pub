@@ -126,7 +126,7 @@ struct WUICollectionView: UIViewRepresentable {
         
 //        collectionView.backgroundColor = UIColor(displayP3Red: 248.0/255.0, green: 248.0/255.0, blue: 248.0/255.0, alpha: 1.0)
         
-        collectionView.backgroundColor = UIColor.white
+        collectionView.backgroundColor = UIColor.systemBackground
         
         let dataSource = UICollectionViewDiffableDataSource<MySection, FeedComment>(collectionView: collectionView) { collectionView, indexPath, modelObj in
 

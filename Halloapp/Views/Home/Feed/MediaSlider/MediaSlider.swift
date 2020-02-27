@@ -118,7 +118,7 @@ struct MediaSlider: View {
                                 .resizable()
                              
                                 .scaledToFit()
-                                .foregroundColor(self.pageNum == self.media.firstIndex(of: med) ? Color(red:  0/255, green: 128/255, blue:  255/255) : Color(red:  220/255, green: 220/255, blue:  220/255))
+                                .foregroundColor(self.pageNum == self.media.firstIndex(of: med) ? Color.blue : Color(UIColor.systemGray4))
                                 .clipShape(Circle())
                              
                                 .frame(width: 5, height: 5, alignment: .center)

@@ -113,7 +113,7 @@ struct Commenting: View {
   
 
         .overlay(
-            BlurView(style: .extraLight)
+            BlurView(style: .systemChromeMaterial)
                 .frame(height: UIScreen.main.bounds.height < 812 ? 76 : 96),
                 alignment: .top
         )
@@ -150,8 +150,7 @@ struct Commenting: View {
                         }) {
                             Image(systemName: "chevron.left")
                                 .font(Font.title.weight(.regular))
-                                .foregroundColor(Color.black)
-
+                                .foregroundColor(Color.primary)
                                 .padding(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 25))
 
                         }
@@ -166,7 +165,7 @@ struct Commenting: View {
                 Text("Comments")
                     .font(.custom("Arial", size: 30))
                     .fontWeight(.heavy)
-                    .foregroundColor(Color(red: 220/255, green: 220/255, blue: 220/255))
+                    .foregroundColor(Color(UIColor.systemGray5))
                     .padding()
                 
                 Spacer()
@@ -178,7 +177,7 @@ struct Commenting: View {
                         }) {
                             Image(systemName: "plus")
                               .font(Font.title.weight(.regular))
-                                .foregroundColor(Color.black)
+                                .foregroundColor(Color.primary)
                                 .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 25))
                         }
                         .hidden()
@@ -191,11 +190,10 @@ struct Commenting: View {
             .padding(EdgeInsets(top: UIScreen.main.bounds.height < 812 ? 5 : 25, leading: 0, bottom: 0, trailing: 0))
             .background(Color.clear),
             alignment: .top
-
         )
 
         .overlay(
-            BlurView(style: .extraLight)
+            BlurView(style: .systemChromeMaterial)
                 .frame(height: UIScreen.main.bounds.height < 812 ? 80 : 100),
                 alignment: .bottom
         )
@@ -206,8 +204,7 @@ struct Commenting: View {
                     
                     HStack() {
                         Text("Replying to \(replyToName != "Me" ? replyToName : "myself" )")
-                            .foregroundColor(Color.gray)
-                            
+                            .foregroundColor(Color.secondary)
                             .padding(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 15))
                         Spacer()
                         
@@ -228,7 +225,7 @@ struct Commenting: View {
                         
                     
                     }
-                    .background(Color(red: 248/255, green: 248/255, blue: 248/255, opacity: 0.9))
+                    .background(Color(UIColor.systemGray6.withAlphaComponent(0.9)))
                     .padding(EdgeInsets(top: 0, leading: 0, bottom: 13, trailing: 0))
                    
                 }
@@ -258,8 +255,7 @@ struct Commenting: View {
                         
                     }
                     .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
-                    .background(Color(red: 239.0/255.0, green: 243.0/255.0, blue: 244.0/255.0, opacity: 1.0))
-
+                    .background(Color(UIColor.systemGray5))
                     .cornerRadius(15)
 
 
@@ -318,7 +314,7 @@ struct Commenting: View {
             alignment: .bottom
         )
         
-        .background(Color(red: 248/255, green: 248/255, blue: 248/255))
+        .background(Color(UIColor.systemGray6))
         .onTapGesture {
             let keyWindow = UIApplication.shared.connectedScenes
                     .filter({$0.activationState == .foregroundActive})
