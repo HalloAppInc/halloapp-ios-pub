@@ -18,7 +18,7 @@ import Photos
 
 private func resolutionForLocalVideo(url: URL) -> CGSize? {
     guard let track = AVURLAsset(url: url).tracks(withMediaType: AVMediaType.video).first else { return nil }
-   let size = track.naturalSize.applying(track.preferredTransform)
+    let size = track.naturalSize.applying(track.preferredTransform)
     return CGSize(width: abs(size.width), height: abs(size.height))
 }
 
@@ -26,12 +26,10 @@ struct PickerWrapper: UIViewControllerRepresentable {
 
     typealias UIViewControllerType = YPImagePicker
 
-    @Binding var pickedImages: [FeedMedia]
+    @Binding var selectedMedia: [FeedMedia]
+    var didFinishWithMedia: () -> Void
+    var didCancel: () -> Void
 
-    var goBack: () -> Void
-    
-    var goToPostMedia: () -> Void
-    
     func makeCoordinator() -> PickerWrapper.Coordinator {
         Coordinator(self)
     }
@@ -74,7 +72,7 @@ struct PickerWrapper: UIViewControllerRepresentable {
 
             if cancelled {
                 picker.dismiss(animated: true, completion: nil)
-                self.goBack()
+                self.didCancel()
                 return
             }
 
@@ -95,7 +93,7 @@ struct PickerWrapper: UIViewControllerRepresentable {
                     mediaItem.width = imageWidth
                     mediaItem.height = imageHeight
                     
-                    self.pickedImages.append(mediaItem)
+                    self.selectedMedia.append(mediaItem)
 
                 case .video(let video):
                     
@@ -138,13 +136,13 @@ struct PickerWrapper: UIViewControllerRepresentable {
 
 
                     
-                    self.pickedImages.append(mediaItem)
+                    self.selectedMedia.append(mediaItem)
                     
                     print(video)
                 }
             }
 
-            self.goToPostMedia()
+            self.didFinishWithMedia()
             picker.dismiss(animated: true, completion: nil)
             return
 

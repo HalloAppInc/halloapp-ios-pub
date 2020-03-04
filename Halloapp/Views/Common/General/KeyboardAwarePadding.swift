@@ -28,15 +28,13 @@ struct KeyboardAwareModifier: ViewModifier {
         content
             .padding(.bottom, keyboardHeight)
             .onReceive(keyboardHeightPublisher) {
-                
-                /* the 30 might need to be customizable for different phones */
-                
-                if ($0 != 0.0) {
-                    self.keyboardHeight = $0 - 30
-                } else {
+                ///TODO: padding is incorrect on devices with non-zero bottom safe area
+//                /* the 30 might need to be customizable for different phones */
+//                if ($0 != 0.0) {
+//                    self.keyboardHeight = $0 - 30
+//                } else {
                     self.keyboardHeight = $0
-                }
-                
+//                }
             }
     }
 }

@@ -24,12 +24,3 @@ struct Landing: View {
         }
     }
 }
-
-//struct Landing_Previews: PreviewProvider {
-//    static var previews: some View {
-//        Landing()
-//            .environmentObject(AuthRouteData())
-//            .environmentObject(UserData())
-//           
-//    }
-//}

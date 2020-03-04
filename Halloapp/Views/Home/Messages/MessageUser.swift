@@ -27,16 +27,8 @@ struct MessageUser: View {
             }
             Spacer()
             Text("coming very soon")
-//            WUICollectionView()
-//                .background(Color.red)
             Spacer()
 
         }
     }
 }
-
-//struct MessageUser_Previews: PreviewProvider {
-//    static var previews: some View {
-//        MessageUser()
-//    }
-//}

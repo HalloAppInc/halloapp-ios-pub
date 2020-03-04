@@ -9,18 +9,14 @@
 import SwiftUI
 
 struct HomeInit: View {
-
     @ObservedObject var xmpp: XMPP
     
     var body: some View {
         VStack {
             if (xmpp.userData.isLoggedIn) {
-                HomeRouter(
-                    xmpp: xmpp,
-                    contacts: Contacts(xmpp: xmpp),
-                    feedData: FeedData(xmpp: xmpp)
-                )
-                    
+                MainView(contacts: Contacts(xmpp: xmpp), feedData: FeedData(xmpp: xmpp))
+                .environmentObject(xmpp)
+                .environmentObject(MainViewController())
             } else {
                 ActivityIndicator()
                     .frame(width: 50, height: 50)
@@ -29,10 +25,3 @@ struct HomeInit: View {
         }
     }
 }
-
-//struct HomeInit_Previews: PreviewProvider {
-//    static var previews: some View {
-//        HomeInit(xmpp: XMPP(userData: UserData(), metaData: MetaData()))
-//        
-//    }
-//}

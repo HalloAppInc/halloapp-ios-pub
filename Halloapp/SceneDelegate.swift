@@ -51,7 +51,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             window.rootViewController = UIHostingController(
                 rootView: Landing()
                     .environmentObject(AuthRouteData())
-                    .environmentObject(HomeRouteData())
                     .environmentObject(UserData())
                     .environmentObject(Verification())
                     .environmentObject(MetaData())

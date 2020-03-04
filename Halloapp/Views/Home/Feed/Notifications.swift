@@ -9,15 +9,14 @@
 import SwiftUI
 
 struct Notifications: View {
-    var onDismiss: () -> ()
-    
+    @Binding var showModal: Bool
+
     var body: some View {
         VStack() {
             HStack() {
                 Spacer()
                 Button(action: {
-                    self.onDismiss()
-                    
+                    self.showModal = false
                 }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 20, weight: .semibold))
@@ -28,15 +27,6 @@ struct Notifications: View {
             Spacer()
             Text("Notifications coming soon")
             Spacer()
-
         }
     }
 }
-
-
-//struct Notifications_Previews: PreviewProvider {
-//    static var previews: some View {
-//        Notifications()
-//    }
-//}
-

@@ -27,15 +27,8 @@ class FeedData: ObservableObject {
     let feedItemCore = FeedItemCore()
     let feedCommentCore = FeedCommentCore()
     let feedMediaCore = FeedMediaCore()
-    
-    /* temp vars */
-//    @State var showSheet: Bool
-//    @Binding var showMessages: Bool
-//    @Binding var lastClickedComment: String
-//    @Binding var scroll: String
-    
+
     init(xmpp: XMPP) {
-                
         self.xmpp = xmpp
         self.xmppController = self.xmpp.xmppController
 

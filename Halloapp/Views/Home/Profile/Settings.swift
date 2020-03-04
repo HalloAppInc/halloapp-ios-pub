@@ -10,9 +10,8 @@ import SwiftUI
 import MessageUI
 
 struct Settings: View {
-    
     @EnvironmentObject var userData: UserData
-    @EnvironmentObject var homeRouteData: HomeRouteData
+    @EnvironmentObject var mainViewController: MainViewController
     
     var onDismiss: () -> ()
     
@@ -79,7 +78,7 @@ struct Settings: View {
             Button(action: {
                 print("lgoging")
                 self.userData.logout()
-                self.homeRouteData.gotoPage(page: "feed")
+                self.mainViewController.selectFeedTab()
                 
             }) {
                 Text("Log out")
