@@ -90,17 +90,23 @@ struct PostComposerView: View {
                                 feedMedia.url = self.fetchedUrls[index].putUrl
 
                                 if feedMedia.type == "image" {
+                                    
+                                    self.feedData.xmpp.userData.log("Post Image: original res - \(item.width) x \(item.height)")
 
                                     if item.width > 1600 || item.height > 1600 {
                                         item.image = item.image.getNewSize(res: 1600) ?? UIImage()
                                         item.width = Int(item.image.size.width)
                                         item.height = Int(item.image.size.height)
+                                        
+                                        self.feedData.xmpp.userData.log("Post Image: resized res - \(item.image.size.width) x \(item.image.size.height)")
                                     }
 
                                     feedMedia.image = item.image
 
                                     /* turn on/off encryption of media */
-                                    if let imgData = feedMedia.image.jpegData(compressionQuality: 0.1) {
+                                    if let imgData = feedMedia.image.jpegData(compressionQuality: CGFloat(self.feedData.xmpp.userData.compressionQuality)) {
+                                        self.feedData.xmpp.userData.log("Post Image: (\(self.feedData.xmpp.userData.compressionQuality)) compressed size - \(imgData.count)")
+                                        
                                         (feedMedia.encryptedData, feedMedia.key, feedMedia.hash) = HAC().encryptData(data: imgData, type: "image")
 
                                         item.key = feedMedia.key

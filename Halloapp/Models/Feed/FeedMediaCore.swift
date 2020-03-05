@@ -88,7 +88,7 @@ class FeedMediaCore {
                     numTries: data.value(forKey: "numTries") as! Int
                 )
                 
-                if let blob = data.value(forKey: "smallBlob") as? Data {
+                if let blob = data.value(forKey: "blob") as? Data {
                     
                     let path = "tempImg.jpg"
                     let tempUrl = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(path)
@@ -204,7 +204,7 @@ class FeedMediaCore {
                 )
 
                 
-                if let blob = data.value(forKey: "smallBlob") as? Data {
+                if let blob = data.value(forKey: "blob") as? Data {
     
 //
 //                    let path = "\(UUID().uuidString).jpg"

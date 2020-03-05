@@ -53,6 +53,8 @@ final class UserData: ObservableObject {
     
     public var loggingTimestamp = Int(Date().timeIntervalSince1970)
     
+    public var compressionQuality: Float = 0.4
+    
     let userCore = UserCore()
 
     init() {

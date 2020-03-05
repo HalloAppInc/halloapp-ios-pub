@@ -115,26 +115,23 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
                         /* we could have an uploaded image that is corrupted */
                         if (orig.size.width > 0) {
                         
-                            var res: Int = 1024
 
-                            if UIScreen.main.bounds.width <= 375 {
-                                res = 800
-                            }
-                            
-                            let thumb = orig.getNewSize(res: res) ?? UIImage()
-
-
-                            
                             DispatchQueue.main.async {
-                                
-                                self.image = thumb
-                                
+                                self.image = orig
                                 self.didChange.send()
-                                
                             }
                             
                             DispatchQueue.global(qos: .default).async {
-                                print("updating media \(self.feedItemId) \(orig.size.width)")
+                                
+                                var res: Int = 640
+
+                                if UIScreen.main.bounds.width <= 375 {
+                                    res = 480
+                                }
+                                
+                                /* thumbnails are currently not used right now but will be used in the future */
+                                let thumb = orig.getNewSize(res: res) ?? UIImage() // note: getNewSize will not resize if the pic is lower than res
+                                
                                 FeedMediaCore().updateImage(feedItemId: self.feedItemId, url: self.url, thumb: thumb, orig: orig)
                             }
                             

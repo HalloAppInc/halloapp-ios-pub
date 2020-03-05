@@ -20,6 +20,8 @@ struct Settings: View {
     
     @State private var isButtonVisible = true
 
+    @State var localCompress: Float = 0.4
+    
     func appVersion() -> String {
         guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
             return ""
@@ -31,8 +33,12 @@ struct Settings: View {
     }
 
     var body: some View {
-
-        VStack() {
+        
+        DispatchQueue.main.async {
+            self.localCompress = self.userData.compressionQuality
+        }
+        
+        return VStack() {
             HStack() {
                 Spacer()
                 Button(action: {
@@ -75,6 +81,99 @@ struct Settings: View {
             Text(appVersion())
             Text("\(self.userData.hostName)")
 
+            Spacer()
+            
+            VStack() {
+                Text("Image Compression: \(self.localCompress)")
+                
+                HStack() {
+                    Button(action: {
+                        self.userData.compressionQuality = 0.2
+                        self.localCompress = 0.2
+                    }) {
+                        Text("2")
+                            .padding(10)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .shadow(radius: 2)
+                    }
+
+                    Button(action: {
+                        self.userData.compressionQuality = 0.3
+                        self.localCompress = 0.3
+                    }) {
+                        Text("3")
+                            .padding(10)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .shadow(radius: 2)
+                    }
+                    
+                    Button(action: {
+                        self.userData.compressionQuality = 0.4
+                        self.localCompress = 0.4
+                    }) {
+                        Text("4")
+                            .padding(10)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .shadow(radius: 2)
+                    }
+                    
+                    Button(action: {
+                        self.userData.compressionQuality = 0.5
+                        self.localCompress = 0.5
+                    }) {
+                        Text("5")
+                            .padding(10)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .shadow(radius: 2)
+                    }
+                    
+                    Button(action: {
+                        self.userData.compressionQuality = 0.6
+                        self.localCompress = 0.6
+                    }) {
+                        Text("6")
+                            .padding(10)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .shadow(radius: 2)
+                    }
+                    
+                    Button(action: {
+                        self.userData.compressionQuality = 0.7
+                        self.localCompress = 0.7
+                    }) {
+                        Text("7")
+                            .padding(10)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .shadow(radius: 2)
+                    }
+                    
+                    Button(action: {
+                        self.userData.compressionQuality = 0.8
+                        self.localCompress = 0.8
+                    }) {
+                        Text("8")
+                            .padding(10)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(20)
+                            .shadow(radius: 2)
+                    }
+                    
+                }.padding(.top, 10)
+            }
+            
             Button(action: {
                 print("lgoging")
                 self.userData.logout()
