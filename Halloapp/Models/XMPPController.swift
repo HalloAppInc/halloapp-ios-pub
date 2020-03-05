@@ -367,8 +367,6 @@ extension XMPPController: XMPPStreamDelegate {
     func xmppStreamDidConnect(_ stream: XMPPStream) {
         self.userData.log("Stream: Connected")
         
-        self.isConnectedToServer = true
-        
         try! stream.authenticate(withPassword: self.userData.password)
     }
 
@@ -383,6 +381,7 @@ extension XMPPController: XMPPStreamDelegate {
     func xmppStreamDidAuthenticate(_ sender: XMPPStream) {
         self.userData.log("Stream: Authenticated")
         
+        self.isConnectedToServer = true
         self.didConnect.send("didConnect")
         
         #if targetEnvironment(simulator)
