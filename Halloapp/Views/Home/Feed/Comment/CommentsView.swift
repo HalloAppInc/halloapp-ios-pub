@@ -10,6 +10,8 @@ import SwiftUI
 import Combine
 
 struct CommentsView: View {
+    @ObservedObject private var keyboard = KeyboardResponder()
+
     @EnvironmentObject var feedData: FeedData
     @EnvironmentObject var contacts: Contacts
     
@@ -69,130 +71,118 @@ struct CommentsView: View {
                 })
             )
         }
-        
-        return VStack() {
-            CommentsCollectionView(
-                item: $item,
-                comments: $comments,
-                scroll: $scroll,
-                replyTo: $replyTo,
-                replyToName: $replyToName,
-                msgToSend: $msgToSend,
-                contacts: contacts)
-                .background(Color.red)
-        }
+
+        return (
+        GeometryReader { geometry in
+            ///TODO: implement proper layout where compose box is overlayed on top of the comments table
+            VStack(spacing: 0) {
+                CommentsCollectionView(
+                    item: self.$item,
+                    comments: self.$comments,
+                    scroll: self.$scroll,
+                    replyTo: self.$replyTo,
+                    replyToName: self.$replyToName,
+                    contacts: self.contacts)
+                .onTapGesture {
+                    let keyWindow = UIApplication.shared.connectedScenes
+                            .filter({$0.activationState == .foregroundActive})
+                            .map({$0 as? UIWindowScene})
+                            .compactMap({$0})
+                            .first?.windows
+                            .filter({$0.isKeyWindow}).first
+                    keyWindow?.endEditing(true)
+                }
+
+                Spacer(minLength: 0)
+
+                // Compose box
+                VStack(spacing: 0) {
+                    Divider()
+
+                    // "Replying to" panel
+                    if (self.replyTo != "") {
+                        HStack {
+                            Text("Replying to \(self.replyToName != "Me" ? self.replyToName : "myself" )")
+                                .foregroundColor(Color.secondary)
+                            Spacer(minLength: 15)
+
+                            Button(action: {
+                                self.replyTo = ""
+                                self.replyToName = ""
+                                self.msgToSend = "" ///TODO: do we need to do this?
+                            }) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(Color.gray)
+                                    .padding()
+                            }
+                        }
+                        .padding(EdgeInsets(top: 8, leading: 20, bottom: 0, trailing: 15))
+                    }
+
+                    // Text field + Post button
+                    HStack {
+                        TextField("Add a comment", text: self.$msgToSend, onEditingChanged: { (changed) in
+                            if changed {
+
+                            } else {
+
+                            }
+                        }) {
+                            if (self.msgToSend != "") {
+                                self.feedData.postComment(self.item.itemId, self.item.username, self.msgToSend, self.replyTo)
+
+                                self.msgToSend = ""
+                                self.replyTo = ""
+                                self.replyToName = ""
+
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    self.scroll = "0"
+                                }
+                            }
+                        }
+                        .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
+                        .background(Color(UIColor.systemGray5))
+                        .cornerRadius(15)
+
+                        Button(action: {
+                            if (self.feedData.isConnecting) {
+                                self.showNetworkAlert = true
+                                return
+                            }
+
+                            if (self.msgToSend != "") {
+                                self.feedData.postComment(self.item.itemId, self.item.username, self.msgToSend, self.replyTo)
+
+                                self.msgToSend = ""
+                                self.replyTo = ""
+                                self.replyToName = ""
+
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    self.scroll = "0"
+                                }
+                            }
+                        }) {
+                            Text("Post")
+                                .padding(EdgeInsets(top: 7, leading: 15, bottom: 7, trailing: 15))
+                                .background(self.msgToSend == "" ? Color.gray : Color.blue)
+                                .foregroundColor(Color.white)
+                                .cornerRadius(15)
+                                .shadow(radius: 2)
+                        }
+                    }
+                    .padding(EdgeInsets(top: 15, leading: 15, bottom: 15 + (self.keyboard.currentHeight == 0 ? geometry.safeAreaInsets.bottom : 0), trailing: 15))
+                }
+                .background(BlurView(style: .systemChromeMaterial))
+            }
+            // Keyboard padding
+            .padding(.bottom, self.keyboard.currentHeight)
+        })
         .navigationBarTitle("Comments", displayMode: .inline)
 
-        // Compose box
-        .overlay(
-            VStack(spacing: 0) {
-                Divider()
-
-                // "Replying to" panel
-                if (replyTo != "") {
-                    HStack() {
-                        Text("Replying to \(replyToName != "Me" ? replyToName : "myself" )")
-                            .foregroundColor(Color.secondary)
-                        Spacer(minLength: 15)
-
-                        ///TODO: v-align this with text
-                        Button(action: {
-                            self.replyTo = ""
-                            self.replyToName = ""
-                            self.msgToSend = ""
-                        }) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(Color.gray)
-                                .padding()
-                        }
-                    }
-                    .padding(EdgeInsets(top: 8, leading: 20, bottom: 0, trailing: 15))
-                }
-
-                // Text field + Post button
-                HStack {
-                    TextField("Add a comment", text: self.$msgToSend, onEditingChanged: { (changed) in
-                        if changed {
-                         
-                        } else {
-
-                        }
-                    }) {
-                        if (self.msgToSend != "") {
-                            self.feedData.postComment(self.item.itemId, self.item.username, self.msgToSend, self.replyTo)
-                            
-                            self.msgToSend = ""
-                            self.replyTo = ""
-                            self.replyToName = ""
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                self.scroll = "0"
-                            }
-                        }
-                    }
-                    .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
-                    .background(Color(UIColor.systemGray5))
-                    .cornerRadius(15)
-
-                    Button(action: {
-                        if (self.feedData.isConnecting) {
-                            self.showNetworkAlert = true
-                            return
-                        }
-                        
-                        if (self.msgToSend != "") {
-                            
-                            self.feedData.postComment(self.item.itemId, self.item.username, self.msgToSend, self.replyTo)
-                            
-                            self.msgToSend = ""
-                            self.replyTo = ""
-                            self.replyToName = ""
-                        
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                self.scroll = "0"
-                            }
-                        }
-                        
-                        // slight delay for better UX
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            let keyWindow = UIApplication.shared.connectedScenes
-                                    .filter({$0.activationState == .foregroundActive})
-                                    .map({$0 as? UIWindowScene})
-                                    .compactMap({$0})
-                                    .first?.windows
-                                    .filter({$0.isKeyWindow}).first
-                            keyWindow?.endEditing(true)
-                        }
-                    }) {
-                        Text("Post")
-                            .padding(EdgeInsets(top: 7, leading: 15, bottom: 7, trailing: 15))
-                            .background(self.msgToSend == "" ? Color.gray : Color.blue)
-                            .foregroundColor(Color.white)
-                            .cornerRadius(15)
-                            .shadow(radius: 2)
-                    }
-                }
-                .padding(EdgeInsets(top: 16, leading: 15, bottom: 16, trailing: 15))
-            }
-            .background(BlurView(style: .systemChromeMaterial))
-            .padding(.zero),
-            alignment: .bottom
-        )
-        
         .background(Color(UIColor.systemGray6))
-            
-        .onTapGesture {
-            let keyWindow = UIApplication.shared.connectedScenes
-                    .filter({$0.activationState == .foregroundActive})
-                    .map({$0 as? UIWindowScene})
-                    .compactMap({$0})
-                    .first?.windows
-                    .filter({$0.isKeyWindow}).first
-            keyWindow?.endEditing(true)
-            
-        }
-        .KeyboardAwarePadding()
+
+        .edgesIgnoringSafeArea(.bottom)
 
         .alert(isPresented: $showNetworkAlert) {
             Alert(title: Text("Couldn't connect to Halloapp"), message: Text("We'll keep trying, but there may be a problem with your connection"), dismissButton: .default(Text("Ok")))

@@ -40,7 +40,7 @@ struct RootCommentView: View {
 
                     +
 
-                    Text("   \(comment.text)")
+                    Text("  \(comment.text)")
                         .font(.system(size: 15, weight: .regular))
 
                     Text(Utils().timeForm(dateStr: String(comment.timestamp)))
@@ -70,7 +70,6 @@ struct CommentView: View {
     @Binding var scroll: String
     @Binding var replyTo: String
     @Binding var replyToName: String
-    @Binding var msgToSend: String
 
     @ObservedObject var contacts: Contacts
 
@@ -97,7 +96,7 @@ struct CommentView: View {
 
                     +
 
-                    Text("   \(comment.text)")
+                    Text("  \(comment.text)")
                         .font(.system(size: 15, weight: .regular))
 
                     HStack(spacing: 16) {
@@ -108,11 +107,6 @@ struct CommentView: View {
                         Button(action: {
                             self.replyTo = self.comment.id
                             self.replyToName = self.contacts.getName(phone: self.comment.username)
-                            if (self.replyToName != "Me") {
-                                self.msgToSend = ""
-                            } else {
-                                self.msgToSend = ""
-                            }
                         }) {
                             Text("Reply")
                                 .font(.system(size: 13, weight: .bold))
@@ -130,14 +124,14 @@ struct CommentView: View {
 }
 
 class CommentCell: UICollectionViewCell {
-    public func configure(model: FeedComment, con: Binding<String>, replyTo: Binding<String>, replyToName: Binding<String>, msgToSend: Binding<String>, contacts: Contacts) {
-        let controller = UIHostingController(rootView: CommentView(comment: model, scroll: con, replyTo: replyTo, replyToName: replyToName, msgToSend: msgToSend, contacts: contacts))
+    public func configure(model: FeedComment, con: Binding<String>, replyTo: Binding<String>, replyToName: Binding<String>, contacts: Contacts) {
+        let controller = UIHostingController(rootView: CommentView(comment: model, scroll: con, replyTo: replyTo, replyToName: replyToName, contacts: contacts))
         controller.view.frame = self.bounds
-        self.addSubview(controller.view)
+        self.contentView.addSubview(controller.view)
     }
     
     override func prepareForReuse() {
-        let theSubviews: Array = (self.subviews)
+        let theSubviews: Array = (self.contentView.subviews)
         for view in theSubviews {
             view.removeFromSuperview()
         }
@@ -157,13 +151,11 @@ struct CommentsCollectionView: UIViewRepresentable {
     
     @Binding var replyTo: String
     @Binding var replyToName: String
-    @Binding var msgToSend: String
-    
+
     @ObservedObject var contacts: Contacts
-    
+
     func makeUIView(context: Context) -> UICollectionView {
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 65, right: 0)
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
         layout.itemSize = UICollectionViewFlowLayout.automaticSize
         layout.minimumInteritemSpacing = 0
@@ -173,14 +165,13 @@ struct CommentsCollectionView: UIViewRepresentable {
         collectionView.register(CommentHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CommentsCollectionView.headerReuseIdentifier)
         collectionView.register(CommentCell.self, forCellWithReuseIdentifier: CommentsCollectionView.cellReuseIdentifier)
         collectionView.backgroundColor = UIColor.systemBackground
-        
+
         let dataSource = UICollectionViewDiffableDataSource<MySection, FeedComment>(collectionView: collectionView) { collectionView, indexPath, modelObj in
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CommentsCollectionView.cellReuseIdentifier, for: indexPath) as? CommentCell {
                 cell.configure(model: modelObj,
                                con: self.$scroll,
                                replyTo: self.$replyTo,
                                replyToName: self.$replyToName,
-                               msgToSend: self.$msgToSend,
                                contacts: self.contacts)
                 return cell
             }
@@ -253,7 +244,6 @@ struct CommentsCollectionView: UIViewRepresentable {
                                                                        scroll: self.$temp,
                                                                        replyTo: self.$temp,
                                                                        replyToName: self.$temp,
-                                                                       msgToSend: self.$temp,
                                                                        contacts: self.parent.contacts))
             let size = controller.view.sizeThatFits(CGSize(width: collectionView.frame.width, height: CGFloat.greatestFiniteMagnitude))
             return CGSize(width: collectionView.frame.width, height: size.height)
