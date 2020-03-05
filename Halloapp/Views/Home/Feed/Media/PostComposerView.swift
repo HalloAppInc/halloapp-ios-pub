@@ -100,12 +100,12 @@ struct PostComposerView: View {
                                     feedMedia.image = item.image
 
                                     /* turn on/off encryption of media */
-//                                    if let imgData = feedMedia.image.jpegData(compressionQuality: 0.1) {
-//                                        (feedMedia.encryptedData, feedMedia.key, feedMedia.hash) = HAC().encryptData(data: imgData, type: "image")
-//
-//                                        item.key = feedMedia.key
-//                                        item.hash = feedMedia.hash
-//                                    }
+                                    if let imgData = feedMedia.image.jpegData(compressionQuality: 0.1) {
+                                        (feedMedia.encryptedData, feedMedia.key, feedMedia.hash) = HAC().encryptData(data: imgData, type: "image")
+
+                                        item.key = feedMedia.key
+                                        item.hash = feedMedia.hash
+                                    }
 
                                 }
 
