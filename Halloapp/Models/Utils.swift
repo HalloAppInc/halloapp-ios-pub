@@ -333,7 +333,7 @@ class Utils {
                     
                     let nodeParts = node!.components(separatedBy: "-")
                     
-                    if (nodeParts[0] == "contacts") {
+                    if (nodeParts[0] == "contacts" || nodeParts[0] == "feed") {
                         result.append(nodeParts[1])
                     }
                     
