@@ -9,36 +9,9 @@
 import UIKit
 import SwiftUI
 
-/* to dismiss keyboard on tap out */
-class AnyGestureRecognizer: UIGestureRecognizer {
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
-        state = .began
-    }
-
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-       state = .ended
-    }
-
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
-        state = .cancelled
-    }
-}
-
-/* to dismiss keyboard on tap out */
-extension SceneDelegate: UIGestureRecognizerDelegate {
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return true
-    }
-}
-
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-
-    var backed = false
-    
-//    var userData = UserData()
-    
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -57,20 +30,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             )
             self.window = window
             window.makeKeyAndVisible()
-            
-            /* to dismiss keyboard on tap out */
-            let gesture = AnyGestureRecognizer(target: window, action:#selector(UIView.endEditing))
-            gesture.requiresExclusiveTouchType = false
-            gesture.cancelsTouchesInView = false
-            gesture.delegate = self // don't use window as delegate to minimize possible side effects
-            window.addGestureRecognizer(gesture)
-            
         }
         
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
-//        self.backed = true
         // Called as the scene is being released by the system.
         // This occurs shortly after the scene enters the background, or when its session is discarded.
         // Release any resources associated with this scene that can be re-created the next time the scene connects.
@@ -90,24 +54,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneWillEnterForeground(_ scene: UIScene) {
         // Called as the scene transitions from the background to the foreground.
         // Use this method to undo the changes made on entering the background.
-        
-//        if (backed) {
-//            if let windowScene = scene as? UIWindowScene {
-//                let window = UIWindow(windowScene: windowScene)
-//                window.rootViewController = UIHostingController(
-//                    rootView: Landing()
-//                        .environmentObject(AuthRouteData())
-//                        .environmentObject(HomeRouteData())
-//                        .environmentObject(UserData())
-//                        .environmentObject(Verification())
-//                )
-//                self.window = window
-//                window.makeKeyAndVisible()
-//            }
-//            
-//            self.backed = false
-//        }
-        
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
@@ -117,9 +63,4 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
     }
-
-    
-
-
 }
-
