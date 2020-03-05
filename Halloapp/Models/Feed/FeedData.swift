@@ -310,7 +310,9 @@ class FeedData: ObservableObject {
         if idx == nil {
             self.feedCommentItems.insert(item, at: 0)
         
-            self.increaseFeedItemUnreadComments(comment: item, num: 1)
+            if (item.username != self.xmpp.userData.phone) {
+                self.increaseFeedItemUnreadComments(comment: item, num: 1)
+            }
         
             DispatchQueue.global(qos: .default).async {
                 self.feedCommentCore.create(item: item)
@@ -336,10 +338,10 @@ class FeedData: ObservableObject {
         }
         
     }
-    
-    func markFeedItemUnreadComments(comment: FeedComment) {
         
-        let idx = self.feedDataItems.firstIndex(where: {$0.itemId == comment.feedItemId})
+    func markFeedItemUnreadComments(feedItemId: String) {
+        
+        let idx = self.feedDataItems.firstIndex(where: {$0.itemId == feedItemId})
         
         if idx == nil {
             return

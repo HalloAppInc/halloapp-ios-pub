@@ -222,7 +222,10 @@ struct FeedItemView: View {
 
     @State var showSheet: Bool = false
 
+    @State var localUnreadComments: Int = 0
+    
     var body: some View {
+        
         return VStack(spacing: 0) {
             HStack() {
                 HStack(spacing: 10) {
@@ -280,7 +283,7 @@ struct FeedItemView: View {
                         Text("Comment")
 
                         // Green Dot if there are unread comments
-                        if (item.unreadComments > 0) {
+                        if (self.localUnreadComments > 0) {
                             Image(systemName: "circle.fill")
                                 .resizable()
                                 .scaledToFit()
@@ -290,8 +293,8 @@ struct FeedItemView: View {
                                 .padding(EdgeInsets(top: 0, leading: 5, bottom: 0, trailing: 0))
                         }
                     }
-                        // careful on padding, greater than 15 on sides wraps on smaller phones
-                        .padding(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
+                    // careful on padding, greater than 15 on sides wraps on smaller phones
+                    .padding(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
                 }
 
                 Spacer()
@@ -327,6 +330,15 @@ struct FeedItemView: View {
                 self.showSheet = false
             })
         })
+        
+        .onAppear {
+            self.localUnreadComments = self.item.unreadComments
+        }
+        /* used to catch changes to num comments */
+        .onReceive(self.item.commentsChange) { num in
+            self.localUnreadComments = num
+        }
+        
     }
 }
 

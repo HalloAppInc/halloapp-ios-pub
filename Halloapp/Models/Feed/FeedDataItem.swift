@@ -14,6 +14,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     var id = UUID().uuidString
     
     var didChange = PassthroughSubject<Void, Never>()
+    var commentsChange = PassthroughSubject<Int, Never>()
     
     var itemId: String
     
@@ -32,7 +33,12 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     @Published var cellHeight: Int = -1
     
     @Published var comments: [FeedComment] = []
-    var unreadComments: Int
+    
+    var unreadComments: Int {
+        didSet {
+            commentsChange.send(unreadComments)
+        }
+    }
     
     var numTries: Int = 0
     

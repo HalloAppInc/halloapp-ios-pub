@@ -47,12 +47,7 @@ struct CommentsView: View {
 //            let filteredComments = FeedCommentCore().get(feedItemId: self.item.itemId)
 //            self.comments = Utils().sortComments(comments: filteredComments)
             
-            if self.comments.count > 0 {
-                if self.item.unreadComments > 0 {
-                    self.feedData.markFeedItemUnreadComments(comment: self.comments[0])
-                }
-            }
-            
+
             self.cancellableSet.forEach {
                 $0.cancel()
             }
@@ -158,6 +153,14 @@ struct CommentsView: View {
                                 self.replyTo = ""
                                 self.replyToName = ""
 
+                                let keyWindow = UIApplication.shared.connectedScenes
+                                        .filter({$0.activationState == .foregroundActive})
+                                        .map({$0 as? UIWindowScene})
+                                        .compactMap({$0})
+                                        .first?.windows
+                                        .filter({$0.isKeyWindow}).first
+                                keyWindow?.endEditing(true)
+                                
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                     self.scroll = "0"
                                 }
@@ -188,7 +191,12 @@ struct CommentsView: View {
             Alert(title: Text("Couldn't connect to Halloapp"), message: Text("We'll keep trying, but there may be a problem with your connection"), dismissButton: .default(Text("Ok")))
         }
             
+        .onAppear {
+            self.feedData.markFeedItemUnreadComments(feedItemId: self.item.itemId)
+        }
         .onDisappear {
+            // todo: still missing edge case where user is on the comments page while new comments are coming in and then shuts down the app
+            self.feedData.markFeedItemUnreadComments(feedItemId: self.item.itemId)
             self.cancellableSet.forEach {
                 $0.cancel()
             }
