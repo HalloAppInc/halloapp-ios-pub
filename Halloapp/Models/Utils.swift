@@ -604,7 +604,7 @@ class Utils {
      role: [owner|member|none]
      */
     func sendAff(xmppStream: XMPPStream, node: String, from: String, user: String, role: String) {
-//        print("sendAff")e
+//        print("sendAff")
         
         let item = XMLElement(name: "affiliation")
         item.addAttribute(withName: "jid", stringValue: "\(user)@s.halloapp.net")

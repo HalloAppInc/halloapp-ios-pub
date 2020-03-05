@@ -203,7 +203,12 @@ class Contacts: ObservableObject {
 
                     connected.forEach {
                         let targetUser = $0.normPhone != "" ? $0.normPhone : $0.phone
-                        self.xmppController.xmppPubSub.subscribe(toNode: "feed-\(targetUser)") // extra subscription - might be needed to remedy past corrupted datasets
+                        
+                        /* extra redundancy - repair past corrupted data if there are any */
+                        self.xmppController.xmppPubSub.subscribe(toNode: "feed-\(targetUser)")
+                        Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "member")
+                        Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "publish-only")
+
 //                        self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(targetUser)")
                     }
 
