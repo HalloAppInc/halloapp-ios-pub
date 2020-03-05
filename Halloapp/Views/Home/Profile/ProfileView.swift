@@ -22,11 +22,9 @@ struct ProfileView: View {
             isOnProfilePage: true,
             items: self.feedData.feedDataItems,
             getItemMedia: { itemId in
-                self.feedData.getItemMedia(itemId)
-            },
+                self.feedData.getItemMedia(itemId) },
             setItemCellHeight: { itemId, cellHeight in
-                self.feedData.setItemCellHeight(itemId, cellHeight)
-            })
+                self.feedData.setItemCellHeight(itemId, cellHeight) })
 
             .overlay(BottomBarView())
             

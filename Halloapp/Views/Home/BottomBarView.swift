@@ -10,6 +10,8 @@ import SwiftUI
 import UIKit
 
 struct BottomBarView: View {
+    static private let barHeight: CGFloat = 59
+
     @EnvironmentObject var mainViewController: MainViewController
 
     var body: some View {
@@ -66,7 +68,7 @@ struct BottomBarView: View {
                     }
                         // 30 instead of 40 on sides cause it looks better on older phones
                         .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
-                        .frame(height: 59)
+                        .frame(height: BottomBarView.barHeight)
 
                     // Safe area inset padding on devices without home button.
                     // Note that we intentionally make padding smaller than the bottom inset
@@ -80,10 +82,20 @@ struct BottomBarView: View {
         }
     }
 
-    static func barHeight() -> CGFloat {
-        let window = UIApplication.shared.keyWindow
-        let bottomPadding = window!.safeAreaInsets.bottom
-        return (bottomPadding > 0.0) ? 72 : 59
+    static func currentBarHeight() -> CGFloat {
+        let keyWindow = UIApplication.shared.connectedScenes
+                .filter({$0.activationState == .foregroundActive})
+                .map({$0 as? UIWindowScene})
+                .compactMap({$0})
+                .first?.windows
+                .filter({$0.isKeyWindow}).first
+        guard keyWindow != nil else {
+            return barHeight
+        }
+        let bottomSafeAreaInset = keyWindow!.safeAreaInsets.bottom
+        // UICollectionView's insets are automatically adjusted by the amount of bottom safe area inset.
+        // Increase inset by visible height of the bottom bar and subtract value applied automatically: barHeight + 0.5*bottomInset - bottomInset
+        return barHeight - 0.5*bottomSafeAreaInset
     }
 }
 

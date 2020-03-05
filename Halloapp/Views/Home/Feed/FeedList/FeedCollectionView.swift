@@ -22,7 +22,7 @@ struct FeedCollectionView: UIViewRepresentable {
     var getItemMedia: (String) -> Void
     
     var setItemCellHeight: (String, Int) -> Void
-    
+
     func makeUIView(context: Context) -> UICollectionView {
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
@@ -34,8 +34,6 @@ struct FeedCollectionView: UIViewRepresentable {
         collectionView.register(WFeedListHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: headerReuseIdentifier)
         collectionView.register(WFeedListCell.self, forCellWithReuseIdentifier: cellReuseIdentifier)
         collectionView.backgroundColor = UIColor.systemGroupedBackground
-        collectionView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: BottomBarView.barHeight(), right: 0)
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: BottomBarView.barHeight(), right: 0)
 
         let dataSource = UICollectionViewDiffableDataSource<WFeedListSection, FeedDataItem>(collectionView: collectionView) { collectionView, indexPath, model in
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: self.cellReuseIdentifier, for: indexPath) as? WFeedListCell {
@@ -77,6 +75,9 @@ struct FeedCollectionView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UICollectionView, context: Context) {
+        uiView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: BottomBarView.currentBarHeight(), right: 0);
+        uiView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: BottomBarView.currentBarHeight(), right: 0);
+
         let dataSource = context.coordinator.dataSource
         populate(dataSource: dataSource!)
 //        if scroll == "0" {
