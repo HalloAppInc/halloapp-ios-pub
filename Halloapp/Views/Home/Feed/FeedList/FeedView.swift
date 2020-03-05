@@ -29,10 +29,7 @@ struct FeedView: View {
                 setItemCellHeight: { itemId, cellHeight in
                     self.feedData.setItemCellHeight(itemId, cellHeight) })
             }
-            .overlay(
-                BottomBarView(),
-                alignment: .bottom
-            )
+            .overlay(BottomBarView())
 
             .edgesIgnoringSafeArea(.all)
 

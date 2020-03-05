@@ -28,10 +28,7 @@ struct ProfileView: View {
                 self.feedData.setItemCellHeight(itemId, cellHeight)
             })
 
-            .overlay(
-                BottomBarView(),
-                alignment: .bottom
-            )
+            .overlay(BottomBarView())
             
             .edgesIgnoringSafeArea(.all)
 

@@ -13,73 +13,71 @@ struct BottomBarView: View {
     @EnvironmentObject var mainViewController: MainViewController
 
     var body: some View {
-        VStack(spacing: 0) {
-            Divider()
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                Spacer () // This spacer will push the bottom bar all the way to the bottom edge in full-screen GeometryReader container
+                VStack(spacing: 0) {
 
-            HStack(alignment: .top) {
-                VStack {
-                    Button(action: {
-                        self.mainViewController.selectFeedTab()
-                    }) {
-                        Image(systemName: "house.fill")
-                            .imageScale(.large)
-                            .foregroundColor(self.mainViewController.currentTab == .feed ? Color.primary : Color.gray)
-                            .padding(EdgeInsets(top: 20, leading: 25, bottom: 20, trailing: 25))
+                    Divider()
+
+                    HStack(alignment: .top) {
+                        // "Home" tab
+                        VStack(alignment: .center) {
+                            Button(action: {
+                                self.mainViewController.selectFeedTab()
+                            }) {
+                                Image(systemName: "house.fill")
+                                    .imageScale(.large)
+                                    .foregroundColor(self.mainViewController.currentTab == .feed ? Color.primary : Color.gray)
+                                    .padding(EdgeInsets(top: 20, leading: 25, bottom: 20, trailing: 25))
+                            }
+                        }
+                        .frame(width: 75)
+
+                        Spacer()
+
+                        // "Messages" tab
+                        VStack(alignment: .center) {
+                            Button(action: {
+                                self.mainViewController.selectMessagesTab()
+                            }) {
+                                Image(systemName: "envelope.fill")
+                                    .imageScale(.large)
+                                    .foregroundColor(self.mainViewController.currentTab == .messages ? Color.primary : Color.gray)
+                                    .padding(EdgeInsets(top: 20, leading: 25, bottom: 20, trailing: 25))
+                            }
+                        }
+                        .frame(width: 75)
+
+                        Spacer()
+
+                        // "Profile" tab
+                        VStack(alignment: .center) {
+                            Button(action: {
+                                self.mainViewController.selectProfileTab()
+                            }) {
+                                Image(systemName: "person.fill")
+                                    .imageScale(.large)
+                                    .foregroundColor(self.mainViewController.currentTab == .profile ? Color.primary : Color.gray)
+                                    .padding(EdgeInsets(top: 20, leading: 25, bottom: 20, trailing: 25))
+                            }
+                        }
+                        .frame(width: 75)
                     }
+                        // 30 instead of 40 on sides cause it looks better on older phones
+                        .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
+                        .frame(height: 59)
 
-//                    Image(systemName: "circle")
-//                        .font(.system(size: 7, weight: .heavy))
-//                        .foregroundColor((mainViewController.currentTab == .feed /* || homeRouteData.homePage == "back-to-feed"*/) ? Color(red:  40/255, green:  40/255, blue:  40/255) : Color.clear)
-//                        .padding(0)
-//                        .hidden()
+                    // Safe area inset padding on devices without home button.
+                    // Note that we intentionally make padding smaller than the bottom inset
+                    // to let bar buttons actually use some of that space vs keeping the space unused.
+                    Spacer()
+                        .frame(height: 0.5*geometry.safeAreaInsets.bottom)
                 }
-
-                Spacer()
-
-                VStack {
-                    Button(action: {
-                        self.mainViewController.selectMessagesTab()
-                    }) {
-                        Image(systemName: "envelope.fill")
-                            .imageScale(.large)
-                            .foregroundColor(self.mainViewController.currentTab == .messages ? Color.primary : Color.gray)
-                            .padding(EdgeInsets(top: 20, leading: 25, bottom: 20, trailing: 25))
-                    }
-
-//                    Image(systemName: "circle")
-//                        .font(.system(size: 7, weight: .heavy))
-//                        .foregroundColor(mainViewController.currentTab == .messages ? Color(red: 40/255, green: 40/255, blue: 40/255) : Color.clear)
-//                        .padding(0)
-//                        .hidden()
-                }
-
-                Spacer()
-
-                VStack {
-                    Button(action: {
-                        self.mainViewController.selectProfileTab()
-                    }) {
-                        Image(systemName: "person.fill")
-                            .imageScale(.large)
-                            .foregroundColor(self.mainViewController.currentTab == .profile ? Color.primary : Color.gray)
-                            .padding(EdgeInsets(top: 20, leading: 25, bottom: 20, trailing: 25))
-                    }
-
-//                    Image(systemName: "circle")
-//                        .font(.system(size: 7, weight: .heavy))
-//                        .foregroundColor(mainViewController.currentTab == .profile ? Color(red:  40/255, green:  40/255, blue:  40/255) : Color.clear)
-//                        .padding(0)
-//                        .hidden()
-                }
+                .background(BlurView(style: .systemChromeMaterial))
+                .padding(.zero)
             }
-                // 30 instead of 40 on sides cause it looks better on older phones
-                .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
-
-            Spacer()
         }
-        .frame(height: BottomBarView.barHeight())
-        .background(BlurView(style: .systemChromeMaterial))
-        .padding(.zero)
     }
 
     static func barHeight() -> CGFloat {
