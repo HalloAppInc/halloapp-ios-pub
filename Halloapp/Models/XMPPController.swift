@@ -545,14 +545,18 @@ extension XMPPController: XMPPPubSubDelegate {
         
         let pubsub = iq.element(forName: "pubsub")
         let items = pubsub?.element(forName: "items")
-        let node = items?.attributeStringValue(forName: "node")
         
-        let nodeParts = node!.components(separatedBy: "-")
+        if let node = items?.attributeStringValue(forName: "node") {
         
-        if (nodeParts[0] == "feed") {
-            self.didGetFeedItems.send(iq)
-        } else if (nodeParts[0] == "contacts") {
-            self.didGetContactsItems.send(iq)
+            let nodeParts = node.components(separatedBy: "-")
+            
+            if nodeParts.count > 0 {
+                if (nodeParts[0] == "feed") {
+                    self.didGetFeedItems.send(iq)
+                } else if (nodeParts[0] == "contacts") {
+                    self.didGetContactsItems.send(iq)
+                }
+            }
         }
         
     }
@@ -567,14 +571,28 @@ extension XMPPController: XMPPPubSubDelegate {
 
         let event = message.element(forName: "event")
         let items = event?.element(forName: "items")
-        let node = items?.attributeStringValue(forName: "node")
         
-        let nodeParts = node!.components(separatedBy: "-")
+        if let delete = event?.element(forName: "delete") {
+            
+            if let id = message.elementID {
+                //todo: eating the deletes for now
+                Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
+            }
+            
+        }
         
-        if (nodeParts[0] == "feed") {
-            self.didGetNewFeedItem.send(message)
-        } else if (nodeParts[0] == "contacts") {
-            self.didGetNewContactsItem.send(message)
+        if let node = items?.attributeStringValue(forName: "node") {
+
+            let nodeParts = node.components(separatedBy: "-")
+            
+            if nodeParts.count > 0 {
+                if (nodeParts[0] == "feed") {
+                    self.didGetNewFeedItem.send(message)
+                } else if (nodeParts[0] == "contacts") {
+                    self.didGetNewContactsItem.send(message)
+                }
+            }
+            
         }
         
     }
