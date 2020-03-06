@@ -51,18 +51,20 @@ struct Settings: View {
                 }
             }
             
-//            Button(action: {
-//                self.userData.resyncContacts()
-//                self.homeRouteData.gotoPage(page: "messaging")
-//            }) {
-//                Text("Sync Contacts Again")
-//                    .padding(10)
-//                    .background(Color.blue)
-//                    .foregroundColor(.white)
-//                    .cornerRadius(20)
-//                    .shadow(radius: 2)
-//            }
-//            .padding(.top, 100)
+            HStack() {
+                Button(action: {
+                    self.userData.resyncContacts()
+                    self.onDismiss()
+                }) {
+                    Text("Re-Sync Contacts")
+                        .padding(10)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(20)
+                }
+                .padding(.top, 100)
+                
+            }
             
 //            Button(action: {
 //                self.userData.hostName = "s-test.halloapp.net"
@@ -76,7 +78,7 @@ struct Settings: View {
 //            }
 //            .padding(.top, 100)
             
-            Spacer()
+         
 
             Text(appVersion())
             Text("\(self.userData.hostName)")

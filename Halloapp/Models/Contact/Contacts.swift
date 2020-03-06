@@ -110,10 +110,7 @@ class Contacts: ObservableObject {
         self.cancellableSet.insert(
             self.xmpp.userData.didResyncContacts.sink(receiveValue: { value in
                 
-                var log = "Resync Contacts"
-                log += "\r\n"
-                print(log)
-                self.xmpp.userData.logging += log
+                self.xmpp.userData.log("Resync Contacts")
                 
                 self.contacts.removeAll()
                 self.connectedContacts = self.contacts.filter { $0.isConnected }
