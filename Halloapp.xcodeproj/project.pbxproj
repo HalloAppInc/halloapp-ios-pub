@@ -15,6 +15,7 @@
 		765668D1240DE02400214077 /* BottomBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668D0240DE02400214077 /* BottomBarView.swift */; };
 		76D0C07E240F3CD60061B90E /* CommentsCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D0C07D240F3CD60061B90E /* CommentsCollectionView.swift */; };
 		76D0C080240F40DF0061B90E /* MessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D0C07F240F40DF0061B90E /* MessagesView.swift */; };
+		76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */; };
 		76ECDC162409DD7700BB48AC /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76ECDC152409DD7700BB48AC /* FeedView.swift */; };
 		EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostComposerView.swift */; };
 		EA0D20072363AC4D008B8289 /* Landing.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20062363AC4D008B8289 /* Landing.swift */; };
@@ -109,6 +110,7 @@
 		765668D0240DE02400214077 /* BottomBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomBarView.swift; sourceTree = "<group>"; };
 		76D0C07D240F3CD60061B90E /* CommentsCollectionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommentsCollectionView.swift; sourceTree = "<group>"; };
 		76D0C07F240F40DF0061B90E /* MessagesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessagesView.swift; sourceTree = "<group>"; };
+		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
 		76ECDC152409DD7700BB48AC /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
 		EA0C315623EB97C800016EDB /* PostComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerView.swift; sourceTree = "<group>"; };
 		EA0D20062363AC4D008B8289 /* Landing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Landing.swift; sourceTree = "<group>"; };
@@ -235,6 +237,14 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		76DF9FEA24122E9400F49CA4 /* CoreData Stack */ = {
+			isa = PBXGroup;
+			children = (
+				76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */,
+			);
+			path = "CoreData Stack";
+			sourceTree = "<group>";
+		};
 		8295BD88471C9D5DC2D30C41 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -246,6 +256,7 @@
 		EA3861EB23342C3800705943 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				76DF9FEA24122E9400F49CA4 /* CoreData Stack */,
 				EA5414D923EE1D2B00390EF6 /* Feed */,
 				EA5414DA23EE1D6900390EF6 /* Contact */,
 				EA80ADFA235A8325002F7680 /* Utils.swift */,
@@ -736,6 +747,7 @@
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
 				EA45713923EB7EC8008C2E44 /* MediaCell.swift in Sources */,
+				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				EAFA65DA23AC245B004C36F7 /* WUITableView.swift in Sources */,
 				EA0D20112363E38E008B8289 /* HomeInit.swift in Sources */,
 				146B93792405F40500768AC6 /* FontExtension.swift in Sources */,
@@ -1082,6 +1094,16 @@
 /* End XCConfigurationList section */
 
 /* Begin XCVersionGroup section */
+		76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */,
+			);
+			currentVersion = 76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */;
+			path = Feed.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
 		EAE6152D23970FDC00BB4552 /* Halloapp.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (

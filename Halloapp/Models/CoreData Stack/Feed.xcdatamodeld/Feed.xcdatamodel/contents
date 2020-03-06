@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="15702" systemVersion="19D76" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Comment" representedClassName="Comment" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="String"/>
+        <attribute name="text" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userID" attributeType="String"/>
+        <relationship name="parent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Comment" inverseName="replies" inverseEntity="Comment"/>
+        <relationship name="post" maxCount="1" deletionRule="Nullify" destinationEntity="Post" inverseName="comments" inverseEntity="Post"/>
+        <relationship name="replies" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Comment" inverseName="parent" inverseEntity="Comment"/>
+        <fetchIndex name="byTimetamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="Contact" representedClassName="Contact" syncable="YES" codeGenerationType="class">
+        <attribute name="fullName" optional="YES" attributeType="String"/>
+        <attribute name="identifier" optional="YES" attributeType="String"/>
+        <attribute name="userID" attributeType="String"/>
+        <relationship name="photo" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ContactPhoto"/>
+    </entity>
+    <entity name="ContactPhoto" representedClassName="ContactPhoto" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="String"/>
+        <attribute name="path" optional="YES" attributeType="URI"/>
+        <attribute name="preview" optional="YES" attributeType="Binary"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="Notification" representedClassName="Notification" syncable="YES" codeGenerationType="class">
+        <attribute name="action" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="commentID" optional="YES" attributeType="String"/>
+        <attribute name="mediaPreview" optional="YES" attributeType="Binary"/>
+        <attribute name="postID" attributeType="String"/>
+        <attribute name="userID" attributeType="String"/>
+    </entity>
+    <entity name="Post" representedClassName="Post" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="String"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userID" attributeType="String"/>
+        <relationship name="comments" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Comment" inverseName="post" inverseEntity="Comment"/>
+        <relationship name="media" optional="YES" maxCount="1" deletionRule="Deny" destinationEntity="PostMedia" inverseName="post" inverseEntity="PostMedia"/>
+        <fetchIndex name="byTImestamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
+        </fetchIndex>
+        <fetchIndex name="byTimestampAndUser">
+            <fetchIndexElement property="userID" type="Binary" order="ascending"/>
+            <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
+    <entity name="PostMedia" representedClassName="PostMedia" syncable="YES" codeGenerationType="class">
+        <attribute name="path" optional="YES" attributeType="URI"/>
+        <attribute name="type" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="url" optional="YES" attributeType="URI"/>
+        <relationship name="post" maxCount="1" deletionRule="Nullify" destinationEntity="Post" inverseName="media" inverseEntity="Post"/>
+    </entity>
+    <elements>
+        <element name="Post" positionX="-63" positionY="-18" width="128" height="133"/>
+        <element name="Comment" positionX="-54" positionY="18" width="128" height="28"/>
+        <element name="PostMedia" positionX="-27" positionY="81" width="128" height="28"/>
+        <element name="Contact" positionX="0" positionY="81" width="128" height="28"/>
+        <element name="ContactPhoto" positionX="27" positionY="90" width="128" height="28"/>
+        <element name="Notification" positionX="-18" positionY="45" width="128" height="28"/>
+    </elements>
+</model>
