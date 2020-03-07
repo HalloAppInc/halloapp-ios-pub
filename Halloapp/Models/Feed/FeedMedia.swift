@@ -26,7 +26,8 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
     var numTries: Int = 0
     
     var key: String = ""
-    var hash: String = ""
+    var sha256hash: String = ""
+    
     @Published var encryptedData: Data?
     
     @Published var image: UIImage = UIImage()
@@ -47,6 +48,8 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
             url: String = "",
             width: Int = 0,
             height: Int = 0,
+            key: String = "",
+            sha256hash: String = "",
             numTries: Int = 0) {
         
         self.feedItemId = feedItemId
@@ -55,6 +58,8 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
         self.url = url
         self.width = width
         self.height = height
+        self.key = key
+        self.sha256hash = sha256hash
         self.numTries = numTries
     }
     
@@ -84,14 +89,14 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
                         var isEncryptedMedia: Bool = false
                         var isEncryptedMediaSafe: Bool = false
                         
-                        if self.key != "" && self.hash != "" {
+                        if self.key != "" && self.sha256hash != "" {
                         
                             isEncryptedMedia = true
                             print("encrypted media")
                             
                             if let decryptedData = HAC().decryptData(   data: self.imageLoader.data,
                                                                         key: self.key,
-                                                                        hash: self.hash,
+                                                                        sha256hash: self.sha256hash,
                                                                         type: "image") {
                                 isEncryptedMediaSafe = true
                                 imageData = decryptedData

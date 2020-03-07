@@ -5,61 +5,9 @@
 //  Created by Tony Jiang on 1/30/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
-
 import SwiftUI
 import CoreData
 
-extension UIImage {
-
-    func save(at directory: FileManager.SearchPathDirectory,
-              pathAndImageName: String,
-              createSubdirectoriesIfNeed: Bool = true,
-              compressionQuality: CGFloat = 1.0)  -> URL? {
-        do {
-        let documentsDirectory = try FileManager.default.url(for: directory, in: .userDomainMask,
-                                                             appropriateFor: nil,
-                                                             create: false)
-        return save(at: documentsDirectory.appendingPathComponent(pathAndImageName),
-                    createSubdirectoriesIfNeed: createSubdirectoriesIfNeed,
-                    compressionQuality: compressionQuality)
-        } catch {
-            print("-- Error: \(error)")
-            return nil
-        }
-    }
-
-    func save(at url: URL,
-              createSubdirectoriesIfNeed: Bool = true,
-              compressionQuality: CGFloat = 1.0)  -> URL? {
-        do {
-            if createSubdirectoriesIfNeed {
-                try FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
-                                                        withIntermediateDirectories: true,
-                                                        attributes: nil)
-            }
-            guard let data = jpegData(compressionQuality: compressionQuality) else { return nil }
-            try data.write(to: url)
-            return url
-        } catch {
-            print("-- Error: \(error)")
-            return nil
-        }
-    }
-}
-
-// load from path
-
-extension UIImage {
-    convenience init?(fileURLWithPath url: URL, scale: CGFloat = 1.0) {
-        do {
-            let data = try Data(contentsOf: url)
-            self.init(data: data, scale: scale)
-        } catch {
-            print("-- Error: \(error)")
-            return nil
-        }
-    }
-}
 class FeedMediaCore {
 
     func getAll() -> [FeedMedia] {
@@ -85,6 +33,8 @@ class FeedMediaCore {
                     url: data.value(forKey: "url") as! String,
                     width: data.value(forKey: "width") as! Int,
                     height: data.value(forKey: "height") as! Int,
+                    key: data.value(forKey: "key") as! String,
+                    sha256hash: data.value(forKey: "sha256hash") as! String,
                     numTries: data.value(forKey: "numTries") as! Int
                 )
                 
@@ -199,6 +149,8 @@ class FeedMediaCore {
                     url: data.value(forKey: "url") as! String,
                     width: data.value(forKey: "width") as! Int,
                     height: data.value(forKey: "height") as! Int,
+                    key: data.value(forKey: "key") as! String,
+                    sha256hash: data.value(forKey: "sha256hash") as! String,
                     numTries: data.value(forKey: "numTries") as! Int
                     
                 )
@@ -281,6 +233,8 @@ class FeedMediaCore {
                 obj.setValue(item.url, forKeyPath: "url")
                 obj.setValue(item.width, forKeyPath: "width")
                 obj.setValue(item.height, forKeyPath: "height")
+                obj.setValue(item.key, forKeyPath: "key")
+                obj.setValue(item.sha256hash, forKeyPath: "sha256hash")
                 obj.setValue(item.numTries, forKeyPath: "numTries")
                 
                 do {
@@ -341,7 +295,6 @@ class FeedMediaCore {
         
     }
     
-    
     func updateNumTries(feedItemId: String, url: String, numTries: Int) {
                 
         let managedContext = CoreDataManager.sharedManager.bgContext
@@ -376,6 +329,38 @@ class FeedMediaCore {
         
     }
     
+    func delete(feedItemId: String, url: String) {
+        
+        let managedContext = CoreDataManager.sharedManager.bgContext
+
+        managedContext.perform {
+            
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CFeedImage")
+            
+            fetchRequest.predicate = NSPredicate(format: "feedItemId == %@ AND url == %@", feedItemId, url)
+            
+            do {
+                let result = try managedContext.fetch(fetchRequest)
+
+                if (result.count == 0) {
+                    return
+                }
+                
+                let objectToDelete = result[0] as! NSManagedObject
+                managedContext.delete(objectToDelete)
+                
+                do {
+                    try managedContext.save()
+                } catch {
+                    print(error)
+                }
+                
+            } catch  {
+                print("failed")
+            }
+        }
+    }
+
 }
 
 

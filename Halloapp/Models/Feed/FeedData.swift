@@ -39,7 +39,6 @@ class FeedData: ObservableObject {
         
         self.feedCommentItems = feedCommentCore.getAll()
         
-        
         self.cancellableSet.insert(
             self.xmpp.xmppController.isConnecting.sink(receiveValue: { value in
                 self.isConnecting = true
@@ -378,7 +377,7 @@ class FeedData: ObservableObject {
                 
                 if med.key != "" {
                     medEl.addAttribute(withName: "key", stringValue: String(med.key))
-                    medEl.addAttribute(withName: "sha256hash", stringValue: String(med.hash))
+                    medEl.addAttribute(withName: "sha256hash", stringValue: String(med.sha256hash))
                 }
                  
                 mediaEl.addChild(medEl)

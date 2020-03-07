@@ -122,7 +122,7 @@ class HAC {
         return (nil, "", "")
     }
     
-    func decryptData(data: Data, key: String, hash: String, type: String) -> Data? {
+    func decryptData(data: Data, key: String, sha256hash: String, type: String) -> Data? {
                 
         var target: [UInt8] = [UInt8](data)
         
@@ -137,7 +137,7 @@ class HAC {
             let digest = SHA256.hash(data: target)
             let base64String = digest.data.base64EncodedString()
             
-            if base64String != hash {
+            if base64String != sha256hash {
                 print(base64String)
                 print("sha256 hash does not match, abort")
                 return nil

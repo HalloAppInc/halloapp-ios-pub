@@ -479,8 +479,8 @@ class Utils {
                         med.key = key
                     }
                     
-                    if let hash = url.attributeStringValue(forName: "sha256hash") {
-                        med.hash = hash
+                    if let sha256hash = url.attributeStringValue(forName: "sha256hash") {
+                        med.sha256hash = sha256hash
                     }
  
                     if let medUrl = url.stringValue {

@@ -107,10 +107,10 @@ struct PostComposerView: View {
                                     if let imgData = feedMedia.image.jpegData(compressionQuality: CGFloat(self.feedData.xmpp.userData.compressionQuality)) {
                                         self.feedData.xmpp.userData.log("Post Image: (\(self.feedData.xmpp.userData.compressionQuality)) compressed size - \(imgData.count)")
                                         
-                                        (feedMedia.encryptedData, feedMedia.key, feedMedia.hash) = HAC().encryptData(data: imgData, type: "image")
+                                        (feedMedia.encryptedData, feedMedia.key, feedMedia.sha256hash) = HAC().encryptData(data: imgData, type: "image")
 
                                         item.key = feedMedia.key
-                                        item.hash = feedMedia.hash
+                                        item.sha256hash = feedMedia.sha256hash
                                     }
 
                                 }
