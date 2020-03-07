@@ -243,7 +243,6 @@
 			isa = PBXGroup;
 			children = (
 				76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */,
-				76DF9FEE2412A4E800F49CA4 /* Contacts.xcdatamodeld */,
 			);
 			path = "CoreData Stack";
 			sourceTree = "<group>";
@@ -261,7 +260,7 @@
 			children = (
 				76DF9FEA24122E9400F49CA4 /* CoreData Stack */,
 				EA5414D923EE1D2B00390EF6 /* Feed */,
-				EA5414DA23EE1D6900390EF6 /* Contact */,
+				EA5414DA23EE1D6900390EF6 /* Contacts */,
 				EA80ADFA235A8325002F7680 /* Utils.swift */,
 				EA6057BA239AD26D005DED66 /* MetaData.swift */,
 				EA8D4724233C3459006E2BA5 /* AuthRouteData.swift */,
@@ -375,14 +374,15 @@
 			path = Feed;
 			sourceTree = "<group>";
 		};
-		EA5414DA23EE1D6900390EF6 /* Contact */ = {
+		EA5414DA23EE1D6900390EF6 /* Contacts */ = {
 			isa = PBXGroup;
 			children = (
+				76DF9FEE2412A4E800F49CA4 /* Contacts.xcdatamodeld */,
 				EAE721322351394D0003D5C7 /* Contacts.swift */,
 				EA45712823EB7CFA008C2E44 /* ContactsCD.swift */,
 				EABF312C23EE89A80039B5A6 /* ContactXP.swift */,
 			);
-			path = Contact;
+			path = Contacts;
 			sourceTree = "<group>";
 		};
 		EA5AD43C23342B8C00429643 /* Views */ = {

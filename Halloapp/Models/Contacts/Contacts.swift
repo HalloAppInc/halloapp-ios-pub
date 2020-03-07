@@ -654,6 +654,9 @@ class Contacts: ObservableObject {
     func fetch() {
         
         self.contactsQueue.async {
+
+            let timestamp = Date()
+            print("Contacts fetch begin")
            
             var addressBookContacts: [CNContact] = []
             
@@ -781,6 +784,8 @@ class Contacts: ObservableObject {
                     self.connectedContacts = isConnected
                 }
             }
+
+            print("Contacts fetch end. time: \(timestamp.timeIntervalSince(Date()))")
                         
             if self.idsToNormalize.count > 0 {
                 self.xmpp.userData.log("Start normalization of: \(self.idsToNormalize.count)")
