@@ -21,13 +21,14 @@
         <attribute name="fullName" optional="YES" attributeType="String"/>
         <attribute name="identifier" optional="YES" attributeType="String"/>
         <attribute name="userID" attributeType="String"/>
-        <relationship name="photo" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ContactPhoto"/>
+        <relationship name="photo" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ContactPhoto" inverseName="contact" inverseEntity="ContactPhoto"/>
     </entity>
     <entity name="ContactPhoto" representedClassName="ContactPhoto" syncable="YES" codeGenerationType="class">
         <attribute name="id" attributeType="String"/>
         <attribute name="path" optional="YES" attributeType="URI"/>
         <attribute name="preview" optional="YES" attributeType="Binary"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="contact" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Contact" inverseName="photo" inverseEntity="Contact"/>
     </entity>
     <entity name="FeedNotification" representedClassName="FeedNotification" syncable="YES" codeGenerationType="class">
         <attribute name="action" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -61,8 +62,8 @@
         <element name="Post" positionX="-63" positionY="-18" width="128" height="133"/>
         <element name="Comment" positionX="-54" positionY="18" width="128" height="28"/>
         <element name="PostMedia" positionX="-27" positionY="81" width="128" height="28"/>
-        <element name="Contact" positionX="0" positionY="81" width="128" height="28"/>
-        <element name="ContactPhoto" positionX="27" positionY="90" width="128" height="28"/>
+        <element name="Contact" positionX="0" positionY="81" width="128" height="103"/>
+        <element name="ContactPhoto" positionX="27" positionY="90" width="128" height="118"/>
         <element name="FeedNotification" positionX="-18" positionY="45" width="128" height="118"/>
     </elements>
 </model>
