@@ -24,9 +24,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             window.rootViewController = UIHostingController(
                 rootView: Landing()
                     .environmentObject(AuthRouteData())
-                    .environmentObject(UserData())
                     .environmentObject(Verification())
-                    .environmentObject(MetaData())
             )
             self.window = window
             window.makeKeyAndVisible()
@@ -57,8 +55,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
-        
-        
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.

@@ -11,26 +11,22 @@ import Combine
 import XMPPFramework
 
 class FeedData: ObservableObject {
-    
     @Published var feedMedia : [FeedMedia] = []
-    
     @Published var feedDataItems : [FeedDataItem] = []
     @Published var feedCommentItems : [FeedComment] = []
-    
     @Published var isConnecting: Bool = true
         
-    var xmpp: XMPP
-    var xmppController: XMPPController
-    
+    private var userData: UserData
+    private var xmppController: XMPPController
     private var cancellableSet: Set<AnyCancellable> = []
     
-    let feedItemCore = FeedItemCore()
-    let feedCommentCore = FeedCommentCore()
-    let feedMediaCore = FeedMediaCore()
+    private let feedItemCore = FeedItemCore()
+    private let feedCommentCore = FeedCommentCore()
+    private let feedMediaCore = FeedMediaCore()
 
-    init(xmpp: XMPP) {
-        self.xmpp = xmpp
-        self.xmppController = self.xmpp.xmppController
+    init(xmpp: XMPP, userData: UserData) {
+        self.xmppController = xmpp.xmppController
+        self.userData = userData
 
 //        self.feedMedia.append(contentsOf: FeedMediaCore().getAll())
 //        print("count: \(self.feedMedia.count)")
@@ -40,35 +36,34 @@ class FeedData: ObservableObject {
         self.feedCommentItems = feedCommentCore.getAll()
         
         self.cancellableSet.insert(
-            self.xmpp.xmppController.isConnecting.sink(receiveValue: { value in
+            self.xmppController.isConnecting.sink(receiveValue: { value in
                 self.isConnecting = true
             })
         )
         
         // when app resumes, xmpp reconnects, feed should try uploading any pending again
         self.cancellableSet.insert(
-            self.xmpp.xmppController.didConnect.sink(receiveValue: { value in
+            self.xmppController.didConnect.sink(receiveValue: { value in
 
                 self.isConnecting = false
                 
-                self.xmpp.userData.log("Feed: Got event for didConnect")
+                self.userData.log("Feed: Got event for didConnect")
                 
                 DispatchQueue.global(qos: .default).async {
                     ImageServer().processPending()
                 }
 
                 // should try to load images again if there are unfinished ones
-                for item in self.feedDataItems {
+//                for item in self.feedDataItems {
 //                    item.loadMedia()
-                }
+//                }
                 
                 self.processExpires()
             })
         )
         
         self.cancellableSet.insert(
-         
-            self.xmpp.userData.didLogOff.sink(receiveValue: {
+            self.userData.didLogOff.sink(receiveValue: {
                 
                 print("wiping feed data")
                 
@@ -76,22 +71,20 @@ class FeedData: ObservableObject {
                 self.feedCommentItems.removeAll()
                 self.feedDataItems.removeAll()
                 print("feedDataItemss Count: \(self.feedDataItems.count)")
-                
             })
-
         )
         
         /* getting new items, usually one */
         cancellableSet.insert(
             
             xmppController.didGetNewFeedItem.sink(receiveValue: { value in
-                self.xmpp.userData.log("Feed: New Item \(value)")
+                self.userData.log("Feed: New Item \(value)")
                 
                 if let id = value.elementID {
-                    self.xmpp.userData.log("Feed: Sending ACK")
-                    Utils().sendAck(xmppStream: self.xmppController.xmppStream, id: id, from: self.xmpp.userData.phone)
+                    self.userData.log("Feed: Sending ACK")
+                    Utils().sendAck(xmppStream: self.xmppController.xmppStream, id: id, from: self.userData.phone)
                 } else {
-                    self.xmpp.userData.log("Feed: Not sending ACK")
+                    self.userData.log("Feed: Not sending ACK")
                 }
                 
                 let event = value.element(forName: "event")
@@ -104,17 +97,12 @@ class FeedData: ObservableObject {
                 for item in feedCommentItems {
                     self.insertComment(item: item)
                 }
-
-
-                
             })
-       
         )
         
       
         /* getting the entire list of items back */
         cancellableSet.insert(
-           
             xmppController.didGetFeedItems.sink(receiveValue: { value in
                                 
 //                self.xmpp.userData.log("got items: \(value)")
@@ -133,7 +121,6 @@ class FeedData: ObservableObject {
                 for item in feedCommentItems {
                     self.insertComment(item: item)
                 }
-
            })
         )
     }
@@ -160,12 +147,9 @@ class FeedData: ObservableObject {
             DispatchQueue.global(qos: .default).async {
                 self.feedItemCore.updateCellHeight(item: self.feedDataItems[idx!])
             }
-            
-           
        }
     }
-    
-    
+
     func calHeight(media: [FeedMedia]) -> Int {
          
         var resultHeight = 0
@@ -219,7 +203,7 @@ class FeedData: ObservableObject {
         /* backwards compatibility for items that were missed or did not have mediaHeight yet */
         for item in self.feedDataItems {
             if item.mediaHeight == -1 {
-                self.xmpp.userData.log("Missing mediaHeight - \(item.itemId)")
+                self.userData.log("Missing mediaHeight - \(item.itemId)")
                 
                 let tempMedia = feedMediaCore.getInfo(feedItemId: item.itemId)
                 
@@ -231,25 +215,22 @@ class FeedData: ObservableObject {
             }
         }
         
-        for item in self.feedDataItems {
-            
+//        for item in self.feedDataItems {
+//
 //            item.media = self.feedMediaCore.get(feedItemId: item.itemId)
-            
+//
 //            item.media.sort {
 //                return $0.order < $1.order
 //            }
-
+//
 //            item.comments = self.feedCommentCore.get(feedItemId: item.itemId)
-            
+//
 //            item.loadMedia()
-            
-        }
-    
+//
+//        }
     }
 
-    
     func pushItem(item: FeedDataItem) {
-        
         let feedMediaCore = FeedMediaCore()
         
         let idx = self.feedDataItems.firstIndex(where: {$0.itemId == item.itemId})
@@ -276,31 +257,19 @@ class FeedData: ObservableObject {
                 for med in item.media {
                     feedMediaCore.create(item: med)
                 }
-                
             }
             
             // load media for new items
             item.loadMedia()
-            
         } else {
-            
             // redundant, in case feedItem got into coredata but the feedMedia did not, as in the case of older posts
-            
             for med in item.media {
-                
-                
                 DispatchQueue.global(qos: .default).async {
-                
 //                    med.feedItemId = item.itemId // can be removed after build 8
-
                     feedMediaCore.create(item: med)
-
                 }
-                
             }
-
         }
-        
     }
     
     func insertComment(item: FeedComment) {
@@ -309,7 +278,7 @@ class FeedData: ObservableObject {
         if idx == nil {
             self.feedCommentItems.insert(item, at: 0)
         
-            if (item.username != self.xmpp.userData.phone) {
+            if (item.username != self.userData.phone) {
                 self.increaseFeedItemUnreadComments(comment: item, num: 1)
             }
         
@@ -317,11 +286,9 @@ class FeedData: ObservableObject {
                 self.feedCommentCore.create(item: item)
             }
         }
-
     }
     
     func increaseFeedItemUnreadComments(comment: FeedComment, num: Int) {
-        
         let idx = self.feedDataItems.firstIndex(where: {$0.itemId == comment.feedItemId})
         
         if idx == nil {
@@ -335,11 +302,9 @@ class FeedData: ObservableObject {
                 self.feedItemCore.update(item: self.feedDataItems[idx!])
             }
         }
-        
     }
         
     func markFeedItemUnreadComments(feedItemId: String) {
-        
         let idx = self.feedDataItems.firstIndex(where: {$0.itemId == feedItemId})
         
         if idx == nil {
@@ -353,14 +318,12 @@ class FeedData: ObservableObject {
                 }
             }
         }
-        
     }
     
     func postItem(_ user: String, _ text: String, _ media: [FeedMedia]) {
-        
         let text = XMLElement(name: "text", stringValue: text)
         
-        let username = XMLElement(name: "username", stringValue: self.xmpp.userData.phone)
+        let username = XMLElement(name: "username", stringValue: self.userData.phone)
         let userImageUrl = XMLElement(name: "userImageUrl", stringValue: "")
         
         let childroot = XMLElement(name: "feedpost")
@@ -392,26 +355,14 @@ class FeedData: ObservableObject {
         
         mainroot.addChild(childroot)
         
-        self.xmpp.userData.log("Feed: postItem - \(mainroot)")
+        self.userData.log("Feed: postItem - \(mainroot)")
         
         let id = UUID().uuidString
         self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: mainroot, withItemID: id)
-                
     }
     
     // Publishes the post to the user's feed pubsub node.
     func postTextOld(_ user: String, _ text: String, _ media: [FeedMedia]) {
-        
-        var url: String = ""
-        var imageWidth: Int = 0
-        var imageHeight: Int = 0
-        
-        if media.count > 0 {
-            url = media[0].url
-            imageWidth = media[0].width
-            imageHeight = media[0].height
-        }
-        
         let text = XMLElement(name: "text", stringValue: text)
         let childroot = XMLElement(name: "feedpost")
         let mainroot = XMLElement(name: "entry")
@@ -433,7 +384,7 @@ class FeedData: ObservableObject {
         
         mainroot.addChild(childroot)
         
-        self.xmpp.userData.log("Feed: PostText \(mainroot)")
+        self.userData.log("Feed: PostText \(mainroot)")
         
         let id = UUID().uuidString
         self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: mainroot, withItemID: id)
@@ -446,7 +397,7 @@ class FeedData: ObservableObject {
         let text = XMLElement(name: "text", stringValue: text)
         let feedItem = XMLElement(name: "feedItemId", stringValue: feedItemId)
         let parentCommentId = XMLElement(name: "parentCommentId", stringValue: parentCommentId)
-        let username = XMLElement(name: "username", stringValue: self.xmpp.userData.phone)
+        let username = XMLElement(name: "username", stringValue: self.userData.phone)
         let userImageUrl = XMLElement(name: "userImageUrl", stringValue: "")
 
         let mainroot = XMLElement(name: "entry")
@@ -464,13 +415,12 @@ class FeedData: ObservableObject {
         var log = "\r\n Final pubsub payload (postComment(): \(mainroot)"
         log += "\r\n"
         print(log)
-        self.xmpp.userData.logging += log
+        self.userData.logging += log
         
         
         let id = UUID().uuidString
         self.xmppController.xmppPubSub.publish(toNode: "feed-\(postUser)", entry: mainroot, withItemID: id)
     }
-    
     
     func sendMessage(text: String) {
         print("sendMessage: " + text)
@@ -478,13 +428,9 @@ class FeedData: ObservableObject {
         let msg = XMPPMessage(type: "chat", to: user)
         msg.addBody(text)
         self.xmppController.xmppStream.send(msg)
-
-
     }
-    
 
     func processExpires() {
-        
         let current = Int(Date().timeIntervalSince1970)
         
         let month = 60*60*24*30
@@ -496,21 +442,11 @@ class FeedData: ObservableObject {
             
             if (diff > month) {
 
-                if (item.username != self.xmpp.userData.phone) {
+                if (item.username != self.userData.phone) {
                     feedItemCore.delete(itemId: item.itemId)
                     feedDataItems.remove(at: i)
                 }
-                
             }
-            
         }
-        
-        
-        
-        
     }
-    
-    
 }
-
-

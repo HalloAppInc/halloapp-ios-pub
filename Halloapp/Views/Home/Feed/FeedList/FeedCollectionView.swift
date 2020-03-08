@@ -13,14 +13,10 @@ struct FeedCollectionView: UIViewRepresentable {
     private let headerReuseIdentifier = "WFeedListHeader"
 
     @EnvironmentObject var mainViewController: MainViewController
-    @EnvironmentObject var contacts: Contacts
 
     var isOnProfilePage: Bool
-    
     var items: [FeedDataItem]
-
     var getItemMedia: (String) -> Void
-    
     var setItemCellHeight: (String, Int) -> Void
 
     func makeUIView(context: Context) -> UICollectionView {
@@ -54,7 +50,7 @@ struct FeedCollectionView: UIViewRepresentable {
            switch kind {
                 case UICollectionView.elementKindSectionHeader:
                     if let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "WFeedListHeader", for: indexPath) as? WFeedListHeader {
-                        headerView.configure(isOnProfilePage: self.isOnProfilePage, contacts: self.contacts)
+                        headerView.configure(isOnProfilePage: self.isOnProfilePage)
                         return headerView
                     }
                     return WFeedListHeader()
@@ -93,7 +89,7 @@ struct FeedCollectionView: UIViewRepresentable {
         if (self.isOnProfilePage) {
             ///TODO: compare by sender id, not name
             let profileItems = self.items.filter {
-                return $0.username == self.contacts.xmpp.userData.phone
+                return $0.username == AppContext.shared.userData.phone
             }
             snapshot.appendItems(profileItems)
         } else {
@@ -109,9 +105,7 @@ struct FeedCollectionView: UIViewRepresentable {
 
 
     class Coordinator: NSObject, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
-        
-        var parent: FeedCollectionView
-        
+        private var parent: FeedCollectionView
         var dataSource: UICollectionViewDiffableDataSource<WFeedListSection, FeedDataItem>?
         
         @State var temp: String = ""
@@ -128,9 +122,7 @@ struct FeedCollectionView: UIViewRepresentable {
 //                item!.media = FeedMediaCore().getInfo(feedItemId: item!.itemId)
                 
                 ///TODO: calculate row height without creating cell
-                let controller = UIHostingController(rootView: FeedItemView(item: item!)
-                    .environmentObject(parent.contacts))
-
+                let controller = UIHostingController(rootView: FeedItemView(item: item!))
                 let size = controller.view.sizeThatFits(CGSize(width: collectionView.frame.width, height: CGFloat.greatestFiniteMagnitude))
 
                 var newHeight = size.height
@@ -148,7 +140,7 @@ struct FeedCollectionView: UIViewRepresentable {
         func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
             var sectionHeight: CGFloat = 0
             if (self.parent.isOnProfilePage) {
-                let controller = UIHostingController(rootView: FeedHeaderView(isOnProfilePage: self.parent.isOnProfilePage, contacts: self.parent.contacts))
+                let controller = UIHostingController(rootView: FeedHeaderView(isOnProfilePage: self.parent.isOnProfilePage))
                 sectionHeight = controller.view.sizeThatFits(CGSize(width: collectionView.frame.width, height: CGFloat.greatestFiniteMagnitude)).height
             }
             return CGSize(width: collectionView.frame.width, height: sectionHeight)
@@ -176,14 +168,15 @@ struct FeedCollectionView: UIViewRepresentable {
     }
 }
 
+
 // When using UICollectionViewDiffableDataSource, the model must be Hashable (which enums already are)
 enum WFeedListSection {
     case main
 }
 
+
 struct FeedHeaderView: View {
     var isOnProfilePage: Bool
-    @ObservedObject var contacts: Contacts
 
     var body: some View {
         VStack(alignment: .center, spacing: 0) {
@@ -197,7 +190,7 @@ struct FeedHeaderView: View {
                     .frame(width: 50, height: 50, alignment: .center)
                     .padding(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
 
-                Text("\(self.contacts.xmpp.userData.phone)")
+                Text("\(AppContext.shared.userData.phone)")
             }
         }
         .padding(EdgeInsets(top: 20, leading: 0, bottom: 20, trailing: 0))
@@ -205,24 +198,24 @@ struct FeedHeaderView: View {
     }
 }
 
+
 class WFeedListHeader: UICollectionReusableView {
-    public func configure(isOnProfilePage: Bool, contacts: Contacts) {
-        let controller = UIHostingController(rootView: FeedHeaderView(isOnProfilePage: isOnProfilePage, contacts: contacts))
+    public func configure(isOnProfilePage: Bool) {
+        let controller = UIHostingController(rootView: FeedHeaderView(isOnProfilePage: isOnProfilePage))
         controller.view.frame = self.bounds
         controller.view.backgroundColor = UIColor.systemGroupedBackground
         self.addSubview(controller.view)
     }
 }
 
+
 struct FeedItemView: View {
-    @EnvironmentObject var feedData: FeedData
-    @EnvironmentObject var contacts: Contacts
+    private let contacts = AppContext.shared.contacts
 
     var item: FeedDataItem
 
-    @State var showSheet: Bool = false
-
-    @State var localUnreadComments: Int = 0
+    @State private var showSheet: Bool = false
+    @State private var localUnreadComments: Int = 0
     
     var body: some View {
         
@@ -300,7 +293,7 @@ struct FeedItemView: View {
                 Spacer()
 
                 // Message button
-                if (self.contacts.xmpp.userData.phone != item.username) {
+                if (AppContext.shared.userData.phone != item.username) {
                     Button(action: {
                         self.showSheet = true
                     }) {
@@ -341,6 +334,7 @@ struct FeedItemView: View {
         
     }
 }
+
 
 class WFeedListCell: UICollectionViewCell {
     public func configure(item: FeedDataItem) {

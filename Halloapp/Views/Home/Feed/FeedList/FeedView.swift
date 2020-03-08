@@ -11,9 +11,9 @@ import SwiftUI
 
 struct FeedView: View {
     @EnvironmentObject var mainViewController: MainViewController
-    @EnvironmentObject var feedData: FeedData
-    @EnvironmentObject var contacts: Contacts
 
+    @ObservedObject private var feedData = AppContext.shared.feedData
+    
     @State private var notificationsModal = false
     @State private var showShareSheet = false
     @State private var showNetworkAlert = false

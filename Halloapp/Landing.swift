@@ -9,15 +9,12 @@
 import SwiftUI
 
 struct Landing: View {
-    
-    @EnvironmentObject var authRouteData: AuthRouteData
-    @EnvironmentObject var userData: UserData
-    @EnvironmentObject var metaData: MetaData
-    
+    @ObservedObject var userData = AppContext.shared.userData
+
     var body: some View {
         VStack {
-            if (userData.isLoggedIn) {
-                HomeInit(xmpp: XMPP(userData: userData, metaData: metaData))
+            if (self.userData.isLoggedIn) {
+                HomeInit()
             } else {
                 AuthRouter()
             }

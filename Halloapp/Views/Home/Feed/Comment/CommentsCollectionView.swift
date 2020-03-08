@@ -16,8 +16,7 @@ enum MySection {
 ///TODO: use just one class
 struct RootCommentView: View {
     var comment: FeedDataItem
-
-    @ObservedObject var contacts: Contacts
+    var contacts: Contacts
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -55,6 +54,7 @@ struct RootCommentView: View {
     }
 }
 
+
 class CommentHeaderView: UICollectionReusableView {
     public func configure(model: FeedDataItem, contacts: Contacts) {
         let controller = UIHostingController(rootView: RootCommentView(comment: model, contacts: contacts))
@@ -71,7 +71,7 @@ struct CommentView: View {
     @Binding var replyTo: String
     @Binding var replyToName: String
 
-    @ObservedObject var contacts: Contacts
+    var contacts: Contacts
 
     @State private var UserImage = Image(systemName: "nosign")
 
@@ -123,6 +123,7 @@ struct CommentView: View {
     }
 }
 
+
 class CommentCell: UICollectionViewCell {
     public func configure(model: FeedComment, con: Binding<String>, replyTo: Binding<String>, replyToName: Binding<String>, contacts: Contacts) {
         let controller = UIHostingController(rootView: CommentView(comment: model, scroll: con, replyTo: replyTo, replyToName: replyToName, contacts: contacts))
@@ -144,15 +145,13 @@ struct CommentsCollectionView: UIViewRepresentable {
     static let headerReuseIdentifier = "MyHeaderFooter"
 
     @Binding var item: FeedDataItem
-
     @Binding var comments: [FeedComment]
     
     @Binding var scroll: String
-    
     @Binding var replyTo: String
     @Binding var replyToName: String
 
-    @ObservedObject var contacts: Contacts
+    private let contacts = AppContext.shared.contacts
 
     func makeUIView(context: Context) -> UICollectionView {
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()

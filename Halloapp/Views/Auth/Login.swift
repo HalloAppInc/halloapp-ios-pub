@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct Login: View {
-    
     @EnvironmentObject var authRouteData: AuthRouteData
-    @EnvironmentObject var userData: UserData
+
+    @ObservedObject var userData = AppContext.shared.userData
     
     @State var isButtonClicked = false
     
@@ -35,9 +35,7 @@ struct Login: View {
                     /* Country Code */
                     TextField("", text: self.$userData.countryCode, onEditingChanged: { (changed) in
                     }) {
-
                         // pressing enter should go to the phone number input box, if it's empty
-                        
                     }
                     .font(.gothamBody)
                     .frame(minWidth: 0, maxWidth: 60, minHeight: 20, maxHeight: 20)
@@ -57,8 +55,6 @@ struct Login: View {
                         // pressing enter
                         if self.userData.validate() {
                              self.authRouteData.gotoPage(page: "verify")
-                         } else {
-                             
                          }
                     }
                     .font(.gothamBody)

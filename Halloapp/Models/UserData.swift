@@ -25,7 +25,7 @@ final class UserData: ObservableObject {
     
     @Published var phone = ""
     @Published var isLoggedIn = false
-    
+
     public var haveContactsSub = false
     public var haveFeedSub = false
     
@@ -35,7 +35,6 @@ final class UserData: ObservableObject {
     @Published var highlightCountryCode = false
 
     @Published var hostName = "s.halloapp.net"
-    
 //    @Published var hostName = "s-test.halloapp.net"
     
 //  @Published var userJIDString = "14088922686@s.halloapp.net/iphone"
@@ -143,6 +142,7 @@ final class UserData: ObservableObject {
     func setIsLoggedIn(value: Bool) {
         self.isLoggedIn = value
         self.save()
+        AppContext.shared.xmpp.xmppController.allowedToConnect = self.isLoggedIn
     }
     
     func setHaveContactsSub(value: Bool) {
@@ -281,9 +281,7 @@ final class UserData: ObservableObject {
         task.resume()
         
     }
-    
-    
-    
+
     func deleteAllData(entityName: String) {
         
         let managedContext = CoreDataManager.sharedManager.bgContext
@@ -302,6 +300,4 @@ final class UserData: ObservableObject {
         }
         
     }
-    
-
 }

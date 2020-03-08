@@ -71,12 +71,7 @@ final class MainViewController: ObservableObject {
 }
 
 struct MainView: View {
-    @EnvironmentObject var xmpp: XMPP
     @EnvironmentObject var mainViewController: MainViewController
-    @EnvironmentObject var userData: UserData
-
-    @ObservedObject var contacts: Contacts
-    @ObservedObject var feedData: FeedData
 
     @State private var mediaToPost: [FeedMedia] = []
 
@@ -108,7 +103,7 @@ struct MainView: View {
             if (mainViewController.presentedModalView == .camera) {
                 CameraPickerView(capturedMedia: self.$mediaToPost,
                                  didFinishWithMedia: {
-                                    Utils().requestMultipleUploadUrl(xmppStream: self.feedData.xmppController.xmppStream, num: self.mediaToPost.count)
+                                    Utils().requestMultipleUploadUrl(xmppStream: AppContext.shared.xmpp.xmppController.xmppStream, num: self.mediaToPost.count)
                                     self.mainViewController.presentPostComposer() },
                                  didCancel: { self.mainViewController.dismissModalView() })
                     .transition(.move(edge: .bottom))
@@ -119,7 +114,7 @@ struct MainView: View {
             if (mainViewController.presentedModalView == .photoLibrary) {
                 PickerWrapper(selectedMedia: self.$mediaToPost,
                               didFinishWithMedia: {
-                                Utils().requestMultipleUploadUrl(xmppStream: self.feedData.xmppController.xmppStream, num: self.mediaToPost.count)
+                                Utils().requestMultipleUploadUrl(xmppStream: AppContext.shared.xmpp.xmppController.xmppStream, num: self.mediaToPost.count)
                                 self.mainViewController.presentPostComposer() },
                               didCancel: { self.mainViewController.dismissModalView() })
                     .transition(.move(edge: .bottom))
@@ -137,8 +132,5 @@ struct MainView: View {
             }
         }
         .environmentObject(mainViewController)
-        .environmentObject(feedData)
-        .environmentObject(contacts)
-        .environmentObject(userData)
     }
 }

@@ -11,26 +11,21 @@ import Combine
 
 struct CommentsView: View {
     @ObservedObject private var keyboard = KeyboardResponder()
+    @ObservedObject private var feedData = AppContext.shared.feedData
 
-    @EnvironmentObject var feedData: FeedData
-    @EnvironmentObject var contacts: Contacts
-    
-    var itemToBe: FeedDataItem
-    
     @State var item: FeedDataItem
     
-    @State var comments: [FeedComment] = []
+    @State private var comments: [FeedComment] = []
     
-    @State var msgToSend = ""
-    @State var scroll = ""
-    @State var replyTo = ""
-    @State var replyToName = ""
-    @State var cancellableSet: Set<AnyCancellable> = []
+    @State private var msgToSend = ""
+    @State private var scroll = ""
+    @State private var replyTo = ""
+    @State private var replyToName = ""
+    @State private var cancellableSet: Set<AnyCancellable> = []
 
     @State private var showNetworkAlert = false
 
     init(_ item: FeedDataItem) {
-        self.itemToBe = item
         self._item = State(initialValue: item)
     }
     
@@ -76,8 +71,7 @@ struct CommentsView: View {
                     comments: self.$comments,
                     scroll: self.$scroll,
                     replyTo: self.$replyTo,
-                    replyToName: self.$replyToName,
-                    contacts: self.contacts)
+                    replyToName: self.$replyToName)
                 .onTapGesture {
                     let keyWindow = UIApplication.shared.connectedScenes
                             .filter({$0.activationState == .foregroundActive})

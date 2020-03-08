@@ -9,10 +9,9 @@
 import SwiftUI
 
 struct Verify: View {
-
-    @EnvironmentObject var userData: UserData
-    @EnvironmentObject var authRouteData: AuthRouteData
     @EnvironmentObject var verification: Verification
+
+    @ObservedObject var userData = AppContext.shared.userData
     
     var body: some View {
         

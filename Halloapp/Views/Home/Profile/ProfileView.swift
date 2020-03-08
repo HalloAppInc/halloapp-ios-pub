@@ -9,10 +9,9 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @EnvironmentObject var userData: UserData
     @EnvironmentObject var mainViewController: MainViewController
-    @EnvironmentObject var feedData: FeedData
-    @EnvironmentObject var contacts: Contacts
+    
+    private let feedData = AppContext.shared.feedData
 
     @State var showSheet = false
     @State var showSettings = false
@@ -59,7 +58,6 @@ struct ProfileView: View {
                     Settings(onDismiss: {
                         self.showSheet = false
                     })
-                        .environmentObject(self.userData)
                         .environmentObject(self.mainViewController)
                 } else if (self.showSheet) {
 

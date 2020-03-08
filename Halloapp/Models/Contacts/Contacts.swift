@@ -1,67 +1,43 @@
-import Contacts
-import SwiftUI
-import os
-import CryptoKit
-
-import CommonCrypto
-
-import Foundation
 import Combine
-
-import XMPPFramework
-import Dispatch
-
+import CommonCrypto
+import Contacts
+import CryptoKit
 import CryptoSwift
-
+import Dispatch
+import Foundation
+import os
+import SwiftUI
+import XMPPFramework
 
 class Contacts: ObservableObject {
-    
-    let defaultNumChunks: Int = 1000
-    
-    let contactsQueue = DispatchQueue(label: "com.halloapp.contacts.serial", qos: DispatchQoS.default)
-    
-    @Published var error: Error? = nil
-    
     @Published var connectedContacts: [NormContact] = []
-    
+
+    private let defaultNumChunks: Int = 1000
+    private let contactsQueue = DispatchQueue(label: "com.halloapp.contacts.serial", qos: DispatchQoS.default)
     private var contacts: [NormContact] = []
-    
     private var idsToNormalize: [BatchId] = []
     private var idsToWhiteListContacts: [BatchId] = []
     private var idsToWhiteListFeed: [BatchId] = []
-    
-    var allPhonesString = ""
-    var contactHash = ""
-    
-    var xmpp: XMPP
-    var xmppController: XMPPController
-    
     private var cancellableSet: Set<AnyCancellable> = []
-    
-    var store = CNContactStore()
-    
-    private var sentPreemptiveNormalize = false
-    
-    private var getMissedPostsAndComments = false
-    
-    let contactsCD = ContactsCD()
-    
-    init(xmpp: XMPP) {
-//        print("contacts init")
-        
-        self.xmpp = xmpp
-        self.xmppController = self.xmpp.xmppController
+
+    private var userData: UserData
+    private var xmppController: XMPPController
+    private let store = CNContactStore()
+    private let contactsCD = ContactsCD()
+
+    init(xmpp: XMPP, userData: UserData) {
+        self.xmppController = xmpp.xmppController
+        self.userData = userData
         
         self.pushAllItems(items: self.contactsCD.getAll())
         
         self.connectedContacts = self.contacts.filter { $0.isConnected }
-        
 
         // when app resumes, xmpp reconnects, contacts should check again
         self.cancellableSet.insert(
-            self.xmpp.xmppController.didConnect.sink(receiveValue: { value in
+            self.xmppController.didConnect.sink(receiveValue: { value in
                 
-                self.xmpp.userData.log("Contacts: Got event for didConnect")
+                self.userData.log("Contacts: Got event for didConnect")
 //                self.fetch()
 
                 self.store.requestAccess(for: .contacts, completionHandler: { (granted, error) in
@@ -79,21 +55,18 @@ class Contacts: ObservableObject {
                 
                 let oneday = 60*60*24*1
                 
-                let diff = current - self.xmpp.userData.loggingTimestamp
+                let diff = current - self.userData.loggingTimestamp
                                 
                 if (diff > oneday) {
-
-                    self.xmpp.userData.loggingTimestamp = Int(Date().timeIntervalSince1970)
-                    self.xmpp.userData.logging = ""
-                    
+                    self.userData.loggingTimestamp = Int(Date().timeIntervalSince1970)
+                    self.userData.logging = ""
                 }
-                
             })
         )
         
         self.cancellableSet.insert(
          
-            self.xmpp.userData.didLogOff.sink(receiveValue: {
+            self.userData.didLogOff.sink(receiveValue: {
                 print("got log off signal in Contacts")
                 
                 // tried this, it started removing extra whitelist for some reason, need more testing
@@ -104,19 +77,17 @@ class Contacts: ObservableObject {
 //                self.idsToNormalize.removeAll()
 
             })
-
         )
         
         self.cancellableSet.insert(
-            self.xmpp.userData.didResyncContacts.sink(receiveValue: { value in
+            self.userData.didResyncContacts.sink(receiveValue: { value in
                 
-                self.xmpp.userData.log("Resync Contacts")
+                self.userData.log("Resync Contacts")
                 
                 self.contacts.removeAll()
                 self.connectedContacts = self.contacts.filter { $0.isConnected }
                 
                 self.fetch()
-                
             })
         )
         
@@ -130,7 +101,7 @@ class Contacts: ObservableObject {
                     
                     let affList = Utils().parseAffList(iq)
                     
-                    self.xmpp.userData.log("Contacts: Aff List - \(affList)")
+                    self.userData.log("Contacts: Aff List - \(affList)")
 
                     for (conIndex, con) in self.contacts.enumerated() {
                         
@@ -177,8 +148,7 @@ class Contacts: ObservableObject {
                     }
 
                     if numChanges > 0 {
-
-                        self.xmpp.userData.log("Contacts: there are changes, update the connected users list")
+                        self.userData.log("Contacts: there are changes, update the connected users list")
                         
                         DispatchQueue.main.async {
 
@@ -187,14 +157,13 @@ class Contacts: ObservableObject {
                                 $0.name < $1.name
                             }
                             self.connectedContacts = isConnected
-
                         }
                     }
                     
-//                    self.xmpp.userData.log("Connected Contacts: ")
-//                    self.xmpp.userData.log("\(self.contacts.filter { $0.isConnected })")
+//                    self.userData.log("Connected Contacts: ")
+//                    self.userData.log("\(self.contacts.filter { $0.isConnected })")
                     
-                    self.xmpp.userData.log("Fetch all items")
+                    self.userData.log("Fetch all items")
                     
                     let connected = self.contacts.filter() { $0.isConnected }
 
@@ -203,14 +172,14 @@ class Contacts: ObservableObject {
                         
                         /* extra redundancy - repair past corrupted data if there are any */
                         self.xmppController.xmppPubSub.subscribe(toNode: "feed-\(targetUser)")
-                        Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "member")
-                        Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: targetUser, role: "publish-only")
+                        Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.userData.phone)", from: "\(self.userData.phone)", user: targetUser, role: "member")
+                        Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.userData.phone)", from: "\(self.userData.phone)", user: targetUser, role: "publish-only")
 
 //                        self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(targetUser)")
                     }
 
                     /* get your own items */
-//                    self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(self.xmpp.userData.phone)")
+//                    self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(self.userData.phone)")
                     
                     /* only do cleanup duty when everything else has been done */
 //                    print("Contacts Clean Up")
@@ -223,10 +192,7 @@ class Contacts: ObservableObject {
                     
                     /* remove extra subscriptions */
                     self.xmppController.xmppPubSub.retrieveSubscriptions()
-                        
-                 
                 }
-                
             })
         )
         
@@ -236,10 +202,10 @@ class Contacts: ObservableObject {
             xmppController.didGetNewContactsItem.sink(receiveValue: { iq in
                 
                 if let id = iq.elementID {
-                    self.xmpp.userData.log("Feed: Sending ACK for Add/Remove")
-                    Utils().sendAck(xmppStream: self.xmppController.xmppStream, id: id, from: self.xmpp.userData.phone)
+                    self.userData.log("Feed: Sending ACK for Add/Remove")
+                    Utils().sendAck(xmppStream: self.xmppController.xmppStream, id: id, from: self.userData.phone)
                 } else {
-                    self.xmpp.userData.log("Feed: Not sending ACK for Add/Remove")
+                    self.userData.log("Feed: Not sending ACK for Add/Remove")
                 }
                 
                 // basically a refresh
@@ -248,7 +214,6 @@ class Contacts: ObservableObject {
                 // todo: should also delete everything from list, ie remove users from subscriber lists
                 
             })
-
         )
         
         cancellableSet.insert(
@@ -259,12 +224,12 @@ class Contacts: ObservableObject {
                     
                     let list = Utils().parseSubsForExtras(iq)
                     
-                    self.xmpp.userData.log("Contacts: Subscriptions - \(list.count)")
-                    self.xmpp.userData.log("\(list)")
+                    self.userData.log("Contacts: Subscriptions - \(list.count)")
+                    self.userData.log("\(list)")
                     
                     for sub in list {
                         
-                        if (sub == self.xmpp.userData.phone) {
+                        if (sub == self.userData.phone) {
                             continue
                         }
                         
@@ -277,19 +242,15 @@ class Contacts: ObservableObject {
                         }
                         
                         if index == nil {
-                            self.xmpp.userData.log("Remove extra subscription: \(sub)")
+                            self.userData.log("Remove extra subscription: \(sub)")
                             
                             self.xmppController.xmppPubSub.unsubscribe(fromNode: "feed-\(sub)")
                             
                             self.notifyUser(user: sub, type: "remove")
                         }
-
                     }
-                    
                 }
-            
             })
-
         )
         
         cancellableSet.insert(
@@ -301,11 +262,11 @@ class Contacts: ObservableObject {
                     let affList = Utils().parseOwnAffList(iq)
              
                     if iq.elementID == "whitelisted-on-contacts" {
-                        self.xmpp.userData.log("whitelisted-on-contacts: \(affList.count)")
-                        self.xmpp.userData.devLog("\(affList)")
+                        self.userData.log("whitelisted-on-contacts: \(affList.count)")
+                        self.userData.devLog("\(affList)")
                     } else {
-                        self.xmpp.userData.log("whitelisted-on-feed: \(affList.count)")
-                        self.xmpp.userData.devLog("\(affList)")
+                        self.userData.log("whitelisted-on-feed: \(affList.count)")
+                        self.userData.devLog("\(affList)")
                         return
                     }
                     
@@ -316,19 +277,15 @@ class Contacts: ObservableObject {
                         }
                         
                         if index == nil {
-                            self.xmpp.userData.log("remove extra whitelist: \(aff)")
+                            self.userData.log("remove extra whitelist: \(aff)")
                             
-                            Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: aff, role: "none")
-                            Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.xmpp.userData.phone)", from: "\(self.xmpp.userData.phone)", user: aff, role: "none")
+                            Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "feed-\(self.userData.phone)", from: "\(self.userData.phone)", user: aff, role: "none")
+                            Utils().sendAff(xmppStream: self.xmppController.xmppStream, node: "contacts-\(self.userData.phone)", from: "\(self.userData.phone)", user: aff, role: "none")
                         
                         }
-
                     }
-                    
                 }
-            
             })
-
         )
         
         /* norm batch */
@@ -342,8 +299,8 @@ class Contacts: ObservableObject {
 
                             let normList = Utils().parseRawContacts(iq)
                         
-                            self.xmpp.userData.log("Contacts: Norm Batch - \(iq.elementID!) num: \(normList.count) numIdsToNormalize: \(self.idsToNormalize.count)")
-                            self.xmpp.userData.log("\(iq)")
+                            self.userData.log("Contacts: Norm Batch - \(iq.elementID!) num: \(normList.count) numIdsToNormalize: \(self.idsToNormalize.count)")
+                            self.userData.log("\(iq)")
                         
                             var whiteList: [BatchId] = []
                             
@@ -376,21 +333,17 @@ class Contacts: ObservableObject {
           
                             self.idsToWhiteListContacts.append(contentsOf: whiteList)
                             self.idsToWhiteListFeed.append(contentsOf: whiteList)
-
                        }
                     }
-                    
-                    
+
                     /* all normalizations are done, proceed to whitelisting */
                     if self.idsToNormalize.count == 0 {
-                        self.xmpp.userData.log("Finish Normaliziation -> start whitelisting contacts: \(self.idsToWhiteListContacts.count)")
+                        self.userData.log("Finish Normaliziation -> start whitelisting contacts: \(self.idsToWhiteListContacts.count)")
                         
                         self.processWhiteListContactsChunks()
                     }
                 }
-
             })
-
         )
         
         /* contacts aff batch */
@@ -405,7 +358,7 @@ class Contacts: ObservableObject {
 
                             let connected = self.idsToWhiteListContacts.filter() { $0.batch == iq.elementID! }
 
-                            self.xmpp.userData.log("Aff Batch Contacts: \(iq.elementID!) num: \(connected.count) numIdsToWhiteList: \(self.idsToWhiteListContacts.count)")
+                            self.userData.log("Aff Batch Contacts: \(iq.elementID!) num: \(connected.count) numIdsToWhiteList: \(self.idsToWhiteListContacts.count)")
                             
                             connected.forEach { con in
                                 
@@ -420,27 +373,19 @@ class Contacts: ObservableObject {
                                     self.contactsQueue.async {
                                         self.contactsCD.update(item: self.contacts[index!])
                                     }
-                                    
-                                    
-                       
                                 }
-                                
                             }
-                            
                         }
-                        
                     }
                     
                     /* all contact whitelisting are done, proceed to whitelisting feed */
                     if self.idsToWhiteListContacts.count == 0 {
-                        self.xmpp.userData.log("Finish whitelisting contacts -> start whitelisting Feed")
+                        self.userData.log("Finish whitelisting contacts -> start whitelisting Feed")
 
                         self.processWhiteListFeedChunks()
                     }
                 }
-                
             })
-
         )
         
         /* feed aff batch */
@@ -454,7 +399,7 @@ class Contacts: ObservableObject {
      
                             let connected = self.idsToWhiteListFeed.filter() { $0.batch == iq.elementID! }
      
-                            self.xmpp.userData.log("Aff Batch Feed: \(iq.elementID!) num: \(connected.count) numIdsToWhiteList: \(self.idsToWhiteListFeed.count)")
+                            self.userData.log("Aff Batch Feed: \(iq.elementID!) num: \(connected.count) numIdsToWhiteList: \(self.idsToWhiteListFeed.count)")
 
                             connected.forEach { con in
                                 
@@ -479,27 +424,20 @@ class Contacts: ObservableObject {
                                     self.contactsQueue.async {
                                         self.contactsCD.update(item: self.contacts[index!])
                                     }
-                       
                                 }
-                                
                             }
-                            
                         }
-
                     }
                     
                     /* all feed whitelisting are done, proceed to getAllAffiliations */
                     if self.idsToWhiteListFeed.count == 0 {
-                        self.xmpp.userData.log("Finish whitelisting feed, now getAllAffiliations")
+                        self.userData.log("Finish whitelisting feed, now getAllAffiliations")
 
                         
                         self.getAllAffiliations()
                     }
-                
                 }
-                
             })
-
         )
 
         
@@ -518,11 +456,10 @@ class Contacts: ObservableObject {
         
     }
 
-    
     func getWhitelist(node: String, id: String) {
         
         let affiliations = XMLElement(name: "affiliations")
-        affiliations.addAttribute(withName: "node", stringValue: "\(node)-\(self.xmpp.userData.phone)")
+        affiliations.addAttribute(withName: "node", stringValue: "\(node)-\(self.userData.phone)")
 
         let pubsub = XMLElement(name: "pubsub")
         pubsub.addAttribute(withName: "xmlns", stringValue: "http://jabber.org/protocol/pubsub#owner")
@@ -530,7 +467,7 @@ class Contacts: ObservableObject {
 
         let iq = XMLElement(name: "iq")
         iq.addAttribute(withName: "type", stringValue: "get")
-        iq.addAttribute(withName: "from", stringValue: "\(self.xmpp.userData.phone)@s.halloapp.net/iphone")
+        iq.addAttribute(withName: "from", stringValue: "\(self.userData.phone)@s.halloapp.net/iphone")
         iq.addAttribute(withName: "to", stringValue: "pubsub.s.halloapp.net")
         iq.addAttribute(withName: "id", stringValue: id)
         iq.addChild(pubsub)
@@ -547,7 +484,7 @@ class Contacts: ObservableObject {
 
         let iq = XMLElement(name: "iq")
         iq.addAttribute(withName: "type", stringValue: "get")
-        iq.addAttribute(withName: "from", stringValue: "\(self.xmpp.userData.phone)@s.halloapp.net/iphone")
+        iq.addAttribute(withName: "from", stringValue: "\(self.userData.phone)@s.halloapp.net/iphone")
         iq.addAttribute(withName: "to", stringValue: "pubsub.s.halloapp.net")
         iq.addAttribute(withName: "id", stringValue: "all aff")
         iq.addChild(pubsub)
@@ -557,7 +494,7 @@ class Contacts: ObservableObject {
     
     func getName(phone: String) -> String {
         
-        if phone == self.xmpp.userData.phone {
+        if phone == self.userData.phone {
             return "Me"
         }
         
@@ -569,8 +506,6 @@ class Contacts: ObservableObject {
             return self.contacts[idx!].name
         }
     }
-    
-    
         
     func pushAllItems(items: [NormContact]) {
         
@@ -581,8 +516,7 @@ class Contacts: ObservableObject {
         }
 
     }
-    
-    
+
     func pushItem(item: NormContact) {
         
         let idx = self.contacts.firstIndex(where: {$0.phone == item.phone})
@@ -630,14 +564,13 @@ class Contacts: ObservableObject {
         
 
     }
-    
-    
+
     func notifyUser(user: String, type: String) {
         
         print("notifyUser: \(user) - \(type)")
         
         let text = XMLElement(name: "type", stringValue: type)
-        let username = XMLElement(name: "user", stringValue: self.xmpp.userData.phone)
+        let username = XMLElement(name: "user", stringValue: self.userData.phone)
         let timestamp = XMLElement(name: "timestamp", stringValue: String(Date().timeIntervalSince1970))
 
         let root = XMLElement(name: "entry")
@@ -649,8 +582,7 @@ class Contacts: ObservableObject {
         self.xmppController.xmppPubSub.publish(toNode: "contacts-\(user)", entry: root)
         
     }
-    
-    
+
     func fetch() {
         
         self.contactsQueue.async {
@@ -692,7 +624,6 @@ class Contacts: ObservableObject {
                 }
             }
             
-            self.allPhonesString = ""
             var addressBookContactsStrArr: [String] = []
             
             var numChangesToExistingContacts: Int = 0
@@ -713,7 +644,7 @@ class Contacts: ObservableObject {
                     let phoneNumber = String(abContactPhoneNumber.value.stringValue.unicodeScalars.filter(characterSet.contains))
 
                     /* skip user's him/herself */
-                    if (phoneNumber == self.xmpp.userData.phone) {
+                    if (phoneNumber == self.userData.phone) {
                         continue
                     }
 
@@ -788,7 +719,7 @@ class Contacts: ObservableObject {
             print("Contacts fetch end. time: \(timestamp.timeIntervalSince(Date()))")
                         
             if self.idsToNormalize.count > 0 {
-                self.xmpp.userData.log("Start normalization of: \(self.idsToNormalize.count)")
+                self.userData.log("Start normalization of: \(self.idsToNormalize.count)")
 
                 self.processNormalizeChunks(self.idsToNormalize)
             } else {
@@ -825,7 +756,7 @@ class Contacts: ObservableObject {
                 
                 Utils().sendRawContacts(
                     xmppStream: self.xmppController.xmppStream,
-                    user: "\(self.xmpp.userData.phone)",
+                    user: "\(self.userData.phone)",
                     rawContacts: idsArr,
                     id: label)
                 
@@ -833,11 +764,10 @@ class Contacts: ObservableObject {
             
         }
         
-        self.xmpp.userData.log("Chunking normalization: \(self.idsToNormalize.count)")
+        self.userData.log("Chunking normalization: \(self.idsToNormalize.count)")
         
     }
-    
-    
+
     func processWhiteListContactsChunks() {
         
         let numChunk = self.defaultNumChunks
@@ -863,8 +793,8 @@ class Contacts: ObservableObject {
         
                 Utils().sendAffBatch(
                     xmppStream: self.xmppController.xmppStream,
-                    node: "contacts-\(self.xmpp.userData.phone)",
-                    from: "\(self.xmpp.userData.phone)",
+                    node: "contacts-\(self.userData.phone)",
+                    from: "\(self.userData.phone)",
                     users: idsArr,
                     role: "publish-only",
                     id: labelContacts)
@@ -874,8 +804,7 @@ class Contacts: ObservableObject {
         }
         
     }
-    
-    
+
     func processWhiteListFeedChunks() {
         
         let numChunk = self.defaultNumChunks
@@ -899,8 +828,8 @@ class Contacts: ObservableObject {
                         
                 Utils().sendAffBatch(
                     xmppStream: self.xmppController.xmppStream,
-                    node: "feed-\(self.xmpp.userData.phone)",
-                    from: "\(self.xmpp.userData.phone)",
+                    node: "feed-\(self.userData.phone)",
+                    from: "\(self.userData.phone)",
                     users: idsArr,
                     role: "member",
                     id: labelFeed)
@@ -917,7 +846,7 @@ class Contacts: ObservableObject {
 //        var log = "address book string: \(addressBookContactsStrArr)"
 //        log += "\r\n"
 //        print(log)
-//        self.xmpp.userData.logging += log
+//        self.userData.logging += log
         
         for con in self.contacts {
             
@@ -943,7 +872,7 @@ class Contacts: ObservableObject {
             var log = "not found in addressBook: \(notFound)"
             log += "\r\n"
             print(log)
-            self.xmpp.userData.logging += log
+            self.userData.logging += log
             
             notFound.forEach { con in
                                       
@@ -964,7 +893,6 @@ class Contacts: ObservableObject {
         return notFound.count
 
     }
-    
 }
 
 
@@ -983,7 +911,6 @@ extension CNContact: Identifiable {
 
 struct BatchId: Identifiable {
     var id = UUID()
-    
     var phone: String = ""
     var normalizedPhone: String = ""
     var name: String = ""

@@ -11,64 +11,38 @@ import Combine
 import XMPPFramework
 
 class XMPP: ObservableObject {
-
-    @Published var isReady = false
-    
-    @Published var xmppController: XMPPController!
-    
+    private var userData: UserData
+    private var metaData: MetaData
+    @Published private(set) var xmppController: XMPPController!
     private var cancellableSet: Set<AnyCancellable> = []
-    
-    @Published var userData: UserData
-    
-    @Published var metaData: MetaData
-    
-    init(userData: UserData, metaData: MetaData) {
 
-//        print("XMPP Init")
-        
+    init(userData: UserData, metaData: MetaData) {
         self.userData = userData
         self.metaData = metaData
-        
         do {
-            
             try self.xmppController = XMPPController(userData: self.userData, metaData: self.metaData)
-            
             self.xmppController.xmppStream.addDelegate(self, delegateQueue: DispatchQueue.main)
-            
         } catch {
             print("error connecting to xmpp server")
         }
-        
-        
-        self.cancellableSet.insert(
-         
-            self.xmppController.didConnect.sink(receiveValue: { value in
 
+        self.cancellableSet.insert(
+            self.xmppController.didConnect.sink(receiveValue: { value in
 //                print("got sink for didConnect")
 //                if (self.metaData.isOffline) {
 //                    self.metaData.isOffline = false
 //                }
-
             })
-
         )
-        
-        
+
         self.cancellableSet.insert(
-         
             self.userData.didLogOff.sink(receiveValue: {
                 print("got log off signal, disconnecting")
-                
+
                 self.xmppController.xmppStream.removeDelegate(self)
                 self.xmppController.xmppReconnect.deactivate()
                 self.xmppController.xmppStream.disconnect()
-                
-
             })
-
         )
-        
-        
     }
-    
 }

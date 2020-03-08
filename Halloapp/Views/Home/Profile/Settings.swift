@@ -10,9 +10,10 @@ import SwiftUI
 import MessageUI
 
 struct Settings: View {
-    @EnvironmentObject var userData: UserData
     @EnvironmentObject var mainViewController: MainViewController
-    
+
+    private let userData = AppContext.shared.userData
+
     var onDismiss: () -> ()
     
     @State var result: Result<MFMailComposeResult, Error>? = nil
@@ -216,9 +217,3 @@ struct Settings: View {
         }
     }
 }
-
-//struct Settings_Previews: PreviewProvider {
-//    static var previews: some View {
-//        Settings()
-//    }
-//}

@@ -10,9 +10,9 @@ import SwiftUI
 import Contacts
 
 struct MessagesView: View {
-    @EnvironmentObject var authRouteData: AuthRouteData
-    @EnvironmentObject var contacts: Contacts
     @EnvironmentObject var mainViewController: MainViewController
+
+    private let contacts = AppContext.shared.contacts
 
     @State var showSheet = false
     @State var showWrite = false

@@ -8,29 +8,24 @@
 
 import SwiftUI
 
-struct AuthRouter: View {
-    
-    @EnvironmentObject var userData: UserData
-    @EnvironmentObject var authRouteData: AuthRouteData
-    
-    var body: some View {
-        
-        VStack {
-            if !userData.isRegistered {
-                Login()
-            } else if (userData.isRegistered) {
-                Verify()
-            }
-        }
-        
+final class AuthRouteData: ObservableObject {
+    @Published var currentPage = "login"
+
+    func gotoPage(page: String) {
+        self.currentPage = page
     }
 }
 
-struct AuthRouter_Previews: PreviewProvider {
-    static var previews: some View {
-        AuthRouter()
-            .environmentObject(AuthRouteData())
-            .environmentObject(UserData())
-            
+struct AuthRouter: View {
+    @ObservedObject var userData = AppContext.shared.userData
+    
+    var body: some View {
+        VStack {
+            if self.userData.isRegistered {
+                Verify()
+            } else {
+                Login()
+            }
+        }
     }
 }

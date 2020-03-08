@@ -16,7 +16,20 @@ enum XMPPControllerError: Error {
 }
 
 class XMPPController: NSObject, ObservableObject {
-    
+    var allowedToConnect: Bool = false {
+        didSet {
+            if (self.allowedToConnect) {
+                if (!self.isConnectedToServer) {
+                    self.connect()
+                }
+            } else {
+                if (self.isConnectedToServer) {
+                    self.xmppStream.disconnect()
+                }
+            }
+        }
+    }
+
     var isConnecting = PassthroughSubject<String, Never>()
     var didConnect = PassthroughSubject<String, Never>() // used by UserData to know if user is in or not
     
@@ -45,13 +58,12 @@ class XMPPController: NSObject, ObservableObject {
     var xmppStream: XMPPStream
     var xmppPubSub: XMPPPubSub
     var xmppReconnect: XMPPReconnect
-    
     var xmppPing: XMPPPing
     
 //    var xmppAutoPing: XMPPAutoPing
 
     var userJID: XMPPJID?
-    var hostPort: UInt16 = 5222
+    private let hostPort: UInt16 = 5222
 
     var userData: UserData
     var metaData: MetaData
@@ -59,20 +71,13 @@ class XMPPController: NSObject, ObservableObject {
     var isConnectedToServer: Bool = false
         
     init(userData: UserData, metaData: MetaData) throws {
-        
         self.userData = userData
         self.metaData = metaData
-        
-        let user = "\(self.userData.phone)@s.halloapp.net/iphone"
-        
-        self.userJID = XMPPJID(string: user)
 
         // Stream Configuration
         self.xmppStream = XMPPStream()
-        self.xmppStream.hostName = self.userData.hostName
         self.xmppStream.hostPort = hostPort
-        self.xmppStream.myJID = self.userJID
-        
+
         /* probably should be "required" once all servers including test servers are secured */
         self.xmppStream.startTLSPolicy = XMPPStreamStartTLSPolicy.preferred
         
@@ -90,7 +95,6 @@ class XMPPController: NSObject, ObservableObject {
         super.init()
 
         self.xmppStream.addDelegate(self, delegateQueue: DispatchQueue.main)
-        
         self.xmppPubSub.addDelegate(self, delegateQueue: DispatchQueue.main)
         self.xmppPubSub.activate(self.xmppStream)
         
@@ -102,18 +106,26 @@ class XMPPController: NSObject, ObservableObject {
         self.xmppPing.addDelegate(self, delegateQueue: DispatchQueue.main)
         self.xmppPing.activate(self.xmppStream)
         
-        
 //        self.xmppAutoPing.addDelegate(self, delegateQueue: DispatchQueue.main)
 //        self.xmppAutoPing.activate(self.xmppStream)
 //        self.xmppAutoPing.pingInterval = 5
 //        self.xmppAutoPing.pingTimeout = 5
-        
-        self.connect()
-        
+
+        self.allowedToConnect = userData.isLoggedIn
+        if (self.allowedToConnect) {
+            self.connect()
+        }
     }
 
     /* we do our own manual connection timeout as the xmppStream.connect timeout is not working */
     func connect() {
+        // Reconfigure credentials
+        let user = "\(self.userData.phone)@s.halloapp.net/iphone"
+        self.userJID = XMPPJID(string: user)
+
+        self.xmppStream.hostName = self.userData.hostName
+        self.xmppStream.myJID = self.userJID
+
         do {
             self.userData.log("Connecting")
 //            self.metaData.setIsOffline(value: true)
@@ -165,7 +177,6 @@ class XMPPController: NSObject, ObservableObject {
     }
     
     func createNodes() {
-
         var node = ""
         if let userJID = self.userJID {
             node = userJID.user!
@@ -241,7 +252,6 @@ class XMPPController: NSObject, ObservableObject {
 //        self.xmppStream.send(iq)
 
     }
-
 }
 
 
@@ -333,7 +343,6 @@ extension XMPPController: XMPPStreamDelegate {
     
     func xmppStreamDidStartNegotiation(_ sender: XMPPStream) {
         self.userData.log("Stream: Start Negotiation")
-        
     }
     
     /* ssl */
@@ -572,13 +581,11 @@ extension XMPPController: XMPPPubSubDelegate {
         let event = message.element(forName: "event")
         let items = event?.element(forName: "items")
         
-        if let delete = event?.element(forName: "delete") {
-            
+        if (event?.element(forName: "delete")) != nil {
             if let id = message.elementID {
                 //todo: eating the deletes for now
                 Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
             }
-            
         }
         
         if let node = items?.attributeStringValue(forName: "node") {

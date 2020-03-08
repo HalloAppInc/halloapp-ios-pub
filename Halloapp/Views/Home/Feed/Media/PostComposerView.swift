@@ -24,8 +24,7 @@ struct urlContainer {
 }
 
 struct PostComposerView: View {
-
-    @EnvironmentObject var feedData: FeedData
+    private let userData = AppContext.shared.userData
 
     var mediaItemsToPost: [FeedMedia] = []
 
@@ -50,7 +49,6 @@ struct PostComposerView: View {
         DispatchQueue.main.async {
 
             self.cancellableSet.forEach {
-//                print("cancelling")
                 $0.cancel()
             }
             self.cancellableSet.removeAll()
@@ -65,7 +63,7 @@ struct PostComposerView: View {
             /* important: this needs to be cancelled in onDisappear as the sinks remains even after */
             self.cancellableSet.insert(
 
-                self.feedData.xmppController.didGetUploadUrl.sink(receiveValue: { iq in
+                AppContext.shared.xmpp.xmppController.didGetUploadUrl.sink(receiveValue: { iq in
 
                     var urlCon: urlContainer = urlContainer()
 
@@ -91,21 +89,21 @@ struct PostComposerView: View {
 
                                 if feedMedia.type == "image" {
                                     
-                                    self.feedData.xmpp.userData.log("Post Image: original res - \(item.width) x \(item.height)")
+                                    self.userData.log("Post Image: original res - \(item.width) x \(item.height)")
 
                                     if item.width > 1600 || item.height > 1600 {
                                         item.image = item.image.getNewSize(res: 1600) ?? UIImage()
                                         item.width = Int(item.image.size.width)
                                         item.height = Int(item.image.size.height)
                                         
-                                        self.feedData.xmpp.userData.log("Post Image: resized res - \(item.image.size.width) x \(item.image.size.height)")
+                                        self.userData.log("Post Image: resized res - \(item.image.size.width) x \(item.image.size.height)")
                                     }
 
                                     feedMedia.image = item.image
 
                                     /* turn on/off encryption of media */
-                                    if let imgData = feedMedia.image.jpegData(compressionQuality: CGFloat(self.feedData.xmpp.userData.compressionQuality)) {
-                                        self.feedData.xmpp.userData.log("Post Image: (\(self.feedData.xmpp.userData.compressionQuality)) compressed size - \(imgData.count)")
+                                    if let imgData = feedMedia.image.jpegData(compressionQuality: CGFloat(self.userData.compressionQuality)) {
+                                        self.userData.log("Post Image: (\(self.userData.compressionQuality)) compressed size - \(imgData.count)")
                                         
                                         (feedMedia.encryptedData, feedMedia.key, feedMedia.sha256hash) = HAC().encryptData(data: imgData, type: "image")
 
@@ -227,7 +225,7 @@ struct PostComposerView: View {
 
                 if (self.isReadyToPost) {
                     self.isShareClicked = true
-                    self.feedData.postItem(self.feedData.xmpp.userData.phone, self.msgToSend, self.mediaItemsToPost)
+                    AppContext.shared.feedData.postItem(self.userData.phone, self.msgToSend, self.mediaItemsToPost)
                     self.didFinish()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                         self.msgToSend = ""
@@ -249,7 +247,6 @@ struct PostComposerView: View {
 
         .onDisappear {
             self.cancellableSet.forEach {
-//                print("cancelling")
                 $0.cancel()
             }
             self.cancellableSet.removeAll()
