@@ -67,15 +67,13 @@ class Contacts: ObservableObject {
         self.cancellableSet.insert(
          
             self.userData.didLogOff.sink(receiveValue: {
-                print("got log off signal in Contacts")
+                self.userData.log("Contacts: got didLogOff")
                 
-                // tried this, it started removing extra whitelist for some reason, need more testing
-                
-//                self.contacts.removeAll()
-//                self.normalizedContacts.removeAll()
-//                self.idsToWhiteList.removeAll()
-//                self.idsToNormalize.removeAll()
-
+                self.connectedContacts.removeAll()
+                self.contacts.removeAll()
+                self.idsToNormalize.removeAll()
+                self.idsToWhiteListContacts.removeAll()
+                self.idsToWhiteListFeed.removeAll()
             })
         )
         

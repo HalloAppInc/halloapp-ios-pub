@@ -139,12 +139,6 @@ final class UserData: ObservableObject {
         subCancellable.cancel()
     }
     
-    func setIsLoggedIn(value: Bool) {
-        self.isLoggedIn = value
-        self.save()
-        AppContext.shared.xmppController.allowedToConnect = self.isLoggedIn
-    }
-    
     func setHaveContactsSub(value: Bool) {
         self.haveContactsSub = value
         self.save()
@@ -159,9 +153,14 @@ final class UserData: ObservableObject {
         deleteAllData(entityName: "ContactsCore")
         self.didResyncContacts.send()
     }
+
+    func logIn() {
+        self.isLoggedIn = true
+        self.save()
+        AppContext.shared.xmppController.allowedToConnect = self.isLoggedIn
+    }
     
     func logout() {
-        
         deleteAllData(entityName: "User")
         deleteAllData(entityName: "ContactsCore")
         deleteAllData(entityName: "FeedCore")
@@ -171,12 +170,7 @@ final class UserData: ObservableObject {
         deleteAllData(entityName: "CPending")
         
         self.didLogOff.send()
-        
-        /* wipe in memory data */
-        
-        // delete all the feed items, messages in memory
-        // todo: delete user avatar also
-        
+            
         self.countryCode = "1"
         self.phone = ""
         self.isRegistered = false
@@ -185,7 +179,6 @@ final class UserData: ObservableObject {
         self.haveFeedSub = false
         
         self.isLoggedIn = false
-        
     }
     
     func validate() -> Bool {

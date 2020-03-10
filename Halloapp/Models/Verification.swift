@@ -79,7 +79,7 @@ final class Verification: ObservableObject {
                         if let password = res.pass {
                             
                             userData.password = password
-                            userData.setIsLoggedIn(value: true)
+                            userData.logIn()
                             userData.save()
 
                             self.code = ""

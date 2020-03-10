@@ -72,6 +72,7 @@ class XMPPController: NSObject, ObservableObject {
     private var cancellableSet: Set<AnyCancellable> = []
 
     init(userData: UserData, metaData: MetaData) {
+        
         self.userData = userData
         self.metaData = metaData
 
@@ -120,8 +121,8 @@ class XMPPController: NSObject, ObservableObject {
         ///TODO: consider doing the same for didLogIn.
         self.cancellableSet.insert(
             self.userData.didLogOff.sink(receiveValue: {
-                print("got log off signal, disconnecting")
-                self.xmppReconnect.deactivate()
+                self.userData.log("XMPPController: got didLogOff, disconnecting")
+                self.isConnectedToServer = false
                 self.xmppStream.disconnect()
                 self.allowedToConnect = false
             })
