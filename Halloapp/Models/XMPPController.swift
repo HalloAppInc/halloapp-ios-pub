@@ -6,10 +6,10 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
-import Foundation
-import XMPPFramework
-import SwiftUI
 import Combine
+import Foundation
+import SwiftUI
+import XMPPFramework
 
 enum XMPPControllerError: Error {
     case wrongUserJID
@@ -69,8 +69,9 @@ class XMPPController: NSObject, ObservableObject {
     var metaData: MetaData
     
     var isConnectedToServer: Bool = false
-        
-    init(userData: UserData, metaData: MetaData) throws {
+    private var cancellableSet: Set<AnyCancellable> = []
+
+    init(userData: UserData, metaData: MetaData) {
         self.userData = userData
         self.metaData = metaData
 
@@ -115,6 +116,16 @@ class XMPPController: NSObject, ObservableObject {
         if (self.allowedToConnect) {
             self.connect()
         }
+
+        ///TODO: consider doing the same for didLogIn.
+        self.cancellableSet.insert(
+            self.userData.didLogOff.sink(receiveValue: {
+                print("got log off signal, disconnecting")
+                self.xmppReconnect.deactivate()
+                self.xmppStream.disconnect()
+                self.allowedToConnect = false
+            })
+        )
     }
 
     /* we do our own manual connection timeout as the xmppStream.connect timeout is not working */

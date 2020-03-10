@@ -103,7 +103,7 @@ struct MainView: View {
             if (mainViewController.presentedModalView == .camera) {
                 CameraPickerView(capturedMedia: self.$mediaToPost,
                                  didFinishWithMedia: {
-                                    Utils().requestMultipleUploadUrl(xmppStream: AppContext.shared.xmpp.xmppController.xmppStream, num: self.mediaToPost.count)
+                                    Utils().requestMultipleUploadUrl(xmppStream: AppContext.shared.xmppController.xmppStream, num: self.mediaToPost.count)
                                     self.mainViewController.presentPostComposer() },
                                  didCancel: { self.mainViewController.dismissModalView() })
                     .transition(.move(edge: .bottom))
@@ -114,7 +114,7 @@ struct MainView: View {
             if (mainViewController.presentedModalView == .photoLibrary) {
                 PickerWrapper(selectedMedia: self.$mediaToPost,
                               didFinishWithMedia: {
-                                Utils().requestMultipleUploadUrl(xmppStream: AppContext.shared.xmpp.xmppController.xmppStream, num: self.mediaToPost.count)
+                                Utils().requestMultipleUploadUrl(xmppStream: AppContext.shared.xmppController.xmppStream, num: self.mediaToPost.count)
                                 self.mainViewController.presentPostComposer() },
                               didCancel: { self.mainViewController.dismissModalView() })
                     .transition(.move(edge: .bottom))

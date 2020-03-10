@@ -142,7 +142,7 @@ final class UserData: ObservableObject {
     func setIsLoggedIn(value: Bool) {
         self.isLoggedIn = value
         self.save()
-        AppContext.shared.xmpp.xmppController.allowedToConnect = self.isLoggedIn
+        AppContext.shared.xmppController.allowedToConnect = self.isLoggedIn
     }
     
     func setHaveContactsSub(value: Bool) {

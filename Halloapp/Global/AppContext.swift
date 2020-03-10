@@ -18,7 +18,7 @@ struct AppContext {
     // MARK: - Global objects
     private(set) var userData: UserData
     private(set) var metaData: MetaData
-    private(set) var xmpp: XMPP
+    private(set) var xmppController: XMPPController
     private(set) var contacts: Contacts
     private(set) var feedData: FeedData
 
@@ -49,8 +49,8 @@ struct AppContext {
     init() {
         self.userData = UserData()
         self.metaData = MetaData()
-        self.xmpp = XMPP(userData: self.userData, metaData: self.metaData)
-        self.contacts = Contacts(xmpp: self.xmpp, userData: self.userData)
-        self.feedData = FeedData(xmpp: self.xmpp, userData: self.userData)
+        self.xmppController = XMPPController(userData: self.userData, metaData: self.metaData)
+        self.contacts = Contacts(xmppController: self.xmppController, userData: self.userData)
+        self.feedData = FeedData(xmppController: self.xmppController, userData: self.userData)
     }
 }

@@ -25,8 +25,8 @@ class Contacts: ObservableObject {
     private let store = CNContactStore()
     private let contactsCD = ContactsCD()
 
-    init(xmpp: XMPP, userData: UserData) {
-        self.xmppController = xmpp.xmppController
+    init(xmppController: XMPPController, userData: UserData) {
+        self.xmppController = xmppController
         self.userData = userData
         
         self.pushAllItems(items: self.contactsCD.getAll())

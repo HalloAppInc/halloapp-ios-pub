@@ -25,7 +25,6 @@
 		EA0D20072363AC4D008B8289 /* Landing.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20062363AC4D008B8289 /* Landing.swift */; };
 		EA0D20092363AD74008B8289 /* AuthRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20082363AD74008B8289 /* AuthRouter.swift */; };
 		EA0D20112363E38E008B8289 /* HomeInit.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20102363E38E008B8289 /* HomeInit.swift */; };
-		EA0D20132363E404008B8289 /* XMPP.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20122363E404008B8289 /* XMPP.swift */; };
 		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
 		EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0E64CA234BF4BC006A22EB /* XMPPController.swift */; };
 		EA17C39923ECAEDB00727413 /* PendingCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA17C39823ECAEDB00727413 /* PendingCore.swift */; };
@@ -123,7 +122,6 @@
 		EA0D20062363AC4D008B8289 /* Landing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Landing.swift; sourceTree = "<group>"; };
 		EA0D20082363AD74008B8289 /* AuthRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRouter.swift; sourceTree = "<group>"; };
 		EA0D20102363E38E008B8289 /* HomeInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeInit.swift; sourceTree = "<group>"; };
-		EA0D20122363E404008B8289 /* XMPP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPP.swift; sourceTree = "<group>"; };
 		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
 		EA0E64CA234BF4BC006A22EB /* XMPPController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPController.swift; sourceTree = "<group>"; };
 		EA17C39823ECAEDB00727413 /* PendingCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingCore.swift; sourceTree = "<group>"; };
@@ -278,7 +276,6 @@
 				EA72F2112335A0A3008B696F /* UserData.swift */,
 				EA45713623EB7DF5008C2E44 /* UserCore.swift */,
 				EA56404D233D373800E68A7E /* Verification.swift */,
-				EA0D20122363E404008B8289 /* XMPP.swift */,
 				EA0E64CA234BF4BC006A22EB /* XMPPController.swift */,
 				EABF313023F229350039B5A6 /* HAC.swift */,
 			);
@@ -755,7 +752,6 @@
 				EA80ADFB235A8325002F7680 /* Utils.swift in Sources */,
 				EA0D20092363AD74008B8289 /* AuthRouter.swift in Sources */,
 				EA17C39B23ED39E600727413 /* FeedCollectionView.swift in Sources */,
-				EA0D20132363E404008B8289 /* XMPP.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				EA45713723EB7DF5008C2E44 /* UserCore.swift in Sources */,
 				EAB03B7F2400519400643EB6 /* WAVPlayer.swift in Sources */,

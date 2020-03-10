@@ -24,8 +24,8 @@ class FeedData: ObservableObject {
     private let feedCommentCore = FeedCommentCore()
     private let feedMediaCore = FeedMediaCore()
 
-    init(xmpp: XMPP, userData: UserData) {
-        self.xmppController = xmpp.xmppController
+    init(xmppController: XMPPController, userData: UserData) {
+        self.xmppController = xmppController
         self.userData = userData
 
 //        self.feedMedia.append(contentsOf: FeedMediaCore().getAll())

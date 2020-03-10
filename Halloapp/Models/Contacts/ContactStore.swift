@@ -121,7 +121,7 @@ fileprivate struct ContactProxy {
 
 
 class ContactStore {
-    private var xmpp: XMPP
+    private var xmppController: XMPPController
 
     private let contactSerialQueue = DispatchQueue(label: "com.halloapp.hallo.contacts")
 
@@ -145,8 +145,8 @@ class ContactStore {
         return container
     }()
 
-    init(xmpp: XMPP) {
-        self.xmpp = xmpp
+    init(xmppController: XMPPController) {
+        self.xmppController = xmppController
     }
 
 

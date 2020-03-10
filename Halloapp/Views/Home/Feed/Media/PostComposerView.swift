@@ -63,7 +63,7 @@ struct PostComposerView: View {
             /* important: this needs to be cancelled in onDisappear as the sinks remains even after */
             self.cancellableSet.insert(
 
-                AppContext.shared.xmpp.xmppController.didGetUploadUrl.sink(receiveValue: { iq in
+                AppContext.shared.xmppController.didGetUploadUrl.sink(receiveValue: { iq in
 
                     var urlCon: urlContainer = urlContainer()
 
