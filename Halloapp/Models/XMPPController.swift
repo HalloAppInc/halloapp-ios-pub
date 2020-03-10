@@ -425,6 +425,22 @@ extension XMPPController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream, didReceiveError error: DDXMLElement) {
         self.userData.log("Stream: error \(error)")
+        
+        if error.element(forName: "conflict") != nil {
+            
+            if let text = error.element(forName: "text") {
+            
+                if let value = text.stringValue {
+                    if value == "User removed" {
+                        self.userData.log("Stream: Same user logged into another device, logging out of this one")
+                        self.userData.logout()
+                    }
+                }
+                
+            }
+            
+        }
+        
     }
 
     func xmppStream(_ sender: XMPPStream, didNotRegister error: DDXMLElement) {
