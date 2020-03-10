@@ -17,7 +17,9 @@
 		76D0C080240F40DF0061B90E /* MessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D0C07F240F40DF0061B90E /* MessagesView.swift */; };
 		76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */; };
 		76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEE2412A4E800F49CA4 /* Contacts.xcdatamodeld */; };
+		76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FF52412E6E700F49CA4 /* ContactStore.swift */; };
 		76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FF824132C1600F49CA4 /* AppContext.swift */; };
+		76DF9FFB2416ADF900F49CA4 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FFA2416ADF900F49CA4 /* String.swift */; };
 		76ECDC162409DD7700BB48AC /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76ECDC152409DD7700BB48AC /* FeedView.swift */; };
 		EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostComposerView.swift */; };
 		EA0D20072363AC4D008B8289 /* Landing.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20062363AC4D008B8289 /* Landing.swift */; };
@@ -113,7 +115,9 @@
 		76D0C07F240F40DF0061B90E /* MessagesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessagesView.swift; sourceTree = "<group>"; };
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
 		76DF9FEF2412A4E800F49CA4 /* Contacts.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Contacts.xcdatamodel; sourceTree = "<group>"; };
+		76DF9FF52412E6E700F49CA4 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
 		76DF9FF824132C1600F49CA4 /* AppContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContext.swift; sourceTree = "<group>"; };
+		76DF9FFA2416ADF900F49CA4 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		76ECDC152409DD7700BB48AC /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
 		EA0C315623EB97C800016EDB /* PostComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerView.swift; sourceTree = "<group>"; };
 		EA0D20062363AC4D008B8289 /* Landing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Landing.swift; sourceTree = "<group>"; };
@@ -388,6 +392,7 @@
 				EAE721322351394D0003D5C7 /* Contacts.swift */,
 				EA45712823EB7CFA008C2E44 /* ContactsCD.swift */,
 				EABF312C23EE89A80039B5A6 /* ContactXP.swift */,
+				76DF9FF52412E6E700F49CA4 /* ContactStore.swift */,
 			);
 			path = Contacts;
 			sourceTree = "<group>";
@@ -431,6 +436,7 @@
 				EABF312523EE1F240039B5A6 /* Array.swift */,
 				EABF312823EE1FC20039B5A6 /* Digest.swift */,
 				EABF312A23EE20E10039B5A6 /* UIImage.swift */,
+				76DF9FFA2416ADF900F49CA4 /* String.swift */,
 			);
 			path = Extension;
 			sourceTree = "<group>";
@@ -720,6 +726,7 @@
 				EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */,
 				EABF313123F229350039B5A6 /* HAC.swift in Sources */,
 				765668D1240DE02400214077 /* BottomBarView.swift in Sources */,
+				76DF9FFB2416ADF900F49CA4 /* String.swift in Sources */,
 				EA2E4A5F23A4252A009A2ABD /* CommentsView.swift in Sources */,
 				EAC7E8F92385A6B700F5E711 /* Settings.swift in Sources */,
 				EAE721332351394D0003D5C7 /* Contacts.swift in Sources */,
@@ -766,6 +773,7 @@
 				EAA6DEC02381D7DD00C6D9C8 /* Notifications.swift in Sources */,
 				EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */,
 				EA45712D23EB7D7E008C2E44 /* FeedCommentCore.swift in Sources */,
+				76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */,
 				EA45712923EB7CFA008C2E44 /* ContactsCD.swift in Sources */,
 				EAC4AF23233E8DAB00739B2B /* ImageLoader.swift in Sources */,
 				EABF312623EE1F240039B5A6 /* Array.swift in Sources */,

@@ -716,8 +716,7 @@ class Contacts: ObservableObject {
                 }
             }
 
-            print("Contacts fetch end. time: \(timestamp.timeIntervalSince(Date()))")
-                        
+
             if self.idsToNormalize.count > 0 {
                 self.userData.log("Start normalization of: \(self.idsToNormalize.count)")
 
@@ -725,7 +724,8 @@ class Contacts: ObservableObject {
             } else {
                 self.getAllAffiliations()
             }
-            
+
+            print("Contacts fetch end. time: \(Date().timeIntervalSince(timestamp))")
         }
     }
     
