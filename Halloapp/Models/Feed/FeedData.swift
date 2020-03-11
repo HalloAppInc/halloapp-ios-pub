@@ -81,10 +81,8 @@ class FeedData: ObservableObject {
                 self.userData.log("Feed: New Item \(value)")
                 
                 if let id = value.elementID {
-                    self.userData.log("Feed: Sending ACK")
+                    self.userData.log("Feed: Send ACK")
                     Utils().sendAck(xmppStream: self.xmppController.xmppStream, id: id, from: self.userData.phone)
-                } else {
-                    self.userData.log("Feed: Not sending ACK")
                 }
                 
                 let event = value.element(forName: "event")

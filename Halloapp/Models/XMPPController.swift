@@ -297,7 +297,7 @@ class XMPPController: NSObject, ObservableObject {
 extension XMPPController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream, didReceive message: XMPPMessage) {
-        self.userData.log("Stream: didReceive message \(message)")
+//        self.userData.log("Stream: didReceive message \(message)")
         if (message.fromStr! != "pubsub.s.halloapp.net") {
             self.userData.log("Stream: didReceive \(message)")
         }
@@ -629,7 +629,7 @@ extension XMPPController: XMPPPubSubDelegate {
 
     func xmppPubSub(_ sender: XMPPPubSub, didReceive message: XMPPMessage) {
 
-        self.userData.log("PubSub: didReceiveMessage \(message)")
+        self.userData.log("PubSub: didReceive Message \(message)")
 
         let event = message.element(forName: "event")
         let items = event?.element(forName: "items")
@@ -637,6 +637,7 @@ extension XMPPController: XMPPPubSubDelegate {
         if (event?.element(forName: "delete")) != nil {
             if let id = message.elementID {
                 //todo: eating the deletes for now
+                self.userData.log("Send Ack for Delete event")
                 Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
             }
         }
@@ -650,6 +651,12 @@ extension XMPPController: XMPPPubSubDelegate {
                     self.didGetNewFeedItem.send(message)
                 } else if (nodeParts[0] == "contacts") {
                     self.didGetNewContactsItem.send(message)
+                } else if (nodeParts[0] == "metadata") {
+                    //todo: handle metadata messages before acking them
+                    if let id = message.elementID {
+                        self.userData.log("MetaData: Send Ack")
+                        Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
+                    }
                 }
             }
             

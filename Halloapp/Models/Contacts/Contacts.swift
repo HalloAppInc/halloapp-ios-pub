@@ -200,10 +200,8 @@ class Contacts: ObservableObject {
             xmppController.didGetNewContactsItem.sink(receiveValue: { iq in
                 
                 if let id = iq.elementID {
-                    self.userData.log("Feed: Sending ACK for Add/Remove")
+                    self.userData.log("Feed: Send ACK for Add/Remove")
                     Utils().sendAck(xmppStream: self.xmppController.xmppStream, id: id, from: self.userData.phone)
-                } else {
-                    self.userData.log("Feed: Not sending ACK for Add/Remove")
                 }
                 
                 // basically a refresh

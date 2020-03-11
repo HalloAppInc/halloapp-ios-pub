@@ -17,6 +17,9 @@
         <attribute name="url" optional="YES" attributeType="String"/>
         <attribute name="width" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
+    <entity name="CMisc" representedClassName="CMisc" syncable="YES" codeGenerationType="class">
+        <attribute name="logs" optional="YES" attributeType="String" defaultValueString=""/>
+    </entity>
     <entity name="ContactsCore" representedClassName="ContactsCore" syncable="YES" codeGenerationType="class">
         <attribute name="isConnected" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isNormalized" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
@@ -72,5 +75,6 @@
         <element name="FeedComments" positionX="-45" positionY="81" width="128" height="148"/>
         <element name="FeedCore" positionX="-63" positionY="0" width="128" height="28"/>
         <element name="User" positionX="-63" positionY="-18" width="128" height="178"/>
+        <element name="CMisc" positionX="-54" positionY="108" width="128" height="58"/>
     </elements>
 </model>
