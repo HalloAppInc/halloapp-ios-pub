@@ -125,9 +125,30 @@ class ContactStore {
 
     private let contactSerialQueue = DispatchQueue(label: "com.halloapp.hallo.contacts")
 
+    // MARK: Access to Contacts
+    class var contactsAccessAuthorized: Bool {
+        get {
+            return ContactStore.contactsAccessStatus == .authorized
+        }
+    }
+
+    class var contactsAccessRequestNecessary: Bool {
+        get {
+            return ContactStore.contactsAccessStatus == .notDetermined
+        }
+    }
+
+    private class var contactsAccessStatus: CNAuthorizationStatus {
+        get {
+            return CNContactStore.authorizationStatus(for: .contacts)
+        }
+    }
+
     // MARK: CoreData stack
 
-    private class func persistentStoreURL() -> URL { return AppContext.contactStoreURL() }
+    private class func persistentStoreURL() -> URL {
+        return AppContext.contactStoreURL()
+    }
 
     private lazy var persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: ContactStore.persistentStoreURL())
@@ -215,12 +236,7 @@ class ContactStore {
 
      Syncronization is performed on persistent store's  background queue.
      */
-    public func reloadContacts() {
-        self.persistentContainer.performBackgroundTask{ managedObjectContext in
-            self.reloadContacts(using: managedObjectContext) { deletedUserIDs, error in
-                print("Reloaded contacts.")
-            }
-        }
+    public func reloadContactsIfNecessary() {
     }
 
     /**

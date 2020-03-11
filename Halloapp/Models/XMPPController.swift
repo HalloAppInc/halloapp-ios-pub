@@ -162,14 +162,41 @@ class XMPPController: NSObject, ObservableObject {
             }
         }
     }
-    
-    func sendApnsPushTokenFromUserDefault() {
-        let userDefault = UserDefaults.standard
-        let tokenStr = userDefault.string(forKey: "apnsPushToken")
 
+    // MARK: Push token
+    private static let apnsTokenUserDefaultsKey = "apnsPushToken"
+    var hasValidAPNSPushToken: Bool {
+        get {
+            if let token = UserDefaults.standard.string(forKey: XMPPController.apnsTokenUserDefaultsKey) {
+                return !token.isEmpty
+            }
+            return false
+        }
+    }
+
+    var apnsToken: String? {
+        get {
+            return UserDefaults.standard.string(forKey: XMPPController.apnsTokenUserDefaultsKey)
+        }
+        set(newToken) {
+            if newToken != nil {
+                UserDefaults.standard.set(newToken, forKey: XMPPController.apnsTokenUserDefaultsKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: XMPPController.apnsTokenUserDefaultsKey)
+            }
+        }
+    }
+
+    public func sendCurrentAPNSTokenIfPossible() {
+        if self.xmppStream.isAuthenticated {
+            self.sendCurrentAPNSToken()
+        }
+    }
+    
+    private func sendCurrentAPNSToken() {
         let pushToken = XMLElement(name: "push_token")
         pushToken.addAttribute(withName: "os", stringValue: "ios")
-        pushToken.stringValue = tokenStr
+        pushToken.stringValue = self.apnsToken!
 
         let pushRegister = XMLElement(name: "push_register")
         pushRegister.addAttribute(withName: "xmlns", stringValue: "halloapp:push:notifications")
@@ -405,11 +432,9 @@ extension XMPPController: XMPPStreamDelegate {
         self.isConnectedToServer = true
         self.didConnect.send("didConnect")
         
-        #if targetEnvironment(simulator)
-            // Simulator
-        #else
-            self.sendApnsPushTokenFromUserDefault()
-        #endif
+        if self.hasValidAPNSPushToken {
+            self.sendCurrentAPNSToken()
+        }
         
         self.createNodes()
 
