@@ -98,7 +98,6 @@ class FeedData: ObservableObject {
             })
         )
         
-      
         /* getting the entire list of items back */
         cancellableSet.insert(
             xmppController.didGetFeedItems.sink(receiveValue: { value in
@@ -120,6 +119,21 @@ class FeedData: ObservableObject {
                     self.insertComment(item: item)
                 }
            })
+        )
+        
+        /* retract item */
+        cancellableSet.insert(
+            
+            xmppController.didGetRetractItem.sink(receiveValue: { value in
+                self.userData.log("Feed: Retract Item \(value)")
+                
+                if let id = value.elementID {
+                    self.userData.log("Feed: Send ACK for Retract Item")
+                    Utils().sendAck(xmppStream: self.xmppController.xmppStream, id: id, from: self.userData.phone)
+                }
+                
+                //todo: handle retracted items
+            })
         )
     }
     

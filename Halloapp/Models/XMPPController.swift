@@ -36,6 +36,7 @@ class XMPPController: NSObject, ObservableObject {
     var didChangeMessage = PassthroughSubject<XMPPMessage, Never>()
     
     var didGetNewFeedItem = PassthroughSubject<XMPPMessage, Never>()
+    var didGetRetractItem = PassthroughSubject<XMPPMessage, Never>()
     var didGetNewContactsItem = PassthroughSubject<XMPPMessage, Never>()
 
     var didGetFeedItems = PassthroughSubject<XMPPIQ, Never>()
@@ -648,7 +649,11 @@ extension XMPPController: XMPPPubSubDelegate {
             
             if nodeParts.count > 0 {
                 if (nodeParts[0] == "feed") {
-                    self.didGetNewFeedItem.send(message)
+                    if items?.element(forName: "retract") != nil {
+                        self.didGetRetractItem.send(message)
+                    } else {
+                        self.didGetNewFeedItem.send(message)
+                    }
                 } else if (nodeParts[0] == "contacts") {
                     self.didGetNewContactsItem.send(message)
                 } else if (nodeParts[0] == "metadata") {

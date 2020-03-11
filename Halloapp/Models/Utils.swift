@@ -992,7 +992,7 @@ class Utils {
         ack.addAttribute(withName: "to", stringValue: "pubsub.s.halloapp.net")
         ack.addAttribute(withName: "id", stringValue: id)
         
-        print("\(ack)")
+//        print("\(ack)")
         xmppStream.send(ack)
     }
     
