@@ -178,7 +178,6 @@ struct Settings: View {
             }
             
             Button(action: {
-                print("lgoging")
                 self.userData.logout()
                 self.mainViewController.selectFeedTab()
                 

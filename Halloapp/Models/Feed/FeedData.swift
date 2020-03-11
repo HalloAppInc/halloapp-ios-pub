@@ -195,81 +195,33 @@ class FeedData: ObservableObject {
         }
         
         self.feedDataItems = items
-            
-        self.feedDataItems.sort {
-            return Int($0.timestamp) > Int($1.timestamp)
-        }
-
-        /* backwards compatibility for items that were missed or did not have mediaHeight yet */
-        for item in self.feedDataItems {
-            if item.mediaHeight == -1 {
-                self.userData.log("Missing mediaHeight - \(item.itemId)")
-                
-                let tempMedia = feedMediaCore.getInfo(feedItemId: item.itemId)
-                
-                item.mediaHeight = self.calHeight(media: tempMedia)
-
-                DispatchQueue.global(qos: .default).async {
-                    self.feedItemCore.updateMediaHeight(item: item)
-                }
-            }
-        }
         
-//        for item in self.feedDataItems {
-//
-//            item.media = self.feedMediaCore.get(feedItemId: item.itemId)
-//
-//            item.media.sort {
-//                return $0.order < $1.order
-//            }
-//
-//            item.comments = self.feedCommentCore.get(feedItemId: item.itemId)
-//
-//            item.loadMedia()
-//
-//        }
     }
 
     func pushItem(item: FeedDataItem) {
-        let feedMediaCore = FeedMediaCore()
         
         let idx = self.feedDataItems.firstIndex(where: {$0.itemId == item.itemId})
         
-        if !self.feedItemCore.isPresent(itemId: item.itemId) && idx == nil {
-   
-//        if (idx == nil) {
+        if idx == nil && !self.feedItemCore.isPresent(itemId: item.itemId) {
+               
+            item.mediaHeight = self.calHeight(media: item.media)
             
             self.feedDataItems.insert(item, at: 0)
             
             self.feedDataItems.sort {
                 return Int($0.timestamp) > Int($1.timestamp)
             }
-                        
+
             DispatchQueue.global(qos: .default).async {
-                
-                item.mediaHeight = self.calHeight(media: item.media)
-                
-                print("new item mediaHeight: \(item.mediaHeight)")
-                print("cellHeight: \(item.cellHeight)")
-                
                 self.feedItemCore.create(item: item)
-                
                 for med in item.media {
-                    feedMediaCore.create(item: med)
+                    self.feedMediaCore.create(item: med)
                 }
             }
             
-            // load media for new items
             item.loadMedia()
-        } else {
-            // redundant, in case feedItem got into coredata but the feedMedia did not, as in the case of older posts
-            for med in item.media {
-                DispatchQueue.global(qos: .default).async {
-//                    med.feedItemId = item.itemId // can be removed after build 8
-                    feedMediaCore.create(item: med)
-                }
-            }
         }
+        
     }
     
     func insertComment(item: FeedComment) {

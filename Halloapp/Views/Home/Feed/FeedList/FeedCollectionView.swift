@@ -125,10 +125,7 @@ struct FeedCollectionView: UIViewRepresentable {
                 let controller = UIHostingController(rootView: FeedItemView(item: item!))
                 let size = controller.view.sizeThatFits(CGSize(width: collectionView.frame.width, height: CGFloat.greatestFiniteMagnitude))
 
-                var newHeight = size.height
-                if item!.media.count == 0 {
-                    newHeight = size.height + CGFloat(item!.mediaHeight)
-                }
+                let newHeight = size.height
                 self.parent.setItemCellHeight(item!.itemId, Int(newHeight))
                 
                 cellHeight = newHeight

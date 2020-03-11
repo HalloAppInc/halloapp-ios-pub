@@ -147,7 +147,7 @@ class XMPPController: NSObject, ObservableObject {
             try xmppStream.connect(withTimeout: XMPPStreamTimeoutNone)
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                if !self.isConnectedToServer {
+                if !self.isConnectedToServer && self.allowedToConnect {
                     self.connect()
                 }
             }
@@ -156,7 +156,7 @@ class XMPPController: NSObject, ObservableObject {
             /* this never fires, probably bug with xmppframework */
             self.userData.log("connection failed after WillConnect (spotty internet)")
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                if !self.isConnectedToServer {
+                if !self.isConnectedToServer && self.allowedToConnect {
                     self.connect()
                 }
             }
