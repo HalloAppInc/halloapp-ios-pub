@@ -50,17 +50,6 @@ class Contacts: ObservableObject {
                     
                 })
                 
-                
-                let current = Int(Date().timeIntervalSince1970)
-                
-                let oneday = 60*60*24*1
-                
-                let diff = current - self.userData.loggingTimestamp
-                                
-                if (diff > oneday) {
-                    self.userData.loggingTimestamp = Int(Date().timeIntervalSince1970)
-                    self.userData.logging = ""
-                }
             })
         )
         

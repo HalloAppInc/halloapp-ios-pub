@@ -51,6 +51,7 @@
 		EA53556923CCF0CD001DF10F /* KeyboardResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA53556823CCF0CD001DF10F /* KeyboardResponder.swift */; };
 		EA56404E233D373800E68A7E /* Verification.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA56404D233D373800E68A7E /* Verification.swift */; };
 		EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */; };
+		EA5BD7D62419656500BF6F49 /* MiscCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5BD7D52419656500BF6F49 /* MiscCore.swift */; };
 		EA6057B9239885E3005DED66 /* ActivityIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA6057B8239885E3005DED66 /* ActivityIndicator.swift */; };
 		EA6057BB239AD26D005DED66 /* MetaData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA6057BA239AD26D005DED66 /* MetaData.swift */; };
 		EA72F2122335A0A3008B696F /* UserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA72F2112335A0A3008B696F /* UserData.swift */; };
@@ -148,6 +149,7 @@
 		EA53556823CCF0CD001DF10F /* KeyboardResponder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardResponder.swift; sourceTree = "<group>"; };
 		EA56404D233D373800E68A7E /* Verification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Verification.swift; sourceTree = "<group>"; };
 		EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPickerView.swift; sourceTree = "<group>"; };
+		EA5BD7D52419656500BF6F49 /* MiscCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiscCore.swift; sourceTree = "<group>"; };
 		EA6057B8239885E3005DED66 /* ActivityIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityIndicator.swift; sourceTree = "<group>"; };
 		EA6057BA239AD26D005DED66 /* MetaData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaData.swift; sourceTree = "<group>"; };
 		EA72F2112335A0A3008B696F /* UserData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserData.swift; sourceTree = "<group>"; };
@@ -275,6 +277,7 @@
 				EA6057BA239AD26D005DED66 /* MetaData.swift */,
 				EA72F2112335A0A3008B696F /* UserData.swift */,
 				EA45713623EB7DF5008C2E44 /* UserCore.swift */,
+				EA5BD7D52419656500BF6F49 /* MiscCore.swift */,
 				EA56404D233D373800E68A7E /* Verification.swift */,
 				EA0E64CA234BF4BC006A22EB /* XMPPController.swift */,
 				EABF313023F229350039B5A6 /* HAC.swift */,
@@ -715,6 +718,7 @@
 				EA45713D23EB7F47008C2E44 /* MediaSlider.swift in Sources */,
 				EAA6DEC62383AD8400C6D9C8 /* MessageUser.swift in Sources */,
 				EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */,
+				EA5BD7D62419656500BF6F49 /* MiscCore.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				EA45713123EB7DA3008C2E44 /* FeedItemCore.swift in Sources */,
 				76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */,

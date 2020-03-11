@@ -15,6 +15,8 @@ import CoreData
 
 final class UserData: ObservableObject {
 
+    private let logsQueue = DispatchQueue(label: "com.halloapp.logs.serial", qos: DispatchQoS.default)
+    
     var didLogOff = PassthroughSubject<Void, Never>()
     
     var didResyncContacts = PassthroughSubject<Void, Never>()
@@ -55,7 +57,8 @@ final class UserData: ObservableObject {
     public var compressionQuality: Float = 0.4
     
     let userCore = UserCore()
-
+    let miscCore = MiscCore()
+    
     init() {
 
 //        let locale = Locale.current
@@ -72,6 +75,8 @@ final class UserData: ObservableObject {
         self.haveContactsSub,
         self.haveFeedSub) = userCore.get()
         
+        self.initLogging()
+
         subCancellable = $phone.sink { val in
             
             if (val.rangeOfCharacter(from: self.validCharSet.inverted) != nil) {
@@ -99,6 +104,27 @@ final class UserData: ObservableObject {
         }
     }
 
+    
+    func initLogging() {
+        
+        if (!miscCore.isPresent()) {
+            miscCore.create(logs: "")
+        }
+        
+        self.logging = miscCore.get()
+        
+        /* clean up logs every 3 days */
+        let current = Int(Date().timeIntervalSince1970)
+        let threedays = 60*60*24*3
+        let diff = current - self.loggingTimestamp
+                        
+        if (diff > threedays) {
+            self.loggingTimestamp = Int(Date().timeIntervalSince1970)
+            self.logging = ""
+            self.miscCore.update(logs: "")
+        }
+    }
+    
     func log(_ str: String) {
         
         let formatter = DateFormatter()
@@ -109,6 +135,10 @@ final class UserData: ObservableObject {
         print(log)
         log += "\r\n"
         self.logging += log
+        
+        self.logsQueue.async {
+            self.miscCore.update(logs: self.logging)
+        }
     }
     
     func devLog(_ str: String) {
@@ -121,6 +151,10 @@ final class UserData: ObservableObject {
         
         log += "\r\n"
         self.logging += log
+        
+        self.logsQueue.async {
+            self.miscCore.update(logs: self.logging)
+        }
     }
     
     func save() {
