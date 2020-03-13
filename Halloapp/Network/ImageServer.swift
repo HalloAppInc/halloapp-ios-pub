@@ -154,7 +154,7 @@ class ImageServer {
 
         if imageToDelete != "" {
            print("delete: \(imageToDelete)")
-           ImageServer().deleteImageFromCloudinary(item: imageToDelete)
+           self.deleteImageFromCloudinary(item: imageToDelete)
         }
         
     }
