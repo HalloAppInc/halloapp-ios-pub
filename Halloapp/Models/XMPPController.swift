@@ -473,15 +473,6 @@ extension XMPPController: XMPPStreamDelegate {
     func xmppStream(_ sender: XMPPStream, didNotRegister error: DDXMLElement) {
         self.userData.log("Stream: didNotRegister: \(error)")
     }
-    
-    func xmppStream(_ sender: XMPPStream, didSend message: XMPPMessage) {
-//        self.userData.log("Stream: didSendMessage: \(message)")
-    }
-    
-    func xmppStream(_ sender: XMPPStream, didSend iq: XMPPIQ) {
-//        self.userData.log("Stream: didSendIQ: \(iq)")
-    }
-    
 }
 
 extension XMPPController: XMPPReconnectDelegate {
