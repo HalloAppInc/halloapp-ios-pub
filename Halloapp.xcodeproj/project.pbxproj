@@ -11,6 +11,7 @@
 		146B93772405F3AE00768AC6 /* GothamMedium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 146B93762405F3AE00768AC6 /* GothamMedium.ttf */; };
 		146B93792405F40500768AC6 /* FontExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* FontExtension.swift */; };
 		29B91BFAD5E7C9E96185289E /* Pods_Halloapp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */; };
+		761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3953241C38A300858251 /* XMPPCommonRequests.swift */; };
 		765668CF240DCF7200214077 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668CE240DCF7100214077 /* MainView.swift */; };
 		765668D1240DE02400214077 /* BottomBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668D0240DE02400214077 /* BottomBarView.swift */; };
 		76D0C07E240F3CD60061B90E /* CommentsCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D0C07D240F3CD60061B90E /* CommentsCollectionView.swift */; };
@@ -111,6 +112,7 @@
 		146B93782405F40500768AC6 /* FontExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtension.swift; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
 		36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Halloapp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		761B3953241C38A300858251 /* XMPPCommonRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPCommonRequests.swift; sourceTree = "<group>"; };
 		765668CE240DCF7100214077 /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		765668D0240DE02400214077 /* BottomBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomBarView.swift; sourceTree = "<group>"; };
 		76D0C07D240F3CD60061B90E /* CommentsCollectionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommentsCollectionView.swift; sourceTree = "<group>"; };
@@ -251,6 +253,7 @@
 			isa = PBXGroup;
 			children = (
 				76DFA0022419563500F49CA4 /* XMPPRequest.swift */,
+				761B3953241C38A300858251 /* XMPPCommonRequests.swift */,
 			);
 			path = Requests;
 			sourceTree = "<group>";
@@ -794,6 +797,7 @@
 				EAFA65DA23AC245B004C36F7 /* WUITableView.swift in Sources */,
 				EA0D20112363E38E008B8289 /* HomeInit.swift in Sources */,
 				146B93792405F40500768AC6 /* FontExtension.swift in Sources */,
+				761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */,
 				EAA6DEC02381D7DD00C6D9C8 /* Notifications.swift in Sources */,
 				EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */,
 				EA45712D23EB7D7E008C2E44 /* FeedCommentCore.swift in Sources */,

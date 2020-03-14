@@ -195,25 +195,11 @@ class XMPPController: NSObject, ObservableObject {
     }
     
     private func sendCurrentAPNSToken() {
-        let pushToken = XMLElement(name: "push_token")
-        pushToken.addAttribute(withName: "os", stringValue: "ios")
-        pushToken.stringValue = self.apnsToken!
-
-        let pushRegister = XMLElement(name: "push_register")
-        pushRegister.addAttribute(withName: "xmlns", stringValue: "halloapp:push:notifications")
-        pushRegister.addChild(pushToken)
-
-        let iq = XMLElement(name: "iq")
-        iq.addAttribute(withName: "type", stringValue: "set")
-        iq.addAttribute(withName: "from", stringValue: "\(self.userData.phone)@s.halloapp.net/iphone")
-        iq.addAttribute(withName: "to", stringValue: "s.halloapp.net")
-        iq.addAttribute(withName: "id", stringValue: "apnsPushToken")
-
-        iq.addChild(pushRegister)
-
-//        self.userData.log("sending the iq with push token here. \(iq)")
         self.userData.log("Notifications: Sending Push Token")
-        self.xmppStream.send(iq)
+        let request = XMPPPushTokenRequest(token: self.apnsToken!) { (error) in
+            print("xmppconnection/push-token/sent")
+        }
+        self.enqueue(request: request)
     }
     
     func createNodes() {
