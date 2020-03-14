@@ -11,6 +11,7 @@
 		146B93772405F3AE00768AC6 /* GothamMedium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 146B93762405F3AE00768AC6 /* GothamMedium.ttf */; };
 		146B93792405F40500768AC6 /* FontExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* FontExtension.swift */; };
 		29B91BFAD5E7C9E96185289E /* Pods_Halloapp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */; };
+		761B394F241AF01100858251 /* XMPPMediaRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B394E241AF01100858251 /* XMPPMediaRequests.swift */; };
 		761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3953241C38A300858251 /* XMPPCommonRequests.swift */; };
 		765668CF240DCF7200214077 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668CE240DCF7100214077 /* MainView.swift */; };
 		765668D1240DE02400214077 /* BottomBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668D0240DE02400214077 /* BottomBarView.swift */; };
@@ -112,6 +113,7 @@
 		146B93782405F40500768AC6 /* FontExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtension.swift; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
 		36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Halloapp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		761B394E241AF01100858251 /* XMPPMediaRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPMediaRequests.swift; sourceTree = "<group>"; };
 		761B3953241C38A300858251 /* XMPPCommonRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPCommonRequests.swift; sourceTree = "<group>"; };
 		765668CE240DCF7100214077 /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		765668D0240DE02400214077 /* BottomBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomBarView.swift; sourceTree = "<group>"; };
@@ -254,6 +256,7 @@
 			children = (
 				76DFA0022419563500F49CA4 /* XMPPRequest.swift */,
 				761B3953241C38A300858251 /* XMPPCommonRequests.swift */,
+				761B394E241AF01100858251 /* XMPPMediaRequests.swift */,
 			);
 			path = Requests;
 			sourceTree = "<group>";
@@ -749,6 +752,7 @@
 				EA45713123EB7DA3008C2E44 /* FeedItemCore.swift in Sources */,
 				76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */,
 				76ECDC162409DD7700BB48AC /* FeedView.swift in Sources */,
+				761B394F241AF01100858251 /* XMPPMediaRequests.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
 				EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */,
 				EABF313123F229350039B5A6 /* HAC.swift in Sources */,

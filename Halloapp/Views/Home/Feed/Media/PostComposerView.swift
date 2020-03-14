@@ -1,7 +1,7 @@
 
-import Combine
 import SwiftUI
 import UIKit
+
 
 struct DismissingKeyboard: ViewModifier {
     func body(content: Content) -> some View {
@@ -18,13 +18,10 @@ struct DismissingKeyboard: ViewModifier {
     }
 }
 
-struct urlContainer {
-    var getUrl: String = ""
-    var putUrl: String = ""
-}
 
 struct PostComposerView: View {
     private let userData = AppContext.shared.userData
+    private let imageServer = ImageServer()
 
     var mediaItemsToPost: [FeedMedia] = []
 
@@ -33,11 +30,7 @@ struct PostComposerView: View {
     @State var isJustText: Bool = false
     
     @State var msgToSend = ""
-    
-    @State var cancellableSet: Set<AnyCancellable> = []
-    
-    @State var fetchedUrls: [urlContainer] = []
-    
+
     @State var isShareClicked: Bool = false
     
     @State var isReadyToPost: Bool = false
@@ -45,94 +38,6 @@ struct PostComposerView: View {
     @State private var play: Bool = true
 
     var body: some View {
-
-        DispatchQueue.main.async {
-
-            self.cancellableSet.forEach {
-                $0.cancel()
-            }
-            self.cancellableSet.removeAll()
-
-            print("cancellable count: \(self.cancellableSet.count)")
-
-            if (self.mediaItemsToPost.count == 0) {
-                self.isJustText = true
-                self.isReadyToPost = true
-            }
-
-            /* important: this needs to be cancelled in onDisappear as the sinks remains even after */
-            self.cancellableSet.insert(
-
-                AppContext.shared.xmppController.didGetUploadUrl.sink(receiveValue: { iq in
-
-                    var urlCon: urlContainer = urlContainer()
-
-                    (urlCon.getUrl, urlCon.putUrl) = Utils().parseMediaUrl(iq)
-
-                    print("got url: \(urlCon.getUrl)")
-                    self.fetchedUrls.append(urlCon)
-
-                    // preemptive uploads
-                    if (self.fetchedUrls.count != 0 && self.mediaItemsToPost.count != 0) {
-                        if (self.fetchedUrls.count == self.mediaItemsToPost.count) {
-
-                            var uploadArr: [FeedMedia] = []
-                            var index = 0
-
-                            for item in self.mediaItemsToPost {
-
-                                item.url = self.fetchedUrls[index].getUrl
-
-                                let feedMedia = FeedMedia()
-                                feedMedia.type = item.type
-                                feedMedia.url = self.fetchedUrls[index].putUrl
-
-                                if feedMedia.type == "image" {
-                                    
-                                    self.userData.log("Post Image: original res - \(item.width) x \(item.height)")
-
-                                    if item.width > 1600 || item.height > 1600 {
-                                        item.image = item.image.getNewSize(res: 1600) ?? UIImage()
-                                        item.width = Int(item.image.size.width)
-                                        item.height = Int(item.image.size.height)
-                                        
-                                        self.userData.log("Post Image: resized res - \(item.image.size.width) x \(item.image.size.height)")
-                                    }
-
-                                    feedMedia.image = item.image
-
-                                    /* turn on/off encryption of media */
-                                    if let imgData = feedMedia.image.jpegData(compressionQuality: CGFloat(self.userData.compressionQuality)) {
-                                        self.userData.log("Post Image: (\(self.userData.compressionQuality)) compressed size - \(imgData.count)")
-                                        
-                                        (feedMedia.encryptedData, feedMedia.key, feedMedia.sha256hash) = HAC().encryptData(data: imgData, type: "image")
-
-                                        item.key = feedMedia.key
-                                        item.sha256hash = feedMedia.sha256hash
-                                    }
-
-                                }
-
-                                uploadArr.append(feedMedia)
-
-                                index += 1
-                            }
-
-
-                            ImageServer().uploadMultiple(media: uploadArr)
-
-                            self.isReadyToPost = true
-
-                        }
-                    }
-
-                })
-
-            )
-
-        }
-        
-        
         return VStack {
 
             Divider()
@@ -158,12 +63,7 @@ struct PostComposerView: View {
                 .frame(height: isJustText ? 15 : 0)
                 .hidden()
 
-//                if item.media.count > 0 {
-//
-//                    MediaSlider(item, item.mediaHeight)
-//                }
-
-            if (self.mediaItemsToPost.count > 1) {
+            if self.mediaItemsToPost.count > 1 {
                 ScrollView(.horizontal) {
                     HStack(spacing: 5) {
                         /* do not use .self for id as that is not always unique and can crash the app */
@@ -199,7 +99,6 @@ struct PostComposerView: View {
                 }
             }
 
-
             HStack {
                 TextView(text: self.$msgToSend)
                     .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
@@ -223,7 +122,7 @@ struct PostComposerView: View {
                     return
                 }
 
-                if (self.isReadyToPost) {
+                if self.isReadyToPost {
                     self.isShareClicked = true
                     AppContext.shared.feedData.postItem(self.userData.phone, self.msgToSend, self.mediaItemsToPost)
                     self.didFinish()
@@ -244,12 +143,13 @@ struct PostComposerView: View {
             Spacer()
                 .modifier(DismissingKeyboard())
         }
-
-        .onDisappear {
-            self.cancellableSet.forEach {
-                $0.cancel()
+        .onAppear {
+            if self.mediaItemsToPost.isEmpty {
+                self.isJustText = true
+                self.isReadyToPost = true
+            } else {
+                self.imageServer.beginUploading(items: self.mediaItemsToPost, isReady: self.$isReadyToPost)
             }
-            self.cancellableSet.removeAll()
         }
         .background(Color(UIColor.systemBackground))
     }

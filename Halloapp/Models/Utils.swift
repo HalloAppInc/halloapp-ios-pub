@@ -7,9 +7,8 @@
 //
 
 import Foundation
-import XMPPFramework
-
 import SwiftDate
+import XMPPFramework
 
 extension Data {
     var hexString: String {
@@ -148,8 +147,7 @@ class Utils {
         
         return result
     }
-        
-        
+
     func userAlreadyExists(_ value: XMPPIQ) -> Bool {
         
         var result = false
@@ -176,8 +174,7 @@ class Utils {
         
         return result
     }
-    
-    
+
     func accountsCreatedTooQuickly(_ value: XMPPIQ) -> Bool {
         
         var result = false
@@ -236,9 +233,6 @@ class Utils {
         return result
     }
     
-    
-    
-    
     func parseSubsForExtras(_ value: XMPPIQ) -> [String] {
        
         var result: [String] = []
@@ -278,7 +272,6 @@ class Utils {
        
         return result
     }
-
     
     func parseRawContacts(_ value: XMPPIQ) -> [BatchId] {
        
@@ -349,9 +342,6 @@ class Utils {
         return result
     }
     
-    
-    
-    
     func parseOwnAffList(_ value: XMPPIQ) -> [String] {
        
         var result: [String] = []
@@ -411,7 +401,6 @@ class Utils {
        
         return list
     }
-    
 
     func parseFeedItems(_ value: XMLElement?) -> ([FeedDataItem], [FeedComment]) {
         var feedList: [FeedDataItem] = []
@@ -568,8 +557,6 @@ class Utils {
         return (feedList, commentList)
     }
 
-
-    
     /*
      role: [owner|member|none]
      */
@@ -628,7 +615,6 @@ class Utils {
         xmppStream.send(iq)
     }
     
-
     func sendRawContacts(xmppStream: XMPPStream, user: String, rawContacts: [BatchId], id: String) {
 //        print("sendAff")
     
@@ -941,50 +927,7 @@ class Utils {
 
         return prefix
     }
-    
-    
-    func requestMultipleUploadUrl(xmppStream: XMPPStream, num: Int) {
         
-        if (num < 1) {
-            return
-        }
-        
-        for _ in 1...num {
-            print("requesting urls")
-            requestUploadUrl(xmppStream: xmppStream)
-        }
-        
-    }
-        
-    func requestUploadUrl(xmppStream: XMPPStream) {
-        
-        let uploadMedia = XMLElement(name: "upload_media")
-        uploadMedia.addAttribute(withName: "xmlns", stringValue: "ns:upload_media")
-
-        let iq = XMLElement(name: "iq")
-        iq.addAttribute(withName: "type", stringValue: "get")
-        iq.addAttribute(withName: "to", stringValue: "s.halloapp.net")
-        iq.addAttribute(withName: "id", stringValue: UUID().uuidString)
-        iq.addChild(uploadMedia)
-        
-        xmppStream.send(iq)
-        
-    }
-    
-    func parseMediaUrl(_ value: XMPPIQ) -> (String, String) {
-       
-        let uploadMedia = value.element(forName: "upload_media")
-        
-        let mediaUrls = uploadMedia?.element(forName: "media_urls")
-        
-        let getUrl = mediaUrls!.attributeStringValue(forName: "get")!
-                            
-        let putUrl = mediaUrls!.attributeStringValue(forName: "put")!
-
-        return (getUrl, putUrl)
-        
-    }
-    
     func sendAck(xmppStream: XMPPStream, id: String, from: String) {
     
         let ack = XMLElement(name: "ack")

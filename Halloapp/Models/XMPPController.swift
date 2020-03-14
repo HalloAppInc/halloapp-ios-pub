@@ -48,9 +48,7 @@ class XMPPController: NSObject, ObservableObject {
     var didGetNormBatch = PassthroughSubject<XMPPIQ, Never>()
     var didGetAffContactsBatch = PassthroughSubject<XMPPIQ, Never>()
     var didGetAffFeedBatch = PassthroughSubject<XMPPIQ, Never>()
-    
-    var didGetUploadUrl = PassthroughSubject<XMPPIQ, Never>()
-    
+
     var didSubscribeToContact = PassthroughSubject<String, Never>()
     var didNotSubscribeToContact = PassthroughSubject<String, Never>()
     
@@ -394,20 +392,8 @@ extension XMPPController: XMPPStreamDelegate {
             
 
         } else {
-        
-            let contactList = iq.element(forName: "contact_list")
-            
-            let uploadMedia = iq.element(forName: "upload_media")
-            
-            if contactList != nil {
-                
+            if let contactList = iq.element(forName: "contact_list") {
                 self.didGetNormBatch.send(iq)
-
-                return false
-            } else if uploadMedia != nil {
-                
-                self.didGetUploadUrl.send(iq)
-
                 return false
             }
         }
