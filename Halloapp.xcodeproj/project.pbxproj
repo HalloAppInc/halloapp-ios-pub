@@ -20,6 +20,8 @@
 		76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FF52412E6E700F49CA4 /* ContactStore.swift */; };
 		76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FF824132C1600F49CA4 /* AppContext.swift */; };
 		76DF9FFB2416ADF900F49CA4 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FFA2416ADF900F49CA4 /* String.swift */; };
+		76DFA0032419563500F49CA4 /* XMPPRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DFA0022419563500F49CA4 /* XMPPRequest.swift */; };
+		76DFA0072419BC1F00F49CA4 /* XMPPError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DFA0062419BC1F00F49CA4 /* XMPPError.swift */; };
 		76ECDC162409DD7700BB48AC /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76ECDC152409DD7700BB48AC /* FeedView.swift */; };
 		EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostComposerView.swift */; };
 		EA0D20072363AC4D008B8289 /* Landing.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20062363AC4D008B8289 /* Landing.swift */; };
@@ -118,6 +120,8 @@
 		76DF9FF52412E6E700F49CA4 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
 		76DF9FF824132C1600F49CA4 /* AppContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContext.swift; sourceTree = "<group>"; };
 		76DF9FFA2416ADF900F49CA4 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
+		76DFA0022419563500F49CA4 /* XMPPRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPRequest.swift; sourceTree = "<group>"; };
+		76DFA0062419BC1F00F49CA4 /* XMPPError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPError.swift; sourceTree = "<group>"; };
 		76ECDC152409DD7700BB48AC /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
 		EA0C315623EB97C800016EDB /* PostComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerView.swift; sourceTree = "<group>"; };
 		EA0D20062363AC4D008B8289 /* Landing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Landing.swift; sourceTree = "<group>"; };
@@ -243,6 +247,14 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		761B3950241AF01E00858251 /* Requests */ = {
+			isa = PBXGroup;
+			children = (
+				76DFA0022419563500F49CA4 /* XMPPRequest.swift */,
+			);
+			path = Requests;
+			sourceTree = "<group>";
+		};
 		76DF9FEA24122E9400F49CA4 /* CoreData Stack */ = {
 			isa = PBXGroup;
 			children = (
@@ -259,6 +271,15 @@
 			path = Global;
 			sourceTree = "<group>";
 		};
+		76DFA0012419560300F49CA4 /* XMPP */ = {
+			isa = PBXGroup;
+			children = (
+				761B3950241AF01E00858251 /* Requests */,
+				76DFA0062419BC1F00F49CA4 /* XMPPError.swift */,
+			);
+			path = XMPP;
+			sourceTree = "<group>";
+		};
 		8295BD88471C9D5DC2D30C41 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -270,9 +291,10 @@
 		EA3861EB23342C3800705943 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				EA5414DA23EE1D6900390EF6 /* Contacts */,
 				76DF9FEA24122E9400F49CA4 /* CoreData Stack */,
 				EA5414D923EE1D2B00390EF6 /* Feed */,
-				EA5414DA23EE1D6900390EF6 /* Contacts */,
+				76DFA0012419560300F49CA4 /* XMPP */,
 				EA80ADFA235A8325002F7680 /* Utils.swift */,
 				EA6057BA239AD26D005DED66 /* MetaData.swift */,
 				EA72F2112335A0A3008B696F /* UserData.swift */,
@@ -719,6 +741,7 @@
 				EAA6DEC62383AD8400C6D9C8 /* MessageUser.swift in Sources */,
 				EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */,
 				EA5BD7D62419656500BF6F49 /* MiscCore.swift in Sources */,
+				76DFA0072419BC1F00F49CA4 /* XMPPError.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				EA45713123EB7DA3008C2E44 /* FeedItemCore.swift in Sources */,
 				76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */,
@@ -726,6 +749,7 @@
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
 				EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */,
 				EABF313123F229350039B5A6 /* HAC.swift in Sources */,
+				76DFA0032419563500F49CA4 /* XMPPRequest.swift in Sources */,
 				765668D1240DE02400214077 /* BottomBarView.swift in Sources */,
 				76DF9FFB2416ADF900F49CA4 /* String.swift in Sources */,
 				EA2E4A5F23A4252A009A2ABD /* CommentsView.swift in Sources */,

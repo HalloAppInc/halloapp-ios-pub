@@ -292,6 +292,67 @@ class XMPPController: NSObject, ObservableObject {
 //        self.xmppStream.send(iq)
 
     }
+
+    // MARK: Requests
+    private var requestsInFlight: [XMPPRequest] = []
+    private var requestsToSend: [XMPPRequest] = []
+
+    private func isRequestPending(_ request: XMPPRequest) -> Bool {
+        if self.requestsInFlight.contains(where: { $0.requestId == request.requestId }) {
+            return true
+        }
+        if self.requestsToSend.contains(where: { $0.requestId == request.requestId }) {
+            return true
+        }
+        return false
+    }
+
+    func enqueue(request: XMPPRequest) {
+        if self.xmppStream.isConnected {
+            request.send(using: self)
+            self.requestsInFlight.append(request)
+        } else if request.retriesRemaining > 0 {
+            self.requestsToSend.append(request)
+        } else {
+            request.failOnNoConnection()
+        }
+    }
+
+    /**
+     All requests in the queue are automatically resent when the connection is opened.
+     */
+    func resendAllPendingRequests() {
+        guard !self.requestsToSend.isEmpty else {
+            return
+        }
+        guard self.xmppStream.isConnected else {
+            print("connection/requests/resend/skipped [\(self.requestsToSend.count)] [no connection]")
+            return
+        }
+
+        let allRequests = self.requestsToSend
+        self.requestsToSend.removeAll()
+
+        print("connection/requests/resend [\(allRequests.count)]")
+        for request in allRequests {
+            request.send(using: self)
+        }
+        self.requestsInFlight.append(contentsOf: allRequests)
+    }
+
+    func cancelAllRequests() {
+        print("connection/requests/cancel/all [\(self.requestsInFlight.count)]")
+
+        let allRequests = self.requestsInFlight + self.requestsToSend
+        self.requestsInFlight.removeAll()
+        self.requestsToSend.removeAll()
+
+        for request in allRequests {
+            if request.cancelAndPrepareFor(retry: true) {
+                self.requestsToSend.append(request)
+            }
+        }
+    }
 }
 
 
@@ -355,17 +416,41 @@ extension XMPPController: XMPPStreamDelegate {
             if contactList != nil {
                 
                 self.didGetNormBatch.send(iq)
-                
+
+                return false
             } else if uploadMedia != nil {
                 
                 self.didGetUploadUrl.send(iq)
-                
-            } else {
-//                self.userData.log("Stream: didReceive \(iq)")
+
+                return false
             }
         }
 
-        
+        if let requestId = iq.elementID {
+            func removeRequest(with id: String, outOf requests: inout [XMPPRequest]) -> [XMPPRequest] {
+                let filteredSequence = requests.enumerated().filter { $0.element.requestId == id }
+                let indexes = filteredSequence.map { $0.offset }
+                let results = filteredSequence.map { $0.element }
+                requests = requests.enumerated().filter { !indexes.contains($0.offset) }.map { $0.element }
+                return results
+            }
+
+            // Process request responses.  We should theoretically only get back
+            // responses for requests that we have sent, but in case of accidentally
+            // sending a duplicated request or delayed processing related to dropping
+            // a connection, we should still check both arrays.
+            var matchingRequests: [XMPPRequest] = []
+            matchingRequests.append(contentsOf: removeRequest(with: requestId, outOf: &self.requestsInFlight))
+            matchingRequests.append(contentsOf: removeRequest(with: requestId, outOf: &self.requestsToSend))
+            if matchingRequests.count > 1 {
+                print("connection/response/\(requestId)/warning: found \(matchingRequests.count) requests")
+            }
+            for request in matchingRequests {
+                print("connection/response/\(type(of: request))/\(requestId)")
+                request.process(response: iq)
+            }
+        }
+
         return false
     }
     
@@ -421,6 +506,8 @@ extension XMPPController: XMPPStreamDelegate {
 
     func xmppStreamDidDisconnect(_ stream: XMPPStream) {
         self.userData.log("Stream: disconnect")
+
+        self.cancelAllRequests()
     }
     
     func xmppStreamDidRegister(_ sender: XMPPStream) {
@@ -443,6 +530,8 @@ extension XMPPController: XMPPStreamDelegate {
         // This is necessary so that the server will then respond with all the offline messages for the client.
         // stanza: <presence />
         self.xmppStream.send(XMPPPresence())
+
+        self.resendAllPendingRequests()
     }
     
     func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: DDXMLElement) {
