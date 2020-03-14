@@ -72,7 +72,6 @@
 		EABF312623EE1F240039B5A6 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312523EE1F240039B5A6 /* Array.swift */; };
 		EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312823EE1FC20039B5A6 /* Digest.swift */; };
 		EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312A23EE20E10039B5A6 /* UIImage.swift */; };
-		EABF312D23EE89A80039B5A6 /* ContactXP.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312C23EE89A80039B5A6 /* ContactXP.swift */; };
 		EABF313123F229350039B5A6 /* HAC.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF313023F229350039B5A6 /* HAC.swift */; };
 		EAC4AF23233E8DAB00739B2B /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */; };
 		EAC7E8F92385A6B700F5E711 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC7E8F82385A6B700F5E711 /* Settings.swift */; };
@@ -176,7 +175,6 @@
 		EABF312523EE1F240039B5A6 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		EABF312823EE1FC20039B5A6 /* Digest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Digest.swift; sourceTree = "<group>"; };
 		EABF312A23EE20E10039B5A6 /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
-		EABF312C23EE89A80039B5A6 /* ContactXP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactXP.swift; sourceTree = "<group>"; };
 		EABF313023F229350039B5A6 /* HAC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HAC.swift; sourceTree = "<group>"; };
 		EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
 		EAC7E8F82385A6B700F5E711 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
@@ -422,7 +420,6 @@
 				76DF9FEE2412A4E800F49CA4 /* Contacts.xcdatamodeld */,
 				EAE721322351394D0003D5C7 /* Contacts.swift */,
 				EA45712823EB7CFA008C2E44 /* ContactsCD.swift */,
-				EABF312C23EE89A80039B5A6 /* ContactXP.swift */,
 				76DF9FF52412E6E700F49CA4 /* ContactStore.swift */,
 			);
 			path = Contacts;
@@ -744,7 +741,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */,
-				EABF312D23EE89A80039B5A6 /* ContactXP.swift in Sources */,
 				EA6057B9239885E3005DED66 /* ActivityIndicator.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaSlider.swift in Sources */,
 				EAA6DEC62383AD8400C6D9C8 /* MessageUser.swift in Sources */,
