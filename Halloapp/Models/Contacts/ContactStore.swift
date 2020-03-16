@@ -339,6 +339,15 @@ class ContactStore {
         let allContactsRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
         allContactsRequest.returnsObjectsAsFaults = false
 
+        var numberOfContactsBeingUpdated = 0
+        do {
+            try numberOfContactsBeingUpdated = context.count(for: allContactsRequest)
+        }
+        catch {
+            ///TODO: delete contacts store
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+
         // Harvest all the WAAddressBookContact objects from the store in one fetch.
         // As we process device contacts, from this set we'll subtract contacts
         // that are still present on device.
@@ -412,7 +421,65 @@ class ContactStore {
         }
         print("contacts/reload/finished time=[\(Date().timeIntervalSince(startTime))]")
 
-        ///TODO: re-sort contacts
+        // Re-sort contacts
+        var resortAllContacts = !self.contactsAvailable || numberOfContactsBeingUpdated == 0
+        let currentLocale = Locale.current.languageCode
+        if let lastLocale = self.databaseMetadata?[ContactStoreMetadataCollationLocale] as? String {
+            if lastLocale != currentLocale {
+                print("contacts/reload/locale-changed/from/\(lastLocale)/to/\(currentLocale)")
+                resortAllContacts = true
+            }
+        }
+        // re-sort contacts
+        autoreleasepool {
+            var lastSort: Int32 = 0
+            let totalContactsCount = allContacts.count
+            for (index, contact) in allContacts.enumerated() {
+                // Simple algorithm for initial contacts processing and when the locale has changed,
+                // where a lot of contacts have to be reassigned to new sections.
+                if resortAllContacts {
+                    lastSort += 1000
+                    contact.sort = lastSort
+                }
+                    // Complex algorithm when reloading contacts. Note that this is very slow if a lot of
+                    // contacts have been assigned different sections (e.g. after changing the phone's locale).
+                    // We skip this step if this is a child contact (i.e. not shown on the contacts list).
+                else {
+                    let currentSort: Int32 = contact.sort
+                    if currentSort <= lastSort || currentSort-lastSort > 1000 {
+                        var nextSort: Int32 = 0
+
+                        var nItems: Int32 = 0
+                        var j = index + 1
+                        while j < totalContactsCount-1 {
+                            let nextContact = allContacts[j]
+                            if nextContact.sort > lastSort + nItems {
+                                nextSort = nextContact.sort
+                                break
+                            }
+                            nItems += 1
+                            j += 1
+                        }
+                        if currentSort > lastSort && currentSort < nextSort {
+                            lastSort = currentSort
+                        } else {
+                            var proposedSort: Int32
+                            if nextSort > 0 {
+                                proposedSort = lastSort + (nextSort - lastSort) / (nItems + 2)
+                            } else {
+                                proposedSort = lastSort + 1000
+                            }
+                            contact.sort = proposedSort
+                            lastSort = proposedSort
+                            print("contacts/reload/contact/update-sort [\(contact.fullName ?? "<<NO NAME>>")]:[\(currentSort)]->[\(proposedSort)]")
+                        }
+                    } else {
+                        lastSort = currentSort
+                    }
+                }
+            }
+        }
+        print("contacts/reload/re-sorted time=[\(Date().timeIntervalSince(startTime))]")
 
         autoreleasepool {
             print("contacts/reload/will-delete count=[\(contactsToDelete.count)]")
@@ -437,6 +504,10 @@ class ContactStore {
             print("contacts/reload/did-save time=[\(Date().timeIntervalSince(startTime))]")
         } catch {
             print("contacts/reload/save-error error=[\(error)]")
+        }
+
+        self.mutateDatabaseMetadata { metadata in
+            metadata[ContactStoreMetadataCollationLocale] = currentLocale
         }
 
         print("contacts/reload/finish time=[\(Date().timeIntervalSince(startTime))]")

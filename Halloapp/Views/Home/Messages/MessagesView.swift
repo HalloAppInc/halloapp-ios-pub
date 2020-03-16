@@ -17,7 +17,7 @@ struct MessagesView: View {
         entity: ABContact.entity(),
         sortDescriptors: [
             NSSortDescriptor(keyPath: \ABContact.statusValue, ascending: true),
-            NSSortDescriptor(keyPath: \ABContact.fullName, ascending: true)
+            NSSortDescriptor(keyPath: \ABContact.sort, ascending: true)
         ],
         predicate: NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
     ) var contacts: FetchedResults<ABContact>
