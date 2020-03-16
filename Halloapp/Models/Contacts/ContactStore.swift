@@ -187,17 +187,19 @@ class ContactStore {
      - returns:
      Metadata associated with contact's store.
      */
-    func databaseMetadata() -> [String: Any]? {
-        var result: [String: Any] = [:]
-        self.persistentContainer.persistentStoreCoordinator.performAndWait {
-            do {
-                try result = NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL())
+    var databaseMetadata: [String: Any]? {
+        get {
+            var result: [String: Any] = [:]
+            self.persistentContainer.persistentStoreCoordinator.performAndWait {
+                do {
+                    try result = NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL())
+                }
+                catch {
+                    print("contacts/metadata/read error=[\(error)]")
+                }
             }
-            catch {
-                print("contacts/metadata/read error=[\(error)]")
-            }
+            return result
         }
-        return result
     }
 
     /**
@@ -233,7 +235,7 @@ class ContactStore {
      Whether or not contacts have been loaded from device Address Book into app's contact store.
      */
     lazy var contactsAvailable: Bool = {
-        guard let metadata = self.databaseMetadata() else {
+        guard let metadata = self.databaseMetadata else {
             return false
         }
         guard let result = metadata[ContactStoreMetadataContactsLoaded] as? Bool else {
