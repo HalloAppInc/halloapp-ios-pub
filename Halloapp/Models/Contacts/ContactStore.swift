@@ -14,7 +14,7 @@ import Combine
 import Contacts
 import CoreData
 import Foundation
-
+import UIKit
 
 // MARK: Constants
 fileprivate let ContactStoreMetadataCollationLocale = "CollationLocale"
@@ -179,6 +179,12 @@ class ContactStore {
 
     init(xmppController: XMPPController) {
         self.xmppController = xmppController
+
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.CNContactStoreDidChange, object: nil, queue: nil) { notification in
+            print("CNContactStoreDidChange")
+            self.needReloadContacts = true
+            self.reloadContactsIfNecessary()
+        }
     }
 
 
@@ -254,7 +260,10 @@ class ContactStore {
             return
         }
 
-        ///TODO: reload if access to contacts is not granted
+        guard UIApplication.shared.applicationState != .background else {
+            print("contacts/reload/app-backgrounded")
+            return
+        }
 
         let syncManager = AppContext.shared.syncManager
 
