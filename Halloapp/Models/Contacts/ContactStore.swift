@@ -426,7 +426,7 @@ class ContactStore {
         let currentLocale = Locale.current.languageCode
         if let lastLocale = self.databaseMetadata?[ContactStoreMetadataCollationLocale] as? String {
             if lastLocale != currentLocale {
-                print("contacts/reload/locale-changed/from/\(lastLocale)/to/\(currentLocale)")
+                print("contacts/reload/locale-changed/from/\(lastLocale)/to/\(currentLocale ?? "")")
                 resortAllContacts = true
             }
         }
