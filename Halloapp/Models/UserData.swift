@@ -184,14 +184,17 @@ final class UserData: ObservableObject {
     }
         
     func resyncContacts() {
-        deleteAllData(entityName: "ContactsCore")
-        self.didResyncContacts.send()
+//        deleteAllData(entityName: "ContactsCore")
+//        self.didResyncContacts.send()
     }
 
     func logIn() {
         self.isLoggedIn = true
         self.save()
+
+        ///TODO: redo this using Combine
         AppContext.shared.xmppController.allowedToConnect = self.isLoggedIn
+        AppContext.shared.contactStore.enableContactSync()
     }
     
     func logout() {

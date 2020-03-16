@@ -1,5 +1,5 @@
 //
-//  XMPPContactListRequest.swift
+//  XMPPContactSyncRequest.swift
 //  Halloapp
 //
 //  Created by Igor Solomennikov on 3/11/20.
@@ -57,32 +57,36 @@ struct XMPPContact {
         self.userid = abContact.userId
     }
 
+    init(normalized: ABContact.NormalizedPhoneNumber) {
+        self.normalized = normalized
+    }
+
     /**
      Construct xml element from instance data.
 
      Use to construct contact requests.
      */
-    var xmppElement: XMPPElement {
-        get {
-            let contact = XMPPElement(name: "contact")
+    func xmppElement(withUserID: Bool) -> XMPPElement {
+        let contact = XMPPElement(name: "contact")
+        if (self.raw != nil) {
+            contact.addChild(XMPPElement(name: "raw", stringValue: self.raw))
+        }
+        if (withUserID) {
             if (self.userid != nil) {
                 contact.addChild(XMPPElement(name: "userid", stringValue: self.userid))
-            }
-            if (self.raw != nil) {
-                contact.addChild(XMPPElement(name: "raw", stringValue: self.raw))
             }
             if (self.normalized != nil) {
                 contact.addChild(XMPPElement(name: "normalized", stringValue: self.normalized))
             }
-            // "role" is never sent back to the server
-            return contact
         }
+        // "role" is never sent back to the server
+        return contact
     }
 }
 
 fileprivate let xmppNamespaceContacts = "halloapp:user:contacts"
 
-class XMPPContactListRequest : XMPPRequest {
+class XMPPContactSyncRequest : XMPPRequest {
     enum RequestType: String {
         case set = "set"
         case add = "add"
@@ -93,13 +97,18 @@ class XMPPContactListRequest : XMPPRequest {
 
     var completion: XMPPContactListRequestCompletion
 
-    init(with contacts: [ABContact], operation: RequestType, completion: @escaping XMPPContactListRequestCompletion) {
+    init<T: Sequence>(with contacts: T, operation: RequestType, syncID: String, isLastBatch: Bool?,
+                      completion: @escaping XMPPContactListRequestCompletion) where T.Iterator.Element == XMPPContact {
         self.completion = completion
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo), elementID: UUID().uuidString)
         iq.addChild({
             let contactList = XMPPElement(name: "contact_list", xmlns: xmppNamespaceContacts)
             contactList.addAttribute(withName: "type", stringValue: operation.rawValue)
-            contactList.setChildren(contacts.compactMap{ XMPPContact($0).xmppElement })
+            contactList.addAttribute(withName: "syncid", stringValue: syncID)
+            if isLastBatch != nil {
+                contactList.addAttribute(withName: "cont", boolValue: !isLastBatch!)
+            }
+            contactList.setChildren(contacts.compactMap{ $0.xmppElement(withUserID: operation == .delete) })
             return contactList
         }())
         super.init(iq: iq)

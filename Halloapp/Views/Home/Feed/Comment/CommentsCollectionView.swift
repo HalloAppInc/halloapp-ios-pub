@@ -16,7 +16,7 @@ enum MySection {
 ///TODO: use just one class
 struct RootCommentView: View {
     var comment: FeedDataItem
-    var contacts: Contacts
+    var contactStore: ContactStore
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -34,7 +34,7 @@ struct RootCommentView: View {
                 // Name + Comment
                 // Timestamp
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(self.contacts.getName(phone: comment.username))
+                    Text(self.contactStore.fullName(for: comment.username))
                         .font(.system(size: 14, weight: .bold))
 
                     +
@@ -56,8 +56,8 @@ struct RootCommentView: View {
 
 
 class CommentHeaderView: UICollectionReusableView {
-    public func configure(model: FeedDataItem, contacts: Contacts) {
-        let controller = UIHostingController(rootView: RootCommentView(comment: model, contacts: contacts))
+    public func configure(model: FeedDataItem, contactStore: ContactStore) {
+        let controller = UIHostingController(rootView: RootCommentView(comment: model, contactStore: contactStore))
         controller.view.frame = self.bounds
         self.addSubview(controller.view)
     }
@@ -71,7 +71,7 @@ struct CommentView: View {
     @Binding var replyTo: String
     @Binding var replyToName: String
 
-    var contacts: Contacts
+    var contactStore: ContactStore
 
     @State private var UserImage = Image(systemName: "nosign")
 
@@ -91,7 +91,7 @@ struct CommentView: View {
                 // Name + Comment
                 // Timestamp + "Reply" button
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(self.contacts.getName(phone: comment.username))
+                    Text(self.contactStore.fullName(for: comment.username))
                         .font(.system(size: 14, weight: .bold))
 
                     +
@@ -106,7 +106,7 @@ struct CommentView: View {
 
                         Button(action: {
                             self.replyTo = self.comment.id
-                            self.replyToName = self.contacts.getName(phone: self.comment.username)
+                            self.replyToName = self.contactStore.fullName(for: self.comment.username)
                         }) {
                             Text("Reply")
                                 .font(.system(size: 13, weight: .bold))
@@ -125,8 +125,8 @@ struct CommentView: View {
 
 
 class CommentCell: UICollectionViewCell {
-    public func configure(model: FeedComment, con: Binding<String>, replyTo: Binding<String>, replyToName: Binding<String>, contacts: Contacts) {
-        let controller = UIHostingController(rootView: CommentView(comment: model, scroll: con, replyTo: replyTo, replyToName: replyToName, contacts: contacts))
+    public func configure(model: FeedComment, con: Binding<String>, replyTo: Binding<String>, replyToName: Binding<String>, contactStore: ContactStore) {
+        let controller = UIHostingController(rootView: CommentView(comment: model, scroll: con, replyTo: replyTo, replyToName: replyToName, contactStore: contactStore))
         controller.view.frame = self.bounds
         self.contentView.addSubview(controller.view)
     }
@@ -151,7 +151,7 @@ struct CommentsCollectionView: UIViewRepresentable {
     @Binding var replyTo: String
     @Binding var replyToName: String
 
-    private let contacts = AppContext.shared.contacts
+    private let contactStore = AppContext.shared.contactStore
 
     func makeUIView(context: Context) -> UICollectionView {
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
@@ -171,7 +171,7 @@ struct CommentsCollectionView: UIViewRepresentable {
                                con: self.$scroll,
                                replyTo: self.$replyTo,
                                replyToName: self.$replyToName,
-                               contacts: self.contacts)
+                               contactStore: self.contactStore)
                 return cell
             }
             return CommentCell()
@@ -185,7 +185,7 @@ struct CommentsCollectionView: UIViewRepresentable {
            switch kind {
                 case UICollectionView.elementKindSectionHeader:
                     if let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CommentsCollectionView.headerReuseIdentifier, for: indexPath) as? CommentHeaderView {
-                        headerView.configure(model: self.item, contacts: self.contacts)
+                        headerView.configure(model: self.item, contactStore: self.contactStore)
                         return headerView
                     }
                     return CommentHeaderView()
@@ -243,13 +243,13 @@ struct CommentsCollectionView: UIViewRepresentable {
                                                                        scroll: self.$temp,
                                                                        replyTo: self.$temp,
                                                                        replyToName: self.$temp,
-                                                                       contacts: self.parent.contacts))
+                                                                       contactStore: self.parent.contactStore))
             let size = controller.view.sizeThatFits(CGSize(width: collectionView.frame.width, height: CGFloat.greatestFiniteMagnitude))
             return CGSize(width: collectionView.frame.width, height: size.height)
         }
 
         func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-            let controller = UIHostingController(rootView: RootCommentView(comment: self.parent.item, contacts: self.parent.contacts))
+            let controller = UIHostingController(rootView: RootCommentView(comment: self.parent.item, contactStore: self.parent.contactStore))
             let size = controller.view.sizeThatFits(CGSize(width: collectionView.frame.width, height: CGFloat.greatestFiniteMagnitude))
             return CGSize(width: collectionView.frame.width, height: size.height)
         }

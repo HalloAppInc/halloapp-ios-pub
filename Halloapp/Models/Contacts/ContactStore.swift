@@ -10,17 +10,11 @@
  Responsible for synchronization between device's address book and app's contact cache.
  */
 
+import Combine
 import Contacts
 import CoreData
 import Foundation
 
-// Values are persisted as ABContact.status. Do not change.
-enum ABContactStatus: Int16 {
-    case unknown = 0
-    case `in` = 1
-    case `out` = 2
-    case invalid = 3
-}
 
 // MARK: Constants
 fileprivate let ContactStoreMetadataCollationLocale = "CollationLocale"
@@ -122,8 +116,11 @@ fileprivate struct ContactProxy {
 
 class ContactStore {
     private var xmppController: XMPPController
+    private var needReloadContacts = true
+    private var isReloadingContacts = false
 
-    private let contactSerialQueue = DispatchQueue(label: "com.halloapp.hallo.contacts")
+    private let contactSerialQueue = DispatchQueue(label: "com.halloapp.contacts")
+    private var cancellableSet: Set<AnyCancellable> = []
 
     // MARK: Access to Contacts
     class var contactsAccessAuthorized: Bool {
@@ -165,6 +162,20 @@ class ContactStore {
         }
         return container
     }()
+
+    func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
+        let managedObjectContext = self.persistentContainer.newBackgroundContext()
+        managedObjectContext.performAndWait {
+            block(managedObjectContext)
+        }
+    }
+
+    var viewContext: NSManagedObjectContext {
+        get {
+            return self.persistentContainer.viewContext
+        }
+    }
+
 
     init(xmppController: XMPPController) {
         self.xmppController = xmppController
@@ -236,7 +247,78 @@ class ContactStore {
 
      Syncronization is performed on persistent store's  background queue.
      */
-    public func reloadContactsIfNecessary() {
+    func reloadContactsIfNecessary() {
+        guard self.needReloadContacts else {
+            return
+        }
+
+        ///TODO: reload if access to contacts is not granted
+
+        let syncManager = AppContext.shared.syncManager
+
+        if (ContactStore.contactsAccessAuthorized) {
+            print("contacts/reload/required")
+            guard !self.isReloadingContacts else {
+                print("contacts/reload/already-in-progress")
+                return
+            }
+            self.needReloadContacts = false
+            self.isReloadingContacts = true
+
+            DispatchQueue.main.async {
+                self.contactSerialQueue.async {
+                    syncManager.queue.sync {
+                        self.performOnBackgroundContextAndWait { managedObjectContext in
+                            self.reloadContacts(using: managedObjectContext) { deletedIds, error in
+                                if error == nil {
+                                    if deletedIds != nil {
+                                        syncManager.add(deleted: deletedIds!)
+                                    }
+
+                                    if syncManager.isSyncEnabled {
+                                        syncManager.requestDeltaSync()
+                                    } else if AppContext.shared.userData.isLoggedIn {
+                                        DispatchQueue.main.async {
+                                            self.enableContactSync()
+                                        }
+                                    }
+                                }
+
+                                DispatchQueue.main.async {
+                                    // Wait 2 seconds to allow incoming needReloadContacts requests to coalesce, and then
+                                    // check again to see if we need to reload the address book.
+                                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 2.0) {
+                                        self.isReloadingContacts = false
+                                        self.reloadContactsIfNecessary()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else if !syncManager.isSyncEnabled {
+            if AppContext.shared.userData.isLoggedIn {
+                DispatchQueue.main.async {
+                    self.enableContactSync()
+                }
+            }
+        }
+    }
+
+    private var syncWillBeEnabled = false
+    func enableContactSync() {
+        if self.xmppController.isConnectedToServer {
+            AppContext.shared.syncManager.enableSync()
+        } else if (!self.syncWillBeEnabled) {
+            self.syncWillBeEnabled = true
+            self.cancellableSet.insert(
+                self.xmppController.didConnect.sink{ _ in
+                    AppContext.shared.syncManager.enableSync()
+                    self.syncWillBeEnabled = false
+                }
+            )
+        }
     }
 
     /**
@@ -246,7 +328,7 @@ class ContactStore {
         - context: Managed object context to use.
         - completion: Code to execute on method completion.
      */
-    private func reloadContacts(using context: NSManagedObjectContext, completion: (_ deletedIDs: Set<String>?, _ error: Error?) -> Void) {
+    private func reloadContacts(using context: NSManagedObjectContext, completion: (_ deletedIDs: Set<ABContact.NormalizedPhoneNumber>?, _ error: Error?) -> Void) {
         context.retainsRegisteredObjects = true
 
         let startTime = Date()
@@ -292,7 +374,7 @@ class ContactStore {
         // This will contain the up-to-date set of all address book contacts.
         var allContacts: [ABContact] = []
         // Track which userIDs were really deleted.
-        var deletedUserIDs: Set<String> = Set(), existingUserIDs: Set<String> = Set()
+        var deletedUserIDs: Set<ABContact.NormalizedPhoneNumber> = Set(), existingUserIDs: Set<ABContact.NormalizedPhoneNumber> = Set()
         var uniqueContactKeys: Set<String> = Set()
 
         // Create/update ABContact entries from device contacts.
@@ -364,7 +446,6 @@ class ContactStore {
                     metadata[ContactStoreMetadataContactsLoaded] = true
                 }
             }
-            ///TODO: send to server
         }
 
         completion(deletedUserIDs, nil);
@@ -433,7 +514,7 @@ class ContactStore {
                     // existingContacts.isEmpty: New contact without phone numbers.
                     // !phoneToContactMap.isEmpty: All phone numbers from contact got deleted.
                     let contact = self.addNewContact(from: contactProxy, into: context)
-                    contact.status = ABContactStatus.invalid.rawValue
+                    contact.status = .invalid
                     inserted.append(contact)
                     contacts.append(contact)
                 } else if existingContacts.count == 1 && phoneToContactMap.isEmpty {
@@ -478,5 +559,113 @@ class ContactStore {
         }
 
         return (contacts, inserted)
+    }
+
+    // MARK: Server Sync
+
+    func contactsFor(fullSync: Bool) -> [ABContact] {
+        let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
+        if fullSync {
+            fetchRequst.predicate = NSPredicate(format: "phoneNumber != nil")
+        } else {
+            fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.unknown.rawValue)
+        }
+        var allContacts: [ABContact] = []
+        do {
+            ///TODO: should use a private context here likely
+            allContacts = try self.persistentContainer.viewContext.fetch(fetchRequst)
+        }
+        catch {
+            fatalError()
+        }
+        return allContacts
+    }
+
+    private func contactsMatching(phoneNumbers: [String], in managedObjectContext: NSManagedObjectContext) -> [String: [ABContact]] {
+        let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
+        fetchRequst.predicate = NSPredicate(format: "phoneNumber IN %@", phoneNumbers)
+        fetchRequst.returnsObjectsAsFaults = false
+        var contacts: [ABContact] = []
+        do {
+            try contacts = managedObjectContext.fetch(fetchRequst)
+        }
+        catch {
+            fatalError()
+        }
+        return Dictionary(grouping: contacts, by: { $0.phoneNumber! })
+    }
+
+    func processSync(results: [XMPPContact], isFullSync: Bool, using managedObjectContext: NSManagedObjectContext) {
+        print("contacts/sync/process-results/start")
+        let startTime = Date()
+
+        let allPhoneNumbers = results.map{ $0.raw! } // none must not be empty
+
+        let phoneNumberToContactsMap = self.contactsMatching(phoneNumbers: allPhoneNumbers, in: managedObjectContext)
+
+        for xmppContact in results {
+            let newStatus: ABContact.Status = xmppContact.registered ? .in : (xmppContact.normalized == nil ? .invalid : .out)
+            if newStatus == .invalid {
+                print("contacts/sync/process-results/invalid [\(xmppContact.raw!)]")
+            }
+            if let contacts = phoneNumberToContactsMap[xmppContact.raw!] {
+                for abContact in contacts {
+                    // Update status.
+                    let previousStatus = abContact.status
+                    if newStatus != previousStatus {
+                        abContact.status = newStatus
+
+                        if newStatus == .in {
+                            print("contacts/sync/process-results/new-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
+                        } else if previousStatus == .in && newStatus == .out {
+                            print("contacts/sync/process-results/delete-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
+                        }
+                    }
+
+                    // Store normalized phone number.
+                    if xmppContact.normalized != abContact.normalizedPhoneNumber {
+                        abContact.normalizedPhoneNumber = xmppContact.normalized
+                    }
+
+                    // Update userId
+                    if xmppContact.userid != abContact.userId {
+                        print("contacts/sync/process-results/userid-update [\(abContact.fullName ?? "<<NO NAME>>")]: [\(abContact.userId ?? "")] -> [\(xmppContact.userid ?? "")]")
+                        abContact.userId = xmppContact.userid
+                    }
+                }
+            }
+        }
+
+        print("contacts/sync/process-results/will-save time=[\(Date().timeIntervalSince(startTime))]")
+        do {
+            try managedObjectContext.save()
+            print("contacts/sync/process-results/did-save time=[\(Date().timeIntervalSince(startTime))]")
+        } catch {
+            print("contacts/sync/process-results/save-error error=[\(error)]")
+        }
+
+        print("contacts/sync/process-results/finish time=[\(Date().timeIntervalSince(startTime))]")
+    }
+
+    // MARK: SwiftUI Support
+
+    func fullName(for phoneNumber: ABContact.NormalizedPhoneNumber) -> String {
+        if phoneNumber == AppContext.shared.userData.phone {
+            return "Me"
+        }
+
+        var fullName = phoneNumber
+        let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
+        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", phoneNumber)
+        do {
+            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
+            if let contact = contacts.first {
+                fullName = contact.fullName ?? phoneNumber
+            }
+        }
+        catch {
+            fatalError()
+        }
+        return fullName
     }
 }

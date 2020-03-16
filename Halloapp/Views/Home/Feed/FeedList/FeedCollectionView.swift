@@ -207,7 +207,7 @@ class WFeedListHeader: UICollectionReusableView {
 
 
 struct FeedItemView: View {
-    private let contacts = AppContext.shared.contacts
+    private let contactStore = AppContext.shared.contactStore
 
     var item: FeedDataItem
 
@@ -228,7 +228,7 @@ struct FeedItemView: View {
                         .frame(width: 30, height: 30, alignment: .center)
 
                     // Contact name
-                    Text(self.contacts.getName(phone: item.username))
+                    Text(self.contactStore.fullName(for: item.username))
                         .font(.system(size: 14, weight: .regular))
                 }
 

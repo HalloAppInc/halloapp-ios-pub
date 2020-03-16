@@ -88,6 +88,7 @@ struct MainView: View {
                 } else if mainViewController.currentTab == .messages {
                     NavigationView {
                         MessagesView()
+                            .environment(\.managedObjectContext, AppContext.shared.contactStore.viewContext)
                     }
                 } else if mainViewController.currentTab == .profile {
                     NavigationView {

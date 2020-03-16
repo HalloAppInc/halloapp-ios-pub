@@ -20,7 +20,7 @@
     <entity name="CMisc" representedClassName="CMisc" syncable="YES" codeGenerationType="class">
         <attribute name="logs" optional="YES" attributeType="String" defaultValueString=""/>
     </entity>
-    <entity name="ContactsCore" representedClassName="ContactsCore" syncable="YES" codeGenerationType="class">
+    <entity name="ContactsCore" representedClassName="ContactsCore" syncable="YES">
         <attribute name="isConnected" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isNormalized" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isProcessed" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>

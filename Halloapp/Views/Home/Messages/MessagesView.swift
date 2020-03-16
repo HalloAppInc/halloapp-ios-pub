@@ -6,13 +6,21 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import CoreData
 import SwiftUI
-import Contacts
 
 struct MessagesView: View {
     @EnvironmentObject var mainViewController: MainViewController
+    @Environment(\.managedObjectContext) var managedObjectContext
 
-    private let contacts = AppContext.shared.contacts
+    @FetchRequest(
+        entity: ABContact.entity(),
+        sortDescriptors: [
+            NSSortDescriptor(keyPath: \ABContact.statusValue, ascending: true),
+            NSSortDescriptor(keyPath: \ABContact.fullName, ascending: true)
+        ],
+        predicate: NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
+    ) var contacts: FetchedResults<ABContact>
 
     @State var showSheet = false
     @State var showWrite = false
@@ -20,31 +28,28 @@ struct MessagesView: View {
 
     var body: some View {
         VStack {
-            List() {
-                /* id is required else it crashes every now and then */
-                ForEach(contacts.connectedContacts, id: \.id) { contact in
-                    HStack {
-                        Image(systemName: "circle.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .foregroundColor(Color.gray)
-                            .clipShape(Circle())
-                            .frame(width: 50, height: 50, alignment: .center)
+            List(contacts, id: \.self) { contact in
+                HStack {
+                    Image(systemName: "circle.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundColor(Color.gray)
+                        .clipShape(Circle())
+                        .frame(width: 50, height: 50, alignment: .center)
+                        .padding(.zero)
+
+                    VStack(alignment: .leading) {
+                        Text(contact.fullName!)
+                            .foregroundColor(contact.status == .in ? Color.primary : Color.secondary)
                             .padding(.zero)
 
-                        VStack(alignment: .leading) {
-                            Text(contact.name)
-                                .foregroundColor(Color.primary)
-                                .padding(.zero)
-
-                            Text(contact.normPhone != "" ? contact.normPhone : contact.phone)
-                                .font(.system(size: 12, weight: .regular))
-                                .padding(EdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0))
-                                .foregroundColor(Color.secondary)
-                        }
+                        Text(contact.phoneNumber!)
+                            .font(.system(size: 12, weight: .regular))
+                            .padding(EdgeInsets(top: 5, leading: 0, bottom: 0, trailing: 0))
+                            .foregroundColor(Color.secondary)
                     }
-                    .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 5))
                 }
+                .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 5))
             }
             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
 
@@ -53,10 +58,10 @@ struct MessagesView: View {
             }
         }
 
-            .overlay(
-                BottomBarView(),
-                alignment: .bottom
-            )
+        .overlay(
+            BottomBarView(),
+            alignment: .bottom
+        )
 
             .edgesIgnoringSafeArea(.bottom)
 

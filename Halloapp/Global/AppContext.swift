@@ -20,9 +20,9 @@ struct AppContext {
     private(set) var userData: UserData
     private(set) var metaData: MetaData
     private(set) var xmppController: XMPPController
-    private(set) var contacts: Contacts
     private(set) var feedData: FeedData
     private(set) var contactStore: ContactStore
+    private(set) var syncManager: SyncManager
 
     // MARK: - Paths
     static let sharedDirectoryURL = {
@@ -52,8 +52,8 @@ struct AppContext {
         self.userData = UserData()
         self.metaData = MetaData()
         self.xmppController = XMPPController(userData: self.userData, metaData: self.metaData)
-        self.contacts = Contacts(xmppController: self.xmppController, userData: self.userData)
         self.feedData = FeedData(xmppController: self.xmppController, userData: self.userData)
         self.contactStore = ContactStore(xmppController: self.xmppController)
+        self.syncManager = SyncManager(contactStore: self.contactStore, xmppController: self.xmppController)
     }
 }

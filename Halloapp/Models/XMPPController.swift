@@ -34,26 +34,10 @@ class XMPPController: NSObject, ObservableObject {
     var didConnect = PassthroughSubject<String, Never>() // used by UserData to know if user is in or not
     
     var didChangeMessage = PassthroughSubject<XMPPMessage, Never>()
-    
     var didGetNewFeedItem = PassthroughSubject<XMPPMessage, Never>()
     var didGetRetractItem = PassthroughSubject<XMPPMessage, Never>()
-    var didGetNewContactsItem = PassthroughSubject<XMPPMessage, Never>()
-
     var didGetFeedItems = PassthroughSubject<XMPPIQ, Never>()
-    var didGetContactsItems = PassthroughSubject<XMPPIQ, Never>()
-    
-    var didGetOwnAffiliations = PassthroughSubject<XMPPIQ, Never>() // all of the user's own affiliations
-    var didGetAllAffiliations = PassthroughSubject<XMPPIQ, Never>() // all the affiliations that others have the user on
-    
-    var didGetNormBatch = PassthroughSubject<XMPPIQ, Never>()
-    var didGetAffContactsBatch = PassthroughSubject<XMPPIQ, Never>()
-    var didGetAffFeedBatch = PassthroughSubject<XMPPIQ, Never>()
 
-    var didSubscribeToContact = PassthroughSubject<String, Never>()
-    var didNotSubscribeToContact = PassthroughSubject<String, Never>()
-    
-    var didGetSubscriptions = PassthroughSubject<XMPPIQ, Never>()
-    
     var xmppStream: XMPPStream
     var xmppPubSub: XMPPPubSub
     var xmppReconnect: XMPPReconnect
@@ -219,14 +203,7 @@ class XMPPController: NSObject, ObservableObject {
         contactsNodeOptions.merge(["pubsub#max_items": "3"]) { (current, new) -> String in
             return new
         }
-        
-        if (!self.userData.haveContactsSub) {
-            print("creating contacts node")
-            self.xmppPubSub.createNode("contacts-\(node)", withOptions: nodeOptions)
-            Utils().sendAff(xmppStream: self.xmppStream, node: "contacts-\(self.userData.phone)", from: "\(self.userData.phone)", user: self.userData.phone, role: "owner")
-            self.xmppPubSub.subscribe(toNode: "contacts-\(self.userData.phone)")
-        }
-        
+
         var feedNodeOptions = nodeOptions
         feedNodeOptions.merge(["pubsub#publish_model": "subscribers"]) { (current, new) -> String in
             return new
@@ -235,7 +212,6 @@ class XMPPController: NSObject, ObservableObject {
         if (!self.userData.haveFeedSub) {
             print("creating feed node: feed-\(node)")
             self.xmppPubSub.createNode("feed-\(node)", withOptions: feedNodeOptions)
-            Utils().sendAff(xmppStream: self.xmppStream, node: "feed-\(self.userData.phone)", from: "\(self.userData.phone)", user: self.userData.phone, role: "owner")
             self.xmppPubSub.subscribe(toNode: "feed-\(self.userData.phone)")
             self.xmppPubSub.retrieveItems(fromNode: "feed-\(self.userData.phone)") // if the user logs off, then logs back in
         }
@@ -350,54 +326,6 @@ extension XMPPController: XMPPStreamDelegate {
     }
     
     func xmppStream(_ sender: XMPPStream, didReceive iq: XMPPIQ) -> Bool {
-//        self.userData.log("Stream: didReceive iq \(iq)")
-        
-        if (iq.fromStr! == "pubsub.s.halloapp.net") {
-
-            let pubsub = iq.element(forName: "pubsub")
-            
-            let affiliations = pubsub?.element(forName: "affiliations")
-            if affiliations != nil {
-//                print("Stream: didReceive \(iq)")
-                
-                let node = affiliations?.attributeStringValue(forName: "node")
-                
-                if node != nil && (node == "contacts-\(self.userData.phone)" || node == "feed-\(self.userData.phone)") {
-                    self.didGetOwnAffiliations.send(iq)
-                } else {
-                    self.didGetAllAffiliations.send(iq)
-                }
-                return false
-            }
-            
-            let subscriptions = pubsub?.element(forName: "subscriptions")
-            if subscriptions != nil {
-                return false
-            }
-            
-            let items = pubsub?.element(forName: "items")
-            if items != nil {
-                return false
-            }
-            
-//            self.userData.log("Stream: didReceive \(iq)")
-            
-            if let idParts = iq.elementID?.components(separatedBy: "-") {
-                if (idParts[0] == "batchAff") {
-                    self.didGetAffContactsBatch.send(iq) // for batch affiliations
-                } else if (idParts[0] == "batchAffFeed") {
-                    self.didGetAffFeedBatch.send(iq) // for batch affiliations
-                }
-            }
-            
-
-        } else {
-            if let contactList = iq.element(forName: "contact_list") {
-                self.didGetNormBatch.send(iq)
-                return false
-            }
-        }
-
         if let requestId = iq.elementID {
             func removeRequest(with id: String, outOf requests: inout [XMPPRequest]) -> [XMPPRequest] {
                 let filteredSequence = requests.enumerated().filter { $0.element.requestId == id }
@@ -579,8 +507,7 @@ extension XMPPController: XMPPPubSubDelegate {
 
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveSubscriptions iq: XMPPIQ) {
 //        self.userData.log("PubSub: didRetrieveSubscriptions - \(iq)")
-        self.didGetSubscriptions.send(iq)
-        
+
     }
 
 //    func xmppPubSub(_ sender: XMPPPubSub, didNotRetrieveSubscriptions iq: XMPPIQ) {
@@ -595,12 +522,7 @@ extension XMPPController: XMPPPubSubDelegate {
         } else if (node == "feed-\(self.userData.phone)") {
             self.userData.setHaveFeedSub(value: true)
         } else {
-            let nodeParts = node.components(separatedBy: "-")
 
-            if (nodeParts[0] == "contacts") {
-                self.didSubscribeToContact.send(nodeParts[1])
-            }
-            
             let idx = self.metaData.checkIds.firstIndex(where: {$0 == node})
             
             if (idx != nil) {
@@ -615,20 +537,11 @@ extension XMPPController: XMPPPubSubDelegate {
                     print("total perf: \(Int(timeElapsed)/60)")
                 }
             }
-            
-            
         }
-        
     }
     
     func xmppPubSub(_ sender: XMPPPubSub, didNotSubscribeToNode node: String, withError iq: XMPPIQ) {
         self.userData.log("PubSub: didNotSubscribeToNode - \(node)")
-        
-        let nodeParts = node.components(separatedBy: "-")
-
-        if (nodeParts[0] == "contacts") {
-            self.didNotSubscribeToContact.send(nodeParts[1])
-        }
         
         let idx = self.metaData.checkIds.firstIndex(where: {$0 == node})
         
@@ -644,7 +557,6 @@ extension XMPPController: XMPPPubSubDelegate {
                 print("total perf: \(Int(timeElapsed)/60)")
             }
         }
-        
     }
     
 //    func xmppPubSub(_ sender: XMPPPubSub, didCreateNode node: String, withResult iq: XMPPIQ) {
@@ -668,8 +580,6 @@ extension XMPPController: XMPPPubSubDelegate {
             if nodeParts.count > 0 {
                 if (nodeParts[0] == "feed") {
                     self.didGetFeedItems.send(iq)
-                } else if (nodeParts[0] == "contacts") {
-                    self.didGetContactsItems.send(iq)
                 }
             }
         }
@@ -706,8 +616,6 @@ extension XMPPController: XMPPPubSubDelegate {
                     } else {
                         self.didGetNewFeedItem.send(message)
                     }
-                } else if (nodeParts[0] == "contacts") {
-                    self.didGetNewContactsItem.send(message)
                 } else if (nodeParts[0] == "metadata") {
                     //todo: handle metadata messages before acking them
                     if let id = message.elementID {
