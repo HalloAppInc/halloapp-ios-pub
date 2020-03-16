@@ -12,7 +12,7 @@ import XMPPFramework
 class SyncSession {
     typealias Completion = ([XMPPContact]?, Error?) -> Void
 
-    private var mode: SyncManager.SyncMode
+    private var operation: XMPPContactSyncRequest.RequestType
     private var completion: Completion
 
     /**
@@ -27,8 +27,8 @@ class SyncSession {
     private var results: [XMPPContact] = []
     private var error: Error? = nil
 
-    init(mode: SyncManager.SyncMode, contacts: [XMPPContact], completion: @escaping Completion) {
-        self.mode = mode
+    init(operation: XMPPContactSyncRequest.RequestType, contacts: [XMPPContact], completion: @escaping Completion) {
+        self.operation = operation
         self.contacts = contacts
         self.completion = completion
     }
@@ -62,7 +62,7 @@ class SyncSession {
                 isLastBatch = range.count == self.contacts.count
             }
             let contactsToSend = self.contacts[range]
-            let request = XMPPContactSyncRequest(with: contactsToSend, operation: .add, syncID: self.syncID, isLastBatch: isLastBatch) { (batchResults, error) in
+            let request = XMPPContactSyncRequest(with: contactsToSend, operation: self.operation, syncID: self.syncID, isLastBatch: isLastBatch) { (batchResults, error) in
                 print("sync-session/request/end/batch/\(self.batchIndex)")
                 if error != nil {
                     self.error = error

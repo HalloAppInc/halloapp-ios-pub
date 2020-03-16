@@ -174,7 +174,8 @@ class SyncManager {
 
         let syncMode = self.nextSyncMode
         print("syncmanager/sync/start [\(xmppContacts.count)]")
-        let syncSession = SyncSession(mode: self.nextSyncMode, contacts: xmppContacts) { results, error in
+        let syncOperation: XMPPContactSyncRequest.RequestType = syncMode == .full ? .set : (self.pendingDeletes.isEmpty ? .add : .delete)
+        let syncSession = SyncSession(operation: syncOperation, contacts: xmppContacts) { results, error in
             self.queue.async {
                 self.processSyncResponse(mode: syncMode, contacts: results, error: error)
             }

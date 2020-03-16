@@ -412,7 +412,7 @@ class ContactStore {
                     // they will not be in "contactsToDelete".
                     contactsToDelete.removeAll(where: { contacts.contains($0) })
                 }
-                existingUserIDs.formUnion(contacts.compactMap{ $0.userId })
+                existingUserIDs.formUnion(contacts.compactMap{ $0.normalizedPhoneNumber })
             }
         } catch {
             print("Failed to fetch device contacts: \(error)")
@@ -487,9 +487,9 @@ class ContactStore {
             // derived from a snapshot of all the WAAddressBookContact objects in our db prior to fetching all the
             // address book records.
             for contactToDelete in contactsToDelete {
-                print("contacts/reload/will-delete id=[\(String(describing: contactToDelete.identifier))] phone=[\(String(describing: contactToDelete.phoneNumber))] userid=[\(String(describing: contactToDelete.userId))]")
-                if let userId = contactToDelete.userId {
-                    deletedUserIDs.insert(userId)
+                print("contacts/reload/will-delete id=[\(contactToDelete.identifier ?? ""))] phone=[\(contactToDelete.phoneNumber ?? ""))] userid=[\(contactToDelete.normalizedPhoneNumber ?? ""))]")
+                if let normalizedPhoneNumber = contactToDelete.normalizedPhoneNumber {
+                    deletedUserIDs.insert(normalizedPhoneNumber)
                 }
                 context.delete(contactToDelete)
             }
