@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "EAF3A1BE2334191E00805FF9"
-               BuildableName = "Halloapp.app"
-               BlueprintName = "Halloapp"
+               BuildableName = "HalloApp.app"
+               BlueprintName = "HalloApp"
                ReferencedContainer = "container:Halloapp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,8 +45,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "EAF3A1BE2334191E00805FF9"
-            BuildableName = "Halloapp.app"
-            BlueprintName = "Halloapp"
+            BuildableName = "HalloApp.app"
+            BlueprintName = "HalloApp"
             ReferencedContainer = "container:Halloapp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,8 +62,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "EAF3A1BE2334191E00805FF9"
-            BuildableName = "Halloapp.app"
-            BlueprintName = "Halloapp"
+            BuildableName = "HalloApp.app"
+            BlueprintName = "HalloApp"
             ReferencedContainer = "container:Halloapp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
