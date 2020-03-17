@@ -17,22 +17,6 @@ extension Data {
     }
 }
 
-public class Debouncer {
-    private let delay: TimeInterval
-    private var workItem: DispatchWorkItem?
-
-    public init(delay: TimeInterval) {
-        self.delay = delay
-    }
-
-    /// Trigger the action after some delay
-    public func run(action: @escaping () -> Void) {
-        workItem?.cancel()
-        workItem = DispatchWorkItem(block: action)
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem!)
-    }
-}
-
 extension Date {
     func timeAgoDisplay() -> String {
 
@@ -60,8 +44,17 @@ extension Date {
     }
 }
 
-
 class Utils {
+
+    func appVersion() -> String {
+        guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
+            return ""
+        }
+        guard let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String else {
+            return "\(version)"
+        }
+        return "\(version) (\(buildNumber))"
+    }
     
     func timeForm_2(dateStr: String) -> String {
 

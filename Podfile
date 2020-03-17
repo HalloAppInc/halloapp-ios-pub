@@ -5,7 +5,7 @@ platform :ios, '13.0'
 target 'HalloApp' do
 
   use_frameworks!
-  pod 'XMPPFramework/Swift'
+  pod 'XMPPFramework/Swift', :git => 'https://github.com/HalloAppInc/XMPPFramework'
   pod 'YPImagePicker', '~> 4.2.0'
   pod 'Alamofire'
   pod 'SwiftyJSON'

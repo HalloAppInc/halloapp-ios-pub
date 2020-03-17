@@ -63,7 +63,10 @@ class XMPPController: NSObject, ObservableObject {
         // Stream Configuration
         self.xmppStream = XMPPStream()
         self.xmppStream.hostPort = hostPort
-
+  
+        let appVersionNStr:NSString = NSString(string: Utils().appVersion())
+        self.xmppStream.clientVersion = appVersionNStr
+        
         /* probably should be "required" once all servers including test servers are secured */
         self.xmppStream.startTLSPolicy = XMPPStreamStartTLSPolicy.preferred
         
