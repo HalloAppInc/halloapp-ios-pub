@@ -173,6 +173,7 @@ class ContactStore {
 
     var viewContext: NSManagedObjectContext {
         get {
+            self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
             return self.persistentContainer.viewContext
         }
     }
