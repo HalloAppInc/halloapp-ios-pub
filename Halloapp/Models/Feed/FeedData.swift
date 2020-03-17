@@ -82,11 +82,6 @@ class FeedData: ObservableObject {
             xmppController.didGetNewFeedItem.sink(receiveValue: { value in
                 DDLogInfo("Feed: New Item \(value)")
                 
-                if let id = value.elementID {
-                    DDLogInfo("Feed: Send ACK")
-                    Utils().sendAck(xmppStream: self.xmppController.xmppStream, id: id, from: self.userData.phone)
-                }
-                
                 let event = value.element(forName: "event")
                 let (feedDataItems, feedCommentItems)  = Utils().parseFeedItems(event)
                  
@@ -128,11 +123,6 @@ class FeedData: ObservableObject {
             
             xmppController.didGetRetractItem.sink(receiveValue: { value in
                 DDLogInfo("Feed: Retract Item \(value)")
-                
-                if let id = value.elementID {
-                    DDLogInfo("Feed: Send ACK for Retract Item")
-                    Utils().sendAck(xmppStream: self.xmppController.xmppStream, id: id, from: self.userData.phone)
-                }
                 
                 //todo: handle retracted items
             })

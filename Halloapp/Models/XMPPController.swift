@@ -599,11 +599,8 @@ extension XMPPController: XMPPPubSubDelegate {
         let items = event?.element(forName: "items")
         
         if (event?.element(forName: "delete")) != nil {
-            if let id = message.elementID {
-                //todo: eating the deletes for now
-                DDLogInfo("Send Ack for Delete event")
-                Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
-            }
+            //todo: eating the deletes for now
+            DDLogInfo("eating the deletes for now")
         }
         
         if let node = items?.attributeStringValue(forName: "node") {
@@ -619,15 +616,17 @@ extension XMPPController: XMPPPubSubDelegate {
                     }
                 } else if (nodeParts[0] == "metadata") {
                     //todo: handle metadata messages before acking them
-                    if let id = message.elementID {
-                        DDLogInfo("MetaData: Send Ack")
-                        Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
-                    }
+                    DDLogInfo("eating metadata messages for now")
                 }
             }
             
         }
         
+        if let id = message.elementID {
+            DDLogInfo("Message: Send Ack")
+            Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
+        }
+
     }
             
 }
