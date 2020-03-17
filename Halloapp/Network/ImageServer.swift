@@ -44,21 +44,21 @@ class ImageServer {
                 feedMedia.url = mediaURLs[index].put.absoluteString
 
                 if feedMedia.type == "image" {
-                    userData.log("Post Image: original res - \(item.width) x \(item.height)")
+                    DDLogInfo("Post Image: original res - \(item.width) x \(item.height)")
 
                     if item.width > 1600 || item.height > 1600 {
                         item.image = item.image.getNewSize(res: 1600) ?? UIImage()
                         item.width = Int(item.image.size.width)
                         item.height = Int(item.image.size.height)
 
-                        userData.log("Post Image: resized res - \(item.image.size.width) x \(item.image.size.height)")
+                        DDLogInfo("Post Image: resized res - \(item.image.size.width) x \(item.image.size.height)")
                     }
 
                     feedMedia.image = item.image
 
                     /* turn on/off encryption of media */
                     if let imgData = feedMedia.image.jpegData(compressionQuality: CGFloat(userData.compressionQuality)) {
-                        userData.log("Post Image: (\(userData.compressionQuality)) compressed size - \(imgData.count)")
+                        DDLogInfo("Post Image: (\(userData.compressionQuality)) compressed size - \(imgData.count)")
 
                         (feedMedia.encryptedData, feedMedia.key, feedMedia.sha256hash) = HAC().encryptData(data: imgData, type: "image")
 

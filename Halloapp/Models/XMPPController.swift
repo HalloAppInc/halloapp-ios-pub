@@ -105,7 +105,7 @@ class XMPPController: NSObject, ObservableObject {
         ///TODO: consider doing the same for didLogIn.
         self.cancellableSet.insert(
             self.userData.didLogOff.sink(receiveValue: {
-                self.userData.log("XMPPController: got didLogOff, disconnecting")
+                DDLogInfo("XMPPController: got didLogOff, disconnecting")
                 self.isConnectedToServer = false
                 self.xmppStream.disconnect()
                 self.allowedToConnect = false
@@ -123,7 +123,7 @@ class XMPPController: NSObject, ObservableObject {
         self.xmppStream.myJID = self.userJID
 
         do {
-            self.userData.log("Connecting")
+            DDLogInfo("Connecting")
 //            self.metaData.setIsOffline(value: true)
             
             self.isConnecting.send("isConnecting")
@@ -138,7 +138,7 @@ class XMPPController: NSObject, ObservableObject {
     
         } catch {
             /* this never fires, probably bug with xmppframework */
-            self.userData.log("connection failed after WillConnect (spotty internet)")
+            DDLogError("connection failed after WillConnect (spotty internet)")
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                 if !self.isConnectedToServer && self.allowedToConnect {
                     self.connect()
@@ -178,7 +178,7 @@ class XMPPController: NSObject, ObservableObject {
     }
     
     private func sendCurrentAPNSToken() {
-        self.userData.log("Notifications: Sending Push Token")
+        DDLogInfo("xmpp/push-token/send")
         let request = XMPPPushTokenRequest(token: self.apnsToken!) { (error) in
             DDLogInfo("xmpp/push-token/sent")
         }
@@ -320,9 +320,9 @@ class XMPPController: NSObject, ObservableObject {
 extension XMPPController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream, didReceive message: XMPPMessage) {
-//        self.userData.log("Stream: didReceive message \(message)")
+//        DDLogInfo("Stream: didReceive message \(message)")
         if (message.fromStr! != "pubsub.s.halloapp.net") {
-            self.userData.log("Stream: didReceive \(message)")
+            DDLogInfo("Stream: didReceive \(message)")
         }
     }
     
@@ -356,29 +356,29 @@ extension XMPPController: XMPPStreamDelegate {
     }
     
     func xmppStreamWillConnect(_ sender: XMPPStream) {
-        self.userData.log("Stream: WillConnect")
+        DDLogInfo("Stream: WillConnect")
     }
     
     func xmppStreamConnectDidTimeout(_ stream: XMPPStream) {
-        self.userData.log("Stream: DidTimeout")
+        DDLogInfo("Stream: DidTimeout")
     }
     
     func xmppStream(_ sender: XMPPStream, socketDidConnect socket: GCDAsyncSocket) {
-        self.userData.log("Stream: SocketDidConnect")
+        DDLogInfo("Stream: SocketDidConnect")
     }
     
     func xmppStreamDidStartNegotiation(_ sender: XMPPStream) {
-        self.userData.log("Stream: Start Negotiation")
+        DDLogInfo("Stream: Start Negotiation")
     }
     
     /* ssl */
     func xmppStream(_ sender: XMPPStream, willSecureWithSettings settings: NSMutableDictionary) {
-        self.userData.log("Stream: willSecureWithSettings")
+        DDLogInfo("Stream: willSecureWithSettings")
         settings.setObject(true, forKey:GCDAsyncSocketManuallyEvaluateTrust as NSCopying)
     }
 
     func xmppStream(_ sender: XMPPStream, didReceive trust: SecTrust, completionHandler: ((Bool) -> Void)) {
-        self.userData.log("Stream: didReceive trust")
+        DDLogInfo("Stream: didReceive trust")
 
 //        let certificate = SecTrustGetCertificateAtIndex(trust, 0)
 //        var cn: CFString?
@@ -396,27 +396,27 @@ extension XMPPController: XMPPStreamDelegate {
     }
     
     func xmppStreamDidSecure(_ sender: XMPPStream) {
-        self.userData.log("Stream: xmppStreamDidSecure")
+        DDLogInfo("Stream: xmppStreamDidSecure")
     }
     
     func xmppStreamDidConnect(_ stream: XMPPStream) {
-        self.userData.log("Stream: Connected")
+        DDLogInfo("Stream: Connected")
         
         try! stream.authenticate(withPassword: self.userData.password)
     }
 
     func xmppStreamDidDisconnect(_ stream: XMPPStream) {
-        self.userData.log("Stream: disconnect")
+        DDLogInfo("Stream: disconnect")
 
         self.cancelAllRequests()
     }
     
     func xmppStreamDidRegister(_ sender: XMPPStream) {
-        self.userData.log("Stream Did Register")
+        DDLogInfo("Stream Did Register")
     }
     
     func xmppStreamDidAuthenticate(_ sender: XMPPStream) {
-        self.userData.log("Stream: Authenticated")
+        DDLogInfo("Stream: Authenticated")
         
         self.isConnectedToServer = true
         self.didConnect.send("didConnect")
@@ -436,12 +436,12 @@ extension XMPPController: XMPPStreamDelegate {
     }
     
     func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: DDXMLElement) {
-        self.userData.log("Stream: Fail to Authenticate")
+        DDLogInfo("Stream: Fail to Authenticate")
         self.userData.logout()
     }
     
     func xmppStream(_ sender: XMPPStream, didReceiveError error: DDXMLElement) {
-        self.userData.log("Stream: error \(error)")
+        DDLogInfo("Stream: error \(error)")
         
         if error.element(forName: "conflict") != nil {
             
@@ -449,7 +449,7 @@ extension XMPPController: XMPPStreamDelegate {
             
                 if let value = text.stringValue {
                     if value == "User removed" {
-                        self.userData.log("Stream: Same user logged into another device, logging out of this one")
+                        DDLogInfo("Stream: Same user logged into another device, logging out of this one")
                         self.userData.logout()
                     }
                 }
@@ -461,16 +461,16 @@ extension XMPPController: XMPPStreamDelegate {
     }
 
     func xmppStream(_ sender: XMPPStream, didNotRegister error: DDXMLElement) {
-        self.userData.log("Stream: didNotRegister: \(error)")
+        DDLogInfo("Stream: didNotRegister: \(error)")
     }
 }
 
 extension XMPPController: XMPPReconnectDelegate {
     public func xmppReconnect(_ sender: XMPPReconnect, didDetectAccidentalDisconnect connectionFlags: SCNetworkConnectionFlags) {
-        self.userData.log("xmppReconnect: didDetectAccidentalDisconnect")
+        DDLogInfo("xmppReconnect: didDetectAccidentalDisconnect")
     }
     public func xmppReconnect(_ sender: XMPPReconnect, shouldAttemptAutoReconnect connectionFlags: SCNetworkConnectionFlags) -> Bool {
-        self.userData.log("xmppReconnect: shouldAttemptAutoReconnect")
+        DDLogInfo("xmppReconnect: shouldAttemptAutoReconnect")
         self.isConnecting.send("isConnecting")
         return true
     }
@@ -479,11 +479,11 @@ extension XMPPController: XMPPReconnectDelegate {
 extension XMPPController: XMPPPingDelegate {
 
     public func xmppPing(_ sender: XMPPPing!, didReceivePong pong: XMPPIQ!, withRTT rtt: TimeInterval) {
-        self.userData.log("Ping: didReceivePong")
+        DDLogInfo("Ping: didReceivePong")
     }
 
     public func xmppPing(_ sender: XMPPPing!, didNotReceivePong pingID: String!, dueToTimeout timeout: TimeInterval) {
-        self.userData.log("Ping: didNotReceivePong")
+        DDLogInfo("Ping: didNotReceivePong")
     }
 
 }
@@ -491,15 +491,15 @@ extension XMPPController: XMPPPingDelegate {
 //extension XMPPController: XMPPAutoPingDelegate {
 //
 //    public func xmppAutoPingDidSend(_ sender: XMPPAutoPing) {
-//        self.userData.log("xmppAutoPingDidSendPing")
+//        DDLogInfo("xmppAutoPingDidSendPing")
 //    }
 //
 //    public func xmppAutoPingDidReceivePong(_ sender: XMPPAutoPing) {
-//        self.userData.log("xmppAutoPingDidReceivePong")
+//        DDLogInfo("xmppAutoPingDidReceivePong")
 //    }
 //
 //    public func xmppAutoPingDidTimeout(_ sender: XMPPAutoPing) {
-//        self.userData.log("xmppAutoPingDidTimeout")
+//        DDLogInfo("xmppAutoPingDidTimeout")
 //    }
 //
 //}
@@ -507,16 +507,16 @@ extension XMPPController: XMPPPingDelegate {
 extension XMPPController: XMPPPubSubDelegate {
 
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveSubscriptions iq: XMPPIQ) {
-//        self.userData.log("PubSub: didRetrieveSubscriptions - \(iq)")
+//        DDLogInfo("PubSub: didRetrieveSubscriptions - \(iq)")
 
     }
 
 //    func xmppPubSub(_ sender: XMPPPubSub, didNotRetrieveSubscriptions iq: XMPPIQ) {
-//        self.userData.log("PubSub: didNotRetrieveSubscriptions - \(iq)")
+//        DDLogInfo("PubSub: didNotRetrieveSubscriptions - \(iq)")
 //    }
     
     func xmppPubSub(_ sender: XMPPPubSub, didSubscribeToNode node: String, withResult iq: XMPPIQ) {
-        self.userData.log("PubSub: didSubscribeToNode - \(node)")
+        DDLogInfo("PubSub: didSubscribeToNode - \(node)")
         
         if (node == "contacts-\(self.userData.phone)") {
             self.userData.setHaveContactsSub(value: true)
@@ -542,7 +542,7 @@ extension XMPPController: XMPPPubSubDelegate {
     }
     
     func xmppPubSub(_ sender: XMPPPubSub, didNotSubscribeToNode node: String, withError iq: XMPPIQ) {
-        self.userData.log("PubSub: didNotSubscribeToNode - \(node)")
+        DDLogInfo("PubSub: didNotSubscribeToNode - \(node)")
         
         let idx = self.metaData.checkIds.firstIndex(where: {$0 == node})
         
@@ -561,15 +561,15 @@ extension XMPPController: XMPPPubSubDelegate {
     }
     
 //    func xmppPubSub(_ sender: XMPPPubSub, didCreateNode node: String, withResult iq: XMPPIQ) {
-//        self.userData.log("PubSub: didCreateNode - \(iq)")
+//        DDLogInfo("PubSub: didCreateNode - \(iq)")
 //    }
     
 //    func xmppPubSub(_ sender: XMPPPubSub, didNotCreateNode node: String, withError iq: XMPPIQ) {
-//        self.userData.log("PubSub: didNotCreateNode - \(iq)")
+//        DDLogInfo("PubSub: didNotCreateNode - \(iq)")
 //    }
         
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveItems iq: XMPPIQ, fromNode node: String) {
-//        self.userData.log("PubSub: didRetrieveItems - \(iq)")
+//        DDLogInfo("PubSub: didRetrieveItems - \(iq)")
         
         let pubsub = iq.element(forName: "pubsub")
         let items = pubsub?.element(forName: "items")
@@ -588,12 +588,12 @@ extension XMPPController: XMPPPubSubDelegate {
     }
     
 //    func xmppPubSub(_ sender: XMPPPubSub, didNotRetrieveItems iq: XMPPIQ, fromNode node: String) {
-//        self.userData.log("PubSub: didNotRetrieveItems - \(iq)")
+//        DDLogInfo("PubSub: didNotRetrieveItems - \(iq)")
 //    }
 
     func xmppPubSub(_ sender: XMPPPubSub, didReceive message: XMPPMessage) {
 
-        self.userData.log("PubSub: didReceive Message \(message)")
+        DDLogInfo("PubSub: didReceive Message \(message)")
 
         let event = message.element(forName: "event")
         let items = event?.element(forName: "items")
@@ -601,7 +601,7 @@ extension XMPPController: XMPPPubSubDelegate {
         if (event?.element(forName: "delete")) != nil {
             if let id = message.elementID {
                 //todo: eating the deletes for now
-                self.userData.log("Send Ack for Delete event")
+                DDLogInfo("Send Ack for Delete event")
                 Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
             }
         }
@@ -620,7 +620,7 @@ extension XMPPController: XMPPPubSubDelegate {
                 } else if (nodeParts[0] == "metadata") {
                     //todo: handle metadata messages before acking them
                     if let id = message.elementID {
-                        self.userData.log("MetaData: Send Ack")
+                        DDLogInfo("MetaData: Send Ack")
                         Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
                     }
                 }

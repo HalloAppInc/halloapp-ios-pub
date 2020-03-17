@@ -49,7 +49,7 @@ class FeedData: ObservableObject {
 
                 self.isConnecting = false
                 
-                self.userData.log("Feed: Got event for didConnect")
+                DDLogInfo("Feed: Got event for didConnect")
                 
                 DispatchQueue.global(qos: .default).async {
                     ImageServer().processPending()
@@ -80,10 +80,10 @@ class FeedData: ObservableObject {
         cancellableSet.insert(
             
             xmppController.didGetNewFeedItem.sink(receiveValue: { value in
-                self.userData.log("Feed: New Item \(value)")
+                DDLogInfo("Feed: New Item \(value)")
                 
                 if let id = value.elementID {
-                    self.userData.log("Feed: Send ACK")
+                    DDLogInfo("Feed: Send ACK")
                     Utils().sendAck(xmppStream: self.xmppController.xmppStream, id: id, from: self.userData.phone)
                 }
                 
@@ -104,7 +104,7 @@ class FeedData: ObservableObject {
         cancellableSet.insert(
             xmppController.didGetFeedItems.sink(receiveValue: { value in
                                 
-//                self.xmpp.userData.log("got items: \(value)")
+//                DDLogInfo("got items: \(value)")
 
                 let pubsub = value.element(forName: "pubsub")
                 var (feedDataItems, feedCommentItems) = Utils().parseFeedItems(pubsub)
@@ -127,10 +127,10 @@ class FeedData: ObservableObject {
         cancellableSet.insert(
             
             xmppController.didGetRetractItem.sink(receiveValue: { value in
-                self.userData.log("Feed: Retract Item \(value)")
+                DDLogInfo("Feed: Retract Item \(value)")
                 
                 if let id = value.elementID {
-                    self.userData.log("Feed: Send ACK for Retract Item")
+                    DDLogInfo("Feed: Send ACK for Retract Item")
                     Utils().sendAck(xmppStream: self.xmppController.xmppStream, id: id, from: self.userData.phone)
                 }
                 
@@ -321,7 +321,7 @@ class FeedData: ObservableObject {
         
         mainroot.addChild(childroot)
         
-        self.userData.log("Feed: postItem - \(mainroot)")
+        DDLogInfo("Feed: postItem - \(mainroot)")
         
         let id = UUID().uuidString
         self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: mainroot, withItemID: id)
@@ -350,7 +350,7 @@ class FeedData: ObservableObject {
         
         mainroot.addChild(childroot)
         
-        self.userData.log("Feed: PostText \(mainroot)")
+        DDLogInfo("Feed: PostText \(mainroot)")
         
         let id = UUID().uuidString
         self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: mainroot, withItemID: id)
@@ -381,8 +381,6 @@ class FeedData: ObservableObject {
         var log = "\r\n Final pubsub payload (postComment(): \(mainroot)"
         log += "\r\n"
         DDLogDebug(log)
-        self.userData.logging += log
-        
         
         let id = UUID().uuidString
         self.xmppController.xmppPubSub.publish(toNode: "feed-\(postUser)", entry: mainroot, withItemID: id)

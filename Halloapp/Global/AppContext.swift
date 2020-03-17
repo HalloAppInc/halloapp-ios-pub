@@ -24,6 +24,7 @@ struct AppContext {
     private(set) var feedData: FeedData
     private(set) var contactStore: ContactStore
     private(set) var syncManager: SyncManager
+    private(set) var fileLogger: DDFileLogger
 
     // MARK: - Paths
     static let sharedDirectoryURL = {
@@ -50,14 +51,13 @@ struct AppContext {
     }
 
     init() {
-        DDLog.add(DDTTYLogger.sharedInstance) // TTY = Xcode console
-        DDLog.add({
-            let fileLogger: DDFileLogger = DDFileLogger() // File Logger
-            fileLogger.rollingFrequency = TimeInterval(60*60*24)  // 24 hours
-            fileLogger.doNotReuseLogFiles = true
-            fileLogger.logFileManager.maximumNumberOfLogFiles = 48
-            return fileLogger
-        }())
+        self.fileLogger = DDFileLogger()
+        fileLogger.rollingFrequency = TimeInterval(60*60*24)
+        fileLogger.doNotReuseLogFiles = true
+        fileLogger.logFileManager.maximumNumberOfLogFiles = 48
+
+        DDLog.add(DDTTYLogger.sharedInstance)
+        DDLog.add(self.fileLogger)
 
         self.userData = UserData()
         self.metaData = MetaData()

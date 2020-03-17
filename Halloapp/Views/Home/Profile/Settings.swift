@@ -212,7 +212,7 @@ struct Settings: View {
         
 //        .disabled(!MFMailComposeViewController.canSendMail())
         .sheet(isPresented: self.$isShowingMailView) {
-            MailView(result: self.$result, logs: self.userData.logging)
+            MailView(result: self.$result)
         }
     }
 }

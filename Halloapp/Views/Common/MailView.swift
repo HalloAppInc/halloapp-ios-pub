@@ -6,18 +6,16 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
+import MessageUI
 import SwiftUI
 import UIKit
-import MessageUI
-
 import Zip
 
 struct MailView: UIViewControllerRepresentable {
 
     @Environment(\.presentationMode) var presentation
     @Binding var result: Result<MFMailComposeResult, Error>?
-    
-    var logs: String
 
     class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
 
@@ -49,13 +47,6 @@ struct MailView: UIViewControllerRepresentable {
                            result: $result)
     }
 
-    
-    func getDocumentsDirectory() -> URL {
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        return paths[0]
-    }
-
-    
     func makeUIViewController(context: UIViewControllerRepresentableContext<MailView>) -> MFMailComposeViewController {
         let vc = MFMailComposeViewController()
     
@@ -67,44 +58,25 @@ struct MailView: UIViewControllerRepresentable {
             
         vc.setSubject("iOS Logs \(time)")
 
-        vc.setToRecipients(["tony@halloapp.com"])
+        vc.setToRecipients(["tony@halloapp.com", "igor@halloapp.com"])
 
         vc.setMessageBody("short description of issue (if needed): \n", isHTML:false)
-        
-        let filename = getDocumentsDirectory().appendingPathComponent("\(logfileName).txt")
-        let filenameZip = getDocumentsDirectory().appendingPathComponent("\(logfileName).zip")
-        
-        do {
-            try self.logs.write(to: filename, atomically: true, encoding: String.Encoding.utf8)
-        } catch {
-            print("can't write logs file")
-        }
 
+        let logFilePaths = AppContext.shared.fileLogger.logFileManager.sortedLogFilePaths.compactMap{ URL(fileURLWithPath: $0) }
         do {
-            let zipFilePath = try Zip.quickZipFiles([filename], fileName: "\(logfileName)") // Zip
+            let zipFilePath = try Zip.quickZipFiles(logFilePaths, fileName: "\(logfileName)") // Zip
             if let fileData = try? Data(contentsOf: zipFilePath) {
-                vc.addAttachmentData(fileData, mimeType: "application/zip", fileName: "\(logfileName).zip")
+                vc.addAttachmentData(fileData, mimeType: "application/zip", fileName: "logs.zip")
+            }
+            do {
+                try FileManager.default.removeItem(at: zipFilePath)
+            } catch let error as NSError {
+                DDLogError("Error: \(error.domain)")
             }
         }
         catch {
-          print("can't zip log files")
+          DDLogError("can't zip log files: \(error)")
         }
-        
-        do {
-            try FileManager.default.removeItem(at: filename)
-            try FileManager.default.removeItem(at: filenameZip)
-        } catch let error as NSError {
-            print("Error: \(error.domain)")
-        }
-        
-        /* list dir to make sure files are deleted */
-//        let documentsUrl =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-//        do {
-//            let directoryContents = try FileManager.default.contentsOfDirectory(at: documentsUrl, includingPropertiesForKeys: nil)
-//            print(directoryContents)
-//        } catch {
-//            print(error)
-//        }
         
         vc.mailComposeDelegate = context.coordinator
         return vc
