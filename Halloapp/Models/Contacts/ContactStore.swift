@@ -684,7 +684,7 @@ class ContactStore {
         let allPhoneNumbers = results.map{ $0.raw! } // none must not be empty
 
         let phoneNumberToContactsMap = self.contactsMatching(phoneNumbers: allPhoneNumbers, in: managedObjectContext)
-
+        var newUsers: Set<ABContact.NormalizedPhoneNumber> = []
         for xmppContact in results {
             let newStatus: ABContact.Status = xmppContact.registered ? .in : (xmppContact.normalized == nil ? .invalid : .out)
             if newStatus == .invalid {
@@ -699,6 +699,7 @@ class ContactStore {
 
                         if newStatus == .in {
                             print("contacts/sync/process-results/new-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
+                            newUsers.insert(xmppContact.normalized!)
                         } else if previousStatus == .in && newStatus == .out {
                             print("contacts/sync/process-results/delete-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
                         }
@@ -724,6 +725,10 @@ class ContactStore {
             print("contacts/sync/process-results/did-save time=[\(Date().timeIntervalSince(startTime))]")
         } catch {
             print("contacts/sync/process-results/save-error error=[\(error)]")
+        }
+
+        for newUserID in newUsers {
+            self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(newUserID)")
         }
 
         print("contacts/sync/process-results/finish time=[\(Date().timeIntervalSince(startTime))]")
