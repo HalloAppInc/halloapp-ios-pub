@@ -56,7 +56,7 @@ struct AppContext {
         fileLogger.doNotReuseLogFiles = true
         fileLogger.logFileManager.maximumNumberOfLogFiles = 48
 
-        DDLog.add(DDTTYLogger.sharedInstance)
+        DDLog.add(DDOSLogger.sharedInstance)
         DDLog.add(self.fileLogger)
 
         self.userData = UserData()
