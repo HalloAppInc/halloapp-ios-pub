@@ -5,9 +5,11 @@
 //  Created by Tony Jiang on 10/1/19.
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
+
+import CocoaLumberjack
+import Combine
 import Foundation
 import SwiftUI
-import Combine
 import XMPPFramework
 
 class FeedData: ObservableObject {
@@ -65,12 +67,12 @@ class FeedData: ObservableObject {
         self.cancellableSet.insert(
             self.userData.didLogOff.sink(receiveValue: {
                 
-                print("wiping feed data")
+                DDLogInfo("wiping feed data")
                 
                 self.feedMedia.removeAll()
                 self.feedCommentItems.removeAll()
                 self.feedDataItems.removeAll()
-                print("feedDataItemss Count: \(self.feedDataItems.count)")
+                DDLogInfo("feedDataItemss Count: \(self.feedDataItems.count)")
             })
         )
         
@@ -356,7 +358,7 @@ class FeedData: ObservableObject {
     
     // Publishes the comment 'text' on post 'feedItemId' to the user 'postUser' feed pubsub node.
     func postComment(_ feedItemId: String, _ postUser: String, _ text: String, _ parentCommentId: String) {
-        print("postComment: " + text)
+        DDLogDebug("postComment: " + text)
         
         let text = XMLElement(name: "text", stringValue: text)
         let feedItem = XMLElement(name: "feedItemId", stringValue: feedItemId)
@@ -378,7 +380,7 @@ class FeedData: ObservableObject {
 
         var log = "\r\n Final pubsub payload (postComment(): \(mainroot)"
         log += "\r\n"
-        print(log)
+        DDLogDebug(log)
         self.userData.logging += log
         
         
@@ -387,7 +389,7 @@ class FeedData: ObservableObject {
     }
     
     func sendMessage(text: String) {
-        print("sendMessage: " + text)
+        DDLogDebug("sendMessage: " + text)
         let user = XMPPJID(string: "4155553695@s.halloapp.net")
         let msg = XMPPMessage(type: "chat", to: user)
         msg.addBody(text)

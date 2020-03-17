@@ -10,6 +10,7 @@
  Responsible for synchronization between device's address book and app's contact cache.
  */
 
+import CocoaLumberjack
 import Combine
 import Contacts
 import CoreData
@@ -52,7 +53,7 @@ fileprivate struct ContactProxy {
     private(set) var phones: [PhoneProxy]
 
     init(_ contact: CNContact) {
-        print("CNContact/process id=[\(contact.identifier)]")
+        DDLogVerbose("CNContact/process id=[\(contact.identifier)]")
 
         self.identifier = contact.identifier
 
@@ -70,7 +71,7 @@ fileprivate struct ContactProxy {
             self.fullName = contact.familyName
         }
         if self.fullName.isEmpty {
-            print("CNContact/\(contact.identifier): fullName is empty")
+            DDLogWarn("CNContact/\(contact.identifier): fullName is empty")
             self.fullName = {
                 if !contact.organizationName.isEmpty {
                     return contact.organizationName
@@ -181,7 +182,7 @@ class ContactStore {
         self.xmppController = xmppController
 
         NotificationCenter.default.addObserver(forName: NSNotification.Name.CNContactStoreDidChange, object: nil, queue: nil) { notification in
-            print("CNContactStoreDidChange")
+            DDLogDebug("CNContactStoreDidChange")
             self.needReloadContacts = true
             self.reloadContactsIfNecessary()
         }
@@ -201,7 +202,7 @@ class ContactStore {
                     try result = NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL())
                 }
                 catch {
-                    print("contacts/metadata/read error=[\(error)]")
+                    DDLogError("contacts/metadata/read error=[\(error)]")
                 }
             }
             return result
@@ -225,11 +226,11 @@ class ContactStore {
                     try NSPersistentStoreCoordinator.setMetadata(metadata, forPersistentStoreOfType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL())
                 }
                 catch {
-                    print("contacts/metadata/write error=[\(error)]")
+                    DDLogError("contacts/metadata/write error=[\(error)]")
                 }
             }
             catch {
-                print("contacts/metadata/read error=[\(error)]")
+                DDLogError("contacts/metadata/read error=[\(error)]")
             }
 
         }
@@ -261,16 +262,16 @@ class ContactStore {
         }
 
         guard UIApplication.shared.applicationState != .background else {
-            print("contacts/reload/app-backgrounded")
+            DDLogDebug("contacts/reload/app-backgrounded")
             return
         }
 
         let syncManager = AppContext.shared.syncManager
 
         if (ContactStore.contactsAccessAuthorized) {
-            print("contacts/reload/required")
+            DDLogInfo("contacts/reload/required")
             guard !self.isReloadingContacts else {
-                print("contacts/reload/already-in-progress")
+                DDLogInfo("contacts/reload/already-in-progress")
                 return
             }
             self.needReloadContacts = false
@@ -363,7 +364,7 @@ class ContactStore {
         var contactsToDelete: [ABContact]
         do {
             try contactsToDelete = context.fetch(allContactsRequest)
-            print("contacts/reload/fetch-existing count=[\(contactsToDelete.count)]")
+            DDLogInfo("contacts/reload/fetch-existing count=[\(contactsToDelete.count)]")
         }
         catch {
             ///TODO: delete contacts store
@@ -376,9 +377,9 @@ class ContactStore {
         var allContactIdentifiers: [String] = []
         do {
             try allContactIdentifiers = self.identifiers(from: cnContactStore)
-            print("contacts/reload/fetch-identifiers count=[\(allContactIdentifiers.count)]")
+            DDLogInfo("contacts/reload/fetch-identifiers count=[\(allContactIdentifiers.count)]")
         } catch {
-            print("contacts/reload/fetch-identifiers/failed error=[\(error)]")
+            DDLogError("contacts/reload/fetch-identifiers/failed error=[\(error)]")
             completion(nil, error)
             return
         }
@@ -389,7 +390,7 @@ class ContactStore {
             identifiersToContactsMap = Dictionary(grouping: allContactsWithIdentifiers) { $0.identifier! }
         }
 
-        print("contacts/reload/all-fetches-done time=[\(Date().timeIntervalSince(startTime))]")
+        DDLogInfo("contacts/reload/all-fetches-done time=[\(Date().timeIntervalSince(startTime))]")
 
         // This will contain the up-to-date set of all address book contacts.
         var allContacts: [ABContact] = []
@@ -424,18 +425,18 @@ class ContactStore {
                 existingUserIDs.formUnion(contacts.compactMap{ $0.normalizedPhoneNumber })
             }
         } catch {
-            print("Failed to fetch device contacts: \(error)")
+            DDLogError("Failed to fetch device contacts: \(error)")
             completion(nil, error)
             return
         }
-        print("contacts/reload/finished time=[\(Date().timeIntervalSince(startTime))]")
+        DDLogInfo("contacts/reload/finished time=[\(Date().timeIntervalSince(startTime))]")
 
         // Re-sort contacts
         var resortAllContacts = !self.contactsAvailable || numberOfContactsBeingUpdated == 0
         let currentLocale = Locale.current.languageCode
         if let lastLocale = self.databaseMetadata?[ContactStoreMetadataCollationLocale] as? String {
             if lastLocale != currentLocale {
-                print("contacts/reload/locale-changed/from/\(lastLocale)/to/\(currentLocale ?? "")")
+                DDLogInfo("contacts/reload/locale-changed/from/\(lastLocale)/to/\(currentLocale ?? "")")
                 resortAllContacts = true
             }
         }
@@ -480,7 +481,7 @@ class ContactStore {
                             }
                             contact.sort = proposedSort
                             lastSort = proposedSort
-                            print("contacts/reload/contact/update-sort [\(contact.fullName ?? "<<NO NAME>>")]:[\(currentSort)]->[\(proposedSort)]")
+                            DDLogDebug("contacts/reload/contact/update-sort [\(contact.fullName ?? "<<NO NAME>>")]:[\(currentSort)]->[\(proposedSort)]")
                         }
                     } else {
                         lastSort = currentSort
@@ -488,15 +489,15 @@ class ContactStore {
                 }
             }
         }
-        print("contacts/reload/re-sorted time=[\(Date().timeIntervalSince(startTime))]")
+        DDLogInfo("contacts/reload/re-sorted time=[\(Date().timeIntervalSince(startTime))]")
 
         autoreleasepool {
-            print("contacts/reload/will-delete count=[\(contactsToDelete.count)]")
+            DDLogInfo("contacts/reload/will-delete count=[\(contactsToDelete.count)]")
             // We do not need to worry about recently added contacts because contactsToDelete was
             // derived from a snapshot of all the WAAddressBookContact objects in our db prior to fetching all the
             // address book records.
             for contactToDelete in contactsToDelete {
-                print("contacts/reload/will-delete id=[\(contactToDelete.identifier ?? ""))] phone=[\(contactToDelete.phoneNumber ?? ""))] userid=[\(contactToDelete.normalizedPhoneNumber ?? ""))]")
+                DDLogInfo("contacts/reload/will-delete id=[\(contactToDelete.identifier ?? ""))] phone=[\(contactToDelete.phoneNumber ?? ""))] userid=[\(contactToDelete.normalizedPhoneNumber ?? ""))]")
                 if let normalizedPhoneNumber = contactToDelete.normalizedPhoneNumber {
                     deletedUserIDs.insert(normalizedPhoneNumber)
                 }
@@ -507,19 +508,19 @@ class ContactStore {
         // If phone number was deleted in one contact, but is still present in another, we should not report it as deleted to the server.
         deletedUserIDs.subtract(existingUserIDs)
 
-        print("contacts/reload/will-save time=[\(Date().timeIntervalSince(startTime))]")
+        DDLogInfo("contacts/reload/will-save time=[\(Date().timeIntervalSince(startTime))]")
         do {
             try context.save()
-            print("contacts/reload/did-save time=[\(Date().timeIntervalSince(startTime))]")
+            DDLogInfo("contacts/reload/did-save time=[\(Date().timeIntervalSince(startTime))]")
         } catch {
-            print("contacts/reload/save-error error=[\(error)]")
+            DDLogError("contacts/reload/save-error error=[\(error)]")
         }
 
         self.mutateDatabaseMetadata { metadata in
             metadata[ContactStoreMetadataCollationLocale] = currentLocale
         }
 
-        print("contacts/reload/finish time=[\(Date().timeIntervalSince(startTime))]")
+        DDLogInfo("contacts/reload/finish time=[\(Date().timeIntervalSince(startTime))]")
 
         DispatchQueue.main.async {
             if (!self.contactsAvailable) {
@@ -550,7 +551,7 @@ class ContactStore {
      Add a new empty ABContact to the provided managed object context and populate contact's identifier.
      */
     private func addNewContact(from contactProxy: ContactProxy, into context: NSManagedObjectContext) -> ABContact {
-        print("contacts/reload/create-new id=[%@]", contactProxy.identifier)
+        DDLogInfo("contacts/reload/create-new id=[\(contactProxy.identifier)]")
         let contact = NSEntityDescription.insertNewObject(forEntityName: "ABContact", into: context) as! ABContact
         contact.identifier = contactProxy.identifier
         return contact
@@ -587,7 +588,7 @@ class ContactStore {
         if contactProxy.phones.isEmpty {
             let contactKey = contactProxy.fullName
             if !contactKey.isEmpty && uniqueContactKeys.contains(contactKey) {
-                print("skip-duplicate [no phone]")
+                DDLogWarn("skip-duplicate [no phone]")
             } else {
                 if !contactKey.isEmpty {
                     uniqueContactKeys.insert(contactKey)
@@ -612,7 +613,7 @@ class ContactStore {
         for phoneProxy in contactProxy.phones {
             let contactKey = contactProxy.fullName.isEmpty ? phoneProxy.phoneNumber : (contactProxy.fullName + "_" + phoneProxy.phoneNumber)
             if uniqueContactKeys.contains(contactKey) {
-                print("skip-duplicate [\(phoneProxy.phoneNumber):\(contactProxy.fullName.prefix(3))]")
+                DDLogInfo("skip-duplicate [\(phoneProxy.phoneNumber):\(contactProxy.fullName.prefix(3))]")
                 continue
             }
             uniqueContactKeys.insert(contactKey)
@@ -678,7 +679,7 @@ class ContactStore {
     }
 
     func processSync(results: [XMPPContact], isFullSync: Bool, using managedObjectContext: NSManagedObjectContext) {
-        print("contacts/sync/process-results/start")
+        DDLogInfo("contacts/sync/process-results/start")
         let startTime = Date()
 
         let allPhoneNumbers = results.map{ $0.raw! } // none must not be empty
@@ -688,7 +689,7 @@ class ContactStore {
         for xmppContact in results {
             let newStatus: ABContact.Status = xmppContact.registered ? .in : (xmppContact.normalized == nil ? .invalid : .out)
             if newStatus == .invalid {
-                print("contacts/sync/process-results/invalid [\(xmppContact.raw!)]")
+                DDLogInfo("contacts/sync/process-results/invalid [\(xmppContact.raw!)]")
             }
             if let contacts = phoneNumberToContactsMap[xmppContact.raw!] {
                 for abContact in contacts {
@@ -698,10 +699,10 @@ class ContactStore {
                         abContact.status = newStatus
 
                         if newStatus == .in {
-                            print("contacts/sync/process-results/new-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
+                            DDLogInfo("contacts/sync/process-results/new-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
                             newUsers.insert(xmppContact.normalized!)
                         } else if previousStatus == .in && newStatus == .out {
-                            print("contacts/sync/process-results/delete-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
+                            DDLogInfo("contacts/sync/process-results/delete-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
                         }
                     }
 
@@ -712,26 +713,26 @@ class ContactStore {
 
                     // Update userId
                     if xmppContact.userid != abContact.userId {
-                        print("contacts/sync/process-results/userid-update [\(abContact.fullName ?? "<<NO NAME>>")]: [\(abContact.userId ?? "")] -> [\(xmppContact.userid ?? "")]")
+                        DDLogInfo("contacts/sync/process-results/userid-update [\(abContact.fullName ?? "<<NO NAME>>")]: [\(abContact.userId ?? "")] -> [\(xmppContact.userid ?? "")]")
                         abContact.userId = xmppContact.userid
                     }
                 }
             }
         }
 
-        print("contacts/sync/process-results/will-save time=[\(Date().timeIntervalSince(startTime))]")
+        DDLogInfo("contacts/sync/process-results/will-save time=[\(Date().timeIntervalSince(startTime))]")
         do {
             try managedObjectContext.save()
-            print("contacts/sync/process-results/did-save time=[\(Date().timeIntervalSince(startTime))]")
+            DDLogInfo("contacts/sync/process-results/did-save time=[\(Date().timeIntervalSince(startTime))]")
         } catch {
-            print("contacts/sync/process-results/save-error error=[\(error)]")
+            DDLogError("contacts/sync/process-results/save-error error=[\(error)]")
         }
 
         for newUserID in newUsers {
             self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(newUserID)")
         }
 
-        print("contacts/sync/process-results/finish time=[\(Date().timeIntervalSince(startTime))]")
+        DDLogInfo("contacts/sync/process-results/finish time=[\(Date().timeIntervalSince(startTime))]")
     }
 
     // MARK: SwiftUI Support

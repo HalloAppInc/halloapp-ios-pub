@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Contacts
 import Foundation
 
@@ -49,6 +50,15 @@ struct AppContext {
     }
 
     init() {
+        DDLog.add(DDTTYLogger.sharedInstance) // TTY = Xcode console
+        DDLog.add({
+            let fileLogger: DDFileLogger = DDFileLogger() // File Logger
+            fileLogger.rollingFrequency = TimeInterval(60*60*24)  // 24 hours
+            fileLogger.doNotReuseLogFiles = true
+            fileLogger.logFileManager.maximumNumberOfLogFiles = 48
+            return fileLogger
+        }())
+
         self.userData = UserData()
         self.metaData = MetaData()
         self.xmppController = XMPPController(userData: self.userData, metaData: self.metaData)

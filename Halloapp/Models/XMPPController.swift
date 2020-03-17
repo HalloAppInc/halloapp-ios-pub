@@ -6,6 +6,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Combine
 import Foundation
 import SwiftUI
@@ -179,7 +180,7 @@ class XMPPController: NSObject, ObservableObject {
     private func sendCurrentAPNSToken() {
         self.userData.log("Notifications: Sending Push Token")
         let request = XMPPPushTokenRequest(token: self.apnsToken!) { (error) in
-            print("xmppconnection/push-token/sent")
+            DDLogInfo("xmpp/push-token/sent")
         }
         self.enqueue(request: request)
     }
@@ -210,7 +211,7 @@ class XMPPController: NSObject, ObservableObject {
         }
         
         if (!self.userData.haveFeedSub) {
-            print("creating feed node: feed-\(node)")
+            DDLogInfo("creating feed node: feed-\(node)")
             self.xmppPubSub.createNode("feed-\(node)", withOptions: feedNodeOptions)
             self.xmppPubSub.subscribe(toNode: "feed-\(self.userData.phone)")
             self.xmppPubSub.retrieveItems(fromNode: "feed-\(self.userData.phone)") // if the user logs off, then logs back in
@@ -286,14 +287,14 @@ class XMPPController: NSObject, ObservableObject {
             return
         }
         guard self.xmppStream.isConnected else {
-            print("connection/requests/resend/skipped [\(self.requestsToSend.count)] [no connection]")
+            DDLogWarn("connection/requests/resend/skipped [\(self.requestsToSend.count)] [no connection]")
             return
         }
 
         let allRequests = self.requestsToSend
         self.requestsToSend.removeAll()
 
-        print("connection/requests/resend [\(allRequests.count)]")
+        DDLogInfo("connection/requests/resend [\(allRequests.count)]")
         for request in allRequests {
             request.send(using: self)
         }
@@ -301,7 +302,7 @@ class XMPPController: NSObject, ObservableObject {
     }
 
     func cancelAllRequests() {
-        print("connection/requests/cancel/all [\(self.requestsInFlight.count)]")
+        DDLogInfo("connection/requests/cancel/all [\(self.requestsInFlight.count)]")
 
         let allRequests = self.requestsInFlight + self.requestsToSend
         self.requestsInFlight.removeAll()
@@ -343,10 +344,10 @@ extension XMPPController: XMPPStreamDelegate {
             matchingRequests.append(contentsOf: removeRequest(with: requestId, outOf: &self.requestsInFlight))
             matchingRequests.append(contentsOf: removeRequest(with: requestId, outOf: &self.requestsToSend))
             if matchingRequests.count > 1 {
-                print("connection/response/\(requestId)/warning: found \(matchingRequests.count) requests")
+                DDLogWarn("connection/response/\(requestId)/warning: found \(matchingRequests.count) requests")
             }
             for request in matchingRequests {
-                print("connection/response/\(type(of: request))/\(requestId)")
+                DDLogInfo("connection/response/\(type(of: request))/\(requestId)")
                 request.process(response: iq)
             }
         }
@@ -528,13 +529,13 @@ extension XMPPController: XMPPPubSubDelegate {
             if (idx != nil) {
                 
                 let miniElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartCheck
-                print("\(self.metaData.checkIds[idx!]) perf: \(Int(miniElapsed))")
+                DDLogInfo("\(self.metaData.checkIds[idx!]) perf: \(Int(miniElapsed))")
                 
                 self.metaData.checkIds.remove(at: idx!)
                 
                 if self.metaData.checkIds.count == 0 {
                     let timeElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartCheck
-                    print("total perf: \(Int(timeElapsed)/60)")
+                    DDLogInfo("total perf: \(Int(timeElapsed)/60)")
                 }
             }
         }
@@ -548,13 +549,13 @@ extension XMPPController: XMPPPubSubDelegate {
         if (idx != nil) {
             
             let miniElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartCheck
-            print("\(self.metaData.checkIds[idx!]) perf: \(Int(miniElapsed))")
+            DDLogInfo("\(self.metaData.checkIds[idx!]) perf: \(Int(miniElapsed))")
             
             self.metaData.checkIds.remove(at: idx!)
             
             if self.metaData.checkIds.count == 0 {
                 let timeElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartCheck
-                print("total perf: \(Int(timeElapsed)/60)")
+                DDLogInfo("total perf: \(Int(timeElapsed)/60)")
             }
         }
     }

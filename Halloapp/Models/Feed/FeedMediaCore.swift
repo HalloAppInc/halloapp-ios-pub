@@ -5,8 +5,10 @@
 //  Created by Tony Jiang on 1/30/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
-import SwiftUI
+
+import CocoaLumberjack
 import CoreData
+import SwiftUI
 
 class FeedMediaCore {
 
@@ -51,10 +53,10 @@ class FeedMediaCore {
 
 
                         try blob.write(to: tempUrl)
-                        print("wrote to file")
+                        DDLogInfo("wrote to file")
                         
                      } catch {
-                         print("-- Error: \(error)")
+                         DDLogError("-- Error: \(error)")
                      }
                     
 //                    if let img2 = UIImage(contentsOfFile: tempUrl.path) {
@@ -75,7 +77,7 @@ class FeedMediaCore {
             return arr
             
         } catch  {
-            print("failed")
+            DDLogError("failed")
             return []
         }
     }
@@ -118,7 +120,7 @@ class FeedMediaCore {
             return arr
             
         } catch  {
-            print("failed")
+            DDLogError("failed")
             return []
         }
     }
@@ -202,7 +204,7 @@ class FeedMediaCore {
             return arr
             
         } catch  {
-            print("failed")
+            DDLogError("failed")
             return []
         }
     }
@@ -240,11 +242,11 @@ class FeedMediaCore {
                 do {
                     try managedContext.save()
                 } catch let error as NSError {
-                    print("could not save. \(error), \(error.userInfo)")
+                    DDLogError("could not save. \(error), \(error.userInfo)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
         }
         
@@ -279,17 +281,17 @@ class FeedMediaCore {
                 if origData != nil {
                     obj.setValue(origData, forKeyPath: "blob")
                 } else {
-                    print("Update Media Blob is nil")
+                    DDLogWarn("Update Media Blob is nil")
                 }
                 
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("\(error)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
         }
         
@@ -319,11 +321,11 @@ class FeedMediaCore {
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("\(error)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
         }
         
@@ -352,11 +354,11 @@ class FeedMediaCore {
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("\(error)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
         }
     }

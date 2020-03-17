@@ -6,15 +6,15 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
-import Foundation
-import Combine
-import SwiftUI
-import YPImagePicker
-
-import UIKit
 import AVFoundation
 import AVKit
+import CocoaLumberjack
+import Combine
+import Foundation
 import Photos
+import SwiftUI
+import UIKit
+import YPImagePicker
 
 private func resolutionForLocalVideo(url: URL) -> CGSize? {
     guard let track = AVURLAsset(url: url).tracks(withMediaType: AVMediaType.video).first else { return nil }
@@ -110,7 +110,7 @@ struct PickerWrapper: UIViewControllerRepresentable {
                         let wasFileWritten = (try? videoData.write(to: fileUrl, options: [.atomic])) != nil
                         
                         if !wasFileWritten{
-                            print("File was NOT Written")
+                            DDLogError("File was NOT Written")
                         }
                             
                         mediaItem.tempUrl = fileUrl
@@ -129,8 +129,8 @@ struct PickerWrapper: UIViewControllerRepresentable {
                         mediaItem.width = Int(videoSize.width)
                         mediaItem.height = Int(videoSize.height)
                         
-                        print("video width: \(mediaItem.width)")
-                        print("video height: \(mediaItem.height)")
+                        DDLogInfo("video width: \(mediaItem.width)")
+                        DDLogInfo("video height: \(mediaItem.height)")
                     }
                         
 
@@ -138,7 +138,7 @@ struct PickerWrapper: UIViewControllerRepresentable {
                     
                     self.selectedMedia.append(mediaItem)
                     
-                    print(video)
+                    DDLogInfo("\(video)")
                 }
             }
 

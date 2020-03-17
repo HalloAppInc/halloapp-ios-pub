@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Foundation
 
 class SyncManager {
@@ -60,24 +61,25 @@ class SyncManager {
         guard !self.isSyncEnabled else {
             return
         }
-
+        DDLogInfo("syncmanager/enabled")
         self.isSyncEnabled = true
-
         self.requestDeltaSync()
     }
 
     public func add(deleted userIds: Set<ABContact.NormalizedPhoneNumber>) {
-        print("syncmanager/add-deleted [\(userIds)]")
+        DDLogDebug("syncmanager/add-deleted [\(userIds)]")
         self.pendingDeletes.formUnion(userIds)
     }
 
     // MARK: Scheduling
 
     func requestDeltaSync() {
+        DDLogInfo("syncmanager/request/delta")
         self.requestSyncWith(mode: .delta)
     }
 
     func requestFullSync() {
+        DDLogInfo("syncmanager/request/full")
         self.requestSyncWith(mode: .full)
     }
 
@@ -87,7 +89,7 @@ class SyncManager {
 
             let failureReason = self.runSyncIfNecessary()
             if failureReason != .none {
-                print("syncmanager/sync/failed [\(failureReason)]")
+                DDLogError("syncmanager/sync/failed [\(failureReason)]")
             }
         }
     }
@@ -137,7 +139,7 @@ class SyncManager {
     }
 
     private func reallyPerformSync() {
-        print("syncmanager/sync/prepare")
+        DDLogInfo("syncmanager/sync/prepare")
 
         ///TODO: handle scenario when user removes access to contacts and we need to re-sync everything
 
@@ -146,13 +148,13 @@ class SyncManager {
         // Upgrade to full sync if we must send both adds and deletes.
         ///TODO: server should allows us to send both in one stanza.
         if self.nextSyncMode == .delta && !contactsToSync.isEmpty && !self.pendingDeletes.isEmpty {
-            print("syncmanager/delta/upgrade-to-full")
+            DDLogInfo("syncmanager/delta/upgrade-to-full")
             self.nextSyncMode = .full
         }
 
         // Do not run delta syncs with an empty set of users.
         guard self.nextSyncMode == .full || !contactsToSync.isEmpty || !self.pendingDeletes.isEmpty else {
-            print("syncmanager/delta/cancel-no-items")
+            DDLogInfo("syncmanager/delta/cancel-no-items")
             return
         }
 
@@ -173,7 +175,7 @@ class SyncManager {
         }
 
         let syncMode = self.nextSyncMode
-        print("syncmanager/sync/start [\(xmppContacts.count)]")
+        DDLogInfo("syncmanager/sync/start [\(xmppContacts.count)]")
         let syncOperation: XMPPContactSyncRequest.RequestType = syncMode == .full ? .set : (self.pendingDeletes.isEmpty ? .add : .delete)
         let syncSession = SyncSession(operation: syncOperation, contacts: xmppContacts) { results, error in
             self.queue.async {
@@ -185,7 +187,7 @@ class SyncManager {
 
     private func processSyncResponse(mode: SyncMode, contacts: [XMPPContact]?, error: Error?) {
         guard error == nil else {
-            print("syncmanager/sync/response/error [\(error!)]")
+            DDLogError("syncmanager/sync/response/error [\(error!)]")
             self.finishSync(with: mode, result: .fail, failureReason: .serverError)
             return
         }

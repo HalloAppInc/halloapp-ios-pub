@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import CoreData
 
 class MiscCore {
@@ -30,7 +31,7 @@ class MiscCore {
             }
             
         } catch  {
-            print("failed")
+            DDLogError("failed")
         }
                         
         return resultStr
@@ -49,7 +50,7 @@ class MiscCore {
             do {
                 try managedContext.save()
             } catch let error as NSError {
-                print("could not save. \(error), \(error.userInfo)")
+                DDLogError("could not save. \(error), \(error.userInfo)")
             }
         }
     }
@@ -80,16 +81,16 @@ class MiscCore {
                     do {
                         try managedContext.save()
                     } catch {
-                        print(error)
+                        DDLogError("\(error)")
                     }
                     
                 } catch  {
-                    print("failed")
+                    DDLogError("failed")
                 }
                 
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
             
         }
@@ -115,7 +116,7 @@ class MiscCore {
             }
             
         } catch  {
-            print("failed")
+            DDLogError("failed")
         }
         
         return false

@@ -6,9 +6,10 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Foundation
 import AVKit
+import CocoaLumberjack
 import Combine
+import Foundation
 import SwiftUI
 
 class Utility: NSObject {
@@ -166,7 +167,7 @@ struct PlayerControlsView : View {
             player.pause()
         }
         else {
-            print("play")
+            DDLogInfo("play")
             player.play()
         }
     }

@@ -6,8 +6,9 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Foundation
+import CocoaLumberjack
 import Combine
+import Foundation
 import SwiftUI
 
 class FeedMedia: Identifiable, ObservableObject, Hashable {
@@ -68,7 +69,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
 
             
             DispatchQueue.global(qos: .default).async {
-                print("updating numTries on media count to \(self.numTries + 1)")
+                DDLogInfo("updating numTries on media count to \(self.numTries + 1)")
                 FeedMediaCore().updateNumTries(feedItemId: self.feedItemId, url: self.url, numTries: self.numTries + 1)
             }
             
@@ -76,13 +77,13 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
             cancellableSet.insert(
                 imageLoader.didChange.sink(receiveValue: { [weak self] _ in
                     
-                    print("got didchange")
+                    DDLogInfo("got didchange")
                     
                     guard let self = self else { return }
                     
                     DispatchQueue.global(qos: .userInitiated).async {
                         
-                        print("processing media for \(self.feedItemId)")
+                        DDLogInfo("processing media for \(self.feedItemId)")
                         
                         var imageData: Data = Data()
                         
@@ -92,7 +93,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
                         if self.key != "" && self.sha256hash != "" {
                         
                             isEncryptedMedia = true
-                            print("encrypted media")
+                            DDLogInfo("encrypted media")
                             
                             if let decryptedData = HAC().decryptData(   data: self.imageLoader.data,
                                                                         key: self.key,
@@ -106,11 +107,11 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
                         
                         if isEncryptedMedia {
                             if !isEncryptedMediaSafe {
-                                print("encrypted media is not safe, abort")
+                                DDLogInfo("encrypted media is not safe, abort")
                                 return
                             }
                         } else {
-                            print("not encrypted for \(self.feedItemId) \(self.imageLoader.data.count)")
+                            DDLogInfo("not encrypted for \(self.feedItemId) \(self.imageLoader.data.count)")
                             imageData = self.imageLoader.data
                         }
    

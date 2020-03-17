@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import CoreData
 
 class UserCore {
@@ -71,7 +72,7 @@ class UserCore {
             }
             
         } catch  {
-            print("failed")
+            DDLogError("failed")
         }
                         
         return (countryCode, phoneInput, password, phone, isLoggedIn, haveContactsSub, haveFeedSub)
@@ -102,7 +103,7 @@ class UserCore {
             do {
                 try managedContext.save()
             } catch let error as NSError {
-                print("could not save. \(error), \(error.userInfo)")
+                DDLogError("could not save. \(error), \(error.userInfo)")
             }
         }
     }
@@ -145,16 +146,16 @@ class UserCore {
                     do {
                         try managedContext.save()
                     } catch {
-                        print(error)
+                        DDLogError("\(error)")
                     }
                     
                 } catch  {
-                    print("failed")
+                    DDLogError("failed")
                 }
                 
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
             
             
@@ -182,7 +183,7 @@ class UserCore {
             }
             
         } catch  {
-            print("failed")
+            DDLogError("failed")
         }
         
         return false

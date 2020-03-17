@@ -7,6 +7,7 @@
 //
 
 import Alamofire
+import CocoaLumberjack
 import Foundation
 import SwiftUI
 import XMPPFramework
@@ -100,7 +101,7 @@ class ImageServer {
         Alamofire.upload(mediaItem.encryptedData!, to: uploadUrl, method: .put, headers: headers)
             .responseData { response in
                 if (response.response != nil) {
-                    print("success uploading")
+                    DDLogInfo("success uploading")
                     DispatchQueue.global(qos: .default).async {
                         PendingCore().delete(url: uploadUrl)
                     }
@@ -117,7 +118,7 @@ class ImageServer {
             Alamofire.upload(imgData, to: uploadUrl, method: .put, headers: headers)
                 .responseData { response in
                     if (response.response != nil) {
-                        print("success uploading")
+                        DDLogInfo("success uploading")
                         DispatchQueue.global(qos: .default).async {
                             PendingCore().delete(url: uploadUrl)
                         }
@@ -160,7 +161,7 @@ class ImageServer {
         }
 
         if imageToDelete != "" {
-           print("delete: \(imageToDelete)")
+           DDLogInfo("delete: \(imageToDelete)")
            self.deleteImageFromCloudinary(item: imageToDelete)
         }
         
@@ -170,7 +171,7 @@ class ImageServer {
 
         let url = "https://api.cloudinary.com/v1_1/halloapp/image/destroy"
         
-        print("url: \(url)")
+        DDLogInfo("url: \(url)")
     
         guard let formedUrl = URL(string: url) else {
             return
@@ -188,15 +189,15 @@ class ImageServer {
         
         let str = "invalidate=true&public_id=\(public_id)&timestamp=\(timestamp)\(apiSecret)"
         
-        print("str: \(str)")
+        DDLogInfo("str: \(str)")
         
         let signature = str.sha1()
         
-        print("signature: \(signature)")
+        DDLogInfo("signature: \(signature)")
         
         let data = "invalidate=true&public_id=\(public_id)&timestamp=\(timestamp)&api_key=\(apiKey)&signature=\(signature)"
         
-        print("data: \(data)")
+        DDLogInfo("data: \(data)")
         
         urlRequest.httpBody = data.data(using: String.Encoding.utf8)
         
@@ -207,10 +208,10 @@ class ImageServer {
             do {
                 if let convertedJsonIntoDict = try JSONSerialization.jsonObject(with: data, options: []) as? NSDictionary {
                     // Print out dictionary
-                    print(convertedJsonIntoDict)
+                    DDLogInfo("\(convertedJsonIntoDict)")
                }
             } catch let error as NSError {
-                print(error.localizedDescription)
+                DDLogInfo(error.localizedDescription)
             }
             
 

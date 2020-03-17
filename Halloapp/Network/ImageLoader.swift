@@ -6,6 +6,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Combine
 import SwiftUI
 
@@ -34,7 +35,7 @@ class ImageLoader: ObservableObject {
     func tryLoad(url: String) {
         
         
-        print("fetch image remotely, retry no: \(self.retries)")
+        DDLogInfo("fetch image remotely, retry no: \(self.retries)")
         
         if self.retries < 3 {
             
@@ -65,7 +66,7 @@ class ImageLoader: ObservableObject {
             if error == nil {
                 
                 if let httpResponse = response as? HTTPURLResponse {
-                    print("response \(httpResponse.statusCode)")
+                    DDLogInfo("response \(httpResponse.statusCode)")
                     
                     if httpResponse.statusCode != 200 {
                         self.tryLoad(url: url)
@@ -84,7 +85,7 @@ class ImageLoader: ObservableObject {
                 
                 DispatchQueue.main.async {
                     
-                    print("Got Media Data: \(data.count)")
+                    DDLogInfo("Got Media Data: \(data.count)")
 //                    print("\(response)")
                     
                     self.data = data

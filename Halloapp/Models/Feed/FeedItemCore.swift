@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-
+import CocoaLumberjack
 import CoreData
 
 class FeedItemCore {
@@ -46,7 +46,7 @@ class FeedItemCore {
             return feedArr
             
         } catch  {
-            print("failed")
+            DDLogError("failed")
         }
         
         return []
@@ -84,11 +84,11 @@ class FeedItemCore {
                 do {
                     try managedContext.save()
                 } catch let error as NSError {
-                    print("could not save. \(error), \(error.userInfo)")
+                    DDLogError("could not save. \(error), \(error.userInfo)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
 
         }
@@ -114,7 +114,7 @@ class FeedItemCore {
             }
             
         } catch  {
-            print("failed")
+            DDLogError("failed")
         }
         
         return false
@@ -142,17 +142,17 @@ class FeedItemCore {
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("\(error)")
                 }
             
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("\(error)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
         }
     }
@@ -179,17 +179,17 @@ class FeedItemCore {
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("\(error)")
                 }
             
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("\(error)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
         }
     }
@@ -216,17 +216,17 @@ class FeedItemCore {
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("\(error)")
                 }
             
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("\(error)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
         }
     }
@@ -254,11 +254,11 @@ class FeedItemCore {
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("\(error)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
         }
     }

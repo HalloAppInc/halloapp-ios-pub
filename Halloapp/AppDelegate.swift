@@ -6,9 +6,10 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
-import UIKit
-import CoreData
+import CocoaLumberjack
 import Contacts
+import CoreData
+import UIKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -51,9 +52,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         guard UIApplication.shared.applicationState != .background else {
             return
         }
-        print("appdelegate/notifications/access-request")
+        DDLogInfo("appdelegate/notifications/access-request")
         UNUserNotificationCenter.current().requestAuthorization(options: [.sound, .alert, .badge]) { (granted, error) in
-            print("appdelegate/notifications/access-request [\(granted)]")
+            DDLogInfo("appdelegate/notifications/access-request [\(granted)]")
             DispatchQueue.main.async {
                 UIApplication.shared.registerForRemoteNotifications()
             }
@@ -63,7 +64,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         self.needsAPNSToken = false
         let tokenString = deviceToken.hexString
-        print("appdelegate/notifications/push-token/success [\(tokenString)]")
+        DDLogInfo("appdelegate/notifications/push-token/success [\(tokenString)]")
         AppContext.shared.xmppController.apnsToken = tokenString
         AppContext.shared.xmppController.sendCurrentAPNSTokenIfPossible()
     }
@@ -71,11 +72,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         self.needsAPNSToken = false
         AppContext.shared.xmppController.apnsToken = nil
-        print("appdelegate/notifications/push-token/error [\(error)]")
+        DDLogError("appdelegate/notifications/push-token/error [\(error)]")
     }
 
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        print ("appdelegate/notifications/received-remote \(userInfo)")
+        DDLogInfo("appdelegate/notifications/received-remote \(userInfo)")
         // Handle the silent remote notification when received.
         completionHandler(UIBackgroundFetchResult.newData)
     }
@@ -93,10 +94,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Authorization status will be unknown on first launch or after privacy settings reset.
         // We need to excplicitly request access in this case.
         if ContactStore.contactsAccessRequestNecessary {
-            print("appdelegate/contacts/access-request")
+            DDLogInfo("appdelegate/contacts/access-request")
             let contactStore = CNContactStore()
             contactStore.requestAccess(for: .contacts) { authorized, error in
-                print("appdelegate/contacts/access-request granted=[\(authorized)]")
+                DDLogInfo("appdelegate/contacts/access-request granted=[\(authorized)]")
                 DispatchQueue.main.async {
                     completion(true, authorized)
                 }
@@ -108,11 +109,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     public func requestAccessToContactsAndNotifications() {
         guard !self.contactsAccessRequestInProgress else {
-            print("appdelegate/contacts/access-request/in-progress")
+            DDLogWarn("appdelegate/contacts/access-request/in-progress")
             return
         }
         guard UIApplication.shared.applicationState != .background else {
-            print("appdelegate/contacts/access-request/app-inactive")
+            DDLogInfo("appdelegate/contacts/access-request/app-inactive")
             return
         }
         self.contactsAccessRequestInProgress = true

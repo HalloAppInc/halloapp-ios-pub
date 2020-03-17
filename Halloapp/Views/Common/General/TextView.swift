@@ -6,6 +6,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import SwiftUI
 
 struct TextView: UIViewRepresentable {
@@ -46,7 +47,7 @@ struct TextView: UIViewRepresentable {
         }
 
         func textViewDidChange(_ textView: UITextView) {
-            print("text now: \(String(describing: textView.text!))")
+            DDLogDebug("text now: \(String(describing: textView.text!))")
             self.parent.text = textView.text
         }
     }

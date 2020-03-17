@@ -6,9 +6,10 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
+import Combine
 import Foundation
 import SwiftUI
-import Combine
 
 final class Verification: ObservableObject {
 
@@ -54,7 +55,7 @@ final class Verification: ObservableObject {
         let session = URLSession.shared
         let url = URL(string: "https://\(userData.hostName)/cgi-bin/register.sh?user=\(userData.phone)&code=\(self.code)")!
 
-        print("url: \(url)")
+        DDLogInfo("url: \(url)")
         
         let task = session.dataTask(with: url, completionHandler: { data, response, error in
 
@@ -68,7 +69,7 @@ final class Verification: ObservableObject {
             
             if let data = data {
                 
-                print("verify data resonse: \(data)")
+                DDLogInfo("verify data resonse: \(data)")
                 
                 do {
                     let res = try JSONDecoder().decode(registerRes.self, from: data)
@@ -96,7 +97,7 @@ final class Verification: ObservableObject {
                     }
                     
                 } catch let error {
-                   print(error)
+                   DDLogError("\(error)")
                 }
              }
 

@@ -6,7 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-
+import CocoaLumberjack
 import CoreData
 
 class FeedCommentCore {
@@ -40,7 +40,7 @@ class FeedCommentCore {
             return commentArr
             
         } catch  {
-            print("failed")
+            DDLogError("failed")
         }
         
         return []
@@ -80,7 +80,7 @@ class FeedCommentCore {
             return commentArr
          
         } catch  {
-            print("failed")
+            DDLogError("failed")
         }
      
         return []
@@ -116,11 +116,11 @@ class FeedCommentCore {
                 do {
                     try managedContext.save()
                 } catch let error as NSError {
-                    print("could not save. \(error), \(error.userInfo)")
+                    DDLogError("could not save. \(error), \(error.userInfo)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
             
         }

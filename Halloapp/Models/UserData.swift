@@ -6,10 +6,11 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
-import MessageUI
+import CocoaLumberjack
 import Foundation
-import SwiftUI
 import Combine
+import MessageUI
+import SwiftUI
 
 import CoreData
 
@@ -293,8 +294,8 @@ final class UserData: ObservableObject {
             if let data = data {
                 do {
                     let res = try JSONDecoder().decode(registerRes.self, from: data)
-                    print("user: \(res.user)")
-                    print("result: \(res.result)")
+                    DDLogInfo("user: \(res.user)")
+                    DDLogInfo("result: \(res.result)")
                     
                     DispatchQueue.main.async {
                     
@@ -303,7 +304,7 @@ final class UserData: ObservableObject {
                     }
                     
                 } catch let error {
-                   print(error)
+                   DDLogError("\(error)")
                 }
              }
 
@@ -323,9 +324,9 @@ final class UserData: ObservableObject {
 
             do {
                 try managedContext.execute(batchDeleteRequest)
-                print("Deleting \(entityName)")
+                DDLogInfo("Deleting \(entityName)")
             } catch {
-                print("Delete error for \(entityName) error :", error)
+                DDLogError("Delete error for \(entityName) error :\(error)")
             }
         }
         

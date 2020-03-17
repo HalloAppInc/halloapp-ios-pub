@@ -6,11 +6,11 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Foundation
-import SwiftUI
+import CocoaLumberjack
 import Combine
 import CoreData
-
+import Foundation
+import SwiftUI
 
 class PendingCore {
 
@@ -46,7 +46,7 @@ class PendingCore {
             return arr
             
         } catch  {
-            print("failed")
+            DDLogError("failed")
             return []
         }
     }
@@ -88,11 +88,11 @@ class PendingCore {
                 do {
                     try managedContext.save()
                 } catch let error as NSError {
-                    print("could not save. \(error), \(error.userInfo)")
+                    DDLogError("could not save. \(error), \(error.userInfo)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
         }
         
@@ -122,11 +122,11 @@ class PendingCore {
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("\(error)")
                 }
                 
             } catch  {
-                print("failed")
+                DDLogError("failed")
             }
         }
         

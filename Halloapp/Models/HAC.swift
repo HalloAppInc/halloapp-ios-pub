@@ -6,10 +6,10 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Foundation
-import CryptoSwift
+import CocoaLumberjack
 import CryptoKit
-
+import CryptoSwift
+import Foundation
 
 class HAC {
     
@@ -22,7 +22,7 @@ class HAC {
 //            print("success generating key:")
 //            print("\(key)")
         } else {
-            print("failed at generating key")
+            DDLogError("failed at generating key")
         }
         return key
     }
@@ -38,7 +38,7 @@ class HAC {
     
     func generateExpandedKeyFrom(fromKey:String, type: String) -> [UInt8] {
 
-        print("generateExpandedKeyFrom: \(fromKey)")
+        DDLogInfo("generateExpandedKeyFrom: \(fromKey)")
         
         if let key = base64ToByteArray(base64String: fromKey) {
         
@@ -101,11 +101,11 @@ class HAC {
 
             let MAC = try HMAC(key: SHAKey, variant: .sha256).authenticate(encrypted)
             
-            print("MAC: \(MAC.count)")
+            DDLogInfo("MAC: \(MAC.count)")
             
             encrypted.append(contentsOf: MAC)
             
-            print("encrypted w/authen: \(encrypted.count)")
+            DDLogInfo("encrypted w/authen: \(encrypted.count)")
             
             let digest = SHA256.hash(data: encrypted)
             
@@ -138,8 +138,8 @@ class HAC {
             let base64String = digest.data.base64EncodedString()
             
             if base64String != sha256hash {
-                print(base64String)
-                print("sha256 hash does not match, abort")
+                DDLogError(base64String)
+                DDLogError("sha256 hash does not match, abort")
                 return nil
             }
             
@@ -149,11 +149,11 @@ class HAC {
             
             let MAC = try HMAC(key: SHAKey, variant: .sha256).authenticate(target)
             
-            print("\(attachedMAC)")
-            print("\(MAC)")
+            DDLogInfo("\(attachedMAC)")
+            DDLogInfo("\(MAC)")
             
             if attachedMAC != MAC {
-                print("MAC does not match, abort")
+                DDLogError("MAC does not match, abort")
                 return nil
             }
             
@@ -161,7 +161,7 @@ class HAC {
             
             let decryptedData = Data(bytes: decrypted, count: decrypted.count)
 
-            print("decrypted: \(decryptedData.count)")
+            DDLogInfo("decrypted: \(decryptedData.count)")
             
             return decryptedData
             

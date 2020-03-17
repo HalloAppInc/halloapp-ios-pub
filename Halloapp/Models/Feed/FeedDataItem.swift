@@ -5,9 +5,11 @@
 //  Created by Tony Jiang on 1/30/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
+
+import CocoaLumberjack
+import Combine
 import Foundation
 import SwiftUI
-import Combine
 
 class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     
@@ -84,7 +86,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
                     })
                 )
                 
-                print("load media for: \(itemId) \(med.url) trying for: \(med.numTries)")
+                DDLogInfo("load media for: \(itemId) \(med.url) trying for: \(med.numTries)")
                 med.loadImage()
                                 
                 

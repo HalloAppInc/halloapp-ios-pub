@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Foundation
 import XMPPFramework
 
@@ -34,10 +35,10 @@ class XMPPRequest {
 
     func send(using xmppController: XMPPController) {
         guard self.state == .ready else {
-            print("xmpprequest/\(self.requestId)/send: not ready [\(self.state)]")
+            DDLogWarn("xmpprequest/\(self.requestId)/send: not ready [\(self.state)]")
             return
         }
-        print("xmpprequest/\(self.requestId)/sending")
+        DDLogInfo("xmpprequest/\(self.requestId)/sending")
         self.state = .sending
         xmppController.xmppStream.send(self.iq)
     }
@@ -46,13 +47,13 @@ class XMPPRequest {
         guard self.state == .sending || self.state == .ready else {
             return
         }
-        print("xmpprequest/\(self.requestId)/failed: not-connected")
+        DDLogWarn("xmpprequest/\(self.requestId)/failed: not-connected")
         self.state = .cancelled
         self.didFail(with: xmppErrorNotConnected())
     }
 
     func cancelAndPrepareFor(retry willRetry: Bool) -> Bool {
-        print("xmpprequest/\(self.requestId)/failed/rr=\(self.retriesRemaining)")
+        DDLogError("xmpprequest/\(self.requestId)/failed/rr=\(self.retriesRemaining)")
         switch (self.state) {
         case .finished, .cancelled:
                 return false
@@ -77,7 +78,6 @@ class XMPPRequest {
         }
         self.state = .finished
         self.response = response
-        print("xmpprequest/\(self.requestId)/response: \(response)")
         if response.isResultIQ {
             self.didFinish(with: response)
         } else if response.isErrorIQ {

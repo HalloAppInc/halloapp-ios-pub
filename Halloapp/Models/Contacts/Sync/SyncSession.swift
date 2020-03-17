@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Foundation
 import XMPPFramework
 
@@ -34,18 +35,18 @@ class SyncSession {
     }
 
     deinit {
-        print("sync-session/deinit")
+        DDLogDebug("sync-session/deinit")
     }
 
     func start() {
-        print("sync-session/request/start n=[\(self.contacts.count)]")
+        DDLogInfo("sync-session/request/start n=[\(self.contacts.count)]")
         self.sendNextBatchIfNecessary()
     }
 
     func sendNextBatchIfNecessary() {
         /* client side error */
         guard self.error == nil else {
-            print("sync-session/request/error/\(self.error!)")
+            DDLogError("sync-session/request/error/\(self.error!)")
             DispatchQueue.main.async {
                 self.completion(nil, self.error)
             }
@@ -63,7 +64,7 @@ class SyncSession {
             }
             let contactsToSend = self.contacts[range]
             let request = XMPPContactSyncRequest(with: contactsToSend, operation: self.operation, syncID: self.syncID, isLastBatch: isLastBatch) { (batchResults, error) in
-                print("sync-session/request/end/batch/\(self.batchIndex)")
+                DDLogInfo("sync-session/request/end/batch/\(self.batchIndex)")
                 if error != nil {
                     self.error = error
                 } else {
@@ -74,7 +75,7 @@ class SyncSession {
             self.contacts.removeSubrange(range)
             self.batchIndex += 1
 
-            print("sync-session/request/begin/batch/\(self.batchIndex)")
+            DDLogInfo("sync-session/request/begin/batch/\(self.batchIndex)")
             AppContext.shared.xmppController.enqueue(request: request)
 
             return
