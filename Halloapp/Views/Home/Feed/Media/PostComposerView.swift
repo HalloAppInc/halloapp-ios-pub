@@ -1,7 +1,5 @@
-
 import SwiftUI
 import UIKit
-
 
 struct DismissingKeyboard: ViewModifier {
     func body(content: Content) -> some View {
@@ -37,6 +35,17 @@ struct PostComposerView: View {
     
     @State private var play: Bool = true
 
+    @State private var item: FeedDataItem
+    
+    init(mediaItemsToPost: [FeedMedia], didFinish: @escaping () -> Void) {
+        
+        self.mediaItemsToPost = mediaItemsToPost
+        self.didFinish = didFinish
+        
+        self._item = State(initialValue: FeedDataItem())
+        self.item.media = self.mediaItemsToPost
+    }
+    
     var body: some View {
         return VStack {
 
@@ -63,42 +72,10 @@ struct PostComposerView: View {
                 .frame(height: isJustText ? 15 : 0)
                 .hidden()
 
-            if self.mediaItemsToPost.count > 1 {
-                ScrollView(.horizontal) {
-                    HStack(spacing: 5) {
-                        /* do not use .self for id as that is not always unique and can crash the app */
-                        ForEach(self.mediaItemsToPost, id: \.id) { item in
-                            Image(uiImage: item.image)
-                                .resizable()
-                                .aspectRatio(item.image.size, contentMode: .fit)
-                                .frame(maxHeight: 200)
-                                .background(Color.gray)
-                                .cornerRadius(10)
-                                .padding(EdgeInsets(top: 0, leading: 20, bottom: 10, trailing: 20))
-                        }
-                    }
-                }
-                .modifier(DismissingKeyboard())
-            } else if self.mediaItemsToPost.count == 1 {
-                if self.mediaItemsToPost[0].type == "image" {
-                    Image(uiImage: self.mediaItemsToPost[0].image)
-                        .resizable()
-                        .aspectRatio(self.mediaItemsToPost[0].image.size, contentMode: .fit)
-                        .frame(maxHeight: 200)
-                        .background(Color.gray)
-                        .cornerRadius(10)
-                        .padding(EdgeInsets(top: 0, leading: 20, bottom: 10, trailing: 20))
-                } else {
-                    WAVPlayer(videoURL: self.mediaItemsToPost[0].tempUrl!)
-                        .zIndex(20.0)
-                        .frame(maxHeight: 200)
-                        .background(Color.gray)
-                        .cornerRadius(10)
-                        .padding(EdgeInsets(top: 0, leading: 20, bottom: 10, trailing: 20))
-                        .cornerRadius(10)
-                }
+            if self.mediaItemsToPost.count > 0 {
+                MediaSlider(self.item, 200)
             }
-
+        
             HStack {
                 TextView(text: self.$msgToSend)
                     .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))

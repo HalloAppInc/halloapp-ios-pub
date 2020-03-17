@@ -22,55 +22,14 @@ struct MediaSlider: View {
     
     @State var mediaHeight: CGFloat
     
-//    @State var height: CGFloat = 525.33 // change to desired height to reduce screen shift, can customize for different devices
-    
     @State var pageNum: Int = 0
     
     init(_ item: FeedDataItem, _ mediaHeight: Int) {
-        
         self.item = item
         
         self._mediaHeight = State(initialValue: CGFloat(mediaHeight))
         self._media = State(initialValue: self.item.media)
-       
     }
-    
-//    func calHeight() {
-//
-//        var maxHeight = 0
-//        var width = 0
-//
-//        for med in self.media {
-//            if med.height > maxHeight {
-//                maxHeight = med.height
-//                width = med.width
-//            }
-//        }
-//
-//        if maxHeight < 1 {
-//            return
-//        }
-//
-//        let desiredAspectRatio: Float = 5/4 // 1.25 for portrait
-//
-//        // can be customized for different devices
-//        let desiredViewWidth = Float(UIScreen.main.bounds.width) - 20 // account for padding on left and right
-//
-//        let desiredTallness = desiredAspectRatio * desiredViewWidth
-//
-//        let ratio = Float(maxHeight)/Float(width) // image ratio
-//
-//        let actualTallness = ratio * desiredViewWidth
-//
-//        if actualTallness >= desiredTallness {
-//            self.height = CGFloat(desiredTallness)
-//        } else {
-//            self.height = CGFloat(actualTallness + 10)
-//        }
-//
-//    }
-    
-
     
     var body: some View {
         
@@ -78,8 +37,6 @@ struct MediaSlider: View {
 
             self.media = self.item.media
      
-//            self.calHeight()
-            
             self.cancellableSet.insert(
 
                 /* for new items */
@@ -104,27 +61,25 @@ struct MediaSlider: View {
                     scroll: $scroll,
                     height: $mediaHeight,
                     pageNum: $pageNum)
-
                     .frame(height: self.mediaHeight)
                 
-
+                
                 if (self.media.count > 1) {
                     HStack() {
                         Spacer()
-                        
-                        ForEach(self.media) { med in
-                            
+            
+                        /* media indicator dots */
+                        ForEach(self.media.indices) { index in
+            
                             Image(systemName: "circle.fill")
                                 .resizable()
-                             
                                 .scaledToFit()
-                                .foregroundColor(self.pageNum == self.media.firstIndex(of: med) ? Color.blue : Color(UIColor.systemGray4))
+                                .foregroundColor(self.pageNum == index ? Color.blue : Color(UIColor.systemGray4))
                                 .clipShape(Circle())
                              
                                 .frame(width: 5, height: 5, alignment: .center)
                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                             
-        
                         }
                         
                         Spacer()
@@ -134,35 +89,14 @@ struct MediaSlider: View {
                 
             }
 
-            
-        
-//            ForEach(self.item.media) { med in
-//
-//                Image(uiImage: med.image)
-//
-//                    .resizable()
-//                    .aspectRatio(med.image.size, contentMode: .fit)
-//                    .background(Color.gray)
-//                    .cornerRadius(10)
-//                    .padding(EdgeInsets(top: 10, leading: 10, bottom: 15, trailing: 10))
-//
-//            }
-
-
         }
         .onDisappear {
             self.cancellableSet.forEach {
-//                print("cancelling")
                 $0.cancel()
             }
-            
             DispatchQueue.main.async() {
                 self.cancellableSet.removeAll()
             }
-
         }
-        
     }
 }
-
-

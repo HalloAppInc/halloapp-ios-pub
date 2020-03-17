@@ -41,6 +41,7 @@ class ImageServer {
 
                 let feedMedia = FeedMedia()
                 feedMedia.type = item.type
+                feedMedia.tempUrl = item.tempUrl
                 feedMedia.url = mediaURLs[index].put.absoluteString
 
                 if feedMedia.type == "image" {
@@ -64,6 +65,14 @@ class ImageServer {
 
                         item.key = feedMedia.key
                         item.sha256hash = feedMedia.sha256hash
+                    }
+                } else if feedMedia.type == "video" {
+                    if let videoUrl = feedMedia.tempUrl {
+                        if let videoData = try? Data(contentsOf: videoUrl) {
+                            (feedMedia.encryptedData, feedMedia.key, feedMedia.sha256hash) = HAC().encryptData(data: videoData, type: "video")
+                            item.key = feedMedia.key
+                            item.sha256hash = feedMedia.sha256hash
+                        }
                     }
                 }
 

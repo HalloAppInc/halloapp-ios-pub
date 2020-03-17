@@ -67,7 +67,6 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
     func loadImage() {
         if (self.url != "") {
 
-            
             DispatchQueue.global(qos: .default).async {
                 DDLogInfo("updating numTries on media count to \(self.numTries + 1)")
                 FeedMediaCore().updateNumTries(feedItemId: self.feedItemId, url: self.url, numTries: self.numTries + 1)
@@ -76,15 +75,13 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
             imageLoader = ImageLoader(urlString: self.url)
             cancellableSet.insert(
                 imageLoader.didChange.sink(receiveValue: { [weak self] _ in
-                    
-                    DDLogInfo("got didchange")
-                    
+
                     guard let self = self else { return }
                     
                     DispatchQueue.global(qos: .userInitiated).async {
                         
                         DDLogInfo("processing media for \(self.feedItemId)")
-                        
+
                         var imageData: Data = Data()
                         
                         var isEncryptedMedia: Bool = false
@@ -93,12 +90,13 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
                         if self.key != "" && self.sha256hash != "" {
                         
                             isEncryptedMedia = true
+
                             DDLogInfo("encrypted media")
                             
                             if let decryptedData = HAC().decryptData(   data: self.imageLoader.data,
                                                                         key: self.key,
                                                                         sha256hash: self.sha256hash,
-                                                                        type: "image") {
+                                                                        type: self.type) {
                                 isEncryptedMediaSafe = true
                                 imageData = decryptedData
                             }
@@ -115,34 +113,62 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
                             imageData = self.imageLoader.data
                         }
    
+                        /* compare to "" also as older media (pre 19) might not have type set yet */
+                        if (self.type == "image" || self.type == "") {
+                            
+                            let orig = UIImage(data: imageData) ?? UIImage()
                         
-                        let orig = UIImage(data: imageData) ?? UIImage()
-                    
-                        /* we could have an uploaded image that is corrupted */
-                        if (orig.size.width > 0) {
-                        
-
+                            /* we could have an uploaded image that is corrupted */
+                            if (orig.size.width > 0) {
+                                DispatchQueue.main.async {
+                                    self.image = orig
+                                    self.didChange.send()
+                                }
+                                DispatchQueue.global(qos: .default).async {
+                                    var res: Int = 640
+                                    if UIScreen.main.bounds.width <= 375 {
+                                        res = 480
+                                    }
+                                    /* thumbnails are currently not used right now but will be used in the future */
+                                    let thumb = orig.getNewSize(res: res) ?? UIImage() // note: getNewSize will not resize if the pic is lower than res
+                                    FeedMediaCore().updateImage(feedItemId: self.feedItemId, url: self.url, thumb: thumb, orig: orig)
+                                }
+                            }
+                            
+                        } else if self.type == "video" {
+                            
                             DispatchQueue.main.async {
-                                self.image = orig
+//                                self.data = imageData
+                                
+                                // check order, might be always 0 for new downloads
+                                let fileName = "\(self.feedItemId)-\(self.order)"
+                                let fileUrl = URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent(fileName).appendingPathExtension("mp4")
+                                    
+                                if (!FileManager.default.fileExists(atPath: fileUrl.path))   {
+                                    print("file does not exists")
+                                    
+                                    let wasFileWritten = (try? imageData.write(to: fileUrl, options: [.atomic])) != nil
+
+                                    if !wasFileWritten{
+                                        print("File was NOT Written")
+                                    } else {
+                                        print("File was written")
+                                    }
+                                    
+                                } else {
+                                    print("file exists")
+                                }
+                                
+                                self.tempUrl = fileUrl
+                                
                                 self.didChange.send()
                             }
                             
                             DispatchQueue.global(qos: .default).async {
-                                
-                                var res: Int = 640
-
-                                if UIScreen.main.bounds.width <= 375 {
-                                    res = 480
-                                }
-                                
-                                /* thumbnails are currently not used right now but will be used in the future */
-                                let thumb = orig.getNewSize(res: res) ?? UIImage() // note: getNewSize will not resize if the pic is lower than res
-                                
-                                FeedMediaCore().updateImage(feedItemId: self.feedItemId, url: self.url, thumb: thumb, orig: orig)
+                                FeedMediaCore().updateBlob(feedItemId: self.feedItemId, url: self.url, data: imageData)
                             }
-                            
+                         
                         }
-                        
                         
                     }
                         

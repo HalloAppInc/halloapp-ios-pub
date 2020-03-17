@@ -39,7 +39,7 @@ class ImageLoader: ObservableObject {
         
         if self.retries < 3 {
             
-            let delay = (self.retries < 1) ? 0.0 : 10.0
+            let delay = (self.retries < 1) ? 0.0 : 5.0
             
             DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + delay) {
                 self.load(url: url)

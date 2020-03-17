@@ -14,6 +14,7 @@
         <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="sha256hash" optional="YES" attributeType="String" defaultValueString=""/>
         <attribute name="smallBlob" optional="YES" attributeType="Binary"/>
+        <attribute name="type" optional="YES" attributeType="String" defaultValueString=""/>
         <attribute name="url" optional="YES" attributeType="String"/>
         <attribute name="width" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
@@ -69,12 +70,12 @@
     </entity>
     <elements>
         <element name="CContactsAvatar" positionX="-54" positionY="81" width="128" height="88"/>
-        <element name="CFeedImage" positionX="-54" positionY="81" width="128" height="193"/>
+        <element name="CFeedImage" positionX="-54" positionY="81" width="128" height="208"/>
+        <element name="CMisc" positionX="-54" positionY="108" width="128" height="58"/>
         <element name="ContactsCore" positionX="-63" positionY="36" width="128" height="163"/>
         <element name="CPending" positionX="-54" positionY="81" width="128" height="88"/>
         <element name="FeedComments" positionX="-45" positionY="81" width="128" height="148"/>
         <element name="FeedCore" positionX="-63" positionY="0" width="128" height="28"/>
         <element name="User" positionX="-63" positionY="-18" width="128" height="178"/>
-        <element name="CMisc" positionX="-54" positionY="108" width="128" height="58"/>
     </elements>
 </model>

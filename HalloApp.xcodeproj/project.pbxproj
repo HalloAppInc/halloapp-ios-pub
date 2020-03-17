@@ -10,7 +10,7 @@
 		146B93742405F35000768AC6 /* GothamBook.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 146B93732405F35000768AC6 /* GothamBook.ttf */; };
 		146B93772405F3AE00768AC6 /* GothamMedium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 146B93762405F3AE00768AC6 /* GothamMedium.ttf */; };
 		146B93792405F40500768AC6 /* FontExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* FontExtension.swift */; };
-		29B91BFAD5E7C9E96185289E /* Pods_Halloapp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */; };
+		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		761B394F241AF01100858251 /* XMPPMediaRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B394E241AF01100858251 /* XMPPMediaRequests.swift */; };
 		761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3953241C38A300858251 /* XMPPCommonRequests.swift */; };
 		761B3957241D815800858251 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3956241D815800858251 /* SyncManager.swift */; };
@@ -36,6 +36,7 @@
 		EA0D20112363E38E008B8289 /* HomeInit.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20102363E38E008B8289 /* HomeInit.swift */; };
 		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
 		EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0E64CA234BF4BC006A22EB /* XMPPController.swift */; };
+		EA12006924209903008BFFAD /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA12006824209903008BFFAD /* VideoUtils.swift */; };
 		EA17C39923ECAEDB00727413 /* PendingCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA17C39823ECAEDB00727413 /* PendingCore.swift */; };
 		EA17C39B23ED39E600727413 /* FeedCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA17C39A23ED39E600727413 /* FeedCollectionView.swift */; };
 		EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */; };
@@ -112,8 +113,8 @@
 		146B93732405F35000768AC6 /* GothamBook.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = GothamBook.ttf; sourceTree = "<group>"; };
 		146B93762405F3AE00768AC6 /* GothamMedium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = GothamMedium.ttf; sourceTree = "<group>"; };
 		146B93782405F40500768AC6 /* FontExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtension.swift; sourceTree = "<group>"; };
+		19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.release.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.release.xcconfig"; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
-		36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Halloapp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		761B394E241AF01100858251 /* XMPPMediaRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPMediaRequests.swift; sourceTree = "<group>"; };
 		761B3953241C38A300858251 /* XMPPCommonRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPCommonRequests.swift; sourceTree = "<group>"; };
 		761B3956241D815800858251 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
@@ -133,12 +134,15 @@
 		76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPContactSyncRequest.swift; sourceTree = "<group>"; };
 		76DFA0062419BC1F00F49CA4 /* XMPPError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPError.swift; sourceTree = "<group>"; };
 		76ECDC152409DD7700BB48AC /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
+		8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.debug.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.debug.xcconfig"; sourceTree = "<group>"; };
+		C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HalloApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EA0C315623EB97C800016EDB /* PostComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerView.swift; sourceTree = "<group>"; };
 		EA0D20062363AC4D008B8289 /* Landing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Landing.swift; sourceTree = "<group>"; };
 		EA0D20082363AD74008B8289 /* AuthRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRouter.swift; sourceTree = "<group>"; };
 		EA0D20102363E38E008B8289 /* HomeInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeInit.swift; sourceTree = "<group>"; };
 		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
 		EA0E64CA234BF4BC006A22EB /* XMPPController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPController.swift; sourceTree = "<group>"; };
+		EA12006824209903008BFFAD /* VideoUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		EA17C39823ECAEDB00727413 /* PendingCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingCore.swift; sourceTree = "<group>"; };
 		EA17C39A23ED39E600727413 /* FeedCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCollectionView.swift; sourceTree = "<group>"; };
 		EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTimer.swift; sourceTree = "<group>"; };
@@ -205,7 +209,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				29B91BFAD5E7C9E96185289E /* Pods_Halloapp.framework in Frameworks */,
+				49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -249,6 +253,8 @@
 			children = (
 				0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */,
 				368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */,
+				8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */,
+				19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -301,7 +307,7 @@
 		8295BD88471C9D5DC2D30C41 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				36D7F64DDE0D1B8005494465 /* Pods_Halloapp.framework */,
+				C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -314,6 +320,7 @@
 				EA5414D923EE1D2B00390EF6 /* Feed */,
 				76DFA0012419560300F49CA4 /* XMPP */,
 				EA80ADFA235A8325002F7680 /* Utils.swift */,
+				EA12006824209903008BFFAD /* VideoUtils.swift */,
 				EA6057BA239AD26D005DED66 /* MetaData.swift */,
 				EA72F2112335A0A3008B696F /* UserData.swift */,
 				EA45713623EB7DF5008C2E44 /* UserCore.swift */,
@@ -588,8 +595,6 @@
 			dependencies = (
 			);
 			name = HalloApp;
-			packageProductDependencies = (
-			);
 			productName = Halloapp;
 			productReference = EAF3A1BF2334191E00805FF9 /* HalloApp.app */;
 			productType = "com.apple.product-type.application";
@@ -662,8 +667,6 @@
 				Base,
 			);
 			mainGroup = EAF3A1B62334191E00805FF9;
-			packageReferences = (
-			);
 			productRefGroup = EAF3A1C02334191E00805FF9 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -720,7 +723,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Halloapp-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-HalloApp-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -733,15 +736,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Halloapp/Pods-Halloapp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-HalloApp/Pods-HalloApp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Halloapp/Pods-Halloapp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-HalloApp/Pods-HalloApp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Halloapp/Pods-Halloapp-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-HalloApp/Pods-HalloApp-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -814,6 +817,7 @@
 				EA0D20112363E38E008B8289 /* HomeInit.swift in Sources */,
 				146B93792405F40500768AC6 /* FontExtension.swift in Sources */,
 				761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */,
+				EA12006924209903008BFFAD /* VideoUtils.swift in Sources */,
 				EAA6DEC02381D7DD00C6D9C8 /* Notifications.swift in Sources */,
 				EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */,
 				EA45712D23EB7D7E008C2E44 /* FeedCommentCore.swift in Sources */,
@@ -988,7 +992,7 @@
 		};
 		EAF3A1EA2334192000805FF9 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */;
+			baseConfigurationReference = 8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
@@ -1013,7 +1017,7 @@
 		};
 		EAF3A1EB2334192000805FF9 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */;
+			baseConfigurationReference = 19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;

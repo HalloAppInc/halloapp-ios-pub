@@ -2,7 +2,7 @@
 
 platform :ios, '13.0'
 
-target 'Halloapp' do
+target 'HalloApp' do
 
   use_frameworks!
   pod 'XMPPFramework/Swift'

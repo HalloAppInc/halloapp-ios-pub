@@ -72,7 +72,7 @@ class PendingCore {
                 let userEntity = NSEntityDescription.entity(forEntityName: "CPending", in: managedContext)!
                 
                 let obj = NSManagedObject(entity: userEntity, insertInto: managedContext)
-                obj.setValue("image", forKeyPath: "type")
+                obj.setValue(item.type, forKeyPath: "type")
                 obj.setValue(item.url, forKeyPath: "url")
                 
                 let image = item.image.jpegData(compressionQuality: 1.0)

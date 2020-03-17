@@ -11,6 +11,7 @@ import Combine
 import Foundation
 import SwiftUI
 import XMPPFramework
+import AVKit
 
 class FeedData: ObservableObject {
     @Published var feedMedia : [FeedMedia] = []
@@ -29,13 +30,20 @@ class FeedData: ObservableObject {
     init(xmppController: XMPPController, userData: UserData) {
         self.xmppController = xmppController
         self.userData = userData
-
+        
 //        self.feedMedia.append(contentsOf: FeedMediaCore().getAll())
 //        print("count: \(self.feedMedia.count)")
         
         self.pushAllItems(items: feedItemCore.getAll())
         
         self.feedCommentItems = feedCommentCore.getAll()
+        
+        /* enable videoes to play with sound even when the phone is set to ringer mode */
+        do {
+           try AVAudioSession.sharedInstance().setCategory(.playback)
+        } catch(let error) {
+            print(error.localizedDescription)
+        }
         
         self.cancellableSet.insert(
             self.xmppController.isConnecting.sink(receiveValue: { value in
@@ -130,28 +138,24 @@ class FeedData: ObservableObject {
     }
     
     func getItemMedia(_ itemId: String) {
-        let idx = self.feedDataItems.firstIndex(where: {$0.itemId == itemId})
-        if idx != nil {
-            if self.feedDataItems[idx!].media.count == 0 {
-                self.feedDataItems[idx!].media = FeedMediaCore().get(feedItemId: itemId)
+        if let idx = self.feedDataItems.firstIndex(where: {$0.itemId == itemId}) {
+            if self.feedDataItems[idx].media.count == 0 {
+                self.feedDataItems[idx].media = FeedMediaCore().get(feedItemId: itemId)
 
                 /* ideally we should have the images in core data by now */
                 /* todo: scan for unloaded images during init */
-                self.feedDataItems[idx!].loadMedia()
+                self.feedDataItems[idx].loadMedia()
             }
         }
     }
     
     func setItemCellHeight(_ itemId: String, _ cellHeight: Int) {
-       let idx = self.feedDataItems.firstIndex(where: {$0.itemId == itemId})
-       if idx != nil {
-           
-            self.feedDataItems[idx!].cellHeight = cellHeight
-        
-            DispatchQueue.global(qos: .default).async {
-                self.feedItemCore.updateCellHeight(item: self.feedDataItems[idx!])
-            }
-       }
+        if let idx = self.feedDataItems.firstIndex(where: {$0.itemId == itemId}) {
+             self.feedDataItems[idx].cellHeight = cellHeight
+             DispatchQueue.global(qos: .default).async {
+                 self.feedItemCore.updateCellHeight(item: self.feedDataItems[idx])
+             }
+        }
     }
 
     func calHeight(media: [FeedMedia]) -> Int {
@@ -279,9 +283,6 @@ class FeedData: ObservableObject {
     func postItem(_ user: String, _ text: String, _ media: [FeedMedia]) {
         let text = XMLElement(name: "text", stringValue: text)
         
-        let username = XMLElement(name: "username", stringValue: self.userData.phone)
-        let userImageUrl = XMLElement(name: "userImageUrl", stringValue: "")
-        
         let childroot = XMLElement(name: "feedpost")
         let mainroot = XMLElement(name: "entry")
         
@@ -305,8 +306,6 @@ class FeedData: ObservableObject {
             childroot.addChild(mediaEl)
         }
 
-        childroot.addChild(username)
-        childroot.addChild(userImageUrl)
         childroot.addChild(text)
         
         mainroot.addChild(childroot)
@@ -317,35 +316,7 @@ class FeedData: ObservableObject {
         self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: mainroot, withItemID: id)
     }
     
-    // Publishes the post to the user's feed pubsub node.
-    func postTextOld(_ user: String, _ text: String, _ media: [FeedMedia]) {
-        let text = XMLElement(name: "text", stringValue: text)
-        let childroot = XMLElement(name: "feedpost")
-        let mainroot = XMLElement(name: "entry")
-        
-        if media.count > 0 {
-            let mediaEl = XMLElement(name: "media")
-            
-            for med in media {
-                let medEl = XMLElement(name: "url", stringValue: med.url)
-                medEl.addAttribute(withName: "type", stringValue: med.type)
-                medEl.addAttribute(withName: "width", stringValue: String(med.width))
-                medEl.addAttribute(withName: "height", stringValue: String(med.height))
-                mediaEl.addChild(medEl)
-            }
-            childroot.addChild(mediaEl)
-        }
-        
-        childroot.addChild(text)
-        
-        mainroot.addChild(childroot)
-        
-        DDLogInfo("Feed: PostText \(mainroot)")
-        
-        let id = UUID().uuidString
-        self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: mainroot, withItemID: id)
-    }
-    
+
     // Publishes the comment 'text' on post 'feedItemId' to the user 'postUser' feed pubsub node.
     func postComment(_ feedItemId: String, _ postUser: String, _ text: String, _ parentCommentId: String) {
         DDLogDebug("postComment: " + text)

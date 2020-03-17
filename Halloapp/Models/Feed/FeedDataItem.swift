@@ -71,25 +71,32 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     func loadMedia() {
 
         for med in self.media {
+                                    
+            if (
+                    (med.type == "image" && med.image.size.width < 1) ||
+                    (med.type == "video" && med.tempUrl == nil)
+                ) {
             
-            if (med.url != "" && med.image.size.width < 1 && med.numTries < 3) {
-                                
-                cancellableSet.insert(
-                    med.didChange.sink(receiveValue: { [weak self] _ in
-                        guard let self = self else { return }
-                        
-//                        print("feedDataItem got change: \(med.image.size.width)")
-                        
-                        self.objectWillChange.send()
-                        self.didChange.send()
-                        
-                    })
-                )
-                
-                DDLogInfo("load media for: \(itemId) \(med.url) trying for: \(med.numTries)")
-                med.loadImage()
-                                
-                
+                if (med.url != "" && med.numTries < 5) {
+                                    
+      
+                    
+                    cancellableSet.insert(
+                        med.didChange.sink(receiveValue: { [weak self] _ in
+                            guard let self = self else { return }
+                            
+    //                        print("feedDataItem got change: \(med.image.size.width)")
+                            
+                            self.objectWillChange.send()
+                            self.didChange.send()
+                            
+                        })
+                    )
+                    
+                    print("load media for: \(itemId) \(med.url) trying for: \(med.numTries)")
+                    med.loadImage()
+                                    
+                }
             }
             
         }

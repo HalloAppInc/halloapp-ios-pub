@@ -23,6 +23,18 @@ struct CameraPickerView: UIViewControllerRepresentable {
     func makeUIViewController(context: UIViewControllerRepresentableContext<CameraPickerView>) -> UIImagePickerController {
         let imagePickerController = UIImagePickerController()
         imagePickerController.sourceType = .camera
+        
+        let mediatypes = UIImagePickerController.availableMediaTypes(for: .camera)
+        
+        imagePickerController.mediaTypes = mediatypes!
+        
+//        imagePickerController.showsCameraControls = false
+        imagePickerController.allowsEditing = false
+        
+        // video
+        imagePickerController.videoQuality = .typeMedium
+        imagePickerController.videoMaximumDuration = 60
+        
         imagePickerController.delegate = context.coordinator
         return imagePickerController
     }
@@ -47,7 +59,38 @@ struct CameraPickerView: UIViewControllerRepresentable {
                 mediaItem.height = Int(normalizedImage.size.height)
                 parent.capturedMedia = [mediaItem]
                 parent.didFinishWithMedia()
+                
+            } else if let videoURL = info[.mediaURL] as? URL {
+                let mediaItem = FeedMedia()
+                mediaItem.type = "video"
+                mediaItem.tempUrl = videoURL
+                
+                if let videoSize = VideoUtils().resolutionForLocalVideo(url: videoURL) {
+                
+                    mediaItem.width = Int(videoSize.width)
+                    mediaItem.height = Int(videoSize.height)
+                    
+                    print("video width: \(mediaItem.width)")
+                    print("video height: \(mediaItem.height)")
+                }
+                
+                VideoUtils().cropVideo(sourceURL: videoURL, startTime: 0.1, endTime: 5.0, completion: { url in
+                    
+                    DispatchQueue.main.async {
+                        mediaItem.tempUrl = url
+                        self.parent.capturedMedia = [mediaItem]
+                        
+                        self.parent.didFinishWithMedia()
+                    }
+                    
+                })
+                    
+//                mediaItem.width = Int(normalizedImage.size.width)
+//                mediaItem.height = Int(normalizedImage.size.height)
+
+
             }
+           
         }
         
         func imagePickerControllerDidCancel(_ pickerController: UIImagePickerController) {

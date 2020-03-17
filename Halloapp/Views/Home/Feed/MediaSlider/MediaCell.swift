@@ -14,8 +14,6 @@ struct MediaCell: View {
     @Binding var height: CGFloat
     var numMedia: Int = 0 // used to position the picture in the middle or not
     
-    @State private var vURL = URL(string: "https://www.radiantmediaplayer.com/media/bbb-360p.mp4")
-    
     var body: some View {
 
         VStack(spacing: 0) {
@@ -30,7 +28,7 @@ struct MediaCell: View {
             
             HStack(spacing: 0) {
                     
-                if (med.image.size.width > 0) { // important, app crashes without this check
+                if ((med.type == "image" || med.type == "") && med.image.size.width > 0) { // important, app crashes without this check
                     
 //                    Button(action: {
 //
@@ -47,11 +45,6 @@ struct MediaCell: View {
 //
 //                    }
 //                    .buttonStyle(BorderlessButtonStyle())
-                
-                    
-//                    PlayerContainerView(
-//                        url: URL(string: "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8")!)
-//
                     
                     Image(uiImage: med.image)
                         .renderingMode(.original)
@@ -63,6 +56,24 @@ struct MediaCell: View {
                         .frame(height: height)
                         .pinchToZoom()
                     
+                } else if (med.type == "video") {
+                    
+                    if (med.tempUrl != nil) {
+                        /* note: in the simulator, this debug message appears when scrolling:
+                         [framework] CUICatalog: Invalid asset name supplied: '(null)'
+                         */
+                        WAVPlayer(videoURL: med.tempUrl!)
+                            .cornerRadius(10)
+                            .padding(EdgeInsets(top: 0, leading: 20, bottom: 10, trailing: 20))
+                    } else {
+                        VStack() {
+                            Spacer()
+                            Image(systemName: "video")
+                                .foregroundColor(Color.gray)
+                            Spacer()
+                        }.frame(height: height)
+                    }
+                    
                 } else {
        
                     VStack() {
@@ -72,8 +83,6 @@ struct MediaCell: View {
                         Spacer()
                     }.frame(height: height)
                     
-           
-                        
                 }
    
             }

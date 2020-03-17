@@ -38,8 +38,8 @@ class HAC {
     
     func generateExpandedKeyFrom(fromKey:String, type: String) -> [UInt8] {
 
-        DDLogInfo("generateExpandedKeyFrom: \(fromKey)")
-        
+//        DDLogInfo("generateExpandedKeyFrom: \(fromKey)")
+
         if let key = base64ToByteArray(base64String: fromKey) {
         
             var info = "HalloApp image".bytes
@@ -88,7 +88,7 @@ class HAC {
         
         let target: [UInt8] = [UInt8](data)
 
-        let (base64Key, expandedKey) = generateNewExpandedKey(type: "image")
+        let (base64Key, expandedKey) = generateNewExpandedKey(type: type)
         
         let randomIV = Array(expandedKey[0...15])
         let AESKey = Array(expandedKey[16...47])
@@ -149,8 +149,8 @@ class HAC {
             
             let MAC = try HMAC(key: SHAKey, variant: .sha256).authenticate(target)
             
-            DDLogInfo("\(attachedMAC)")
-            DDLogInfo("\(MAC)")
+//            DDLogInfo("\(attachedMAC)")
+//            DDLogInfo("\(MAC)")
             
             if attachedMAC != MAC {
                 DDLogError("MAC does not match, abort")
@@ -161,8 +161,8 @@ class HAC {
             
             let decryptedData = Data(bytes: decrypted, count: decrypted.count)
 
-            DDLogInfo("decrypted: \(decryptedData.count)")
-            
+//            DDLogInfo("decrypted: \(decryptedData.count)")
+
             return decryptedData
             
         } catch {

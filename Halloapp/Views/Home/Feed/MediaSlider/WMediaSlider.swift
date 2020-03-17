@@ -8,35 +8,6 @@
 
 import SwiftUI
 
-enum MediaSliderSection {
-    case main
-}
-
-class MediaSliderCell: UICollectionViewCell {
-
-    override func awakeFromNib() {
-        super.awakeFromNib()
-    }
-    
-    public func configure(med: FeedMedia, height: Binding<CGFloat>, numMedia: Int) {
-        var controller: UIViewController
-        controller = UIHostingController(rootView: MediaCell(med: med, height: height, numMedia: numMedia))
-        controller.view.frame = self.bounds
-        controller.view.backgroundColor = UIColor.secondarySystemGroupedBackground
-        self.addSubview(controller.view)
-    }
-    
-    override func prepareForReuse() {
-        let theSubviews: Array = (self.subviews)
-        for view in theSubviews
-        {
-            view.removeFromSuperview()
-        }
-    }
-
-}
-
-
 struct WMediaSlider: UIViewRepresentable {
     
     @Binding var media: [FeedMedia]
@@ -71,47 +42,29 @@ struct WMediaSlider: UIViewRepresentable {
         collectionView.backgroundColor = UIColor.clear
         
         let dataSource = UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>(collectionView: collectionView) { collectionView, indexPath, modelObj in
-
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MediaSliderCell", for: indexPath) as? MediaSliderCell {
-
                 cell.configure(med: modelObj, height: self.$height, numMedia: self.media.count)
-                
                 return cell
             }
-
             return MediaSliderCell()
         }
         
-    
         populate(dataSource: dataSource)
         context.coordinator.dataSource = dataSource
-
         collectionView.delegate = context.coordinator
-        
         return collectionView
     }
     
     func updateUIView(_ uiView: UICollectionView, context: Context) {
-
-        
         let dataSource = context.coordinator.dataSource
         populate(dataSource: dataSource!)
-
-
     }
     
-
-
     func populate(dataSource: UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>) {
-        
         var snapshot = NSDiffableDataSourceSnapshot<MediaSliderSection, FeedMedia>()
- 
         snapshot.appendSections([.main])
-
         snapshot.appendItems(self.media)
-        
         dataSource.apply(snapshot, animatingDifferences: true)
-        
     }
     
     
@@ -129,7 +82,6 @@ struct WMediaSlider: UIViewRepresentable {
             self.parent = view
         }
 
-        
         // delegate
         func collectionView(_ collectionView: UICollectionView,
                             layout collectionViewLayout: UICollectionViewLayout,
@@ -140,23 +92,44 @@ struct WMediaSlider: UIViewRepresentable {
                 tempHeight = 0
             }
             
-//            print("frame: \(collectionView.frame.width) height: \(tempHeight)")
             return CGSize(width: collectionView.frame.width, height: tempHeight)
-            
-            
+        
         }
         
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
             let pageWidth = scrollView.frame.size.width
             let page = Int(floor((scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1)
             self.parent.pageNum = page
-            
         }
-
         
     }
 }
 
+enum MediaSliderSection {
+    case main
+}
 
+class MediaSliderCell: UICollectionViewCell {
 
+    override func awakeFromNib() {
+        super.awakeFromNib()
+    }
+    
+    public func configure(med: FeedMedia, height: Binding<CGFloat>, numMedia: Int) {
+        var controller: UIViewController
+        controller = UIHostingController(rootView: MediaCell(med: med, height: height, numMedia: numMedia))
+        controller.view.frame = self.bounds
+        controller.view.backgroundColor = UIColor.secondarySystemGroupedBackground
+        self.addSubview(controller.view)
+    }
+    
+    override func prepareForReuse() {
+        let theSubviews: Array = (self.subviews)
+        for view in theSubviews
+        {
+            view.removeFromSuperview()
+        }
+    }
+
+}
 
