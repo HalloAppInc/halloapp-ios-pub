@@ -320,9 +320,14 @@ class XMPPController: NSObject, ObservableObject {
 extension XMPPController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream, didReceive message: XMPPMessage) {
-//        DDLogInfo("Stream: didReceive message \(message)")
+        DDLogInfo("Stream: didReceive message \(message)")
         if (message.fromStr! != "pubsub.s.halloapp.net") {
             DDLogInfo("Stream: didReceive \(message)")
+        }
+
+        if let id = message.elementID {
+            DDLogInfo("Message: Send Ack: id: \(id)")
+            Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
         }
     }
     
@@ -623,7 +628,7 @@ extension XMPPController: XMPPPubSubDelegate {
         }
         
         if let id = message.elementID {
-            DDLogInfo("Message: Send Ack")
+            DDLogInfo("Message: Send Ack: id: \(id)")
             Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
         }
 
