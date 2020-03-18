@@ -14,10 +14,4 @@ import CoreData
 
 final class MetaData: ObservableObject {
 
-    public var timeStartWhitelist = 0.0
-    public var whiteListIds: [String] = []
-    
-    public var timeStartCheck = 0.0
-    public var checkIds: [String] = []
-
 }

@@ -188,75 +188,6 @@ class XMPPController: NSObject, ObservableObject {
         self.enqueue(request: request)
     }
     
-    func createNodes() {
-        var node = ""
-        if let userJID = self.userJID {
-            node = userJID.user!
-        }
-
-        let nodeOptions: [String:String] = [
-            "pubsub#access_model": "whitelist",
-            "pubsub#send_last_published_item": "never",
-            "pubsub#max_items": "1000", // must not go over max or else error
-            "pubsub#notify_retract": "0",
-            "pubsub#notify_delete": "0",
-            "pubsub#notification_type": "normal" // Updating the notification type to be normal, so that feed updates could be stored by the server when offline.
-        ]
-
-        var contactsNodeOptions = nodeOptions
-        contactsNodeOptions.merge(["pubsub#max_items": "3"]) { (current, new) -> String in
-            return new
-        }
-
-        var feedNodeOptions = nodeOptions
-        feedNodeOptions.merge(["pubsub#publish_model": "subscribers"]) { (current, new) -> String in
-            return new
-        }
-        
-        if (!self.userData.haveFeedSub) {
-            DDLogInfo("creating feed node: feed-\(node)")
-            self.xmppPubSub.createNode("feed-\(node)", withOptions: feedNodeOptions)
-            self.xmppPubSub.subscribe(toNode: "feed-\(self.userData.phone)")
-            self.xmppPubSub.retrieveItems(fromNode: "feed-\(self.userData.phone)") // if the user logs off, then logs back in
-        }
-        
-//        self.xmppPubSub.configureNode("feed-\(node)", withOptions: feedNodeOptions)
-//        self.xmppPubSub.configureNode("contacts-\(node)", withOptions: nodeOptions)
-        
-        
-        /* see node metadata */
-//        let query = XMLElement(name: "query")
-//        query.addAttribute(withName: "xmlns", stringValue: "http://jabber.org/protocol/disco#info")
-//        query.addAttribute(withName: "node", stringValue: "feed-\(userData.phone)")
-//
-//        let iq = XMLElement(name: "iq")
-//        iq.addAttribute(withName: "type", stringValue: "get")
-//        iq.addAttribute(withName: "from", stringValue: "\(userData.phone)@s.halloapp.net/iphone")
-//        iq.addAttribute(withName: "to", stringValue: "pubsub.s.halloapp.net")
-//        iq.addAttribute(withName: "id", stringValue: "3")
-//        iq.addChild(query)
-
-//        self.xmppStream.send(iq)
-        
-        /* see configuration */
-//        let configure = XMLElement(name: "configure")
-//        configure.addAttribute(withName: "node", stringValue: "feed-\(userData.phone)")
-//
-//        let pubsub = XMLElement(name: "pubsub")
-//        pubsub.addAttribute(withName: "xmlns", stringValue: "http://jabber.org/protocol/pubsub#owner")
-//        pubsub.addChild(configure)
-//
-//        let iq = XMLElement(name: "iq")
-//        iq.addAttribute(withName: "type", stringValue: "get")
-//        iq.addAttribute(withName: "from", stringValue: "\(userData.phone)@s.halloapp.net/iphone")
-//        iq.addAttribute(withName: "to", stringValue: "pubsub.s.halloapp.net")
-//        iq.addAttribute(withName: "id", stringValue: "3")
-//        iq.addChild(pubsub)
-//
-//        self.xmppStream.send(iq)
-
-    }
-
     // MARK: Requests
     private var requestsInFlight: [XMPPRequest] = []
     private var requestsToSend: [XMPPRequest] = []
@@ -433,8 +364,6 @@ extension XMPPController: XMPPStreamDelegate {
             self.sendCurrentAPNSToken()
         }
         
-        self.createNodes()
-
         // This function sends an initial presence stanza to the server indicating that the user is online.
         // This is necessary so that the server will then respond with all the offline messages for the client.
         // stanza: <presence />
@@ -525,57 +454,12 @@ extension XMPPController: XMPPPubSubDelegate {
     
     func xmppPubSub(_ sender: XMPPPubSub, didSubscribeToNode node: String, withResult iq: XMPPIQ) {
         DDLogInfo("PubSub: didSubscribeToNode - \(node)")
-        
-        if (node == "contacts-\(self.userData.phone)") {
-            self.userData.setHaveContactsSub(value: true)
-        } else if (node == "feed-\(self.userData.phone)") {
-            self.userData.setHaveFeedSub(value: true)
-        } else {
-
-            let idx = self.metaData.checkIds.firstIndex(where: {$0 == node})
-            
-            if (idx != nil) {
-                
-                let miniElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartCheck
-                DDLogInfo("\(self.metaData.checkIds[idx!]) perf: \(Int(miniElapsed))")
-                
-                self.metaData.checkIds.remove(at: idx!)
-                
-                if self.metaData.checkIds.count == 0 {
-                    let timeElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartCheck
-                    DDLogInfo("total perf: \(Int(timeElapsed)/60)")
-                }
-            }
-        }
     }
     
     func xmppPubSub(_ sender: XMPPPubSub, didNotSubscribeToNode node: String, withError iq: XMPPIQ) {
         DDLogInfo("PubSub: didNotSubscribeToNode - \(node)")
-        
-        let idx = self.metaData.checkIds.firstIndex(where: {$0 == node})
-        
-        if (idx != nil) {
-            
-            let miniElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartCheck
-            DDLogInfo("\(self.metaData.checkIds[idx!]) perf: \(Int(miniElapsed))")
-            
-            self.metaData.checkIds.remove(at: idx!)
-            
-            if self.metaData.checkIds.count == 0 {
-                let timeElapsed = Date().timeIntervalSince1970 - self.metaData.timeStartCheck
-                DDLogInfo("total perf: \(Int(timeElapsed)/60)")
-            }
-        }
     }
     
-//    func xmppPubSub(_ sender: XMPPPubSub, didCreateNode node: String, withResult iq: XMPPIQ) {
-//        DDLogInfo("PubSub: didCreateNode - \(iq)")
-//    }
-    
-//    func xmppPubSub(_ sender: XMPPPubSub, didNotCreateNode node: String, withError iq: XMPPIQ) {
-//        DDLogInfo("PubSub: didNotCreateNode - \(iq)")
-//    }
-        
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveItems iq: XMPPIQ, fromNode node: String) {
 //        DDLogInfo("PubSub: didRetrieveItems - \(iq)")
         

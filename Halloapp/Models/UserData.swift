@@ -28,9 +28,6 @@ final class UserData: ObservableObject {
     
     @Published var phone = ""
     @Published var isLoggedIn = false
-
-    public var haveContactsSub = false
-    public var haveFeedSub = false
     
     @Published var status: String = ""
     @Published var highlight = false
@@ -67,9 +64,7 @@ final class UserData: ObservableObject {
         self.phoneInput,
         self.password,
         self.phone,
-        self.isLoggedIn,
-        self.haveContactsSub,
-        self.haveFeedSub) = userCore.get()
+        self.isLoggedIn) = userCore.get()
 
         subCancellable = $phone.sink { val in
             
@@ -104,9 +99,7 @@ final class UserData: ObservableObject {
                                  phoneInput: self.phoneInput,
                                  password: self.password,
                                  phone: self.phone,
-                                 isLoggedIn: self.isLoggedIn,
-                                 haveContactsSub: self.haveContactsSub,
-                                 haveFeedSub: self.haveFeedSub)
+                                 isLoggedIn: self.isLoggedIn)
         }
     }
     
@@ -114,18 +107,7 @@ final class UserData: ObservableObject {
         subCancellable.cancel()
     }
     
-    func setHaveContactsSub(value: Bool) {
-        self.haveContactsSub = value
-        self.save()
-    }
-    
-    func setHaveFeedSub(value: Bool) {
-        self.haveFeedSub = value
-        self.save()
-    }
-        
     func resyncContacts() {
-//        deleteAllData(entityName: "ContactsCore")
 //        self.didResyncContacts.send()
     }
 
@@ -140,7 +122,6 @@ final class UserData: ObservableObject {
     
     func logout() {
         deleteAllData(entityName: "User")
-        deleteAllData(entityName: "ContactsCore")
         deleteAllData(entityName: "FeedCore")
         deleteAllData(entityName: "FeedComments")
         deleteAllData(entityName: "CContactsAvatar")
@@ -152,9 +133,6 @@ final class UserData: ObservableObject {
         self.countryCode = "1"
         self.phone = ""
         self.isRegistered = false
-        
-        self.haveContactsSub = false
-        self.haveFeedSub = false
         
         self.isLoggedIn = false
     }
@@ -207,9 +185,7 @@ final class UserData: ObservableObject {
                                          phoneInput: self.phoneInput,
                                          password: self.password,
                                          phone: self.phone,
-                                         isLoggedIn: self.isLoggedIn,
-                                         haveContactsSub: self.haveContactsSub,
-                                         haveFeedSub: self.haveFeedSub)
+                                         isLoggedIn: self.isLoggedIn)
                 }
             }
             self.register()

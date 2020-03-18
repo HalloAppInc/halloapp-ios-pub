@@ -42,20 +42,19 @@ struct Settings: View {
                 }
             }
             
-            HStack() {
-                Button(action: {
-                    self.userData.resyncContacts()
-                    self.onDismiss()
-                }) {
-                    Text("Re-Sync Contacts")
-                        .padding(10)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(20)
-                }
-                .padding(.top, 100)
-                
-            }
+//            HStack() {
+//                Button(action: {
+//                    self.userData.resyncContacts()
+//                    self.onDismiss()
+//                }) {
+//                    Text("Re-Sync Contacts")
+//                        .padding(10)
+//                        .background(Color.blue)
+//                        .foregroundColor(.white)
+//                        .cornerRadius(20)
+//                }
+//                .padding(.top, 100)
+//            }
             
 //            Button(action: {
 //                self.userData.hostName = "s-test.halloapp.net"

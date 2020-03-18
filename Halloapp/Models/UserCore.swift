@@ -15,8 +15,6 @@ class UserCore {
                     String,
                     String,
                     String,
-                    Bool,
-                    Bool,
                     Bool) {
                         
         var countryCode: String = "1"
@@ -24,8 +22,6 @@ class UserCore {
         var password: String = ""
         var phone: String = ""
         var isLoggedIn: Bool = false
-        var haveContactsSub: Bool = false
-        var haveFeedSub: Bool = false
                         
         let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
         
@@ -57,34 +53,20 @@ class UserCore {
                     isLoggedIn = false
                 }
 
-                if let haveContactsSubData = data.value(forKey: "haveContactsSub") as! Bool? {
-                    haveContactsSub = haveContactsSubData
-                } else {
-                    haveContactsSub = false
-                }
-                
-                if let haveFeedSubData = data.value(forKey: "haveFeedSub") as! Bool? {
-                    haveFeedSub = haveFeedSubData
-                } else {
-                    haveFeedSub = false
-                }
-                
             }
             
         } catch  {
             DDLogError("failed")
         }
                         
-        return (countryCode, phoneInput, password, phone, isLoggedIn, haveContactsSub, haveFeedSub)
+        return (countryCode, phoneInput, password, phone, isLoggedIn)
     }
     
     func create(countryCode: String,
                 phoneInput: String,
                 password: String,
                 phone: String,
-                isLoggedIn: Bool,
-                haveContactsSub: Bool,
-                haveFeedSub: Bool) {
+                isLoggedIn: Bool) {
         let managedContext = CoreDataManager.sharedManager.bgContext
 
         managedContext.perform {
@@ -97,8 +79,6 @@ class UserCore {
             user.setValue(phone, forKeyPath: "phone")
             user.setValue(password, forKeyPath: "password")
             user.setValue(isLoggedIn, forKeyPath: "isLoggedIn")
-            user.setValue(haveContactsSub, forKeyPath: "haveContactsSub")
-            user.setValue(haveFeedSub, forKeyPath: "haveFeedSub")
             
             do {
                 try managedContext.save()
@@ -112,9 +92,7 @@ class UserCore {
                 phoneInput: String,
                 password: String,
                 phone: String,
-                isLoggedIn: Bool,
-                haveContactsSub: Bool,
-                haveFeedSub: Bool) {
+                isLoggedIn: Bool) {
         
         let managedContext = CoreDataManager.sharedManager.bgContext
 
@@ -140,8 +118,6 @@ class UserCore {
                     objectUpdate.setValue(password, forKey: "password")
                     objectUpdate.setValue(phone, forKey: "phone")
                     objectUpdate.setValue(isLoggedIn, forKey: "isLoggedIn")
-                    objectUpdate.setValue(haveContactsSub, forKey: "haveContactsSub")
-                    objectUpdate.setValue(haveFeedSub, forKey: "haveFeedSub")
                     
                     do {
                         try managedContext.save()
