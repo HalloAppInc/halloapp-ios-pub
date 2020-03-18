@@ -111,14 +111,8 @@ final class UserData: ObservableObject {
         } else {
             self.hostName = "s.halloapp.net"
         }
-        
-//        self.didResyncContacts.send()
     }
     
-    func resyncContacts() {
-//        self.didResyncContacts.send()
-    }
-
     func logIn() {
         self.isLoggedIn = true
         self.save()
