@@ -38,7 +38,7 @@ DEPENDENCIES:
   - CryptoSwift (~> 1.0)
   - SwiftDate (~> 6.0.0)
   - SwiftyJSON
-  - XMPPFramework/Swift (from `https://github.com/HalloAppInc/XMPPFramework`)
+  - "XMPPFramework/Swift (from `git@github.com:HalloAppInc/XMPPFramework.git`)"
   - YPImagePicker (~> 4.2.0)
   - Zip (~> 1.1)
 
@@ -59,12 +59,12 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   XMPPFramework:
-    :git: https://github.com/HalloAppInc/XMPPFramework
+    :git: "git@github.com:HalloAppInc/XMPPFramework.git"
 
 CHECKOUT OPTIONS:
   XMPPFramework:
-    :commit: 34fa31be20a4b56b7108f1f1becf19bd35ae205e
-    :git: https://github.com/HalloAppInc/XMPPFramework
+    :commit: e6bd99d2c2c284a6c8cf313534138f89f7e8ec9f
+    :git: "git@github.com:HalloAppInc/XMPPFramework.git"
 
 SPEC CHECKSUMS:
   Alamofire: 85e8a02c69d6020a0d734f6054870d7ecb75cf18
@@ -81,6 +81,6 @@ SPEC CHECKSUMS:
   YPImagePicker: accf310f9526641a84372c0ecf943547d9b1e52c
   Zip: 8877eede3dda76bcac281225c20e71c25270774c
 
-PODFILE CHECKSUM: b0beaba221a39c9dda76ecff5854834318a7b74d
+PODFILE CHECKSUM: 756a80156789a61baf9cc1ab4232234bdbd5cff6
 
 COCOAPODS: 1.8.4
