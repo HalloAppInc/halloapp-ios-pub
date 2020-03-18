@@ -16,8 +16,6 @@ import CoreData
 
 final class UserData: ObservableObject {
 
-    private let logsQueue = DispatchQueue(label: "com.halloapp.logs.serial", qos: DispatchQoS.default)
-    
     var didLogOff = PassthroughSubject<Void, Never>()
     
     var didResyncContacts = PassthroughSubject<Void, Never>()
@@ -34,7 +32,7 @@ final class UserData: ObservableObject {
     
     @Published var highlightCountryCode = false
 
-    @Published var hostName = "s.halloapp.net"
+    public var hostName = "s.halloapp.net"
 //    @Published var hostName = "s-test.halloapp.net"
     
 //  @Published var userJIDString = "14088922686@s.halloapp.net/iphone"
@@ -105,6 +103,16 @@ final class UserData: ObservableObject {
     
     deinit {
         subCancellable.cancel()
+    }
+    
+    func switchToNetwork() {
+        if self.hostName == "s.halloapp.net" {
+            self.hostName = "s-test.halloapp.net"
+        } else {
+            self.hostName = "s.halloapp.net"
+        }
+        
+//        self.didResyncContacts.send()
     }
     
     func resyncContacts() {

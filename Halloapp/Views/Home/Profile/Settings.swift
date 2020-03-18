@@ -13,6 +13,7 @@ struct Settings: View {
     @EnvironmentObject var mainViewController: MainViewController
 
     private let userData = AppContext.shared.userData
+    private let xmppController = AppContext.shared.xmppController
 
     var onDismiss: () -> ()
     
@@ -56,20 +57,22 @@ struct Settings: View {
 //                .padding(.top, 100)
 //            }
             
-//            Button(action: {
-//                self.userData.hostName = "s-test.halloapp.net"
-//            }) {
-//                Text("Switch To Test Network")
-//                    .padding(10)
-//                    .background(Color.blue)
-//                    .foregroundColor(.white)
-//                    .cornerRadius(20)
-//                    .shadow(radius: 2)
-//            }
-//            .padding(.top, 100)
+            Button(action: {
+                self.userData.switchToNetwork()
+                self.xmppController.xmppStream.disconnect()
+                self.xmppController.connect()
+                self.onDismiss()
+            }) {
+                Text("Switch Network")
+                    .padding(10)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(20)
+                    .shadow(radius: 2)
+            }
+            .padding(.top, 100)
             
          
-
             Text("Version \(Utils().appVersion())")
             Text("\(self.userData.hostName)")
 
