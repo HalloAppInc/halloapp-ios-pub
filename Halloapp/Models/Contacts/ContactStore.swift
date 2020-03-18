@@ -679,6 +679,52 @@ class ContactStore {
         return Dictionary(grouping: contacts, by: { $0.phoneNumber! })
     }
 
+    private func contactsMatching(normalizedPhoneNumbers: [ABContact.NormalizedPhoneNumber], in managedObjectContext: NSManagedObjectContext) -> [String: [ABContact]] {
+        let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
+        fetchRequst.predicate = NSPredicate(format: "normalizedPhoneNumber IN %@", normalizedPhoneNumbers)
+        fetchRequst.returnsObjectsAsFaults = false
+        var contacts: [ABContact] = []
+        do {
+            try contacts = managedObjectContext.fetch(fetchRequst)
+        }
+        catch {
+            fatalError()
+        }
+        return Dictionary(grouping: contacts, by: { $0.normalizedPhoneNumber! })
+    }
+
+    private func update(contacts: [ABContact], with xmppContact: XMPPContact, updating newUsersSet: inout Set<ABContact.NormalizedPhoneNumber>) {
+        let newStatus: ABContact.Status = xmppContact.registered ? .in : (xmppContact.normalized == nil ? .invalid : .out)
+        if newStatus == .invalid {
+            DDLogInfo("contacts/sync/process-results/invalid [\(xmppContact.raw!)]")
+        }
+        for abContact in contacts {
+            // Update status.
+            let previousStatus = abContact.status
+            if newStatus != previousStatus {
+                abContact.status = newStatus
+
+                if newStatus == .in {
+                    DDLogInfo("contacts/sync/process-results/new-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
+                    newUsersSet.insert(xmppContact.normalized!)
+                } else if previousStatus == .in && newStatus == .out {
+                    DDLogInfo("contacts/sync/process-results/delete-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
+                }
+            }
+
+            // Store normalized phone number.
+            if xmppContact.normalized != abContact.normalizedPhoneNumber {
+                abContact.normalizedPhoneNumber = xmppContact.normalized
+            }
+
+            // Update userId
+            if xmppContact.userid != abContact.userId {
+                DDLogInfo("contacts/sync/process-results/userid-update [\(abContact.fullName ?? "<<NO NAME>>")]: [\(abContact.userId ?? "")] -> [\(xmppContact.userid ?? "")]")
+                abContact.userId = xmppContact.userid
+            }
+        }
+    }
+
     func processSync(results: [XMPPContact], isFullSync: Bool, using managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("contacts/sync/process-results/start")
         let startTime = Date()
@@ -688,36 +734,8 @@ class ContactStore {
         let phoneNumberToContactsMap = self.contactsMatching(phoneNumbers: allPhoneNumbers, in: managedObjectContext)
         var newUsers: Set<ABContact.NormalizedPhoneNumber> = []
         for xmppContact in results {
-            let newStatus: ABContact.Status = xmppContact.registered ? .in : (xmppContact.normalized == nil ? .invalid : .out)
-            if newStatus == .invalid {
-                DDLogInfo("contacts/sync/process-results/invalid [\(xmppContact.raw!)]")
-            }
             if let contacts = phoneNumberToContactsMap[xmppContact.raw!] {
-                for abContact in contacts {
-                    // Update status.
-                    let previousStatus = abContact.status
-                    if newStatus != previousStatus {
-                        abContact.status = newStatus
-
-                        if newStatus == .in {
-                            DDLogInfo("contacts/sync/process-results/new-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
-                            newUsers.insert(xmppContact.normalized!)
-                        } else if previousStatus == .in && newStatus == .out {
-                            DDLogInfo("contacts/sync/process-results/delete-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
-                        }
-                    }
-
-                    // Store normalized phone number.
-                    if xmppContact.normalized != abContact.normalizedPhoneNumber {
-                        abContact.normalizedPhoneNumber = xmppContact.normalized
-                    }
-
-                    // Update userId
-                    if xmppContact.userid != abContact.userId {
-                        DDLogInfo("contacts/sync/process-results/userid-update [\(abContact.fullName ?? "<<NO NAME>>")]: [\(abContact.userId ?? "")] -> [\(xmppContact.userid ?? "")]")
-                        abContact.userId = xmppContact.userid
-                    }
-                }
+                self.update(contacts: contacts, with: xmppContact, updating: &newUsers)
             }
         }
 
@@ -734,6 +752,35 @@ class ContactStore {
         }
 
         DDLogInfo("contacts/sync/process-results/finish time=[\(Date().timeIntervalSince(startTime))]")
+    }
+
+    func processNotification(contacts xmppContacts: [XMPPContact], using managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("contacts/notification/process")
+        let selfPhoneNumber = AppContext.shared.userData.phone
+        // Server can send a "new friend" notification for user's own phone number too (on first sync) - filter that one out.
+        let allNormalizedPhoneNumbers = xmppContacts.map{ $0.normalized! }.filter{ $0 != selfPhoneNumber }
+        guard !allNormalizedPhoneNumbers.isEmpty else {
+            DDLogInfo("contacts/notification/process/empty")
+            return
+        }
+        let phoneNumberToContactsMap = self.contactsMatching(normalizedPhoneNumbers: allNormalizedPhoneNumbers, in: managedObjectContext)
+        var newUsers: Set<ABContact.NormalizedPhoneNumber> = []
+        for xmppContact in xmppContacts {
+            if let contacts = phoneNumberToContactsMap[xmppContact.normalized!] {
+                self.update(contacts: contacts, with: xmppContact, updating: &newUsers)
+            }
+        }
+        DDLogInfo("contacts/notification/process/will-save")
+        do {
+            try managedObjectContext.save()
+            DDLogInfo("contacts/notification/process/did-save")
+        } catch {
+            DDLogError("contacts/snotification/process/save-error error=[\(error)]")
+        }
+
+        for newUserID in newUsers {
+            self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(newUserID)")
+        }
     }
 
     // MARK: SwiftUI Support

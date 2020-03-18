@@ -203,6 +203,18 @@ class SyncManager {
         self.finishSync(with: mode, result: .success, failureReason: .none)
     }
 
+    func processNotification(contacts: [XMPPContact]) {
+        DDLogInfo("syncmanager/notification contacts=[\(contacts)]")
+        guard !contacts.isEmpty else {
+            return
+        }
+        self.queue.async {
+            self.contactStore.performOnBackgroundContextAndWait{ managedObjectContext in
+                self.contactStore.processNotification(contacts: contacts, using: managedObjectContext)
+            }
+        }
+    }
+
     private func finishSync(with mode: SyncMode, result: SyncResult, failureReason: FailureReason) {
         guard self.isSyncInProgress else {
             return

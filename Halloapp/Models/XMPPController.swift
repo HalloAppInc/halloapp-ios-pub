@@ -255,7 +255,11 @@ extension XMPPController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream, didReceive message: XMPPMessage) {
         DDLogInfo("Stream: didReceive message \(message)")
-        if (message.fromStr! != "pubsub.s.halloapp.net") {
+        if message.fromStr! == "pubsub.s.halloapp.net" {
+            if let contactList = message.element(forName: "contact_list") {
+                AppContext.shared.syncManager.processNotification(contacts: contactList.elements(forName: "contact").compactMap{ XMPPContact($0) })
+            }
+        } else {
             DDLogInfo("Stream: didReceive \(message)")
         }
 
