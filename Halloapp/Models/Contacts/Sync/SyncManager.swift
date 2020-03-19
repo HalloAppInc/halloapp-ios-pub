@@ -46,15 +46,22 @@ class SyncManager {
 
     private var nextSyncMode: SyncMode = .none
     private var nextSyncDate: Date?
-
     let queue = DispatchQueue(label: "com.halloapp.syncmanager")
+    private var fullSyncTimer: DispatchSourceTimer
 
     private let contactStore: ContactStore
     private let xmppController: XMPPController
 
+    private static let UDDisabledAddressBookSynced = "isabledAddressBookSynced"
+
     init(contactStore: ContactStore, xmppController: XMPPController) {
         self.contactStore = contactStore
         self.xmppController = xmppController
+
+        self.fullSyncTimer = DispatchSource.makeTimerSource(queue: self.queue)
+        self.fullSyncTimer.setEventHandler {
+            self.runFullSyncIfNecessary()
+        }
     }
 
     public func enableSync() {
@@ -63,6 +70,10 @@ class SyncManager {
         }
         DDLogInfo("syncmanager/enabled")
         self.isSyncEnabled = true
+
+        self.fullSyncTimer.schedule(wallDeadline: DispatchWallTime.now(), repeating: 60)
+        self.fullSyncTimer.activate()
+
         self.requestDeltaSync()
     }
 
@@ -85,6 +96,7 @@ class SyncManager {
 
     private func requestSyncWith(mode: SyncMode) {
         self.queue.async {
+            self.nextSyncDate = Date()
             self.nextSyncMode = mode
 
             let failureReason = self.runSyncIfNecessary()
@@ -95,7 +107,36 @@ class SyncManager {
     }
 
     // MARK: Run sync
-    private func runSyncIfNecessary() -> FailureReason {
+    private func runFullSyncIfNecessary() {
+        let nextFullSyncDate = self.contactStore.databaseMetadata?[ContactStoreMetadataNextFullSyncDate] as? Date
+        DDLogInfo("syncmanager/scheduled-full/check d:[\(String(describing: nextFullSyncDate))]")
+
+        var runFullSync = false
+
+        // Force full sync on address book permissions change.
+        if ContactStore.contactsAccessAuthorized == UserDefaults.standard.bool(forKey: SyncManager.UDDisabledAddressBookSynced) {
+            runFullSync = true
+            self.nextSyncDate = Date()
+        }
+        // Sync was never run - do it now.
+        if nextFullSyncDate == nil {
+            if !self.isSyncInProgress {
+                runFullSync = true
+                self.nextSyncDate = Date()
+            }
+        }
+        // Time for a scheduled sync
+        else if nextFullSyncDate!.timeIntervalSinceNow < 0 {
+            runFullSync = true
+        }
+
+        if runFullSync {
+            self.nextSyncMode = .full
+            self.runSyncIfNecessary()
+        }
+    }
+
+    @discardableResult private func runSyncIfNecessary() -> FailureReason {
         guard !self.isSyncInProgress else {
             return .alreadyRunning
         }
@@ -109,25 +150,18 @@ class SyncManager {
             return .empty
         }
 
-//        // Next sync date should be set.
-//        guard self.nextSyncDate != nil else {
-//            return .empty
-//        }
+        // Next sync date should be set.
+        guard self.nextSyncDate != nil else {
+            return .empty
+        }
+        guard self.nextSyncDate!.timeIntervalSinceNow < 0 else {
+            return.empty
+        }
 
         // Must be connected.
         guard self.xmppController.xmppStream.isConnected else {
             return .notAllowed
         }
-
-//        // Check sync queue length:
-//        // • maximum of 4 background syncs per hour;
-//        // • maximum of 50 'interactive' and 'registration' syncs per hour.
-//        [self cleanSyncHistory];
-//        if (_syncHistory.count >= (_nextSyncContext == XMPPUnifiedSyncContextBackground? 4 : 50)) {
-//            _nextSyncDate = [(NSDate *)[[_syncHistory lastObject] objectForKey:@"d"] dateByAddingTimeInterval:kSyncFrequencyInterval+1];
-//            WAPrefixLog(WAL_WARNING, @"reschedule [%@]", _nextSyncDate);
-//            return WASyncFailureReasonNotAllowed;
-//        }
 
         self.reallyPerformSync()
 
@@ -141,9 +175,7 @@ class SyncManager {
     private func reallyPerformSync() {
         DDLogInfo("syncmanager/sync/prepare")
 
-        ///TODO: handle scenario when user removes access to contacts and we need to re-sync everything
-
-        let contactsToSync = self.contactStore.contactsFor(fullSync: self.nextSyncMode == .full)
+        let contactsToSync = ContactStore.contactsAccessAuthorized ? self.contactStore.contactsFor(fullSync: self.nextSyncMode == .full) : []
 
         // Upgrade to full sync if we must send both adds and deletes.
         ///TODO: server should allows us to send both in one stanza.
@@ -195,6 +227,22 @@ class SyncManager {
         // Process results
         self.pendingDeletes.subtract(self.processedDeletes)
         self.processedDeletes.removeAll()
+
+
+        if mode == .full {
+            // Mark that contacts were resynced after Contacts permissions change.
+            if ContactStore.contactsAccessAuthorized {
+                UserDefaults.standard.removeObject(forKey: SyncManager.UDDisabledAddressBookSynced)
+            } else {
+                UserDefaults.standard.set(true, forKey: SyncManager.UDDisabledAddressBookSynced)
+            }
+
+            // Set next full sync date: now + 1 day
+            self.contactStore.mutateDatabaseMetadata { (metadata) in
+                metadata[ContactStoreMetadataNextFullSyncDate] = Date(timeIntervalSinceNow: 3600*24)
+            }
+        }
+
         if contacts != nil {
             self.contactStore.performOnBackgroundContextAndWait{ managedObjectContext in
                 self.contactStore.processSync(results: contacts!, isFullSync: mode == .full, using: managedObjectContext)

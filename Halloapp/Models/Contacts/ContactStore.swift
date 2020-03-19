@@ -20,7 +20,7 @@ import UIKit
 // MARK: Constants
 fileprivate let ContactStoreMetadataCollationLocale = "CollationLocale"
 fileprivate let ContactStoreMetadataContactsLoaded = "ContactsLoaded"
-fileprivate let ContactStoreMetadataContactsSynced = "ContactsSynced"
+let ContactStoreMetadataNextFullSyncDate = "NextFullSyncDate"
 
 /**
  Intermediate object encapsulating information about  AddressBook contact's phone number.
