@@ -119,7 +119,10 @@ struct CommentsView: View {
                             }
                         }) {
                             if (self.msgToSend != "") {
-                                self.feedData.postComment(self.item.itemId, self.item.username, self.msgToSend, self.replyTo)
+                                self.feedData.postComment(feedUser: self.item.username,
+                                                          feedItemId: self.item.itemId,
+                                                          parentCommentId: self.replyTo,
+                                                          text: self.msgToSend)
 
                                 self.msgToSend = ""
                                 self.replyTo = ""
@@ -141,7 +144,10 @@ struct CommentsView: View {
                             }
 
                             if (self.msgToSend != "") {
-                                self.feedData.postComment(self.item.itemId, self.item.username, self.msgToSend, self.replyTo)
+                                self.feedData.postComment(feedUser: self.item.username,
+                                                          feedItemId: self.item.itemId,
+                                                          parentCommentId: self.replyTo,
+                                                          text: self.msgToSend)
 
                                 self.msgToSend = ""
                                 self.replyTo = ""

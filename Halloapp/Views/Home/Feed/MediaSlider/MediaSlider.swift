@@ -44,8 +44,6 @@ struct MediaSlider: View {
                     
                     self.media = self.item.media
                     
-//                    self.calHeight()
-                    
                 })
 
             )

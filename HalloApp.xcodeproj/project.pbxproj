@@ -78,6 +78,8 @@
 		EABF313123F229350039B5A6 /* HAC.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF313023F229350039B5A6 /* HAC.swift */; };
 		EAC4AF23233E8DAB00739B2B /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */; };
 		EAC7E8F92385A6B700F5E711 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC7E8F82385A6B700F5E711 /* Settings.swift */; };
+		EAC84CEA2422E05700A5AAEF /* XMPPPostItemRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC84CE92422E05700A5AAEF /* XMPPPostItemRequest.swift */; };
+		EAC84CEC2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC84CEB2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift */; };
 		EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = EAE6152D23970FDC00BB4552 /* Halloapp.xcdatamodeld */; };
 		EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C22334191E00805FF9 /* AppDelegate.swift */; };
 		EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */; };
@@ -185,6 +187,8 @@
 		EABF313023F229350039B5A6 /* HAC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HAC.swift; sourceTree = "<group>"; };
 		EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
 		EAC7E8F82385A6B700F5E711 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		EAC84CE92422E05700A5AAEF /* XMPPPostItemRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPPostItemRequest.swift; sourceTree = "<group>"; };
+		EAC84CEB2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPPostCommentRequest.swift; sourceTree = "<group>"; };
 		EAE6152E23970FDC00BB4552 /* Halloapp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Halloapp.xcdatamodel; sourceTree = "<group>"; };
 		EAF3A1BF2334191E00805FF9 /* HalloApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1C22334191E00805FF9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -266,6 +270,8 @@
 				761B3953241C38A300858251 /* XMPPCommonRequests.swift */,
 				76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */,
 				761B394E241AF01100858251 /* XMPPMediaRequests.swift */,
+				EAC84CE92422E05700A5AAEF /* XMPPPostItemRequest.swift */,
+				EAC84CEB2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift */,
 			);
 			path = Requests;
 			sourceTree = "<group>";
@@ -796,11 +802,13 @@
 				EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */,
 				EA3861ED23342C7C00705943 /* Login.swift in Sources */,
 				EA45713523EB7DBE008C2E44 /* FeedMediaCore.swift in Sources */,
+				EAC84CEC2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift in Sources */,
 				76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
 				EA45713F23EB7F76008C2E44 /* WMediaSlider.swift in Sources */,
 				EA80ADFB235A8325002F7680 /* Utils.swift in Sources */,
 				EA0D20092363AD74008B8289 /* AuthRouter.swift in Sources */,
+				EAC84CEA2422E05700A5AAEF /* XMPPPostItemRequest.swift in Sources */,
 				EA17C39B23ED39E600727413 /* FeedCollectionView.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				EA45713723EB7DF5008C2E44 /* UserCore.swift in Sources */,

@@ -46,7 +46,6 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     
     private var cancellableSet: Set<AnyCancellable> = []
     
-    
     init(   itemId: String = "",
             username: String = "",
             imageUrl: String = "",
@@ -69,18 +68,17 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     }
     
     func loadMedia() {
-
+        
         for med in self.media {
-                                    
+            
             if (
                     (med.type == "image" && med.image.size.width < 1) ||
                     (med.type == "video" && med.tempUrl == nil)
                 ) {
             
-                if (med.url != "" && med.numTries < 5) {
+    
+                if (med.url != "" && med.numTries < 10) {
                                     
-      
-                    
                     cancellableSet.insert(
                         med.didChange.sink(receiveValue: { [weak self] _ in
                             guard let self = self else { return }
@@ -93,7 +91,6 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
                         })
                     )
                     
-                    print("load media for: \(itemId) \(med.url) trying for: \(med.numTries)")
                     med.loadImage()
                                     
                 }

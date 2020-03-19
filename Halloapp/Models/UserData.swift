@@ -33,7 +33,7 @@ final class UserData: ObservableObject {
     @Published var highlightCountryCode = false
 
     public var hostName = "s.halloapp.net"
-//    @Published var hostName = "s-test.halloapp.net"
+//    public var hostName = "s-test.halloapp.net"
     
 //  @Published var userJIDString = "14088922686@s.halloapp.net/iphone"
     

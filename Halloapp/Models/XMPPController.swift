@@ -254,7 +254,7 @@ class XMPPController: NSObject, ObservableObject {
 extension XMPPController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream, didReceive message: XMPPMessage) {
-        DDLogInfo("Stream: didReceive message \(message)")
+//        DDLogInfo("Stream: didReceive message \(message)")
         if message.fromStr! == "pubsub.s.halloapp.net" {
             if let contactList = message.element(forName: "contact_list") {
                 AppContext.shared.syncManager.processNotification(contacts: contactList.elements(forName: "contact").compactMap{ XMPPContact($0) })
@@ -418,15 +418,12 @@ extension XMPPController: XMPPReconnectDelegate {
 }
 
 extension XMPPController: XMPPPingDelegate {
-
     public func xmppPing(_ sender: XMPPPing!, didReceivePong pong: XMPPIQ!, withRTT rtt: TimeInterval) {
         DDLogInfo("Ping: didReceivePong")
     }
-
     public func xmppPing(_ sender: XMPPPing!, didNotReceivePong pingID: String!, dueToTimeout timeout: TimeInterval) {
         DDLogInfo("Ping: didNotReceivePong")
     }
-
 }
 
 //extension XMPPController: XMPPAutoPingDelegate {
@@ -449,7 +446,6 @@ extension XMPPController: XMPPPubSubDelegate {
 
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveSubscriptions iq: XMPPIQ) {
 //        DDLogInfo("PubSub: didRetrieveSubscriptions - \(iq)")
-
     }
 
 //    func xmppPubSub(_ sender: XMPPPubSub, didNotRetrieveSubscriptions iq: XMPPIQ) {
@@ -466,21 +462,16 @@ extension XMPPController: XMPPPubSubDelegate {
     
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveItems iq: XMPPIQ, fromNode node: String) {
 //        DDLogInfo("PubSub: didRetrieveItems - \(iq)")
-        
         let pubsub = iq.element(forName: "pubsub")
         let items = pubsub?.element(forName: "items")
-        
         if let node = items?.attributeStringValue(forName: "node") {
-        
             let nodeParts = node.components(separatedBy: "-")
-            
             if nodeParts.count > 0 {
                 if (nodeParts[0] == "feed") {
                     self.didGetFeedItems.send(iq)
                 }
             }
         }
-        
     }
     
 //    func xmppPubSub(_ sender: XMPPPubSub, didNotRetrieveItems iq: XMPPIQ, fromNode node: String) {
@@ -489,7 +480,7 @@ extension XMPPController: XMPPPubSubDelegate {
 
     func xmppPubSub(_ sender: XMPPPubSub, didReceive message: XMPPMessage) {
 
-        DDLogInfo("PubSub: didReceive Message \(message)")
+//        DDLogInfo("PubSub: didReceive Message \(message)")
 
         let event = message.element(forName: "event")
         let items = event?.element(forName: "items")

@@ -28,7 +28,9 @@ struct WAVPlayer: UIViewControllerRepresentable {
 
     func makeUIViewController(context: UIViewControllerRepresentableContext<WAVPlayer>) -> WAVPlayer.UIViewControllerType {
         let playerController = AVPlayerViewController()
+        
         playerController.player = player
+        
         playerController.view.backgroundColor = UIColor.white
     
         return playerController

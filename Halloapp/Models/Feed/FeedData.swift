@@ -128,7 +128,6 @@ class FeedData: ObservableObject {
         
         /* retract item */
         cancellableSet.insert(
-            
             xmppController.didGetRetractItem.sink(receiveValue: { value in
                 DDLogInfo("Feed: Retract Item \(value)")
                 
@@ -142,6 +141,8 @@ class FeedData: ObservableObject {
             if self.feedDataItems[idx].media.count == 0 {
                 self.feedDataItems[idx].media = FeedMediaCore().get(feedItemId: itemId)
 
+                print("now \(self.feedDataItems[idx].media.count)")
+                
                 /* ideally we should have the images in core data by now */
                 /* todo: scan for unloaded images during init */
                 self.feedDataItems[idx].loadMedia()
@@ -220,13 +221,14 @@ class FeedData: ObservableObject {
                 return Int($0.timestamp) > Int($1.timestamp)
             }
 
-            DispatchQueue.global(qos: .default).async {
+            DispatchQueue.global(qos: .userInitiated).async {
                 self.feedItemCore.create(item: item)
                 for med in item.media {
                     self.feedMediaCore.create(item: med)
                 }
             }
             
+            print("pushing item: \(item.itemId)")
             item.loadMedia()
         }
         
@@ -281,80 +283,84 @@ class FeedData: ObservableObject {
     }
     
     func postItem(_ user: String, _ text: String, _ media: [FeedMedia]) {
-        let text = XMLElement(name: "text", stringValue: text)
+    
+        let itemId: String = UUID().uuidString
         
-        let childroot = XMLElement(name: "feedpost")
-        let mainroot = XMLElement(name: "entry")
-        
-        if media.count > 0 {
-            let mediaEl = XMLElement(name: "media")
+        let request = XMPPPostItemRequest(user: user,
+                                          text: text,
+                                          media: media,
+                                          itemId: itemId,
+                                          completion: { timestamp, error in
             
+            let feedItem = FeedDataItem()
+            feedItem.itemId = itemId
+            
+            feedItem.text = text
+            feedItem.username = user
+                                            
             for med in media {
-                let medEl = XMLElement(name: "url", stringValue: med.url)
-                medEl.addAttribute(withName: "type", stringValue: med.type)
-                medEl.addAttribute(withName: "width", stringValue: String(med.width))
-                medEl.addAttribute(withName: "height", stringValue: String(med.height))
-                
-                if med.key != "" {
-                    medEl.addAttribute(withName: "key", stringValue: String(med.key))
-                    medEl.addAttribute(withName: "sha256hash", stringValue: String(med.sha256hash))
-                }
-                 
-                mediaEl.addChild(medEl)
+
+                let copyMed: FeedMedia = FeedMedia()
+                copyMed.feedItemId = itemId
+                copyMed.order = med.order
+                copyMed.type = med.type
+                copyMed.width = med.width
+                copyMed.height = med.height
+                copyMed.key = med.key
+                copyMed.sha256hash = med.sha256hash
+                copyMed.url = med.url
+
+                feedItem.media.append(copyMed)
             }
             
-            childroot.addChild(mediaEl)
-        }
-
-        childroot.addChild(text)
+            // default a current timestamp for now in case the latest server hasn't been released
+            feedItem.timestamp = Date().timeIntervalSince1970
+                                            
+            if let serverTimestamp = timestamp {
+                if serverTimestamp > 0 {
+                    feedItem.timestamp = serverTimestamp
+                }
+            }
+                            
+            self.pushItem(item: feedItem)
+        })
         
-        mainroot.addChild(childroot)
-        
-        DDLogInfo("Feed: postItem - \(mainroot)")
-        
-        let id = UUID().uuidString
-        self.xmppController.xmppPubSub.publish(toNode: "feed-\(user)", entry: mainroot, withItemID: id)
+        AppContext.shared.xmppController.enqueue(request: request)
     }
     
 
-    // Publishes the comment 'text' on post 'feedItemId' to the user 'postUser' feed pubsub node.
-    func postComment(_ feedItemId: String, _ postUser: String, _ text: String, _ parentCommentId: String) {
-        DDLogDebug("postComment: " + text)
+    func postComment(feedUser: String, feedItemId: String, parentCommentId: String, text: String) {
+    
+        let commentItemId: String = UUID().uuidString
         
-        let text = XMLElement(name: "text", stringValue: text)
-        let feedItem = XMLElement(name: "feedItemId", stringValue: feedItemId)
-        let parentCommentId = XMLElement(name: "parentCommentId", stringValue: parentCommentId)
-        let username = XMLElement(name: "username", stringValue: self.userData.phone)
-        let userImageUrl = XMLElement(name: "userImageUrl", stringValue: "")
-
-        let mainroot = XMLElement(name: "entry")
-        let childroot = XMLElement(name: "comment")
+        let request = XMPPPostCommentRequest(feedUser: feedUser,
+                                             feedItemId: feedItemId,
+                                             parentCommentId: parentCommentId,
+                                             text: text,
+                                             commentItemId: commentItemId,
+                                             completion: { timestamp, error in
+            
+            var feedComment = FeedComment(id: commentItemId)
+            feedComment.feedItemId = feedItemId
+            feedComment.parentCommentId = parentCommentId
+            feedComment.username = self.userData.phone
+            feedComment.text = text
+            
+            // default a current timestamp for now in case the latest server hasn't been released
+            feedComment.timestamp = Date().timeIntervalSince1970
+                                            
+            if let serverTimestamp = timestamp {
+                if serverTimestamp > 0 {
+                    feedComment.timestamp = serverTimestamp
+                }
+            }
+             
+            self.insertComment(item: feedComment)
+        })
         
-        childroot.addChild(username)
-        childroot.addChild(userImageUrl)
-        childroot.addChild(feedItem)
-        childroot.addChild(parentCommentId)
-
-        childroot.addChild(text)
-        
-        mainroot.addChild(childroot)
-
-        var log = "\r\n Final pubsub payload (postComment(): \(mainroot)"
-        log += "\r\n"
-        DDLogDebug(log)
-        
-        let id = UUID().uuidString
-        self.xmppController.xmppPubSub.publish(toNode: "feed-\(postUser)", entry: mainroot, withItemID: id)
+        AppContext.shared.xmppController.enqueue(request: request)
     }
     
-    func sendMessage(text: String) {
-        DDLogDebug("sendMessage: " + text)
-        let user = XMPPJID(string: "4155553695@s.halloapp.net")
-        let msg = XMPPMessage(type: "chat", to: user)
-        msg.addBody(text)
-        self.xmppController.xmppStream.send(msg)
-    }
-
     func processExpires() {
         let current = Int(Date().timeIntervalSince1970)
         

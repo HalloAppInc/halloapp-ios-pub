@@ -74,7 +74,7 @@ struct CameraPickerView: UIViewControllerRepresentable {
                     print("video height: \(mediaItem.height)")
                 }
                 
-                VideoUtils().cropVideo(sourceURL: videoURL, startTime: 0.1, endTime: 5.0, completion: { url in
+                VideoUtils().cropVideo(sourceURL: videoURL, startTime: 1.0, endTime: 5.0, completion: { url in
                     
                     DispatchQueue.main.async {
                         mediaItem.tempUrl = url

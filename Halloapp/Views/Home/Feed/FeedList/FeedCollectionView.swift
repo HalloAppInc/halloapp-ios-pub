@@ -242,7 +242,7 @@ struct FeedItemView: View {
             .buttonStyle(BorderlessButtonStyle())
 
             // Media
-            if item.media.count > 0 {
+            if item.mediaHeight > -1 {
                 MediaSlider(item, item.mediaHeight)
             } else {
                 // Extra space above text if no media
