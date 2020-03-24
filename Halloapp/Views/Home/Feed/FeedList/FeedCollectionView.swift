@@ -179,10 +179,10 @@ struct FeedHeaderView: View {
         VStack(alignment: .center, spacing: 0) {
             if (isOnProfilePage) {
                 ///TODO: make this tapable
-                Image(systemName: "circle.fill")
+                Image(systemName: "person.crop.circle")
                     .resizable()
                     .scaledToFit()
-                    .foregroundColor(Color(UIColor.systemGray3))
+                    .foregroundColor(Color.gray)
                     .clipShape(Circle())
                     .frame(width: 50, height: 50, alignment: .center)
                     .padding(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
@@ -220,16 +220,16 @@ struct FeedItemView: View {
             HStack() {
                 HStack(spacing: 10) {
                     // Profile picture
-                    Image(uiImage: UIImage())
+                    Image(systemName: "person.crop.circle")
                         .resizable()
                         .scaledToFit()
-                        .background(Color(UIColor.systemGray3))
+                        .foregroundColor(Color.gray)
                         .clipShape(Circle())
                         .frame(width: 30, height: 30, alignment: .center)
 
                     // Contact name
                     Text(self.contactStore.fullName(for: item.username))
-                        .font(.system(size: 14, weight: .regular))
+                        .font(.system(.headline))
                 }
 
                 Spacer()
