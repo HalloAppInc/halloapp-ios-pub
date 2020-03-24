@@ -264,7 +264,7 @@ struct FeedItemView: View {
 
             HStack {
                 // Comment button
-                NavigationLink(destination: CommentsView(item)) {
+                NavigationLink(destination: CommentsView(item: item).navigationBarTitle("Comments", displayMode: .inline).edgesIgnoringSafeArea(.bottom)) {
                     HStack {
                         Image(systemName: "message")
                             .font(.system(size: 20, weight: .regular))
