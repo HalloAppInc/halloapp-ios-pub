@@ -14,7 +14,7 @@ class XMPPPostCommentRequest : XMPPRequest {
 
     var completion: XMPPPostCommentRequestCompletion
 
-    init(feedUser: String, feedItemId: String, parentCommentId: String, text: String, commentItemId: String, completion: @escaping XMPPPostCommentRequestCompletion) {
+    init(feedUser: String, feedItemId: String, parentCommentId: String?, text: String, commentItemId: String, completion: @escaping XMPPPostCommentRequestCompletion) {
         self.completion = completion
         
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"), elementID: UUID().uuidString)
@@ -33,13 +33,13 @@ class XMPPPostCommentRequest : XMPPRequest {
         let comment = XMLElement(name: "comment")
         
         let feedItemId = XMLElement(name: "feedItemId", stringValue: feedItemId)
-        
-        let parentCommentId = XMLElement(name: "parentCommentId", stringValue: parentCommentId)
-        
+
         let text = XMLElement(name: "text", stringValue: text)
         
         comment.addChild(feedItemId)
-        comment.addChild(parentCommentId)
+        if (parentCommentId != nil) {
+            comment.addChild(XMLElement(name: "parentCommentId", stringValue: parentCommentId!))
+        }
         comment.addChild(text)
         entry.addChild(comment)
         item.addChild(entry)

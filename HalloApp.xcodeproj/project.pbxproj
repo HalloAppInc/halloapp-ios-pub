@@ -22,6 +22,7 @@
 		76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CD62429331D007435AC /* CommentsViewController.swift */; };
 		76B95CDE24295AB5007435AC /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CDD24295AB5007435AC /* CommentView.swift */; };
 		76B95CE22429C711007435AC /* CommentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE12429C711007435AC /* CommentsView.swift */; };
+		76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE3242A7A3F007435AC /* CommentInputView.swift */; };
 		76D0C080240F40DF0061B90E /* MessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D0C07F240F40DF0061B90E /* MessagesView.swift */; };
 		76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */; };
 		76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEE2412A4E800F49CA4 /* Contacts.xcdatamodeld */; };
@@ -129,6 +130,7 @@
 		76B95CD62429331D007435AC /* CommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsViewController.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsViewController.swift; sourceTree = SOURCE_ROOT; };
 		76B95CDD24295AB5007435AC /* CommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CE12429C711007435AC /* CommentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsView.swift; sourceTree = SOURCE_ROOT; };
+		76B95CE3242A7A3F007435AC /* CommentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentInputView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentInputView.swift; sourceTree = SOURCE_ROOT; };
 		76D0C07F240F40DF0061B90E /* MessagesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessagesView.swift; sourceTree = "<group>"; };
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
 		76DF9FEF2412A4E800F49CA4 /* Contacts.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Contacts.xcdatamodel; sourceTree = "<group>"; };
@@ -397,6 +399,7 @@
 				76B95CDD24295AB5007435AC /* CommentView.swift */,
 				76B95CE12429C711007435AC /* CommentsView.swift */,
 				76B95CD62429331D007435AC /* CommentsViewController.swift */,
+				76B95CE3242A7A3F007435AC /* CommentInputView.swift */,
 			);
 			path = Comment;
 			sourceTree = "<group>";
@@ -776,6 +779,7 @@
 				761B394F241AF01100858251 /* XMPPMediaRequests.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
 				EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */,
+				76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */,
 				EABF313123F229350039B5A6 /* HAC.swift in Sources */,
 				76DFA0032419563500F49CA4 /* XMPPRequest.swift in Sources */,
 				765668D1240DE02400214077 /* BottomBarView.swift in Sources */,

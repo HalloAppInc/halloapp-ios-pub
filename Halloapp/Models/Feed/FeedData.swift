@@ -329,20 +329,19 @@ class FeedData: ObservableObject {
     }
     
 
-    func postComment(feedUser: String, feedItemId: String, parentCommentId: String, text: String) {
-    
+    func post(comment text: String, to feedItem: FeedDataItem, replyingTo parentCommentID: String? = nil) {
         let commentItemId: String = UUID().uuidString
         
-        let request = XMPPPostCommentRequest(feedUser: feedUser,
-                                             feedItemId: feedItemId,
-                                             parentCommentId: parentCommentId,
+        let request = XMPPPostCommentRequest(feedUser: feedItem.username,
+                                             feedItemId: feedItem.itemId,
+                                             parentCommentId: parentCommentID,
                                              text: text,
                                              commentItemId: commentItemId,
                                              completion: { timestamp, error in
             
             var feedComment = FeedComment(id: commentItemId)
-            feedComment.feedItemId = feedItemId
-            feedComment.parentCommentId = parentCommentId
+            feedComment.feedItemId = feedItem.itemId
+            feedComment.parentCommentId = parentCommentID ?? ""
             feedComment.username = self.userData.phone
             feedComment.text = text
             
