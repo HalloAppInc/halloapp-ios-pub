@@ -254,13 +254,13 @@ class XMPPController: NSObject, ObservableObject {
 extension XMPPController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream, didReceive message: XMPPMessage) {
-//        DDLogInfo("Stream: didReceive message \(message)")
-        if message.fromStr! == "pubsub.s.halloapp.net" {
-            if let contactList = message.element(forName: "contact_list") {
-                AppContext.shared.syncManager.processNotification(contacts: contactList.elements(forName: "contact").compactMap{ XMPPContact($0) })
-            }
-        } else {
+        if message.fromStr! != "pubsub.s.halloapp.net" {
             DDLogInfo("Stream: didReceive \(message)")
+        }
+
+        // Notification about new contact on the app
+        if let contactList = message.element(forName: "contact_list") {
+            AppContext.shared.syncManager.processNotification(contacts: contactList.elements(forName: "contact").compactMap{ XMPPContact($0) })
         }
 
         if let id = message.elementID {
