@@ -10,26 +10,38 @@ import CocoaLumberjack
 import Foundation
 import XMPPFramework
 
+/**
+ Defines what gets sent during sync session.
+ - none: nothing, sync is not performed.
+ - delta: only contacts that were added or deleted since last full sync.
+ - full: all contacts from device address book.
+ */
+enum SyncMode {
+    case none
+    case delta
+    case full
+}
+
 class SyncSession {
     typealias Completion = ([XMPPContact]?, Error?) -> Void
 
-    private var operation: XMPPContactSyncRequest.RequestType
-    private var completion: Completion
+    private let syncMode: SyncMode
+    private let completion: Completion
 
     /**
      Set to `0` to turn off chuncked sync.
      */
-    var batchSize: Int = 0
+    let batchSize: Int = 512
     let syncID = UUID().uuidString
 
-    private var batchIndex = 0
+    private var batchIndex: Int = 0
 
     private var contacts: [XMPPContact]
     private var results: [XMPPContact] = []
     private var error: Error? = nil
 
-    init(operation: XMPPContactSyncRequest.RequestType, contacts: [XMPPContact], completion: @escaping Completion) {
-        self.operation = operation
+    init(mode: SyncMode, contacts: [XMPPContact], completion: @escaping Completion) {
+        self.syncMode = mode
         self.contacts = contacts
         self.completion = completion
     }
@@ -63,7 +75,9 @@ class SyncSession {
                 isLastBatch = range.count == self.contacts.count
             }
             let contactsToSend = self.contacts[range]
-            let request = XMPPContactSyncRequest(with: contactsToSend, operation: self.operation, syncID: self.syncID, isLastBatch: isLastBatch) { (batchResults, error) in
+            let requestType: XMPPContactSyncRequest.RequestType = self.syncMode == .full ? .full : .delta
+            let request = XMPPContactSyncRequest(with: contactsToSend, type: requestType, syncID: self.syncID,
+                                                 batchIndex: self.batchIndex, isLastBatch: isLastBatch) { (batchResults, error) in
                 DDLogInfo("sync-session/request/end/batch/\(self.batchIndex)")
                 if error != nil {
                     self.error = error

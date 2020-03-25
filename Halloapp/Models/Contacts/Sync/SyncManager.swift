@@ -10,18 +10,6 @@ import CocoaLumberjack
 import Foundation
 
 class SyncManager {
-    /**
-     Defines what gets sent during sync session.
-     - none: nothing, sync is not performed.
-     - delta: only contacts that were added or deleted since last full sync.
-     - full: all contacts from device address book.
-     */
-    enum SyncMode {
-        case none
-        case delta
-        case full
-    }
-
     enum SyncResult {
         case success
         case fail
@@ -177,39 +165,28 @@ class SyncManager {
 
         let contactsToSync = ContactStore.contactsAccessAuthorized ? self.contactStore.contactsFor(fullSync: self.nextSyncMode == .full) : []
 
-        // Upgrade to full sync if we must send both adds and deletes.
-        ///TODO: server should allows us to send both in one stanza.
-        if self.nextSyncMode == .delta && !contactsToSync.isEmpty && !self.pendingDeletes.isEmpty {
-            DDLogInfo("syncmanager/delta/upgrade-to-full")
-            self.nextSyncMode = .full
-        }
-
         // Do not run delta syncs with an empty set of users.
         guard self.nextSyncMode == .full || !contactsToSync.isEmpty || !self.pendingDeletes.isEmpty else {
             DDLogInfo("syncmanager/delta/cancel-no-items")
             return
         }
 
+        // Prepare what gets sent to the server.
+        var xmppContacts: [XMPPContact] = contactsToSync.map{ XMPPContact($0) }
+
         // Individual deleted phone don't matter if the entire address book is about to be synced.
         if self.nextSyncMode == .full {
             self.pendingDeletes.removeAll()
+        } else if !self.pendingDeletes.isEmpty {
+            xmppContacts.append(contentsOf: self.pendingDeletes.map{ XMPPContact.deletedContact(with: $0) })
+            self.processedDeletes.formUnion(self.pendingDeletes)
         }
 
         self.isSyncInProgress = true
 
-        // Prepare what gets sent to the server.
-        var xmppContacts: [XMPPContact] = contactsToSync.map{ XMPPContact($0) }
-        if xmppContacts.isEmpty && self.nextSyncMode != .full {
-            assert(!self.pendingDeletes.isEmpty)
-            // When sending deleted phone numbers it is mandatory to send a normalized phone number.
-            xmppContacts = self.pendingDeletes.map{ XMPPContact(normalized: $0) }
-            self.processedDeletes.formUnion(self.pendingDeletes)
-        }
-
         let syncMode = self.nextSyncMode
         DDLogInfo("syncmanager/sync/start [\(xmppContacts.count)]")
-        let syncOperation: XMPPContactSyncRequest.RequestType = syncMode == .full ? .set : (self.pendingDeletes.isEmpty ? .add : .delete)
-        let syncSession = SyncSession(operation: syncOperation, contacts: xmppContacts) { results, error in
+        let syncSession = SyncSession(mode: syncMode, contacts: xmppContacts) { results, error in
             self.queue.async {
                 self.processSyncResponse(mode: syncMode, contacts: results, error: error)
             }

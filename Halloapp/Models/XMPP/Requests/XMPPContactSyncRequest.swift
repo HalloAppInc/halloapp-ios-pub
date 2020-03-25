@@ -14,6 +14,7 @@ struct XMPPContact {
     private(set) var normalized: String?
     private(set) var registered: Bool = false
     var raw: String?
+    var isDeletedContact: Bool = false
 
     /**
      Initialize with data from an xml element.
@@ -57,8 +58,14 @@ struct XMPPContact {
         self.userid = abContact.userId
     }
 
-    init(normalized: ABContact.NormalizedPhoneNumber) {
-        self.normalized = normalized
+    private init(_ normalizedPhoneNumber: ABContact.NormalizedPhoneNumber) {
+        self.normalized = normalizedPhoneNumber
+    }
+
+    static func deletedContact(with normalizedPhoneNumber: ABContact.NormalizedPhoneNumber) -> XMPPContact {
+        var contact = XMPPContact(normalizedPhoneNumber)
+        contact.isDeletedContact = true
+        return contact
     }
 
     /**
@@ -66,21 +73,23 @@ struct XMPPContact {
 
      Use to construct contact requests.
      */
-    func xmppElement(withUserID: Bool) -> XMPPElement {
-        let contact = XMPPElement(name: "contact")
-        if (self.raw != nil) {
-            contact.addChild(XMPPElement(name: "raw", stringValue: self.raw))
-        }
-        if (withUserID) {
+    var xmppElement: XMPPElement {
+        get {
+            let contact = XMPPElement(name: "contact")
+            if (self.raw != nil) {
+                contact.addChild(XMPPElement(name: "raw", stringValue: self.raw))
+            }
             if (self.userid != nil) {
                 contact.addChild(XMPPElement(name: "userid", stringValue: self.userid))
             }
             if (self.normalized != nil) {
                 contact.addChild(XMPPElement(name: "normalized", stringValue: self.normalized))
             }
+            if (self.isDeletedContact) {
+                contact.addAttribute(withName: "type", stringValue: "delete")
+            }
+            return contact
         }
-        // "role" is never sent back to the server
-        return contact
     }
 }
 
@@ -88,27 +97,29 @@ fileprivate let xmppNamespaceContacts = "halloapp:user:contacts"
 
 class XMPPContactSyncRequest : XMPPRequest {
     enum RequestType: String {
-        case set = "set"
-        case add = "add"
-        case delete = "delete"
+        case full = "full"
+        case delta = "delta"
     }
 
     typealias XMPPContactListRequestCompletion = ([XMPPContact]?, Error?) -> Void
 
     var completion: XMPPContactListRequestCompletion
 
-    init<T: Sequence>(with contacts: T, operation: RequestType, syncID: String, isLastBatch: Bool?,
+    init<T: Sequence>(with contacts: T, type: RequestType, syncID: String, batchIndex: Int? = nil, isLastBatch: Bool? = nil,
                       completion: @escaping XMPPContactListRequestCompletion) where T.Iterator.Element == XMPPContact {
         self.completion = completion
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo), elementID: UUID().uuidString)
         iq.addChild({
             let contactList = XMPPElement(name: "contact_list", xmlns: xmppNamespaceContacts)
-            contactList.addAttribute(withName: "type", stringValue: operation.rawValue)
+            contactList.addAttribute(withName: "type", stringValue: type.rawValue)
             contactList.addAttribute(withName: "syncid", stringValue: syncID)
-            if isLastBatch != nil {
-                contactList.addAttribute(withName: "cont", boolValue: !isLastBatch!)
+            if batchIndex != nil {
+                contactList.addAttribute(withName: "index", intValue: Int32(batchIndex!))
             }
-            contactList.setChildren(contacts.compactMap{ $0.xmppElement(withUserID: operation == .delete) })
+            if isLastBatch != nil {
+                contactList.addAttribute(withName: "last", boolValue: isLastBatch!)
+            }
+            contactList.setChildren(contacts.compactMap{ $0.xmppElement })
             return contactList
         }())
         super.init(iq: iq)
