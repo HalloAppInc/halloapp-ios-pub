@@ -17,9 +17,7 @@ import CoreData
 final class UserData: ObservableObject {
 
     var didLogOff = PassthroughSubject<Void, Never>()
-    
-    var didResyncContacts = PassthroughSubject<Void, Never>()
-    
+        
     @Published var countryCode = "1"
     
     @Published var phoneInput = ""
