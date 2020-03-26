@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjack
+import Combine
 import Foundation
 
 class SyncManager {
@@ -37,6 +38,8 @@ class SyncManager {
     let queue = DispatchQueue(label: "com.halloapp.syncmanager")
     private var fullSyncTimer: DispatchSourceTimer
 
+    private var cancellableSet: Set<AnyCancellable> = []
+
     private let contactStore: ContactStore
     private let xmppController: XMPPController
 
@@ -50,9 +53,13 @@ class SyncManager {
         self.fullSyncTimer.setEventHandler {
             self.runFullSyncIfNecessary()
         }
+
+        self.cancellableSet.insert(self.xmppController.didConnect.sink { _ in
+            self.runSyncIfNecessary()
+        })
     }
 
-    public func enableSync() {
+    func enableSync() {
         guard !self.isSyncEnabled else {
             return
         }
@@ -63,9 +70,27 @@ class SyncManager {
         self.fullSyncTimer.activate()
 
         self.requestDeltaSync()
+
+        self.cancellableSet.insert(AppContext.shared.userData.didLogOff.sink { _ in
+            self.disableSync()
+        })
     }
 
-    public func add(deleted userIds: Set<ABContact.NormalizedPhoneNumber>) {
+    func disableSync() {
+        DDLogInfo("syncmanager/disabled")
+
+        self.isSyncEnabled = false
+        self.isSyncInProgress = false
+
+        self.nextSyncDate = nil
+        self.nextSyncMode = .none
+        self.pendingDeletes.removeAll()
+        self.processedDeletes.removeAll()
+
+        self.fullSyncTimer.suspend()
+    }
+
+    func add(deleted userIds: Set<ABContact.NormalizedPhoneNumber>) {
         DDLogDebug("syncmanager/add-deleted [\(userIds)]")
         self.pendingDeletes.formUnion(userIds)
     }
