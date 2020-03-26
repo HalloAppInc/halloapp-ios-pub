@@ -9,15 +9,14 @@
 import SwiftUI
 
 struct MessageUser: View {
-    var onDismiss: () -> ()
-    
+    @Binding var isViewPresented: Bool
+
     var body: some View {
         VStack() {
             HStack() {
                 Spacer()
                 Button(action: {
-                    self.onDismiss()
-                    
+                    self.isViewPresented = false
                 }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 20, weight: .semibold))
@@ -28,7 +27,6 @@ struct MessageUser: View {
             Spacer()
             Text("coming very soon")
             Spacer()
-
         }
     }
 }

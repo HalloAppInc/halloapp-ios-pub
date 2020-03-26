@@ -9,14 +9,14 @@
 import SwiftUI
 
 struct Notifications: View {
-    @Binding var showModal: Bool
+    @Binding var isViewPresented: Bool
 
     var body: some View {
         VStack() {
             HStack() {
                 Spacer()
                 Button(action: {
-                    self.showModal = false
+                    self.isViewPresented = false
                 }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 20, weight: .semibold))

@@ -22,9 +22,8 @@ struct MessagesView: View {
         predicate: NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
     ) var contacts: FetchedResults<ABContact>
 
-    @State var showSheet = false
-    @State var showWrite = false
-    @State var showCameraAll = false
+    @State var showComposeView = false
+    @State var showSearchView = false
 
     var body: some View {
         VStack {
@@ -63,42 +62,34 @@ struct MessagesView: View {
             alignment: .bottom
         )
 
-            .edgesIgnoringSafeArea(.bottom)
+        .edgesIgnoringSafeArea(.bottom)
 
-            .navigationBarTitle(Text("Messages"))
+        .navigationBarTitle(Text("Messages"))
 
-            .navigationBarItems(trailing:
-                HStack {
-                    Button(action: {
-                        self.showCameraAll = true
-                        self.showSheet = true
-                    }) {
-                        Image(systemName: "magnifyingglass")
-                            .font(Font.title.weight(.regular))
-                            .foregroundColor(Color.primary)
-                    }
-                    .padding(.trailing, 8)
-
-                    Button(action: {
-                        self.showWrite = true
-                        self.showSheet = true
-                    }) {
-                        Image(systemName: "square.and.pencil")
-                            .font(Font.title.weight(.regular))
-                            .foregroundColor(Color.primary)
-                    }
-            })
-
-            .sheet(isPresented: self.$showSheet, content: {
-                if (self.showCameraAll) {
-                    MessageUser(onDismiss: {
-                        self.showSheet = false
-                    })
-                } else if (self.showWrite) {
-                    MessageUser(onDismiss: {
-                        self.showSheet = false
-                    })
+        .navigationBarItems(trailing:
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Button(action: {
+                    self.showSearchView = true
+                }) {
+                    Image(systemName: "magnifyingglass")
+                    .padding(8)
                 }
-            })
+                .sheet(isPresented: self.$showSearchView) {
+                    MessageUser(isViewPresented: self.$showSearchView)
+                }
+
+                Button(action: {
+                    self.showComposeView = true
+                }) {
+                    Image(systemName: "square.and.pencil")
+                    .padding(8)
+                }
+                .sheet(isPresented: self.$showComposeView) {
+                    MessageUser(isViewPresented: self.$showComposeView)
+                }
+            }
+            .foregroundColor(Color.primary)
+            .font(Font.system(size: 20))
+        )
     }
 }

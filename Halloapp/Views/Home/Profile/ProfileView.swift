@@ -13,8 +13,8 @@ struct ProfileView: View {
     
     private let feedData = AppContext.shared.feedData
 
-    @State var showSheet = false
     @State var showSettings = false
+    @State var showDeveloperMenu = false
 
     var body: some View {
         FeedCollectionView(
@@ -32,36 +32,30 @@ struct ProfileView: View {
             .navigationBarTitle(Text("Profile"))
 
             .navigationBarItems(trailing:
-                HStack {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Button(action: {
-                        self.showSettings = true
-                        self.showSheet = true
+                        self.showDeveloperMenu = true
                     }) {
-                        Image(systemName: "person.crop.square.fill")
-                            .font(Font.title.weight(.regular))
-                            .foregroundColor(Color.primary)
+                        Image(systemName: "hammer")
+                        .padding(8)
                     }
-                    .padding(.trailing, 8)
+                    .sheet(isPresented: self.$showDeveloperMenu) {
+                        DeveloperMenuView(isViewPresented: self.$showDeveloperMenu)
+                    }
 
                     Button(action: {
                         self.showSettings = true
-                        self.showSheet = true
                     }) {
                         Image(systemName: "gear")
-                            .font(Font.title.weight(.regular))
-                            .foregroundColor(Color.primary)
+                        .padding(8)
                     }
-            })
-
-            .sheet(isPresented: self.$showSheet, content: {
-                if (self.showSettings) {
-                    Settings(onDismiss: {
-                        self.showSheet = false
-                    })
-                        .environmentObject(self.mainViewController)
-                } else if (self.showSheet) {
-
+                    .sheet(isPresented: self.$showSettings) {
+                        SettingsView(isViewPresented: self.$showSettings)
+                            .environmentObject(self.mainViewController)
+                    }
                 }
-            })
+                .foregroundColor(Color.primary)
+                .font(Font.system(size: 20))
+            )
     }
 }

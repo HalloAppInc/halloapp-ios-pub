@@ -14,7 +14,7 @@ struct FeedView: View {
 
     @ObservedObject private var feedData = AppContext.shared.feedData
     
-    @State private var notificationsModal = false
+    @State private var showNotifications = false
     @State private var showShareSheet = false
     @State private var showNetworkAlert = false
 
@@ -36,15 +36,16 @@ struct FeedView: View {
             .navigationBarTitle(Text("Home"))
 
             .navigationBarItems(trailing:
-                HStack {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Button(action: {
-                        self.showNotifications()
+                        self.showNotifications = true
                     }) {
                         Image(systemName: "bell")
-                            .font(Font.title.weight(.regular))
-                            .foregroundColor(Color.primary)
+                        .padding(8)
                     }
-                    .padding(.trailing, 8)
+                    .sheet(isPresented: self.$showNotifications) {
+                        Notifications(isViewPresented: self.$showNotifications)
+                    }
 
                     Button(action: {
                         if (self.feedData.isConnecting) {
@@ -54,36 +55,30 @@ struct FeedView: View {
                         }
                     }) {
                         Image(systemName: "plus")
-                            .font(Font.title.weight(.regular))
-                            .foregroundColor(Color.primary)
+                        .padding(8)
                     }
-            })
-
-            // Notifications modal
-            .sheet(isPresented: self.$notificationsModal,
-                   content: {
-                    Notifications(showModal: self.$notificationsModal)
-            })
-
-            // Share Sheet
-            .actionSheet(isPresented: self.$showShareSheet) {
-                ActionSheet(
-                    title: Text("Post something"),
-                    buttons: [
-                        .default(Text("Photo Library"), action: {
-                            self.mainViewController.presentPhotoPicker()
-                        }),
-                        .default(Text("Camera"), action: {
-                            self.mainViewController.presentCamera()
-                        }),
-                        .default(Text("Text"), action: {
-                            self.mainViewController.presentPostComposer()
-                        }),
-                        .destructive(Text("Cancel"), action: {
-                            self.showShareSheet = false
-                        })
-                    ]
-                )}
+                    .actionSheet(isPresented: self.$showShareSheet) {
+                        ActionSheet(
+                            title: Text("Post something"),
+                            buttons: [
+                                .default(Text("Photo Library"), action: {
+                                    self.mainViewController.presentPhotoPicker()
+                                }),
+                                .default(Text("Camera"), action: {
+                                    self.mainViewController.presentCamera()
+                                }),
+                                .default(Text("Text"), action: {
+                                    self.mainViewController.presentPostComposer()
+                                }),
+                                .destructive(Text("Cancel"), action: {
+                                    self.showShareSheet = false
+                                })
+                            ]
+                        )}
+                }
+                .foregroundColor(Color.primary)
+                .font(Font.system(size: 20))
+            )
 
             // "Not Connected" alert
             ///TODO: allow to open photo picker and camera even when not connected
@@ -92,9 +87,5 @@ struct FeedView: View {
                       message: Text("We'll keep trying, but there may be a problem with your connection"),
                       dismissButton: .default(Text("OK")))
         }
-    }
-
-    private func showNotifications () {
-        notificationsModal = true
     }
 }

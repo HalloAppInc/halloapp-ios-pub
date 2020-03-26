@@ -211,7 +211,7 @@ struct FeedItemView: View {
 
     var item: FeedDataItem
 
-    @State private var showSheet: Bool = false
+    @State private var showMessageView: Bool = false
     @State private var localUnreadComments: Int = 0
     
     var body: some View {
@@ -292,7 +292,7 @@ struct FeedItemView: View {
                 // Message button
                 if (AppContext.shared.userData.phone != item.username) {
                     Button(action: {
-                        self.showSheet = true
+                        self.showMessageView = true
                     }) {
                         HStack {
                             Image(systemName: "envelope")
@@ -302,6 +302,9 @@ struct FeedItemView: View {
                             Text("Message")
                         }
                         .padding(EdgeInsets(top: 10, leading: 25, bottom: 10, trailing: 25))
+                    }
+                    .sheet(isPresented: self.$showMessageView) {
+                        MessageUser(isViewPresented: self.$showMessageView)
                     }
                 }
             }
@@ -314,12 +317,6 @@ struct FeedItemView: View {
         .cornerRadius(10)
         .shadow(color: Color(UIColor.systemGray5), radius: 5)
         .padding(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
-
-        .sheet(isPresented: self.$showSheet, content: {
-            MessageUser(onDismiss: {
-                self.showSheet = false
-            })
-        })
         
         .onAppear {
             self.localUnreadComments = self.item.unreadComments
@@ -328,7 +325,6 @@ struct FeedItemView: View {
         .onReceive(self.item.commentsChange) { num in
             self.localUnreadComments = num
         }
-        
     }
 }
 
