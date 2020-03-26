@@ -64,7 +64,7 @@ struct SettingsView: View {
                 }
 
                 Button(action: {
-                    self.isViewPresented = false
+                    self.isShowingMailView = true
                 }) {
                     Text("Send Logs")
                         .padding(.horizontal, 15)
@@ -73,12 +73,11 @@ struct SettingsView: View {
                         .foregroundColor(.white)
                         .cornerRadius(24)
                 }
+                .sheet(isPresented: self.$isShowingMailView) {
+                    MailView(result: self.$result)
+                }
             }
             .padding(.bottom, 32)
-        }
-        
-        .sheet(isPresented: self.$isShowingMailView) {
-            MailView(result: self.$result)
         }
     }
 }
