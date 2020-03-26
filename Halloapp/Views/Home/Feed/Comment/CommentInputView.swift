@@ -17,6 +17,7 @@ fileprivate protocol ContainerViewDelegate: AnyObject {
 protocol CommentInputViewDelegate: AnyObject {
     func commentInputView(_ inputView: CommentInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve)
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: String)
+    func commentInputViewResetReplyContext(_ inputView: CommentInputView)
 }
 
 class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
@@ -67,8 +68,10 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         return view
     }()
 
-    private lazy var contentView: UIView = {
-        let view = UIView()
+    private lazy var contentView: UIStackView = {
+        let view = UIStackView()
+        view.axis = .vertical
+        view.spacing = 8
         view.preservesSuperviewLayoutMargins = true
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -90,10 +93,34 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         button.setTitle("Post", for: .normal)
         button.isEnabled = false
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 14, bottom: 10, right: 0)
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 0)
         button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
+    }()
+
+    private lazy var contactNameLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = UIColor.secondaryLabel
+        label.numberOfLines = 2
+        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        return label
+    }()
+
+    private lazy var deleteReplyContextButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "xmark"), for: .normal)
+        button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
+        button.tintColor = UIColor.systemGray
+        button.addTarget(self, action: #selector(self.closeReplyPanel), for: .touchUpInside)
+        return button
+    }()
+
+    private lazy var replyContextPanel: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [ self.contactNameLabel, self.deleteReplyContextButton ])
+        stackView.axis = .horizontal
+        stackView.spacing = 8
+        return stackView
     }()
 
     override init(frame: CGRect) {
@@ -145,7 +172,7 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
         blurView.contentView.addSubview(self.contentView)
         self.contentView.leadingAnchor.constraint(equalTo: blurView.layoutMarginsGuide.leadingAnchor).isActive = true
-        self.contentView.topAnchor.constraint(equalTo: blurView.topAnchor).isActive = true
+        self.contentView.topAnchor.constraint(equalTo: blurView.layoutMarginsGuide.topAnchor).isActive = true
         self.contentView.trailingAnchor.constraint(equalTo: blurView.layoutMarginsGuide.trailingAnchor).isActive = true
         self.contentView.bottomAnchor.constraint(equalTo: blurView.layoutMarginsGuide.bottomAnchor).isActive = true
 
@@ -160,15 +187,14 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         self.textView.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
         self.textView.trailingAnchor.constraint(equalTo: textViewContainer.trailingAnchor).isActive = true
         self.textView.bottomAnchor.constraint(equalTo: textViewContainer.bottomAnchor).isActive = true
-
-        self.contentView.addSubview(textViewContainer)
-        self.contentView.addSubview(self.postButton)
-        let views = [ "textView": textViewContainer, "postButton": self.postButton ]
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|[textView][postButton]|", options: [.directionLeadingToTrailing, .alignAllCenterY], metrics: nil, views: views))
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-8-[textView]|", options: [], metrics: nil, views: views))
-
         let textViewHeight = round(2 * self.textView.font!.lineHeight)
         self.textView.addConstraint(NSLayoutConstraint(item: self.textView, attribute: .height, relatedBy: .greaterThanOrEqual, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: textViewHeight))
+
+        let hStack = UIStackView(arrangedSubviews: [textViewContainer, self.postButton ])
+        hStack.axis = .horizontal
+        hStack.spacing = 0
+
+        self.contentView.addArrangedSubview(hStack)
     }
 
     func willAppear(in viewController: UIViewController) {
@@ -206,6 +232,25 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     private func resignFirstResponderOnDisappear(in viewController: UIViewController) {
         self.hideKeyboard()
         viewController.resignFirstResponder()
+    }
+
+    // MARK: Reply Context
+
+    func showReplyPanel(with contactName: String) {
+        self.contactNameLabel.text = "Replying to \(contactName)"
+        if self.contentView.arrangedSubviews.contains(self.replyContextPanel) {
+            self.replyContextPanel.isHidden = false
+        } else {
+            self.contentView.insertArrangedSubview(self.replyContextPanel, at: 0)
+        }
+    }
+
+    func removeReplyPanel() {
+        self.replyContextPanel.isHidden = true
+    }
+
+    @objc private func closeReplyPanel() {
+        self.delegate?.commentInputViewResetReplyContext(self)
     }
 
     // MARK: Text view

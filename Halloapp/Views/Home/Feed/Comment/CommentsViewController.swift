@@ -13,7 +13,14 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     static private let cellReuseIdentifier = "CommentCell"
     static private let sectionMain = 0
 
+    typealias ReplyContext = (parentCommentId: String, userId: String)
+
     private var item: FeedDataItem?
+    private var replyContext: ReplyContext? {
+        didSet {
+            self.refreshCommentInputViewReplyPanel()
+        }
+    }
     private var dataSource: UITableViewDiffableDataSource<Int, FeedComments>?
     private var fetchedResultsController: NSFetchedResultsController<FeedComments>?
     private var scrollToBottomOnContentChange = false
@@ -54,6 +61,10 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         self.dataSource = UITableViewDiffableDataSource<Int, FeedComments>(tableView: self.tableView) { tableView, indexPath, feedComments in
             let cell = tableView.dequeueReusableCell(withIdentifier: CommentsViewController.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
             cell.update(with: feedComments)
+            cell.replyAction = { [weak self] in
+                guard let self = self else { return }
+                self.replyContext = (parentCommentId: feedComments.commentId!, userId: feedComments.username!)
+            }
             return cell
         }
 
@@ -217,8 +228,22 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
 
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: String) {
         self.scrollToBottomOnContentChange = true
-        AppContext.shared.feedData.post(comment: text, to: self.item!)
+        AppContext.shared.feedData.post(comment: text, to: self.item!, replyingTo: self.replyContext?.parentCommentId)
         self.commentsInputView.text = ""
+        self.replyContext = nil
+    }
+
+    func commentInputViewResetReplyContext(_ inputView: CommentInputView) {
+        self.replyContext = nil
+    }
+
+    private func refreshCommentInputViewReplyPanel() {
+        if let context = self.replyContext {
+            let contactName = AppContext.shared.contactStore.fullName(for: context.userId)
+            self.commentsInputView.showReplyPanel(with: contactName)
+        } else {
+            self.commentsInputView.removeReplyPanel()
+        }
     }
 }
 
@@ -266,6 +291,8 @@ class CommentsTableViewCell: UITableViewCell {
         CommentView()
     }()
 
+    var replyAction: (() -> ()) = {}
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupTableViewCell()
@@ -284,6 +311,17 @@ class CommentsTableViewCell: UITableViewCell {
         let views = [ "comment": self.commentView ]
         self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|[comment]|", options: .directionLeadingToTrailing, metrics: nil, views: views))
         self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[comment]|", options: [], metrics: nil, views: views))
+
+        self.commentView.replyButton.addTarget(self, action: #selector(self.replyButtonAction), for: .touchUpInside)
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        self.replyAction = {}
+    }
+
+    @objc private func replyButtonAction() {
+        self.replyAction()
     }
 
     func update(with comment: FeedComments) {

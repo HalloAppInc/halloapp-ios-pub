@@ -53,7 +53,7 @@ class CommentView: UIView {
         return label
     }()
 
-    private lazy var replyButton: UIButton = {
+    private(set) lazy var replyButton: UIButton = {
         let button = UIButton(type: .custom)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setTitleColor(UIColor.systemGray, for: .normal)
