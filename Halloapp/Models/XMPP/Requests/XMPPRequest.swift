@@ -78,6 +78,7 @@ class XMPPRequest {
         }
         self.state = .finished
         self.response = response
+        DDLogDebug("xmpprequest/\(self.requestId)/response \(response)")
         if response.isResultIQ {
             self.didFinish(with: response)
         } else if response.isErrorIQ {

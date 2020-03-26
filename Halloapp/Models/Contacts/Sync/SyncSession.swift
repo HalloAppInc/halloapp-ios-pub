@@ -51,14 +51,14 @@ class SyncSession {
     }
 
     func start() {
-        DDLogInfo("sync-session/request/start n=[\(self.contacts.count)]")
+        DDLogInfo("sync-session/\(self.syncMode)/request/start n=[\(self.contacts.count)]")
         self.sendNextBatchIfNecessary()
     }
 
     func sendNextBatchIfNecessary() {
         /* client side error */
         guard self.error == nil else {
-            DDLogError("sync-session/request/error/\(self.error!)")
+            DDLogError("sync-session/\(self.syncMode)/request/error/\(self.error!)")
             DispatchQueue.main.async {
                 self.completion(nil, self.error)
             }
@@ -76,9 +76,10 @@ class SyncSession {
             }
             let contactsToSend = self.contacts[range]
             let requestType: XMPPContactSyncRequest.RequestType = self.syncMode == .full ? .full : .delta
+            let batchIndex = self.batchIndex
             let request = XMPPContactSyncRequest(with: contactsToSend, type: requestType, syncID: self.syncID,
-                                                 batchIndex: self.batchIndex, isLastBatch: isLastBatch) { (batchResults, error) in
-                DDLogInfo("sync-session/request/end/batch/\(self.batchIndex)")
+                                                 batchIndex: batchIndex, isLastBatch: isLastBatch) { (batchResults, error) in
+                DDLogInfo("sync-session/\(self.syncMode)/request/end/batch/\(batchIndex)")
                 if error != nil {
                     self.error = error
                 } else {
@@ -86,10 +87,11 @@ class SyncSession {
                 }
                 self.sendNextBatchIfNecessary()
             }
+            DDLogInfo("sync-session/\(self.syncMode)/request/begin/batch/\(batchIndex)")
+
             self.contacts.removeSubrange(range)
             self.batchIndex += 1
 
-            DDLogInfo("sync-session/request/begin/batch/\(self.batchIndex)")
             AppContext.shared.xmppController.enqueue(request: request)
 
             return

@@ -186,7 +186,7 @@ class SyncManager {
     }
 
     private func reallyPerformSync() {
-        DDLogInfo("syncmanager/sync/prepare")
+        DDLogInfo("syncmanager/sync/prepare/\(self.nextSyncMode)")
 
         let contactsToSync = ContactStore.contactsAccessAuthorized ? self.contactStore.contactsFor(fullSync: self.nextSyncMode == .full) : []
 
@@ -210,7 +210,7 @@ class SyncManager {
         self.isSyncInProgress = true
 
         let syncMode = self.nextSyncMode
-        DDLogInfo("syncmanager/sync/start [\(xmppContacts.count)]")
+        DDLogInfo("syncmanager/sync/start/\(self.nextSyncMode) [\(xmppContacts.count)]")
         let syncSession = SyncSession(mode: syncMode, contacts: xmppContacts) { results, error in
             self.queue.async {
                 self.processSyncResponse(mode: syncMode, contacts: results, error: error)
@@ -221,7 +221,7 @@ class SyncManager {
 
     private func processSyncResponse(mode: SyncMode, contacts: [XMPPContact]?, error: Error?) {
         guard error == nil else {
-            DDLogError("syncmanager/sync/response/error [\(error!)]")
+            DDLogError("syncmanager/sync/\(mode)/response/error [\(error!)]")
             self.finishSync(with: mode, result: .fail, failureReason: .serverError)
             return
         }
