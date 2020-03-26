@@ -116,6 +116,7 @@ fileprivate struct ContactProxy {
 
 
 class ContactStore {
+    private var userData: UserData
     private var xmppController: XMPPController
     private var needReloadContacts = true
     private var isReloadingContacts = false
@@ -179,8 +180,9 @@ class ContactStore {
     }
 
 
-    init(xmppController: XMPPController) {
+    init(xmppController: XMPPController, userData: UserData) {
         self.xmppController = xmppController
+        self.userData = userData
 
         NotificationCenter.default.addObserver(forName: NSNotification.Name.CNContactStoreDidChange, object: nil, queue: nil) { notification in
             DDLogDebug("CNContactStoreDidChange")
@@ -290,7 +292,7 @@ class ContactStore {
 
                                     if syncManager.isSyncEnabled {
                                         syncManager.requestDeltaSync()
-                                    } else if AppContext.shared.userData.isLoggedIn {
+                                    } else if self.userData.isLoggedIn {
                                         DispatchQueue.main.async {
                                             self.enableContactSync()
                                         }
@@ -311,7 +313,7 @@ class ContactStore {
                 }
             }
         } else if !syncManager.isSyncEnabled {
-            if AppContext.shared.userData.isLoggedIn {
+            if self.userData.isLoggedIn {
                 DispatchQueue.main.async {
                     self.enableContactSync()
                 }
@@ -756,7 +758,7 @@ class ContactStore {
 
     func processNotification(contacts xmppContacts: [XMPPContact], using managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("contacts/notification/process")
-        let selfPhoneNumber = AppContext.shared.userData.phone
+        let selfPhoneNumber = self.userData.phone
         // Server can send a "new friend" notification for user's own phone number too (on first sync) - filter that one out.
         let allNormalizedPhoneNumbers = xmppContacts.map{ $0.normalized! }.filter{ $0 != selfPhoneNumber }
         guard !allNormalizedPhoneNumbers.isEmpty else {
@@ -786,7 +788,7 @@ class ContactStore {
     // MARK: SwiftUI Support
 
     func fullName(for phoneNumber: ABContact.NormalizedPhoneNumber) -> String {
-        if phoneNumber == AppContext.shared.userData.phone {
+        if phoneNumber == self.userData.phone {
             return "Me"
         }
 

@@ -63,7 +63,7 @@ struct AppContext {
         self.metaData = MetaData()
         self.xmppController = XMPPController(userData: self.userData, metaData: self.metaData)
         self.feedData = FeedData(xmppController: self.xmppController, userData: self.userData)
-        self.contactStore = ContactStore(xmppController: self.xmppController)
+        self.contactStore = ContactStore(xmppController: self.xmppController, userData: self.userData)
         self.syncManager = SyncManager(contactStore: self.contactStore, xmppController: self.xmppController)
     }
 }
