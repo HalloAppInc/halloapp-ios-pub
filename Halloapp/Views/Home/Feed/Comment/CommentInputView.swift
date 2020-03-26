@@ -113,6 +113,7 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
         button.tintColor = UIColor.systemGray
         button.addTarget(self, action: #selector(self.closeReplyPanel), for: .touchUpInside)
+        button.setContentHuggingPriority(.required, for: .horizontal)
         return button
     }()
 
