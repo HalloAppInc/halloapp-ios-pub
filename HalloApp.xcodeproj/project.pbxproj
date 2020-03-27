@@ -291,6 +291,14 @@
 			path = Sync;
 			sourceTree = "<group>";
 		};
+		761C6165242D896E0028AE19 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				EABF312423EE1EDF0039B5A6 /* Extensions */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		76DF9FEA24122E9400F49CA4 /* CoreData Stack */ = {
 			isa = PBXGroup;
 			children = (
@@ -491,7 +499,7 @@
 			path = Home;
 			sourceTree = "<group>";
 		};
-		EABF312423EE1EDF0039B5A6 /* Extension */ = {
+		EABF312423EE1EDF0039B5A6 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
 				EABF312523EE1F240039B5A6 /* Array.swift */,
@@ -499,7 +507,7 @@
 				EABF312A23EE20E10039B5A6 /* UIImage.swift */,
 				76DF9FFA2416ADF900F49CA4 /* String.swift */,
 			);
-			path = Extension;
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 		EAC4AF1E233E7F6500739B2B /* Common */ = {
@@ -552,9 +560,9 @@
 				EA3861EB23342C3800705943 /* Models */,
 				EA5AD43C23342B8C00429643 /* Views */,
 				EA0D20062363AC4D008B8289 /* Landing.swift */,
+				761C6165242D896E0028AE19 /* Components */,
 				EAC4AF21233E8D9700739B2B /* Network */,
 				146B93702405F2F900768AC6 /* Resources */,
-				EABF312423EE1EDF0039B5A6 /* Extension */,
 				EAF3A1CA2334192000805FF9 /* Preview Content */,
 				EAF3A1D02334192000805FF9 /* Info.plist */,
 				EAF3A1C22334191E00805FF9 /* AppDelegate.swift */,
