@@ -53,8 +53,6 @@ fileprivate struct ContactProxy {
     private(set) var phones: [PhoneProxy]
 
     init(_ contact: CNContact) {
-        DDLogVerbose("CNContact/process id=[\(contact.identifier)]")
-
         self.identifier = contact.identifier
 
         // Note: If contact doesn't have a property set, CNContact will return an empty string, not nil.
