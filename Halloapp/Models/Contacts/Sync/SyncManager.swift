@@ -55,7 +55,9 @@ class SyncManager {
         }
 
         self.cancellableSet.insert(self.xmppController.didConnect.sink { _ in
-            self.runSyncIfNecessary()
+            self.queue.async {
+                self.runSyncIfNecessary()
+            }
         })
     }
 
@@ -68,8 +70,12 @@ class SyncManager {
 
         self.fullSyncTimer.schedule(wallDeadline: DispatchWallTime.now(), repeating: 60)
         self.fullSyncTimer.activate()
-
-        self.requestDeltaSync()
+        self.queue.async {
+            self.runFullSyncIfNecessary()
+            if !self.isSyncInProgress {
+                self.requestDeltaSync()
+            }
+        }
 
         self.cancellableSet.insert(AppContext.shared.userData.didLogOff.sink { _ in
             self.disableSync()
@@ -88,6 +94,15 @@ class SyncManager {
         self.processedDeletes.removeAll()
 
         self.fullSyncTimer.suspend()
+
+        if !ContactStore.contactsAccessAuthorized {
+            UserDefaults.standard.removeObject(forKey: SyncManager.UDDisabledAddressBookSynced)
+        }
+
+        // Reset next full sync date.
+        self.contactStore.mutateDatabaseMetadata { (metadata) in
+            metadata[ContactStoreMetadataNextFullSyncDate] = nil
+        }
     }
 
     func add(deleted userIds: Set<ABContact.NormalizedPhoneNumber>) {

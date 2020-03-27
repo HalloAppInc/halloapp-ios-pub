@@ -51,7 +51,7 @@ class SyncSession {
     }
 
     func start() {
-        DDLogInfo("sync-session/\(self.syncMode)/request/start n=[\(self.contacts.count)]")
+        DDLogInfo("sync-session/\(self.syncMode)/start contacts=[\(self.contacts.count)]")
         self.sendNextBatchIfNecessary()
     }
 
@@ -97,6 +97,7 @@ class SyncSession {
             return
         }
 
+        DDLogInfo("sync-session/\(self.syncMode)/finished results=[\(self.results.count)]")
         DispatchQueue.main.async {
             self.completion(self.results, nil)
         }

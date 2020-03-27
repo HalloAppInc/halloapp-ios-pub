@@ -189,6 +189,14 @@ class ContactStore {
             self.needReloadContacts = true
             self.reloadContactsIfNecessary()
         }
+
+        cancellableSet.insert(userData.didLogOff.sink { _ in
+            self.contactSerialQueue.async {
+                AppContext.shared.syncManager.queue.sync {
+                    self.resetStatusForAllContacts()
+                }
+            }
+        })
     }
 
 
@@ -328,7 +336,7 @@ class ContactStore {
         } else if (!self.syncWillBeEnabled) {
             self.syncWillBeEnabled = true
             self.cancellableSet.insert(
-                self.xmppController.didConnect.sink{ _ in
+                self.xmppController.didConnect.sink { _ in
                     AppContext.shared.syncManager.enableSync()
                     self.syncWillBeEnabled = false
                 }
@@ -782,6 +790,31 @@ class ContactStore {
 
         for newUserID in newUsers {
             self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(newUserID)")
+        }
+    }
+
+    private func resetStatusForAllContacts() {
+        DDLogWarn("contacts/reset-status")
+        self.performOnBackgroundContextAndWait { managedObjectContext in
+            let request = NSBatchUpdateRequest(entity: ABContact.entity())
+            request.predicate = NSPredicate(format: "statusValue != %d", ABContact.Status.invalid.rawValue)
+            request.propertiesToUpdate = [ "statusValue": ABContact.Status.unknown.rawValue ]
+            do {
+                let result = try managedObjectContext.execute(request) as? NSBatchUpdateResult
+                DDLogInfo("contacts/reset-status/complete result=[\(String(describing: result))]")
+            }
+            catch {
+                DDLogError("contacts/reset-status/error \(error)")
+                fatalError("Failed to execute request: \(error)")
+            }
+
+            do {
+                try managedObjectContext.save()
+                DDLogInfo("contacts/reset-status/save-complete")
+            }
+            catch {
+                DDLogError("contacts/reset-status/error \(error)")
+            }
         }
     }
 
