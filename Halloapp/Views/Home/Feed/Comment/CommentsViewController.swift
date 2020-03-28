@@ -64,6 +64,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
             cell.replyAction = { [weak self] in
                 guard let self = self else { return }
                 self.replyContext = (parentCommentId: feedComments.commentId!, userId: feedComments.username!)
+                self.commentsInputView.showKeyboard(from: self)
             }
             return cell
         }

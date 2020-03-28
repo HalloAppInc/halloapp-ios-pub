@@ -293,6 +293,11 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         }
     }
 
+    func showKeyboard(from viewController: UIViewController) {
+        guard viewController.isFirstResponder || self.isKeyboardVisible else { return }
+        self.textView.becomeFirstResponder()
+    }
+
     func hideKeyboard() {
         self.textView.resignFirstResponder()
     }
