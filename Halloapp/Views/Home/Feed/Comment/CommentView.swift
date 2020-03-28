@@ -32,16 +32,11 @@ class CommentView: UIView {
         return imageView
     }()
 
-    private lazy var textLabel: UITextView = {
-        let textView = UITextView()
-        textView.isScrollEnabled = false
-        textView.isEditable = false
-        textView.dataDetectorTypes = [.phoneNumber, .link]
-        textView.textContainerInset = .zero
-        textView.layoutMargins = .zero
-        textView.textContainer.lineFragmentPadding = 0
-        textView.translatesAutoresizingMaskIntoConstraints = false
-        return textView
+    private lazy var textLabel: UILabel = {
+        let label = TextLabel()
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
     
     private lazy var timestampLabel: UILabel = {
