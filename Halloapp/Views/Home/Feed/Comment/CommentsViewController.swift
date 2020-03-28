@@ -32,6 +32,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         tableView.allowsSelection = false
         tableView.contentInsetAdjustmentBehavior = .scrollableAxes
         tableView.keyboardDismissMode = .interactive
+        tableView.preservesSuperviewLayoutMargins = true
         tableView.register(CommentsTableViewCell.self, forCellReuseIdentifier: CommentsViewController.cellReuseIdentifier)
         return tableView
     }()
@@ -278,9 +279,9 @@ class CommentsTableHeaderView: UIView {
         self.addSubview(separatorView)
 
         let views = [ "content": self.commentView, "separator": separatorView]
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|[content]|", options: .directionLeadingToTrailing, metrics: nil, views: views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|-[content]-|", options: .directionLeadingToTrailing, metrics: nil, views: views))
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|[separator]|", options: .directionLeadingToTrailing, metrics: nil, views: views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[content][separator]|", options: [], metrics: nil, views: views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[content]-[separator]|", options: [], metrics: nil, views: views))
         let separatorHeight = 1.0 / UIScreen.main.scale
         self.addConstraint(NSLayoutConstraint(item: separatorView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: separatorHeight))
     }
@@ -309,9 +310,10 @@ class CommentsTableViewCell: UITableViewCell {
         
         self.contentView.addSubview(self.commentView)
         self.commentView.translatesAutoresizingMaskIntoConstraints = false
-        let views = [ "comment": self.commentView ]
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|[comment]|", options: .directionLeadingToTrailing, metrics: nil, views: views))
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[comment]|", options: [], metrics: nil, views: views))
+        self.commentView.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        self.commentView.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
+        self.commentView.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        self.commentView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
         self.commentView.replyButton.addTarget(self, action: #selector(self.replyButtonAction), for: .touchUpInside)
     }

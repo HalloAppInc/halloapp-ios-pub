@@ -77,14 +77,12 @@ class CommentView: UIView {
 
         let hStack = UIStackView(arrangedSubviews: [ self.timestampLabel, self.replyButton, spacer ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.preservesSuperviewLayoutMargins = true
         hStack.alignment = .center
         hStack.axis = .horizontal
         hStack.spacing = 8
 
         let vStack = UIStackView(arrangedSubviews: [ self.textLabel, hStack ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.preservesSuperviewLayoutMargins = true
         vStack.axis = .vertical
         vStack.spacing = 4
         self.addSubview(vStack)
@@ -94,11 +92,11 @@ class CommentView: UIView {
         NSLayoutConstraint(item: self.contactImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
         NSLayoutConstraint(item: self.contactImageView, attribute: .height, relatedBy: .equal, toItem: self.contactImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
         self.addConstraint({
-            self.leadingMargin = NSLayoutConstraint(item: self.contactImageView, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leadingMargin, multiplier: 1, constant: 0)
+            self.leadingMargin = NSLayoutConstraint(item: self.contactImageView, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1, constant: 0)
             return self.leadingMargin! }())
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "[image]-10-[vstack]-|", options: .directionLeadingToTrailing, metrics: nil, views: views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-8-[image]->=8-|", options: [], metrics: nil, views: views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[vstack]-|", options: [], metrics: nil, views: views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "[image]-10-[vstack]|", options: .directionLeadingToTrailing, metrics: nil, views: views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[image]->=0-|", options: [], metrics: nil, views: views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[vstack]|", options: [], metrics: nil, views: views))
     }
 
     private func contentString(author: String, text: String) -> NSAttributedString {
