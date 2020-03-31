@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import CoreData
 import UIKit
 
@@ -38,12 +39,18 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     }()
 
     init(feedItemId: String) {
+        DDLogDebug("CommentsViewController/init/\(feedItemId)")
         self.feedItemId = feedItemId
         super.init(nibName: nil, bundle: nil)
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+    }
+
+    func dismantle() {
+        DDLogDebug("CommentsViewController/dismantle/\(feedItemId ?? "")")
+        self.fetchedResultsController = nil
     }
 
     override func viewDidLoad() {
@@ -60,10 +67,10 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         headerView.commentView.updateWith(feedItem: feedDataItem)
         self.tableView.tableHeaderView = headerView
 
-        self.dataSource = UITableViewDiffableDataSource<Int, FeedComments>(tableView: self.tableView) { tableView, indexPath, feedComments in
+        self.dataSource = UITableViewDiffableDataSource<Int, FeedComments>(tableView: self.tableView) { [weak self] tableView, indexPath, feedComments in
             let cell = tableView.dequeueReusableCell(withIdentifier: CommentsViewController.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
             cell.update(with: feedComments)
-            cell.replyAction = { [weak self] in
+            cell.replyAction = {
                 guard let self = self else { return }
                 self.replyContext = (parentCommentId: feedComments.commentId!, userId: feedComments.username!)
                 self.commentsInputView.showKeyboard(from: self)
@@ -149,7 +156,8 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        self.updateData()
+        let animateChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
+        self.updateData(animatingDifferences: animateChanges)
         // TODO: Scroll table view on new comment from someone else.
         if self.scrollToBottomOnContentChange {
             self.scrollToBottom()
