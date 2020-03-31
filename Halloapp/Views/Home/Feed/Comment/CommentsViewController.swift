@@ -15,7 +15,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
 
     typealias ReplyContext = (parentCommentId: String, userId: String)
 
-    private var item: FeedDataItem?
+    private var feedItemId: String?
     private var replyContext: ReplyContext? {
         didSet {
             self.refreshCommentInputViewReplyPanel()
@@ -37,8 +37,8 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         return tableView
     }()
 
-    init(item: FeedDataItem) {
-        self.item = item
+    init(feedItemId: String) {
+        self.feedItemId = feedItemId
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -47,7 +47,8 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     }
 
     override func viewDidLoad() {
-        guard self.item != nil else { return }
+        guard self.feedItemId != nil else { return }
+        guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: self.feedItemId!) else { return }
 
         self.view.addSubview(self.tableView)
         self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
@@ -56,7 +57,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
 
         let headerView = CommentsTableHeaderView(frame: CGRect(x: 0, y: 0, width: self.tableView.bounds.size.width, height: 200))
-        headerView.commentView.updateWith(feedItem: self.item!)
+        headerView.commentView.updateWith(feedItem: feedDataItem)
         self.tableView.tableHeaderView = headerView
 
         self.dataSource = UITableViewDiffableDataSource<Int, FeedComments>(tableView: self.tableView) { tableView, indexPath, feedComments in
@@ -71,7 +72,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         }
 
         let fetchRequest = NSFetchRequest<FeedComments>(entityName: "FeedComments")
-        fetchRequest.predicate = NSPredicate(format: "feedItemId = %@", self.item!.itemId)
+        fetchRequest.predicate = NSPredicate(format: "feedItemId = %@", self.feedItemId!)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedComments.timestamp, ascending: true) ]
         self.fetchedResultsController =
             NSFetchedResultsController<FeedComments>(fetchRequest: fetchRequest,
@@ -95,8 +96,8 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if let feedItem = self.item {
-            AppContext.shared.feedData.markFeedItemUnreadComments(feedItemId: feedItem.itemId)
+        if let itemId = self.feedItemId {
+            AppContext.shared.feedData.markFeedItemUnreadComments(feedItemId: itemId)
         }
 
         self.commentsInputView.didAppear(in: self)
@@ -105,8 +106,8 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
-        if let feedItem = self.item {
-            AppContext.shared.feedData.markFeedItemUnreadComments(feedItemId: feedItem.itemId)
+        if let itemId = self.feedItemId {
+            AppContext.shared.feedData.markFeedItemUnreadComments(feedItemId: itemId)
         }
 
         self.commentsInputView.willDisappear(in: self)
@@ -229,8 +230,9 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     }
 
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: String) {
+        guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: self.feedItemId!) else { return }
         self.scrollToBottomOnContentChange = true
-        AppContext.shared.feedData.post(comment: text, to: self.item!, replyingTo: self.replyContext?.parentCommentId)
+        AppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: self.replyContext?.parentCommentId)
         self.commentsInputView.text = ""
         self.replyContext = nil
     }

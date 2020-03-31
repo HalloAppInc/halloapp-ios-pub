@@ -10,10 +10,10 @@ import SwiftUI
 import UIKit
 
 struct CommentsView: UIViewControllerRepresentable {
-    private var item: FeedDataItem
+    private var feedItemId: String
 
-    init(item: FeedDataItem) {
-        self.item = item
+    init(itemId: String) {
+        self.feedItemId = itemId
     }
 
     func makeCoordinator() -> Coordinator {
@@ -21,7 +21,7 @@ struct CommentsView: UIViewControllerRepresentable {
     }
 
     func makeUIViewController(context: Context) -> CommentsViewController {
-        return CommentsViewController(item: context.coordinator.parent.item)
+        return CommentsViewController(feedItemId: context.coordinator.parent.feedItemId)
     }
 
     func updateUIViewController(_ viewController: CommentsViewController, context: Context) {

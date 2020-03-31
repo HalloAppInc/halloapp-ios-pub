@@ -359,6 +359,10 @@ class FeedData: ObservableObject {
         
         AppContext.shared.xmppController.enqueue(request: request)
     }
+
+    func feedDataItem(with itemId: String) -> FeedDataItem? {
+        return self.feedDataItems.first(where: { $0.itemId == itemId })
+    }
     
     func processExpires() {
         let current = Int(Date().timeIntervalSince1970)
