@@ -156,6 +156,7 @@ class SyncManager {
         // Time for a scheduled sync
         else if nextFullSyncDate!.timeIntervalSinceNow < 0 {
             runFullSync = true
+            self.nextSyncDate = nextFullSyncDate
         }
 
         if runFullSync {
