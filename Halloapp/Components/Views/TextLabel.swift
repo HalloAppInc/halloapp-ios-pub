@@ -51,19 +51,19 @@ class TextLabel: UILabel {
     // MARK: UILabel
     override var text: String? {
         didSet {
-            self.resetTextStorage()
+            self.invalidateTextStorage()
         }
     }
 
     override var attributedText: NSAttributedString? {
         didSet {
-            self.resetTextStorage()
+            self.invalidateTextStorage()
         }
     }
 
     override var font: UIFont! {
         didSet {
-            self.resetTextStorage()
+            self.invalidateTextStorage()
         }
     }
 
@@ -72,6 +72,12 @@ class TextLabel: UILabel {
             self.textContainer.maximumNumberOfLines = self.numberOfLines
             self.setNeedsDisplay()
             self.invalidateIntrinsicContentSize()
+        }
+    }
+
+    var hyperlinkDetectionIgnoreRange: Range<String.Index>? {
+        didSet {
+            self.invalidateTextStorage()
         }
     }
 
@@ -151,7 +157,7 @@ class TextLabel: UILabel {
         self.textStorageIsValid = true
     }
 
-    private func resetTextStorage() {
+    private func invalidateTextStorage() {
         self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
             textStorage.deleteCharacters(in: NSRange(location: 0, length: textStorage.length))
         }
@@ -201,7 +207,7 @@ class TextLabel: UILabel {
             attributedText = textStorage
             text = textStorage.string
         }
-        let links = self.detectSystemDataTypes(in: text, attributedText: attributedText)
+        let links = self.detectSystemDataTypes(in: text, attributedText: attributedText, ignoredRange: self.hyperlinkDetectionIgnoreRange)
         DispatchQueue.main.async {
             self.links = links
             self.setNeedsDisplay()
@@ -222,11 +228,14 @@ class TextLabel: UILabel {
         }
     }
 
-    private func detectSystemDataTypes(in text: String, attributedText: NSAttributedString) -> [AttributedTextLink] {
+    private func detectSystemDataTypes(in text: String, attributedText: NSAttributedString, ignoredRange: Range<String.Index>? = nil) -> [AttributedTextLink] {
         var results: [AttributedTextLink] = []
         let matches = TextLabel.dataDetector.matches(in: text, options: [], range: NSRange(location: 0, length: text.count))
         for match in matches {
             if let range = Range(match.range, in: text) {
+                if ignoredRange != nil && ignoredRange!.overlaps(range) {
+                    continue
+                }
                 var link = AttributedTextLink(text: String(text[range]), textCheckingResult: match.resultType, url: match.url)
 
                 var rects: [CGRect] = []

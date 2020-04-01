@@ -32,7 +32,7 @@ class CommentView: UIView {
         return imageView
     }()
 
-    private lazy var textLabel: UILabel = {
+    private lazy var textLabel: TextLabel = {
         let label = TextLabel()
         label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -99,26 +99,30 @@ class CommentView: UIView {
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[vstack]|", options: [], metrics: nil, views: views))
     }
 
-    private func contentString(author: String, text: String) -> NSAttributedString {
+    private func contentString(author: String, text: String) -> ( NSAttributedString, Range<String.Index>? ) {
         let primaryFont = UIFont.preferredFont(forTextStyle: .subheadline)
         let nameFont = UIFont(descriptor: primaryFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: primaryFont.pointSize)
         let content = NSMutableAttributedString(string: author, attributes: [ NSAttributedString.Key.font: nameFont ])
         content.append(NSAttributedString(string: " \(text)", attributes: [ NSAttributedString.Key.font: primaryFont ]))
         content.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: content.length))
-        return content
+        return (content, content.string.range(of: author))
     }
 
     func updateWith(feedItem: FeedDataItem) {
         let contactName = AppContext.shared.contactStore.fullName(for: feedItem.username)
         let comment = feedItem.text
-        self.textLabel.attributedText = self.contentString(author: contactName, text: comment)
+        let content = self.contentString(author: contactName, text: comment)
+        self.textLabel.attributedText = content.0
+        self.textLabel.hyperlinkDetectionIgnoreRange = content.1
         self.timestampLabel.text = Utils().timeForm(dateStr: String(feedItem.timestamp))
     }
 
     func updateWith(commentItem: FeedComments) {
         if let comment = commentItem.text, let username = commentItem.username {
             let contactName = AppContext.shared.contactStore.fullName(for: username)
-            self.textLabel.attributedText = self.contentString(author: contactName, text: comment)
+            let content = self.contentString(author: contactName, text: comment)
+            self.textLabel.attributedText = content.0
+            self.textLabel.hyperlinkDetectionIgnoreRange = content.1
         }
         self.timestampLabel.text = Utils().timeForm(dateStr: String(commentItem.timestamp))
     }
