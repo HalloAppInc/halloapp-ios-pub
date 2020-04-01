@@ -12,80 +12,71 @@ import SwiftUI
 struct FeedView: View {
     @EnvironmentObject var mainViewController: MainViewController
 
-    @ObservedObject private var feedData = AppContext.shared.feedData
-    
     @State private var showNotifications = false
     @State private var showShareSheet = false
     @State private var showNetworkAlert = false
 
     var body: some View {
         VStack {
-            FeedCollectionView(
-                isOnProfilePage: false,
-                items: self.feedData.feedDataItems,
-                getItemMedia: { itemId in
-                    self.feedData.getItemMedia(itemId)
-                },
-                setItemCellHeight: { itemId, cellHeight in
-                    self.feedData.setItemCellHeight(itemId, cellHeight) })
-            }
-            .overlay(BottomBarView())
+            FeedTableView(isOnProfilePage: false)
+        }
+        .overlay(BottomBarView())
 
-            .edgesIgnoringSafeArea(.all)
+        .edgesIgnoringSafeArea(.all)
 
-            .navigationBarTitle(Text("Home"))
+        .navigationBarTitle(Text("Home"))
 
-            .navigationBarItems(trailing:
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Button(action: {
-                        self.showNotifications = true
-                    }) {
-                        Image(systemName: "bell")
+        .navigationBarItems(trailing:
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Button(action: {
+                    self.showNotifications = true
+                }) {
+                    Image(systemName: "bell")
                         .padding(8)
-                    }
-                    .sheet(isPresented: self.$showNotifications) {
-                        Notifications(isViewPresented: self.$showNotifications)
-                    }
-
-                    Button(action: {
-                        if (self.feedData.isConnecting) {
-                            self.showNetworkAlert = true
-                        } else {
-                            self.showShareSheet = true
-                        }
-                    }) {
-                        Image(systemName: "plus")
-                        .padding(8)
-                    }
-                    .actionSheet(isPresented: self.$showShareSheet) {
-                        ActionSheet(
-                            title: Text("Post something"),
-                            buttons: [
-                                .default(Text("Photo Library"), action: {
-                                    self.mainViewController.presentPhotoPicker()
-                                }),
-                                .default(Text("Camera"), action: {
-                                    self.mainViewController.presentCamera()
-                                }),
-                                .default(Text("Text"), action: {
-                                    self.mainViewController.presentPostComposer()
-                                }),
-                                .destructive(Text("Cancel"), action: {
-                                    self.showShareSheet = false
-                                })
-                            ]
-                        )}
                 }
-                .foregroundColor(Color.primary)
-                .font(Font.system(size: 20))
-            )
+                .sheet(isPresented: self.$showNotifications) {
+                    Notifications(isViewPresented: self.$showNotifications)
+                }
 
-            // "Not Connected" alert
-            ///TODO: allow to open photo picker and camera even when not connected
-            .alert(isPresented: $showNetworkAlert) {
-                Alert(title: Text("Couldn't connect to Halloapp"),
-                      message: Text("We'll keep trying, but there may be a problem with your connection"),
-                      dismissButton: .default(Text("OK")))
+                Button(action: {
+                    if (AppContext.shared.xmppController.isConnectedToServer) {
+                        self.showShareSheet = true
+                    } else {
+                        self.showNetworkAlert = true
+                    }
+                }) {
+                    Image(systemName: "plus")
+                        .padding(8)
+                }
+                .actionSheet(isPresented: self.$showShareSheet) {
+                    ActionSheet(
+                        title: Text("Post something"),
+                        buttons: [
+                            .default(Text("Photo Library"), action: {
+                                self.mainViewController.presentPhotoPicker()
+                            }),
+                            .default(Text("Camera"), action: {
+                                self.mainViewController.presentCamera()
+                            }),
+                            .default(Text("Text"), action: {
+                                self.mainViewController.presentPostComposer()
+                            }),
+                            .destructive(Text("Cancel"), action: {
+                                self.showShareSheet = false
+                            })
+                        ]
+                    )}
+            }
+            .foregroundColor(Color.primary)
+            .font(Font.system(size: 20))
+        )
+
+        // "Not Connected" alert
+        ///TODO: allow to open photo picker and camera even when not connected
+        .alert(isPresented: $showNetworkAlert) {
+            Alert(title: Text("Couldn't connect to Halloapp"),
+                  message: Text("We'll keep trying, but there may be a problem with your connection"),
+                  dismissButton: .default(Text("OK")))
         }
     }
 }

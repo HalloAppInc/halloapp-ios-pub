@@ -6,11 +6,10 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import SwiftUI
-import Combine
-
-import AVKit
 import AVFoundation
+import AVKit
+import Combine
+import SwiftUI
 
 struct WAVPlayer: UIViewControllerRepresentable {
 
@@ -28,11 +27,8 @@ struct WAVPlayer: UIViewControllerRepresentable {
 
     func makeUIViewController(context: UIViewControllerRepresentableContext<WAVPlayer>) -> WAVPlayer.UIViewControllerType {
         let playerController = AVPlayerViewController()
-        
         playerController.player = player
-        
-        playerController.view.backgroundColor = UIColor.white
-    
+        playerController.view.backgroundColor = UIColor.clear
         return playerController
     }
 

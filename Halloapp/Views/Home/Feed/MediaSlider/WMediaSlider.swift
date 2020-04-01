@@ -9,91 +9,66 @@
 import SwiftUI
 
 struct WMediaSlider: UIViewRepresentable {
-    
     @Binding var media: [FeedMedia]
-    @Binding var scroll: String
-    @Binding var height: CGFloat
     @Binding var pageNum: Int
-    
-    var maxHeight: CGFloat = 0
-    
+
     func makeUIView(context: Context) -> UICollectionView {
-  
-        let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
-
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        
+        let layout = UICollectionViewFlowLayout()
+        layout.sectionInset = .zero
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-        
         layout.itemSize = UICollectionViewFlowLayout.automaticSize
-        
         layout.minimumInteritemSpacing = 0
-
         layout.minimumLineSpacing = 0
-
-        layout.scrollDirection = UICollectionView.ScrollDirection.horizontal
+        layout.scrollDirection = .horizontal
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-    
         collectionView.register(MediaSliderCell.self, forCellWithReuseIdentifier: "MediaSliderCell")
-        
         collectionView.isPagingEnabled = true
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = UIColor.clear
-        
-        let dataSource = UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>(collectionView: collectionView) { collectionView, indexPath, modelObj in
+
+        let dataSource = UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>(collectionView: collectionView) { collectionView, indexPath, feedMedia in
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MediaSliderCell", for: indexPath) as? MediaSliderCell {
-                cell.configure(med: modelObj, height: self.$height, numMedia: self.media.count)
+                cell.configure(with: feedMedia)
                 return cell
             }
             return MediaSliderCell()
         }
         
-        populate(dataSource: dataSource)
+        reload(dataSource: dataSource, animatingDifferences: false)
         context.coordinator.dataSource = dataSource
         collectionView.delegate = context.coordinator
         return collectionView
     }
     
     func updateUIView(_ uiView: UICollectionView, context: Context) {
-        let dataSource = context.coordinator.dataSource
-        populate(dataSource: dataSource!)
+        if let dataSource = context.coordinator.dataSource {
+            let animate = uiView.window != nil && UIApplication.shared.applicationState == .active
+            reload(dataSource: dataSource, animatingDifferences: animate)
+        }
     }
     
-    func populate(dataSource: UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>) {
+    func reload(dataSource: UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>, animatingDifferences: Bool = true) {
         var snapshot = NSDiffableDataSourceSnapshot<MediaSliderSection, FeedMedia>()
         snapshot.appendSections([.main])
         snapshot.appendItems(self.media)
-        dataSource.apply(snapshot, animatingDifferences: true)
+        dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
-    
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
     
     class Coordinator: NSObject, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
-        
         var parent: WMediaSlider
-        
         var dataSource: UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>?
         
         init(_ view: WMediaSlider) {
             self.parent = view
         }
 
-        // delegate
-        func collectionView(_ collectionView: UICollectionView,
-                            layout collectionViewLayout: UICollectionViewLayout,
-                            sizeForItemAt indexPath: IndexPath) -> CGSize {
-            
-            var tempHeight = collectionView.frame.height - 2
-            if tempHeight < 0 {
-                tempHeight = 0
-            }
-            
-            return CGSize(width: collectionView.frame.width, height: tempHeight)
-        
+        func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+            return collectionView.frame.size
         }
         
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -101,7 +76,6 @@ struct WMediaSlider: UIViewRepresentable {
             let page = Int(floor((scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1)
             self.parent.pageNum = page
         }
-        
     }
 }
 
@@ -110,26 +84,18 @@ enum MediaSliderSection {
 }
 
 class MediaSliderCell: UICollectionViewCell {
-
-    override func awakeFromNib() {
-        super.awakeFromNib()
-    }
-    
-    public func configure(med: FeedMedia, height: Binding<CGFloat>, numMedia: Int) {
-        var controller: UIViewController
-        controller = UIHostingController(rootView: MediaCell(med: med, height: height, numMedia: numMedia))
-        controller.view.frame = self.bounds
-        controller.view.backgroundColor = UIColor.secondarySystemGroupedBackground
-        self.addSubview(controller.view)
+    func configure(with media: FeedMedia) {
+        let controller = UIHostingController(rootView: MediaCell(media: media))
+        controller.view.frame = self.contentView.bounds
+        controller.view.backgroundColor = UIColor.clear
+        self.contentView.addSubview(controller.view)
     }
     
     override func prepareForReuse() {
-        let theSubviews: Array = (self.subviews)
-        for view in theSubviews
-        {
+        let subviews = self.contentView.subviews
+        for view in subviews {
             view.removeFromSuperview()
         }
     }
-
 }
 

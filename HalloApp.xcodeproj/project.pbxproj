@@ -19,6 +19,7 @@
 		761B3962241D9C4D00858251 /* SyncSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3961241D9C4D00858251 /* SyncSession.swift */; };
 		761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */; };
 		761C6168242D89F90028AE19 /* TextLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6167242D89F90028AE19 /* TextLabel.swift */; };
+		763B42AC243274F400FF0E82 /* FeedTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AB243274F400FF0E82 /* FeedTableView.swift */; };
 		765668CF240DCF7200214077 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668CE240DCF7100214077 /* MainView.swift */; };
 		765668D1240DE02400214077 /* BottomBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668D0240DE02400214077 /* BottomBarView.swift */; };
 		76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CD62429331D007435AC /* CommentsViewController.swift */; };
@@ -43,7 +44,6 @@
 		EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0E64CA234BF4BC006A22EB /* XMPPController.swift */; };
 		EA12006924209903008BFFAD /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA12006824209903008BFFAD /* VideoUtils.swift */; };
 		EA17C39923ECAEDB00727413 /* PendingCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA17C39823ECAEDB00727413 /* PendingCore.swift */; };
-		EA17C39B23ED39E600727413 /* FeedCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA17C39A23ED39E600727413 /* FeedCollectionView.swift */; };
 		EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */; };
 		EA1B517823A877D400460662 /* FeedRouterData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1B517723A877D200460662 /* FeedRouterData.swift */; };
 		EA3861ED23342C7C00705943 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3861EC23342C7C00705943 /* Login.swift */; };
@@ -129,6 +129,7 @@
 		761B3961241D9C4D00858251 /* SyncSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncSession.swift; sourceTree = "<group>"; };
 		761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeveloperMenuView.swift; path = HalloApp/Views/Home/Profile/DeveloperMenuView.swift; sourceTree = SOURCE_ROOT; };
 		761C6167242D89F90028AE19 /* TextLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextLabel.swift; path = HalloApp/Components/Views/TextLabel.swift; sourceTree = SOURCE_ROOT; };
+		763B42AB243274F400FF0E82 /* FeedTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedTableView.swift; path = HalloApp/Views/Home/Feed/FeedList/FeedTableView.swift; sourceTree = SOURCE_ROOT; };
 		765668CE240DCF7100214077 /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		765668D0240DE02400214077 /* BottomBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomBarView.swift; sourceTree = "<group>"; };
 		76B95CD62429331D007435AC /* CommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsViewController.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -155,7 +156,6 @@
 		EA0E64CA234BF4BC006A22EB /* XMPPController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPController.swift; sourceTree = "<group>"; };
 		EA12006824209903008BFFAD /* VideoUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		EA17C39823ECAEDB00727413 /* PendingCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingCore.swift; sourceTree = "<group>"; };
-		EA17C39A23ED39E600727413 /* FeedCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCollectionView.swift; sourceTree = "<group>"; };
 		EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTimer.swift; sourceTree = "<group>"; };
 		EA1B517723A877D200460662 /* FeedRouterData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedRouterData.swift; sourceTree = "<group>"; };
 		EA3861EC23342C7C00705943 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
@@ -430,7 +430,7 @@
 			isa = PBXGroup;
 			children = (
 				76ECDC152409DD7700BB48AC /* FeedView.swift */,
-				EA17C39A23ED39E600727413 /* FeedCollectionView.swift */,
+				763B42AB243274F400FF0E82 /* FeedTableView.swift */,
 			);
 			path = FeedList;
 			sourceTree = "<group>";
@@ -831,6 +831,7 @@
 				EA1B517823A877D400460662 /* FeedRouterData.swift in Sources */,
 				EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */,
 				EA3861ED23342C7C00705943 /* Login.swift in Sources */,
+				763B42AC243274F400FF0E82 /* FeedTableView.swift in Sources */,
 				EA45713523EB7DBE008C2E44 /* FeedMediaCore.swift in Sources */,
 				EAC84CEC2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift in Sources */,
 				76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */,
@@ -840,7 +841,6 @@
 				761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */,
 				EA0D20092363AD74008B8289 /* AuthRouter.swift in Sources */,
 				EAC84CEA2422E05700A5AAEF /* XMPPPostItemRequest.swift in Sources */,
-				EA17C39B23ED39E600727413 /* FeedCollectionView.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				EA45713723EB7DF5008C2E44 /* UserCore.swift in Sources */,
 				EAB03B7F2400519400643EB6 /* WAVPlayer.swift in Sources */,

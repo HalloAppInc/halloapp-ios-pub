@@ -142,19 +142,8 @@ struct PlayerControlsView : View {
                 Image(systemName: playerPaused ? "play" : "pause")
                     .padding(.trailing, 10)
             }
-            
-//            // Current video time
-//            Text("\(Utility.formatSecondsToHMS(videoPos * videoDuration))")
-//            
-//            // Slider for seeking / showing video progress
-//            Slider(value: $videoPos, in: 0...1, onEditingChanged: sliderEditingChanged)
-//            
-//            // Video duration
-//            Text("\(Utility.formatSecondsToHMS(videoDuration))")
-            
         }
-        .padding(.leading, 10)
-        .padding(.trailing, 10)
+        .padding(.horizontal, 10)
     }
     
     private func togglePlayPause() {

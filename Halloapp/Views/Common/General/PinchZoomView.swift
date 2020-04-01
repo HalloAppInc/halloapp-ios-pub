@@ -148,7 +148,6 @@ struct PinchToZoom: ViewModifier {
 
 
     func body(content: _ViewModifier_Content<PinchToZoom>) -> some View {
-//    func body(content: Content) -> some View {
         content
             .scaleEffect(scale, anchor: anchor)
             .offset(offset)

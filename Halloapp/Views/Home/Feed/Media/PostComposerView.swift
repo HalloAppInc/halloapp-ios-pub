@@ -73,7 +73,8 @@ struct PostComposerView: View {
                 .hidden()
 
             if self.mediaItemsToPost.count > 0 {
-                MediaSlider(self.item, 200)
+                MediaSlider(self.item)
+                    .frame(height: 200, alignment: .center)
             }
         
             HStack {

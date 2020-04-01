@@ -9,88 +9,48 @@
 import SwiftUI
 
 struct MediaCell: View {
-    
-    @ObservedObject var med: FeedMedia
-    @Binding var height: CGFloat
-    var numMedia: Int = 0 // used to position the picture in the middle or not
-    
-    var body: some View {
+    @ObservedObject var media: FeedMedia
 
-        VStack(spacing: 0) {
-            
-            if numMedia > 1 && med.image.size.width > 0 && med.image.size.height < height {
-                Spacer()
-            }
-            
-//            Text("\(med.type)")
-//            Text("\(med.width)")
-//            Text("\(med.height)")
-            
-            HStack(spacing: 0) {
-                    
-                if ((med.type == "image" || med.type == "") && med.image.size.width > 0) { // important, app crashes without this check
-                    
-//                    Button(action: {
-//
-//                    }) {
-//
-//                      Image(uiImage: med.image)
-//                            .renderingMode(.original)
-//                          .resizable()
-//                          .aspectRatio(med.image.size, contentMode: .fit)
-//                          .background(Color.gray)
-//                          .cornerRadius(10)
-//                          .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
-//                          .frame(height: height)
-//
-//                    }
-//                    .buttonStyle(BorderlessButtonStyle())
-                    
-                    Image(uiImage: med.image)
-                        .renderingMode(.original)
-                        .resizable()
-                        .aspectRatio(med.image.size, contentMode: .fit)
-                        .background(Color.gray)
+    var body: some View {
+        HStack {
+
+            if ((media.type == "image" || media.type == "") && media.image.size.width > 0) { // important, app crashes without this check
+
+                Image(uiImage: media.image)
+                    .renderingMode(.original)
+                    .resizable()
+                    .aspectRatio(media.image.size, contentMode: .fit)
+                    .background(Color.gray)
+                    .cornerRadius(10)
+                    .pinchToZoom()
+
+            } else if (media.type == "video") {
+
+                if (media.tempUrl != nil) {
+                    /* note: in the simulator, this debug message appears when scrolling:
+                     [framework] CUICatalog: Invalid asset name supplied: '(null)'
+                     */
+                    WAVPlayer(videoURL: media.tempUrl!)
                         .cornerRadius(10)
-                        .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
-                        .frame(height: height)
-                        .pinchToZoom()
-                    
-                } else if (med.type == "video") {
-                    
-                    if (med.tempUrl != nil) {
-                        /* note: in the simulator, this debug message appears when scrolling:
-                         [framework] CUICatalog: Invalid asset name supplied: '(null)'
-                         */
-                        WAVPlayer(videoURL: med.tempUrl!)
-                            .cornerRadius(10)
-                            .padding(EdgeInsets(top: 0, leading: 20, bottom: 10, trailing: 20))
-                    } else {
-                        VStack() {
-                            Spacer()
-                            Image(systemName: "video")
-                                .foregroundColor(Color.gray)
-                            Spacer()
-                        }.frame(height: height)
-                    }
-                    
                 } else {
-       
-                    VStack() {
+                    VStack {
                         Spacer()
-                        Image(systemName: "photo")
+                        Image(systemName: "video")
                             .foregroundColor(Color.gray)
                         Spacer()
-                    }.frame(height: height)
-                    
+                    }
                 }
-   
+
+            } else {
+
+                VStack {
+                    Spacer()
+                    Image(systemName: "photo")
+                        .foregroundColor(Color.gray)
+                    Spacer()
+                }
             }
-            Spacer()
         }
-        .padding(0)
-        
-        
     }
 }
 
