@@ -25,7 +25,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     
     var text: String
     
-    var timestamp: Double = 0
+    var timestamp: TimeInterval = 0
     
     var imageUrl: String
     
@@ -54,7 +54,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
             unreadComments: Int = 0,
             mediaHeight: Int = -1,
             cellHeight: Int = -1,
-            timestamp: Double = 0) {
+            timestamp: TimeInterval = 0) {
         
         self.itemId = itemId
         self.username = username

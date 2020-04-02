@@ -65,19 +65,12 @@ class XMPPPostItemRequest : XMPPRequest {
     }
 
     override func didFinish(with response: XMPPIQ) {
-        var timestamp: Double = 0
+        var timestamp: TimeInterval = 0
         
         if let pubsub = response.element(forName: "pubsub") {
             if let publish = pubsub.element(forName: "publish") {
                 if let item = publish.element(forName: "item") {
-                    
-                    if let serverTimestamp = item.attributeStringValue(forName: "timestamp") {
-                        
-                        if let convertedServerTimestamp = Double(serverTimestamp) {
-                            
-                            timestamp = convertedServerTimestamp
-                        }
-                    }
+                    timestamp = item.attributeDoubleValue(forName: "timestamp")
                 }
             }
         }

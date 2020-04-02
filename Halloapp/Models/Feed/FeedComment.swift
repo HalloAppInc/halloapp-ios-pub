@@ -17,7 +17,7 @@ struct FeedComment: Identifiable, Equatable, Hashable {
     var username: String = ""
     var userImageUrl: String = ""
     var text: String = ""
-    var timestamp: Double = 0
+    var timestamp: TimeInterval = 0
     
     init() {
         self.id = UUID().uuidString
