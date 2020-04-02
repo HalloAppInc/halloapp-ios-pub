@@ -17,8 +17,7 @@ class FeedData: ObservableObject {
     @Published var feedMedia : [FeedMedia] = []
     @Published var feedDataItems : [FeedDataItem] = []
     @Published var feedCommentItems : [FeedComment] = []
-    @Published var isConnecting: Bool = true
-        
+
     private var userData: UserData
     private var xmppController: XMPPController
     private var cancellableSet: Set<AnyCancellable> = []
@@ -44,19 +43,10 @@ class FeedData: ObservableObject {
         } catch(let error) {
             print(error.localizedDescription)
         }
-        
-        self.cancellableSet.insert(
-            self.xmppController.isConnecting.sink(receiveValue: { value in
-                self.isConnecting = true
-            })
-        )
-        
+
         // when app resumes, xmpp reconnects, feed should try uploading any pending again
         self.cancellableSet.insert(
             self.xmppController.didConnect.sink(receiveValue: { value in
-
-                self.isConnecting = false
-                
                 DDLogInfo("Feed: Got event for didConnect")
                 
                 DispatchQueue.global(qos: .default).async {
