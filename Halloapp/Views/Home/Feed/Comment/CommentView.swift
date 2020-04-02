@@ -114,7 +114,7 @@ class CommentView: UIView {
         let content = self.contentString(author: contactName, text: comment)
         self.textLabel.attributedText = content.0
         self.textLabel.hyperlinkDetectionIgnoreRange = content.1
-        self.timestampLabel.text = Utils().timeForm(dateStr: String(feedItem.timestamp))
+        self.timestampLabel.text = Date(timeIntervalSince1970: feedItem.timestamp).commentTimestamp()
     }
 
     func updateWith(commentItem: FeedComments) {
@@ -124,6 +124,6 @@ class CommentView: UIView {
             self.textLabel.attributedText = content.0
             self.textLabel.hyperlinkDetectionIgnoreRange = content.1
         }
-        self.timestampLabel.text = Utils().timeForm(dateStr: String(commentItem.timestamp))
+        self.timestampLabel.text = Date(timeIntervalSince1970: commentItem.timestamp).commentTimestamp()
     }
 }

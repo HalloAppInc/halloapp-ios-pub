@@ -360,7 +360,7 @@ class FeedItemHeaderView: UIView {
 
     func configure(with feedItem: FeedCore) {
         self.nameLabel.text = AppContext.shared.contactStore.fullName(for: feedItem.username!)
-        self.timestampLabel.text = Utils().timeForm(dateStr: String(feedItem.timestamp))
+        self.timestampLabel.text = Date(timeIntervalSince1970: feedItem.timestamp).postTimestamp()
     }
 
     func prepareForReuse() {
