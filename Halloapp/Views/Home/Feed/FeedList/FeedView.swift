@@ -39,7 +39,7 @@ struct FeedView: View {
                 }
 
                 Button(action: {
-                    if (AppContext.shared.xmppController.isConnectedToServer) {
+                    if (AppContext.shared.xmppController.xmppStream.isConnected) {
                         self.showShareSheet = true
                     } else {
                         self.showNetworkAlert = true
