@@ -18,7 +18,6 @@ PODS:
   - libidn (1.35)
   - PryntTrimmerView (4.0.0)
   - SteviaLayout (4.7.3)
-  - SwiftyJSON (5.0.0)
   - XMPPFramework/default (4.0.1):
     - CocoaAsyncSocket (~> 7.6)
     - CocoaLumberjack
@@ -35,7 +34,6 @@ PODS:
 DEPENDENCIES:
   - Alamofire
   - CryptoSwift (~> 1.0)
-  - SwiftyJSON
   - "XMPPFramework/Swift (from `git@github.com:HalloAppInc/XMPPFramework.git`)"
   - YPImagePicker (~> 4.2.0)
   - Zip (~> 1.1)
@@ -50,7 +48,6 @@ SPEC REPOS:
     - libidn
     - PryntTrimmerView
     - SteviaLayout
-    - SwiftyJSON
     - YPImagePicker
     - Zip
 
@@ -72,11 +69,10 @@ SPEC CHECKSUMS:
   libidn: e4576a956b797c584c77aaedfc6e3dd639b61bdc
   PryntTrimmerView: 67e67573ffd4c073f1308effa66aefd0cfa667a0
   SteviaLayout: c2ecdcff57d44e38fd2f65e54ad52aeae28ca0c4
-  SwiftyJSON: 36413e04c44ee145039d332b4f4e2d3e8d6c4db7
   XMPPFramework: 759900cc7eb3c22036d622da72f66a05ae7b6948
   YPImagePicker: accf310f9526641a84372c0ecf943547d9b1e52c
   Zip: 8877eede3dda76bcac281225c20e71c25270774c
 
-PODFILE CHECKSUM: c5d2ec00aeeeebb42ac53fffbea96d601cb00fed
+PODFILE CHECKSUM: 44b23b6d6169d7b9361f26db08a36e322e8b0f34
 
 COCOAPODS: 1.8.4
