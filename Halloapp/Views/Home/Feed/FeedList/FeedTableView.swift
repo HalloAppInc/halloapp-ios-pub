@@ -274,6 +274,7 @@ class FeedItemContentView: UIView {
     func configure(with feedItem: FeedCore) {
         if feedItem.mediaHeight > 0 {
             if let feedDataItem = AppContext.shared.feedData.feedDataItem(with: feedItem.itemId!) {
+                DDLogDebug("FeedTableViewCell/configure [\(feedDataItem.itemId)]")
                 let controller = UIHostingController(rootView: MediaSlider(feedDataItem))
                 controller.view.backgroundColor = UIColor.clear
                 controller.view.addConstraint({

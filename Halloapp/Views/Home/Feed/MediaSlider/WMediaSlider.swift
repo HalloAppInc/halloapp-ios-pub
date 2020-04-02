@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import SwiftUI
 
 struct WMediaSlider: UIViewRepresentable {
@@ -13,6 +14,7 @@ struct WMediaSlider: UIViewRepresentable {
     @Binding var pageNum: Int
 
     func makeUIView(context: Context) -> UICollectionView {
+        DDLogDebug("WMediaSlider/makeUIView [\(media.first?.feedItemId ?? "")]:[\(media.count)]")
         let layout = UICollectionViewFlowLayout()
         layout.sectionInset = .zero
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
@@ -42,9 +44,16 @@ struct WMediaSlider: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UICollectionView, context: Context) {
+        DDLogDebug("WMediaSlider/updateUIView \(media.map{ $0.feedItemId })")
+        guard uiView.window != nil else {
+            // SwiftUI is asking to reload collection view when video transitions to fullscreen playback,
+            // which in turn stops the fullscreen playback. Simply ignoring request to update view
+            // when said view isn't visible seems to be harmless and does fix video playback interruption issue.
+            DDLogDebug("WMediaSlider/updateUIView/ignore")
+            return
+        }
         if let dataSource = context.coordinator.dataSource {
-            let animate = uiView.window != nil && UIApplication.shared.applicationState == .active
-            reload(dataSource: dataSource, animatingDifferences: animate)
+            reload(dataSource: dataSource, animatingDifferences: UIApplication.shared.applicationState == .active)
         }
     }
     
@@ -85,6 +94,7 @@ enum MediaSliderSection {
 
 class MediaSliderCell: UICollectionViewCell {
     func configure(with media: FeedMedia) {
+        DDLogDebug("MediaSliderCell/configure [\(media.feedItemId)]:[\(media.order)]")
         let controller = UIHostingController(rootView: MediaCell(media: media))
         controller.view.frame = self.contentView.bounds
         controller.view.backgroundColor = UIColor.clear

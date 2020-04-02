@@ -5,8 +5,9 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import SwiftUI
+import CocoaLumberjack
 import Combine
+import SwiftUI
 
 struct MediaSlider: View {
     @ObservedObject var item: FeedDataItem
@@ -16,6 +17,7 @@ struct MediaSlider: View {
     @State var pageNum: Int = 0
     
     init(_ item: FeedDataItem) {
+        DDLogDebug("MediaSlider/init [\(item.itemId)]")
         self.item = item
         self._media = State(initialValue: self.item.media)
     }
@@ -23,15 +25,17 @@ struct MediaSlider: View {
     var body: some View {        
         DispatchQueue.main.async {
             self.media = self.item.media
-     
+
             self.cancellableSet.insert(
                 /* for new items */
                 self.item.objectWillChange.sink { _ in
+                    DDLogDebug("MediaSlider/objectWillChange [\(self.item.itemId)]")
                     self.media = self.item.media
                 }
             )
         }
-        
+
+        DDLogDebug("MediaSlider/body [\(item.itemId)]")
         return
             VStack(spacing: 5) {
                 WMediaSlider(media: $media, pageNum: $pageNum)

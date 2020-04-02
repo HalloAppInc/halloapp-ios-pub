@@ -6,13 +6,15 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import SwiftUI
 
 struct MediaCell: View {
     @ObservedObject var media: FeedMedia
 
     var body: some View {
-        HStack {
+        DDLogDebug("MediaCell/body [\(media.feedItemId)]:[\(media.order)]")
+        return HStack {
 
             if ((media.type == "image" || media.type == "") && media.image.size.width > 0) { // important, app crashes without this check
 
@@ -31,7 +33,6 @@ struct MediaCell: View {
                      [framework] CUICatalog: Invalid asset name supplied: '(null)'
                      */
                     WAVPlayer(videoURL: media.tempUrl!)
-                        .cornerRadius(10)
                 } else {
                     VStack {
                         Spacer()
