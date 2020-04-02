@@ -7,40 +7,12 @@
 //
 
 import Foundation
-import SwiftDate
 import XMPPFramework
 
 extension Data {
     var hexString: String {
         let hexString = map { String(format: "%02.2hhx", $0) }.joined()
         return hexString
-    }
-}
-
-extension Date {
-    func timeAgoDisplay() -> String {
-
-        let calendar = Calendar.current
-        let minuteAgo = calendar.date(byAdding: .minute, value: -1, to: Date())!
-        let hourAgo = calendar.date(byAdding: .hour, value: -1, to: Date())!
-        let dayAgo = calendar.date(byAdding: .day, value: -1, to: Date())!
-        let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
-
-        if minuteAgo < self {
-            let diff = Calendar.current.dateComponents([.second], from: self, to: Date()).second ?? 0
-            return "\(diff) sec ago"
-        } else if hourAgo < self {
-            let diff = Calendar.current.dateComponents([.minute], from: self, to: Date()).minute ?? 0
-            return "\(diff) min ago"
-        } else if dayAgo < self {
-            let diff = Calendar.current.dateComponents([.hour], from: self, to: Date()).hour ?? 0
-            return "\(diff) hrs ago"
-        } else if weekAgo < self {
-            let diff = Calendar.current.dateComponents([.day], from: self, to: Date()).day ?? 0
-            return "\(diff) days ago"
-        }
-        let diff = Calendar.current.dateComponents([.weekOfYear], from: self, to: Date()).weekOfYear ?? 0
-        return "\(diff) weeks ago"
     }
 }
 
@@ -54,91 +26,6 @@ class Utils {
             return "\(version)"
         }
         return "\(version) (\(buildNumber))"
-    }
-    
-    func timeForm_2(dateStr: String) -> String {
-
-        let origDateDouble = Double(dateStr)
-
-        var result = ""
-        
-        if let origDateDouble = origDateDouble {
-        let now = Date(timeIntervalSince1970: origDateDouble)
-        result = now.timeAgoDisplay()
-        }
-        
-        return result
-
-    }
-    
-    func timeForm(dateStr: String) -> String {
-
-        let origDateDouble = Double(dateStr)
-        
-        var result = ""
-        
-        var diff = 0
-        
-        if let origDateDouble = origDateDouble {
-            var origDate = Int(origDateDouble)
-            
-            let current = Int(Date().timeIntervalSince1970)
-            
-            let calendar = Calendar.current
-            
-            diff = current - origDate
-            
-            /* one-off": account for if time was in milliseconds */
-            if diff < 0 {
-                origDate = origDate/1000
-                diff = current - origDate
-            }
-            
-            
-            if (diff <= 3) {
-                result = "now"
-            } else if (diff <= 59) {
-                result = "\(String(diff))s"
-            } else if diff <= 3600 {
-                let diff2 = diff/60
-                result = "\(String(diff2))m\(diff2 > 1 ? "" : "")"
-            } else if calendar.isDateInYesterday(Date(timeIntervalSince1970: origDateDouble)) {
-                result = "Yesterday"
-            } else if diff <= 86400 {
-                let diff2 = diff/(60*60)
-                result = "\(String(diff2))h\(diff2 > 1 ? "" : "")"
-            } else if diff <= 86400*7 {
- 
-                let diff2 = diff/(86400) + 1
-
-                result = "\(String(diff2))d\(diff2 > 1 ? "" : "")"
-
-               
-            } else if diff <= 86400*7*4 {
-                let diff2 = diff/(86400*7)
-                result = "\(String(diff2))w\(diff2 > 1 ? "" : "")"
-            } else {
-                
-                let dateformatter = DateFormatter()
-                 
-                dateformatter.dateStyle = .long
-                 
-                result = dateformatter.string(from: Date(timeIntervalSince1970: origDateDouble))
-                
-//                let rome = Region(tz: TimeZoneName.europeRome, cal: CalendarName.gregorian, loc: LocaleName.italian)
-//
-//                // Parse a string which a custom format
-//                let date1 = try! DateInRegion(string: dateStr, format: .iso8601(options: .withInternetDateTime), fromRegion: rome)
-//                if let date1 = date1 {
-//                    result = date1.string(dateStyle: .long, timeStyle: .none)
-//                }
-            }
-            
-        }
-        
-
-        
-        return result
     }
 
     func userAlreadyExists(_ value: XMPPIQ) -> Bool {
