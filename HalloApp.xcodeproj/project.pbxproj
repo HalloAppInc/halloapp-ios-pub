@@ -46,7 +46,6 @@
 		EA12006924209903008BFFAD /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA12006824209903008BFFAD /* VideoUtils.swift */; };
 		EA17C39923ECAEDB00727413 /* PendingCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA17C39823ECAEDB00727413 /* PendingCore.swift */; };
 		EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */; };
-		EA1B517823A877D400460662 /* FeedRouterData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1B517723A877D200460662 /* FeedRouterData.swift */; };
 		EA3861ED23342C7C00705943 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3861EC23342C7C00705943 /* Login.swift */; };
 		EA454B64234E769F002B960D /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* ProfileView.swift */; };
 		EA45712723EB79DB008C2E44 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712623EB79DB008C2E44 /* CoreDataManager.swift */; };
@@ -159,7 +158,6 @@
 		EA12006824209903008BFFAD /* VideoUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		EA17C39823ECAEDB00727413 /* PendingCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingCore.swift; sourceTree = "<group>"; };
 		EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTimer.swift; sourceTree = "<group>"; };
-		EA1B517723A877D200460662 /* FeedRouterData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedRouterData.swift; sourceTree = "<group>"; };
 		EA3861EC23342C7C00705943 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		EA454B63234E769F002B960D /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		EA45712623EB79DB008C2E44 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
@@ -462,7 +460,6 @@
 				EA45713423EB7DBE008C2E44 /* FeedMediaCore.swift */,
 				EA45712A23EB7D51008C2E44 /* FeedComment.swift */,
 				EA45712C23EB7D7E008C2E44 /* FeedCommentCore.swift */,
-				EA1B517723A877D200460662 /* FeedRouterData.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -831,7 +828,6 @@
 				EA56404E233D373800E68A7E /* Verification.swift in Sources */,
 				EA45712B23EB7D51008C2E44 /* FeedComment.swift in Sources */,
 				EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */,
-				EA1B517823A877D400460662 /* FeedRouterData.swift in Sources */,
 				EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */,
 				EA3861ED23342C7C00705943 /* Login.swift in Sources */,
 				763B42AC243274F400FF0E82 /* FeedTableView.swift in Sources */,
