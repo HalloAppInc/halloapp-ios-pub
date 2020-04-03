@@ -28,9 +28,8 @@ class FeedData: ObservableObject {
     init(xmppController: XMPPController, userData: UserData) {
         self.xmppController = xmppController
         self.userData = userData
-        
-        self.pushAllItems(items: feedItemCore.getAll())
-        
+
+        self.feedDataItems = feedItemCore.getAll()
         self.feedCommentItems = feedCommentCore.getAll()
         
         /* enable videoes to play with sound even when the phone is set to ringer mode */
@@ -172,16 +171,6 @@ class FeedData: ObservableObject {
          
         return resultHeight
      }
-    
-    func pushAllItems(items: [FeedDataItem]) {
-
-        if self.feedDataItems.count > 0 {
-            return
-        }
-        
-        self.feedDataItems = items
-        
-    }
 
     func pushItem(item: FeedDataItem) {
         
