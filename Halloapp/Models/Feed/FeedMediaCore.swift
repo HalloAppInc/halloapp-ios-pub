@@ -8,94 +8,9 @@
 
 import CocoaLumberjack
 import CoreData
-import SwiftUI
 
 class FeedMediaCore {
 
-    func getAll() -> [FeedMedia] {
-        
-        let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CFeedImage")
-        fetchRequest.sortDescriptors = [NSSortDescriptor.init(key: "order", ascending: true)]
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            var arr: [FeedMedia] = []
-            
-            for data in result as! [NSManagedObject] {
-                let item = FeedMedia(
-                    feedItemId: data.value(forKey: "feedItemId") as! String,
-                    order: data.value(forKey: "order") as! Int,
-                    type: data.value(forKey: "type") as! String,
-                    url: data.value(forKey: "url") as! String,
-                    width: data.value(forKey: "width") as! Int,
-                    height: data.value(forKey: "height") as! Int,
-                    key: data.value(forKey: "key") as! String,
-                    sha256hash: data.value(forKey: "sha256hash") as! String,
-                    numTries: data.value(forKey: "numTries") as! Int
-                )
-                
-                if let blob = data.value(forKey: "blob") as? Data {
-                    let path = "tempImg.jpg"
-                    let tempUrl = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(path)
-                    do {
-                        try FileManager.default.createDirectory(at: tempUrl.deletingLastPathComponent(),
-                                                             withIntermediateDirectories: true,
-                                                             attributes: nil)
-                        try blob.write(to: tempUrl)
-
-                        DDLogInfo("wrote to file")
-                        
-                     } catch {
-                         DDLogError("-- Error: \(error)")
-                     }
-//                    if let img2 = UIImage(contentsOfFile: tempUrl.path) {
-//                        item.image = img2
-//
-//                    }
-                    if let image = UIImage(data: blob) {
-                        item.image = image
-                    }
-                }
-                arr.append(item)
-            }
-//            self.feedMedia.append(contentsOf: arr)
-            return arr
-        } catch  {
-            DDLogError("failed")
-            return []
-        }
-    }
-
-    func getInfo(feedItemId: String) -> [FeedMedia] {
-        let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CFeedImage")
-        let p1 = NSPredicate(format: "feedItemId = %@", feedItemId)
-        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [p1])
-        fetchRequest.sortDescriptors = [NSSortDescriptor.init(key: "order", ascending: true)]
-        
-        do {
-            let result = try managedContext.fetch(fetchRequest)
-            var arr: [FeedMedia] = []
-            for data in result as! [NSManagedObject] {
-                let item = FeedMedia(
-                    feedItemId: data.value(forKey: "feedItemId") as! String,
-                    order: data.value(forKey: "order") as! Int,
-                    type: data.value(forKey: "type") as! String,
-                    url: data.value(forKey: "url") as! String,
-                    width: data.value(forKey: "width") as! Int,
-                    height: data.value(forKey: "height") as! Int,
-                    numTries: data.value(forKey: "numTries") as! Int
-                )
-                arr.append(item)
-            }
-            return arr
-        } catch  {
-            DDLogError("failed")
-            return []
-        }
-    }
-    
     func get(feedItemId: String) -> [FeedMedia] {
         
         let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext

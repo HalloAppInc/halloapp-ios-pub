@@ -14,7 +14,6 @@ import XMPPFramework
 import AVKit
 
 class FeedData: ObservableObject {
-    @Published var feedMedia : [FeedMedia] = []
     @Published var feedDataItems : [FeedDataItem] = []
     @Published var feedCommentItems : [FeedComment] = []
 
@@ -29,9 +28,6 @@ class FeedData: ObservableObject {
     init(xmppController: XMPPController, userData: UserData) {
         self.xmppController = xmppController
         self.userData = userData
-        
-//        self.feedMedia.append(contentsOf: FeedMediaCore().getAll())
-//        print("count: \(self.feedMedia.count)")
         
         self.pushAllItems(items: feedItemCore.getAll())
         
@@ -67,7 +63,6 @@ class FeedData: ObservableObject {
                 
                 DDLogInfo("wiping feed data")
                 
-                self.feedMedia.removeAll()
                 self.feedCommentItems.removeAll()
                 self.feedDataItems.removeAll()
                 DDLogInfo("feedDataItemss Count: \(self.feedDataItems.count)")
@@ -137,15 +132,6 @@ class FeedData: ObservableObject {
                 /* todo: scan for unloaded images during init */
                 self.feedDataItems[idx].loadMedia()
             }
-        }
-    }
-    
-    func setItemCellHeight(_ itemId: String, _ cellHeight: Int) {
-        if let idx = self.feedDataItems.firstIndex(where: {$0.itemId == itemId}) {
-             self.feedDataItems[idx].cellHeight = cellHeight
-             DispatchQueue.global(qos: .default).async {
-                 self.feedItemCore.updateCellHeight(item: self.feedDataItems[idx])
-             }
         }
     }
 

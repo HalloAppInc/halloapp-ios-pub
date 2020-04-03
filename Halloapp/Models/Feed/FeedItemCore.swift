@@ -157,43 +157,6 @@ class FeedItemCore {
         }
     }
     
-    func updateCellHeight(item: FeedDataItem) {
-        
-        let managedContext = CoreDataManager.sharedManager.bgContext
-        
-        managedContext.perform {
-
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FeedCore")
-            fetchRequest.predicate = NSPredicate(format: "itemId == %@", item.itemId)
-            
-            do {
-                let result = try managedContext.fetch(fetchRequest)
-                
-                if (result.count == 0) {
-                    return
-                }
-                
-                let objectUpdate = result[0] as! NSManagedObject
-                objectUpdate.setValue(item.cellHeight, forKey: "cellHeight")
-                
-                do {
-                    try managedContext.save()
-                } catch {
-                    DDLogError("\(error)")
-                }
-            
-                do {
-                    try managedContext.save()
-                } catch {
-                    DDLogError("\(error)")
-                }
-                
-            } catch  {
-                DDLogError("failed")
-            }
-        }
-    }
-    
     func update(item: FeedDataItem) {
         
         let managedContext = CoreDataManager.sharedManager.bgContext
