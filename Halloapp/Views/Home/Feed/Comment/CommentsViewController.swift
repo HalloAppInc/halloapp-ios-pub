@@ -22,7 +22,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
             self.refreshCommentInputViewReplyPanel()
         }
     }
-    private var dataSource: UITableViewDiffableDataSource<Int, FeedComments>?
+    private var dataSource: UITableViewDiffableDataSource<Int, FeedComment>?
     private var fetchedResultsController: NSFetchedResultsController<FeedComments>?
     private var scrollToBottomOnContentChange = false
 
@@ -67,12 +67,12 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         headerView.commentView.updateWith(feedItem: feedDataItem)
         self.tableView.tableHeaderView = headerView
 
-        self.dataSource = UITableViewDiffableDataSource<Int, FeedComments>(tableView: self.tableView) { [weak self] tableView, indexPath, feedComments in
+        self.dataSource = UITableViewDiffableDataSource<Int, FeedComment>(tableView: self.tableView) { [weak self] tableView, indexPath, feedComment in
             let cell = tableView.dequeueReusableCell(withIdentifier: CommentsViewController.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
-            cell.update(with: feedComments)
+            cell.update(with: feedComment)
             cell.replyAction = {
                 guard let self = self else { return }
-                self.replyContext = (parentCommentId: feedComments.commentId!, userId: feedComments.username!)
+                self.replyContext = (parentCommentId: feedComment.id, userId: feedComment.username)
                 self.commentsInputView.showKeyboard(from: self)
             }
             return cell
@@ -136,20 +136,21 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     // MARK: Data
 
     func updateData(animatingDifferences: Bool = true) {
-        guard let allComments = self.fetchedResultsController?.fetchedObjects else { return }
-        var results: [FeedComments] = []
+        guard let coreDataResults = self.fetchedResultsController?.fetchedObjects else { return }
+        let allComments = coreDataResults.map{ FeedComment($0) }
+        var results: [FeedComment] = []
 
-        func findChildren(of commendID: String) {
+        func findChildren(of commendID: String?) {
             let children = allComments.filter{ $0.parentCommentId == commendID }
             for child in children {
                 results.append(child)
-                findChildren(of: child.commentId!)
+                findChildren(of: child.id)
             }
         }
 
-        findChildren(of: "")
+        findChildren(of: nil)
 
-        var diffableDataSourceSnapshot = NSDiffableDataSourceSnapshot<Int, FeedComments>()
+        var diffableDataSourceSnapshot = NSDiffableDataSourceSnapshot<Int, FeedComment>()
         diffableDataSourceSnapshot.appendSections([ CommentsViewController.sectionMain ])
         diffableDataSourceSnapshot.appendItems(results)
         self.dataSource?.apply(diffableDataSourceSnapshot, animatingDifferences: animatingDifferences)
@@ -337,7 +338,7 @@ class CommentsTableViewCell: UITableViewCell {
         self.replyAction()
     }
 
-    func update(with comment: FeedComments) {
+    func update(with comment: FeedComment) {
         self.commentView.updateWith(commentItem: comment)
         self.commentView.isContentInset = !(comment.parentCommentId?.isEmpty ?? false)
     }

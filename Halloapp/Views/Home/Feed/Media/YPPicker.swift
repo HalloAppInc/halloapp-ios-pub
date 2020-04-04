@@ -18,7 +18,7 @@ struct PickerWrapper: UIViewControllerRepresentable {
 
     typealias UIViewControllerType = YPImagePicker
 
-    @Binding var selectedMedia: [FeedMedia]
+    @Binding var selectedMedia: [PendingMedia]
     var didFinishWithMedia: () -> Void
     var didCancel: () -> Void
 
@@ -81,48 +81,30 @@ struct PickerWrapper: UIViewControllerRepresentable {
                 switch item {
                 case .photo(let photo):
                     
-                    let mediaItem = FeedMedia()
-                    mediaItem.type = "image"
+                    let mediaItem = PendingMedia(type: .image)
                     mediaItem.order = orderCounter
                     mediaItem.image = photo.image
+                    mediaItem.size = photo.image.size
+
                     orderCounter += 1
-                    
-                    var imageWidth = 0
-                    var imageHeight = 0
 
-                    imageWidth = Int(photo.image.size.width)
-                    imageHeight = Int(photo.image.size.height)
-
-                    mediaItem.width = imageWidth
-                    mediaItem.height = imageHeight
-                    
-                    print("appending image")
                     self.selectedMedia.append(mediaItem)
 
                 case .video(let video):
                     
-                    let mediaItem = FeedMedia()
-                    mediaItem.type = "video"
+                    let mediaItem = PendingMedia(type: .video)
                     mediaItem.order = orderCounter
-                    orderCounter += 1
-  
-//                    if let videoData = try? Data(contentsOf: video.url) {
-//                        mediaItem.data = videoData
-
                     mediaItem.tempUrl = video.url
 
+                    orderCounter += 1
+
                     if let videoSize = VideoUtils().resolutionForLocalVideo(url: video.url) {
-                    
-                        mediaItem.width = Int(videoSize.width)
-                        mediaItem.height = Int(videoSize.height)
-                        
-                        DDLogInfo("video width: \(mediaItem.width)")
-                        DDLogInfo("video height: \(mediaItem.height)")
+                        mediaItem.size = videoSize
+
+                        DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
                     }
                         
-                    print("appending video")
-                    self.selectedMedia.append(mediaItem)
-                    
+                    self.selectedMedia.append(mediaItem)                    
                 }
             }
 

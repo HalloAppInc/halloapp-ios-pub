@@ -39,9 +39,9 @@ struct FeedTableView: UIViewRepresentable {
         }
 
         tableView.register(FeedTableViewCell.self, forCellReuseIdentifier: FeedTableView.cellReuseIdentifier)
-        let dataSource = UITableViewDiffableDataSource<FeedTableSection, FeedCore>(tableView: tableView) { tableView, indexPath, feedItem in
+        let dataSource = UITableViewDiffableDataSource<FeedTableSection, FeedDataItem>(tableView: tableView) { (tableView, indexPath, feedDataItem) in
             let cell = tableView.dequeueReusableCell(withIdentifier: FeedTableView.cellReuseIdentifier, for: indexPath) as! FeedTableViewCell
-            cell.configure(with: feedItem)
+            cell.configure(with: feedDataItem)
             return cell
         }
 
@@ -78,11 +78,14 @@ struct FeedTableView: UIViewRepresentable {
         uiView.reloadData()
     }
 
-    private func update(dataSource: UITableViewDiffableDataSource<FeedTableSection, FeedCore>,
+    private func update(dataSource: UITableViewDiffableDataSource<FeedTableSection, FeedDataItem>,
                         with feedItems: [FeedCore], animatingDifferences: Bool = true) {
-        var snapshot = NSDiffableDataSourceSnapshot<FeedTableSection, FeedCore>()
+        // FIXME: this is a bad bad code.
+        let feedPostIds: Set<String> = Set(feedItems.compactMap({ $0.itemId }))
+        let feedDataItems = AppContext.shared.feedData.feedDataItems.filter { feedPostIds.contains($0.itemId) }
+        var snapshot = NSDiffableDataSourceSnapshot<FeedTableSection, FeedDataItem>()
         snapshot.appendSections([.main])
-        snapshot.appendItems(feedItems)
+        snapshot.appendItems(feedDataItems)
         dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
     }
 
@@ -93,7 +96,7 @@ struct FeedTableView: UIViewRepresentable {
 
     class Coordinator: NSObject, UITableViewDelegate, NSFetchedResultsControllerDelegate {
         var parent: FeedTableView
-        var dataSource: UITableViewDiffableDataSource<FeedTableSection, FeedCore>?
+        var dataSource: UITableViewDiffableDataSource<FeedTableSection, FeedDataItem>?
         var fetchedResultsController: NSFetchedResultsController<FeedCore>?
         var tableView: UITableView?
 
@@ -134,9 +137,9 @@ struct FeedTableView: UIViewRepresentable {
         }
 
         func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-            if let feedItem = fetchedResultsController?.fetchedObjects?[indexPath.row] {
-                AppContext.shared.feedData.getItemMedia(feedItem.itemId!)
-            }
+            guard let fetchedObjects = fetchedResultsController?.fetchedObjects else { return }
+            guard indexPath.row < fetchedObjects.count else { return }
+            AppContext.shared.feedData.getItemMedia(fetchedObjects[indexPath.row].itemId!)
         }
     }
 }
@@ -214,7 +217,7 @@ class FeedTableViewCell: UITableViewCell {
         vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -padding).isActive = true
     }
 
-    public func configure(with item: FeedCore) {
+    public func configure(with item: FeedDataItem) {
         self.headerView.configure(with: item)
         self.itemContentView.configure(with: item)
         self.footerView.configure(with: item)
@@ -271,27 +274,25 @@ class FeedItemContentView: UIView {
         self.vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -12).isActive = true
     }
 
-    func configure(with feedItem: FeedCore) {
-        if feedItem.mediaHeight > 0 {
-            if let feedDataItem = AppContext.shared.feedData.feedDataItem(with: feedItem.itemId!) {
-                DDLogDebug("FeedTableViewCell/configure [\(feedDataItem.itemId)]")
-                let controller = UIHostingController(rootView: MediaSlider(feedDataItem))
-                controller.view.backgroundColor = UIColor.clear
-                controller.view.addConstraint({
-                    let constraint = NSLayoutConstraint.init(item: controller.view!, attribute: .height, relatedBy: .equal,
-                                                             toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: CGFloat(feedItem.mediaHeight))
-                    constraint.priority = .defaultHigh + 10
-                    return constraint
-                }())
-                // This is important to set frame at this point, otherwise UICollectionView within gets corrupted.
-                controller.view.frame.size = CGSize(width: self.vStack.frame.size.width, height: CGFloat(feedItem.mediaHeight))
+    func configure(with feedDataItem: FeedDataItem) {
+        if let mediaHeight = feedDataItem.mediaHeight {
+            DDLogDebug("FeedTableViewCell/configure [\(feedDataItem.itemId)]")
+            let controller = UIHostingController(rootView: MediaSlider(feedDataItem))
+            controller.view.backgroundColor = UIColor.clear
+            controller.view.addConstraint({
+                let constraint = NSLayoutConstraint.init(item: controller.view!, attribute: .height, relatedBy: .equal,
+                                                         toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: CGFloat(mediaHeight))
+                constraint.priority = .defaultHigh + 10
+                return constraint
+            }())
+            // This is important to set frame at this point, otherwise UICollectionView within gets corrupted.
+            controller.view.frame.size = CGSize(width: self.vStack.frame.size.width, height: CGFloat(mediaHeight))
 
-                self.vStack.insertArrangedSubview(controller.view, at: 0)
-                self.mediaView = controller.view
-            }
+            self.vStack.insertArrangedSubview(controller.view, at: 0)
+            self.mediaView = controller.view
         }
 
-        self.textLabel.text = feedItem.text
+        self.textLabel.text = feedDataItem.text
     }
 
     func prepareForReuse() {
@@ -358,9 +359,9 @@ class FeedItemHeaderView: UIView {
         hStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
     }
 
-    func configure(with feedItem: FeedCore) {
-        self.nameLabel.text = AppContext.shared.contactStore.fullName(for: feedItem.username!)
-        self.timestampLabel.text = Date(timeIntervalSince1970: feedItem.timestamp).postTimestamp()
+    func configure(with feedDataItem: FeedDataItem) {
+        self.nameLabel.text = AppContext.shared.contactStore.fullName(for: feedDataItem.username)
+        self.timestampLabel.text = feedDataItem.timestamp.postTimestamp()
     }
 
     func prepareForReuse() {
@@ -395,8 +396,8 @@ class FeedItemFooterView: UIView {
         separator.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
     }
 
-    func configure(with feedItem: FeedCore) {
-        let controller = UIHostingController(rootView: FeedItemFooterButtonsView(feedItem: feedItem))
+    func configure(with feedDataItem: FeedDataItem) {
+        let controller = UIHostingController(rootView: FeedItemFooterButtonsView(feedDataItem: feedDataItem))
         controller.view.backgroundColor = UIColor.clear
         controller.view.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(controller.view)
@@ -472,9 +473,9 @@ struct FeedItemFooterButtonsView: View {
     @State private var hasUnreadComments = false
     @State private var isNavigationLinkActive = false
 
-    init(feedItem: FeedCore) {
-        self.feedDataItem = AppContext.shared.feedData.feedDataItem(with: feedItem.itemId!)!
-        self._hasUnreadComments = State(wrappedValue: feedItem.unreadComments > 0)
+    init(feedDataItem: FeedDataItem) {
+        self.feedDataItem = feedDataItem
+        self._hasUnreadComments = State(wrappedValue: feedDataItem.unreadComments > 0)
     }
 
     var body: some View {

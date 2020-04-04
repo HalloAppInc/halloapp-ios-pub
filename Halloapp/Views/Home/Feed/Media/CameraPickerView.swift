@@ -6,13 +6,14 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import SwiftUI
 
 struct CameraPickerView: UIViewControllerRepresentable {
 
     @Environment(\.presentationMode) var presentationMode
 
-    @Binding var capturedMedia: [FeedMedia]
+    @Binding var capturedMedia: [PendingMedia]
     var didFinishWithMedia: () -> Void
     var didCancel: () -> Void
 
@@ -52,45 +53,30 @@ struct CameraPickerView: UIViewControllerRepresentable {
         func imagePickerController(_ pickerController: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
             if let uiImage = info[.originalImage] as? UIImage {
                 let normalizedImage = uiImage.correctlyOrientedImage()
-                let mediaItem = FeedMedia()
-                mediaItem.type = "image"
+                let mediaItem = PendingMedia(type: .image)
                 mediaItem.image = normalizedImage
-                mediaItem.width = Int(normalizedImage.size.width)
-                mediaItem.height = Int(normalizedImage.size.height)
+                mediaItem.size = normalizedImage.size
                 parent.capturedMedia = [mediaItem]
                 parent.didFinishWithMedia()
                 
             } else if let videoURL = info[.mediaURL] as? URL {
-                let mediaItem = FeedMedia()
-                mediaItem.type = "video"
+                let mediaItem = PendingMedia(type: .video)
                 mediaItem.tempUrl = videoURL
                 
                 if let videoSize = VideoUtils().resolutionForLocalVideo(url: videoURL) {
-                
-                    mediaItem.width = Int(videoSize.width)
-                    mediaItem.height = Int(videoSize.height)
-                    
-                    print("video width: \(mediaItem.width)")
-                    print("video height: \(mediaItem.height)")
+                    mediaItem.size = videoSize
+
+                    DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
                 }
                 
                 VideoUtils().cropVideo(sourceURL: videoURL, startTime: 1.0, endTime: 5.0, completion: { url in
-                    
                     DispatchQueue.main.async {
                         mediaItem.tempUrl = url
                         self.parent.capturedMedia = [mediaItem]
-                        
                         self.parent.didFinishWithMedia()
                     }
-                    
                 })
-                    
-//                mediaItem.width = Int(normalizedImage.size.width)
-//                mediaItem.height = Int(normalizedImage.size.height)
-
-
             }
-           
         }
         
         func imagePickerControllerDidCancel(_ pickerController: UIImagePickerController) {

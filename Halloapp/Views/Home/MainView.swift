@@ -73,7 +73,7 @@ final class MainViewController: ObservableObject {
 struct MainView: View {
     @EnvironmentObject var mainViewController: MainViewController
 
-    @State private var mediaToPost: [FeedMedia] = []
+    @State private var mediaToPost: [PendingMedia] = []
 
     var body: some View {
         ZStack {

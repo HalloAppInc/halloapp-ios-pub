@@ -16,17 +16,24 @@ struct MediaCell: View {
         DDLogDebug("MediaCell/body [\(media.feedItemId)]:[\(media.order)]")
         return HStack {
 
-            if ((media.type == "image" || media.type == "") && media.image.size.width > 0) { // important, app crashes without this check
-
-                Image(uiImage: media.image)
-                    .renderingMode(.original)
-                    .resizable()
-                    .aspectRatio(media.image.size, contentMode: .fit)
-                    .background(Color.gray)
-                    .cornerRadius(10)
-                    .pinchToZoom()
-
-            } else if (media.type == "video") {
+            if (media.type == .image) {
+                if media.image != nil {
+                    Image(uiImage: media.image!)
+                        .renderingMode(.original)
+                        .resizable()
+                        .aspectRatio(media.image!.size, contentMode: .fit)
+                        .background(Color.gray)
+                        .cornerRadius(10)
+                        .pinchToZoom()
+                } else {
+                    VStack {
+                        Spacer()
+                        Image(systemName: "photo")
+                            .foregroundColor(Color.gray)
+                        Spacer()
+                    }
+                }
+            } else if (media.type == .video) {
 
                 if (media.tempUrl != nil) {
                     /* note: in the simulator, this debug message appears when scrolling:
@@ -40,15 +47,6 @@ struct MediaCell: View {
                             .foregroundColor(Color.gray)
                         Spacer()
                     }
-                }
-
-            } else {
-
-                VStack {
-                    Spacer()
-                    Image(systemName: "photo")
-                        .foregroundColor(Color.gray)
-                    Spacer()
                 }
             }
         }

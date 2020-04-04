@@ -1,3 +1,5 @@
+
+import CocoaLumberjack
 import SwiftUI
 import UIKit
 
@@ -21,7 +23,7 @@ struct PostComposerView: View {
     private let userData = AppContext.shared.userData
     private let imageServer = ImageServer()
 
-    var mediaItemsToPost: [FeedMedia] = []
+    var mediaItemsToPost: [PendingMedia]
 
     var didFinish: () -> Void
 
@@ -35,15 +37,9 @@ struct PostComposerView: View {
     
     @State private var play: Bool = true
 
-    @State private var item: FeedDataItem
-    
-    init(mediaItemsToPost: [FeedMedia], didFinish: @escaping () -> Void) {
-        
+    init(mediaItemsToPost: [PendingMedia], didFinish: @escaping () -> Void) {
         self.mediaItemsToPost = mediaItemsToPost
         self.didFinish = didFinish
-        
-        self._item = State(initialValue: FeedDataItem())
-        self.item.media = self.mediaItemsToPost
     }
     
     var body: some View {
@@ -73,7 +69,7 @@ struct PostComposerView: View {
                 .hidden()
 
             if self.mediaItemsToPost.count > 0 {
-                MediaSlider(self.item)
+                MediaPreviewSlider(self.mediaItemsToPost.map { FeedMedia($0, feedItemId: "") })
                     .frame(height: 200, alignment: .center)
             }
         
@@ -102,7 +98,7 @@ struct PostComposerView: View {
 
                 if self.isReadyToPost {
                     self.isShareClicked = true
-                    AppContext.shared.feedData.postItem(self.userData.phone, self.msgToSend, self.mediaItemsToPost)
+                    AppContext.shared.feedData.post(text: self.msgToSend, media: self.mediaItemsToPost)
                     self.didFinish()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                         self.msgToSend = ""
@@ -130,5 +126,37 @@ struct PostComposerView: View {
             }
         }
         .background(Color(UIColor.systemBackground))
+    }
+}
+
+struct MediaPreviewSlider: View {
+    @State var media: [FeedMedia]
+    @State var pageNum: Int = 0
+
+    init(_ media: [FeedMedia]) {
+        DDLogDebug("MediaPreviewSlider/init [\(media.count)]")
+        self._media = State(initialValue: media)
+    }
+
+    var body: some View {
+        VStack(spacing: 5) {
+            WMediaSlider(media: $media, pageNum: $pageNum)
+
+            if (self.media.count > 1) {
+                HStack {
+                    Spacer()
+
+                    ForEach(self.media.indices) { index in
+                        Image(systemName: "circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundColor(self.pageNum == index ? Color.blue : Color(UIColor.systemGray4))
+                            .frame(width: 5, height: 5, alignment: .center)
+                    }
+
+                    Spacer()
+                }
+            }
+        }
     }
 }

@@ -12,14 +12,14 @@ import SwiftUI
 struct MediaSlider: View {
     @ObservedObject var item: FeedDataItem
 
-    @State var media: [FeedMedia] = []
+    @State var media: [FeedMedia]
     @State var cancellableSet: Set<AnyCancellable> = []
     @State var pageNum: Int = 0
     
     init(_ item: FeedDataItem) {
         DDLogDebug("MediaSlider/init [\(item.itemId)]")
         self.item = item
-        self._media = State(initialValue: self.item.media)
+        self._media = State(initialValue: item.media)
     }
     
     var body: some View {        
@@ -35,7 +35,7 @@ struct MediaSlider: View {
             )
         }
 
-        DDLogDebug("MediaSlider/body [\(item.itemId)]")
+        DDLogDebug("MediaSlider/body [\(item.itemId)]: \(self.media.count) items")
         return
             VStack(spacing: 5) {
                 WMediaSlider(media: $media, pageNum: $pageNum)

@@ -7,43 +7,47 @@
 //
 
 import Foundation
-import SwiftUI
-import Combine
 
 struct FeedComment: Identifiable, Equatable, Hashable {
-    var id: String
-    var feedItemId: String = ""
-    var parentCommentId: String = ""
-    var username: String = ""
-    var userImageUrl: String = ""
-    var text: String = ""
-    var timestamp: TimeInterval = 0
     
-    init() {
-        self.id = UUID().uuidString
+    let id: String
+    let feedItemId: String
+    let parentCommentId: String?
+    var username: String
+    let text: String
+    var timestamp: Date
+
+    init(_ comment: XMPPComment) {
+        self.id = comment.id
+        self.feedItemId = comment.feedPostId
+        self.parentCommentId = comment.parentId
+        self.username = comment.userPhoneNumber
+        self.text = comment.text
+        if let ts = comment.timestamp {
+            self.timestamp = Date(timeIntervalSince1970: ts)
+        } else {
+            self.timestamp = Date()
+        }
     }
-    
-    init(id: String) {
-        self.id = id
+
+    init(_ comment: FeedComments) {
+        self.id = comment.commentId!
+        self.feedItemId = comment.feedItemId!
+        if let parentID = comment.parentCommentId {
+            // Ignore empty strings from the db.
+            self.parentCommentId = parentID.isEmpty ? nil : parentID
+        } else {
+            self.parentCommentId = nil
+        }
+        self.username = comment.username!
+        self.text = comment.text!
+        if comment.timestamp > 0 {
+            self.timestamp = Date(timeIntervalSince1970: comment.timestamp)
+        } else {
+            self.timestamp = Date()
+        }
     }
-    
-    init(id: String,
-         feedItemId: String = "",
-         parentCommentId: String = "",
-         username: String = "",
-         userImageUrl: String = "",
-         text: String = "",
-         timestamp: Double = 0) {
-        
-        self.id = id
-        self.feedItemId = feedItemId
-        self.parentCommentId = parentCommentId
-        self.username = username
-        self.userImageUrl = userImageUrl
-        self.text = text
-        self.timestamp = timestamp
-    }
-    
+
     static func == (lhs: FeedComment, rhs: FeedComment) -> Bool {
         return lhs.id == rhs.id
     }
@@ -51,5 +55,4 @@ struct FeedComment: Identifiable, Equatable, Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-    
 }

@@ -36,15 +36,15 @@ class HAC {
           return nil // Invalid input
     }
     
-    func generateExpandedKeyFrom(fromKey:String, type: String) -> [UInt8] {
+    func generateExpandedKeyFrom(fromKey: String, type: FeedMediaType) -> [UInt8] {
 
 //        DDLogInfo("generateExpandedKeyFrom: \(fromKey)")
 
         if let key = base64ToByteArray(base64String: fromKey) {
         
             var info = "HalloApp image".bytes
-            
-            if type == "video" {
+            // FIXME: do not initialize `info` twice
+            if type == .video {
                 info = "HalloApp video".bytes
             }
             
@@ -58,14 +58,14 @@ class HAC {
         return []
     }
     
-    func generateNewExpandedKey(type: String) -> (String, [UInt8]) {
+    func generateNewExpandedKey(type: FeedMediaType) -> (String, [UInt8]) {
 
         // generate key
         let key = generateKey(numBytes: 32)
         
         var info = "HalloApp image".bytes
-        
-        if type == "video" {
+        // FIXME: do not initialize `info` twice
+        if type == .video {
             info = "HalloApp video".bytes
         }
         
@@ -84,7 +84,7 @@ class HAC {
         return (base64StringKey, expandedKey)
     }
     
-    func encryptData(data: Data, type: String) -> (Data?, String, String) {
+    func encryptData(data: Data, type: FeedMediaType) -> (Data?, String?, String?) {
         
         let target: [UInt8] = [UInt8](data)
 
@@ -119,10 +119,10 @@ class HAC {
             
         }
         
-        return (nil, "", "")
+        return (nil, nil, nil)
     }
     
-    func decryptData(data: Data, key: String, sha256hash: String, type: String) -> Data? {
+    func decryptData(data: Data, key: String, sha256hash: String, type: FeedMediaType) -> Data? {
                 
         var target: [UInt8] = [UInt8](data)
         
@@ -170,6 +170,5 @@ class HAC {
         }
         
         return nil
-    }
-    
+    }    
 }

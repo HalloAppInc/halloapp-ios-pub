@@ -12,286 +12,148 @@ import CoreData
 class FeedMediaCore {
 
     func get(feedItemId: String) -> [FeedMedia] {
-        
         let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CFeedImage")
-        
-        let p1 = NSPredicate(format: "feedItemId = %@", feedItemId)
-        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [p1])
-        
-        fetchRequest.sortDescriptors = [NSSortDescriptor.init(key: "order", ascending: true)]
-        
+        let fetchRequest = NSFetchRequest<CFeedImage>(entityName: "CFeedImage")
+        fetchRequest.predicate = NSPredicate(format: "feedItemId = %@", feedItemId)
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \CFeedImage.order, ascending: true) ]
         do {
-            let result = try managedContext.fetch(fetchRequest)
-            var arr: [FeedMedia] = []
-            for data in result as! [NSManagedObject] {
-                let item = FeedMedia(
-                    feedItemId: data.value(forKey: "feedItemId") as! String,
-                    order: data.value(forKey: "order") as! Int,
-                    type: data.value(forKey: "type") as! String,
-                    url: data.value(forKey: "url") as! String,
-                    width: data.value(forKey: "width") as! Int,
-                    height: data.value(forKey: "height") as! Int,
-                    key: data.value(forKey: "key") as! String,
-                    sha256hash: data.value(forKey: "sha256hash") as! String,
-                    numTries: data.value(forKey: "numTries") as! Int
-                )
-                
-                if let blob = data.value(forKey: "blob") as? Data {
-//                    let path = "\(UUID().uuidString).jpg"
-//                    let tempUrl = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(path)
-//                    do {
-//                        try FileManager.default.createDirectory(at: tempUrl.deletingLastPathComponent(),
-//                                                             withIntermediateDirectories: true,
-//                                                             attributes: nil)
-//                        try blob.write(to: tempUrl)
-//                        print("wrote to file")
-//                     } catch {
-//                         print("-- Error: \(error)")
-//                     }
-//                    if let img2 = UIImage(contentsOfFile: tempUrl.path) {
-//                        item.image = img2
-//                    }
-//                    do {
-//                        try FileManager.default.removeItem(at: tempUrl)
-//                    } catch let error as NSError {
-//                        print("Error: \(error.domain)")
-//                    }
-                    
-                    if item.type == "image" || item.type == "" {
-                        if let image = UIImage(data: blob) {
-                            item.image = image
-                        }
-                    } else if item.type == "video" {
-                        
-                        let fileName = "\(item.feedItemId)-\(item.order)"
-                        let fileUrl = URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent(fileName).appendingPathExtension("mp4")
-                            
-                        if (!FileManager.default.fileExists(atPath: fileUrl.path))   {
-                            print("file does not exists")
-                            
-                            let wasFileWritten = (try? blob.write(to: fileUrl, options: [.atomic])) != nil
-
-                            if !wasFileWritten{
-                                print("File was NOT Written")
-                            } else {
-                                print("File was written")
-                            }
-                            
-                        } else {
-                            print("file exists")
-                        }
-                        
-                        item.tempUrl = fileUrl
-        
-                    }
-                    
-                }
-
-                
-                arr.append(item)
-                
-
-            }
-            
-            return arr
-            
+            let results = try managedContext.fetch(fetchRequest)
+            return results.compactMap{ FeedMedia($0) }
         } catch  {
-            DDLogError("failed")
+            DDLogError("Failed to fetch media. [\(error)]")
             return []
         }
     }
-    
+
     func create(item: FeedMedia) {
-        
         let managedContext = CoreDataManager.sharedManager.bgContext
-        
         managedContext.perform {
-            
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CFeedImage")
-
-            fetchRequest.predicate = NSPredicate(format: "feedItemId == %@ AND url == %@", item.feedItemId, item.url)
-            
-            do {
-                
-                let result = try managedContext.fetch(fetchRequest)
-                
-                if result.count > 0 {
-                    return
-                }
-            
-                let userEntity = NSEntityDescription.entity(forEntityName: "CFeedImage", in: managedContext)!
-                
-                let obj = NSManagedObject(entity: userEntity, insertInto: managedContext)
-                obj.setValue(item.feedItemId, forKeyPath: "feedItemId")
-                obj.setValue(item.type, forKeyPath: "type")
-                obj.setValue(item.order, forKeyPath: "order")
-                obj.setValue(item.url, forKeyPath: "url")
-                obj.setValue(item.width, forKeyPath: "width")
-                obj.setValue(item.height, forKeyPath: "height")
-                obj.setValue(item.key, forKeyPath: "key")
-                obj.setValue(item.sha256hash, forKeyPath: "sha256hash")
-                obj.setValue(item.numTries, forKeyPath: "numTries")
-                
-                do {
-                    try managedContext.save()
-                } catch let error as NSError {
-                    DDLogError("could not save. \(error), \(error.userInfo)")
-                }
-                
-            } catch  {
-                DDLogError("failed")
-            }
-        }
-        
-    }
-        
-    func updateBlob(feedItemId: String, url: String, data: Data) {
-                
-        let managedContext = CoreDataManager.sharedManager.bgContext
-        
-        managedContext.perform {
-            
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CFeedImage")
-
-            fetchRequest.predicate = NSPredicate(format: "feedItemId == %@ AND url == %@", feedItemId, url)
-            
+            let fetchRequest = NSFetchRequest<CFeedImage>(entityName: "CFeedImage")
+            fetchRequest.predicate = NSPredicate(format: "feedItemId == %@ AND url == %@", item.feedItemId, item.url.absoluteString)
             do {
                 let result = try managedContext.fetch(fetchRequest)
-                
-                if result.count == 0 {
-                    return
-                }
-                
-                let obj = result[0] as! NSManagedObject
-    
-                obj.setValue(data, forKeyPath: "blob")
-                
+                guard result.isEmpty else { return }
+
+                let media = NSEntityDescription.insertNewObject(forEntityName: "CFeedImage", into: managedContext) as! CFeedImage
+                media.feedItemId = item.feedItemId
+                media.type = item.type.rawValue
+                media.order = Int16(item.order)
+                media.url = item.url.absoluteString
+                media.width = Int16(item.size.width)
+                media.height = Int16(item.size.height)
+                media.key = item.key
+                media.sha256hash = item.sha256hash
+                media.numTries = Int16(item.numTries)
+
                 do {
                     try managedContext.save()
                 } catch {
-                    print(error)
+                    DDLogError("Failed to save new media. [\(error)]")
                 }
-                
             } catch  {
-                print("failed at updateBlob")
+                DDLogError("Failed to fetch media. [\(error)]")
             }
         }
-        
     }
-    
-    func updateImage(feedItemId: String, url: String, thumb: UIImage, orig: UIImage) {
-                
-        let managedContext = CoreDataManager.sharedManager.bgContext
         
+    func updateBlob(feedItemId: String, url: URL, data: Data) {
+        let managedContext = CoreDataManager.sharedManager.bgContext
         managedContext.perform {
-            
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CFeedImage")
-
-            fetchRequest.predicate = NSPredicate(format: "feedItemId == %@ AND url == %@", feedItemId, url)
-            
+            let fetchRequest = NSFetchRequest<CFeedImage>(entityName: "CFeedImage")
+            fetchRequest.predicate = NSPredicate(format: "feedItemId == %@ AND url == %@", feedItemId, url.absoluteString)
             do {
                 let result = try managedContext.fetch(fetchRequest)
-                
-                if result.count == 0 {
-                    return
-                }
-                
-                let obj = result[0] as! NSManagedObject
-                
-                let thumbData = thumb.jpegData(compressionQuality: 1.0)
-                let origData = orig.jpegData(compressionQuality: 1.0)
-                
-                if thumbData != nil {
-                    obj.setValue(thumbData, forKeyPath: "smallBlob")
-                }
-                
-                if origData != nil {
-                    obj.setValue(origData, forKeyPath: "blob")
-                } else {
-                    DDLogWarn("Update Media Blob is nil")
-                }
-                
+                guard !result.isEmpty else { return }
+
+                let media = result.first!
+                media.blob = data
                 do {
                     try managedContext.save()
                 } catch {
-                    DDLogError("\(error)")
+                    DDLogError("Failed to update media. [\(error)]")
                 }
-                
             } catch  {
-                DDLogError("failed")
+                DDLogError("Failed to fetch media. [\(error)]")
             }
         }
-        
     }
     
-    func updateNumTries(feedItemId: String, url: String, numTries: Int) {
-                
+    func updateImage(feedItemId: String, url: URL, thumb: UIImage, orig: UIImage) {
         let managedContext = CoreDataManager.sharedManager.bgContext
-        
         managedContext.perform {
-            
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CFeedImage")
+            guard let thumbData = thumb.jpegData(compressionQuality: 1.0) else {
+                DDLogError("Failed to generate JPEG data for thumbnail. [\(feedItemId)]:[\(url)]")
+                return
+            }
+            guard let origData = orig.jpegData(compressionQuality: 1.0) else {
+                DDLogError("Failed to generate JPEG data for fullsize image. [\(feedItemId)]:[\(url)]")
+                return
+            }
 
-            fetchRequest.predicate = NSPredicate(format: "feedItemId == %@ AND url == %@", feedItemId, url)
-            
+            let fetchRequest = NSFetchRequest<CFeedImage>(entityName: "CFeedImage")
+            fetchRequest.predicate = NSPredicate(format: "feedItemId == %@ AND url == %@", feedItemId, url.absoluteString)
             do {
                 let result = try managedContext.fetch(fetchRequest)
-                
-                if result.count == 0 {
-                    return
-                }
-                
-                let obj = result[0] as! NSManagedObject
-                
-                obj.setValue(numTries, forKeyPath: "numTries")
-                
+                guard !result.isEmpty else { return }
+
+                let media = result.first!
+                media.smallBlob = thumbData
+                media.blob = origData
                 do {
                     try managedContext.save()
                 } catch {
-                    DDLogError("\(error)")
+                    DDLogError("Failed to update media. [\(error)]")
                 }
-                
             } catch  {
-                DDLogError("failed")
+                DDLogError("Failed to fetch media. [\(error)]")
             }
         }
-        
     }
     
-    func delete(feedItemId: String, url: String) {
-        
+    func updateNumTries(feedItemId: String, url: URL, numTries: Int) {
         let managedContext = CoreDataManager.sharedManager.bgContext
-
         managedContext.perform {
-            
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CFeedImage")
-            
-            fetchRequest.predicate = NSPredicate(format: "feedItemId == %@ AND url == %@", feedItemId, url)
-            
+            let fetchRequest = NSFetchRequest<CFeedImage>(entityName: "CFeedImage")
+            fetchRequest.predicate = NSPredicate(format: "feedItemId == %@ AND url == %@", feedItemId, url.absoluteString)
             do {
                 let result = try managedContext.fetch(fetchRequest)
+                guard !result.isEmpty else { return }
 
-                if (result.count == 0) {
-                    return
-                }
-                
-                let objectToDelete = result[0] as! NSManagedObject
-                managedContext.delete(objectToDelete)
-                
+                let media = result.first!
+                media.numTries = Int16(numTries)
                 do {
                     try managedContext.save()
                 } catch {
-                    DDLogError("\(error)")
+                    DDLogError("Failed to update media. [\(error)]")
                 }
-                
             } catch  {
-                DDLogError("failed")
+                DDLogError("Failed to fetch media. [\(error)]")
             }
         }
     }
+    
+    func delete(feedItemId: String, url: URL) {
+        let managedContext = CoreDataManager.sharedManager.bgContext
+        managedContext.perform {
+            let fetchRequest = NSFetchRequest<CFeedImage>(entityName: "CFeedImage")
+            fetchRequest.predicate = NSPredicate(format: "feedItemId == %@ AND url == %@", feedItemId, url.absoluteString)
+            do {
+                // TODO: Use NSBatchDeleteRequest
+                let result = try managedContext.fetch(fetchRequest)
+                guard !result.isEmpty else { return }
 
+                for item in result {
+                    managedContext.delete(item)
+                }
+
+                do {
+                    try managedContext.save()
+                } catch {
+                    DDLogError("Failed to delete media. [\(error)]")
+                }
+            } catch  {
+                DDLogError("Failed to fetch media. [\(error)]")
+            }
+        }
+    }
 }
-
-

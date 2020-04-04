@@ -6,12 +6,12 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import AVKit
 import CocoaLumberjack
 import Combine
 import Foundation
 import SwiftUI
 import XMPPFramework
-import AVKit
 
 class FeedData: ObservableObject {
     @Published var feedDataItems : [FeedDataItem] = []
@@ -41,7 +41,7 @@ class FeedData: ObservableObject {
 
         // when app resumes, xmpp reconnects, feed should try uploading any pending again
         self.cancellableSet.insert(
-            self.xmppController.didConnect.sink(receiveValue: { value in
+            self.xmppController.didConnect.sink { _ in
                 DDLogInfo("Feed: Got event for didConnect")
                 
                 DispatchQueue.global(qos: .default).async {
@@ -55,272 +55,197 @@ class FeedData: ObservableObject {
                 
                 self.processExpires()
             })
-        )
         
         self.cancellableSet.insert(
-            self.userData.didLogOff.sink(receiveValue: {
-                
-                DDLogInfo("wiping feed data")
+            self.userData.didLogOff.sink {
+                DDLogInfo("Unloading feed data. \(self.feedDataItems.count) posts. \(self.feedCommentItems.count) comments")
                 
                 self.feedCommentItems.removeAll()
                 self.feedDataItems.removeAll()
-                DDLogInfo("feedDataItemss Count: \(self.feedDataItems.count)")
             })
-        )
         
         /* getting new items, usually one */
-        cancellableSet.insert(
-            
-            xmppController.didGetNewFeedItem.sink(receiveValue: { value in
-                DDLogInfo("Feed: New Item \(value)")
-                
-                let event = value.element(forName: "event")
-                let (feedDataItems, feedCommentItems)  = Utils().parseFeedItems(event)
-                 
-                for item in feedDataItems {
-                    self.pushItem(item: item)
-                }
-                
-                for item in feedCommentItems {
-                    self.insertComment(item: item)
+        self.cancellableSet.insert(
+            xmppController.didGetNewFeedItem.sink { [weak self] xmppMessage in
+                if let items = xmppMessage.element(forName: "event")?.element(forName: "items") {
+                    DDLogInfo("Feed: new item \(items)")
+                    guard let self = self else { return }
+                    self.processIncomingFeedItems(items)
                 }
             })
-        )
         
         /* getting the entire list of items back */
-        cancellableSet.insert(
-            xmppController.didGetFeedItems.sink(receiveValue: { value in
-                                
-//                DDLogInfo("got items: \(value)")
-
-                let pubsub = value.element(forName: "pubsub")
-                var (feedDataItems, feedCommentItems) = Utils().parseFeedItems(pubsub)
-
-                feedDataItems.sort {
-                    $0.timestamp > $1.timestamp
-                }
-
-                for item in feedDataItems {
-                    self.pushItem(item: item)
-                }
-
-                for item in feedCommentItems {
-                    self.insertComment(item: item)
-                }
-           })
-        )
+        self.cancellableSet.insert(
+            xmppController.didGetFeedItems.sink { [weak self] xmppIQ in
+                if let items = xmppIQ.element(forName: "pubsub")?.element(forName: "items") {
+                    DDLogInfo("Feed: fetched items \(items)")
+                    guard let self = self else { return }
+                    self.processIncomingFeedItems(items)
+               }
+            })
         
         /* retract item */
-        cancellableSet.insert(
-            xmppController.didGetRetractItem.sink(receiveValue: { value in
-                DDLogInfo("Feed: Retract Item \(value)")
+        self.cancellableSet.insert(
+            xmppController.didGetRetractItem.sink { xmppMessage in
+                DDLogInfo("Feed: Retract Item \(xmppMessage)")
                 
                 //todo: handle retracted items
             })
-        )
     }
-    
-    func getItemMedia(_ itemId: String) {
-        if let idx = self.feedDataItems.firstIndex(where: {$0.itemId == itemId}) {
-            if self.feedDataItems[idx].media.count == 0 {
-                self.feedDataItems[idx].media = FeedMediaCore().get(feedItemId: itemId)
 
-                print("now \(self.feedDataItems[idx].media.count)")
-                
+    private func processIncomingFeedItems(_ itemsElement: XMLElement) {
+        var feedPosts: [XMPPFeedPost] = []
+        var comments: [XMPPComment] = []
+        let items = itemsElement.elements(forName: "item")
+        for item in items {
+            guard let type = item.attribute(forName: "type")?.stringValue else {
+                DDLogError("Invalid item: [\(item)]")
+                continue
+            }
+            if type == "feedpost" {
+                if let feedPost = XMPPFeedPost(itemElement: item) {
+                    feedPosts.append(feedPost)
+                }
+            } else if type == "comment" {
+                if let comment = XMPPComment(itemElement: item) {
+                    comments.append(comment)
+                }
+            } else {
+                DDLogError("Invalid item type: [\(type)]")
+            }
+        }
+
+        let feedDataItems = feedPosts.map { FeedDataItem($0) }
+        for item in feedDataItems.sorted(by: { $0.timestamp > $1.timestamp }) {
+            self.pushItem(item: item)
+        }
+
+        // TODO: do bulk processing here
+        let feedComments = comments.map { FeedComment($0) }
+        for item in feedComments {
+            self.insertComment(item: item)
+        }
+    }
+
+    func getItemMedia(_ itemId: String) {
+        if let feedItem = self.feedDataItems.first(where: { $0.itemId == itemId }) {
+            if feedItem.media.isEmpty {
+                feedItem.media = FeedMediaCore().get(feedItemId: itemId)
+
+                DDLogDebug("FeedData/getItemMedia item=[\(itemId)] count=[\(feedItem.media.count)]")
+
                 /* ideally we should have the images in core data by now */
                 /* todo: scan for unloaded images during init */
-                self.feedDataItems[idx].loadMedia()
+                feedItem.loadMedia()
             }
         }
     }
 
-    func calHeight(media: [FeedMedia]) -> Int {
-         
-        var resultHeight = 0
-        
-         var maxHeight = 0
-         var width = 0
-         
-         for med in media {
-             if med.height > maxHeight {
-                 maxHeight = med.height
-                 width = med.width
-             }
-         }
-         
-         if maxHeight < 1 {
-             return 0
-         }
-         
-         let desiredAspectRatio: Float = 5/4 // 1.25 for portrait
-         
-         // can be customized for different devices
-         let desiredViewWidth = Float(UIScreen.main.bounds.width) - 20 // account for padding on left and right
-         
-         let desiredTallness = desiredAspectRatio * desiredViewWidth
-         
-         let ratio = Float(maxHeight)/Float(width) // image ratio
+    func calHeight(media: [FeedMedia]) -> Int? {
+        guard !media.isEmpty else { return nil }
 
-         let actualTallness = ratio * desiredViewWidth
+        var maxHeight: CGFloat = 0
+        var width: CGFloat = 0
 
-         if actualTallness >= desiredTallness {
-             resultHeight = Int(CGFloat(desiredTallness))
-         } else {
-             resultHeight = Int(CGFloat(actualTallness + 10))
-         }
-         
-        return resultHeight
-     }
+        media.forEach { media in
+            if media.size.height > maxHeight {
+                maxHeight = media.size.height
+                width = media.size.width
+            }
+        }
+
+        if maxHeight < 1 {
+            return nil
+        }
+
+        let desiredAspectRatio: Float = 5/4 // 1.25 for portrait
+
+        // can be customized for different devices
+        let desiredViewWidth = Float(UIScreen.main.bounds.width) - 20 // account for padding on left and right
+
+        let desiredTallness = desiredAspectRatio * desiredViewWidth
+
+        let ratio = Float(maxHeight)/Float(width) // image ratio
+
+        let actualTallness = ratio * desiredViewWidth
+
+        let resultHeight = actualTallness >= desiredTallness ? desiredTallness : actualTallness + 10
+        return Int(resultHeight.rounded())
+    }
 
     func pushItem(item: FeedDataItem) {
-        
-        let idx = self.feedDataItems.firstIndex(where: {$0.itemId == item.itemId})
-        
-        if idx == nil && !self.feedItemCore.isPresent(itemId: item.itemId) {
-               
-            item.mediaHeight = self.calHeight(media: item.media)
-            
-            self.feedDataItems.insert(item, at: 0)
-            
-            self.feedDataItems.sort {
-                return Int($0.timestamp) > Int($1.timestamp)
-            }
+        guard !self.feedDataItems.contains(where: { $0.itemId == item.itemId }) else { return }
+        guard !self.feedItemCore.isPresent(itemId: item.itemId) else { return }
 
-            DispatchQueue.global(qos: .userInitiated).async {
-                self.feedItemCore.create(item: item)
-                for med in item.media {
-                    self.feedMediaCore.create(item: med)
-                }
-            }
-            
-            print("pushing item: \(item.itemId)")
-            item.loadMedia()
+        item.mediaHeight = self.calHeight(media: item.media)
+        self.feedDataItems.insert(item, at: 0)
+        self.feedDataItems.sort {
+            return $0.timestamp > $1.timestamp
         }
-        
+
+        self.feedItemCore.create(item: item)
+        item.media.forEach { self.feedMediaCore.create(item: $0) }
+
+        item.loadMedia()
     }
-    
+
     func insertComment(item: FeedComment) {
-        let idx = self.feedCommentItems.firstIndex(where: {$0.id == item.id})
+        guard !self.feedCommentItems.contains(where: { $0.id == item.id }) else { return }
 
-        if idx == nil {
-            self.feedCommentItems.insert(item, at: 0)
-        
-            if (item.username != self.userData.phone) {
-                self.increaseFeedItemUnreadComments(comment: item, num: 1)
-            }
-        
-            DispatchQueue.global(qos: .default).async {
-                self.feedCommentCore.create(item: item)
-            }
+        self.feedCommentItems.insert(item, at: 0)
+
+        if (item.username != self.userData.phone) {
+            self.increaseFeedItemUnreadComments(feedItemId: item.feedItemId, by: 1)
         }
+
+        self.feedCommentCore.create(item: item)
     }
-    
-    func increaseFeedItemUnreadComments(comment: FeedComment, num: Int) {
-        let idx = self.feedDataItems.firstIndex(where: {$0.itemId == comment.feedItemId})
-        
-        if idx == nil {
-            return
-        } else {
-            self.feedDataItems[idx!].unreadComments += num
-        }
-        
-        DispatchQueue.global(qos: .default).async {
-            if (self.feedDataItems.count > idx!) {
-                self.feedItemCore.update(item: self.feedDataItems[idx!])
-            }
-        }
+
+    func increaseFeedItemUnreadComments(feedItemId: String, by number: Int) {
+        guard let feedDataItem = self.feedDataItems.first(where: { $0.itemId == feedItemId }) else { return }
+        feedDataItem.unreadComments += number
+        self.feedItemCore.update(item: feedDataItem)
     }
-        
+
     func markFeedItemUnreadComments(feedItemId: String) {
-        let idx = self.feedDataItems.firstIndex(where: {$0.itemId == feedItemId})
-        
-        if idx == nil {
-            return
-        } else {
-            if (self.feedDataItems[idx!].unreadComments > 0) {
-                self.feedDataItems[idx!].unreadComments = 0
-
-                DispatchQueue.global(qos: .default).async {
-                    self.feedItemCore.update(item: self.feedDataItems[idx!])
-                }
-            }
+        guard let feedDataItem = self.feedDataItems.first(where: { $0.itemId == feedItemId }) else { return }
+        if feedDataItem.unreadComments > 0 {
+            feedDataItem.unreadComments = 0
+            self.feedItemCore.update(item: feedDataItem)
         }
     }
     
-    func postItem(_ user: String, _ text: String, _ media: [FeedMedia]) {
-    
-        let itemId: String = UUID().uuidString
-        
-        let request = XMPPPostItemRequest(user: user,
-                                          text: text,
-                                          media: media,
-                                          itemId: itemId,
-                                          completion: { timestamp, error in
-            
-            let feedItem = FeedDataItem()
-            feedItem.itemId = itemId
-            
-            feedItem.text = text
-            feedItem.username = user
-                                            
-            for med in media {
-
-                let copyMed: FeedMedia = FeedMedia()
-                copyMed.feedItemId = itemId
-                copyMed.order = med.order
-                copyMed.type = med.type
-                copyMed.width = med.width
-                copyMed.height = med.height
-                copyMed.key = med.key
-                copyMed.sha256hash = med.sha256hash
-                copyMed.url = med.url
-
-                feedItem.media.append(copyMed)
+    func post(text: String, media: [PendingMedia]) {
+        let feedPost = XMPPFeedPost(text: text, media: media)
+        let request = XMPPPostItemRequest(xmppFeedPost: feedPost) { (timestamp, error) in
+            // Handle error!
+            let feedItem = FeedDataItem(feedPost)
+            if timestamp != nil {
+                // TODO: probably not need to use server timestamp here?
+                feedItem.timestamp = Date(timeIntervalSince1970: timestamp!)
             }
-            
-            // default a current timestamp for now in case the latest server hasn't been released
-            feedItem.timestamp = Date().timeIntervalSince1970
-                                            
-            if let serverTimestamp = timestamp {
-                if serverTimestamp > 0 {
-                    feedItem.timestamp = serverTimestamp
-                }
-            }
-                            
+            feedItem.media = media.map{ FeedMedia($0, feedItemId: feedPost.id) }
+            // TODO: save post to the local db before request finishes and allow to retry later.
             self.pushItem(item: feedItem)
-        })
+            // TODO: write media data to db
+        }
         
         AppContext.shared.xmppController.enqueue(request: request)
     }
     
-
-    func post(comment text: String, to feedItem: FeedDataItem, replyingTo parentCommentID: String? = nil) {
-        let commentItemId: String = UUID().uuidString
-        
-        let request = XMPPPostCommentRequest(feedUser: feedItem.username,
-                                             feedItemId: feedItem.itemId,
-                                             parentCommentId: parentCommentID,
-                                             text: text,
-                                             commentItemId: commentItemId,
-                                             completion: { timestamp, error in
-            
-            var feedComment = FeedComment(id: commentItemId)
-            feedComment.feedItemId = feedItem.itemId
-            feedComment.parentCommentId = parentCommentID ?? ""
-            feedComment.username = self.userData.phone
-            feedComment.text = text
-            
-            // default a current timestamp for now in case the latest server hasn't been released
-            feedComment.timestamp = Date().timeIntervalSince1970
-                                            
-            if let serverTimestamp = timestamp {
-                if serverTimestamp > 0 {
-                    feedComment.timestamp = serverTimestamp
-                }
+    func post(comment text: String, to feedItem: FeedDataItem, replyingTo parentCommentId: String? = nil) {
+        let xmppComment = XMPPComment(userPhoneNumber: feedItem.username, feedPostId: feedItem.itemId,
+                                      parentCommentId: parentCommentId, text: text)
+        let request = XMPPPostCommentRequest(xmppComment: xmppComment) { (timestamp, error) in
+            // TODO: handle error!
+            var feedComment = FeedComment(xmppComment)
+            if timestamp != nil {
+                // TODO: probably not need to use server timestamp here?
+                feedComment.timestamp = Date(timeIntervalSince1970: timestamp!)
             }
-             
+            // TODO: comment should be saved to local db before it is posted.
             self.insertComment(item: feedComment)
-        })
+        }
         
         AppContext.shared.xmppController.enqueue(request: request)
     }
@@ -330,18 +255,16 @@ class FeedData: ObservableObject {
     }
     
     func processExpires() {
-        let current = Int(Date().timeIntervalSince1970)
-        
-        let month = 60*60*24*30
+        let current = Date().timeIntervalSince1970
+        let month = Date.days(30)
         
         let feedItemCore = FeedItemCore()
     
         for (i, item) in feedDataItems.enumerated().reversed() {
-            let diff = current - Int(item.timestamp)
-            
-            if (diff > month) {
-
+            let diff = current - item.timestamp.timeIntervalSince1970
+            if diff > month {
                 if (item.username != self.userData.phone) {
+                    // TODO: bulk delete
                     feedItemCore.delete(itemId: item.itemId)
                     feedDataItems.remove(at: i)
                 }

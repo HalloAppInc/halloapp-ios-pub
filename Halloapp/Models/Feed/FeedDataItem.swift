@@ -9,97 +9,73 @@
 import CocoaLumberjack
 import Combine
 import Foundation
-import SwiftUI
 
 class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
-    
-    var id = UUID().uuidString
-    
-    var didChange = PassthroughSubject<Void, Never>()
-    var commentsChange = PassthroughSubject<Int, Never>()
-    
+
     var itemId: String
-    
     var username: String
-    var userImageUrl: String
-    
-    var text: String
-    
-    var timestamp: TimeInterval = 0
-    
-    var imageUrl: String
-    
+    var text: String?
+    var timestamp: Date
+    var mediaHeight: Int?
+
     @Published var media: [FeedMedia] = []
-    
-    @Published var mediaHeight: Int = -1
-    @Published var cellHeight: Int = -1
-    
-    @Published var comments: [FeedComment] = []
-    
+
+    var commentsChange = PassthroughSubject<Int, Never>()
     var unreadComments: Int {
         didSet {
             commentsChange.send(unreadComments)
         }
     }
-    
-    var numTries: Int = 0
-    
+
     private var cancellableSet: Set<AnyCancellable> = []
-    
-    init(   itemId: String = "",
-            username: String = "",
-            imageUrl: String = "",
-            userImageUrl: String = "",
-            text: String = "",
-            unreadComments: Int = 0,
-            mediaHeight: Int = -1,
-            cellHeight: Int = -1,
-            timestamp: TimeInterval = 0) {
-        
-        self.itemId = itemId
-        self.username = username
-        self.userImageUrl = userImageUrl
-        self.imageUrl = imageUrl
-        self.text = text
-        self.unreadComments = unreadComments
-        self.mediaHeight = mediaHeight
-        self.cellHeight = cellHeight
-        self.timestamp = timestamp
+
+    init(_ post: XMPPFeedPost) {
+        self.itemId = post.id
+        self.username = post.userPhoneNumber
+        self.text = post.text
+        if post.timestamp != nil {
+            self.timestamp = Date(timeIntervalSince1970: post.timestamp!)
+        } else {
+            self.timestamp = Date()
+        }
+        self.unreadComments = 0
+        self.media = post.media.enumerated().map{ FeedMedia($0.element, feedPostId: post.id, order: $0.offset) }
     }
-    
+
+    init(_ post: FeedCore) {
+        self.itemId = post.itemId!
+        self.username = post.username!
+        self.text = post.text
+        self.unreadComments = Int(post.unreadComments)
+        if post.mediaHeight > 0 {
+            self.mediaHeight = Int(post.mediaHeight)
+        } else {
+            self.mediaHeight = nil
+        }
+        if post.timestamp > 0 {
+            self.timestamp = Date(timeIntervalSince1970: post.timestamp)
+        } else {
+            self.timestamp = Date()
+        }
+    }
+
     func loadMedia() {
-        
         for med in self.media {
-            
-            if (
-                    (med.type == "image" && med.image.size.width < 1) ||
-                    (med.type == "video" && med.tempUrl == nil)
-                ) {
-            
-    
-                if (med.url != "" && med.numTries < 10) {
-                                    
+            if (med.type == .image && med.image == nil) || (med.type == .video && med.tempUrl == nil) {
+                if med.numTries < 10 {
                     cancellableSet.insert(
-                        med.didChange.sink(receiveValue: { [weak self] _ in
+                        med.didChange.sink { [weak self] _ in
                             guard let self = self else { return }
-                            
-    //                        print("feedDataItem got change: \(med.image.size.width)")
-                            
+
                             self.objectWillChange.send()
-                            self.didChange.send()
-                            
-                        })
+                        }
                     )
                     
                     med.loadImage()
-                                    
                 }
             }
-            
         }
-        
     }
-    
     
     static func == (lhs: FeedDataItem, rhs: FeedDataItem) -> Bool {
         return lhs.itemId == rhs.itemId
@@ -108,5 +84,4 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(itemId)
     }
-    
 }

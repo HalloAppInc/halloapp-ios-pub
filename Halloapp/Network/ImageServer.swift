@@ -13,8 +13,9 @@ import SwiftUI
 import XMPPFramework
 
 class ImageServer {
+    let jpegCompressionQuality = CGFloat(AppContext.shared.userData.compressionQuality)
 
-    func beginUploading(items mediaItems: [FeedMedia], isReady: Binding<Bool>) {
+    func beginUploading(items mediaItems: [PendingMedia], isReady: Binding<Bool>) {
         guard !mediaItems.isEmpty else {
             isReady.wrappedValue = true
             return
@@ -34,49 +35,64 @@ class ImageServer {
         }
 
         func startUploadingMedia() {
-            let userData = AppContext.shared.userData
-            var itemsToUpload: [FeedMedia] = []
+            var itemsToUpload: [PendingMedia] = []
             for (index, item) in mediaItems.enumerated() {
-                item.url = mediaURLs[index].get.absoluteString
+                item.url = mediaURLs[index].get
 
-                let feedMedia = FeedMedia()
-                feedMedia.type = item.type
-                feedMedia.tempUrl = item.tempUrl
-                feedMedia.url = mediaURLs[index].put.absoluteString
+                let itemToUpload = PendingMedia(type: item.type)
+                itemToUpload.url = mediaURLs[index].put
 
-                if feedMedia.type == "image" {
-                    DDLogInfo("Post Image: original res - \(item.width) x \(item.height)")
+                if itemToUpload.type == .image {
+                    guard let image = item.image else {
+                        DDLogError("ImageServer/ Empty image [\(item)]")
+                        continue
+                    }
+                    DDLogInfo("ImageServer/ Original image size: [\(NSCoder.string(for: item.size!))]")
 
-                    if item.width > 1600 || item.height > 1600 {
-                        item.image = item.image.getNewSize(res: 1600) ?? UIImage()
-                        item.width = Int(item.image.size.width)
-                        item.height = Int(item.image.size.height)
+                    // TODO: move resize off the main thread
+                    if item.size!.width > 1600 || item.size!.height > 1600 {
+                        guard let resized = image.getNewSize(res: 1600) else {
+                            DDLogError("ImageServer/ Resize failed [\(item)]")
+                            continue
+                        }
+                        item.image = resized
+                        item.size = resized.size
 
-                        DDLogInfo("Post Image: resized res - \(item.image.size.width) x \(item.image.size.height)")
+                        DDLogInfo("ImageServer/ Downscaled image size: [\(item.size!)]")
                     }
 
-                    feedMedia.image = item.image
+                    itemToUpload.image = item.image
 
                     /* turn on/off encryption of media */
-                    if let imgData = feedMedia.image.jpegData(compressionQuality: CGFloat(userData.compressionQuality)) {
-                        DDLogInfo("Post Image: (\(userData.compressionQuality)) compressed size - \(imgData.count)")
-
-                        (feedMedia.encryptedData, feedMedia.key, feedMedia.sha256hash) = HAC().encryptData(data: imgData, type: "image")
-
-                        item.key = feedMedia.key
-                        item.sha256hash = feedMedia.sha256hash
+                    guard let imgData = itemToUpload.image!.jpegData(compressionQuality: self.jpegCompressionQuality) else {
+                        DDLogError("ImageServer/ Failed to generate JPEG data. \(itemToUpload)")
+                        continue
                     }
-                } else if feedMedia.type == "video" {
-                    if let videoUrl = feedMedia.tempUrl {
-                        if let videoData = try? Data(contentsOf: videoUrl) {
-                            (feedMedia.encryptedData, feedMedia.key, feedMedia.sha256hash) = HAC().encryptData(data: videoData, type: "video")
-                            item.key = feedMedia.key
-                            item.sha256hash = feedMedia.sha256hash
-                        }
+                    DDLogInfo("ImageServer/ Prepare to encrypt image. Compression: [\(self.jpegCompressionQuality)] Compressed size: [\(imgData.count)]")
+
+                    // TODO: move encryption off the main thread
+                    (itemToUpload.encryptedData, itemToUpload.key, itemToUpload.sha256hash) = HAC().encryptData(data: imgData, type: .image)
+
+                    item.key = itemToUpload.key
+                    item.sha256hash = itemToUpload.sha256hash
+                } else if itemToUpload.type == .video {
+                    itemToUpload.tempUrl = item.tempUrl
+                    guard let videoUrl = itemToUpload.tempUrl else {
+                        fatalError("Empty video URL. \(itemToUpload)")
                     }
+                    guard let videoData = try? Data(contentsOf: videoUrl) else {
+                        DDLogError("ImageServer/ Failed to load video. \(itemToUpload)")
+                        continue
+                    }
+                    DDLogInfo("ImageServer/ Prepare to encrypt video. Video size: [\(videoData.count)]")
+
+                    (itemToUpload.encryptedData, itemToUpload.key, itemToUpload.sha256hash) = HAC().encryptData(data: videoData, type: .video)
+
+                    item.key = itemToUpload.key
+                    item.sha256hash = itemToUpload.sha256hash
                 }
 
-                itemsToUpload.append(feedMedia)
+                itemsToUpload.append(itemToUpload)
             }
 
             self.upload(items: itemsToUpload)
@@ -84,60 +100,52 @@ class ImageServer {
         }
     }
 
-    func upload(items mediaItems: [FeedMedia]) {
-        guard !mediaItems.isEmpty else {
-            return
-        }
+    func upload(items mediaItems: [PendingMedia]) {
+        guard !mediaItems.isEmpty else { return }
         let pendingCore = PendingCore()
         for item in mediaItems {
-            if item.key != "" {
+            if item.key != nil {
                 uploadData(for: item)
-                item.type += "-encrypted"
             } else {
-                upload(item: item)
+                // TODO: do we need to proceed if encryption failed?
+                upload(mediaItem: item)
                 
-                /* only doing pending for unencrypted items for now */
-                DispatchQueue.global(qos: .default).async {
-                    pendingCore.create(item: item)
-                }
+                pendingCore.create(item: item)
             }
         }
     }
     
-    func uploadData(for mediaItem: FeedMedia) {
-        let uploadUrl = mediaItem.url
-        let headers = [ "Content-Type": "image/jpeg" ]
-        Alamofire.upload(mediaItem.encryptedData!, to: uploadUrl, method: .put, headers: headers)
+    func uploadData(for mediaItem: PendingMedia) {
+        guard let uploadUrl = mediaItem.url else { fatalError("Upload URL is not set. \(mediaItem)") }
+        guard let dataToUpload = mediaItem.encryptedData else { fatalError("No data to upload. \(mediaItem)") }
+
+        Alamofire.upload(dataToUpload, to: uploadUrl, method: .put, headers: [ "Content-Type": "image/jpeg" ])
             .responseData { response in
                 if (response.response != nil) {
-                    DDLogInfo("success uploading")
-                    DispatchQueue.global(qos: .default).async {
-                        PendingCore().delete(url: uploadUrl)
-                    }
+                    DDLogInfo("ImageServer/ Successfully uploaded encrypted data. [\(uploadUrl)]")
+                    PendingCore().delete(url: uploadUrl)
                 }
         }
     }
     
-    func upload(item: FeedMedia) {
-        let uploadUrl = item.url
-        
-        /* note: compression below a certain point (0.2?) is the same */
-        if let imgData = item.image.jpegData(compressionQuality: 0.1) {
-            let headers = [ "Content-Type": "image/jpeg" ]
-            Alamofire.upload(imgData, to: uploadUrl, method: .put, headers: headers)
-                .responseData { response in
-                    if (response.response != nil) {
-                        DDLogInfo("success uploading")
-                        DispatchQueue.global(qos: .default).async {
-                            PendingCore().delete(url: uploadUrl)
-                        }
-                    }
-            }
+    func upload(mediaItem: PendingMedia) {
+        guard let uploadUrl = mediaItem.url else { fatalError("Upload URL is not set. \(mediaItem)") }
+        guard let imageToUpload = mediaItem.image else { fatalError("No image to upload. \(mediaItem)") }
+        guard let jpegData = imageToUpload.jpegData(compressionQuality: self.jpegCompressionQuality) else {
+            DDLogError("ImageServer/ Failed to generate JPEG data. \(mediaItem)")
+            return
+        }
+
+        Alamofire.upload(jpegData, to: uploadUrl, method: .put, headers: [ "Content-Type": "image/jpeg" ])
+            .responseData { response in
+                if (response.response != nil) {
+                    DDLogInfo("ImageServer/ Successfully uploaded plaintext data. [\(uploadUrl)]")
+                    PendingCore().delete(url: uploadUrl)
+                }
         }
     }
     
     func processPending() {
         upload(items: PendingCore().getAll())
     }
-    
 }

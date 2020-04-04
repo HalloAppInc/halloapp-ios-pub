@@ -7,132 +7,71 @@
 //
 
 import CocoaLumberjack
-import Combine
 import CoreData
-import Foundation
-import SwiftUI
 
 class PendingCore {
 
-    func getAll() -> [FeedMedia] {
-        
+    func getAll() -> [PendingMedia] {
         let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CPending")
-        
-//        fetchRequest.sortDescriptors = [NSSortDescriptor.init(key: "order", ascending: false)]
-        
+        let fetchRequest = NSFetchRequest<CPending>(entityName: "CPending")
         do {
-            let result = try managedContext.fetch(fetchRequest)
-            
-            var arr: [FeedMedia] = []
-            
-            for data in result as! [NSManagedObject] {
-                let item = FeedMedia(
-                    type: data.value(forKey: "type") as! String,
-                    url: data.value(forKey: "url") as! String
-                )
-                
-                if let blob = data.value(forKey: "blob") as? Data {
-                    if let image = UIImage(data: blob) {
-                        item.image = image
-                    }
-                }
-                
-                arr.append(item)
-
-            }
-            
-            return arr
-            
+            let results = try managedContext.fetch(fetchRequest)
+            return results.compactMap{ PendingMedia($0) }
         } catch  {
-            DDLogError("failed")
+            DDLogError("Failed to fetch temp media. [\(error)]")
             return []
         }
     }
 
-    func create(item: FeedMedia) {
-        
+    func create(item: PendingMedia) {
         let managedContext = CoreDataManager.sharedManager.bgContext
-        
         managedContext.perform {
-            
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CPending")
+            guard let imageData = item.image?.jpegData(compressionQuality: 1.0) else { return }
+            guard item.url != nil else { return }
 
-            fetchRequest.predicate = NSPredicate(format: "type == %@ && url == %@", item.type, item.url)
-            
+            let fetchRequest = NSFetchRequest<CPending>(entityName: "CPending")
+            fetchRequest.predicate = NSPredicate(format: "type == %@ && url == %@", item.type.rawValue, item.url!.absoluteString)
             do {
-                
                 let result = try managedContext.fetch(fetchRequest)
-                
-                if result.count > 0 {
-                    return
-                }
-            
-                let userEntity = NSEntityDescription.entity(forEntityName: "CPending", in: managedContext)!
-                
-                let obj = NSManagedObject(entity: userEntity, insertInto: managedContext)
-                obj.setValue(item.type, forKeyPath: "type")
-                obj.setValue(item.url, forKeyPath: "url")
-                
-                let image = item.image.jpegData(compressionQuality: 1.0)
-                
-                if image == nil {
-                    return
-                }
-                
-                if image != nil {
-                    obj.setValue(image, forKeyPath: "blob")
-                }
-                
+                guard result.isEmpty else { return }
+
+                let pending = NSEntityDescription.insertNewObject(forEntityName: "CPending", into: managedContext) as! CPending
+                pending.type = item.type.rawValue
+                pending.url = item.url!.absoluteString
+                pending.blob = imageData
+
                 do {
                     try managedContext.save()
                 } catch let error as NSError {
-                    DDLogError("could not save. \(error), \(error.userInfo)")
+                    DDLogError("Failed to save new temp media. [\(error)]")
                 }
-                
             } catch  {
-                DDLogError("failed")
+                DDLogError("Failed to fetch temp media. [\(error)]")
             }
         }
-        
     }
     
-    
-    func delete(url: String) {
-        
+    func delete(url: URL) {
         let managedContext = CoreDataManager.sharedManager.bgContext
-
         managedContext.perform {
-            
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CPending")
-            
-            fetchRequest.predicate = NSPredicate(format: "url == %@", url)
-            
+            // TODO: switch to NSBatchDeleteRequest
+            let fetchRequest = NSFetchRequest<CPending>(entityName: "CPending")
+            fetchRequest.predicate = NSPredicate(format: "url == %@", url.absoluteString)
             do {
-                let result = try managedContext.fetch(fetchRequest)
+                let results = try managedContext.fetch(fetchRequest)
+                guard !results.isEmpty else { return }
 
-                if (result.count == 0) {
-                    return
+                for item in results {
+                    managedContext.delete(item)
                 }
-                
-                let objectToDelete = result[0] as! NSManagedObject
-                managedContext.delete(objectToDelete)
-                
                 do {
                     try managedContext.save()
                 } catch {
-                    DDLogError("\(error)")
+                    DDLogError("Failed to delete temp media. [\(error)]")
                 }
-                
             } catch  {
-                DDLogError("failed")
+                DDLogError("Failed to fetch temp media. [\(error)]")
             }
         }
-        
     }
-    
 }
-
-
-
