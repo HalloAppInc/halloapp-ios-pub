@@ -340,6 +340,6 @@ class CommentsTableViewCell: UITableViewCell {
 
     func update(with comment: FeedComment) {
         self.commentView.updateWith(commentItem: comment)
-        self.commentView.isContentInset = !(comment.parentCommentId?.isEmpty ?? false)
+        self.commentView.isContentInset = comment.parentCommentId != nil
     }
 }
