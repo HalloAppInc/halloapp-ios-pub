@@ -34,7 +34,7 @@ struct FeedTableView: UIViewRepresentable {
 
         if self.isOnProfilePage {
             let headerView = FeedTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
-            headerView.frame.size = headerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+            headerView.frame.size.height = headerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
             tableView.tableHeaderView = headerView
         }
 
@@ -276,7 +276,7 @@ class FeedItemContentView: UIView {
     func configure(with feedDataItem: FeedDataItem) {
         if let mediaHeight = feedDataItem.mediaHeight {
             DDLogDebug("FeedTableViewCell/configure [\(feedDataItem.itemId)]")
-            let controller = UIHostingController(rootView: MediaSlider(feedDataItem))
+            let controller = UIHostingController(rootView: MediaSlider(feedDataItem).frame(height: CGFloat(mediaHeight)))
             controller.view.backgroundColor = UIColor.clear
             controller.view.addConstraint({
                 let constraint = NSLayoutConstraint.init(item: controller.view!, attribute: .height, relatedBy: .equal,
@@ -284,8 +284,6 @@ class FeedItemContentView: UIView {
                 constraint.priority = .defaultHigh + 10
                 return constraint
             }())
-            // This is important to set frame at this point, otherwise UICollectionView within gets corrupted.
-            controller.view.frame.size = CGSize(width: self.vStack.frame.size.width, height: CGFloat(mediaHeight))
 
             self.vStack.insertArrangedSubview(controller.view, at: 0)
             self.mediaView = controller.view
@@ -404,6 +402,8 @@ class FeedItemFooterView: UIView {
         controller.view.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         controller.view.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
         controller.view.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        let viewHeight = controller.view.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
+        controller.view.heightAnchor.constraint(equalToConstant: viewHeight).isActive = true
         self.buttonsView = controller.view
         // WARNING: Retaining UIHostingController instead of its view breaks NavigationLink.
     }
