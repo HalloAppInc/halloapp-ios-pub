@@ -263,6 +263,7 @@ extension XMPPController: XMPPStreamDelegate {
             AppContext.shared.syncManager.processNotification(contacts: contactList.elements(forName: "contact").compactMap{ XMPPContact($0) })
         }
 
+        // TODO: do not set ack for pubsub messages - that must be done in pubsub message handler, after processing of a message is complete.
         if let id = message.elementID {
             DDLogInfo("Message: Send Ack: id: \(id)")
             Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
@@ -513,7 +514,5 @@ extension XMPPController: XMPPPubSubDelegate {
             DDLogInfo("Message: Send Ack: id: \(id)")
             Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
         }
-
     }
-            
 }

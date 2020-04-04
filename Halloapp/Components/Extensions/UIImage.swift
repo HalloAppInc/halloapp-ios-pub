@@ -10,7 +10,7 @@ import SwiftUI
 extension UIImage {
     
     func getNewSize(res: Int) -> UIImage? {
-
+        // TODO: check if this can be made faster
         guard let imageData = self.pngData() else { return nil }
 
         //    print("orig: \(imageData.count/1000)")
