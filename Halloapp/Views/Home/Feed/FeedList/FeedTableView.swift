@@ -74,8 +74,7 @@ struct FeedTableView: UIViewRepresentable {
     func updateUIView(_ uiView: UITableView, context: Context) {
         uiView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: BottomBarView.currentBarHeight(), right: 0)
         uiView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: BottomBarView.currentBarHeight(), right: 0)
-        // reloadData() is only necessary to reload shadow color in table view cells on interface style change (dark <-> light).
-        uiView.reloadData()
+        // TODO: handle interface style change (dark <-> light).
     }
 
     private func update(dataSource: UITableViewDiffableDataSource<FeedTableSection, FeedDataItem>,
