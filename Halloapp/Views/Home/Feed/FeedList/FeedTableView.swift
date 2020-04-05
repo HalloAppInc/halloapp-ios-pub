@@ -15,32 +15,43 @@ enum FeedTableSection {
     case main
 }
 
-struct FeedTableView: UIViewRepresentable {
+class FeedTableViewController: UITableViewController, NSFetchedResultsControllerDelegate {
     private static let cellReuseIdentifier = "FeedTableViewCell"
 
-    @EnvironmentObject var mainViewController: MainViewController
+    private var isOnProfilePage: Bool = false
+    private var dataSource: UITableViewDiffableDataSource<FeedTableSection, FeedDataItem>?
+    private var fetchedResultsController: NSFetchedResultsController<FeedCore>?
 
-    var isOnProfilePage: Bool
+    init(isOnProfilePage: Bool) {
+        self.isOnProfilePage = isOnProfilePage
+        super.init(style: .plain)
+    }
 
-    func makeUIView(context: Context) -> UITableView {
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+
+    func dismantle() {
+        DDLogInfo("FeedTableViewController/dismantle")
+    }
+
+    override func viewDidLoad() {
+        DDLogInfo("FeedTableViewController/viewDidLoad")
         // Initial width so that layout constraints aren't upset during setup.
-        let tableWidth = UIScreen.main.bounds.size.width
-        let tableView = UITableView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth), style: .plain)
-        tableView.backgroundColor = UIColor.systemGroupedBackground
-        tableView.separatorStyle = .none
-        tableView.allowsSelection = false
-        tableView.delegate = context.coordinator
-        tableView.preservesSuperviewLayoutMargins = true
+        let tableWidth = self.view.frame.size.width
+        self.tableView.backgroundColor = UIColor.systemGroupedBackground
+        self.tableView.separatorStyle = .none
+        self.tableView.allowsSelection = false
 
         if self.isOnProfilePage {
             let headerView = FeedTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
             headerView.frame.size.height = headerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
-            tableView.tableHeaderView = headerView
+            self.tableView.tableHeaderView = headerView
         }
 
-        tableView.register(FeedTableViewCell.self, forCellReuseIdentifier: FeedTableView.cellReuseIdentifier)
-        let dataSource = UITableViewDiffableDataSource<FeedTableSection, FeedDataItem>(tableView: tableView) { (tableView, indexPath, feedDataItem) in
-            let cell = tableView.dequeueReusableCell(withIdentifier: FeedTableView.cellReuseIdentifier, for: indexPath) as! FeedTableViewCell
+        self.tableView.register(FeedTableViewCell.self, forCellReuseIdentifier: FeedTableViewController.cellReuseIdentifier)
+        self.dataSource = UITableViewDiffableDataSource<FeedTableSection, FeedDataItem>(tableView: tableView) { (tableView, indexPath, feedDataItem) in
+            let cell = tableView.dequeueReusableCell(withIdentifier: FeedTableViewController.cellReuseIdentifier, for: indexPath) as! FeedTableViewCell
             cell.configure(with: feedDataItem)
             return cell
         }
@@ -50,96 +61,80 @@ struct FeedTableView: UIViewRepresentable {
             fetchRequest.predicate = NSPredicate(format: "username == %@", AppContext.shared.userData.phone)
         }
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedCore.timestamp, ascending: false) ]
-        let fetchedResultsController =
-            NSFetchedResultsController<FeedCore>(fetchRequest: fetchRequest,
-                                                 managedObjectContext: CoreDataManager.sharedManager.persistentContainer.viewContext,
-                                                 sectionNameKeyPath: nil, cacheName: nil)
-        fetchedResultsController.delegate = context.coordinator
+        self.fetchedResultsController = NSFetchedResultsController<FeedCore>(fetchRequest: fetchRequest, managedObjectContext: CoreDataManager.sharedManager.persistentContainer.viewContext,
+                                                                             sectionNameKeyPath: nil, cacheName: nil)
+        self.fetchedResultsController?.delegate = self
         do {
-            try fetchedResultsController.performFetch()
-            if let feedItems = fetchedResultsController.fetchedObjects {
-                self.update(dataSource: dataSource, with: feedItems, animatingDifferences: false)
+            try self.fetchedResultsController?.performFetch()
+            if let feedItems = fetchedResultsController?.fetchedObjects {
+                self.reload(data: feedItems, animatingDifferences: false)
             }
         } catch {
             fatalError("Failed to fetch feed items \(error)")
         }
-
-        context.coordinator.dataSource = dataSource
-        context.coordinator.fetchedResultsController = fetchedResultsController
-        context.coordinator.tableView = tableView
-
-        return tableView
     }
 
-    func updateUIView(_ uiView: UITableView, context: Context) {
-        uiView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: BottomBarView.currentBarHeight(), right: 0)
-        uiView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: BottomBarView.currentBarHeight(), right: 0)
-        // TODO: handle interface style change (dark <-> light).
+    override func viewWillAppear(_ animated: Bool) {
+        DDLogInfo("FeedTableViewController/viewWillAppear")
+        super.viewWillAppear(animated)
+        self.tableView.reloadData()
     }
 
-    private func update(dataSource: UITableViewDiffableDataSource<FeedTableSection, FeedDataItem>,
-                        with feedItems: [FeedCore], animatingDifferences: Bool = true) {
+    override func viewDidAppear(_ animated: Bool) {
+        DDLogInfo("FeedTableViewController/viewDidAppear")
+        super.viewDidAppear(animated)
+    }
+
+    // MARK: Fetched Results Controller
+
+    private func reload(data feedItems: [FeedCore], animatingDifferences: Bool = true) {
+        guard self.dataSource != nil else { return }
         // FIXME: this is a bad bad code.
         let feedPostIds: Set<String> = Set(feedItems.compactMap({ $0.itemId }))
         let feedDataItems = AppContext.shared.feedData.feedDataItems.filter { feedPostIds.contains($0.itemId) }
         var snapshot = NSDiffableDataSourceSnapshot<FeedTableSection, FeedDataItem>()
         snapshot.appendSections([.main])
         snapshot.appendItems(feedDataItems)
-        dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
+        self.dataSource!.apply(snapshot, animatingDifferences: animatingDifferences)
     }
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+    /**
+     This property prevents table view data from being reloaded when invidual feed objects change because that would be a no-op.
+     */
+    private var reloadDataInDidChangeContent = false
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        DDLogDebug("FeedTableView/fetched-results-controller/will-change")
+        reloadDataInDidChangeContent = false
     }
 
-
-    class Coordinator: NSObject, UITableViewDelegate, NSFetchedResultsControllerDelegate {
-        var parent: FeedTableView
-        var dataSource: UITableViewDiffableDataSource<FeedTableSection, FeedDataItem>?
-        var fetchedResultsController: NSFetchedResultsController<FeedCore>?
-        var tableView: UITableView?
-
-        init(_ view: FeedTableView) {
-            self.parent = view
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        DDLogDebug("FeedTableView/fetched-results-controller/change type=[\(type.rawValue)]")
+        switch type {
+        case .delete, .insert, .move:
+            DDLogDebug("FeedTableView/fetched-results-controller/\(type.rawValue) object=[\(anObject)]")
+            reloadDataInDidChangeContent = true
+        default:
+            DDLogDebug("FeedTableView/fetched-results-controller/update object=[\(anObject)]")
+            break
         }
+    }
 
-        /**
-         This property prevents table view data from being reloaded when invidual feed objects change because that would be a no-op.
-         */
-        private var reloadDataInDidChangeContent = false
-        func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-            DDLogDebug("FeedTableView/fetched-results-controller/will-change")
-            reloadDataInDidChangeContent = false
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        DDLogDebug("FeedTableView/fetched-results-controller/did-change reload=[\(reloadDataInDidChangeContent)]")
+        guard reloadDataInDidChangeContent else { return }
+        if let feedItems = controller.fetchedObjects {
+            // Animating changes while the view is off-screen causes weird layout glitches.
+            let animate = self.view.window != nil && UIApplication.shared.applicationState == .active
+            self.reload(data: feedItems as! [FeedCore], animatingDifferences: animate)
         }
+    }
 
-        func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-            DDLogDebug("FeedTableView/fetched-results-controller/change type=[\(type.rawValue)]")
-            switch type {
-            case .delete, .insert, .move:
-                DDLogDebug("FeedTableView/fetched-results-controller/\(type.rawValue) object=[\(anObject)]")
-                reloadDataInDidChangeContent = true
-            default:
-                DDLogDebug("FeedTableView/fetched-results-controller/update object=[\(anObject)]")
-                break
-            }
-        }
-
-        func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-            DDLogDebug("FeedTableView/fetched-results-controller/did-change reload=[\(reloadDataInDidChangeContent)]")
-            guard reloadDataInDidChangeContent else { return }
-            guard let dataSource = self.dataSource else { return }
-            if let feedItems = controller.fetchedObjects {
-                // Animating changes while the view is off-screen causes weird layout glitches.
-                let animate = tableView?.window != nil && UIApplication.shared.applicationState == .active
-                self.parent.update(dataSource: dataSource, with: feedItems as! [FeedCore], animatingDifferences: animate)
-            }
-        }
-
-        func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-            guard let fetchedObjects = fetchedResultsController?.fetchedObjects else { return }
-            guard indexPath.row < fetchedObjects.count else { return }
-            AppContext.shared.feedData.getItemMedia(fetchedObjects[indexPath.row].itemId!)
-        }
+    // MARK: UITableViewDelegate
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard self.fetchedResultsController != nil else { return }
+        guard let fetchedObjects = self.fetchedResultsController!.fetchedObjects else { return }
+        guard indexPath.row < fetchedObjects.count else { return }
+        AppContext.shared.feedData.getItemMedia(fetchedObjects[indexPath.row].itemId!)
     }
 }
 

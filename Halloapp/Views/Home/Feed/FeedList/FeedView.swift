@@ -6,8 +6,44 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Combine
 import SwiftUI
+
+struct FeedTableView: UIViewControllerRepresentable {
+    typealias UIViewControllerType = FeedTableViewController
+    private var isOnProfilePage: Bool
+
+    init(isOnProfilePage: Bool) {
+        self.isOnProfilePage = isOnProfilePage
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    func makeUIViewController(context: Context) -> UIViewControllerType {
+        return FeedTableViewController(isOnProfilePage: context.coordinator.parent.isOnProfilePage)
+    }
+
+    func updateUIViewController(_ viewController: UIViewControllerType, context: Context) {
+        guard let tableView = viewController.view as? UITableView else { return }
+        let bottomInset = BottomBarView.currentBarHeight()
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset, right: 0)
+        tableView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: bottomInset, right: 0)
+    }
+
+    static func dismantleUIViewController(_ uiViewController: Self.UIViewControllerType, coordinator: Self.Coordinator) {
+        uiViewController.dismantle()
+    }
+
+    class Coordinator: NSObject {
+        var parent: FeedTableView
+
+        init(_ feedTableView: FeedTableView) {
+            self.parent = feedTableView
+        }
+    }
+}
+
 
 struct FeedView: View {
     @EnvironmentObject var mainViewController: MainViewController

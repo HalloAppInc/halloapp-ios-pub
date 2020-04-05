@@ -93,7 +93,7 @@ struct BottomBarView: View {
             return barHeight
         }
         let bottomSafeAreaInset = keyWindow!.safeAreaInsets.bottom
-        // UICollectionView's insets are automatically adjusted by the amount of bottom safe area inset.
+        // Scroll view's insets are automatically adjusted by the amount of bottom safe area inset.
         // Increase inset by visible height of the bottom bar and subtract value applied automatically: barHeight + 0.5*bottomInset - bottomInset
         return barHeight - 0.5*bottomSafeAreaInset
     }
