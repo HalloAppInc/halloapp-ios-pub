@@ -44,15 +44,6 @@ class FeedData: ObservableObject {
             self.xmppController.didConnect.sink { _ in
                 DDLogInfo("Feed: Got event for didConnect")
                 
-                DispatchQueue.global(qos: .default).async {
-                    ImageServer().processPending()
-                }
-
-                // should try to load images again if there are unfinished ones
-//                for item in self.feedDataItems {
-//                    item.loadMedia()
-//                }
-                
                 self.processExpires()
             })
         

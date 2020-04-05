@@ -242,7 +242,6 @@ class PendingMedia {
     var sha256hash: String?
     var image: UIImage?
     var tempUrl: URL?
-    var encryptedData: Data?
 
     init(type: FeedMediaType) {
         self.type = type
