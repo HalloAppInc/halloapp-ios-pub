@@ -13,7 +13,8 @@ import SwiftUI
 import XMPPFramework
 
 class ImageServer {
-    let jpegCompressionQuality = CGFloat(AppContext.shared.userData.compressionQuality)
+    private let jpegCompressionQuality = CGFloat(AppContext.shared.userData.compressionQuality)
+    private let maxImageSize: CGFloat = 1600
 
     func beginUploading(items mediaItems: [PendingMedia], isReady: Binding<Bool>) {
         guard !mediaItems.isEmpty else {
@@ -50,11 +51,19 @@ class ImageServer {
                     DDLogInfo("ImageServer/ Original image size: [\(NSCoder.string(for: item.size!))]")
 
                     // TODO: move resize off the main thread
-                    if item.size!.width > 1600 || item.size!.height > 1600 {
-                        guard let resized = image.getNewSize(res: 1600) else {
+                    let imageSize = item.size!
+                    if imageSize.width > maxImageSize || imageSize.height > maxImageSize {
+                        let aspectRatioForWidth = maxImageSize / imageSize.width
+                        let aspectRatioForHeight = maxImageSize / imageSize.height
+                        let aspectRatio = min(aspectRatioForWidth, aspectRatioForHeight)
+                        let targetSize = CGSize(width: (imageSize.width * aspectRatio).rounded(), height: (imageSize.height * aspectRatio).rounded())
+
+                        let ts = Date()
+                        guard let resized = image.resized(to: targetSize) else {
                             DDLogError("ImageServer/ Resize failed [\(item)]")
                             continue
                         }
+                        DDLogDebug("ImageServer/ Resized in \(-ts.timeIntervalSinceNow) s")
                         item.image = resized
                         item.size = resized.size
 
