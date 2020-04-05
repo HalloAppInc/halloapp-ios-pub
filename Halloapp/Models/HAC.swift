@@ -12,163 +12,125 @@ import CryptoSwift
 import Foundation
 
 class HAC {
-    
-    func generateKey(numBytes: Int) -> [UInt8] {
-        var key = [UInt8](repeating: 0, count: numBytes)
-    
-        let generateKeyResult = SecRandomCopyBytes(kSecRandomDefault, numBytes, &key)
-        
-        if(generateKeyResult == 0) {
-//            print("success generating key:")
-//            print("\(key)")
-        } else {
-            DDLogError("failed at generating key")
+
+    private static let keyLength = 80
+
+    class func generateKey(_ count: Int) -> [UInt8]? {
+        var key = [UInt8](repeating: 0, count: count)
+        let result = SecRandomCopyBytes(kSecRandomDefault, count, &key)
+        guard result == errSecSuccess else {
+            DDLogError("HAC/generateKey error=[\(result)]")
+            return nil
         }
         return key
     }
-    
-    func base64ToByteArray(base64String: String) -> [UInt8]? {
-        if let nsdata = Data(base64Encoded: base64String) {
-            var bytes = [UInt8](repeating: 0, count: nsdata.count)
-            nsdata.copyBytes(to: &bytes, count: nsdata.count)
-              return bytes
-          }
-          return nil // Invalid input
+
+    class func byteArray(fromBase64 base64String: String) -> [UInt8]? {
+        guard let data = Data(base64Encoded: base64String) else {
+            DDLogError("HAC/byteArray Invalid base64 input")
+            return nil
+        }
+        var bytes = [UInt8](repeating: 0, count: data.count)
+        data.copyBytes(to: &bytes, count: data.count)
+        return bytes
+    }
+
+    class func HKDFInfo(for mediaType: FeedMediaType) -> [UInt8] {
+        return (mediaType == .image ? "HalloApp image" : "HalloApp video").bytes
     }
     
-    func generateExpandedKeyFrom(fromKey: String, type: FeedMediaType) -> [UInt8] {
-
-//        DDLogInfo("generateExpandedKeyFrom: \(fromKey)")
-
-        if let key = base64ToByteArray(base64String: fromKey) {
-        
-            var info = "HalloApp image".bytes
-            // FIXME: do not initialize `info` twice
-            if type == .video {
-                info = "HalloApp video".bytes
-            }
-            
-            let expandedKey = try! HKDF(password: key, info: info, keyLength: 80, variant: .sha256).calculate()
-
-    //        print("expandedKey:")
-    //        print("\(expandedKey)")
-            
-            return expandedKey
+    class func expandedKey(from base64Key: String, mediaType: FeedMediaType) -> [UInt8]? {
+        guard let key = byteArray(fromBase64: base64Key) else {
+            return nil
         }
-        return []
+        var expandedKey: [UInt8]
+        do {
+            expandedKey = try HKDF(password: key, info: HKDFInfo(for: mediaType), keyLength: HAC.keyLength, variant: .sha256).calculate()
+        }
+        catch {
+            DDLogError("HAC/HKDF/calculate/error [\(error)]")
+            return nil
+        }
+        return expandedKey
     }
-    
-    func generateNewExpandedKey(type: FeedMediaType) -> (String, [UInt8]) {
 
-        // generate key
-        let key = generateKey(numBytes: 32)
-        
-        var info = "HalloApp image".bytes
-        // FIXME: do not initialize `info` twice
-        if type == .video {
-            info = "HalloApp video".bytes
+    class func newExpandedKey(for mediaType: FeedMediaType) -> (String, [UInt8])? {
+        guard let key = generateKey(32) else {
+            return nil
         }
-        
-//        let result = try! HMAC(key: key, variant: .sha256).authenticate(message.bytes)
-        
-        let expandedKey = try! HKDF(password: key, info: info, keyLength: 80, variant: .sha256).calculate()
-
-//        print("expandedKey:")
-//        print("\(expandedKey)")
-        
-        let keyData = Data(bytes: key, count: key.count)
-        
-        // Convert to Base64
-        let base64StringKey = keyData.base64EncodedString()
-        
+        var expandedKey: [UInt8]
+        do {
+            expandedKey = try HKDF(password: key, info: HKDFInfo(for: mediaType), keyLength: HAC.keyLength, variant: .sha256).calculate()
+        }
+        catch {
+            DDLogError("HAC/HKDF/calculate/error [\(error)]")
+            return nil
+        }
+        let base64StringKey = Data(bytes: key, count: key.count).base64EncodedString()
         return (base64StringKey, expandedKey)
     }
     
-    func encryptData(data: Data, type: FeedMediaType) -> (Data?, String?, String?) {
-        
+    class func encrypt(data: Data, mediaType: FeedMediaType) -> (Data, String, String)? {
         let target: [UInt8] = [UInt8](data)
 
-        let (base64Key, expandedKey) = generateNewExpandedKey(type: type)
-        
-        let randomIV = Array(expandedKey[0...15])
-        let AESKey = Array(expandedKey[16...47])
-        let SHAKey = Array(expandedKey[48...79])
-        
-        do {
-            let aes = try AES(key: AESKey, blockMode: CBC(iv: randomIV), padding: .pkcs5)
-        
-            var encrypted = try aes.encrypt(target)
-
-            let MAC = try HMAC(key: SHAKey, variant: .sha256).authenticate(encrypted)
-            
-            DDLogInfo("MAC: \(MAC.count)")
-            
-            encrypted.append(contentsOf: MAC)
-            
-            DDLogInfo("encrypted w/authen: \(encrypted.count)")
-            
-            let digest = SHA256.hash(data: encrypted)
-            
-            let base64Hash = digest.data.base64EncodedString()
-            
-            let encryptedData = Data(bytes: encrypted, count: encrypted.count)
-            
-            return (encryptedData, base64Key, base64Hash)
-            
-        } catch {
-            
+        guard let (base64Key, expandedKey) = newExpandedKey(for: mediaType) else {
+            return nil
         }
         
-        return (nil, nil, nil)
+        let randomIV = Array(expandedKey[0...15])
+        let AESKey = Array(expandedKey[16...47])
+        let SHAKey = Array(expandedKey[48...79])
+        do {
+            let aes = try AES(key: AESKey, blockMode: CBC(iv: randomIV), padding: .pkcs5)
+            var encrypted = try aes.encrypt(target)
+            let MAC = try HMAC(key: SHAKey, variant: .sha256).authenticate(encrypted)
+            DDLogDebug("HAC/encrypt MAC=[\(MAC.count)]")
+            encrypted.append(contentsOf: MAC)
+            DDLogDebug("HAC/encrypt w/authen=[\(encrypted.count)]")
+            
+            let digest = SHA256.hash(data: encrypted)
+            let base64Hash = digest.data.base64EncodedString()
+            let encryptedData = Data(bytes: encrypted, count: encrypted.count)
+            return (encryptedData, base64Key, base64Hash)
+        } catch {
+            DDLogError("HAC/encrypt/error [\(error)")
+            return nil
+        }
     }
     
-    func decryptData(data: Data, key: String, sha256hash: String, type: FeedMediaType) -> Data? {
-                
+    class func decrypt(data: Data, key: String, sha256hash: String, mediaType: FeedMediaType) -> Data? {
         var target: [UInt8] = [UInt8](data)
         
-        let expandedKey = generateExpandedKeyFrom(fromKey: key, type: type)
+        guard let expandedKey = expandedKey(from: key, mediaType: mediaType) else {
+            return nil
+        }
         
         let randomIV = Array(expandedKey[0...15])
         let AESKey = Array(expandedKey[16...47])
         let SHAKey = Array(expandedKey[48...79])
-
         do {
-            
             let digest = SHA256.hash(data: target)
             let base64String = digest.data.base64EncodedString()
-            
-            if base64String != sha256hash {
-                DDLogError(base64String)
-                DDLogError("sha256 hash does not match, abort")
+            guard base64String == sha256hash else {
+                DDLogError("HAC/decrypt/error sha256 mismatch [\(base64String)]")
                 return nil
             }
             
             let attachedMAC = Array(target.suffix(32))
-            
             target.removeLast(32)
-            
+
             let MAC = try HMAC(key: SHAKey, variant: .sha256).authenticate(target)
-            
-//            DDLogInfo("\(attachedMAC)")
-//            DDLogInfo("\(MAC)")
-            
-            if attachedMAC != MAC {
-                DDLogError("MAC does not match, abort")
+            guard attachedMAC == MAC else {
+                DDLogError("HAC/decrypt/error MAC mismatch")
                 return nil
             }
             
             let decrypted = try AES(key: AESKey, blockMode: CBC(iv: randomIV), padding: .pkcs5).decrypt(target)
-            
             let decryptedData = Data(bytes: decrypted, count: decrypted.count)
-
-//            DDLogInfo("decrypted: \(decryptedData.count)")
-
             return decryptedData
-            
         } catch {
-            
+            DDLogError("HAC/decrypt/error [\(error)")
+            return nil
         }
-        
-        return nil
-    }    
+    }
 }

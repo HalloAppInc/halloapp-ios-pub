@@ -80,7 +80,11 @@ class ImageServer {
                     DDLogInfo("ImageServer/ Prepare to encrypt image. Compression: [\(self.jpegCompressionQuality)] Compressed size: [\(imgData.count)]")
 
                     // TODO: move encryption off the main thread
-                    (itemToUpload.encryptedData, itemToUpload.key, itemToUpload.sha256hash) = HAC().encryptData(data: imgData, type: .image)
+                    if let (data, key, sha256) = HAC.encrypt(data: imgData, mediaType: .image) {
+                        itemToUpload.encryptedData = data
+                        itemToUpload.key = key
+                        itemToUpload.sha256hash = sha256
+                    }
 
                     item.key = itemToUpload.key
                     item.sha256hash = itemToUpload.sha256hash
@@ -95,7 +99,11 @@ class ImageServer {
                     }
                     DDLogInfo("ImageServer/ Prepare to encrypt video. Video size: [\(videoData.count)]")
 
-                    (itemToUpload.encryptedData, itemToUpload.key, itemToUpload.sha256hash) = HAC().encryptData(data: videoData, type: .video)
+                    if let (data, key, sha256) = HAC.encrypt(data: videoData, mediaType: .video) {
+                        itemToUpload.encryptedData = data
+                        itemToUpload.key = key
+                        itemToUpload.sha256hash = sha256
+                    }
 
                     item.key = itemToUpload.key
                     item.sha256hash = itemToUpload.sha256hash

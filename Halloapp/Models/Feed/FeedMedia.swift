@@ -162,7 +162,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
                     if let key = self.key, let sha256 = self.sha256hash {
                         DDLogInfo("\(logPrefix) Media is encrypted.")
 
-                        if let decryptedData = HAC().decryptData(data: downloadedData, key: key, sha256hash: sha256, type: self.type) {
+                        if let decryptedData = HAC.decrypt(data: downloadedData, key: key, sha256hash: sha256, mediaType: self.type) {
                             mediaData = decryptedData
                             DDLogInfo("\(logPrefix) Decrypoted media. size=[\(mediaData.count)]")
                         } else {
