@@ -225,9 +225,8 @@ class FeedData: ObservableObject {
     }
     
     func post(comment text: String, to feedItem: FeedDataItem, replyingTo parentCommentId: String? = nil) {
-        let xmppComment = XMPPComment(userPhoneNumber: feedItem.username, feedPostId: feedItem.itemId,
-                                      parentCommentId: parentCommentId, text: text)
-        let request = XMPPPostCommentRequest(xmppComment: xmppComment) { (timestamp, error) in
+        let xmppComment = XMPPComment(text: text, feedPostId: feedItem.itemId, parentCommentId: parentCommentId)
+        let request = XMPPPostCommentRequest(xmppComment: xmppComment, postAuthor: feedItem.username) { (timestamp, error) in
             // TODO: handle error!
             var feedComment = FeedComment(xmppComment)
             if timestamp != nil {

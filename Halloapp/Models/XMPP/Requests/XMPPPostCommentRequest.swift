@@ -17,8 +17,8 @@ struct XMPPComment {
     let text: String
     var timestamp: TimeInterval?
 
-    init(userPhoneNumber: String, feedPostId: String, parentCommentId: String?, text: String) {
-        self.userPhoneNumber = userPhoneNumber
+    init(text: String, feedPostId: String, parentCommentId: String?) {
+        self.userPhoneNumber = AppContext.shared.userData.phone
         self.id = UUID().uuidString
         self.parentId = parentCommentId
         self.feedPostId = feedPostId
@@ -79,7 +79,7 @@ class XMPPPostCommentRequest : XMPPRequest {
 
     let completion: XMPPPostCommentRequestCompletion
 
-    init(xmppComment: XMPPComment, completion: @escaping XMPPPostCommentRequestCompletion) {
+    init(xmppComment: XMPPComment, postAuthor: String, completion: @escaping XMPPPostCommentRequestCompletion) {
         self.completion = completion
 
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"), elementID: UUID().uuidString)
@@ -87,7 +87,7 @@ class XMPPPostCommentRequest : XMPPRequest {
             let pubsub = XMPPElement(name: "pubsub", xmlns: "http://jabber.org/protocol/pubsub")
             pubsub.addChild({
                 let publish = XMPPElement(name: "publish")
-                publish.addAttribute(withName: "node", stringValue: "feed-\(xmppComment.userPhoneNumber)")
+                publish.addAttribute(withName: "node", stringValue: "feed-\(postAuthor)")
                 publish.addChild(xmppComment.xmppElement)
                 return publish
             }())
