@@ -143,7 +143,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
             return
         }
         DDLogInfo("\(logPrefix) Updating numTries to \(self.numTries + 1)")
-        FeedMediaCore().updateNumTries(feedItemId: self.feedItemId, url: self.url, numTries: self.numTries + 1)
+        FeedMediaCore.updateNumTries(feedItemId: self.feedItemId, url: self.url, numTries: self.numTries + 1)
 
         self.imageLoader = ImageLoader(url: self.url)
         cancellableSet.insert(
@@ -188,7 +188,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
                                 }
                                 /* thumbnails are currently not used right now but will be used in the future */
                                 let thumbnail = image.getNewSize(res: res) ?? UIImage() // note: getNewSize will not resize if the pic is lower than res
-                                FeedMediaCore().updateImage(feedItemId: self.feedItemId, url: self.url, thumb: thumbnail, orig: image)
+                                FeedMediaCore.updateImage(feedItemId: self.feedItemId, url: self.url, thumb: thumbnail, orig: image)
                             }
                         } else {
                             DDLogError("\(logPrefix) Invalid image data.")
@@ -216,7 +216,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
                             self.didChange.send()
                         }
 
-                        FeedMediaCore().updateBlob(feedItemId: self.feedItemId, url: self.url, data: mediaData)
+                        FeedMediaCore.updateBlob(feedItemId: self.feedItemId, url: self.url, data: mediaData)
                     }
                 }
             }

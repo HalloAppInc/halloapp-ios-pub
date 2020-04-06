@@ -20,17 +20,13 @@ class FeedData: ObservableObject {
     private var userData: UserData
     private var xmppController: XMPPController
     private var cancellableSet: Set<AnyCancellable> = []
-    
-    private let feedItemCore = FeedItemCore()
-    private let feedCommentCore = FeedCommentCore()
-    private let feedMediaCore = FeedMediaCore()
 
     init(xmppController: XMPPController, userData: UserData) {
         self.xmppController = xmppController
         self.userData = userData
 
-        self.feedDataItems = feedItemCore.getAll()
-        self.feedCommentItems = feedCommentCore.getAll()
+        self.feedDataItems = FeedItemCore.getAll()
+        self.feedCommentItems = FeedCommentCore.getAll()
         
         /* enable videoes to play with sound even when the phone is set to ringer mode */
         do {
@@ -121,7 +117,7 @@ class FeedData: ObservableObject {
     func getItemMedia(_ itemId: String) {
         if let feedItem = self.feedDataItems.first(where: { $0.itemId == itemId }) {
             if feedItem.media.isEmpty {
-                feedItem.media = FeedMediaCore().get(feedItemId: itemId)
+                feedItem.media = FeedMediaCore.get(feedItemId: itemId)
 
                 DDLogDebug("FeedData/getItemMedia item=[\(itemId)] count=[\(feedItem.media.count)]")
 
@@ -166,7 +162,7 @@ class FeedData: ObservableObject {
 
     func pushItem(item: FeedDataItem) {
         guard !self.feedDataItems.contains(where: { $0.itemId == item.itemId }) else { return }
-        guard !self.feedItemCore.isPresent(itemId: item.itemId) else { return }
+        guard !FeedItemCore.isPresent(itemId: item.itemId) else { return }
 
         item.mediaHeight = self.calHeight(media: item.media)
         self.feedDataItems.insert(item, at: 0)
@@ -174,8 +170,8 @@ class FeedData: ObservableObject {
             return $0.timestamp > $1.timestamp
         }
 
-        self.feedItemCore.create(item: item)
-        item.media.forEach { self.feedMediaCore.create(item: $0) }
+        FeedItemCore.create(item: item)
+        item.media.forEach { FeedMediaCore.create(item: $0) }
 
         item.loadMedia()
     }
@@ -189,20 +185,20 @@ class FeedData: ObservableObject {
             self.increaseFeedItemUnreadComments(feedItemId: item.feedItemId, by: 1)
         }
 
-        self.feedCommentCore.create(item: item)
+        FeedCommentCore.create(item: item)
     }
 
     func increaseFeedItemUnreadComments(feedItemId: String, by number: Int) {
         guard let feedDataItem = self.feedDataItems.first(where: { $0.itemId == feedItemId }) else { return }
         feedDataItem.unreadComments += number
-        self.feedItemCore.update(item: feedDataItem)
+        FeedItemCore.update(item: feedDataItem)
     }
 
     func markFeedItemUnreadComments(feedItemId: String) {
         guard let feedDataItem = self.feedDataItems.first(where: { $0.itemId == feedItemId }) else { return }
         if feedDataItem.unreadComments > 0 {
             feedDataItem.unreadComments = 0
-            self.feedItemCore.update(item: feedDataItem)
+            FeedItemCore.update(item: feedDataItem)
         }
     }
     
@@ -247,15 +243,13 @@ class FeedData: ObservableObject {
     func processExpires() {
         let current = Date().timeIntervalSince1970
         let month = Date.days(30)
-        
-        let feedItemCore = FeedItemCore()
-    
+
         for (i, item) in feedDataItems.enumerated().reversed() {
             let diff = current - item.timestamp.timeIntervalSince1970
             if diff > month {
                 if (item.username != self.userData.phone) {
                     // TODO: bulk delete
-                    feedItemCore.delete(itemId: item.itemId)
+                    FeedItemCore.delete(itemId: item.itemId)
                     feedDataItems.remove(at: i)
                 }
             }

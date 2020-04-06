@@ -11,7 +11,7 @@ import CoreData
 
 class FeedCommentCore {
 
-    func getAll() -> [FeedComment] {
+    class func getAll() -> [FeedComment] {
         let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
         let fetchRequest = NSFetchRequest<FeedComments>(entityName: "FeedComments")
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedComments.timestamp, ascending: false) ]
@@ -25,7 +25,7 @@ class FeedCommentCore {
         return []
     }
 
-    func create(item: FeedComment) {
+    class func create(item: FeedComment) {
         let managedContext = CoreDataManager.sharedManager.bgContext
         managedContext.perform {
             let fetchRequest = NSFetchRequest<FeedComments>(entityName: "FeedComments")

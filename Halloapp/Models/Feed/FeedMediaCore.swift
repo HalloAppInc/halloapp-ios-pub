@@ -11,7 +11,7 @@ import CoreData
 
 class FeedMediaCore {
 
-    func get(feedItemId: String) -> [FeedMedia] {
+    class func get(feedItemId: String) -> [FeedMedia] {
         let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
         let fetchRequest = NSFetchRequest<CFeedImage>(entityName: "CFeedImage")
         fetchRequest.predicate = NSPredicate(format: "feedItemId = %@", feedItemId)
@@ -25,7 +25,7 @@ class FeedMediaCore {
         }
     }
 
-    func create(item: FeedMedia) {
+    class func create(item: FeedMedia) {
         let managedContext = CoreDataManager.sharedManager.bgContext
         managedContext.perform {
             let fetchRequest = NSFetchRequest<CFeedImage>(entityName: "CFeedImage")
@@ -56,7 +56,7 @@ class FeedMediaCore {
         }
     }
         
-    func updateBlob(feedItemId: String, url: URL, data: Data) {
+    class func updateBlob(feedItemId: String, url: URL, data: Data) {
         let managedContext = CoreDataManager.sharedManager.bgContext
         managedContext.perform {
             let fetchRequest = NSFetchRequest<CFeedImage>(entityName: "CFeedImage")
@@ -78,7 +78,7 @@ class FeedMediaCore {
         }
     }
     
-    func updateImage(feedItemId: String, url: URL, thumb: UIImage, orig: UIImage) {
+    class func updateImage(feedItemId: String, url: URL, thumb: UIImage, orig: UIImage) {
         let managedContext = CoreDataManager.sharedManager.bgContext
         managedContext.perform {
             guard let thumbData = thumb.jpegData(compressionQuality: 1.0) else {
@@ -110,7 +110,7 @@ class FeedMediaCore {
         }
     }
     
-    func updateNumTries(feedItemId: String, url: URL, numTries: Int) {
+    class func updateNumTries(feedItemId: String, url: URL, numTries: Int) {
         let managedContext = CoreDataManager.sharedManager.bgContext
         managedContext.perform {
             let fetchRequest = NSFetchRequest<CFeedImage>(entityName: "CFeedImage")
@@ -132,7 +132,7 @@ class FeedMediaCore {
         }
     }
     
-    func delete(feedItemId: String, url: URL) {
+    class func delete(feedItemId: String, url: URL) {
         let managedContext = CoreDataManager.sharedManager.bgContext
         managedContext.perform {
             let fetchRequest = NSFetchRequest<CFeedImage>(entityName: "CFeedImage")

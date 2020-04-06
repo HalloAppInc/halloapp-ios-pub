@@ -11,7 +11,7 @@ import CoreData
 
 class FeedItemCore {
 
-    func getAll() -> [FeedDataItem] {
+    class func getAll() -> [FeedDataItem] {
         let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
         let fetchRequest = NSFetchRequest<FeedCore>(entityName: "FeedCore")
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedCore.timestamp, ascending: false) ]
@@ -25,7 +25,7 @@ class FeedItemCore {
         return []
     }
     
-    func create(item: FeedDataItem) {
+    class func create(item: FeedDataItem) {
         let managedContext = CoreDataManager.sharedManager.bgContext
         managedContext.perform {
             let fetchRequest = NSFetchRequest<FeedCore>(entityName: "FeedCore")
@@ -53,7 +53,7 @@ class FeedItemCore {
         }
     }
     
-    func isPresent(itemId: String) -> Bool {
+    class func isPresent(itemId: String) -> Bool {
         let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
         let fetchRequest = NSFetchRequest<FeedCore>(entityName: "FeedCore")
         fetchRequest.predicate = NSPredicate(format: "itemId == %@", itemId)
@@ -66,7 +66,7 @@ class FeedItemCore {
         return false
     }
 
-    func update(item: FeedDataItem) {
+    class func update(item: FeedDataItem) {
         let managedContext = CoreDataManager.sharedManager.bgContext
         managedContext.perform {
             let fetchRequest = NSFetchRequest<FeedCore>(entityName: "FeedCore")
@@ -89,7 +89,7 @@ class FeedItemCore {
         }
     }
 
-    func delete(itemId: String) {
+    class func delete(itemId: String) {
         let managedContext = CoreDataManager.sharedManager.bgContext
         managedContext.perform {
             let fetchRequest = NSFetchRequest<FeedCore>(entityName: "FeedCore")
