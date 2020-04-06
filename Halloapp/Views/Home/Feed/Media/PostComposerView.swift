@@ -53,6 +53,7 @@ struct PostComposerView: View {
             HStack() {
 
                 Button(action: {
+                    self.imageServer.cancel()
                     self.didFinish()
                 }) {
                     Text("Cancel")
@@ -122,7 +123,7 @@ struct PostComposerView: View {
                 self.isJustText = true
                 self.isReadyToPost = true
             } else {
-                self.imageServer.beginUploading(items: self.mediaItemsToPost, isReady: self.$isReadyToPost)
+                self.imageServer.upload(self.mediaItemsToPost, isReady: self.$isReadyToPost)
             }
         }
         .background(Color(UIColor.systemBackground))

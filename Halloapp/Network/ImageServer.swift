@@ -13,111 +13,155 @@ import SwiftUI
 class ImageServer {
     private let jpegCompressionQuality = CGFloat(AppContext.shared.userData.compressionQuality)
     private let maxImageSize: CGFloat = 1600
+    private let mediaProcessingQueue = DispatchQueue(label: "ImageServer.MediaProcessing")
+    private let mediaProcessingGroup = DispatchGroup()
+    private var cancelled = false
 
-    func beginUploading(items mediaItems: [PendingMedia], isReady: Binding<Bool>) {
-        guard !mediaItems.isEmpty else {
-            isReady.wrappedValue = true
-            return
+    func upload(_ mediaItems: [PendingMedia], isReady: Binding<Bool>) {
+        mediaItems.forEach{ self.initiateUpload($0) }
+        self.mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
+            guard let self = self else { return }
+            if !self.cancelled {
+                isReady.wrappedValue = true
+            }
         }
-        // Request media URLs for all items
-        var mediaURLs: [MediaURL] = []
-        for _ in mediaItems {
-            let request = XMPPMediaUploadURLRequest(completion: { urls, error in
-                if urls != nil {
-                    mediaURLs.append(contentsOf: urls!)
-                }
-                if mediaURLs.count == mediaItems.count {
-                    startUploadingMedia()
-                }
-            })
-            AppContext.shared.xmppController.enqueue(request: request)
+    }
+
+    func cancel() {
+        self.cancelled = true
+        Alamofire.SessionManager.default.session.getTasksWithCompletionHandler { (dataTasks, uploadTasks, downloadTasks) in
+            uploadTasks.forEach { (task) in
+                // Cancellation of a task will invoke task completion handler.
+                DDLogDebug("ImageServer/upload/cancel")
+                task.cancel()
+            }
         }
+    }
 
-        func startUploadingMedia() {
-            for (index, item) in mediaItems.enumerated() {
-                item.url = mediaURLs[index].get
+    private func initiateUpload(_ item: PendingMedia) {
+        self.mediaProcessingGroup.enter()
+        let request = XMPPMediaUploadURLRequest(completion: { urls, error in
+            guard !self.cancelled else {
+                self.mediaProcessingGroup.leave()
+                return
+            }
+            if urls != nil {
+                self.processAndUpload(item, to: urls!)
+            } else {
+                // TODO: handle error
+            }
+            self.mediaProcessingGroup.leave()
+        })
+        AppContext.shared.xmppController.enqueue(request: request)
+    }
 
-                var plaintextData: Data? = nil
-                switch (item.type) {
-                case .image:
-                    guard let image = item.image else {
-                        DDLogError("ImageServer/ Empty image [\(item)]")
+    private func processAndUpload(_ item: PendingMedia, to mediaURL: MediaURL) {
+        item.url = mediaURL.get
+
+        self.mediaProcessingGroup.enter()
+        self.mediaProcessingQueue.async {
+            var plaintextData: Data? = nil
+
+            switch (item.type) {
+            case .image:
+                guard let image = item.image else {
+                    DDLogError("ImageServer/image/prepare/error  Empty image [\(item)]")
+                    break
+                }
+                DDLogInfo("ImageServer/image/prepare  Original image size: [\(NSCoder.string(for: item.size!))]")
+
+                // TODO: move resize off the main thread
+                let imageSize = item.size!
+                if imageSize.width > self.maxImageSize || imageSize.height > self.maxImageSize {
+                    let aspectRatioForWidth = self.maxImageSize / imageSize.width
+                    let aspectRatioForHeight = self.maxImageSize / imageSize.height
+                    let aspectRatio = min(aspectRatioForWidth, aspectRatioForHeight)
+                    let targetSize = CGSize(width: (imageSize.width * aspectRatio).rounded(), height: (imageSize.height * aspectRatio).rounded())
+
+                    let ts = Date()
+                    guard let resized = image.resized(to: targetSize) else {
+                        DDLogError("ImageServer/image/prepare/error  Resize failed [\(item)]")
                         break
                     }
-                    DDLogInfo("ImageServer/ Original image size: [\(NSCoder.string(for: item.size!))]")
+                    DDLogDebug("ImageServer/image/prepare  Resized in \(-ts.timeIntervalSinceNow) s")
 
-                    // TODO: move resize off the main thread
-                    let imageSize = item.size!
-                    if imageSize.width > maxImageSize || imageSize.height > maxImageSize {
-                        let aspectRatioForWidth = maxImageSize / imageSize.width
-                        let aspectRatioForHeight = maxImageSize / imageSize.height
-                        let aspectRatio = min(aspectRatioForWidth, aspectRatioForHeight)
-                        let targetSize = CGSize(width: (imageSize.width * aspectRatio).rounded(), height: (imageSize.height * aspectRatio).rounded())
-
-                        let ts = Date()
-                        guard let resized = image.resized(to: targetSize) else {
-                            DDLogError("ImageServer/ Resize failed [\(item)]")
-                            break
-                        }
-                        DDLogDebug("ImageServer/ Resized in \(-ts.timeIntervalSinceNow) s")
+                    self.mediaProcessingGroup.enter()
+                    DispatchQueue.main.async {
                         item.image = resized
                         item.size = resized.size
-
-                        DDLogInfo("ImageServer/ Downscaled image size: [\(item.size!)]")
+                        self.mediaProcessingGroup.leave()
                     }
 
-                    /* turn on/off encryption of media */
-                    guard let imgData = item.image!.jpegData(compressionQuality: self.jpegCompressionQuality) else {
-                        DDLogError("ImageServer/ Failed to generate JPEG data. \(item)")
-                        break
-                    }
-                    DDLogInfo("ImageServer/ Prepare to encrypt image. Compression: [\(self.jpegCompressionQuality)] Compressed size: [\(imgData.count)]")
-
-                    plaintextData = imgData
-
-                case .video:
-                    guard let videoUrl = item.tempUrl else {
-                        fatalError("Empty video URL. \(item)")
-                    }
-                    guard let videoData = try? Data(contentsOf: videoUrl) else {
-                        DDLogError("ImageServer/ Failed to load video. \(item)")
-                        break
-                    }
-                    DDLogInfo("ImageServer/ Prepare to encrypt video. Video size: [\(videoData.count)]")
-
-                    plaintextData = videoData
+                    DDLogInfo("ImageServer/image/prepare  Downscaled image size: [\(item.size!)]")
                 }
 
-                guard plaintextData != nil else {
-                    continue
+                /* turn on/off encryption of media */
+                guard let imgData = item.image!.jpegData(compressionQuality: self.jpegCompressionQuality) else {
+                    DDLogError("ImageServer/image/prepare/error  Failed to generate JPEG data. \(item)")
+                    break
                 }
+                DDLogInfo("ImageServer/image/prepare/ready  JPEG Quality: [\(self.jpegCompressionQuality)] Size: [\(imgData.count)]")
 
-                // TODO: move encryption off the main thread
-                let ts = Date()
-                guard let (data, key, sha256) = HAC.encrypt(data: plaintextData!, mediaType: item.type) else {
-                    DDLogError("ImageServer/ Failed to encrypt media. [\(item)]")
-                    continue
+                plaintextData = imgData
+
+            case .video:
+                guard let videoUrl = item.tempUrl else {
+                    DDLogError("ImageServer/video/prepare/error  Empty video URL. \(item)")
+                    break
                 }
-                DDLogDebug("ImageServer/ Enctypted media in \(-ts.timeIntervalSinceNow) s")
+                guard let videoData = try? Data(contentsOf: videoUrl) else {
+                    DDLogError("ImageServer/video/prepare/error  Failed to load video. \(item)")
+                    break
+                }
+                DDLogInfo("ImageServer/video/prepare/ready  Video size: [\(videoData.count)]")
+
+                plaintextData = videoData
+            }
+
+            guard plaintextData != nil else {
+                self.mediaProcessingGroup.leave()
+                return
+            }
+
+            // TODO: move encryption off the main thread
+            let ts = Date()
+            DDLogDebug("ImageServer/encrypt/begin")
+            guard let (data, key, sha256) = HAC.encrypt(data: plaintextData!, mediaType: item.type) else {
+                DDLogError("ImageServer/encrypt/error [\(item)]")
+                self.mediaProcessingGroup.leave()
+                return
+            }
+            DDLogDebug("ImageServer/encrypt/finished  Duration: \(-ts.timeIntervalSinceNow) s")
+
+            self.mediaProcessingGroup.enter()
+            DispatchQueue.main.async {
+                if (self.cancelled) {
+                    // Post composer was canceled while media was being processed.
+                    self.mediaProcessingGroup.leave()
+                    return
+                }
 
                 // Encryption data would be send over the wire and saved to db.
                 item.key = key
                 item.sha256hash = sha256
 
                 // Start upload.
-                self.upload(data: data, to: mediaURLs[index].put)
+                DDLogDebug("ImageServer/upload/begin url=[\(mediaURL.get)]")
+                self.mediaProcessingGroup.enter()
+                Alamofire.upload(data, to: mediaURL.put, method: .put, headers: [ "Content-Type": "application/octet-stream" ])
+                    .responseData { response in
+                    if (response.error != nil) {
+                        DDLogError("ImageServer/upload/error url=[\(mediaURL.get)] [\(response.error!)]")
+                        // TODO: update `item` to indicate that url is invalid.
+                    } else {
+                        DDLogDebug("ImageServer/upload/success url=[\(mediaURL.get)]")
+                    }
+                    self.mediaProcessingGroup.leave()
+                }
+                self.mediaProcessingGroup.leave()
             }
 
-            isReady.wrappedValue = true
-        }
-    }
-
-    private func upload(data: Data, to url: URL) {
-        Alamofire.upload(data, to: url, method: .put, headers: [ "Content-Type": "application/octet-stream" ])
-            .responseData { response in
-                if (response.response != nil) {
-                    DDLogInfo("ImageServer/ Successfully uploaded encrypted data. [\(url)]")
-                }
+            self.mediaProcessingGroup.leave()
         }
     }
 }

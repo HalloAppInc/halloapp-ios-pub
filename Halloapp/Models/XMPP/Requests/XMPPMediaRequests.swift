@@ -14,7 +14,7 @@ struct MediaURL {
 }
 
 class XMPPMediaUploadURLRequest : XMPPRequest {
-    typealias XMPPMediaUploadURLRequestCompletion = ([MediaURL]?, Error?) -> Void
+    typealias XMPPMediaUploadURLRequestCompletion = (MediaURL?, Error?) -> Void
 
     var completion: XMPPMediaUploadURLRequestCompletion
 
@@ -26,18 +26,15 @@ class XMPPMediaUploadURLRequest : XMPPRequest {
     }
 
     override func didFinish(with response: XMPPIQ) {
-        var uploadURLs: [MediaURL] = []
-        if let uploadMedia = response.childElement {
-            assert(uploadMedia.name == "upload_media")
-            for mediaURLs in uploadMedia.elements(forName: "media_urls") {
-                guard let get = mediaURLs.attributeStringValue(forName: "get") else { continue }
-                guard let put = mediaURLs.attributeStringValue(forName: "put")  else { continue }
+        var urls: MediaURL?
+        if let mediaURLs = response.childElement?.element(forName: "media_urls") {
+            if let get = mediaURLs.attributeStringValue(forName: "get"), let put = mediaURLs.attributeStringValue(forName: "put") {
                 if let getURL = URL(string: get), let putURL = URL(string: put) {
-                    uploadURLs.append(MediaURL(get: getURL, put: putURL))
+                    urls = MediaURL(get: getURL, put: putURL)
                 }
             }
         }
-        self.completion(uploadURLs, nil)
+        self.completion(urls, nil)
     }
 
     override func didFail(with error: Error) {
