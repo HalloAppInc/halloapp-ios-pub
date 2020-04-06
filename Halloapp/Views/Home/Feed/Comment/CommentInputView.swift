@@ -261,6 +261,7 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         }
         set {
             self.textView.text = newValue
+            self.textViewDidChange(self.textView)
         }
     }
 
