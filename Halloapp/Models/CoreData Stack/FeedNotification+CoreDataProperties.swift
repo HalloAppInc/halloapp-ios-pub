@@ -53,4 +53,75 @@ extension FeedNotification {
         }
     }
 
+    // MARK: UI Support
+
+    var formattedTimestamp: String {
+        get {
+            return self.timestamp.commentTimestamp()
+        }
+    }
+
+    var authorName: String {
+        get {
+            return AppContext.shared.contactStore.firstName(for: self.userId)
+        }
+    }
+
+    var formattedText: NSAttributedString {
+        get {
+            var eventText: String
+            switch self.event {
+            case .comment:
+                if self.text != nil {
+                    // TODO: truncate as necessary
+                    eventText = "<$author$> commented: \(self.text!)"
+                } else {
+                    eventText =  "<$author$> commented on your post"
+                }
+            case .reply:
+                eventText = "<$author$> replied to your comment"
+            }
+
+            let parameterRange = (eventText as NSString).range(of: "<$author$>")
+
+            let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
+            let boldFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
+            let result = NSMutableAttributedString(string: eventText, attributes: [ .font: baseFont ])
+            let author = NSAttributedString(string: self.authorName, attributes: [ .font: boldFont ])
+            result.replaceCharacters(in: parameterRange, with: author)
+            result.addAttribute(.foregroundColor, value: UIColor.label, range: NSRange(location: 0, length: result.length))
+
+            let timestampString = NSAttributedString(string: " \(self.formattedTimestamp)", attributes: [ .font: baseFont, .foregroundColor: UIColor.secondaryLabel ])
+            result.append(timestampString)
+
+            return result
+        }
+    }
+
+    var image: UIImage? {
+        get {
+            let mediaType = self.mediaType
+            guard mediaType != .none else {
+                return nil
+
+            }
+
+            var image: UIImage?
+            if let blob = self.mediaPreview {
+                image = UIImage(data: blob)
+            }
+            if image == nil {
+                switch mediaType {
+                case .image:
+                    // TODO: need better image
+                    image = UIImage(systemName: "photo")
+                case .video:
+                    image = UIImage(systemName: "video")
+                default:
+                    break
+                }
+            }
+            return image
+        }
+    }
 }

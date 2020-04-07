@@ -71,7 +71,8 @@ struct FeedView: View {
                         .padding(8)
                 }
                 .sheet(isPresented: self.$showNotifications) {
-                    Notifications(isViewPresented: self.$showNotifications)
+                    NotificationsView(isViewPresented: self.$showNotifications)
+                        .environment(\.managedObjectContext, AppContext.shared.feedData.viewContext)
                 }
 
                 Button(action: {

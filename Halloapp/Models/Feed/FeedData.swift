@@ -80,6 +80,11 @@ class FeedData: ObservableObject {
                 
                 //todo: handle retracted items
             })
+
+        // Load container explicitly otherwise SwiftUI's @FetchRequest might crash when trying to find FeedNotification entity.
+        DispatchQueue.main.async {
+            self.loadPersistentContainer()
+        }
     }
 
     // MARK: CoreData stack
