@@ -11,18 +11,27 @@ import CoreData
 
 class FeedCommentCore {
 
-    class func getAll() -> [FeedComment] {
+    class func items(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil) -> [FeedComment] {
         let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
-        let fetchRequest = NSFetchRequest<FeedComments>(entityName: "FeedComments")
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedComments.timestamp, ascending: false) ]
+        let fetchRequest = NSFetchRequest<FeedComments>(entityName: FeedComments.entity().name!)
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
         do {
             let results = try managedContext.fetch(fetchRequest)
             return results.map{ FeedComment($0) }
         } catch  {
             DDLogError("Failed to fetch comments. [\(error)]")
         }
-        
+
         return []
+    }
+
+    class func getAll() -> [FeedComment] {
+        return FeedCommentCore.items(sortDescriptors: [ NSSortDescriptor(keyPath: \FeedComments.timestamp, ascending: false) ])
+    }
+
+    class func comment(withIdentifier identifier: String) -> FeedComment? {
+        return FeedCommentCore.items(predicate: NSPredicate(format: "commentId == %@", identifier)).first
     }
 
     class func create(item: FeedComment) {

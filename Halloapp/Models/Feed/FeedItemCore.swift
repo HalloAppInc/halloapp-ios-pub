@@ -11,18 +11,27 @@ import CoreData
 
 class FeedItemCore {
 
-    class func getAll() -> [FeedDataItem] {
+    class func items(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil) -> [FeedDataItem] {
         let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
-        let fetchRequest = NSFetchRequest<FeedCore>(entityName: "FeedCore")
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedCore.timestamp, ascending: false) ]
+        let fetchRequest = NSFetchRequest<FeedCore>(entityName: FeedCore.entity().name!)
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
         do {
             let results = try managedContext.fetch(fetchRequest)
             return results.map{ FeedDataItem($0) }
         } catch  {
             DDLogError("Failed to fetch feed posts. [\(error)]")
         }
-        
+
         return []
+    }
+
+    class func getAll() -> [FeedDataItem] {
+        return FeedItemCore.items(sortDescriptors: [ NSSortDescriptor(keyPath: \FeedCore.timestamp, ascending: false) ])
+    }
+
+    class func items<T: CVarArg>(withIdentifiers identifiers: T) -> [FeedDataItem] {
+        return FeedItemCore.items(predicate: NSPredicate(format: "itemId in %@", identifiers))
     }
     
     class func create(item: FeedDataItem) {
