@@ -30,6 +30,14 @@
 		76538085243D47B9000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653807F243D47B9000AD9A1 /* FeedPostMedia+CoreDataClass.swift */; };
 		76538086243D47B9000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538080243D47B9000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */; };
 		76538087243D47B9000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538081243D47B9000AD9A1 /* FeedPost+CoreDataClass.swift */; };
+		76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */; };
+		76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538089243D4B32000AD9A1 /* FeedNotification+CoreDataClass.swift */; };
+		76538092243D4B33000AD9A1 /* FeedPostComment+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808A243D4B32000AD9A1 /* FeedPostComment+CoreDataClass.swift */; };
+		76538093243D4B33000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808B243D4B32000AD9A1 /* FeedPost+CoreDataProperties.swift */; };
+		76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808C243D4B32000AD9A1 /* FeedNotification+CoreDataProperties.swift */; };
+		76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808D243D4B32000AD9A1 /* FeedPostMedia+CoreDataClass.swift */; };
+		76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */; };
+		76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */; };
 		765668CF240DCF7200214077 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668CE240DCF7100214077 /* MainView.swift */; };
 		765668D1240DE02400214077 /* BottomBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668D0240DE02400214077 /* BottomBarView.swift */; };
 		76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CD62429331D007435AC /* CommentsViewController.swift */; };
@@ -149,6 +157,14 @@
 		7653807F243D47B9000AD9A1 /* FeedPostMedia+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataClass.swift"; path = "HalloApp/Models/CoreData Stack/FeedPostMedia+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		76538080243D47B9000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataProperties.swift"; path = "HalloApp/Models/CoreData Stack/FeedPostMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		76538081243D47B9000AD9A1 /* FeedPost+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPost+CoreDataClass.swift"; path = "HalloApp/Models/CoreData Stack/FeedPost+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPost+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPost+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		76538089243D4B32000AD9A1 /* FeedNotification+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedNotification+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedNotification+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		7653808A243D4B32000AD9A1 /* FeedPostComment+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostComment+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostComment+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		7653808B243D4B32000AD9A1 /* FeedPost+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPost+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPost+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		7653808C243D4B32000AD9A1 /* FeedNotification+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedNotification+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedNotification+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		7653808D243D4B32000AD9A1 /* FeedPostMedia+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostMedia+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
+		7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostComment+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostComment+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		765668CE240DCF7100214077 /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		765668D0240DE02400214077 /* BottomBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomBarView.swift; sourceTree = "<group>"; };
 		76B95CD62429331D007435AC /* CommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsViewController.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -345,14 +361,14 @@
 		76DF9FEA24122E9400F49CA4 /* CoreData Stack */ = {
 			isa = PBXGroup;
 			children = (
-				76538081243D47B9000AD9A1 /* FeedPost+CoreDataClass.swift */,
-				7653807C243D47B8000AD9A1 /* FeedPost+CoreDataProperties.swift */,
-				7653807D243D47B8000AD9A1 /* FeedPostComment+CoreDataClass.swift */,
-				7653807E243D47B8000AD9A1 /* FeedPostComment+CoreDataProperties.swift */,
-				7653807F243D47B9000AD9A1 /* FeedPostMedia+CoreDataClass.swift */,
-				76538080243D47B9000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */,
-				763B42B7243BA45400FF0E82 /* FeedNotification+CoreDataClass.swift */,
-				763B42B8243BA45400FF0E82 /* FeedNotification+CoreDataProperties.swift */,
+				76538089243D4B32000AD9A1 /* FeedNotification+CoreDataClass.swift */,
+				7653808C243D4B32000AD9A1 /* FeedNotification+CoreDataProperties.swift */,
+				76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */,
+				7653808B243D4B32000AD9A1 /* FeedPost+CoreDataProperties.swift */,
+				7653808A243D4B32000AD9A1 /* FeedPostComment+CoreDataClass.swift */,
+				7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */,
+				7653808D243D4B32000AD9A1 /* FeedPostMedia+CoreDataClass.swift */,
+				7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */,
 				76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */,
 			);
 			path = "CoreData Stack";
@@ -387,7 +403,6 @@
 			isa = PBXGroup;
 			children = (
 				EA5414DA23EE1D6900390EF6 /* Contacts */,
-				76DF9FEA24122E9400F49CA4 /* CoreData Stack */,
 				EA5414D923EE1D2B00390EF6 /* Feed */,
 				76DFA0012419560300F49CA4 /* XMPP */,
 				EA80ADFA235A8325002F7680 /* Utils.swift */,
@@ -492,6 +507,7 @@
 		EA5414D923EE1D2B00390EF6 /* Feed */ = {
 			isa = PBXGroup;
 			children = (
+				76DF9FEA24122E9400F49CA4 /* CoreData Stack */,
 				EA0D20142368B04B008B8289 /* FeedData.swift */,
 				EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */,
 				EA45713023EB7DA3008C2E44 /* FeedItemCore.swift */,
@@ -833,7 +849,6 @@
 				EA6057B9239885E3005DED66 /* ActivityIndicator.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaSlider.swift in Sources */,
 				EAA6DEC62383AD8400C6D9C8 /* MessageUser.swift in Sources */,
-				76538086243D47B9000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */,
 				76DFA0072419BC1F00F49CA4 /* XMPPError.swift in Sources */,
 				764A0E68244617D800E1BDCE /* schema.pb.swift in Sources */,
@@ -844,22 +859,20 @@
 				761B394F241AF01100858251 /* XMPPMediaRequests.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
 				EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */,
-				76538083243D47B9000AD9A1 /* FeedPostComment+CoreDataClass.swift in Sources */,
 				76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */,
 				EABF313123F229350039B5A6 /* HAC.swift in Sources */,
 				76DFA0032419563500F49CA4 /* XMPPRequest.swift in Sources */,
 				765668D1240DE02400214077 /* BottomBarView.swift in Sources */,
-				76538085243D47B9000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
 				76DF9FFB2416ADF900F49CA4 /* String.swift in Sources */,
 				EAC7E8F92385A6B700F5E711 /* SettingsView.swift in Sources */,
-				76538082243D47B9000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */,
 				EAB03B7B2400517500643EB6 /* MailView.swift in Sources */,
 				EA6057BB239AD26D005DED66 /* MetaData.swift in Sources */,
-				76538084243D47B9000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */,
+				76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */,
+				76538092243D4B33000AD9A1 /* FeedPostComment+CoreDataClass.swift in Sources */,
 				76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */,
-				763B42B9243BA45500FF0E82 /* FeedNotification+CoreDataClass.swift in Sources */,
 				765668CF240DCF7200214077 /* MainView.swift in Sources */,
 				EA53556923CCF0CD001DF10F /* KeyboardResponder.swift in Sources */,
+				76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */,
 				761C6168242D89F90028AE19 /* TextLabel.swift in Sources */,
 				EA72F2122335A0A3008B696F /* UserData.swift in Sources */,
 				EA45713B23EB7EDE008C2E44 /* PinchZoomView.swift in Sources */,
@@ -867,12 +880,12 @@
 				EAFA65D723ABF3AB004C36F7 /* WUITextField.swift in Sources */,
 				EA45712723EB79DB008C2E44 /* CoreDataManager.swift in Sources */,
 				EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */,
-				76538087243D47B9000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */,
 				761B3957241D815800858251 /* SyncManager.swift in Sources */,
 				EAA6DEC42383A4E800C6D9C8 /* TextView.swift in Sources */,
+				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
 				EAA6DEBE2381344800C6D9C8 /* Blur.swift in Sources */,
+				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* Verify.swift in Sources */,
-				763B42BA243BA45500FF0E82 /* FeedNotification+CoreDataProperties.swift in Sources */,
 				EAB03B7D2400518D00643EB6 /* Player.swift in Sources */,
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
 				EA56404E233D373800E68A7E /* Verification.swift in Sources */,
@@ -881,6 +894,7 @@
 				EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */,
 				EA3861ED23342C7C00705943 /* Login.swift in Sources */,
 				763B42AC243274F400FF0E82 /* FeedTableView.swift in Sources */,
+				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
 				EA45713523EB7DBE008C2E44 /* FeedMediaCore.swift in Sources */,
 				EAC84CEC2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift in Sources */,
 				76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */,
@@ -911,6 +925,8 @@
 				EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */,
 				EA45712D23EB7D7E008C2E44 /* FeedCommentCore.swift in Sources */,
 				76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */,
+				76538093243D4B33000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */,
+				76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */,
 				EAC4AF23233E8DAB00739B2B /* ImageLoader.swift in Sources */,
 				EABF312623EE1F240039B5A6 /* Array.swift in Sources */,
 				EA17C39923ECAEDB00727413 /* PendingCore.swift in Sources */,
