@@ -16,6 +16,7 @@ struct AppContext {
     // MARK: - Constants
     static let appGroupName = "group.com.halloapp.shared"
     static let contactsDatabaseFilename = "contacts.sqlite"
+    static let feedDatabaseFilename = "feed.sqlite"
 
     // MARK: - Global objects
     private(set) var userData: UserData
@@ -37,6 +38,10 @@ struct AppContext {
 
     static let contactStoreURL = {
         AppContext.sharedDirectoryURL!.appendingPathComponent(AppContext.contactsDatabaseFilename)
+    }()
+
+    static let feedStoreURL = {
+        AppContext.documentsDirectoryURL.appendingPathComponent(AppContext.feedDatabaseFilename)
     }()
 
     // MARK: - Initializer
