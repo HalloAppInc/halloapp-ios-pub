@@ -123,6 +123,7 @@ class ContactStore {
     private var cancellableSet: Set<AnyCancellable> = []
 
     // MARK: Access to Contacts
+    
     class var contactsAccessAuthorized: Bool {
         get {
             return ContactStore.contactsAccessStatus == .authorized
@@ -143,12 +144,14 @@ class ContactStore {
 
     // MARK: CoreData stack
 
-    private class func persistentStoreURL() -> URL {
-        return AppContext.contactStoreURL()
+    private class var persistentStoreURL: URL {
+        get {
+            return AppContext.contactStoreURL
+        }
     }
 
     private lazy var persistentContainer: NSPersistentContainer = {
-        let storeDescription = NSPersistentStoreDescription(url: ContactStore.persistentStoreURL())
+        let storeDescription = NSPersistentStoreDescription(url: ContactStore.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
         storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
@@ -182,13 +185,13 @@ class ContactStore {
         self.xmppController = xmppController
         self.userData = userData
 
-        NotificationCenter.default.addObserver(forName: NSNotification.Name.CNContactStoreDidChange, object: nil, queue: nil) { notification in
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.CNContactStoreDidChange, object: nil, queue: nil) { _ in
             DDLogDebug("CNContactStoreDidChange")
             self.needReloadContacts = true
             self.reloadContactsIfNecessary()
         }
 
-        cancellableSet.insert(userData.didLogOff.sink { _ in
+        self.cancellableSet.insert(userData.didLogOff.sink { _ in
             self.contactSerialQueue.async {
                 AppContext.shared.syncManager.queue.sync {
                     self.resetStatusForAllContacts()
@@ -208,7 +211,7 @@ class ContactStore {
             var result: [String: Any] = [:]
             self.persistentContainer.persistentStoreCoordinator.performAndWait {
                 do {
-                    try result = NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL())
+                    try result = NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL)
                 }
                 catch {
                     DDLogError("contacts/metadata/read error=[\(error)]")
@@ -229,10 +232,10 @@ class ContactStore {
         self.persistentContainer.persistentStoreCoordinator.performAndWait {
             var metadata: [String: Any] = [:]
             do {
-                try metadata = NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL())
+                try metadata = NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL)
                 mutator(&metadata)
                 do {
-                    try NSPersistentStoreCoordinator.setMetadata(metadata, forPersistentStoreOfType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL())
+                    try NSPersistentStoreCoordinator.setMetadata(metadata, forPersistentStoreOfType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL)
                 }
                 catch {
                     DDLogError("contacts/metadata/write error=[\(error)]")

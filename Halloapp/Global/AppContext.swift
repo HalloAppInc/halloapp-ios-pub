@@ -29,15 +29,15 @@ struct AppContext {
     // MARK: - Paths
     static let sharedDirectoryURL = {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppContext.appGroupName)
-    }
+    }()
 
-    static let documentsDirectoryPath = {
-        NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first
-    }
+    static let documentsDirectoryURL = {
+        URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!)
+    }()
 
     static let contactStoreURL = {
-        AppContext.sharedDirectoryURL()!.appendingPathComponent(AppContext.contactsDatabaseFilename)
-    }
+        AppContext.sharedDirectoryURL!.appendingPathComponent(AppContext.contactsDatabaseFilename)
+    }()
 
     // MARK: - Initializer
     static var shared: AppContext {
