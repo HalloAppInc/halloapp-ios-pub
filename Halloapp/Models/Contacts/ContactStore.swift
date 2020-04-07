@@ -820,6 +820,7 @@ class ContactStore {
 
     func fullName(for phoneNumber: ABContact.NormalizedPhoneNumber) -> String {
         if phoneNumber == self.userData.phone {
+            // TODO: return correct pronoun.
             return "Me"
         }
 
@@ -828,13 +829,34 @@ class ContactStore {
         fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", phoneNumber)
         do {
             let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
-            if let contact = contacts.first {
-                fullName = contact.fullName ?? phoneNumber
+            if let name = contacts.first?.fullName {
+                fullName = name
             }
         }
         catch {
             fatalError()
         }
         return fullName
+    }
+
+    func firstName(for phoneNumber: ABContact.NormalizedPhoneNumber) -> String {
+        if phoneNumber == self.userData.phone {
+            // TODO: return correct pronoun.
+            return "I"
+        }
+
+        var firstName = phoneNumber
+        let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
+        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", phoneNumber)
+        do {
+            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
+            if let name = contacts.first?.givenName {
+                firstName = name
+            }
+        }
+        catch {
+            fatalError()
+        }
+        return firstName
     }
 }
