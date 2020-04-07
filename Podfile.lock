@@ -16,6 +16,7 @@ PODS:
     - KissXML/Core
   - KissXML/Core (5.3.1)
   - libidn (1.35)
+  - NextLevelSessionExporter (0.4.5)
   - PryntTrimmerView (4.0.0)
   - SteviaLayout (4.7.3)
   - XMPPFramework/default (4.0.1):
@@ -34,6 +35,7 @@ PODS:
 DEPENDENCIES:
   - Alamofire
   - CryptoSwift (~> 1.0)
+  - NextLevelSessionExporter (~> 0.4.5)
   - "XMPPFramework/Swift (from `git@github.com:HalloAppInc/XMPPFramework.git`)"
   - YPImagePicker (~> 4.2.0)
   - Zip (~> 1.1)
@@ -46,6 +48,7 @@ SPEC REPOS:
     - CryptoSwift
     - KissXML
     - libidn
+    - NextLevelSessionExporter
     - PryntTrimmerView
     - SteviaLayout
     - YPImagePicker
@@ -67,12 +70,13 @@ SPEC CHECKSUMS:
   CryptoSwift: 1283821600233bdbeb96d7b389c3288c3bf77211
   KissXML: 5c8e0f2e8b9f071d3e1ae123dec3eb5da615c10c
   libidn: e4576a956b797c584c77aaedfc6e3dd639b61bdc
+  NextLevelSessionExporter: 9abd19742084fc9563f644b21e0f994339338d4e
   PryntTrimmerView: 67e67573ffd4c073f1308effa66aefd0cfa667a0
   SteviaLayout: c2ecdcff57d44e38fd2f65e54ad52aeae28ca0c4
   XMPPFramework: 759900cc7eb3c22036d622da72f66a05ae7b6948
   YPImagePicker: accf310f9526641a84372c0ecf943547d9b1e52c
   Zip: 8877eede3dda76bcac281225c20e71c25270774c
 
-PODFILE CHECKSUM: 44b23b6d6169d7b9361f26db08a36e322e8b0f34
+PODFILE CHECKSUM: 4c0867e724381001fbefd9290f3b2d80642b2fe7
 
 COCOAPODS: 1.8.4

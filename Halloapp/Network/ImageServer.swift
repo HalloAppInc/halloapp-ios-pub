@@ -62,6 +62,8 @@ class ImageServer {
         self.mediaProcessingQueue.async {
             var plaintextData: Data? = nil
 
+            let mediaResizeGroup = DispatchGroup()
+            mediaResizeGroup.enter()
             switch (item.type) {
             case .image:
                 guard let image = item.image else {
@@ -95,7 +97,6 @@ class ImageServer {
                     DDLogInfo("ImageServer/image/prepare  Downscaled image size: [\(item.size!)]")
                 }
 
-                /* turn on/off encryption of media */
                 guard let imgData = item.image!.jpegData(compressionQuality: self.jpegCompressionQuality) else {
                     DDLogError("ImageServer/image/prepare/error  Failed to generate JPEG data. \(item)")
                     break
@@ -103,6 +104,7 @@ class ImageServer {
                 DDLogInfo("ImageServer/image/prepare/ready  JPEG Quality: [\(self.jpegCompressionQuality)] Size: [\(imgData.count)]")
 
                 plaintextData = imgData
+                mediaResizeGroup.leave()
 
             case .video:
                 guard let videoUrl = item.tempUrl else {
@@ -113,55 +115,71 @@ class ImageServer {
                     DDLogError("ImageServer/video/prepare/error  Failed to load video. \(item)")
                     break
                 }
-                DDLogInfo("ImageServer/video/prepare/ready  Video size: [\(videoData.count)]")
+                DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(videoData.count)]")
 
-                plaintextData = videoData
+                VideoUtils().resizeVideo(inputUrl: videoUrl, completion: { outputUrl, videoSize in
+
+                    if let resizedVideoData = try? Data(contentsOf: outputUrl) {
+                        DispatchQueue.main.async {
+                            item.size = videoSize
+                            mediaResizeGroup.leave()
+                        }
+                        DDLogInfo("ImageServer/video/prepare/ready  New Video size: [\(resizedVideoData.count)]")
+                        plaintextData = resizedVideoData
+                    }
+                    
+                })
+    
             }
 
-            guard plaintextData != nil else {
-                self.mediaProcessingGroup.leave()
-                return
-            }
-
-            // TODO: move encryption off the main thread
-            let ts = Date()
-            DDLogDebug("ImageServer/encrypt/begin")
-            guard let (data, key, sha256) = HAC.encrypt(data: plaintextData!, mediaType: item.type) else {
-                DDLogError("ImageServer/encrypt/error [\(item)]")
-                self.mediaProcessingGroup.leave()
-                return
-            }
-            DDLogDebug("ImageServer/encrypt/finished  Duration: \(-ts.timeIntervalSinceNow) s")
-
-            self.mediaProcessingGroup.enter()
-            DispatchQueue.main.async {
-                if (self.cancelled) {
-                    // Post composer was canceled while media was being processed.
+            mediaResizeGroup.notify(queue: self.mediaProcessingQueue) {
+                                
+                guard plaintextData != nil else {
                     self.mediaProcessingGroup.leave()
                     return
                 }
 
-                // Encryption data would be send over the wire and saved to db.
-                item.key = key
-                item.sha256hash = sha256
+                // TODO: move encryption off the main thread
+                let ts = Date()
+                DDLogDebug("ImageServer/encrypt/begin")
+                guard let (data, key, sha256) = HAC.encrypt(data: plaintextData!, mediaType: item.type) else {
+                    DDLogError("ImageServer/encrypt/error [\(item)]")
+                    self.mediaProcessingGroup.leave()
+                    return
+                }
+                DDLogDebug("ImageServer/encrypt/finished  Duration: \(-ts.timeIntervalSinceNow) s")
 
-                // Start upload.
-                DDLogDebug("ImageServer/upload/begin url=[\(mediaURL.get)]")
                 self.mediaProcessingGroup.enter()
-                Alamofire.upload(data, to: mediaURL.put, method: .put, headers: [ "Content-Type": "application/octet-stream" ])
-                    .responseData { response in
-                    if (response.error != nil) {
-                        DDLogError("ImageServer/upload/error url=[\(mediaURL.get)] [\(response.error!)]")
-                        // TODO: update `item` to indicate that url is invalid.
-                    } else {
-                        DDLogDebug("ImageServer/upload/success url=[\(mediaURL.get)]")
+                DispatchQueue.main.async {
+                    if (self.cancelled) {
+                        // Post composer was canceled while media was being processed.
+                        self.mediaProcessingGroup.leave()
+                        return
+                    }
+
+                    // Encryption data would be send over the wire and saved to db.
+                    item.key = key
+                    item.sha256hash = sha256
+
+                    // Start upload.
+                    DDLogDebug("ImageServer/upload/begin url=[\(mediaURL.get)]")
+                    self.mediaProcessingGroup.enter()
+                    Alamofire.upload(data, to: mediaURL.put, method: .put, headers: [ "Content-Type": "application/octet-stream" ])
+                        .responseData { response in
+                        if (response.error != nil) {
+                            DDLogError("ImageServer/upload/error url=[\(mediaURL.get)] [\(response.error!)]")
+                            // TODO: update `item` to indicate that url is invalid.
+                        } else {
+                            DDLogDebug("ImageServer/upload/success url=[\(mediaURL.get)]")
+                        }
+                        self.mediaProcessingGroup.leave()
                     }
                     self.mediaProcessingGroup.leave()
                 }
+
                 self.mediaProcessingGroup.leave()
             }
-
-            self.mediaProcessingGroup.leave()
+            
         }
     }
 }

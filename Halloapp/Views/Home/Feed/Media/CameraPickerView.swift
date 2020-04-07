@@ -33,7 +33,7 @@ struct CameraPickerView: UIViewControllerRepresentable {
         imagePickerController.allowsEditing = false
         
         // video
-        imagePickerController.videoQuality = .typeMedium
+        imagePickerController.videoQuality = .typeHigh // gotcha: .typeMedium have empty frames in the beginning
         imagePickerController.videoMaximumDuration = 60
         
         imagePickerController.delegate = context.coordinator
@@ -69,13 +69,9 @@ struct CameraPickerView: UIViewControllerRepresentable {
                     DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
                 }
                 
-                VideoUtils().cropVideo(sourceURL: videoURL, startTime: 1.0, endTime: 5.0, completion: { url in
-                    DispatchQueue.main.async {
-                        mediaItem.tempUrl = url
-                        self.parent.capturedMedia = [mediaItem]
-                        self.parent.didFinishWithMedia()
-                    }
-                })
+                self.parent.capturedMedia = [mediaItem]
+                self.parent.didFinishWithMedia()
+                
             }
         }
         

@@ -47,7 +47,7 @@ struct TextView: UIViewRepresentable {
         }
 
         func textViewDidChange(_ textView: UITextView) {
-            DDLogDebug("text now: \(String(describing: textView.text!))")
+//            DDLogDebug("text now: \(String(describing: textView.text!))")
             self.parent.text = textView.text
         }
     }

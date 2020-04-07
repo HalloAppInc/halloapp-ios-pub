@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Foundation
 import AVFoundation
 import SwiftUI
@@ -13,226 +14,113 @@ import SwiftUI
 import UIKit
 import AVKit
 
+import VideoToolbox
+import NextLevelSessionExporter
+
 class VideoUtils {
 
+    var desiredSize = CGSize(width: 854, height: 480)
+    var desiredVideoBitrate = 2000000
+    var desiredAudioBitrate = 96000
     
-    func cropVideo(sourceURL: URL, startTime: Double, endTime: Double, completion: ((_ outputUrl: URL) -> Void)? = nil)
-    {
-        let fileManager = FileManager.default
-        let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    func resizeVideo(inputUrl: URL, completion: @escaping (_ outputUrl: URL, _ videoSize: CGSize?) -> Void) {
 
-        let asset = AVAsset(url: sourceURL)
-        let length = Float(asset.duration.value) / Float(asset.duration.timescale)
-        print("video length: \(length) seconds")
+        let avAsset = AVURLAsset(url: inputUrl, options: nil)
+        
+        let exporter = NextLevelSessionExporter(withAsset: avAsset)
+        exporter.outputFileType = AVFileType.mp4
+        // todo: remove temporary files manually with a timestamp format in the filename
+        let tmpURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent(ProcessInfo().globallyUniqueString)
+            .appendingPathExtension("mp4")
+        exporter.outputURL = tmpURL
 
-        var outputURL = documentDirectory.appendingPathComponent("output")
-        do {
-            try fileManager.createDirectory(at: outputURL, withIntermediateDirectories: true, attributes: nil)
-            outputURL = outputURL.appendingPathComponent("\(sourceURL.lastPathComponent).mp4")
-        }catch let error {
-            print(error)
-        }
+        let compressionDict: [String: Any] = [
+            AVVideoAverageBitRateKey: NSNumber(integerLiteral: desiredVideoBitrate),
+//            AVVideoProfileLevelKey: AVVideoProfileLevelH264BaselineAutoLevel as String
+            AVVideoProfileLevelKey: kVTProfileLevel_HEVC_Main_AutoLevel as String
+        ]
 
-        //Remove existing file
-        try? fileManager.removeItem(at: outputURL)
+        let track = avAsset.tracks(withMediaType: AVMediaType.video).first
+        let size = track!.naturalSize.applying(track!.preferredTransform)
 
-        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else { return }
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = .mp4
+        var videoWidth = Int(abs(size.width))
+        var videoHeight = Int(abs(size.height))
 
-        let timeRange = CMTimeRange(start: CMTime(seconds: startTime, preferredTimescale: 1000),
-                                    end: CMTime(seconds: Double(length), preferredTimescale: 1000))
+        DDLogInfo("Original Video Resolution: \(videoWidth) x \(videoHeight)")
 
-        exportSession.timeRange = timeRange
-        exportSession.exportAsynchronously {
-            switch exportSession.status {
-            case .completed:
-                print("exported at \(outputURL)")
-                completion?(outputURL)
-            case .failed:
-                print("failed \(exportSession.error.debugDescription)")
-            case .cancelled:
-                print("cancelled \(exportSession.error.debugDescription)")
-            default: break
+        // portrait
+        if videoHeight > videoWidth {
+            if videoHeight > Int(desiredSize.width) {
+                DDLogInfo("Portrait taller than \(Int(desiredSize.width)), need to rescale")
+
+                let ratio = Double(videoWidth)/Double(videoHeight)
+                let resizedWidth = ratio*854
+
+                videoHeight = Int(desiredSize.width)
+                videoWidth = Int(resizedWidth)
+
+                DDLogInfo("New Video Resolution: \(videoWidth) x \(videoHeight)")
+            }
+        // landscape or square
+        } else {
+            if videoWidth > Int(desiredSize.width) {
+                DDLogInfo("Landscape wider than \(Int(desiredSize.width)), need to rescale")
+
+                let ratio = Double(videoWidth)/Double(videoHeight)
+                let resizedHeight = Double(desiredSize.width)/ratio
+
+                videoWidth = Int(desiredSize.width)
+                videoHeight = Int(resizedHeight)
+
+                DDLogInfo("New Video Resolution: \(videoWidth) x \(videoHeight)")
             }
         }
-    }
-    
-   func compressFile(inputUrl: URL, outputUrl: URL, completion:@escaping (URL)->Void){
-       //video file to make the asset
-      
-       var audioFinished = false
-       var videoFinished = false
-      
-      
-       let asset = AVAsset(url: inputUrl);
-      
-       //create asset reader
-    
-        var assetReader: AVAssetReader?
-    
-       do{
-        assetReader = try AVAssetReader(asset: asset)
-       } catch{
-           assetReader = nil
-       }
-      
-       guard let reader = assetReader else{
-           fatalError("Could not initalize asset reader probably failed its try catch")
-       }
-      
-    let videoTrack = asset.tracks(withMediaType: AVMediaType.video).first!
-    let audioTrack = asset.tracks(withMediaType: AVMediaType.audio).first!
 
-      
-    let videoReaderSettings: [String:Any] =  [kCVPixelBufferPixelFormatTypeKey as String:kCVPixelFormatType_32ARGB ]
-    
-    
-    //Write video size
-    let x:CGFloat = 0.1
-    let numPixels = UIScreen.main.bounds.width * UIScreen.main.bounds.height
-    //bits per pixel
-    let bitsPerPixel = pow(2.0, x) // 'x' is the value you want to change for the compression
-    var bitrate = numPixels * bitsPerPixel
-    
-    bitrate = CGFloat(2000000)
-    
-    
-    print("bitrate: \(bitrate)")
-    
-    
-       // ADJUST BIT RATE OF VIDEO HERE
-      
-//       let videoSettings:[String:Any] = [
-//           AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: bitrate],
-//           AVVideoCodecKey: AVVideoCodecType.h264,
-//           AVVideoHeightKey: videoTrack.naturalSize.height,
-//           AVVideoWidthKey: videoTrack.naturalSize.width
-//       ]
+        exporter.videoOutputConfiguration = [
+            AVVideoCodecKey: AVVideoCodecType.hevc,
+//            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoWidthKey: NSNumber(integerLiteral: videoWidth),
+            AVVideoHeightKey: NSNumber(integerLiteral: videoHeight),
+            AVVideoScalingModeKey: AVVideoScalingModeResizeAspectFill,
+            AVVideoCompressionPropertiesKey: compressionDict
+        ]
+        exporter.audioOutputConfiguration = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVEncoderBitRateKey: NSNumber(integerLiteral: desiredAudioBitrate),
+            AVNumberOfChannelsKey: NSNumber(integerLiteral: 2),
+            AVSampleRateKey: NSNumber(value: Float(44100))
+        ]
 
-           let videoSettings:[String:Any] = [
-               AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: bitrate],
-               AVVideoCodecKey: AVVideoCodecType.h264,
-               AVVideoHeightKey: videoTrack.naturalSize.height,
-               AVVideoWidthKey: videoTrack.naturalSize.width
-           ]
-      
-       let assetReaderVideoOutput = AVAssetReaderTrackOutput(track: videoTrack, outputSettings: videoReaderSettings)
-       let assetReaderAudioOutput = AVAssetReaderTrackOutput(track: audioTrack, outputSettings: nil)
-      
-      
-       if reader.canAdd(assetReaderVideoOutput){
-           reader.add(assetReaderVideoOutput)
-       }else{
-           fatalError("Couldn't add video output reader")
-       }
-      
-       if reader.canAdd(assetReaderAudioOutput){
-           reader.add(assetReaderAudioOutput)
-       }else{
-           fatalError("Couldn't add audio output reader")
-       }
-      
-    let audioInput = AVAssetWriterInput(mediaType: AVMediaType.audio, outputSettings: nil)
-    let videoInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoSettings)
-       videoInput.transform = videoTrack.preferredTransform
-       //we need to add samples to the video input
-      
-       let videoInputQueue = DispatchQueue(label: "videoQueue")
-       let audioInputQueue = DispatchQueue(label: "audioQueue")
-      
-        var assetWriter: AVAssetWriter?
-    
-       do{
-        assetWriter = try AVAssetWriter(outputURL: outputUrl, fileType: AVFileType.mov)
-       }catch{
-           assetWriter = nil
-       }
-       guard let writer = assetWriter else{
-           fatalError("assetWriter was nil")
-       }
-      
-       writer.shouldOptimizeForNetworkUse = true
-       writer.add(videoInput)
-       writer.add(audioInput)
-      
-      
-       writer.startWriting()
-       reader.startReading()
-    writer.startSession(atSourceTime: CMTime.zero)
-      
-      
-       let closeWriter:()->Void = {
-           if (audioFinished && videoFinished){
-               assetWriter!.finishWriting(completionHandler: {
-                  
-                   let newSize = self.size(url: (assetWriter?.outputURL)!)
-                  
-                    print("newSize: \(newSize)")
-                
-                   completion((assetWriter?.outputURL)!)
-                  
-               })
-              
-               assetReader!.cancelReading()
+        exporter.export(progressHandler: { (progress) in
+//            print(progress)
+        }, completionHandler: { result in
+            switch result {
+            case .success(let status):
+                switch status {
+                case .completed:
+                    print("NextLevelSessionExporter, export completed, \(exporter.outputURL?.description ?? "")")
 
-           }
-       }
-
-      
-       audioInput.requestMediaDataWhenReady(on: audioInputQueue) {
-           while(audioInput.isReadyForMoreMediaData){
-               let sample = assetReaderAudioOutput.copyNextSampleBuffer()
-               if (sample != nil){
-                   audioInput.append(sample!)
-               }else{
-                   audioInput.markAsFinished()
-                   DispatchQueue.main.async {
-                       audioFinished = true
-                       closeWriter()
-                   }
-                   break;
-               }
-           }
-       }
-      
-       videoInput.requestMediaDataWhenReady(on: videoInputQueue) {
-           //request data here
-          
-           while(videoInput.isReadyForMoreMediaData){
-               let sample = assetReaderVideoOutput.copyNextSampleBuffer()
-               if (sample != nil){
-                   videoInput.append(sample!)
-               }else{
-                   videoInput.markAsFinished()
-                   DispatchQueue.main.async {
-                       videoFinished = true
-                       closeWriter()
-                   }
-                   break;
-               }
-           }
-
-       }
-      
-      
-   }
-
-    func size(url: URL?) -> Double {
-        guard let filePath = url?.path else {
-            return 0.0
-        }
-        do {
-            let attribute = try FileManager.default.attributesOfItem(atPath: filePath)
-            if let size = attribute[FileAttributeKey.size] as? NSNumber {
-                return size.doubleValue / 1000000.0
+                    if let outputUrl = exporter.outputURL {
+                        completion(outputUrl, CGSize(width: abs(videoWidth), height: abs(videoHeight)))
+                    }
+                        
+                    break
+                default:
+                    print("NextLevelSessionExporter, did not complete")
+                    //todo: take care of error case
+                    break
+                }
+                break
+            case .failure(let error):
+                print("NextLevelSessionExporter, failed to export \(error)")
+                //todo: take care of error case
+                break
             }
-        } catch {
-            print("Error: \(error)")
-        }
-        return 0.0
-    }
+        })
 
+    }
+    
     func resolutionForLocalVideo(url: URL) -> CGSize? {
         guard let track = AVURLAsset(url: url).tracks(withMediaType: AVMediaType.video).first else { return nil }
         let size = track.naturalSize.applying(track.preferredTransform)

@@ -31,7 +31,6 @@ struct PickerWrapper: UIViewControllerRepresentable {
         var config = YPImagePickerConfiguration()
         
         // General
-        
         config.library.mediaType = .photoAndVideo
         config.shouldSaveNewPicturesToAlbum = false
         config.showsCrop = .none
@@ -44,7 +43,6 @@ struct PickerWrapper: UIViewControllerRepresentable {
         config.hidesBottomBar = true
         
         // Library
-        
         config.library.onlySquare = false
         config.library.isSquareByDefault = false
         config.library.mediaType = YPlibraryMediaType.photoAndVideo
@@ -54,7 +52,7 @@ struct PickerWrapper: UIViewControllerRepresentable {
         config.library.preselectedItems = nil
 
         // Video
-        config.video.compression = AVAssetExportPresetMediumQuality
+        config.video.compression = AVAssetExportPresetPassthrough
         config.video.fileType = .mp4
         config.video.recordingTimeLimit = 60.0
         config.video.libraryTimeLimit = 60.0
@@ -72,46 +70,47 @@ struct PickerWrapper: UIViewControllerRepresentable {
                 return
             }
 
-            for (index, item) in items.enumerated() {
-                print(("item at \(index): \(item)"))
-            }
-            
+            let mediaGroup = DispatchGroup()
             var orderCounter: Int = 1
             for item in items {
+                mediaGroup.enter()
                 switch item {
-                case .photo(let photo):
-                    
-                    let mediaItem = PendingMedia(type: .image)
-                    mediaItem.order = orderCounter
-                    mediaItem.image = photo.image
-                    mediaItem.size = photo.image.size
+                    case .photo(let photo):
+                        let mediaItem = PendingMedia(type: .image)
+                        mediaItem.order = orderCounter
+                        mediaItem.image = photo.image
+                        mediaItem.size = photo.image.size
+                        orderCounter += 1
+                        self.selectedMedia.append(mediaItem)
+                        mediaGroup.leave()
+                    case .video(let video):
+                        let mediaItem = PendingMedia(type: .video)
+                        mediaItem.order = orderCounter
+                        orderCounter += 1
 
-                    orderCounter += 1
-
-                    self.selectedMedia.append(mediaItem)
-
-                case .video(let video):
-                    
-                    let mediaItem = PendingMedia(type: .video)
-                    mediaItem.order = orderCounter
-                    mediaItem.tempUrl = video.url
-
-                    orderCounter += 1
-
-                    if let videoSize = VideoUtils().resolutionForLocalVideo(url: video.url) {
-                        mediaItem.size = videoSize
-
-                        DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
-                    }
-                        
-                    self.selectedMedia.append(mediaItem)                    
+                        if let videoSize = VideoUtils().resolutionForLocalVideo(url: video.url) {
+                            mediaItem.size = videoSize
+                            DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
+                        }
+                            
+                        if let asset = video.asset {
+                            PHCachingImageManager().requestAVAsset(forVideo: asset, options: nil) { (avAsset, _, _) in
+                                let asset = avAsset as! AVURLAsset
+                                mediaItem.tempUrl = asset.url
+                                self.selectedMedia.append(mediaItem)
+                                mediaGroup.leave()
+                            }
+                        }
                 }
             }
 
-            self.didFinishWithMedia()
-            picker.dismiss(animated: true, completion: nil)
-            return
-
+            mediaGroup.notify(queue: .main) {
+                self.selectedMedia.sort(){$0.order < $1.order}
+                self.didFinishWithMedia()
+                picker.dismiss(animated: true, completion: nil)
+                return
+            }
+            
         }
 
         picker.delegate = context.coordinator
