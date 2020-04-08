@@ -544,6 +544,13 @@ class FeedData: ObservableObject {
         AppContext.shared.xmppController.enqueue(request: request)
     }
 
+    // MARK: Debug
+
+    func refetchEverything() {
+        let userIds = AppContext.shared.contactStore.allRegisteredContactIDs()
+        userIds.forEach { self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\($0)") }
+    }
+
     func getItemMedia(_ itemId: String) {
         if let feedItem = self.feedDataItems.first(where: { $0.itemId == itemId }) {
             if feedItem.media.isEmpty {

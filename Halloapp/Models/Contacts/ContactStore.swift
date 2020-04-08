@@ -123,7 +123,7 @@ class ContactStore {
     private var cancellableSet: Set<AnyCancellable> = []
 
     // MARK: Access to Contacts
-    
+
     class var contactsAccessAuthorized: Bool {
         get {
             return ContactStore.contactsAccessStatus == .authorized
@@ -816,6 +816,20 @@ class ContactStore {
             catch {
                 DDLogError("contacts/reset-status/error \(error)")
             }
+        }
+    }
+
+    // MARK: Fetching contacts
+
+    func allRegisteredContactIDs() -> [String] {
+        let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
+        fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
+        do {
+            let allContacts = try self.persistentContainer.viewContext.fetch(fetchRequst)
+            return allContacts.compactMap { $0.normalizedPhoneNumber }
+        }
+        catch {
+            fatalError()
         }
     }
 

@@ -54,6 +54,18 @@ struct DeveloperMenuView: View {
                 }
 
                 Button(action: {
+                    AppContext.shared.feedData.refetchEverything()
+                    self.isViewPresented = false
+                }) {
+                    Text("Refetch Feed")
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 12)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(24)
+                }
+
+                Button(action: {
                     self.userData.switchToNetwork()
                     self.xmppController.xmppStream.disconnect()
                     self.xmppController.connect()
