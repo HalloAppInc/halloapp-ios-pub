@@ -279,7 +279,8 @@ class FeedData: ObservableObject {
 
         let feedPostIds = Set(xmppComments.map{ $0.feedPostId })
         let feedPosts = self.feedPosts(with: feedPostIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
-        var comments = self.feedComments(with: Set(xmppComments.compactMap{ $0.parentId }), in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+        let commentIds = Set(xmppComments.map{ $0.id }).union(Set(xmppComments.compactMap{ $0.parentId }))
+        var comments = self.feedComments(with: commentIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         var ignoredCommentIds: Set<String> = []
         var xmppCommentsMutable = [XMPPComment](xmppComments)
         var newComments: [FeedPostComment] = []
