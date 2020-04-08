@@ -9,7 +9,7 @@
 
 import Foundation
 import CoreData
-
+import UIKit
 
 extension FeedPostMedia {
 
@@ -52,4 +52,19 @@ extension FeedPostMedia {
         }
     }
 
+    @NSManaged private var width: Float
+    @NSManaged private var height: Float
+    var size: CGSize {
+        get {
+            return CGSize(width: CGFloat(self.width), height: CGFloat(self.height))
+        }
+        set {
+            self.width = Float(newValue.width)
+            self.height = Float(newValue.height)
+        }
+    }
+
+    @NSManaged var key: String
+    @NSManaged var sha256: String
+    @NSManaged var order: Int16
 }

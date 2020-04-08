@@ -47,16 +47,21 @@
         </uniquenessConstraints>
     </entity>
     <entity name="FeedPostMedia" representedClassName="FeedPostMedia" syncable="YES">
+        <attribute name="height" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="key" optional="YES" attributeType="String"/>
+        <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="path" optional="YES" attributeType="URI"/>
+        <attribute name="sha256" optional="YES" attributeType="String"/>
         <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="url" optional="YES" attributeType="URI"/>
+        <attribute name="width" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="post" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="media" inverseEntity="FeedPost"/>
     </entity>
     <elements>
         <element name="FeedNotification" positionX="-18" positionY="45" width="128" height="178"/>
         <element name="FeedPost" positionX="-63" positionY="-18" width="128" height="163"/>
         <element name="FeedPostComment" positionX="-54" positionY="18" width="128" height="163"/>
-        <element name="FeedPostMedia" positionX="-27" positionY="81" width="128" height="118"/>
+        <element name="FeedPostMedia" positionX="-27" positionY="81" width="128" height="193"/>
     </elements>
 </model>
