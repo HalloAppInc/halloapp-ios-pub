@@ -466,7 +466,7 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
         feedPost.status = .sending
         feedPost.timestamp = Date()
         // Add post media.
-        for xmppMedia in xmppPost.media {
+        for (index, xmppMedia) in xmppPost.media.enumerated() {
             DDLogDebug("FeedData/new-post/add-media [\(xmppMedia.url)]")
             let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
             switch xmppMedia.type {
@@ -476,8 +476,12 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
                 feedMedia.type = .video
             }
             feedMedia.status = .uploaded // For now we're only posting when all uploads are completed.
-            // TODO: set path.
             feedMedia.url = xmppMedia.url
+            feedMedia.size = xmppMedia.size
+            feedMedia.key = xmppMedia.key!
+            feedMedia.order = Int16(index)
+            feedMedia.sha256 = xmppMedia.sha256!
+            // TODO: set path.
             feedMedia.post = feedPost
         }
         self.save(managedObjectContext)
