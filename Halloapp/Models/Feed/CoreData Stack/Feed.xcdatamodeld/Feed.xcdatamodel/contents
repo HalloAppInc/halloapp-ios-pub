@@ -47,11 +47,11 @@
         </uniquenessConstraints>
     </entity>
     <entity name="FeedPostMedia" representedClassName="FeedPostMedia" syncable="YES">
+        <attribute name="fileURL" optional="YES" attributeType="URI"/>
         <attribute name="height" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="key" optional="YES" attributeType="String"/>
+        <attribute name="key" attributeType="String"/>
         <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="path" optional="YES" attributeType="URI"/>
-        <attribute name="sha256" optional="YES" attributeType="String"/>
+        <attribute name="sha256" attributeType="String"/>
         <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="url" optional="YES" attributeType="URI"/>

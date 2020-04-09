@@ -22,8 +22,10 @@ extension FeedPostMedia {
         case none = 0
         case uploading = 1
         case uploaded = 2
-        case downloading = 3
-        case downloaded = 4
+        case uploadError = 3
+        case downloading = 4
+        case downloaded = 5
+        case downloadError = 6
     }
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<FeedPostMedia> {
@@ -39,7 +41,7 @@ extension FeedPostMedia {
         }
     }
     @NSManaged public var typeValue: Int16
-    @NSManaged public var path: URL?
+    @NSManaged public var fileURL: URL?
     @NSManaged public var url: URL
     @NSManaged public var post: FeedPost
     @NSManaged private var statusValue: Int16
