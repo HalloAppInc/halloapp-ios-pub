@@ -36,6 +36,10 @@ struct AppContext {
         URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!)
     }()
 
+    static let libraryDirectoryURL = {
+        URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).first!)
+    }()
+
     static let contactStoreURL = {
         AppContext.sharedDirectoryURL!.appendingPathComponent(AppContext.contactsDatabaseFilename)
     }()

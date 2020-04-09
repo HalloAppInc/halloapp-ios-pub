@@ -38,6 +38,7 @@
 		76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808D243D4B32000AD9A1 /* FeedPostMedia+CoreDataClass.swift */; };
 		76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */; };
 		76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */; };
+		76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */; };
 		765668CF240DCF7200214077 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668CE240DCF7100214077 /* MainView.swift */; };
 		765668D1240DE02400214077 /* BottomBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668D0240DE02400214077 /* BottomBarView.swift */; };
 		76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CD62429331D007435AC /* CommentsViewController.swift */; };
@@ -165,6 +166,7 @@
 		7653808D243D4B32000AD9A1 /* FeedPostMedia+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostMedia+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostComment+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostComment+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedDownloadManager.swift; path = HalloApp/Models/Feed/FeedDownloadManager.swift; sourceTree = SOURCE_ROOT; };
 		765668CE240DCF7100214077 /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		765668D0240DE02400214077 /* BottomBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomBarView.swift; sourceTree = "<group>"; };
 		76B95CD62429331D007435AC /* CommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsViewController.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -515,6 +517,7 @@
 				EA45713423EB7DBE008C2E44 /* FeedMediaCore.swift */,
 				EA45712A23EB7D51008C2E44 /* FeedComment.swift */,
 				EA45712C23EB7D7E008C2E44 /* FeedCommentCore.swift */,
+				76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -898,6 +901,7 @@
 				EA45713523EB7DBE008C2E44 /* FeedMediaCore.swift in Sources */,
 				EAC84CEC2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift in Sources */,
 				76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */,
+				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
 				EA45713F23EB7F76008C2E44 /* WMediaSlider.swift in Sources */,
 				EA80ADFB235A8325002F7680 /* Utils.swift in Sources */,

@@ -43,6 +43,13 @@ extension FeedPost {
         }
     }
 
+    var orderedMedia: [FeedPostMedia] {
+        get {
+            let media = self.media as! Set<FeedPostMedia>
+            return media.sorted { $0.order < $1.order }
+        }
+    }
+
 }
 
 // MARK: Generated accessors for comments

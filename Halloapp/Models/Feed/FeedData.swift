@@ -13,7 +13,7 @@ import Foundation
 import SwiftUI
 import XMPPFramework
 
-class FeedData: ObservableObject {
+class FeedData: ObservableObject, FeedDownloadManagerDelegate {
     @Published var feedDataItems : [FeedDataItem] = []
     @Published var feedCommentItems : [FeedComment] = []
 
@@ -22,6 +22,11 @@ class FeedData: ObservableObject {
     private var cancellableSet: Set<AnyCancellable> = []
 
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.feed")
+    private lazy var downloadManager: FeedDownloadManager = {
+        let manager = FeedDownloadManager()
+        manager.delegate = self
+        return manager
+    }()
 
     init(xmppController: XMPPController, userData: UserData) {
         self.xmppController = xmppController
@@ -279,6 +284,11 @@ class FeedData: ObservableObject {
         }
         DDLogInfo("FeedData/process-posts/finished  \(newPosts.count) new items.  \(xmppPosts.count - newPosts.count) duplicates.")
         self.save(managedObjectContext)
+
+        // Initiate downloads
+        try? managedObjectContext.obtainPermanentIDs(for: newPosts)
+        newPosts.forEach{ downloadManager.downloadMedia(for: $0) }
+
         return newPosts
     }
 
@@ -558,6 +568,28 @@ class FeedData: ObservableObject {
     func refetchEverything() {
         let userIds = AppContext.shared.contactStore.allRegisteredContactIDs()
         userIds.forEach { self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\($0)") }
+    }
+
+    // MARK: Feed Media
+
+    func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let feedPostMedia = try? managedObjectContext.existingObject(with: task.feedMediaObjectId) as? FeedPostMedia else {
+                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  objectId=[\(task.feedMediaObjectId)]")
+                return
+            }
+
+            if task.error == nil {
+                DDLogInfo("FeedData/download-task/\(task.id)/complete [\(task.fileURL!)]")
+                feedPostMedia.status = .downloaded
+                feedPostMedia.fileURL = task.fileURL
+            } else {
+                DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
+                feedPostMedia.status = .downloadError
+            }
+
+            self.save(managedObjectContext)
+        }
     }
 
     func getItemMedia(_ itemId: String) {
