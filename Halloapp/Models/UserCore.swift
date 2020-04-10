@@ -15,10 +15,12 @@ class UserCore {
                     String,
                     String,
                     String,
+                    String,
                     Bool) {
                         
         var countryCode: String = "1"
         var phoneInput: String = ""
+        var userId: String = ""
         var password: String = ""
         var phone: String = ""
         var isLoggedIn: Bool = false
@@ -40,9 +42,9 @@ class UserCore {
                     phoneInput = phoneInputData
                 }
                 
+                userId = data.value(forKey: "userId") as! String
                 phone = data.value(forKey: "phone") as! String
                 
-                                
                 if let passwordData = data.value(forKey: "password") as! String? {
                     password = passwordData
                 }
@@ -56,14 +58,15 @@ class UserCore {
             }
             
         } catch  {
-            DDLogError("failed")
+            DDLogError("usercore/get failed")
         }
                         
-        return (countryCode, phoneInput, password, phone, isLoggedIn)
+        return (countryCode, phoneInput, userId, password, phone, isLoggedIn)
     }
     
     func create(countryCode: String,
                 phoneInput: String,
+                userId: String,
                 password: String,
                 phone: String,
                 isLoggedIn: Bool) {
@@ -77,19 +80,21 @@ class UserCore {
             user.setValue(countryCode, forKeyPath: "countryCode")
             user.setValue(phoneInput, forKeyPath: "phoneInput")
             user.setValue(phone, forKeyPath: "phone")
+            user.setValue(userId, forKeyPath: "userId")
             user.setValue(password, forKeyPath: "password")
             user.setValue(isLoggedIn, forKeyPath: "isLoggedIn")
             
             do {
                 try managedContext.save()
             } catch let error as NSError {
-                DDLogError("could not save. \(error), \(error.userInfo)")
+                DDLogError("usercore/create \(error), \(error.userInfo)")
             }
         }
     }
     
     func update(countryCode: String,
                 phoneInput: String,
+                userId: String,
                 password: String,
                 phone: String,
                 isLoggedIn: Bool) {
@@ -115,6 +120,7 @@ class UserCore {
                     let objectUpdate = result[0] as! NSManagedObject
                     objectUpdate.setValue(countryCode, forKey: "countryCode")
                     objectUpdate.setValue(phoneInput, forKey: "phoneInput")
+                    objectUpdate.setValue(userId, forKey: "userId")
                     objectUpdate.setValue(password, forKey: "password")
                     objectUpdate.setValue(phone, forKey: "phone")
                     objectUpdate.setValue(isLoggedIn, forKey: "isLoggedIn")
@@ -122,48 +128,36 @@ class UserCore {
                     do {
                         try managedContext.save()
                     } catch {
-                        DDLogError("\(error)")
+                        DDLogError("usercore/update \(error)")
                     }
-                    
                 } catch  {
-                    DDLogError("failed")
+                    DDLogError("usercore/update failed")
                 }
-                
-                
             } catch  {
-                DDLogError("failed")
+                DDLogError("usercore/update failed")
             }
-            
-            
-
         }
-        
     }
     
     
     func isPresent() -> Bool {
         
         let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
-        
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
         
         do {
             let result = try managedContext.fetch(fetchRequest)
             
             if (result.count > 0) {
-            
                 return true
             } else {
-            
                 return false
             }
-            
         } catch  {
             DDLogError("failed")
         }
         
         return false
     }
-    
     
 }

@@ -65,6 +65,109 @@ final class Verification: ObservableObject {
             return
         }
         
+        let endpoint = "https://api.halloapp.net/api/registration/register"
+        
+        guard let url = URL(string: endpoint) else {
+            return
+        }
+        
+        DDLogInfo("Validating code. url:[\(url)]")
+        
+        var json = [String:Any]()
+        
+        json["phone"] = userData.phone
+        json["code"] = self.code
+        
+        DDLogInfo("\(json)")
+    
+        do {
+            let data = try JSONSerialization.data(withJSONObject: json, options: [])
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.httpBody = data
+            
+            let session = URLSession.shared
+            
+            let task = session.dataTask(with: request) { (data, response, error) in
+                
+                if error != nil {
+                    DDLogError("Error validating code. [\(error!)]")
+                    DispatchQueue.main.async {
+                        self.show(status: "Error validating code. Please try again.")
+                    }
+                    return
+                }
+
+                if let data = data {
+                    DDLogInfo("Got code validation response: \(String(data: data, encoding: .utf8) ?? "<invalid>")")
+
+                    do {
+                        let object = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+                        DDLogInfo("Decoded response [\(object)]")
+                        
+                        if let httpResponse = response as? HTTPURLResponse {
+                            DDLogInfo("reg/verify-sms/http-response \(httpResponse.statusCode)")
+                            
+                            if httpResponse.statusCode == 200 {
+                            
+                                DispatchQueue.main.async {
+                                    if let userId = object["uid"] as? String {
+                                        if let password = object["password"] as? String {
+                                            
+                                            let userData = AppContext.shared.userData
+                                            userData.userId = userId
+                                            userData.password = password
+                                            userData.logIn()
+                                            userData.save()
+
+                                            self.code = ""
+                                        }
+                                    }
+                                }
+                                
+                            } else {
+
+                                DispatchQueue.main.async {
+                                    if let error = object["error"] as? String {
+                                        
+                                        DDLogInfo("reg/verify-sms/error \(error)")
+                                        
+                                        if error == "wrong_sms_code" {
+                                            self.show(status: "Incorrect verification code")
+                                            self.code = ""
+                                        } else {
+                                            self.show(status: "Error")
+                                            self.code = ""
+                                        }
+
+                                    }
+                                }
+                                
+                            }
+                            
+                        }
+
+                    } catch {
+                        DDLogError("Failed to parse response. [\(error)]")
+                    }
+                }
+            }
+            task.resume()
+            
+            
+        } catch {
+            DDLogError("reg/verify-sms/data \(error)")
+        }
+        
+    }
+    
+    func verifyPreBuild29(userData: UserData) {
+    
+        if (!self.validate()) {
+            return
+        }
+        
         let session = URLSession.shared
         let url = URL(string: "https://\(userData.hostName)/cgi-bin/register.sh?user=\(userData.phone)&code=\(self.code)")!
 

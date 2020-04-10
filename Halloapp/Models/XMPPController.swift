@@ -119,7 +119,13 @@ class XMPPController: NSObject, ObservableObject {
     /* we do our own manual connection timeout as the xmppStream.connect timeout is not working */
     func connect() {
         // Reconfigure credentials
-        let user = "\(self.userData.phone)@s.halloapp.net/iphone"
+        
+        var user = "\(self.userData.phone)@s.halloapp.net/iphone"
+        
+        if self.userData.useNewRegistration {
+            user = "\(self.userData.userId)@s.halloapp.net/iphone"
+        }
+    
         self.userJID = XMPPJID(string: user)
 
         self.xmppStream.hostName = self.userData.hostName

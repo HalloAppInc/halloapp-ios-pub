@@ -16,8 +16,21 @@ struct Verify: View {
     var body: some View {
         
         VStack {
+            
+            HStack() {
+                Button(action: {
+                    self.userData.isRegistered = false
+                }) {
+                    Text("Back")
+                        .padding(15)
+                        .background(Color.white)
+                        .foregroundColor(.blue)
+                }
+                Spacer()
+            }
+            
             Divider()
-                .frame(height: 100)
+                .frame(height: 20)
                 .hidden()
             
             Text("Please enter the verification code")
@@ -28,7 +41,11 @@ struct Verify: View {
 
                     }) {
                         // pressing enter
-                        self.verification.verify(userData: self.userData)
+                        if self.userData.useNewRegistration {
+                            self.verification.verify(userData: self.userData)
+                        } else {
+                            self.verification.verifyPreBuild29(userData: self.userData)
+                        }
                     }
                     .textContentType(.oneTimeCode) // note: SMS needs to have the word "code" in it
                     .keyboardType(.numberPad)
@@ -54,7 +71,13 @@ struct Verify: View {
             .padding(EdgeInsets(top: 40, leading: 50, bottom: 10, trailing: 50))
             
             Button(action: {
-                self.verification.verify(userData: self.userData)
+                if self.userData.useNewRegistration {
+                    print("new verify")
+                    self.verification.verify(userData: self.userData)
+                } else {
+                    print("old verify")
+                    self.verification.verifyPreBuild29(userData: self.userData)
+                }
             }) {
                 Text("CONTINUE")
 
