@@ -586,7 +586,7 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
             if task.error == nil {
                 DDLogInfo("FeedData/download-task/\(task.id)/complete [\(task.fileURL!)]")
                 feedPostMedia.status = .downloaded
-                feedPostMedia.fileURL = task.fileURL
+                feedPostMedia.relativeFilePath = task.relativeFilePath
             } else {
                 DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
                 feedPostMedia.status = .downloadError

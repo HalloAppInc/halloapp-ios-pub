@@ -30,7 +30,7 @@ class FeedDownloadManager {
 
         // Output parameters.
         var error: Error?
-        var fileURL: URL?
+        var relativeFilePath: String?
 
         fileprivate var filename: String
 
@@ -51,6 +51,26 @@ class FeedDownloadManager {
                 }
             }()
             self.filename = "\(id).\(fileExtension)"
+        }
+
+        var fileURL: URL? {
+            get {
+                guard self.relativeFilePath != nil else { return nil }
+                return AppContext.mediaDirectoryURL.appendingPathComponent(self.relativeFilePath!, isDirectory: false)
+            }
+            set {
+                if newValue == nil {
+                    self.relativeFilePath = nil
+                } else {
+                    let fullPath = newValue!.path
+                    let mediaDirectoryPath = AppContext.mediaDirectoryURL.path
+                    if let range = fullPath.range(of: mediaDirectoryPath, options: [.anchored]) {
+                        self.relativeFilePath = String(fullPath.suffix(from: range.upperBound))
+                    } else {
+                        self.relativeFilePath = nil
+                    }
+                }
+            }
         }
     }
 
@@ -190,10 +210,6 @@ class FeedDownloadManager {
 
     // MARK: File management
 
-    static let mediaDirectoryURL = {
-        AppContext.libraryDirectoryURL.appendingPathComponent("Media", isDirectory: true)
-    }()
-
     private func fileURL(for task: Task) -> URL {
         var first: String?, second: String?
         for ch in task.filename.unicodeScalars {
@@ -207,11 +223,9 @@ class FeedDownloadManager {
                 break
             }
         }
-        return FeedDownloadManager
-                .mediaDirectoryURL
+        return AppContext.mediaDirectoryURL
                 .appendingPathComponent(first!, isDirectory: true)
                 .appendingPathComponent(second!, isDirectory: true)
                 .appendingPathComponent(task.filename, isDirectory: false)
-
     }
 }
