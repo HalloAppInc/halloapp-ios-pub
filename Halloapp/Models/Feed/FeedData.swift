@@ -13,9 +13,7 @@ import Foundation
 import SwiftUI
 import XMPPFramework
 
-class FeedData: ObservableObject, FeedDownloadManagerDelegate {
-    @Published var feedDataItems : [FeedDataItem] = []
-    @Published var feedCommentItems : [FeedComment] = []
+class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate {
 
     private var userData: UserData
     private var xmppController: XMPPController
@@ -32,9 +30,8 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
         self.xmppController = xmppController
         self.userData = userData
 
-        self.feedDataItems = FeedItemCore.getAll()
-        self.feedCommentItems = FeedCommentCore.getAll()
-        
+        super.init()
+
         /* enable videoes to play with sound even when the phone is set to ringer mode */
         do {
            try AVAudioSession.sharedInstance().setCategory(.playback)
@@ -47,14 +44,14 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
             self.xmppController.didConnect.sink { _ in
                 DDLogInfo("Feed: Got event for didConnect")
                 
-                self.processExpires()
+                self.deleteExpiredPosts()
             })
         
         self.cancellableSet.insert(
             self.userData.didLogOff.sink {
-                DDLogInfo("Unloading feed data. \(self.feedDataItems.count) posts. \(self.feedCommentItems.count) comments")
-                
-                self.feedCommentItems.removeAll()
+                DDLogInfo("Unloading feed data. \(self.feedDataItems.count) posts")
+
+                // TODO: disable NSFetchedResultsController?
                 self.feedDataItems.removeAll()
             })
         
@@ -86,10 +83,7 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
                 //todo: handle retracted items
             })
 
-        // Load container explicitly otherwise SwiftUI's @FetchRequest might crash when trying to find FeedNotification entity.
-        DispatchQueue.main.async {
-            self.loadPersistentContainer()
-        }
+        self.fetchFeedPosts()
     }
 
     // MARK: CoreData stack
@@ -148,25 +142,89 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
         }
     }
 
-    // MARK: Fetching Feed Data
+    // MARK: Fetched Results Controller
 
-    private func feedPost(with id: FeedPost.ID, in managedObjectContext: NSManagedObjectContext) -> FeedPost? {
-        let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", id)
-        fetchRequest.returnsObjectsAsFaults = false
+    var feedDataItems : [FeedDataItem] = []
+
+    private func fetchFeedPosts() {
         do {
-            let posts = try managedObjectContext.fetch(fetchRequest)
-            return posts.first
+            try self.fetchedResultsController.performFetch()
+            if let feedPosts = self.fetchedResultsController.fetchedObjects {
+                self.feedDataItems = feedPosts .map { FeedDataItem($0) }
+                DDLogInfo("FeedData/fetch/completed \(self.feedDataItems.count) posts")
+            }
         }
         catch {
-            DDLogError("FeedData/fetch-posts/error  [\(error)]")
-            fatalError("Failed to fetch feed posts.")
+            DDLogError("FeedData/fetch/error [\(error)]")
+            fatalError("Failed to fetch feed items \(error)")
         }
     }
 
-    private func feedPosts(with ids: Set<FeedPost.ID>, in managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
+    lazy var fetchedResultsController: NSFetchedResultsController<FeedPost> = {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id in %@", ids)
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
+        let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: self.viewContext,
+                                                                            sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController.delegate = self
+        return fetchedResultsController
+    }()
+
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        DDLogDebug("FeedData/frc/will-change")
+    }
+
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any,
+                    at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        switch type {
+        case .insert:
+            guard let index = newIndexPath?.row, let feedPost = anObject as? FeedPost else {
+                return
+            }
+            DDLogDebug("FeedData/frc/insert [\(feedPost)] at [\(index)]")
+            // For some reason FRC will report invalid indexes when downloading initial batch of posts.
+            self.feedDataItems.insert(FeedDataItem(feedPost), at: min(index, self.feedDataItems.count))
+
+        case .delete:
+            guard let index = indexPath?.row, let feedPost = anObject as? FeedPost else {
+                return
+            }
+            DDLogDebug("FeedData/frc/delete [\(feedPost)] at [\(index)]")
+            self.feedDataItems.remove(at: index)
+
+        case .update:
+            guard let index = indexPath?.row, let feedPost = anObject as? FeedPost else {
+                return
+            }
+            DDLogDebug("FeedData/frc/update [\(feedPost)] at [\(index)]")
+            self.feedDataItems[index].reload(from: feedPost)
+
+        case .move:
+            guard let fromIndex = indexPath?.row, let toIndex = newIndexPath?.row, let feedPost = anObject as? FeedPost else {
+                return
+            }
+            DDLogDebug("FeedData/frc/move [\(feedPost)] from [\(fromIndex)] to [\(toIndex)]")
+            // TODO: move
+
+        default:
+            break
+        }
+    }
+
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        DDLogDebug("FeedData/frc/did-change")
+    }
+
+    // MARK: Fetching Feed Data
+
+    func feedDataItem(with itemId: String) -> FeedDataItem? {
+        return self.feedDataItems.first(where: { $0.itemId == itemId })
+    }
+
+    private func feedPosts(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPost] {
+        let managedObjectContext = managedObjectContext ?? self.viewContext
+        let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+        fetchRequest.predicate = predicate
+        fetchRequest.sortDescriptors = sortDescriptors
         fetchRequest.returnsObjectsAsFaults = false
         do {
             let posts = try managedObjectContext.fetch(fetchRequest)
@@ -176,6 +234,14 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
             DDLogError("FeedData/fetch-posts/error  [\(error)]")
             fatalError("Failed to fetch feed posts.")
         }
+    }
+
+    func feedPost(with id: FeedPost.ID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedPost? {
+        return self.feedPosts(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
+    }
+
+    private func feedPosts(with ids: Set<FeedPost.ID>, in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPost] {
+        return feedPosts(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext)
     }
 
     private func feedComment(with id: FeedPostComment.ID, in managedObjectContext: NSManagedObjectContext) -> FeedPostComment? {
@@ -206,6 +272,8 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
         }
     }
 
+    // MARK: Updates
+
     private func updateFeedPost(with id: FeedPost.ID, block: @escaping (FeedPost) -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedPost = self.feedPost(with: id, in: managedObjectContext) else {
@@ -214,7 +282,9 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
             }
             DDLogVerbose("FeedData/update-post [\(id)]")
             block(feedPost)
-            self.save(managedObjectContext)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
         }
     }
 
@@ -226,7 +296,17 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
             }
             DDLogVerbose("FeedData/update-comment [\(id)]")
             block(comment)
-            self.save(managedObjectContext)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+
+    func markCommentsAsRead(feedPostId: FeedPost.ID) {
+        self.updateFeedPost(with: feedPostId) { (feedPost) in
+            if feedPost.unreadCount != 0 {
+                feedPost.unreadCount = 0
+            }
         }
     }
 
@@ -285,9 +365,15 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
         DDLogInfo("FeedData/process-posts/finished  \(newPosts.count) new items.  \(xmppPosts.count - newPosts.count) duplicates.")
         self.save(managedObjectContext)
 
-        // Initiate downloads
+        // Initiate downloads from the main thread.
+        // This is done to avoid race condition with downloads initiated from FeedTableView.
         try? managedObjectContext.obtainPermanentIDs(for: newPosts)
-        newPosts.forEach{ downloadManager.downloadMedia(for: $0) }
+        let postObjectIDs = newPosts.map { $0.objectID }
+        DispatchQueue.main.async {
+            let managedObjectContext = self.viewContext
+            let feedPosts = postObjectIDs.compactMap{ try? managedObjectContext.existingObject(with: $0) as? FeedPost }
+            self.downloadMedia(in: feedPosts)
+        }
 
         return newPosts
     }
@@ -384,17 +470,6 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
             }
         }
 
-        let feedDataItems = feedPosts.map { FeedDataItem($0) }
-        for item in feedDataItems.sorted(by: { $0.timestamp > $1.timestamp }) {
-            self.pushItem(item: item)
-        }
-
-        // TODO: do bulk processing here
-        let feedComments = comments.map { FeedComment($0) }
-        for item in feedComments {
-            self.insertComment(item: item)
-        }
-
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             self.process(posts: feedPosts, using: managedObjectContext)
             let comments = self.process(comments: comments, using: managedObjectContext)
@@ -451,6 +526,71 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
         }
     }
 
+    // MARK: Feed Media
+
+    /**
+     This method must be run on the main queue to avoid race condition.
+     */
+    func downloadMedia(in feedPosts: [FeedPost]) {
+        guard !feedPosts.isEmpty else { return }
+        let managedObjectContext = self.viewContext
+        // FeedPost objects should belong to main queue's context.
+        assert(feedPosts.first!.managedObjectContext! == managedObjectContext)
+
+        feedPosts.forEach { feedPost in
+            feedPost.orderedMedia.forEach { feedPostMedia in
+                // Status could be "downloading" if download has previously started
+                // but the app was terminated before the download has finished.
+                if feedPostMedia.status == .none || feedPostMedia.status == .downloading || feedPostMedia.status == .downloadError {
+                    downloadManager.downloadMedia(for: feedPostMedia)
+                    feedPostMedia.status = .downloading
+                }
+            }
+        }
+        if managedObjectContext.hasChanges {
+            self.save(managedObjectContext)
+        }
+    }
+
+    func reloadMedia(feedPostId: FeedPost.ID, order: Int) {
+        guard let feedDataItem = self.feedDataItem(with: feedPostId) else { return }
+        guard let feedPost = self.feedPost(with: feedPostId) else { return }
+        feedDataItem.reloadMedia(from: feedPost, order: order)
+    }
+
+    func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let feedPostMedia = try? managedObjectContext.existingObject(with: task.feedMediaObjectId) as? FeedPostMedia else {
+                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  objectId=[\(task.feedMediaObjectId)]")
+                return
+            }
+
+            guard feedPostMedia.relativeFilePath == nil else {
+                DDLogError("FeedData/download-task/\(task.id)/error File already exists media=[\(feedPostMedia)]")
+                return
+            }
+
+            if task.error == nil {
+                DDLogInfo("FeedData/download-task/\(task.id)/complete [\(task.fileURL!)]")
+                feedPostMedia.status = .downloaded
+                feedPostMedia.relativeFilePath = task.relativeFilePath
+            } else {
+                DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
+                feedPostMedia.status = .downloadError
+            }
+
+            self.save(managedObjectContext)
+
+            let feedPostId = feedPostMedia.post.id
+            let mediaOrder = Int(feedPostMedia.order)
+            DispatchQueue.main.async {
+                self.reloadMedia(feedPostId: feedPostId, order: mediaOrder)
+            }
+
+            // TODO: update media preview for notifications for this post
+        }
+    }
+
     // MARK: Posting
 
     func post(text: String, media: [PendingMedia]) {
@@ -469,12 +609,11 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
         for (index, xmppMedia) in xmppPost.media.enumerated() {
             DDLogDebug("FeedData/new-post/add-media [\(xmppMedia.url)]")
             let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
-            switch xmppMedia.type {
-            case .image:
-                feedMedia.type = .image
-            case .video:
-                feedMedia.type = .video
-            }
+            feedMedia.type = {
+                switch xmppMedia.type {
+                case .image: return .image
+                case .video: return .video }
+            }()
             feedMedia.status = .uploaded // For now we're only posting when all uploads are completed.
             feedMedia.url = xmppMedia.url
             feedMedia.size = xmppMedia.size
@@ -500,21 +639,11 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
                     feedPost.status = .sent
                 }
             }
-
-            let feedItem = FeedDataItem(xmppPost)
-            if timestamp != nil {
-                // TODO: probably not need to use server timestamp here?
-                feedItem.timestamp = Date(timeIntervalSince1970: timestamp!)
-            }
-            feedItem.media = media.map{ FeedMedia($0, feedItemId: feedPost.id) }
-            // TODO: save post to the local db before request finishes and allow to retry later.
-            self.pushItem(item: feedItem)
-            // TODO: write media data to db
         }
         AppContext.shared.xmppController.enqueue(request: request)
     }
 
-    func post(comment text: String, to feedItem: FeedDataItem, replyingTo parentCommentId: String? = nil) {
+    func post(comment text: String, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostComment.ID? = nil) {
         let xmppComment = XMPPComment(text: text, feedPostId: feedItem.itemId, parentCommentId: parentCommentId)
 
         // Create and save FeedPostComment
@@ -542,7 +671,7 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
         self.save(managedObjectContext)
 
         // Now send data over the wire.
-        let request = XMPPPostCommentRequest(xmppComment: xmppComment, postAuthor: feedItem.username) { (timestamp, error) in
+        let request = XMPPPostCommentRequest(xmppComment: xmppComment, postAuthor: feedPost.userId) { (timestamp, error) in
             if error != nil {
                  self.updateFeedPostComment(with: xmppComment.id) { (feedComment) in
                      feedComment.status = .sendError
@@ -555,14 +684,6 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
                      feedComment.status = .sent
                  }
              }
-
-            var feedComment = FeedComment(xmppComment)
-            if timestamp != nil {
-                // TODO: probably not need to use server timestamp here?
-                feedComment.timestamp = Date(timeIntervalSince1970: timestamp!)
-            }
-            // TODO: comment should be saved to local db before it is posted.
-            self.insertComment(item: feedComment)
         }
         AppContext.shared.xmppController.enqueue(request: request)
     }
@@ -574,133 +695,48 @@ class FeedData: ObservableObject, FeedDownloadManagerDelegate {
         userIds.forEach { self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\($0)") }
     }
 
-    // MARK: Feed Media
+    // MARK: Deletion
 
-    func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            guard let feedPostMedia = try? managedObjectContext.existingObject(with: task.feedMediaObjectId) as? FeedPostMedia else {
-                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  objectId=[\(task.feedMediaObjectId)]")
-                return
-            }
-
-            if task.error == nil {
-                DDLogInfo("FeedData/download-task/\(task.id)/complete [\(task.fileURL!)]")
-                feedPostMedia.status = .downloaded
-                feedPostMedia.relativeFilePath = task.relativeFilePath
-            } else {
-                DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
-                feedPostMedia.status = .downloadError
-            }
-
-            self.save(managedObjectContext)
-        }
-    }
-
-    func getItemMedia(_ itemId: String) {
-        if let feedItem = self.feedDataItems.first(where: { $0.itemId == itemId }) {
-            if feedItem.media.isEmpty {
-                feedItem.media = FeedMediaCore.get(feedItemId: itemId)
-
-                DDLogDebug("FeedData/getItemMedia item=[\(itemId)] count=[\(feedItem.media.count)]")
-
-                /* ideally we should have the images in core data by now */
-                /* todo: scan for unloaded images during init */
-                feedItem.loadMedia()
-            }
-        }
-    }
-
-    func calHeight(media: [FeedMedia]) -> Int? {
-        guard !media.isEmpty else { return nil }
-
-        var maxHeight: CGFloat = 0
-        var width: CGFloat = 0
-
-        media.forEach { media in
-            if media.size.height > maxHeight {
-                maxHeight = media.size.height
-                width = media.size.width
-            }
-        }
-
-        if maxHeight < 1 {
-            return nil
-        }
-
-        let desiredAspectRatio: Float = 5/4 // 1.25 for portrait
-
-        // can be customized for different devices
-        let desiredViewWidth = Float(UIScreen.main.bounds.width) - 20 // account for padding on left and right
-
-        let desiredTallness = desiredAspectRatio * desiredViewWidth
-
-        let ratio = Float(maxHeight)/Float(width) // image ratio
-
-        let actualTallness = ratio * desiredViewWidth
-
-        let resultHeight = actualTallness >= desiredTallness ? desiredTallness : actualTallness + 10
-        return Int(resultHeight.rounded())
-    }
-
-    func pushItem(item: FeedDataItem) {
-        guard !self.feedDataItems.contains(where: { $0.itemId == item.itemId }) else { return }
-        guard !FeedItemCore.isPresent(itemId: item.itemId) else { return }
-
-        item.mediaHeight = self.calHeight(media: item.media)
-        self.feedDataItems.insert(item, at: 0)
-        self.feedDataItems.sort {
-            return $0.timestamp > $1.timestamp
-        }
-
-        FeedItemCore.create(item: item)
-        item.media.forEach { FeedMediaCore.create(item: $0) }
-
-        item.loadMedia()
-    }
-
-    func insertComment(item: FeedComment) {
-        guard !self.feedCommentItems.contains(where: { $0.id == item.id }) else { return }
-
-        self.feedCommentItems.insert(item, at: 0)
-
-        if (item.username != self.userData.phone) {
-            self.increaseFeedItemUnreadComments(feedItemId: item.feedItemId, by: 1)
-        }
-
-        FeedCommentCore.create(item: item)
-    }
-
-    func increaseFeedItemUnreadComments(feedItemId: String, by number: Int) {
-        guard let feedDataItem = self.feedDataItems.first(where: { $0.itemId == feedItemId }) else { return }
-        feedDataItem.unreadComments += number
-        FeedItemCore.update(item: feedDataItem)
-    }
-
-    func markFeedItemUnreadComments(feedItemId: String) {
-        guard let feedDataItem = self.feedDataItems.first(where: { $0.itemId == feedItemId }) else { return }
-        if feedDataItem.unreadComments > 0 {
-            feedDataItem.unreadComments = 0
-            FeedItemCore.update(item: feedDataItem)
-        }
-    }
-    
-    func feedDataItem(with itemId: String) -> FeedDataItem? {
-        return self.feedDataItems.first(where: { $0.itemId == itemId })
-    }
-    
-    func processExpires() {
-        let current = Date().timeIntervalSince1970
-        let month = Date.days(30)
-
-        for (i, item) in feedDataItems.enumerated().reversed() {
-            let diff = current - item.timestamp.timeIntervalSince1970
-            if diff > month {
-                if (item.username != self.userData.phone) {
-                    // TODO: bulk delete
-                    FeedItemCore.delete(itemId: item.itemId)
-                    feedDataItems.remove(at: i)
+    private func deleteMedia(in feedPost: FeedPost) {
+        let postMedia = feedPost.media as! Set<FeedPostMedia>
+        for media in postMedia {
+            if media.relativeFilePath != nil {
+                let fileURL = AppContext.mediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
+                do {
+                    try FileManager.default.removeItem(at: fileURL)
+                }
+                catch {
+                    DDLogError("FeedData/delete-media/error [\(error)]")
                 }
             }
+            feedPost.managedObjectContext?.delete(media)
+        }
+    }
+
+    private func deleteExpiredPosts() {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let cutoffDate = Date(timeIntervalSinceNow: -Date.days(30))
+            DDLogInfo("FeedData/delete-expired  date=[\(cutoffDate)]")
+            let fetchRequest = NSFetchRequest<FeedPost>(entityName: FeedPost.entity().name!)
+            fetchRequest.predicate = NSPredicate(format: "timestamp < %@", cutoffDate as NSDate)
+            do {
+                let posts = try managedObjectContext.fetch(fetchRequest)
+                guard !posts.isEmpty else {
+                    DDLogInfo("FeedData/delete-expired/empty")
+                    return
+                }
+                DDLogInfo("FeedData/delete-expired/begin  count=[\(posts.count)]")
+                posts.forEach {
+                    self.deleteMedia(in: $0)
+                    managedObjectContext.delete($0)
+                }
+                DDLogInfo("FeedData/delete-expired/finished")
+            }
+            catch {
+                DDLogError("FeedData/delete-expired/error  [\(error)]")
+                return
+            }
+            self.save(managedObjectContext)
         }
     }
 }

@@ -62,17 +62,12 @@
 		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
 		EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0E64CA234BF4BC006A22EB /* XMPPController.swift */; };
 		EA12006924209903008BFFAD /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA12006824209903008BFFAD /* VideoUtils.swift */; };
-		EA17C39923ECAEDB00727413 /* PendingCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA17C39823ECAEDB00727413 /* PendingCore.swift */; };
 		EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */; };
 		EA3861ED23342C7C00705943 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3861EC23342C7C00705943 /* Login.swift */; };
 		EA454B64234E769F002B960D /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* ProfileView.swift */; };
 		EA45712723EB79DB008C2E44 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712623EB79DB008C2E44 /* CoreDataManager.swift */; };
-		EA45712B23EB7D51008C2E44 /* FeedComment.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712A23EB7D51008C2E44 /* FeedComment.swift */; };
-		EA45712D23EB7D7E008C2E44 /* FeedCommentCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712C23EB7D7E008C2E44 /* FeedCommentCore.swift */; };
 		EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */; };
-		EA45713123EB7DA3008C2E44 /* FeedItemCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713023EB7DA3008C2E44 /* FeedItemCore.swift */; };
 		EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713223EB7DB3008C2E44 /* FeedMedia.swift */; };
-		EA45713523EB7DBE008C2E44 /* FeedMediaCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713423EB7DBE008C2E44 /* FeedMediaCore.swift */; };
 		EA45713723EB7DF5008C2E44 /* UserCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713623EB7DF5008C2E44 /* UserCore.swift */; };
 		EA45713923EB7EC8008C2E44 /* MediaCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713823EB7EC8008C2E44 /* MediaCell.swift */; };
 		EA45713B23EB7EDE008C2E44 /* PinchZoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713A23EB7EDE008C2E44 /* PinchZoomView.swift */; };
@@ -192,17 +187,12 @@
 		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
 		EA0E64CA234BF4BC006A22EB /* XMPPController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPController.swift; sourceTree = "<group>"; };
 		EA12006824209903008BFFAD /* VideoUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
-		EA17C39823ECAEDB00727413 /* PendingCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingCore.swift; sourceTree = "<group>"; };
 		EA1B444F238CE9CB0044D14C /* LoadingTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTimer.swift; sourceTree = "<group>"; };
 		EA3861EC23342C7C00705943 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		EA454B63234E769F002B960D /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		EA45712623EB79DB008C2E44 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
-		EA45712A23EB7D51008C2E44 /* FeedComment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedComment.swift; sourceTree = "<group>"; };
-		EA45712C23EB7D7E008C2E44 /* FeedCommentCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCommentCore.swift; sourceTree = "<group>"; };
 		EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataItem.swift; sourceTree = "<group>"; };
-		EA45713023EB7DA3008C2E44 /* FeedItemCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedItemCore.swift; sourceTree = "<group>"; };
 		EA45713223EB7DB3008C2E44 /* FeedMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMedia.swift; sourceTree = "<group>"; };
-		EA45713423EB7DBE008C2E44 /* FeedMediaCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMediaCore.swift; sourceTree = "<group>"; };
 		EA45713623EB7DF5008C2E44 /* UserCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCore.swift; sourceTree = "<group>"; };
 		EA45713823EB7EC8008C2E44 /* MediaCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCell.swift; sourceTree = "<group>"; };
 		EA45713A23EB7EDE008C2E44 /* PinchZoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinchZoomView.swift; sourceTree = "<group>"; };
@@ -512,11 +502,7 @@
 				76DF9FEA24122E9400F49CA4 /* CoreData Stack */,
 				EA0D20142368B04B008B8289 /* FeedData.swift */,
 				EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */,
-				EA45713023EB7DA3008C2E44 /* FeedItemCore.swift */,
 				EA45713223EB7DB3008C2E44 /* FeedMedia.swift */,
-				EA45713423EB7DBE008C2E44 /* FeedMediaCore.swift */,
-				EA45712A23EB7D51008C2E44 /* FeedComment.swift */,
-				EA45712C23EB7D7E008C2E44 /* FeedCommentCore.swift */,
 				76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */,
 			);
 			path = Feed;
@@ -594,7 +580,6 @@
 			isa = PBXGroup;
 			children = (
 				EA45712623EB79DB008C2E44 /* CoreDataManager.swift */,
-				EA17C39823ECAEDB00727413 /* PendingCore.swift */,
 				EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */,
 				EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */,
 			);
@@ -856,7 +841,6 @@
 				76DFA0072419BC1F00F49CA4 /* XMPPError.swift in Sources */,
 				764A0E68244617D800E1BDCE /* schema.pb.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
-				EA45713123EB7DA3008C2E44 /* FeedItemCore.swift in Sources */,
 				76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */,
 				76ECDC162409DD7700BB48AC /* FeedView.swift in Sources */,
 				761B394F241AF01100858251 /* XMPPMediaRequests.swift in Sources */,
@@ -892,13 +876,11 @@
 				EAB03B7D2400518D00643EB6 /* Player.swift in Sources */,
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
 				EA56404E233D373800E68A7E /* Verification.swift in Sources */,
-				EA45712B23EB7D51008C2E44 /* FeedComment.swift in Sources */,
 				EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */,
 				EA1B4450238CE9CB0044D14C /* LoadingTimer.swift in Sources */,
 				EA3861ED23342C7C00705943 /* Login.swift in Sources */,
 				763B42AC243274F400FF0E82 /* FeedTableView.swift in Sources */,
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
-				EA45713523EB7DBE008C2E44 /* FeedMediaCore.swift in Sources */,
 				EAC84CEC2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift in Sources */,
 				76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
@@ -927,13 +909,11 @@
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
 				EAA6DEC02381D7DD00C6D9C8 /* NotificationsView.swift in Sources */,
 				EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */,
-				EA45712D23EB7D7E008C2E44 /* FeedCommentCore.swift in Sources */,
 				76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */,
 				76538093243D4B33000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */,
 				76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */,
 				EAC4AF23233E8DAB00739B2B /* ImageLoader.swift in Sources */,
 				EABF312623EE1F240039B5A6 /* Array.swift in Sources */,
-				EA17C39923ECAEDB00727413 /* PendingCore.swift in Sources */,
 				76D0C080240F40DF0061B90E /* MessagesView.swift in Sources */,
 				EA454B64234E769F002B960D /* ProfileView.swift in Sources */,
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,

@@ -12,13 +12,9 @@ import Foundation
 
 class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
 
-    var itemId: String
+    var itemId: FeedPost.ID
     var username: String
-    var text: String?
-    var timestamp: Date
-    var mediaHeight: Int?
-
-    @Published var media: [FeedMedia] = []
+    var media: [FeedMedia]
 
     var commentsChange = PassthroughSubject<Int, Never>()
     var unreadComments: Int {
@@ -27,54 +23,36 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
         }
     }
 
-    private var cancellableSet: Set<AnyCancellable> = []
-
-    init(_ post: XMPPFeedPost) {
-        self.itemId = post.id
-        self.username = post.userPhoneNumber
-        self.text = post.text
-        if post.timestamp != nil {
-            self.timestamp = Date(timeIntervalSince1970: post.timestamp!)
-        } else {
-            self.timestamp = Date()
-        }
-        self.unreadComments = 0
-        self.media = post.media.enumerated().map{ FeedMedia($0.element, feedPostId: post.id, order: $0.offset) }
+    init(_ feedPost: FeedPost) {
+        itemId = feedPost.id
+        username = feedPost.userId
+        unreadComments = Int(feedPost.unreadCount)
+        media = feedPost.orderedMedia.map { FeedMedia($0) }
     }
 
-    init(_ post: FeedCore) {
-        self.itemId = post.itemId!
-        self.username = post.username!
-        self.text = post.text
-        self.unreadComments = Int(post.unreadComments)
-        if post.mediaHeight > 0 {
-            self.mediaHeight = Int(post.mediaHeight)
-        } else {
-            self.mediaHeight = nil
-        }
-        if post.timestamp > 0 {
-            self.timestamp = Date(timeIntervalSince1970: post.timestamp)
-        } else {
-            self.timestamp = Date()
-        }
+    func reload(from feedPost: FeedPost) {
+        // Only 'unreadComments' might change at this point.
+        unreadComments = Int(feedPost.unreadCount)
     }
 
-    func loadMedia() {
-        for med in self.media {
-            if (med.type == .image && med.image == nil) || (med.type == .video && med.tempUrl == nil) {
-                if med.numTries < 10 {
-                    cancellableSet.insert(
-                        med.didChange.sink { [weak self] _ in
-                            guard let self = self else { return }
+    func reloadMedia(from feedPost: FeedPost, order: Int) {
+        let feedPostMediaObjects = feedPost.media as! Set<FeedPostMedia>
+        guard let feedPostMedia = feedPostMediaObjects.first(where: { $0.order == order }) else { return }
+        guard let feedMedia = self.media.first(where: { $0.order == order }) else { return }
+        feedMedia.reload(from: feedPostMedia)
+    }
 
-                            self.objectWillChange.send()
-                        }
-                    )
-                    
-                    med.loadImage()
-                }
-            }
-        }
+    func mediaHeight(for mediaWidth: CGFloat) -> CGFloat {
+        guard !self.media.isEmpty else { return 0 }
+
+        let tallestItem = self.media.max { return $0.size.height < $1.size.height }
+        let tallestItemAspectRatio = tallestItem!.size.height / tallestItem!.size.width
+        let maxAllowedAspectRatio: CGFloat = 5/4
+        return (mediaWidth * min(maxAllowedAspectRatio, tallestItemAspectRatio)).rounded()
+    }
+
+    func loadImages() {
+        self.media.forEach { $0.loadImage() }
     }
     
     static func == (lhs: FeedDataItem, rhs: FeedDataItem) -> Bool {

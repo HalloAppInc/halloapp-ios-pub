@@ -16,7 +16,7 @@ protocol FeedDownloadManagerDelegate: AnyObject {
 }
 
 class FeedDownloadManager {
-    class Task: Identifiable {
+    class Task: Identifiable, Hashable, Equatable {
         let id: String
 
         // Input parameters.
@@ -72,6 +72,14 @@ class FeedDownloadManager {
                 }
             }
         }
+
+        static func == (lhs: Task, rhs: Task) -> Bool {
+            return lhs.id == rhs.id
+        }
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(self.id)
+        }
     }
 
     weak var delegate: FeedDownloadManagerDelegate?
@@ -89,36 +97,42 @@ class FeedDownloadManager {
 
     // MARK: Scheduling
 
-    func downloadMedia(for feedPost: FeedPost) {
-        self.add(feedPost.orderedMedia.map { Task($0) })
+    private var tasks: Set<Task> = []
+
+    func downloadMedia(for feedPostMedia: FeedPostMedia) {
+        self.addTask(Task(feedPostMedia))
     }
 
-    private func add(_ tasks: [Task]) {
-        tasks.forEach { task in
-            let fileURL = self.fileURL(for: task).appendingPathExtension("enc")
-            let destination: DownloadRequest.DownloadFileDestination = { _, _ in
-                return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
-            }
-            Alamofire.download(task.downloadURL, to: destination)
-                .response { response in
-                    if let httpResponse = response.response {
-                        DDLogDebug("FeedDownloadManager/\(task.id)/download/finished [\(httpResponse)]")
-                        task.fileURL = response.destinationURL
-                        if httpResponse.statusCode == 200 {
-                            self.decryptionQueue.async {
-                                self.decryptData(for: task)
-                            }
-                        } else {
-                            task.error = NSError(domain: "com.halloapp.downloadmanager", code: httpResponse.statusCode, userInfo: nil)
-                            self.taskFailed(task)
+    private func addTask(_ task: Task) {
+        guard !self.tasks.contains(task) else {
+            DDLogError("FeedDownloadManager/\(task.id)/duplicate [\(task.downloadURL)]")
+            return
+        }
+        DDLogDebug("FeedDownloadManager/\(task.id)/download/start [\(task.downloadURL)]")
+        let fileURL = self.fileURL(for: task).appendingPathExtension("enc")
+        let destination: DownloadRequest.DownloadFileDestination = { _, _ in
+            return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
+        }
+        Alamofire.download(task.downloadURL, to: destination)
+            .response { response in
+                if let httpResponse = response.response {
+                    DDLogDebug("FeedDownloadManager/\(task.id)/download/finished [\(httpResponse)]")
+                    task.fileURL = response.destinationURL
+                    if httpResponse.statusCode == 200 {
+                        self.decryptionQueue.async {
+                            self.decryptData(for: task)
                         }
                     } else {
-                        DDLogDebug("FeedDownloadManager/\(task.id)/download/error [\(String(describing: response.error))]")
-                        task.error = response.error
+                        task.error = NSError(domain: "com.halloapp.downloadmanager", code: httpResponse.statusCode, userInfo: nil)
                         self.taskFailed(task)
                     }
-            }
+                } else {
+                    DDLogDebug("FeedDownloadManager/\(task.id)/download/error [\(String(describing: response.error))]")
+                    task.error = response.error
+                    self.taskFailed(task)
+                }
         }
+        self.tasks.insert(task)
     }
 
     // MARK: Decryption
@@ -143,17 +157,9 @@ class FeedDownloadManager {
         }
 
         // Decrypt data
-        let mediaType: FeedMediaType = {
-            switch task.mediaType {
-            case .image:
-                return .image
-            case .video:
-                return .video
-            }
-        }()
         let ts = Date()
         DDLogDebug("FeedDownloadManager/\(task.id)/decrypt/begin size=[\(encryptedData.count)]")
-        guard let decryptedData = HAC.decrypt(data: encryptedData, key: task.key, sha256hash: task.sha256, mediaType: mediaType) else {
+        guard let decryptedData = HAC.decrypt(data: encryptedData, key: task.key, sha256hash: task.sha256, mediaType: task.mediaType) else {
             DDLogError("FeedDownloadManager/\(task.id)/decrypt/error")
             // TODO: propagate error from HAC
             task.error = NSError(domain: "com.halloapp.downloadmanager", code: 1, userInfo: nil)
@@ -188,12 +194,16 @@ class FeedDownloadManager {
     }
 
     private func taskFinished(_ task: Task) {
+        self.tasks.remove(task)
+
         DispatchQueue.main.async {
             self.delegate?.feedDownloadManager(self, didFinishTask: task)
         }
     }
 
     private func taskFailed(_ task: Task) {
+        self.tasks.remove(task)
+
         if task.fileURL != nil {
             do {
                 try FileManager.default.removeItem(at: task.fileURL!)

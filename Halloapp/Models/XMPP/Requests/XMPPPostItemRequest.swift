@@ -9,16 +9,25 @@
 import Foundation
 import XMPPFramework
 
+enum XMPPFeedMediaType: String {
+    case image = "image"
+    case video = "video"
+}
+
 struct XMPPFeedMedia {
     let url: URL
-    let type: FeedMediaType
+    let type: XMPPFeedMediaType
     let size: CGSize
     let key: String?
     let sha256: String?
 
     init?(feedMedia: PendingMedia) {
         self.url = feedMedia.url!
-        self.type = feedMedia.type
+        self.type = {
+            switch feedMedia.type {
+            case .image: return .image
+            case .video: return .video }
+        }()
         self.size = feedMedia.size!
         self.key = feedMedia.key
         self.sha256 = feedMedia.sha256hash
@@ -28,7 +37,7 @@ struct XMPPFeedMedia {
     <url type="image" width="1200" height="1600" key="wn58/JZ4nsZgxOBHw6usvdHfSIBRltZWzqb7u4kSyxc=" sha256hash="FA0cGbpNOfG9oFXezNIdsGVy3GSL2OXGxZ5sX8uXZls=">https://cdn.halloapp.net/CumlsHUTEeqobwpeZJbt6A</url>
      */
     init?(urlElement: XMLElement) {
-        guard let type = FeedMediaType(rawValue: urlElement.attributeStringValue(forName: "type") ?? "") else { return nil }
+        guard let type = XMPPFeedMediaType(rawValue: urlElement.attributeStringValue(forName: "type") ?? "") else { return nil }
         guard let urlString = urlElement.stringValue else { return nil }
         guard let url = URL(string: urlString) else { return nil }
         let width = urlElement.attributeIntegerValue(forName: "width"), height = urlElement.attributeIntegerValue(forName: "height")

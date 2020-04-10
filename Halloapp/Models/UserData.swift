@@ -110,11 +110,6 @@ final class UserData: ObservableObject {
     
     func logout() {
         deleteAllData(entityName: "User")
-        deleteAllData(entityName: "FeedCore")
-        deleteAllData(entityName: "FeedComments")
-        deleteAllData(entityName: "CContactsAvatar")
-        deleteAllData(entityName: "CFeedImage")
-        deleteAllData(entityName: "CPending")
         
         self.didLogOff.send()
             

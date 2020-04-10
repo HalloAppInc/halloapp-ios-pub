@@ -16,14 +16,14 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
 
     typealias ReplyContext = (parentCommentId: String, userId: String)
 
-    private var feedItemId: String?
+    private var feedPostId: FeedPost.ID?
     private var replyContext: ReplyContext? {
         didSet {
             self.refreshCommentInputViewReplyPanel()
         }
     }
-    private var dataSource: UITableViewDiffableDataSource<Int, FeedComment>?
-    private var fetchedResultsController: NSFetchedResultsController<FeedComments>?
+    private var dataSource: UITableViewDiffableDataSource<Int, FeedPostComment>?
+    private var fetchedResultsController: NSFetchedResultsController<FeedPostComment>?
     private var scrollToBottomOnContentChange = false
 
     private lazy var tableView: UITableView = {
@@ -38,9 +38,9 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         return tableView
     }()
 
-    init(feedItemId: String) {
-        DDLogDebug("CommentsViewController/init/\(feedItemId)")
-        self.feedItemId = feedItemId
+    init(feedPostId: FeedPost.ID) {
+        DDLogDebug("CommentsViewController/init/\(feedPostId)")
+        self.feedPostId = feedPostId
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -49,13 +49,13 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     }
 
     func dismantle() {
-        DDLogDebug("CommentsViewController/dismantle/\(feedItemId ?? "")")
+        DDLogDebug("CommentsViewController/dismantle/\(feedPostId ?? "")")
         self.fetchedResultsController = nil
     }
 
     override func viewDidLoad() {
-        guard self.feedItemId != nil else { return }
-        guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: self.feedItemId!) else { return }
+        guard self.feedPostId != nil else { return }
+        guard let feedPost = AppContext.shared.feedData.feedPost(with: self.feedPostId!) else { return }
 
         self.view.addSubview(self.tableView)
         self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
@@ -64,27 +64,26 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
 
         let headerView = CommentsTableHeaderView(frame: CGRect(x: 0, y: 0, width: self.tableView.bounds.size.width, height: 200))
-        headerView.commentView.updateWith(feedItem: feedDataItem)
+        headerView.commentView.updateWith(feedPost: feedPost)
         self.tableView.tableHeaderView = headerView
 
-        self.dataSource = UITableViewDiffableDataSource<Int, FeedComment>(tableView: self.tableView) { [weak self] tableView, indexPath, feedComment in
+        self.dataSource = UITableViewDiffableDataSource<Int, FeedPostComment>(tableView: self.tableView) { [weak self] tableView, indexPath, feedPostComment in
             let cell = tableView.dequeueReusableCell(withIdentifier: CommentsViewController.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
-            cell.update(with: feedComment)
+            cell.update(with: feedPostComment)
             cell.replyAction = {
                 guard let self = self else { return }
-                self.replyContext = (parentCommentId: feedComment.id, userId: feedComment.username)
+                self.replyContext = (parentCommentId: feedPostComment.id, userId: feedPostComment.userId)
                 self.commentsInputView.showKeyboard(from: self)
             }
             return cell
         }
 
-        let fetchRequest = NSFetchRequest<FeedComments>(entityName: "FeedComments")
-        fetchRequest.predicate = NSPredicate(format: "feedItemId = %@", self.feedItemId!)
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedComments.timestamp, ascending: true) ]
+        let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "post.id = %@", self.feedPostId!)
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true) ]
         self.fetchedResultsController =
-            NSFetchedResultsController<FeedComments>(fetchRequest: fetchRequest,
-                                                     managedObjectContext: CoreDataManager.sharedManager.persistentContainer.viewContext,
-                                                     sectionNameKeyPath: nil, cacheName: nil)
+            NSFetchedResultsController<FeedPostComment>(fetchRequest: fetchRequest, managedObjectContext: AppContext.shared.feedData.viewContext,
+                                                        sectionNameKeyPath: nil, cacheName: nil)
         self.fetchedResultsController?.delegate = self
         do {
             try self.fetchedResultsController!.performFetch()
@@ -103,8 +102,8 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if let itemId = self.feedItemId {
-            AppContext.shared.feedData.markFeedItemUnreadComments(feedItemId: itemId)
+        if let itemId = self.feedPostId {
+            AppContext.shared.feedData.markCommentsAsRead(feedPostId: itemId)
         }
 
         self.commentsInputView.didAppear(in: self)
@@ -113,8 +112,8 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
-        if let itemId = self.feedItemId {
-            AppContext.shared.feedData.markFeedItemUnreadComments(feedItemId: itemId)
+        if let itemId = self.feedPostId {
+            AppContext.shared.feedData.markCommentsAsRead(feedPostId: itemId)
         }
 
         self.commentsInputView.willDisappear(in: self)
@@ -136,23 +135,22 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     // MARK: Data
 
     func updateData(animatingDifferences: Bool = true) {
-        guard let coreDataResults = self.fetchedResultsController?.fetchedObjects else { return }
-        let allComments = coreDataResults.map{ FeedComment($0) }
-        var results: [FeedComment] = []
+        guard let comments = self.fetchedResultsController?.fetchedObjects else { return }
+        var sortedResults: [FeedPostComment] = []
 
-        func findChildren(of commendID: String?) {
-            let children = allComments.filter{ $0.parentCommentId == commendID }
+        func findChildren(of commentId: FeedPostComment.ID?) {
+            let children = comments.filter{ $0.parent?.id == commentId }
             for child in children {
-                results.append(child)
+                sortedResults.append(child)
                 findChildren(of: child.id)
             }
         }
 
         findChildren(of: nil)
 
-        var diffableDataSourceSnapshot = NSDiffableDataSourceSnapshot<Int, FeedComment>()
+        var diffableDataSourceSnapshot = NSDiffableDataSourceSnapshot<Int, FeedPostComment>()
         diffableDataSourceSnapshot.appendSections([ CommentsViewController.sectionMain ])
-        diffableDataSourceSnapshot.appendItems(results)
+        diffableDataSourceSnapshot.appendItems(sortedResults)
         self.dataSource?.apply(diffableDataSourceSnapshot, animatingDifferences: animatingDifferences)
     }
 
@@ -239,7 +237,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
     }
 
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: String) {
-        guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: self.feedItemId!) else { return }
+        guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: self.feedPostId!) else { return }
         self.scrollToBottomOnContentChange = true
         AppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: self.replyContext?.parentCommentId)
         self.commentsInputView.text = ""
@@ -338,8 +336,8 @@ class CommentsTableViewCell: UITableViewCell {
         self.replyAction()
     }
 
-    func update(with comment: FeedComment) {
-        self.commentView.updateWith(commentItem: comment)
-        self.commentView.isContentInset = comment.parentCommentId != nil
+    func update(with comment: FeedPostComment) {
+        self.commentView.updateWith(comment: comment)
+        self.commentView.isContentInset = comment.parent != nil
     }
 }

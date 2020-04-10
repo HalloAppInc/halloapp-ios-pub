@@ -19,8 +19,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     private static let cellReuseIdentifier = "FeedTableViewCell"
 
     private var isOnProfilePage: Bool = false
-    private var dataSource: UITableViewDiffableDataSource<FeedTableSection, FeedDataItem>?
-    private var fetchedResultsController: NSFetchedResultsController<FeedCore>?
+    private var fetchedResultsController: NSFetchedResultsController<FeedPost>?
 
     init(isOnProfilePage: Bool) {
         self.isOnProfilePage = isOnProfilePage
@@ -42,6 +41,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         self.tableView.backgroundColor = UIColor.systemGroupedBackground
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = false
+        self.tableView.register(FeedTableViewCell.self, forCellReuseIdentifier: FeedTableViewController.cellReuseIdentifier)
 
         if self.isOnProfilePage {
             let headerView = FeedTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
@@ -49,26 +49,17 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             self.tableView.tableHeaderView = headerView
         }
 
-        self.tableView.register(FeedTableViewCell.self, forCellReuseIdentifier: FeedTableViewController.cellReuseIdentifier)
-        self.dataSource = UITableViewDiffableDataSource<FeedTableSection, FeedDataItem>(tableView: tableView) { (tableView, indexPath, feedDataItem) in
-            let cell = tableView.dequeueReusableCell(withIdentifier: FeedTableViewController.cellReuseIdentifier, for: indexPath) as! FeedTableViewCell
-            cell.configure(with: feedDataItem)
-            return cell
-        }
-
-        let fetchRequest = NSFetchRequest<FeedCore>(entityName: FeedCore.entity().name!)
+        // Setup fetched results controller the old way because it allows granular control over UI update operations.
+        let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         if self.isOnProfilePage {
-            fetchRequest.predicate = NSPredicate(format: "username == %@", AppContext.shared.userData.phone)
+            fetchRequest.predicate = NSPredicate(format: "userId == %@", AppContext.shared.userData.phone)
         }
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedCore.timestamp, ascending: false) ]
-        self.fetchedResultsController = NSFetchedResultsController<FeedCore>(fetchRequest: fetchRequest, managedObjectContext: CoreDataManager.sharedManager.persistentContainer.viewContext,
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
+        self.fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: AppContext.shared.feedData.viewContext,
                                                                              sectionNameKeyPath: nil, cacheName: nil)
         self.fetchedResultsController?.delegate = self
         do {
             try self.fetchedResultsController?.performFetch()
-            if let feedItems = fetchedResultsController?.fetchedObjects {
-                self.reload(data: feedItems, animatingDifferences: false)
-            }
         } catch {
             fatalError("Failed to fetch feed items \(error)")
         }
@@ -77,7 +68,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("FeedTableViewController/viewWillAppear")
         super.viewWillAppear(animated)
-        self.tableView.reloadData()
+//        self.tableView.reloadData()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -87,54 +78,94 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     // MARK: Fetched Results Controller
 
-    private func reload(data feedItems: [FeedCore], animatingDifferences: Bool = true) {
-        guard self.dataSource != nil else { return }
-        // FIXME: this is a bad bad code.
-        let feedPostIds: Set<String> = Set(feedItems.compactMap({ $0.itemId }))
-        let feedDataItems = AppContext.shared.feedData.feedDataItems.filter { feedPostIds.contains($0.itemId) }
-        var snapshot = NSDiffableDataSourceSnapshot<FeedTableSection, FeedDataItem>()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(feedDataItems)
-        self.dataSource!.apply(snapshot, animatingDifferences: animatingDifferences)
-    }
+    private var trackPerRowFRCChanges = false
+    private var reloadTableViewInDidChangeContent = false
 
-    /**
-     This property prevents table view data from being reloaded when invidual feed objects change because that would be a no-op.
-     */
-    private var reloadDataInDidChangeContent = false
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("FeedTableView/fetched-results-controller/will-change")
-        reloadDataInDidChangeContent = false
+        reloadTableViewInDidChangeContent = false
+        trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
+        DDLogDebug("FeedTableView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+        if trackPerRowFRCChanges {
+            self.tableView.beginUpdates()
+        }
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        DDLogDebug("FeedTableView/fetched-results-controller/change type=[\(type.rawValue)]")
         switch type {
-        case .delete, .insert, .move:
-            DDLogDebug("FeedTableView/fetched-results-controller/\(type.rawValue) object=[\(anObject)]")
-            reloadDataInDidChangeContent = true
+        case .insert:
+            guard let indexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
+            DDLogDebug("FeedTableView/frc/insert [\(feedPost)] at [\(indexPath)]")
+            if trackPerRowFRCChanges {
+                self.tableView.insertRows(at: [ indexPath ], with: .automatic)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
+
+        case .delete:
+            guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { break }
+            DDLogDebug("FeedTableView/frc/delete [\(feedPost)] at [\(indexPath)]")
+            if trackPerRowFRCChanges {
+                self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
+
+        case .move:
+            guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
+            DDLogDebug("FeedTableView/frc/move [\(feedPost)] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            if trackPerRowFRCChanges {
+                self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
+
+        case .update:
+            guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { return }
+            DDLogDebug("FeedTableView/frc/update [\(feedPost)] at [\(indexPath)]")
+            // Do nothing for now because the only thing that updates is "unread comments" indicator,
+            // and those updates are driven by SwiftUI.
+
         default:
-            DDLogDebug("FeedTableView/fetched-results-controller/update object=[\(anObject)]")
             break
         }
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("FeedTableView/fetched-results-controller/did-change reload=[\(reloadDataInDidChangeContent)]")
-        guard reloadDataInDidChangeContent else { return }
-        if let feedItems = controller.fetchedObjects {
-            // Animating changes while the view is off-screen causes weird layout glitches.
-            let animate = self.view.window != nil && UIApplication.shared.applicationState == .active
-            self.reload(data: feedItems as! [FeedCore], animatingDifferences: animate)
+        DDLogDebug("FeedTableView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        if trackPerRowFRCChanges {
+            self.tableView.endUpdates()
+        } else if reloadTableViewInDidChangeContent {
+            self.tableView.reloadData()
         }
     }
 
-    // MARK: UITableViewDelegate
+    // MARK: UITableView
+
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        return self.fetchedResultsController?.sections?.count ?? 0
+    }
+
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        guard let sections = self.fetchedResultsController?.sections else { return 0 }
+        return sections[section].numberOfObjects
+    }
+
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: FeedTableViewController.cellReuseIdentifier, for: indexPath) as! FeedTableViewCell
+        if let feedPost = fetchedResultsController?.object(at: indexPath) {
+            cell.configure(with: feedPost)
+        }
+        return cell
+    }
+
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        guard self.fetchedResultsController != nil else { return }
-        guard let fetchedObjects = self.fetchedResultsController!.fetchedObjects else { return }
-        guard indexPath.row < fetchedObjects.count else { return }
-        AppContext.shared.feedData.getItemMedia(fetchedObjects[indexPath.row].itemId!)
+        if let feedPost = fetchedResultsController?.object(at: indexPath) {
+            // Load downloaded images into memory.
+            AppContext.shared.feedData.feedDataItem(with: feedPost.id)?.loadImages()
+
+            // Initiate download for images that were not yet downloaded.
+            AppContext.shared.feedData.downloadMedia(in: [ feedPost ])
+        }
     }
 }
 
@@ -211,10 +242,10 @@ class FeedTableViewCell: UITableViewCell {
         vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -padding).isActive = true
     }
 
-    public func configure(with item: FeedDataItem) {
-        self.headerView.configure(with: item)
-        self.itemContentView.configure(with: item)
-        self.footerView.configure(with: item)
+    public func configure(with post: FeedPost) {
+        self.headerView.configure(with: post)
+        self.itemContentView.configure(with: post)
+        self.footerView.configure(with: post)
     }
 
     override func prepareForReuse() {
@@ -268,14 +299,18 @@ class FeedItemContentView: UIView {
         self.vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -12).isActive = true
     }
 
-    func configure(with feedDataItem: FeedDataItem) {
-        if let mediaHeight = feedDataItem.mediaHeight {
+    func configure(with post: FeedPost) {
+        guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: post.id) else { return }
+        // TODO: This is a hack that needs to be improved.
+        let width = self.frame != .zero ? self.frame.size.width : UIScreen.main.bounds.size.width - 8*4
+        let mediaHeight = feedDataItem.mediaHeight(for: width)
+        if mediaHeight > 0 {
             DDLogDebug("FeedTableViewCell/configure [\(feedDataItem.itemId)]")
-            let controller = UIHostingController(rootView: MediaSlider(feedDataItem).frame(height: CGFloat(mediaHeight)))
+            let controller = UIHostingController(rootView: MediaSlider(feedDataItem).frame(height: mediaHeight))
             controller.view.backgroundColor = UIColor.clear
             controller.view.addConstraint({
                 let constraint = NSLayoutConstraint.init(item: controller.view!, attribute: .height, relatedBy: .equal,
-                                                         toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: CGFloat(mediaHeight))
+                                                         toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: mediaHeight)
                 constraint.priority = .defaultHigh + 10
                 return constraint
             }())
@@ -284,7 +319,7 @@ class FeedItemContentView: UIView {
             self.mediaView = controller.view
         }
 
-        self.textLabel.text = feedDataItem.text
+        self.textLabel.text = post.text
     }
 
     func prepareForReuse() {
@@ -351,9 +386,9 @@ class FeedItemHeaderView: UIView {
         hStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
     }
 
-    func configure(with feedDataItem: FeedDataItem) {
-        self.nameLabel.text = AppContext.shared.contactStore.fullName(for: feedDataItem.username)
-        self.timestampLabel.text = feedDataItem.timestamp.postTimestamp()
+    func configure(with post: FeedPost) {
+        self.nameLabel.text = AppContext.shared.contactStore.fullName(for: post.userId)
+        self.timestampLabel.text = post.timestamp.postTimestamp()
     }
 
     func prepareForReuse() {
@@ -388,7 +423,8 @@ class FeedItemFooterView: UIView {
         separator.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
     }
 
-    func configure(with feedDataItem: FeedDataItem) {
+    func configure(with post: FeedPost) {
+        guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: post.id) else { return }
         let controller = UIHostingController(rootView: FeedItemFooterButtonsView(feedDataItem: feedDataItem))
         controller.view.backgroundColor = UIColor.clear
         controller.view.translatesAutoresizingMaskIntoConstraints = false
@@ -475,7 +511,7 @@ struct FeedItemFooterButtonsView: View {
     var body: some View {
         HStack {
             // Comment button
-            NavigationLink(destination: CommentsView(itemId: self.feedDataItem.itemId).navigationBarTitle("Comments", displayMode: .inline).edgesIgnoringSafeArea(.bottom)) {
+            NavigationLink(destination: CommentsView(feedPostId: self.feedDataItem.itemId).navigationBarTitle("Comments", displayMode: .inline).edgesIgnoringSafeArea(.bottom)) {
                 HStack {
                     Image(systemName: "message")
                         .font(.system(size: 20, weight: .regular))

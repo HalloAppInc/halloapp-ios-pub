@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19E287" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="CContactsAvatar" representedClassName="CContactsAvatar" syncable="YES" codeGenerationType="class">
+    <entity name="CContactsAvatar" representedClassName="CContactsAvatar" syncable="YES">
         <attribute name="imageBlob" optional="YES" attributeType="Binary"/>
         <attribute name="imageUrl" optional="YES" attributeType="String"/>
         <attribute name="phone" optional="YES" attributeType="String"/>
     </entity>
-    <entity name="CFeedImage" representedClassName="CFeedImage" syncable="YES" codeGenerationType="class">
+    <entity name="CFeedImage" representedClassName="CFeedImage" syncable="YES">
         <attribute name="blob" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="feedItemId" optional="YES" attributeType="String"/>
         <attribute name="height" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -31,12 +31,12 @@
         <attribute name="phone" optional="YES" attributeType="String"/>
         <attribute name="timeLastChecked" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
     </entity>
-    <entity name="CPending" representedClassName="CPending" syncable="YES" codeGenerationType="class">
+    <entity name="CPending" representedClassName="CPending" syncable="YES">
         <attribute name="blob" optional="YES" attributeType="Binary"/>
         <attribute name="type" optional="YES" attributeType="String"/>
         <attribute name="url" optional="YES" attributeType="String"/>
     </entity>
-    <entity name="FeedComments" representedClassName="FeedComments" syncable="YES" codeGenerationType="class">
+    <entity name="FeedComments" representedClassName="FeedComments" syncable="YES">
         <attribute name="commentId" optional="YES" attributeType="String"/>
         <attribute name="feedItemId" optional="YES" attributeType="String"/>
         <attribute name="parentCommentId" optional="YES" attributeType="String"/>
@@ -45,7 +45,7 @@
         <attribute name="userImageUrl" optional="YES" attributeType="String"/>
         <attribute name="username" optional="YES" attributeType="String"/>
     </entity>
-    <entity name="FeedCore" representedClassName="FeedCore" syncable="YES" codeGenerationType="class">
+    <entity name="FeedCore" representedClassName="FeedCore" syncable="YES">
         <attribute name="cellHeight" optional="YES" attributeType="Integer 16" defaultValueString="-1" usesScalarValueType="YES"/>
         <attribute name="imageBlob" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="imageUrl" optional="YES" attributeType="String"/>

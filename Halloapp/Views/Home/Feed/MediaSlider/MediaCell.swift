@@ -17,11 +17,11 @@ struct MediaCell: View {
         return HStack {
 
             if (media.type == .image) {
-                if media.image != nil {
+                if media.isMediaAvailable {
                     Image(uiImage: media.image!)
                         .renderingMode(.original)
                         .resizable()
-                        .aspectRatio(media.image!.size, contentMode: .fit)
+                        .aspectRatio(media.size, contentMode: .fit)
                         .background(Color.gray)
                         .cornerRadius(10)
                         .pinchToZoom()
@@ -35,11 +35,11 @@ struct MediaCell: View {
                 }
             } else if (media.type == .video) {
 
-                if (media.tempUrl != nil) {
+                if media.isMediaAvailable {
                     /* note: in the simulator, this debug message appears when scrolling:
                      [framework] CUICatalog: Invalid asset name supplied: '(null)'
                      */
-                    WAVPlayer(videoURL: media.tempUrl!)
+                    WAVPlayer(videoURL: media.fileURL!)
                 } else {
                     VStack {
                         Spacer()

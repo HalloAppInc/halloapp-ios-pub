@@ -108,20 +108,20 @@ class CommentView: UIView {
         return (content, content.string.range(of: author))
     }
 
-    func updateWith(feedItem: FeedDataItem) {
-        let contactName = AppContext.shared.contactStore.fullName(for: feedItem.username)
-        let comment = feedItem.text ?? ""
+    func updateWith(feedPost: FeedPost) {
+        let contactName = AppContext.shared.contactStore.fullName(for: feedPost.userId)
+        let comment = feedPost.text ?? ""
         let content = self.contentString(author: contactName, text: comment)
         self.textLabel.attributedText = content.0
         self.textLabel.hyperlinkDetectionIgnoreRange = content.1
-        self.timestampLabel.text = feedItem.timestamp.commentTimestamp()
+        self.timestampLabel.text = feedPost.timestamp.commentTimestamp()
     }
 
-    func updateWith(commentItem: FeedComment) {
-        let contactName = AppContext.shared.contactStore.fullName(for: commentItem.username)
-        let content = self.contentString(author: contactName, text: commentItem.text)
+    func updateWith(comment: FeedPostComment) {
+        let contactName = AppContext.shared.contactStore.fullName(for: comment.userId)
+        let content = self.contentString(author: contactName, text: comment.text)
         self.textLabel.attributedText = content.0
         self.textLabel.hyperlinkDetectionIgnoreRange = content.1
-        self.timestampLabel.text = commentItem.timestamp.commentTimestamp()
+        self.timestampLabel.text = comment.timestamp.commentTimestamp()
     }
 }
