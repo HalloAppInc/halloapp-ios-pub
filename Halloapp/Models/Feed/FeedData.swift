@@ -537,17 +537,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // FeedPost objects should belong to main queue's context.
         assert(feedPosts.first!.managedObjectContext! == managedObjectContext)
 
+        var downloadStarted = false
         feedPosts.forEach { feedPost in
             feedPost.orderedMedia.forEach { feedPostMedia in
                 // Status could be "downloading" if download has previously started
                 // but the app was terminated before the download has finished.
                 if feedPostMedia.status == .none || feedPostMedia.status == .downloading || feedPostMedia.status == .downloadError {
-                    downloadManager.downloadMedia(for: feedPostMedia)
-                    feedPostMedia.status = .downloading
+                    if downloadManager.downloadMedia(for: feedPostMedia) {
+                        feedPostMedia.status = .downloading
+                        downloadStarted = true
+                    }
                 }
             }
         }
-        if managedObjectContext.hasChanges {
+        // Use `downloadStarted` to prevent recursive saves when posting media.
+        if managedObjectContext.hasChanges && downloadStarted {
             self.save(managedObjectContext)
         }
     }

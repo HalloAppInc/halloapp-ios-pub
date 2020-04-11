@@ -99,14 +99,18 @@ class FeedDownloadManager {
 
     private var tasks: Set<Task> = []
 
-    func downloadMedia(for feedPostMedia: FeedPostMedia) {
-        self.addTask(Task(feedPostMedia))
+    /**
+     - returns:
+     True if download task was scheduled.
+     */
+    @discardableResult func downloadMedia(for feedPostMedia: FeedPostMedia) -> Bool {
+        return self.addTask(Task(feedPostMedia))
     }
 
-    private func addTask(_ task: Task) {
+    @discardableResult private func addTask(_ task: Task) -> Bool {
         guard !self.tasks.contains(task) else {
             DDLogError("FeedDownloadManager/\(task.id)/duplicate [\(task.downloadURL)]")
-            return
+            return false
         }
         DDLogDebug("FeedDownloadManager/\(task.id)/download/start [\(task.downloadURL)]")
         let fileURL = self.fileURL(for: task).appendingPathExtension("enc")
@@ -133,6 +137,7 @@ class FeedDownloadManager {
                 }
         }
         self.tasks.insert(task)
+        return true
     }
 
     // MARK: Decryption
