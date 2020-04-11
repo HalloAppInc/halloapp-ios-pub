@@ -21,7 +21,7 @@ struct XMPPFeedMedia {
     let key: String?
     let sha256: String?
 
-    init?(feedMedia: PendingMedia) {
+    init(feedMedia: PendingMedia) {
         self.url = feedMedia.url!
         self.type = {
             switch feedMedia.type {
@@ -30,7 +30,7 @@ struct XMPPFeedMedia {
         }()
         self.size = feedMedia.size!
         self.key = feedMedia.key
-        self.sha256 = feedMedia.sha256hash
+        self.sha256 = feedMedia.sha256
     }
 
     /**
@@ -76,7 +76,7 @@ struct XMPPFeedPost {
         self.id = UUID().uuidString
         self.userPhoneNumber = AppContext.shared.userData.phone
         self.text = text
-        if let media = media?.compactMap({ XMPPFeedMedia(feedMedia: $0) }) {
+        if let media = media?.map({ XMPPFeedMedia(feedMedia: $0) }) {
             self.media = media
         } else {
             self.media = []

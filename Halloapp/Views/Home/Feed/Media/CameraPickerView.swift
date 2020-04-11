@@ -61,7 +61,7 @@ struct CameraPickerView: UIViewControllerRepresentable {
                 
             } else if let videoURL = info[.mediaURL] as? URL {
                 let mediaItem = PendingMedia(type: .video)
-                mediaItem.tempUrl = videoURL
+                mediaItem.videoURL = videoURL
                 
                 if let videoSize = VideoUtils().resolutionForLocalVideo(url: videoURL) {
                     mediaItem.size = videoSize

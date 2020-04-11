@@ -105,7 +105,7 @@ class ImageServer {
                 plaintextData = imgData
 
             case .video:
-                guard let videoUrl = item.tempUrl else {
+                guard let videoUrl = item.videoURL else {
                     DDLogError("ImageServer/video/prepare/error  Empty video URL. \(item)")
                     break
                 }
@@ -138,6 +138,20 @@ class ImageServer {
                     return
                 }
 
+                // Save unencrypted data to disk - this will be copied to Feed media directory
+                // if user proceeds posting media.
+                let tempMediaURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(item.url!.lastPathComponent)
+                DDLogDebug("ImageServer/media/copy to [\(tempMediaURL)]")
+                do {
+                    try plaintextData?.write(to: tempMediaURL, options: [ .atomic ])
+                    item.fileURL = tempMediaURL
+                }
+                catch {
+                    DDLogError("ImageServer/media/copy/error [\(error)]")
+                    self.mediaProcessingGroup.leave()
+                    return
+                }
+
                 let ts = Date()
                 DDLogDebug("ImageServer/encrypt/begin")
                 guard let (data, key, sha256) = HAC.encrypt(data: plaintextData!, mediaType: item.type) else {
@@ -157,7 +171,7 @@ class ImageServer {
 
                     // Encryption data would be send over the wire and saved to db.
                     item.key = key
-                    item.sha256hash = sha256
+                    item.sha256 = sha256
 
                     // Start upload.
                     DDLogDebug("ImageServer/upload/begin url=[\(mediaURL.get)]")

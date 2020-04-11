@@ -42,6 +42,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
         didSet {
             switch type {
             case .image:
+                guard self.image == nil else { return }
                 // TODO: investigate if loading is only necessary for some objects.
                 if (fileURL != nil) {
                     isImageLoaded = false
@@ -114,7 +115,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
         self.type = media.type
         self.image = media.image
         self.size = media.size!
-        self.fileURL = media.tempUrl
+        self.fileURL = media.fileURL ?? media.videoURL
         self.isMediaAvailable = true
     }
     
@@ -134,9 +135,10 @@ class PendingMedia {
     var url: URL?
     var size: CGSize?
     var key: String?
-    var sha256hash: String?
+    var sha256: String?
     var image: UIImage?
-    var tempUrl: URL?
+    var videoURL: URL?
+    var fileURL: URL?
 
     init(type: FeedPostMedia.MediaType) {
         self.type = type

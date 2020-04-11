@@ -96,7 +96,7 @@ struct PickerWrapper: UIViewControllerRepresentable {
                         if let asset = video.asset {
                             PHCachingImageManager().requestAVAsset(forVideo: asset, options: nil) { (avAsset, _, _) in
                                 let asset = avAsset as! AVURLAsset
-                                mediaItem.tempUrl = asset.url
+                                mediaItem.videoURL = asset.url
                                 self.selectedMedia.append(mediaItem)
                                 mediaGroup.leave()
                             }

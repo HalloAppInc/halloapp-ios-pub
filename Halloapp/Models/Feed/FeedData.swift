@@ -610,22 +610,25 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedPost.status = .sending
         feedPost.timestamp = Date()
         // Add post media.
-        for (index, xmppMedia) in xmppPost.media.enumerated() {
-            DDLogDebug("FeedData/new-post/add-media [\(xmppMedia.url)]")
+        for (index, mediaItem) in media.enumerated() {
+            DDLogDebug("FeedData/new-post/add-media [\(mediaItem.url!)]")
             let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
-            feedMedia.type = {
-                switch xmppMedia.type {
-                case .image: return .image
-                case .video: return .video }
-            }()
+            feedMedia.type = mediaItem.type
             feedMedia.status = .uploaded // For now we're only posting when all uploads are completed.
-            feedMedia.url = xmppMedia.url
-            feedMedia.size = xmppMedia.size
-            feedMedia.key = xmppMedia.key!
+            feedMedia.url = mediaItem.url!
+            feedMedia.size = mediaItem.size!
+            feedMedia.key = mediaItem.key!
+            feedMedia.sha256 = mediaItem.sha256!
             feedMedia.order = Int16(index)
-            feedMedia.sha256 = xmppMedia.sha256!
-            // TODO: set path.
             feedMedia.post = feedPost
+
+            // Copying depends on all data fields being set, so do this last.
+            do {
+                try downloadManager.copyMedia(from: mediaItem, to: feedMedia)
+            }
+            catch {
+                DDLogError("FeedData/new-post/copy-media/error [\(error)]")
+            }
         }
         self.save(managedObjectContext)
 

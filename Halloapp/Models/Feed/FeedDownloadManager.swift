@@ -42,6 +42,10 @@ class FeedDownloadManager {
             self.key = feedMedia.key
             self.sha256 = feedMedia.sha256
 
+            self.filename = Task.filename(for: feedMedia)
+        }
+
+        class func filename(for feedMedia: FeedPostMedia) -> String {
             let fileExtension: String = {
                 switch feedMedia.type {
                 case .image:
@@ -50,7 +54,7 @@ class FeedDownloadManager {
                     return "mp4"
                 }
             }()
-            self.filename = "\(id).\(fileExtension)"
+            return "\(feedMedia.post.id)-\(feedMedia.order).\(fileExtension)"
         }
 
         var fileURL: URL? {
@@ -62,13 +66,7 @@ class FeedDownloadManager {
                 if newValue == nil {
                     self.relativeFilePath = nil
                 } else {
-                    let fullPath = newValue!.path
-                    let mediaDirectoryPath = AppContext.mediaDirectoryURL.path
-                    if let range = fullPath.range(of: mediaDirectoryPath, options: [.anchored]) {
-                        self.relativeFilePath = String(fullPath.suffix(from: range.upperBound))
-                    } else {
-                        self.relativeFilePath = nil
-                    }
+                    self.relativeFilePath = FeedDownloadManager.relativePath(from: newValue!)
                 }
             }
         }
@@ -113,7 +111,7 @@ class FeedDownloadManager {
             return false
         }
         DDLogDebug("FeedDownloadManager/\(task.id)/download/start [\(task.downloadURL)]")
-        let fileURL = self.fileURL(for: task).appendingPathExtension("enc")
+        let fileURL = FeedDownloadManager.self.fileURL(for: task.filename).appendingPathExtension("enc")
         let destination: DownloadRequest.DownloadFileDestination = { _, _ in
             return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
         }
@@ -225,9 +223,9 @@ class FeedDownloadManager {
 
     // MARK: File management
 
-    private func fileURL(for task: Task) -> URL {
+    private class func fileURL(for mediaFilename: String) -> URL {
         var first: String?, second: String?
-        for ch in task.filename.unicodeScalars {
+        for ch in mediaFilename.unicodeScalars {
             guard CharacterSet.alphanumerics.contains(ch) else { continue }
             if first == nil {
                 first = String(ch)
@@ -241,6 +239,23 @@ class FeedDownloadManager {
         return AppContext.mediaDirectoryURL
                 .appendingPathComponent(first!, isDirectory: true)
                 .appendingPathComponent(second!, isDirectory: true)
-                .appendingPathComponent(task.filename, isDirectory: false)
+                .appendingPathComponent(mediaFilename, isDirectory: false)
+    }
+
+    private class func relativePath(from fileURL: URL) -> String? {
+        let fullPath = fileURL.path
+        let mediaDirectoryPath = AppContext.mediaDirectoryURL.path
+        if let range = fullPath.range(of: mediaDirectoryPath, options: [.anchored]) {
+            return String(fullPath.suffix(from: range.upperBound))
+        }
+        return nil
+    }
+
+    func copyMedia(from pendingMedia: PendingMedia, to feedPostMedia: FeedPostMedia) throws {
+        assert(pendingMedia.fileURL != nil)
+        let fileURL = FeedDownloadManager.fileURL(for: Task.filename(for: feedPostMedia))
+        try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+        try FileManager.default.copyItem(at: pendingMedia.fileURL!, to: fileURL)
+        feedPostMedia.relativeFilePath = FeedDownloadManager.relativePath(from: fileURL)
     }
 }
