@@ -63,7 +63,6 @@ class ImageServer {
             var plaintextData: Data? = nil
 
             let mediaResizeGroup = DispatchGroup()
-            mediaResizeGroup.enter()
             switch (item.type) {
             case .image:
                 guard let image = item.image else {
@@ -104,32 +103,32 @@ class ImageServer {
                 DDLogInfo("ImageServer/image/prepare/ready  JPEG Quality: [\(self.jpegCompressionQuality)] Size: [\(imgData.count)]")
 
                 plaintextData = imgData
-                mediaResizeGroup.leave()
 
             case .video:
                 guard let videoUrl = item.tempUrl else {
                     DDLogError("ImageServer/video/prepare/error  Empty video URL. \(item)")
                     break
                 }
-                guard let videoData = try? Data(contentsOf: videoUrl) else {
-                    DDLogError("ImageServer/video/prepare/error  Failed to load video. \(item)")
+                guard let fileAttrs = try? FileManager.default.attributesOfItem(atPath: videoUrl.path) else {
+                    DDLogError("ImageServer/video/prepare/error  Failed to get file attributes. \(item)")
                     break
                 }
-                DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(videoData.count)]")
+                let fileSize = fileAttrs[FileAttributeKey.size] as! NSNumber
+                DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)]")
 
-                VideoUtils().resizeVideo(inputUrl: videoUrl, completion: { outputUrl, videoSize in
-
+                mediaResizeGroup.enter()
+                VideoUtils().resizeVideo(inputUrl: videoUrl) { (outputUrl, videoSize) in
                     if let resizedVideoData = try? Data(contentsOf: outputUrl) {
+                        self.mediaProcessingGroup.enter()
                         DispatchQueue.main.async {
                             item.size = videoSize
-                            mediaResizeGroup.leave()
+                            self.mediaProcessingGroup.leave()
                         }
                         DDLogInfo("ImageServer/video/prepare/ready  New Video size: [\(resizedVideoData.count)]")
                         plaintextData = resizedVideoData
                     }
-                    
-                })
-    
+                    mediaResizeGroup.leave()
+                }
             }
 
             mediaResizeGroup.notify(queue: self.mediaProcessingQueue) {
@@ -139,7 +138,6 @@ class ImageServer {
                     return
                 }
 
-                // TODO: move encryption off the main thread
                 let ts = Date()
                 DDLogDebug("ImageServer/encrypt/begin")
                 guard let (data, key, sha256) = HAC.encrypt(data: plaintextData!, mediaType: item.type) else {
@@ -179,7 +177,6 @@ class ImageServer {
 
                 self.mediaProcessingGroup.leave()
             }
-            
         }
     }
 }
