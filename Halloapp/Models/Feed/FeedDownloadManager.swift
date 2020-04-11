@@ -81,7 +81,7 @@ class FeedDownloadManager {
     }
 
     weak var delegate: FeedDownloadManagerDelegate?
-    private let decryptionQueue = DispatchQueue(label: "com.halloapp.downloadmanager")
+    private let decryptionQueue = DispatchQueue(label: "com.halloapp.downloadmanager", qos: .userInitiated, attributes: [ .concurrent ])
 
     // MARK: Singleton
 
