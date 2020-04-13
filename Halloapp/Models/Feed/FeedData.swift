@@ -718,7 +718,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func refetchEverything() {
         let userIds = AppContext.shared.contactStore.allRegisteredContactIDs()
-        userIds.forEach { self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\($0)") }
+        self.xmppController.retrieveFeedData(for: userIds)
     }
 
     // MARK: Deletion

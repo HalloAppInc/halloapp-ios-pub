@@ -40,9 +40,9 @@ class XMPPController: NSObject, ObservableObject {
     var didGetFeedItems = PassthroughSubject<XMPPIQ, Never>()
 
     var xmppStream: XMPPStream
-    var xmppPubSub: XMPPPubSub
-    var xmppReconnect: XMPPReconnect
-    var xmppPing: XMPPPing
+    private var xmppPubSub: XMPPPubSub
+    private var xmppReconnect: XMPPReconnect
+    private var xmppPing: XMPPPing
 
     var userJID: XMPPJID?
     private let hostPort: UInt16 = 5222
@@ -250,6 +250,15 @@ class XMPPController: NSObject, ObservableObject {
             if request.cancelAndPrepareFor(retry: true) {
                 self.requestsToSend.append(request)
             }
+        }
+    }
+
+    // MARK: Feed
+
+    func retrieveFeedData<T: Collection>(for userIds: T) where T.Element == ABContact.UserID {
+        guard !userIds.isEmpty else { return }
+        userIds.forEach {
+            self.xmppPubSub.retrieveItems(fromNode: "feed-\($0)")
         }
     }
 }

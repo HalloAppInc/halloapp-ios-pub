@@ -758,9 +758,8 @@ class ContactStore {
             DDLogError("contacts/sync/process-results/save-error error=[\(error)]")
         }
 
-        for newUserID in newUsers {
-            self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(newUserID)")
-        }
+        // Retrieve feed data for newly discovered contacts.
+        self.xmppController.retrieveFeedData(for: newUsers)
 
         DDLogInfo("contacts/sync/process-results/finish time=[\(Date().timeIntervalSince(startTime))]")
     }
@@ -789,9 +788,7 @@ class ContactStore {
             DDLogError("contacts/snotification/process/save-error error=[\(error)]")
         }
 
-        for newUserID in newUsers {
-            self.xmppController.xmppPubSub.retrieveItems(fromNode: "feed-\(newUserID)")
-        }
+        self.xmppController.retrieveFeedData(for: newUsers)
     }
 
     private func resetStatusForAllContacts() {
@@ -821,7 +818,7 @@ class ContactStore {
 
     // MARK: Fetching contacts
 
-    func allRegisteredContactIDs() -> [String] {
+    func allRegisteredContactIDs() -> [ABContact.UserID] {
         let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
         fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
         do {
