@@ -758,8 +758,6 @@ class ContactStore {
             DDLogError("contacts/sync/process-results/save-error error=[\(error)]")
         }
 
-        // Retrieve feed data for newly discovered contacts.
-        self.xmppController.retrieveFeedData(for: newUsers)
 
         DDLogInfo("contacts/sync/process-results/finish time=[\(Date().timeIntervalSince(startTime))]")
     }
@@ -787,8 +785,6 @@ class ContactStore {
         } catch {
             DDLogError("contacts/snotification/process/save-error error=[\(error)]")
         }
-
-        self.xmppController.retrieveFeedData(for: newUsers)
     }
 
     private func resetStatusForAllContacts() {
