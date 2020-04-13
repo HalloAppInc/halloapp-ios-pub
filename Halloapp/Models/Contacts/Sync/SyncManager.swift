@@ -153,6 +153,14 @@ class SyncManager {
                 self.nextSyncDate = Date()
             }
         }
+        // This is needed when upgrading from 0.1.28 to 0.1.29+:
+        // Force full sync so that ContactsStoreMetadataContactsSynced flag is set.
+        if !contactStore.isContactsReady {
+            if !self.isSyncInProgress {
+                runFullSync = true
+                self.nextSyncDate = Date()
+            }
+        }
         // Time for a scheduled sync
         else if nextFullSyncDate!.timeIntervalSinceNow < 0 {
             runFullSync = true

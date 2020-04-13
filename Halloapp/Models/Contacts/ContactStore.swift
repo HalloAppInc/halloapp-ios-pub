@@ -20,6 +20,7 @@ import UIKit
 // MARK: Constants
 fileprivate let ContactStoreMetadataCollationLocale = "CollationLocale"
 fileprivate let ContactStoreMetadataContactsLoaded = "ContactsLoaded"
+fileprivate let ContactsStoreMetadataContactsSynced = "ContactsSynced"
 let ContactStoreMetadataNextFullSyncDate = "NextFullSyncDate"
 
 /**
@@ -113,11 +114,9 @@ fileprivate struct ContactProxy {
 }
 
 
-class ContactStore {
+class ContactStore: ObservableObject {
     private var userData: UserData
     private var xmppController: XMPPController
-    private var needReloadContacts = true
-    private var isReloadingContacts = false
 
     private let contactSerialQueue = DispatchQueue(label: "com.halloapp.contacts")
     private var cancellableSet: Set<AnyCancellable> = []
@@ -198,6 +197,9 @@ class ContactStore {
                 }
             }
         })
+
+        let syncCompleted = self.databaseMetadata?[ContactsStoreMetadataContactsSynced] as? Bool
+        self.isContactsReady = self.isContactsAvailable && (syncCompleted ?? false)
     }
 
 
@@ -250,10 +252,19 @@ class ContactStore {
 
 
     // MARK: Loading contacts
+    private var needReloadContacts = true
+    private var isReloadingContacts = false
+
+    /**
+     UI needs this to distinguish "no contacts" and "sync not yet done" cases.
+     This property is set to `true` when initial processing and sync of device contacts has been completed.
+     */
+    @Published var isContactsReady = false
+
     /**
      Whether or not contacts have been loaded from device Address Book into app's contact store.
      */
-    lazy var contactsAvailable: Bool = {
+    private lazy var isContactsAvailable: Bool = {
         guard let metadata = self.databaseMetadata else {
             return false
         }
@@ -331,6 +342,7 @@ class ContactStore {
     }
 
     private var syncWillBeEnabled = false
+    
     func enableContactSync() {
         if self.xmppController.isConnectedToServer {
             AppContext.shared.syncManager.enableSync()
@@ -356,7 +368,7 @@ class ContactStore {
         context.retainsRegisteredObjects = true
 
         let startTime = Date()
-        let contactsAvailable = self.contactsAvailable
+        let contactsAvailable = self.isContactsAvailable
 
         let allContactsRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
         allContactsRequest.returnsObjectsAsFaults = false
@@ -444,7 +456,7 @@ class ContactStore {
         DDLogInfo("contacts/reload/finished time=[\(Date().timeIntervalSince(startTime))]")
 
         // Re-sort contacts
-        var resortAllContacts = !self.contactsAvailable || numberOfContactsBeingUpdated == 0
+        var resortAllContacts = !contactsAvailable || numberOfContactsBeingUpdated == 0
         let currentLocale = Locale.current.languageCode
         if let lastLocale = self.databaseMetadata?[ContactStoreMetadataCollationLocale] as? String {
             if lastLocale != currentLocale {
@@ -535,8 +547,8 @@ class ContactStore {
         DDLogInfo("contacts/reload/finish time=[\(Date().timeIntervalSince(startTime))]")
 
         DispatchQueue.main.async {
-            if (!self.contactsAvailable) {
-                self.contactsAvailable = true
+            if !self.isContactsAvailable {
+                self.isContactsAvailable = true
                 self.mutateDatabaseMetadata{ metadata in
                     metadata[ContactStoreMetadataContactsLoaded] = true
                 }
@@ -758,6 +770,15 @@ class ContactStore {
             DDLogError("contacts/sync/process-results/save-error error=[\(error)]")
         }
 
+        let initialSyncCompleted = self.databaseMetadata?[ContactsStoreMetadataContactsSynced] as? Bool
+        if !(initialSyncCompleted ?? false) {
+            self.mutateDatabaseMetadata { (metadata) in
+                metadata[ContactsStoreMetadataContactsSynced] = true
+            }
+            DispatchQueue.main.async {
+                self.isContactsReady = true
+            }
+        }
 
         DDLogInfo("contacts/sync/process-results/finish time=[\(Date().timeIntervalSince(startTime))]")
     }

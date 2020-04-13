@@ -48,6 +48,7 @@ struct FeedTableView: UIViewControllerRepresentable {
 struct FeedView: View {
     @EnvironmentObject var mainViewController: MainViewController
     @ObservedObject var feedData = AppContext.shared.feedData
+    @ObservedObject var contactStore = AppContext.shared.contactStore
 
     @State private var showNotifications = false
     @State private var showShareSheet = false
@@ -58,21 +59,26 @@ struct FeedView: View {
             if feedData.isFeedEmpty {
                 Spacer()
 
-                Button(action: {
-                    self.feedData.refetchEverything()
-                }) {
-                    Text("Refresh")
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(24)
+                if contactStore.isContactsReady {
+                    Button(action: {
+                        self.feedData.refetchEverything()
+                    }) {
+                        Text("Refresh")
+                            .padding(.horizontal, 15)
+                            .padding(.vertical, 12)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(24)
+                    }
+                } else {
+                    Text("Loading...").font(.title)
                 }
 
                 Spacer()
             } else {
                 FeedTableView(isOnProfilePage: false)
             }
+
         }
         .overlay(BottomBarView())
 
