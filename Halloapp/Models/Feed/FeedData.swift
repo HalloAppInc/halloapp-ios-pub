@@ -172,20 +172,29 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return fetchedResultsController
     }()
 
+    private var trackPerRowChanges = false
+
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("FeedData/frc/will-change")
+        self.trackPerRowChanges = !self.feedDataItems.isEmpty
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any,
                     at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        guard trackPerRowChanges else { return }
         switch type {
         case .insert:
             guard let index = newIndexPath?.row, let feedPost = anObject as? FeedPost else {
                 return
             }
             DDLogDebug("FeedData/frc/insert [\(feedPost)] at [\(index)]")
-            // For some reason FRC will report invalid indexes when downloading initial batch of posts.
-            self.feedDataItems.insert(FeedDataItem(feedPost), at: min(index, self.feedDataItems.count))
+            // For some reason FRC can report invalid indexes when downloading initial batch of posts.
+            // When that happens, ignore further per-row updates and reload everything altogether in `didChange`.
+            if index < self.feedDataItems.count {
+                self.feedDataItems.insert(FeedDataItem(feedPost), at: index)
+            } else {
+                self.trackPerRowChanges = false
+            }
 
         case .delete:
             guard let index = indexPath?.row, let feedPost = anObject as? FeedPost else {
@@ -215,6 +224,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("FeedData/frc/did-change")
+        if !trackPerRowChanges {
+            if let feedPosts = self.fetchedResultsController.fetchedObjects {
+                self.feedDataItems = feedPosts .map { FeedDataItem($0) }
+                DDLogInfo("FeedData/frc/full-reload \(self.feedDataItems.count) posts")
+            }
+        }
         self.isFeedEmpty = self.feedDataItems.isEmpty
     }
 
