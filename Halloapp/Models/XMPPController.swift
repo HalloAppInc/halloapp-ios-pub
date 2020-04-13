@@ -43,8 +43,6 @@ class XMPPController: NSObject, ObservableObject {
     var xmppPubSub: XMPPPubSub
     var xmppReconnect: XMPPReconnect
     var xmppPing: XMPPPing
-    
-//    var xmppAutoPing: XMPPAutoPing
 
     var userJID: XMPPJID?
     private let hostPort: UInt16 = 5222
@@ -321,7 +319,6 @@ extension XMPPController: XMPPStreamDelegate {
         DDLogInfo("Stream: Start Negotiation")
     }
     
-    /* ssl */
     func xmppStream(_ sender: XMPPStream, willSecureWithSettings settings: NSMutableDictionary) {
         DDLogInfo("Stream: willSecureWithSettings")
         settings.setObject(true, forKey:GCDAsyncSocketManuallyEvaluateTrust as NSCopying)
@@ -414,9 +411,11 @@ extension XMPPController: XMPPStreamDelegate {
 }
 
 extension XMPPController: XMPPReconnectDelegate {
+
     public func xmppReconnect(_ sender: XMPPReconnect, didDetectAccidentalDisconnect connectionFlags: SCNetworkConnectionFlags) {
         DDLogInfo("xmppReconnect: didDetectAccidentalDisconnect")
     }
+
     public func xmppReconnect(_ sender: XMPPReconnect, shouldAttemptAutoReconnect connectionFlags: SCNetworkConnectionFlags) -> Bool {
         DDLogInfo("xmppReconnect: shouldAttemptAutoReconnect")
         self.isConnecting.send("isConnecting")
@@ -425,48 +424,18 @@ extension XMPPController: XMPPReconnectDelegate {
 }
 
 extension XMPPController: XMPPPingDelegate {
+
     public func xmppPing(_ sender: XMPPPing!, didReceivePong pong: XMPPIQ!, withRTT rtt: TimeInterval) {
         DDLogInfo("Ping: didReceivePong")
     }
+
     public func xmppPing(_ sender: XMPPPing!, didNotReceivePong pingID: String!, dueToTimeout timeout: TimeInterval) {
         DDLogInfo("Ping: didNotReceivePong")
     }
 }
 
-//extension XMPPController: XMPPAutoPingDelegate {
-//
-//    public func xmppAutoPingDidSend(_ sender: XMPPAutoPing) {
-//        DDLogInfo("xmppAutoPingDidSendPing")
-//    }
-//
-//    public func xmppAutoPingDidReceivePong(_ sender: XMPPAutoPing) {
-//        DDLogInfo("xmppAutoPingDidReceivePong")
-//    }
-//
-//    public func xmppAutoPingDidTimeout(_ sender: XMPPAutoPing) {
-//        DDLogInfo("xmppAutoPingDidTimeout")
-//    }
-//
-//}
-
 extension XMPPController: XMPPPubSubDelegate {
 
-    func xmppPubSub(_ sender: XMPPPubSub, didRetrieveSubscriptions iq: XMPPIQ) {
-//        DDLogInfo("PubSub: didRetrieveSubscriptions - \(iq)")
-    }
-
-//    func xmppPubSub(_ sender: XMPPPubSub, didNotRetrieveSubscriptions iq: XMPPIQ) {
-//        DDLogInfo("PubSub: didNotRetrieveSubscriptions - \(iq)")
-//    }
-    
-    func xmppPubSub(_ sender: XMPPPubSub, didSubscribeToNode node: String, withResult iq: XMPPIQ) {
-        DDLogInfo("PubSub: didSubscribeToNode - \(node)")
-    }
-    
-    func xmppPubSub(_ sender: XMPPPubSub, didNotSubscribeToNode node: String, withError iq: XMPPIQ) {
-        DDLogInfo("PubSub: didNotSubscribeToNode - \(node)")
-    }
-    
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveItems iq: XMPPIQ, fromNode node: String) {
 //        DDLogInfo("PubSub: didRetrieveItems - \(iq)")
         let pubsub = iq.element(forName: "pubsub")
@@ -480,10 +449,6 @@ extension XMPPController: XMPPPubSubDelegate {
             }
         }
     }
-    
-//    func xmppPubSub(_ sender: XMPPPubSub, didNotRetrieveItems iq: XMPPIQ, fromNode node: String) {
-//        DDLogInfo("PubSub: didNotRetrieveItems - \(iq)")
-//    }
 
     func xmppPubSub(_ sender: XMPPPubSub, didReceive message: XMPPMessage) {
 
