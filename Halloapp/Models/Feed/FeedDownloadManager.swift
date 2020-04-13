@@ -115,6 +115,7 @@ class FeedDownloadManager {
         let destination: DownloadRequest.DownloadFileDestination = { _, _ in
             return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
         }
+        // TODO: move reponse handler off the main thread.
         Alamofire.download(task.downloadURL, to: destination)
             .response { response in
                 if let httpResponse = response.response {
