@@ -47,6 +47,7 @@ struct FeedTableView: UIViewControllerRepresentable {
 
 struct FeedView: View {
     @EnvironmentObject var mainViewController: MainViewController
+    @ObservedObject var feedData = AppContext.shared.feedData
 
     @State private var showNotifications = false
     @State private var showShareSheet = false
@@ -54,7 +55,24 @@ struct FeedView: View {
 
     var body: some View {
         VStack {
-            FeedTableView(isOnProfilePage: false)
+            if feedData.isFeedEmpty {
+                Spacer()
+
+                Button(action: {
+                    self.feedData.refetchEverything()
+                }) {
+                    Text("Refresh")
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 12)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(24)
+                }
+
+                Spacer()
+            } else {
+                FeedTableView(isOnProfilePage: false)
+            }
         }
         .overlay(BottomBarView())
 

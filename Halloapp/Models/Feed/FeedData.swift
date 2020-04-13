@@ -144,6 +144,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Fetched Results Controller
 
+    @Published var isFeedEmpty: Bool = false
+
     var feedDataItems : [FeedDataItem] = []
 
     private func fetchFeedPosts() {
@@ -158,6 +160,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogError("FeedData/fetch/error [\(error)]")
             fatalError("Failed to fetch feed items \(error)")
         }
+        self.isFeedEmpty = self.feedDataItems.isEmpty
     }
 
     lazy var fetchedResultsController: NSFetchedResultsController<FeedPost> = {
@@ -212,6 +215,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("FeedData/frc/did-change")
+        self.isFeedEmpty = self.feedDataItems.isEmpty
     }
 
     // MARK: Fetching Feed Data
