@@ -13,7 +13,7 @@ struct MediaCell: View {
     @ObservedObject var media: FeedMedia
 
     var body: some View {
-        DDLogDebug("MediaCell/body [\(media.feedItemId)]:[\(media.order)]")
+        DDLogVerbose("MediaCell/body [\(media.feedItemId)]:[\(media.order)]")
         return HStack {
 
             if (media.type == .image) {
