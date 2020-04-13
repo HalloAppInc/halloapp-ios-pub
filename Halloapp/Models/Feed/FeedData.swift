@@ -152,11 +152,28 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    private func reloadFeedDataItems(using feedPosts: [FeedPost], fullReload: Bool = true) {
+        if fullReload {
+            self.feedDataItems = feedPosts.map { FeedDataItem($0) }
+            return
+        }
+
+        // Reload re-useing existing FeedDataItem.
+        // Preserving existing objects is a requirement for proper functioning of SwiftUI interfaces.
+        let feedDataItemMap = self.feedDataItems.reduce(into: [:]) { $0[$1.itemId] = $1 }
+        self.feedDataItems = feedPosts.map{ (feedPost) -> FeedDataItem in
+            if let feedDataItem = feedDataItemMap[feedPost.id] {
+                return feedDataItem
+            }
+            return FeedDataItem(feedPost)
+        }
+    }
+
     private func fetchFeedPosts() {
         do {
             try self.fetchedResultsController.performFetch()
             if let feedPosts = self.fetchedResultsController.fetchedObjects {
-                self.feedDataItems = feedPosts .map { FeedDataItem($0) }
+                self.reloadFeedDataItems(using: feedPosts)
                 DDLogInfo("FeedData/fetch/completed \(self.feedDataItems.count) posts")
             }
         }
@@ -229,8 +246,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         DDLogDebug("FeedData/frc/did-change")
         if !trackPerRowChanges {
             if let feedPosts = self.fetchedResultsController.fetchedObjects {
-                self.feedDataItems = feedPosts .map { FeedDataItem($0) }
-                DDLogInfo("FeedData/frc/full-reload \(self.feedDataItems.count) posts")
+                self.reloadFeedDataItems(using: feedPosts, fullReload: false)
+                DDLogInfo("FeedData/frc/reload \(self.feedDataItems.count) posts")
             }
         } else {
             self.isFeedEmpty = self.feedDataItems.isEmpty
