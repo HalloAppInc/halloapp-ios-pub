@@ -405,14 +405,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         DDLogInfo("FeedData/process-posts/finished  \(newPosts.count) new items.  \(xmppPosts.count - newPosts.count) duplicates.")
         self.save(managedObjectContext)
 
-        // Initiate downloads from the main thread.
-        // This is done to avoid race condition with downloads initiated from FeedTableView.
-        try? managedObjectContext.obtainPermanentIDs(for: newPosts)
-        let postObjectIDs = newPosts.map { $0.objectID }
-        DispatchQueue.main.async {
-            let managedObjectContext = self.viewContext
-            let feedPosts = postObjectIDs.compactMap{ try? managedObjectContext.existingObject(with: $0) as? FeedPost }
-            self.downloadMedia(in: feedPosts)
+        // Only initiate downloads for feed posts received in real-time.
+        // Media for older posts in the feed will be downloaded as user scrolls down.
+        if newPosts.count == 1 {
+            // Initiate downloads from the main thread.
+            // This is done to avoid race condition with downloads initiated from FeedTableView.
+            try? managedObjectContext.obtainPermanentIDs(for: newPosts)
+            let postObjectIDs = newPosts.map { $0.objectID }
+            DispatchQueue.main.async {
+                let managedObjectContext = self.viewContext
+                let feedPosts = postObjectIDs.compactMap{ try? managedObjectContext.existingObject(with: $0) as? FeedPost }
+                self.downloadMedia(in: feedPosts)
+            }
         }
 
         return newPosts
