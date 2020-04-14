@@ -342,8 +342,8 @@
 				764A0E67244617D800E1BDCE /* schema.pb.swift */,
 			);
 			path = Proto;
+		};
 		76B7E2F5243BB0560048A2FC /* Notifications */ = {
-		764A0E6324453FC900E1BDCE /* Notifications */ = {
 			isa = PBXGroup;
 			children = (
 				764A0E6424453FC900E1BDCE /* NotificationsView.swift */,
@@ -525,7 +525,7 @@
 		EA5AD43C23342B8C00429643 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				764A0E6324453FC900E1BDCE /* Notifications */,
+				76B7E2F5243BB0560048A2FC /* Notifications */,
 				EAC4AF1E233E7F6500739B2B /* Common */,
 				EA880C3A2368EE3C008965CF /* Auth */,
 				EA880C3B2368EE53008965CF /* Home */,
