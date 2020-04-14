@@ -52,6 +52,7 @@ struct NotificationsView: View {
                                     .scaledToFit()
                                     .foregroundColor(Color.gray)
                                     .frame(width: 36, height: 36, alignment: .center)
+                                    .cornerRadius(8)
                                     .padding(.zero)
                             }
                         }
