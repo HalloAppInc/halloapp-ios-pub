@@ -21,6 +21,7 @@
 		761C6168242D89F90028AE19 /* TextLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6167242D89F90028AE19 /* TextLabel.swift */; };
 		763B42AC243274F400FF0E82 /* FeedTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AB243274F400FF0E82 /* FeedTableView.swift */; };
 		763B42AE2435A74E00FF0E82 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AD2435A74E00FF0E82 /* Date.swift */; };
+		764A0E68244617D800E1BDCE /* schema.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E67244617D800E1BDCE /* schema.pb.swift */; };
 		765668CF240DCF7200214077 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668CE240DCF7100214077 /* MainView.swift */; };
 		765668D1240DE02400214077 /* BottomBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765668D0240DE02400214077 /* BottomBarView.swift */; };
 		76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CD62429331D007435AC /* CommentsViewController.swift */; };
@@ -131,6 +132,7 @@
 		761C6167242D89F90028AE19 /* TextLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextLabel.swift; path = HalloApp/Components/Views/TextLabel.swift; sourceTree = SOURCE_ROOT; };
 		763B42AB243274F400FF0E82 /* FeedTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedTableView.swift; path = HalloApp/Views/Home/Feed/FeedList/FeedTableView.swift; sourceTree = SOURCE_ROOT; };
 		763B42AD2435A74E00FF0E82 /* Date.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Date.swift; path = HalloApp/Components/Extensions/Date.swift; sourceTree = SOURCE_ROOT; };
+		764A0E67244617D800E1BDCE /* schema.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = schema.pb.swift; path = HalloApp/Proto/schema.pb.swift; sourceTree = SOURCE_ROOT; };
 		765668CE240DCF7100214077 /* MainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		765668D0240DE02400214077 /* BottomBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomBarView.swift; sourceTree = "<group>"; };
 		76B95CD62429331D007435AC /* CommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsViewController.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -308,6 +310,14 @@
 				761C6167242D89F90028AE19 /* TextLabel.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		764A0E662446167600E1BDCE /* Proto */ = {
+			isa = PBXGroup;
+			children = (
+				764A0E67244617D800E1BDCE /* schema.pb.swift */,
+			);
+			path = Proto;
 			sourceTree = "<group>";
 		};
 		76DF9FEA24122E9400F49CA4 /* CoreData Stack */ = {
@@ -573,8 +583,9 @@
 				EA0D20062363AC4D008B8289 /* Landing.swift */,
 				761C6165242D896E0028AE19 /* Components */,
 				EAC4AF21233E8D9700739B2B /* Network */,
-				146B93702405F2F900768AC6 /* Resources */,
 				EAF3A1CA2334192000805FF9 /* Preview Content */,
+				764A0E662446167600E1BDCE /* Proto */,
+				146B93702405F2F900768AC6 /* Resources */,
 				EAF3A1D02334192000805FF9 /* Info.plist */,
 				EAF3A1C22334191E00805FF9 /* AppDelegate.swift */,
 				EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */,
@@ -794,6 +805,7 @@
 				EAA6DEC62383AD8400C6D9C8 /* MessageUser.swift in Sources */,
 				EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */,
 				76DFA0072419BC1F00F49CA4 /* XMPPError.swift in Sources */,
+				764A0E68244617D800E1BDCE /* schema.pb.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				EA45713123EB7DA3008C2E44 /* FeedItemCore.swift in Sources */,
 				76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */,
