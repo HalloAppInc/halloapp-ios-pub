@@ -52,7 +52,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         // Setup fetched results controller the old way because it allows granular control over UI update operations.
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         if self.isOnProfilePage {
-            fetchRequest.predicate = NSPredicate(format: "userId == %@", AppContext.shared.userData.phone)
+            fetchRequest.predicate = NSPredicate(format: "userId == %@", AppContext.shared.userData.userId)
         }
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         self.fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: AppContext.shared.feedData.viewContext,
@@ -545,7 +545,7 @@ struct FeedItemFooterButtonsView: View {
             }
 
             // Message button
-            if (AppContext.shared.userData.phone != self.feedDataItem.username) {
+            if (AppContext.shared.userData.userId != self.feedDataItem.userId) {
                 Spacer()
 
                 Button(action: { self.showMessageView = true }) {

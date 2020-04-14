@@ -13,7 +13,7 @@ import Foundation
 class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
 
     var id: FeedPostID
-    var username: String
+    var userId: UserID
     var media: [FeedMedia]
 
     var commentsChange = PassthroughSubject<Int, Never>()
@@ -25,7 +25,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
 
     init(_ feedPost: FeedPost) {
         id = feedPost.id
-        username = feedPost.userId
+        userId = feedPost.userId
         unreadComments = Int(feedPost.unreadCount)
         media = feedPost.orderedMedia.map { FeedMedia($0) }
     }

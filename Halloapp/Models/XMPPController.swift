@@ -120,13 +120,7 @@ class XMPPController: NSObject, ObservableObject {
     func connect() {
         // Reconfigure credentials
         
-        var user = "\(self.userData.phone)@s.halloapp.net/iphone"
-        
-        if self.userData.useNewRegistration {
-            user = "\(self.userData.userId)@s.halloapp.net/iphone"
-        }
-    
-        self.userJID = XMPPJID(string: user)
+        self.userJID = XMPPJID(user: self.userData.userId, domain: "s.halloapp.net", resource: "iphone")
 
         self.xmppStream.hostName = self.userData.hostName
         self.xmppStream.myJID = self.userJID

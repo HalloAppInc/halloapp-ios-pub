@@ -11,15 +11,15 @@ import XMPPFramework
 
 struct XMPPComment {
     let id: FeedPostCommentID
-    let userPhoneNumber: String
+    let userId: UserID
     let parentId: FeedPostCommentID?
     let feedPostId: FeedPostID
     let text: String
     var timestamp: TimeInterval?
 
     init(text: String, feedPostId: FeedPostID, parentCommentId: FeedPostCommentID?) {
-        self.userPhoneNumber = AppContext.shared.userData.phone
         self.id = UUID().uuidString
+        self.userId = AppContext.shared.userData.userId
         self.parentId = parentCommentId
         self.feedPostId = feedPostId
         self.text = text
@@ -37,13 +37,13 @@ struct XMPPComment {
      */
     init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id") else { return nil }
-        guard let userPhoneNumber = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
+        guard let userId = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
         guard let comment = item.element(forName: "entry")?.element(forName: "comment") else { return nil }
         guard let feedItemId = comment.element(forName: "feedItemId")?.stringValue else { return nil }
         guard let text = comment.element(forName: "text")?.stringValue else { return nil }
 
         self.id = id
-        self.userPhoneNumber = userPhoneNumber
+        self.userId = userId
         self.feedPostId = feedItemId
         self.parentId = comment.element(forName: "parentCommentId")?.stringValue
         self.text = text

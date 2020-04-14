@@ -15,15 +15,9 @@ import CoreData
 
 final class UserData: ObservableObject {
 
-    /*
-     * temporary flag for switching back and forth between old/new registration
-     * note: also need to switch to s-test.halloapp.net for new registration to work
-     */
-    var useNewRegistration: Bool = true
 //    public var hostName = "s-test.halloapp.net"
     public var hostName = "s.halloapp.net"
 
-    
     var didLogOff = PassthroughSubject<Void, Never>()
         
     @Published var isRegistered = false
@@ -169,9 +163,7 @@ final class UserData: ObservableObject {
             }
         }
     }
-    
-    
-    
+
     func validate() -> Bool {
   
         if (self.name == "") {
@@ -232,135 +224,68 @@ final class UserData: ObservableObject {
                 }
             }
             
-            if self.useNewRegistration {
-                self.register()
-            } else {
-                self.registerPreBuild29()
-            }
-            
+            self.register()
+
             return true
         }
     }
     
     func register() {
-    
-        let endpoint = "https://api.halloapp.net/api/registration/request_sms"
+
+        guard let url = URL(string: "https://api.halloapp.net/api/registration/request_sms") else { return }
         
-        guard let url = URL(string: endpoint) else {
+        guard let data = try? JSONSerialization.data(withJSONObject: ["phone": self.phone]) else {
+            DDLogError("reg/request-sms/json-error")
             return
         }
-        
-        var json = [String:Any]()
-        
-        json["phone"] = self.phone
-        
-        do {
-            let data = try JSONSerialization.data(withJSONObject: json, options: [])
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.httpBody = data
 
-            let session = URLSession.shared
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = data
 
-            let task = session.dataTask(with: request, completionHandler: { data, response, error in
-                
-                if error == nil {
-                    
-                    guard let data = data else {
-                        return
-                    }
-                    
-                    struct registerRes: Codable {
-                        let phone: String?
-                        let result: String
-                        let error: String?
-                    }
-                    
-                    do {
-                        let res = try JSONDecoder().decode(registerRes.self, from: data)
-                        
-                        if let httpResponse = response as? HTTPURLResponse {
-                            DDLogInfo("reg/request-sms/http-response \(httpResponse.statusCode)")
-                            
-                            if httpResponse.statusCode == 200 {
-                                
-                                if res.phone != nil {
-                                    DispatchQueue.main.async {
-                                        self.isRegistered = true
-                                    }
-                                }
-                                
-                            } else {
-
-                                if let responseError = res.error {
-                                    DDLogInfo("reg/request-sms/http-response/error \(responseError)")
-                                    if responseError == "sms_fail" {
-                                        DispatchQueue.main.async {
-                                            self.status = "Error sending SMS"
-                                        }
-                                    } else {
-                                        DispatchQueue.main.async {
-                                            self.status = "Error trying to register"
-                                        }
-                                    }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
-                                        self.status = ""
-                                    }
-                                }
-                                
-                                return
-                            }
-                        }
-                        
-                    } catch let error {
-                        DDLogError("reg/request-sms/decode-json \(error)")
-                    }
-                    
-                } else {
-                    DDLogError("reg/request-sms URLSession error")
-                }
-                
-            })
-            task.resume()
-            
-        } catch {
-            DDLogError("reg/request-sms/data \(error)")
-        }
-    }
-    
-    func registerPreBuild29() {
-    
-        let session = URLSession.shared
-        let url = URL(string: "https://\(self.hostName)/cgi-bin/request.sh?user=\(self.phone)")!
-
-        let task = session.dataTask(with: url, completionHandler: { data, response, error in
-
-            struct registerRes: Codable {
-                let user: String
-                let result: String
+        let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
+            guard error == nil else {
+                DDLogError("reg/request-sms/error [\(error!)]")
+                return
             }
-            
-            if let data = data {
-                do {
-                    let res = try JSONDecoder().decode(registerRes.self, from: data)
-                    DDLogInfo("user: \(res.user)")
-                    DDLogInfo("result: \(res.result)")
-                    
+            guard let data = data else {
+                DDLogError("reg/request-sms/error Data is empty.")
+                return
+            }
+            guard let httpResponse = urlResponse as? HTTPURLResponse else {
+                DDLogError("reg/request-sms/error Invalid response. [\(String(describing: urlResponse))]")
+                return
+            }
+            guard let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                DDLogError("reg/request-sms/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
+                return
+            }
+            DDLogInfo("reg/request-sms/http-response \(httpResponse.statusCode) \(response)")
+
+            if httpResponse.statusCode == 200 {
+                if response["phone"] != nil {
                     DispatchQueue.main.async {
-                    
                         self.isRegistered = true
-                        
                     }
-                    
-                } catch let error {
-                   DDLogError("\(error)")
                 }
-             }
-
-        })
+            } else {
+                if let responseError = response["error"] as? String {
+                    if responseError == "sms_fail" {
+                        DispatchQueue.main.async {
+                            self.status = "Error sending SMS"
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            self.status = "Error trying to register"
+                        }
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+                        self.status = ""
+                    }
+                }
+            }
+        }
         task.resume()
-        
     }
-
+    
 }

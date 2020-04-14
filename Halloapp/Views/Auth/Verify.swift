@@ -37,15 +37,9 @@ struct Verify: View {
             
             VStack(spacing: 0) {
                                     
-                TextField("Verification Code", text: self.$verification.code, onEditingChanged: { (changed) in
-
-                    }) {
+                TextField("Verification Code", text: self.$verification.code) {
                         // pressing enter
-                        if self.userData.useNewRegistration {
-                            self.verification.verify(userData: self.userData)
-                        } else {
-                            self.verification.verifyPreBuild29(userData: self.userData)
-                        }
+                        self.verification.verify(userData: self.userData)
                     }
                     .textContentType(.oneTimeCode) // note: SMS needs to have the word "code" in it
                     .keyboardType(.numberPad)
@@ -71,13 +65,7 @@ struct Verify: View {
             .padding(EdgeInsets(top: 40, leading: 50, bottom: 10, trailing: 50))
             
             Button(action: {
-                if self.userData.useNewRegistration {
-                    print("new verify")
-                    self.verification.verify(userData: self.userData)
-                } else {
-                    print("old verify")
-                    self.verification.verifyPreBuild29(userData: self.userData)
-                }
+                self.verification.verify(userData: self.userData)
             }) {
                 Text("CONTINUE")
 

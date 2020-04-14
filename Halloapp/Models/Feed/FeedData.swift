@@ -59,7 +59,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogInfo("Feed: Got event for didConnect")
 
                 if self.fetchOwnFeed {
-                    self.xmppController.retrieveFeedData(for: [ userData.phone ])
+                    self.xmppController.retrieveFeedData(for: [ userData.userId ])
                     self.fetchOwnFeed = false
                 }
                 
@@ -387,7 +387,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogDebug("FeedData/process-posts/new [\(xmppPost.id)]")
             let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
             feedPost.id = xmppPost.id
-            feedPost.userId = xmppPost.userPhoneNumber
+            feedPost.userId = xmppPost.userId
             feedPost.text = xmppPost.text
             feedPost.status = .incoming
             if let ts = xmppPost.timestamp {
@@ -482,7 +482,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogDebug("FeedData/process-comments/new [\(xmppComment.id)]")
                 let comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
                 comment.id = xmppComment.id
-                comment.userId = xmppComment.userPhoneNumber
+                comment.userId = xmppComment.userId
                 comment.text = xmppComment.text
                 comment.parent = parentComment
                 comment.post = feedPost
@@ -545,7 +545,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func generateNotifications(for comments: [FeedPostComment], using managedObjectContext: NSManagedObjectContext) {
         guard !comments.isEmpty else { return }
 
-        let selfId = AppContext.shared.userData.phone
+        let selfId = AppContext.shared.userData.userId
         for comment in comments {
             // Step 1. Determine if comment is eligible for a notification.
             // This would be the person who posted comment.
@@ -726,7 +726,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         DDLogDebug("FeedData/new-post/create [\(xmppPost.id)]")
         let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
         feedPost.id = xmppPost.id
-        feedPost.userId = xmppPost.userPhoneNumber
+        feedPost.userId = xmppPost.userId
         feedPost.text = xmppPost.text
         feedPost.status = .sending
         feedPost.timestamp = Date()
@@ -790,7 +790,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         DDLogDebug("FeedData/new-comment/create id=[\(xmppComment.id)]  postId=[\(feedPost.id)]")
         let comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
         comment.id = xmppComment.id
-        comment.userId = xmppComment.userPhoneNumber
+        comment.userId = xmppComment.userId
         comment.text = xmppComment.text
         comment.parent = parentComment
         comment.post = feedPost

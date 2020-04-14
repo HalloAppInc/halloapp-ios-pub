@@ -67,14 +67,14 @@ struct XMPPFeedMedia {
 
 struct XMPPFeedPost {
     let id: FeedPostID
-    let userPhoneNumber: String
+    let userId: UserID
     let text: String?
     let media: [XMPPFeedMedia]
     var timestamp: TimeInterval?
 
     init(text: String?, media: [PendingMedia]?) {
         self.id = UUID().uuidString
-        self.userPhoneNumber = AppContext.shared.userData.phone
+        self.userId = AppContext.shared.userData.userId
         self.text = text
         if let media = media?.map({ XMPPFeedMedia(feedMedia: $0) }) {
             self.media = media
@@ -97,11 +97,11 @@ struct XMPPFeedPost {
      */
     init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id") else { return nil }
-        guard let userPhoneNumber = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
+        guard let userId = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
         guard let feedPost = item.element(forName: "entry")?.element(forName: "feedpost") else { return nil }
 
         self.id = id
-        self.userPhoneNumber = userPhoneNumber
+        self.userId = userId
         self.text = feedPost.element(forName: "text")?.stringValue
         if let media = feedPost.element(forName: "media") {
             self.media = media.elements(forName: "url").compactMap{ XMPPFeedMedia(urlElement: $0) }
@@ -152,7 +152,7 @@ class XMPPPostItemRequest : XMPPRequest {
             let pubsub = XMPPElement(name: "pubsub", xmlns: "http://jabber.org/protocol/pubsub")
             pubsub.addChild({
                 let publish = XMPPElement(name: "publish")
-                publish.addAttribute(withName: "node", stringValue: "feed-\(xmppFeedPost.userPhoneNumber)")
+                publish.addAttribute(withName: "node", stringValue: "feed-\(xmppFeedPost.userId)")
                 publish.addChild(xmppFeedPost.xmppElement)
                 return publish
             }())

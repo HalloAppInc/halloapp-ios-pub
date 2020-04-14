@@ -841,7 +841,7 @@ class ContactStore: ObservableObject {
         fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
         do {
             let allContacts = try self.persistentContainer.viewContext.fetch(fetchRequst)
-            return allContacts.compactMap { $0.normalizedPhoneNumber }
+            return allContacts.compactMap { $0.userId }
         }
         catch {
             fatalError()
@@ -850,15 +850,15 @@ class ContactStore: ObservableObject {
 
     // MARK: SwiftUI Support
 
-    func fullName(for phoneNumber: ABContact.NormalizedPhoneNumber) -> String {
-        if phoneNumber == self.userData.phone {
+    func fullName(for userID: UserID) -> String {
+        if userID == self.userData.userId {
             // TODO: return correct pronoun.
             return "Me"
         }
 
-        var fullName = phoneNumber
+        var fullName = String(userID.suffix(9)) // TODO: name!
         let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
-        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", phoneNumber)
+        fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
         do {
             let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
             if let name = contacts.first?.fullName {
@@ -871,15 +871,15 @@ class ContactStore: ObservableObject {
         return fullName
     }
 
-    func firstName(for phoneNumber: ABContact.NormalizedPhoneNumber) -> String {
-        if phoneNumber == self.userData.phone {
+    func firstName(for userID: UserID) -> String {
+        if userID == self.userData.userId {
             // TODO: return correct pronoun.
             return "I"
         }
 
-        var firstName = phoneNumber
+        var firstName = String(userID.suffix(9)) // TODO: name!
         let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
-        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", phoneNumber)
+        fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
         do {
             let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
             if let name = contacts.first?.givenName {
