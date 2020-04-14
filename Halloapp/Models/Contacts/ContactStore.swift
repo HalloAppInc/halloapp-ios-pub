@@ -721,7 +721,7 @@ class ContactStore: ObservableObject {
         return Dictionary(grouping: contacts, by: { $0.normalizedPhoneNumber! })
     }
 
-    private func update(contacts: [ABContact], with xmppContact: XMPPContact, updating newUsersSet: inout Set<ABContact.NormalizedPhoneNumber>) {
+    private func update(contacts: [ABContact], with xmppContact: XMPPContact) {
         let newStatus: ABContact.Status = xmppContact.registered ? .in : (xmppContact.normalized == nil ? .invalid : .out)
         if newStatus == .invalid {
             DDLogInfo("contacts/sync/process-results/invalid [\(xmppContact.raw!)]")
@@ -734,7 +734,6 @@ class ContactStore: ObservableObject {
 
                 if newStatus == .in {
                     DDLogInfo("contacts/sync/process-results/new-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
-                    newUsersSet.insert(xmppContact.normalized!)
                 } else if previousStatus == .in && newStatus == .out {
                     DDLogInfo("contacts/sync/process-results/delete-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
                 }
@@ -758,12 +757,10 @@ class ContactStore: ObservableObject {
         let startTime = Date()
 
         let allPhoneNumbers = results.map{ $0.raw! } // none must not be empty
-
         let phoneNumberToContactsMap = self.contactsMatching(phoneNumbers: allPhoneNumbers, in: managedObjectContext)
-        var newUsers: Set<ABContact.NormalizedPhoneNumber> = []
         for xmppContact in results {
             if let contacts = phoneNumberToContactsMap[xmppContact.raw!] {
-                self.update(contacts: contacts, with: xmppContact, updating: &newUsers)
+                self.update(contacts: contacts, with: xmppContact)
             }
         }
 
@@ -798,10 +795,9 @@ class ContactStore: ObservableObject {
             return
         }
         let phoneNumberToContactsMap = self.contactsMatching(normalizedPhoneNumbers: allNormalizedPhoneNumbers, in: managedObjectContext)
-        var newUsers: Set<ABContact.NormalizedPhoneNumber> = []
         for xmppContact in xmppContacts {
             if let contacts = phoneNumberToContactsMap[xmppContact.normalized!] {
-                self.update(contacts: contacts, with: xmppContact, updating: &newUsers)
+                self.update(contacts: contacts, with: xmppContact)
             }
         }
         DDLogInfo("contacts/notification/process/will-save")
