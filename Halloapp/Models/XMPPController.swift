@@ -70,6 +70,8 @@ class XMPPController: NSObject, ObservableObject {
         
 //        self.xmppStream.keepAliveInterval = 0.5;
         
+        self.xmppStream.registerCustomElementNames(["ack"])
+        
         let pubsubId = XMPPJID(string: "pubsub.s.halloapp.net")
         self.xmppPubSub = XMPPPubSub(serviceJID: pubsubId)
         
@@ -416,6 +418,14 @@ extension XMPPController: XMPPStreamDelegate {
 
     func xmppStream(_ sender: XMPPStream, didNotRegister error: DDXMLElement) {
         DDLogInfo("Stream: didNotRegister: \(error)")
+    }
+    
+    func xmppStream(_ sender: XMPPStream, didSendCustomElement element: DDXMLElement) {
+        DDLogInfo("Stream: didSendCustomElement: \(element)")
+    }
+
+    func xmppStream(_ sender: XMPPStream, didReceiveCustomElement element: DDXMLElement) {
+        DDLogInfo("Stream: didReceiveCustomElement: \(element)")
     }
 }
 
