@@ -37,11 +37,11 @@ struct NotificationsView: View {
                                 .scaledToFit()
                                 .foregroundColor(Color.gray)
                                 .clipShape(Circle())
-                                .frame(width: 36, height: 36, alignment: .center)
+                                .frame(width: 44, height: 44, alignment: .center)
                                 .padding(.zero)
 
                             // TODO: formatted text
-                            Text(notification.formattedText.string).font(.footnote)
+                            Text(notification.formattedText.string).font(.subheadline)
 
                             Spacer()
 
@@ -51,7 +51,7 @@ struct NotificationsView: View {
                                     .resizable()
                                     .scaledToFit()
                                     .foregroundColor(Color.gray)
-                                    .frame(width: 36, height: 36, alignment: .center)
+                                    .frame(width: 44, height: 44, alignment: .center)
                                     .cornerRadius(8)
                                     .padding(.zero)
                             }
