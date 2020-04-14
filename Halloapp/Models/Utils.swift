@@ -432,15 +432,4 @@ class Utils {
 
         return prefix
     }
-        
-    func sendAck(xmppStream: XMPPStream, id: String, from: String) {
-    
-        let ack = XMLElement(name: "ack")
-        ack.addAttribute(withName: "from", stringValue: "\(from)@s.halloapp.net/iphone")
-        ack.addAttribute(withName: "to", stringValue: "pubsub.s.halloapp.net")
-        ack.addAttribute(withName: "id", stringValue: id)
-        
-//        print("\(ack)")
-        xmppStream.send(ack)
-    }
 }

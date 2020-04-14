@@ -193,7 +193,21 @@ class XMPPController: NSObject, ObservableObject {
         }
         self.enqueue(request: request)
     }
-    
+
+    private func sendAck(for message: XMPPMessage) {
+        guard let id = message.elementID else { return }
+        guard let from = message.toStr else { return }
+        guard let to = message.fromStr else { return }
+
+        DDLogDebug("connection/send-ack id=[\(id)] to=[\(to)] from=[\(from)]")
+
+        let ack = XMLElement(name: "ack")
+        ack.addAttribute(withName: "from", stringValue: from)
+        ack.addAttribute(withName: "to", stringValue: to)
+        ack.addAttribute(withName: "id", stringValue: id)
+        self.xmppStream.send(ack)
+    }
+
     // MARK: Requests
     private var requestsInFlight: [XMPPRequest] = []
     private var requestsToSend: [XMPPRequest] = []
@@ -279,10 +293,7 @@ extension XMPPController: XMPPStreamDelegate {
         }
 
         // TODO: do not set ack for pubsub messages - that must be done in pubsub message handler, after processing of a message is complete.
-        if let id = message.elementID {
-            DDLogInfo("Message: Send Ack: id: \(id)")
-            Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
-        }
+        self.sendAck(for: message)
     }
     
     func xmppStream(_ sender: XMPPStream, didReceive iq: XMPPIQ) -> Bool {
@@ -499,10 +510,7 @@ extension XMPPController: XMPPPubSubDelegate {
             }
             
         }
-        
-        if let id = message.elementID {
-            DDLogInfo("Message: Send Ack: id: \(id)")
-            Utils().sendAck(xmppStream: self.xmppStream, id: id, from: self.userData.phone)
-        }
+
+        self.sendAck(for: message)
     }
 }
