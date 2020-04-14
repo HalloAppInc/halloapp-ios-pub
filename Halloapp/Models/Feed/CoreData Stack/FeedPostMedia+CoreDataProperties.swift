@@ -13,11 +13,6 @@ import UIKit
 
 extension FeedPostMedia {
 
-    enum MediaType: Int16 {
-        case image = 0
-        case video = 1
-    }
-
     enum Status: Int16 {
         case none = 0
         case uploading = 1
@@ -28,22 +23,22 @@ extension FeedPostMedia {
         case downloadError = 6
     }
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<FeedPostMedia> {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPostMedia> {
         return NSFetchRequest<FeedPostMedia>(entityName: "FeedPostMedia")
     }
 
-    var `type`: MediaType {
+    var `type`: FeedMediaType {
         get {
-            return MediaType(rawValue: self.typeValue)!
+            return FeedMediaType(rawValue: Int(self.typeValue))!
         }
         set {
-            self.typeValue = newValue.rawValue
+            self.typeValue = Int16(newValue.rawValue)
         }
     }
-    @NSManaged public var typeValue: Int16
-    @NSManaged public var relativeFilePath: String?
-    @NSManaged public var url: URL
-    @NSManaged public var post: FeedPost
+    @NSManaged var typeValue: Int16
+    @NSManaged var relativeFilePath: String?
+    @NSManaged var url: URL
+    @NSManaged var post: FeedPost
     @NSManaged private var statusValue: Int16
     var status: Status {
         get {

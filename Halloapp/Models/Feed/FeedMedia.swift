@@ -10,16 +10,14 @@ import CocoaLumberjack
 import Combine
 import Foundation
 
-typealias FeedMediaType = FeedPostMedia.MediaType
-
 class FeedMedia: Identifiable, ObservableObject, Hashable {
     static let imageLoadingQueue = DispatchQueue(label: "com.halloapp.media-loading", qos: .userInitiated)
 
     var id: String
 
-    var feedItemId: String
+    var feedPostId: FeedPostID
     var order: Int = 0
-    var type: FeedPostMedia.MediaType
+    var type: FeedMediaType
     var size: CGSize
     private var status: FeedPostMedia.Status
 
@@ -77,7 +75,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
     }
 
     init(_ feedPostMedia: FeedPostMedia) {
-        feedItemId = feedPostMedia.post.id
+        feedPostId = feedPostMedia.post.id
         order = Int(feedPostMedia.order)
         type = feedPostMedia.type
         size = feedPostMedia.size
@@ -87,13 +85,13 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
         if type == .video {
             isMediaAvailable = fileURL != nil
         }
-        id = "\(feedItemId)-\(order)"
+        id = "\(feedPostId)-\(order)"
         status = feedPostMedia.status
     }
 
     func reload(from feedPostMedia: FeedPostMedia) {
         assert(feedPostMedia.order == self.order)
-        assert(feedPostMedia.post.id == self.feedItemId)
+        assert(feedPostMedia.post.id == self.feedPostId)
         assert(feedPostMedia.type == self.type)
         assert(feedPostMedia.size == self.size)
         guard feedPostMedia.status != self.status else { return }
@@ -107,10 +105,10 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
         self.status = feedPostMedia.status
     }
 
-    init(_ media: PendingMedia, feedItemId: String) {
-        self.id = "\(feedItemId)-\(media.order)"
+    init(_ media: PendingMedia, feedPostId: FeedPostID) {
+        self.id = "\(feedPostId)-\(media.order)"
         self.status = .none
-        self.feedItemId = feedItemId
+        self.feedPostId = feedPostId
         self.order = media.order
         self.type = media.type
         self.image = media.image
@@ -131,7 +129,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
 
 class PendingMedia {
     var order: Int = 0
-    var type: FeedPostMedia.MediaType
+    var type: FeedMediaType
     var url: URL?
     var size: CGSize?
     var key: String?
@@ -140,7 +138,7 @@ class PendingMedia {
     var videoURL: URL?
     var fileURL: URL?
 
-    init(type: FeedPostMedia.MediaType) {
+    init(type: FeedMediaType) {
         self.type = type
     }
 }

@@ -24,7 +24,7 @@ class FeedDownloadManager {
         let feedMediaObjectId: NSManagedObjectID
 
         // These are required for decrypting.
-        let mediaType: FeedPostMedia.MediaType
+        let mediaType: FeedMediaType
         let key: String
         let sha256: String
 
@@ -81,6 +81,7 @@ class FeedDownloadManager {
     }
 
     weak var delegate: FeedDownloadManagerDelegate?
+    
     private let decryptionQueue = DispatchQueue(label: "com.halloapp.downloadmanager", qos: .userInitiated, attributes: [ .concurrent ])
 
     // MARK: Singleton

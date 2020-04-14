@@ -31,7 +31,7 @@ final class UserData: ObservableObject {
     
     public var compressionQuality: Float = 0.4
     
-    @Published var userId = ""
+    @Published var userId: UserID = ""
     @Published var phone = ""
     @Published var password = "11111111"
     

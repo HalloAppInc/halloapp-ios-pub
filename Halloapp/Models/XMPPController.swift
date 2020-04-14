@@ -255,7 +255,7 @@ class XMPPController: NSObject, ObservableObject {
 
     // MARK: Feed
 
-    func retrieveFeedData<T: Collection>(for userIds: T) where T.Element == ABContact.UserID {
+    func retrieveFeedData<T: Collection>(for userIds: T) where T.Element == UserID {
         guard !userIds.isEmpty else { return }
         userIds.forEach {
             self.xmppPubSub.retrieveItems(fromNode: "feed-\($0)")

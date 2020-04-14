@@ -14,7 +14,7 @@ struct WMediaSlider: UIViewRepresentable {
     @Binding var pageNum: Int
 
     func makeUIView(context: Context) -> UICollectionView {
-        DDLogVerbose("WMediaSlider/makeUIView [\(media.first?.feedItemId ?? "")]:[\(media.count)]")
+        DDLogVerbose("WMediaSlider/makeUIView [\(media.first?.feedPostId ?? "")]:[\(media.count)]")
         let layout = UICollectionViewFlowLayout()
         layout.sectionInset = .zero
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
@@ -44,7 +44,7 @@ struct WMediaSlider: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UICollectionView, context: Context) {
-        DDLogVerbose("WMediaSlider/updateUIView \(media.map{ $0.feedItemId })")
+        DDLogVerbose("WMediaSlider/updateUIView \(media.map{ $0.feedPostId })")
         guard uiView.window != nil else {
             // SwiftUI is asking to reload collection view when video transitions to fullscreen playback,
             // which in turn stops the fullscreen playback. Simply ignoring request to update view
@@ -94,7 +94,7 @@ enum MediaSliderSection {
 
 class MediaSliderCell: UICollectionViewCell {
     func configure(with media: FeedMedia) {
-        DDLogVerbose("MediaSliderCell/configure [\(media.feedItemId)]:[\(media.order)]")
+        DDLogVerbose("MediaSliderCell/configure [\(media.feedPostId)]:[\(media.order)]")
         let controller = UIHostingController(rootView: MediaCell(media: media))
         controller.view.frame = self.contentView.bounds
         controller.view.backgroundColor = UIColor.clear

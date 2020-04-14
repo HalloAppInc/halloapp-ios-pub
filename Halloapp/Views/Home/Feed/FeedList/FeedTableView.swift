@@ -305,7 +305,7 @@ class FeedItemContentView: UIView {
         let width = self.frame != .zero ? self.frame.size.width : UIScreen.main.bounds.size.width - 8*4
         let mediaHeight = feedDataItem.mediaHeight(for: width)
         if mediaHeight > 0 {
-            DDLogDebug("FeedTableViewCell/configure [\(feedDataItem.itemId)]")
+            DDLogDebug("FeedTableViewCell/configure [\(feedDataItem.id)]")
             let controller = UIHostingController(rootView: MediaSlider(feedDataItem).frame(height: mediaHeight))
             controller.view.backgroundColor = UIColor.clear
             controller.view.addConstraint({
@@ -511,7 +511,7 @@ struct FeedItemFooterButtonsView: View {
     var body: some View {
         HStack {
             // Comment button
-            NavigationLink(destination: CommentsView(feedPostId: self.feedDataItem.itemId).navigationBarTitle("Comments", displayMode: .inline).edgesIgnoringSafeArea(.bottom)) {
+            NavigationLink(destination: CommentsView(feedPostId: self.feedDataItem.id).navigationBarTitle("Comments", displayMode: .inline).edgesIgnoringSafeArea(.bottom)) {
                 HStack {
                     Image(systemName: "message")
                         .font(.system(size: 20, weight: .regular))

@@ -12,7 +12,7 @@ import Foundation
 
 class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
 
-    var itemId: FeedPost.ID
+    var id: FeedPostID
     var username: String
     var media: [FeedMedia]
 
@@ -24,7 +24,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     }
 
     init(_ feedPost: FeedPost) {
-        itemId = feedPost.id
+        id = feedPost.id
         username = feedPost.userId
         unreadComments = Int(feedPost.unreadCount)
         media = feedPost.orderedMedia.map { FeedMedia($0) }
@@ -56,10 +56,10 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     }
     
     static func == (lhs: FeedDataItem, rhs: FeedDataItem) -> Bool {
-        return lhs.itemId == rhs.itemId
+        return lhs.id == rhs.id
     }
     
     func hash(into hasher: inout Hasher) {
-        hasher.combine(itemId)
+        hasher.combine(id)
     }
 }

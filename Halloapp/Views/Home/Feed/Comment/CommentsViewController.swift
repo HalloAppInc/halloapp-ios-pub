@@ -16,7 +16,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
 
     typealias ReplyContext = (parentCommentId: String, userId: String)
 
-    private var feedPostId: FeedPost.ID?
+    private var feedPostId: FeedPostID?
     private var replyContext: ReplyContext? {
         didSet {
             self.refreshCommentInputViewReplyPanel()
@@ -38,7 +38,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         return tableView
     }()
 
-    init(feedPostId: FeedPost.ID) {
+    init(feedPostId: FeedPostID) {
         DDLogDebug("CommentsViewController/init/\(feedPostId)")
         self.feedPostId = feedPostId
         super.init(nibName: nil, bundle: nil)
@@ -138,7 +138,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         guard let comments = self.fetchedResultsController?.fetchedObjects else { return }
         var sortedResults: [FeedPostComment] = []
 
-        func findChildren(of commentId: FeedPostComment.ID?) {
+        func findChildren(of commentId: FeedPostCommentID?) {
             let children = comments.filter{ $0.parent?.id == commentId }
             for child in children {
                 sortedResults.append(child)

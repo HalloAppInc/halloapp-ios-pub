@@ -12,8 +12,6 @@ import CoreData
 
 extension FeedPost {
 
-    typealias ID = String
-
     enum Status: Int16 {
         case none = 0
         case sending = 1
@@ -26,10 +24,10 @@ extension FeedPost {
         return NSFetchRequest<FeedPost>(entityName: "FeedPost")
     }
 
-    @NSManaged var id: ID
+    @NSManaged var id: FeedPostID
     @NSManaged var text: String?
     @NSManaged var timestamp: Date
-    @NSManaged var userId: String
+    @NSManaged var userId: UserID
     @NSManaged var comments: NSSet?
     @NSManaged var media: NSSet?
     @NSManaged var unreadCount: Int32

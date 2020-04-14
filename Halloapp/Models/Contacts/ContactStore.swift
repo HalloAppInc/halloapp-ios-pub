@@ -17,7 +17,12 @@ import CoreData
 import Foundation
 import UIKit
 
+// MARK: Types
+typealias UserID = String
+
+
 // MARK: Constants
+
 fileprivate let ContactStoreMetadataCollationLocale = "CollationLocale"
 fileprivate let ContactStoreMetadataContactsLoaded = "ContactsLoaded"
 fileprivate let ContactsStoreMetadataContactsSynced = "ContactsSynced"
@@ -364,7 +369,7 @@ class ContactStore: ObservableObject {
         - context: Managed object context to use.
         - completion: Code to execute on method completion.
      */
-    private func reloadContacts(using context: NSManagedObjectContext, completion: (_ deletedIDs: Set<ABContact.NormalizedPhoneNumber>?, _ error: Error?) -> Void) {
+    private func reloadContacts(using context: NSManagedObjectContext, completion: (_ deletedPhoneNumbers: Set<ABContact.NormalizedPhoneNumber>?, _ error: Error?) -> Void) {
         context.retainsRegisteredObjects = true
 
         let startTime = Date()
@@ -418,8 +423,8 @@ class ContactStore: ObservableObject {
 
         // This will contain the up-to-date set of all address book contacts.
         var allContacts: [ABContact] = []
-        // Track which userIDs were really deleted.
-        var deletedUserIDs: Set<ABContact.NormalizedPhoneNumber> = Set(), existingUserIDs: Set<ABContact.NormalizedPhoneNumber> = Set()
+        // Track which phone numbers were really deleted.
+        var deletedPhoneNumbers: Set<ABContact.NormalizedPhoneNumber> = Set(), existingPhoneNumbers: Set<ABContact.NormalizedPhoneNumber> = Set()
         var uniqueContactKeys: Set<String> = Set()
 
         // Create/update ABContact entries from device contacts.
@@ -446,7 +451,7 @@ class ContactStore: ObservableObject {
                     // they will not be in "contactsToDelete".
                     contactsToDelete.removeAll(where: { contacts.contains($0) })
                 }
-                existingUserIDs.formUnion(contacts.compactMap{ $0.normalizedPhoneNumber })
+                existingPhoneNumbers.formUnion(contacts.compactMap{ $0.normalizedPhoneNumber })
             }
         } catch {
             DDLogError("Failed to fetch device contacts: \(error)")
@@ -521,16 +526,16 @@ class ContactStore: ObservableObject {
             // derived from a snapshot of all the WAAddressBookContact objects in our db prior to fetching all the
             // address book records.
             for contactToDelete in contactsToDelete {
-                DDLogInfo("contacts/reload/will-delete id=[\(contactToDelete.identifier ?? ""))] phone=[\(contactToDelete.phoneNumber ?? ""))] userid=[\(contactToDelete.normalizedPhoneNumber ?? ""))]")
+                DDLogInfo("contacts/reload/will-delete id=[\(contactToDelete.identifier ?? ""))] phone=[\(contactToDelete.phoneNumber ?? ""))] userid=[\(contactToDelete.userId ?? ""))]")
                 if let normalizedPhoneNumber = contactToDelete.normalizedPhoneNumber {
-                    deletedUserIDs.insert(normalizedPhoneNumber)
+                    deletedPhoneNumbers.insert(normalizedPhoneNumber)
                 }
                 context.delete(contactToDelete)
             }
         }
 
         // If phone number was deleted in one contact, but is still present in another, we should not report it as deleted to the server.
-        deletedUserIDs.subtract(existingUserIDs)
+        deletedPhoneNumbers.subtract(existingPhoneNumbers)
 
         DDLogInfo("contacts/reload/will-save time=[\(Date().timeIntervalSince(startTime))]")
         do {
@@ -555,7 +560,7 @@ class ContactStore: ObservableObject {
             }
         }
 
-        completion(deletedUserIDs, nil);
+        completion(deletedPhoneNumbers, nil);
     }
 
     /**
@@ -835,7 +840,7 @@ class ContactStore: ObservableObject {
 
     // MARK: Fetching contacts
 
-    func allRegisteredContactIDs() -> [ABContact.UserID] {
+    func allRegisteredContactIDs() -> [UserID] {
         let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
         fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
         do {

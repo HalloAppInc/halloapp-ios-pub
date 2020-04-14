@@ -70,7 +70,7 @@ struct PostComposerView: View {
                 .hidden()
 
             if self.mediaItemsToPost.count > 0 {
-                MediaPreviewSlider(self.mediaItemsToPost.map { FeedMedia($0, feedItemId: "") })
+                MediaPreviewSlider(self.mediaItemsToPost.map { FeedMedia($0, feedPostId: "") })
                     .frame(height: 200, alignment: .center)
             }
         

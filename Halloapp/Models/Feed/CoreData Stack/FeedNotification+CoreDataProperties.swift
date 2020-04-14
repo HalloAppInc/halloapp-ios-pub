@@ -23,7 +23,7 @@ extension FeedNotification {
         case video = 2
     }
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<FeedNotification> {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<FeedNotification> {
         return NSFetchRequest<FeedNotification>(entityName: "FeedNotification")
     }
 
@@ -36,13 +36,13 @@ extension FeedNotification {
             self.eventValue = newValue.rawValue
         }
     }
-    @NSManaged public var commentId: String?
-    @NSManaged public var mediaPreview: Data?
-    @NSManaged public var postId: String
-    @NSManaged public var userId: String
-    @NSManaged public var read: Bool
-    @NSManaged public var text: String?
-    @NSManaged public var timestamp: Date
+    @NSManaged var commentId: FeedPostCommentID?
+    @NSManaged var mediaPreview: Data?
+    @NSManaged var postId: FeedPostID
+    @NSManaged var userId: UserID
+    @NSManaged var read: Bool
+    @NSManaged var text: String?
+    @NSManaged var timestamp: Date
     @NSManaged private var postMediaType: Int16
     var mediaType: MediaType {
         get {

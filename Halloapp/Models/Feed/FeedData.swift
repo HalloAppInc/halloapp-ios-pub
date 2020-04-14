@@ -13,6 +13,15 @@ import Foundation
 import SwiftUI
 import XMPPFramework
 
+// MARK: Types
+
+typealias FeedPostID = String
+typealias FeedPostCommentID = String
+enum FeedMediaType: Int {
+    case image = 0
+    case video = 1
+}
+
 class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate {
 
     private var userData: UserData
@@ -170,7 +179,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Reload re-useing existing FeedDataItem.
         // Preserving existing objects is a requirement for proper functioning of SwiftUI interfaces.
-        let feedDataItemMap = self.feedDataItems.reduce(into: [:]) { $0[$1.itemId] = $1 }
+        let feedDataItemMap = self.feedDataItems.reduce(into: [:]) { $0[$1.id] = $1 }
         self.feedDataItems = feedPosts.map{ (feedPost) -> FeedDataItem in
             if let feedDataItem = feedDataItemMap[feedPost.id] {
                 return feedDataItem
@@ -266,8 +275,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Fetching Feed Data
 
-    func feedDataItem(with itemId: String) -> FeedDataItem? {
-        return self.feedDataItems.first(where: { $0.itemId == itemId })
+    func feedDataItem(with id: FeedPostID) -> FeedDataItem? {
+        return self.feedDataItems.first(where: { $0.id == id })
     }
 
     private func feedPosts(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPost] {
@@ -286,15 +295,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func feedPost(with id: FeedPost.ID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedPost? {
+    func feedPost(with id: FeedPostID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedPost? {
         return self.feedPosts(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
 
-    private func feedPosts(with ids: Set<FeedPost.ID>, in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPost] {
+    private func feedPosts(with ids: Set<FeedPostID>, in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPost] {
         return feedPosts(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext)
     }
 
-    private func feedComment(with id: FeedPostComment.ID, in managedObjectContext: NSManagedObjectContext) -> FeedPostComment? {
+    private func feedComment(with id: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext) -> FeedPostComment? {
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", id)
         fetchRequest.returnsObjectsAsFaults = false
@@ -308,7 +317,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func feedComments(with ids: Set<FeedPostComment.ID>, in managedObjectContext: NSManagedObjectContext) -> [FeedPostComment] {
+    private func feedComments(with ids: Set<FeedPostCommentID>, in managedObjectContext: NSManagedObjectContext) -> [FeedPostComment] {
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id in %@", ids)
         fetchRequest.returnsObjectsAsFaults = false
@@ -324,7 +333,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Updates
 
-    private func updateFeedPost(with id: FeedPost.ID, block: @escaping (FeedPost) -> Void) {
+    private func updateFeedPost(with id: FeedPostID, block: @escaping (FeedPost) -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedPost = self.feedPost(with: id, in: managedObjectContext) else {
                 DDLogError("FeedData/update-post/missing-post [\(id)]")
@@ -338,7 +347,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func updateFeedPostComment(with id: FeedPostComment.ID, block: @escaping (FeedPostComment) -> Void) {
+    private func updateFeedPostComment(with id: FeedPostCommentID, block: @escaping (FeedPostComment) -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let comment = self.feedComment(with: id, in: managedObjectContext) else {
                 DDLogError("FeedData/update-comment/missing-comment [\(id)]")
@@ -352,7 +361,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func markCommentsAsRead(feedPostId: FeedPost.ID) {
+    func markCommentsAsRead(feedPostId: FeedPostID) {
         self.updateFeedPost(with: feedPostId) { (feedPost) in
             if feedPost.unreadCount != 0 {
                 feedPost.unreadCount = 0
@@ -615,7 +624,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func reloadMedia(feedPostId: FeedPost.ID, order: Int) {
+    func reloadMedia(feedPostId: FeedPostID, order: Int) {
         guard let feedDataItem = self.feedDataItem(with: feedPostId) else { return }
         guard let feedPost = self.feedPost(with: feedPostId) else { return }
         feedDataItem.reloadMedia(from: feedPost, order: order)
@@ -762,13 +771,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         AppContext.shared.xmppController.enqueue(request: request)
     }
 
-    func post(comment text: String, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostComment.ID? = nil) {
-        let xmppComment = XMPPComment(text: text, feedPostId: feedItem.itemId, parentCommentId: parentCommentId)
+    func post(comment text: String, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostCommentID? = nil) {
+        let xmppComment = XMPPComment(text: text, feedPostId: feedItem.id, parentCommentId: parentCommentId)
 
         // Create and save FeedPostComment
         let managedObjectContext = self.persistentContainer.viewContext
-        guard let feedPost = self.feedPost(with: feedItem.itemId, in: managedObjectContext) else {
-            DDLogError("FeedData/new-comment/error  Missing FeedPost with id [\(feedItem.itemId)]")
+        guard let feedPost = self.feedPost(with: feedItem.id, in: managedObjectContext) else {
+            DDLogError("FeedData/new-comment/error  Missing FeedPost with id [\(feedItem.id)]")
             fatalError("Unable to find FeedPost")
         }
         var parentComment: FeedPostComment?

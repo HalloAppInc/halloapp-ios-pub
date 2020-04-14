@@ -10,14 +10,14 @@ import Foundation
 import XMPPFramework
 
 struct XMPPComment {
-    let id: String
+    let id: FeedPostCommentID
     let userPhoneNumber: String
-    let parentId: String?
-    let feedPostId: String
+    let parentId: FeedPostCommentID?
+    let feedPostId: FeedPostID
     let text: String
     var timestamp: TimeInterval?
 
-    init(text: String, feedPostId: String, parentCommentId: String?) {
+    init(text: String, feedPostId: FeedPostID, parentCommentId: FeedPostCommentID?) {
         self.userPhoneNumber = AppContext.shared.userData.phone
         self.id = UUID().uuidString
         self.parentId = parentCommentId
@@ -79,7 +79,7 @@ class XMPPPostCommentRequest : XMPPRequest {
 
     let completion: XMPPPostCommentRequestCompletion
 
-    init(xmppComment: XMPPComment, postAuthor: String, completion: @escaping XMPPPostCommentRequestCompletion) {
+    init(xmppComment: XMPPComment, postAuthor: UserID, completion: @escaping XMPPPostCommentRequestCompletion) {
         self.completion = completion
 
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"), elementID: UUID().uuidString)

@@ -66,7 +66,7 @@ struct XMPPFeedMedia {
 }
 
 struct XMPPFeedPost {
-    let id: String
+    let id: FeedPostID
     let userPhoneNumber: String
     let text: String?
     let media: [XMPPFeedMedia]

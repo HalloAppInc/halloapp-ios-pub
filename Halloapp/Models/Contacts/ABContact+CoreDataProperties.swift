@@ -11,7 +11,6 @@ import Foundation
 import CoreData
 
 extension ABContact {
-    typealias UserID = String
 
     typealias NormalizedPhoneNumber = String
 

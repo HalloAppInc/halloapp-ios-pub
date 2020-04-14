@@ -17,7 +17,7 @@ struct MediaSlider: View {
     @State var pageNum: Int = 0
     
     init(_ item: FeedDataItem) {
-        DDLogDebug("MediaSlider/init [\(item.itemId)]")
+        DDLogDebug("MediaSlider/init [\(item.id)]")
         self.item = item
         self._media = State(initialValue: item.media)
     }
@@ -29,13 +29,13 @@ struct MediaSlider: View {
             self.cancellableSet.insert(
                 /* for new items */
                 self.item.objectWillChange.sink { _ in
-                    DDLogDebug("MediaSlider/objectWillChange [\(self.item.itemId)]")
+                    DDLogDebug("MediaSlider/objectWillChange [\(self.item.id)]")
                     self.media = self.item.media
                 }
             )
         }
 
-        DDLogDebug("MediaSlider/body [\(item.itemId)]: \(self.media.count) items")
+        DDLogDebug("MediaSlider/body [\(item.id)]: \(self.media.count) items")
         return
             VStack(spacing: 5) {
                 WMediaSlider(media: $media, pageNum: $pageNum)

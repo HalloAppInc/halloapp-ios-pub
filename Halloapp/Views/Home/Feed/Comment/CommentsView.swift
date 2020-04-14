@@ -11,9 +11,9 @@ import UIKit
 
 struct CommentsView: UIViewControllerRepresentable {
     typealias UIViewControllerType = CommentsViewController
-    private var feedPostId: FeedPost.ID
+    private var feedPostId: FeedPostID
 
-    init(feedPostId: FeedPost.ID) {
+    init(feedPostId: FeedPostID) {
         self.feedPostId = feedPostId
     }
 
