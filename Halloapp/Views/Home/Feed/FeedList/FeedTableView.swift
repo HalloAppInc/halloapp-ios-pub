@@ -467,6 +467,17 @@ class FeedTableHeaderView: UIView {
         return imageView
     }()
 
+    private lazy var nameLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.textColor = UIColor.label
+        label.numberOfLines = 1
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = AppContext.shared.userData.name
+        return label
+    }()
+    
     private lazy var textLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.preferredFont(forTextStyle: .headline)
@@ -479,7 +490,7 @@ class FeedTableHeaderView: UIView {
     }()
 
     private func setupView() {
-        let vStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.textLabel ])
+        let vStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.nameLabel, self.textLabel ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.spacing = 8
         vStack.axis = .vertical

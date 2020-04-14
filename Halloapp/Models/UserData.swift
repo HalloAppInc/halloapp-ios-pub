@@ -19,7 +19,7 @@ final class UserData: ObservableObject {
      * temporary flag for switching back and forth between old/new registration
      * note: also need to switch to s-test.halloapp.net for new registration to work
      */
-    var useNewRegistration: Bool = false
+    var useNewRegistration: Bool = true
 //    public var hostName = "s-test.halloapp.net"
     public var hostName = "s.halloapp.net"
 
@@ -32,6 +32,8 @@ final class UserData: ObservableObject {
     public var compressionQuality: Float = 0.4
     
     @Published var userId: UserID = ""
+    @Published var name = ""
+
     @Published var phone = ""
     @Published var password = "11111111"
     
@@ -48,7 +50,7 @@ final class UserData: ObservableObject {
     private var charsForSubmission = CharacterSet(charactersIn: "1234567890") // strip everything except for numbers
         
     let userCore = UserCore()
-    private var subCancellable: AnyCancellable!
+    private var cancellableSet: Set<AnyCancellable> = []
 
     init() {
 
@@ -61,11 +63,26 @@ final class UserData: ObservableObject {
         self.phoneInput,
         self.userId,
         self.password,
+        self.name,
         self.phone,
         self.isLoggedIn) = userCore.get()
 
-        subCancellable = $phoneInput.sink { val in
+        self.cancellableSet.insert(self.$name.sink { val in
+
+            if (val.count > 30) {
+                self.status = "Name must be less than 30 characters"
+                DispatchQueue.main.async {
+                    self.name = String(val.prefix(30))
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+                    self.status = ""
+                }
+            }
             
+        })
+        
+        self.cancellableSet.insert(self.$phoneInput.sink { val in
+
             if (val.rangeOfCharacter(from: self.charsForDisplay.inverted) != nil) {
         
                 self.status = "Please enter only numbers"
@@ -92,13 +109,10 @@ final class UserData: ObservableObject {
                 
             }
             
-        }
+        })
+        
     }
     
-    deinit {
-        subCancellable.cancel()
-    }
-        
     func logIn() {
         self.isLoggedIn = true
         self.save()
@@ -134,6 +148,7 @@ final class UserData: ObservableObject {
                                  phoneInput: self.phoneInput,
                                  userId: self.userId,
                                  password: self.password,
+                                 name: self.name,
                                  phone: self.phone,
                                  isLoggedIn: self.isLoggedIn)
         }
@@ -159,7 +174,10 @@ final class UserData: ObservableObject {
     
     func validate() -> Bool {
   
-        if (self.countryCode == "" || (Int(self.countryCode) ?? 0) < 1) {
+        if (self.name == "") {
+            self.status = "Please enter a name"
+            return false
+        } else if (self.countryCode == "" || (Int(self.countryCode) ?? 0) < 1) {
             self.status = "Please enter a country code"
             self.highlightCountryCode = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
@@ -208,6 +226,7 @@ final class UserData: ObservableObject {
                                          phoneInput: self.phoneInput,
                                          userId: self.userId,
                                          password: self.password,
+                                         name: self.name,
                                          phone: self.phone,
                                          isLoggedIn: self.isLoggedIn)
                 }
@@ -234,7 +253,7 @@ final class UserData: ObservableObject {
         var json = [String:Any]()
         
         json["phone"] = self.phone
-    
+        
         do {
             let data = try JSONSerialization.data(withJSONObject: json, options: [])
             

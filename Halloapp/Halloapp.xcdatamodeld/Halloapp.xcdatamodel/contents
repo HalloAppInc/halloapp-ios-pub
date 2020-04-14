@@ -62,6 +62,7 @@
         <attribute name="imageBlob" optional="YES" attributeType="Binary"/>
         <attribute name="imageUrl" optional="YES" attributeType="String"/>
         <attribute name="isLoggedIn" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" defaultValueString=""/>
         <attribute name="password" optional="YES" attributeType="String"/>
         <attribute name="phone" optional="YES" attributeType="String"/>
         <attribute name="phoneInput" optional="YES" attributeType="String"/>
@@ -75,6 +76,6 @@
         <element name="CPending" positionX="-54" positionY="81" width="128" height="88"/>
         <element name="FeedComments" positionX="-45" positionY="81" width="128" height="148"/>
         <element name="FeedCore" positionX="-63" positionY="0" width="128" height="28"/>
-        <element name="User" positionX="-63" positionY="-18" width="128" height="163"/>
+        <element name="User" positionX="-63" positionY="-18" width="128" height="178"/>
     </elements>
 </model>

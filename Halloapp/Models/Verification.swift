@@ -75,6 +75,7 @@ final class Verification: ObservableObject {
         
         var json = [String:Any]()
         
+        json["name"] = userData.name
         json["phone"] = userData.phone
         json["code"] = self.code
         

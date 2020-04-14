@@ -16,12 +16,14 @@ class UserCore {
                     String,
                     String,
                     String,
+                    String,
                     Bool) {
                         
         var countryCode: String = "1"
         var phoneInput: String = ""
         var userId: String = ""
         var password: String = ""
+        var name: String = ""
         var phone: String = ""
         var isLoggedIn: Bool = false
                         
@@ -43,6 +45,7 @@ class UserCore {
                 }
                 
                 userId = data.value(forKey: "userId") as! String
+                name = data.value(forKey: "name") as! String
                 phone = data.value(forKey: "phone") as! String
                 
                 if let passwordData = data.value(forKey: "password") as! String? {
@@ -61,13 +64,14 @@ class UserCore {
             DDLogError("usercore/get failed")
         }
                         
-        return (countryCode, phoneInput, userId, password, phone, isLoggedIn)
+        return (countryCode, phoneInput, userId, password, name, phone, isLoggedIn)
     }
     
     func create(countryCode: String,
                 phoneInput: String,
                 userId: String,
                 password: String,
+                name: String,
                 phone: String,
                 isLoggedIn: Bool) {
         let managedContext = CoreDataManager.sharedManager.bgContext
@@ -79,6 +83,7 @@ class UserCore {
             let user = NSManagedObject(entity: userEntity, insertInto: managedContext)
             user.setValue(countryCode, forKeyPath: "countryCode")
             user.setValue(phoneInput, forKeyPath: "phoneInput")
+            user.setValue(name, forKeyPath: "name")
             user.setValue(phone, forKeyPath: "phone")
             user.setValue(userId, forKeyPath: "userId")
             user.setValue(password, forKeyPath: "password")
@@ -96,6 +101,7 @@ class UserCore {
                 phoneInput: String,
                 userId: String,
                 password: String,
+                name: String,
                 phone: String,
                 isLoggedIn: Bool) {
         
@@ -122,6 +128,7 @@ class UserCore {
                     objectUpdate.setValue(phoneInput, forKey: "phoneInput")
                     objectUpdate.setValue(userId, forKey: "userId")
                     objectUpdate.setValue(password, forKey: "password")
+                    objectUpdate.setValue(name, forKey: "name")
                     objectUpdate.setValue(phone, forKey: "phone")
                     objectUpdate.setValue(isLoggedIn, forKey: "isLoggedIn")
                     

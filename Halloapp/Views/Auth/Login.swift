@@ -17,7 +17,7 @@ struct Login: View {
     var body: some View {
         VStack() {
             Divider()
-                .frame(height: 80)
+                .frame(height: 20)
                 .hidden()
             
             Text("Hallo")
@@ -28,6 +28,29 @@ struct Login: View {
                 
             VStack(spacing: 0) {
                 HStack {
+                    /* Name */
+                    TextField("name", text: self.$userData.name, onEditingChanged: { (changed) in
+                    }) {
+                        // pressing enter
+                        if self.userData.validate() {
+                             self.authRouteData.gotoPage(page: "verify")
+                         }
+                    }
+                    .font(.gothamBody)
+                    .frame(height: 20)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.center)
+                    .padding(EdgeInsets(top: 15, leading: 10, bottom: 15, trailing: 10))
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(self.userData.highlight ? Color(UIColor.systemRed) : Color.clear, lineWidth: 2)
+                    )
+                }
+                .padding(EdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0))
+                
+                HStack {
                     Image(systemName: "plus")
                         .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                         .foregroundColor(Color(UIColor.systemGray))
@@ -35,7 +58,7 @@ struct Login: View {
                     /* Country Code */
                     TextField("", text: self.$userData.countryCode, onEditingChanged: { (changed) in
                     }) {
-                        // pressing enter should go to the phone number input box, if it's empty
+                        // TODO: pressing enter should go to the phone number input box, if it's empty
                     }
                     .font(.gothamBody)
                     .frame(minWidth: 0, maxWidth: 60, minHeight: 20, maxHeight: 20)
