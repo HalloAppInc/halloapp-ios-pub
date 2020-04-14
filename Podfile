@@ -11,5 +11,5 @@ target 'HalloApp' do
   pod 'CryptoSwift', '~> 1.0'
   pod 'Zip', '~> 1.1'
   pod "NextLevelSessionExporter", "~> 0.4.5"
-
+  pod 'SwiftProtobuf', '~> 1.8.0'
 end
