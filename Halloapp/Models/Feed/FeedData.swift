@@ -538,6 +538,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         let selfId = AppContext.shared.userData.phone
         for comment in comments {
+            // Step 1. Determine if comment is eligible for a notification.
             // This would be the person who posted comment.
             let authorId = comment.userId
             guard authorId != selfId else {
@@ -556,6 +557,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
             guard event != nil else { continue }
 
+            // Step 2. Add notification entry to the database.
             let notification = NSEntityDescription.insertNewObject(forEntityName: FeedNotification.entity().name!, into: managedObjectContext) as! FeedNotification
             notification.commentId = comment.id
             notification.postId = comment.post.id
@@ -574,6 +576,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 notification.mediaType = .none
             }
             DDLogInfo("FeedData/generateNotifications  New notification [\(notification)]")
+
+            // Step 3. Generate media preview for the notification.
+            self.generateMediaPreview(for: notification, feedPost: comment.post, using: managedObjectContext)
         }
         if managedObjectContext.hasChanges {
             self.save(managedObjectContext)
@@ -618,6 +623,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            // Step 1: Update FeedPostMedia
             guard let feedPostMedia = try? managedObjectContext.existingObject(with: task.feedMediaObjectId) as? FeedPostMedia else {
                 DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  objectId=[\(task.feedMediaObjectId)]")
                 return
@@ -639,14 +645,66 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             self.save(managedObjectContext)
 
+            // Step 2: Update media preview for all notifications for the given post.
+            if feedPostMedia.status == .downloaded && feedPostMedia.order == 0 {
+                self.updateNotificationMediaPreview(with: feedPostMedia, using: managedObjectContext)
+                if managedObjectContext.hasChanges {
+                    self.save(managedObjectContext)
+                }
+            }
+
+            // Step 3: Notify UI about finished download.
             let feedPostId = feedPostMedia.post.id
             let mediaOrder = Int(feedPostMedia.order)
             DispatchQueue.main.async {
                 self.reloadMedia(feedPostId: feedPostId, order: mediaOrder)
             }
-
-            // TODO: update media preview for notifications for this post
         }
+    }
+
+    private func updateNotificationMediaPreview(with postMedia: FeedPostMedia, using managedObjectContext: NSManagedObjectContext) {
+        guard postMedia.relativeFilePath != nil else { return }
+        // TODO: add support for video previews
+        guard postMedia.type == .image else { return }
+        let feedPostId = postMedia.post.id
+
+        // Fetch all associated notifications.
+        let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "postId == %@", feedPostId)
+        do {
+            let notifications = try managedObjectContext.fetch(fetchRequest)
+            if !notifications.isEmpty {
+                self.updateMediaPreview(for: notifications, usingImageAt: AppContext.mediaDirectoryURL.appendingPathComponent(postMedia.relativeFilePath!, isDirectory: false))
+            }
+        }
+        catch {
+            DDLogError("FeedData/fetch-notifications/error  [\(error)]")
+            fatalError("Failed to fetch feed notifications.")
+        }
+    }
+
+    private func generateMediaPreview(for notification: FeedNotification, feedPost: FeedPost, using managedObjectContext: NSManagedObjectContext) {
+        guard let postMedia = feedPost.orderedMedia.first else { return }
+        guard postMedia.type == .image else { return }
+        // TODO: add support for video previews
+        guard let mediaPath = postMedia.relativeFilePath else { return }
+        self.updateMediaPreview(for: [ notification ], usingImageAt: AppContext.mediaDirectoryURL.appendingPathComponent(mediaPath, isDirectory: false))
+    }
+
+    private func updateMediaPreview(for notifications: [FeedNotification], usingImageAt url: URL) {
+        guard let image = UIImage(contentsOfFile: url.path) else {
+            DDLogError("FeedData/notification/preview/error  Failed to load image at [\(url)]")
+            return
+        }
+        guard let preview = image.resized(to: CGSize(width: 128, height: 128), contentMode: .scaleAspectFill, downscaleOnly: false) else {
+            DDLogError("FeedData/notification/preview/error  Failed to generate preview for image at [\(url)]")
+            return
+        }
+        guard let imageData = preview.jpegData(compressionQuality: 0.5) else {
+            DDLogError("FeedData/notification/preview/error  Failed to generate PNG for image at [\(url)]")
+            return
+        }
+        notifications.forEach { $0.mediaPreview = imageData }
     }
 
     // MARK: Posting
