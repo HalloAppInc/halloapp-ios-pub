@@ -19,6 +19,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private var xmppController: XMPPController
     private var cancellableSet: Set<AnyCancellable> = []
 
+    // Temporary until server implements pushing user's own past posts on first connect.
+    private var fetchOwnFeed = false
+
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.feed")
     private lazy var downloadManager: FeedDownloadManager = {
         let manager = FeedDownloadManager()
@@ -29,6 +32,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     init(xmppController: XMPPController, userData: UserData) {
         self.xmppController = xmppController
         self.userData = userData
+
+        self.fetchOwnFeed = !userData.isLoggedIn
 
         super.init()
 
@@ -43,6 +48,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.cancellableSet.insert(
             self.xmppController.didConnect.sink { _ in
                 DDLogInfo("Feed: Got event for didConnect")
+
+                if self.fetchOwnFeed {
+                    self.xmppController.retrieveFeedData(for: [ userData.phone ])
+                    self.fetchOwnFeed = false
+                }
                 
                 self.deleteExpiredPosts()
             })
