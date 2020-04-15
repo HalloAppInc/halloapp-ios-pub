@@ -165,6 +165,7 @@ final class UserData: ObservableObject {
     }
 
     func validate() -> Bool {
+        self.name = self.name.trimmingCharacters(in: .whitespacesAndNewlines)
   
         if (self.name == "") {
             self.status = "Please enter a name"
