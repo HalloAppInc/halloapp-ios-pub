@@ -14,6 +14,26 @@ enum XMPPFeedMediaType: String {
     case video = "video"
 }
 
+
+extension Proto_Container {
+
+    static func feedPostContainer(from entry: XMLElement) -> Proto_Container? {
+        guard let s1 = entry.element(forName: "s1")?.stringValue else { return nil }
+        guard let data = Data(base64Encoded: s1, options: .ignoreUnknownCharacters) else { return nil }
+        do {
+            let protoContainer = try Proto_Container(serializedData: data)
+            if protoContainer.hasComment || protoContainer.hasPost {
+                return protoContainer
+            }
+        }
+        catch {
+            DDLogError("xmpp/post/invalid-protobuf")
+        }
+        return nil
+    }
+}
+
+
 struct XMPPFeedPost {
     let id: FeedPostID
     let userId: UserID
@@ -41,22 +61,38 @@ struct XMPPFeedPost {
                     <url type="image" width="1200" height="1600" key="wn58/JZ4nsZgxOBHw6usvdHfSIBRltZWzqb7u4kSyxc=" sha256hash="FA0cGbpNOfG9oFXezNIdsGVy3GSL2OXGxZ5sX8uXZls=">https://cdn.halloapp.net/CumlsHUTEeqobwpeZJbt6A</url>
                 </media>
             </feedpost>
+            <s1>EmYKIDM0MzBjYmFjNmM5YTRjMGVhZWEwMDhkMTE3MjU1M2JjEgsxNjUwMjgxMzY3NxokRDUyOEIzNUYtNzUxQy00ODdGLUFBODgtQkE2NkVDNEE0RDZBIg9UaGV5IGFyZSB5ZWxsb3c=</s1>
         </entry>
      </item>
      */
     init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id") else { return nil }
         guard let userId = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
-        guard let feedPost = item.element(forName: "entry")?.element(forName: "feedpost") else { return nil }
+        guard let entry = item.element(forName: "entry") else { return nil }
+
+        var hasProto = false, text: String?, media: [XMPPFeedMedia] = []
+        if let protoContainer = Proto_Container.feedPostContainer(from: entry) {
+            if protoContainer.hasPost {
+                text = protoContainer.post.text.isEmpty ? nil : protoContainer.post.text
+                media = protoContainer.post.media.compactMap { XMPPFeedMedia(protoMedia: $0) }
+
+                hasProto = true
+            }
+        }
+
+        if !hasProto {
+            guard let feedPost = entry.element(forName: "feedpost") else { return nil }
+
+            text = feedPost.element(forName: "text")?.stringValue
+            if let mediaElement = feedPost.element(forName: "media") {
+                media = mediaElement.elements(forName: "url").compactMap{ XMPPFeedMedia(urlElement: $0) }
+            }
+        }
 
         self.id = id
         self.userId = userId
-        self.text = feedPost.element(forName: "text")?.stringValue
-        if let media = feedPost.element(forName: "media") {
-            self.media = media.elements(forName: "url").compactMap{ XMPPFeedMedia(urlElement: $0) }
-        } else {
-            self.media = []
-        }
+        self.text = text
+        self.media = media
         self.timestamp = item.attributeDoubleValue(forName: "timestamp")
     }
 
@@ -124,6 +160,24 @@ struct XMPPFeedMedia {
         self.sha256 = urlElement.attributeStringValue(forName: "sha256hash")
     }
 
+    init?(protoMedia: Proto_Media) {
+        guard let type: XMPPFeedMediaType = {
+            switch protoMedia.type {
+            case .image: return .image
+            case .video: return .video
+            default: return nil
+            }}() else { return nil }
+        guard let url = URL(string: protoMedia.downloadURL) else { return nil }
+        let width = CGFloat(protoMedia.width), height = CGFloat(protoMedia.height)
+        guard width > 0 && height > 0 else { return nil }
+
+        self.url = url
+        self.type = type
+        self.size = CGSize(width: width, height: height)
+        self.key = protoMedia.encryptionKey.base64EncodedString()
+        self.sha256 = protoMedia.plaintextHash.base64EncodedString()
+    }
+
     var xmppElement: XMPPElement {
         get {
             let media = XMPPElement(name: "url", stringValue: self.url.absoluteString)
@@ -162,21 +216,39 @@ struct XMPPComment {
                 <feedItemId>5099E935-65AD-4325-93B7-FA30B3FD8461</feedItemId>
                 <text>Qwertyu</text>
              </comment>
+             <s1>EmYKIDM0MzBjYmFjNmM5YTRjMGVhZWEwMDhkMTE3MjU1M2JjEgsxNjUwMjgxMzY3NxokRDUyOEIzNUYtNzUxQy00ODdGLUFBODgtQkE2NkVDNEE0RDZBIg9UaGV5IGFyZSB5ZWxsb3c=</s1>
          </entry>
      </item>
      */
     init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id") else { return nil }
         guard let userId = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
-        guard let comment = item.element(forName: "entry")?.element(forName: "comment") else { return nil }
-        guard let feedItemId = comment.element(forName: "feedItemId")?.stringValue else { return nil }
-        guard let text = comment.element(forName: "text")?.stringValue else { return nil }
+        guard let entry = item.element(forName: "entry") else { return nil }
+
+        var text: String?, feedPostId: String?, parentCommentId: String?
+        if let protoContainer = Proto_Container.feedPostContainer(from: entry) {
+            if protoContainer.hasComment {
+                let protoComment = protoContainer.comment
+                text = protoComment.text.isEmpty ? nil : protoComment.text
+                feedPostId = protoComment.feedPostID.isEmpty ? nil : protoComment.feedPostID
+                parentCommentId = protoComment.parentCommentID.isEmpty ? nil : protoComment.parentCommentID
+            }
+        }
+
+        if text == nil || feedPostId == nil {
+            guard let comment = item.element(forName: "entry")?.element(forName: "comment") else { return nil }
+            feedPostId = comment.element(forName: "feedItemId")?.stringValue
+            text = comment.element(forName: "text")?.stringValue
+            parentCommentId = comment.element(forName: "parentCommentId")?.stringValue
+        }
+
+        guard feedPostId != nil && text != nil else { return nil }
 
         self.id = id
         self.userId = userId
-        self.feedPostId = feedItemId
-        self.parentId = comment.element(forName: "parentCommentId")?.stringValue
-        self.text = text
+        self.feedPostId = feedPostId!
+        self.parentId = parentCommentId
+        self.text = text!
         self.timestamp = item.attributeDoubleValue(forName: "timestamp")
     }
 
