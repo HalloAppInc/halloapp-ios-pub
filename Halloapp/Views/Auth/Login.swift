@@ -38,7 +38,7 @@ struct Login: View {
                     }
                     .font(.gothamBody)
                     .frame(height: 20)
-                    .keyboardType(.numberPad)
+                    .keyboardType(.default)
                     .multilineTextAlignment(.center)
                     .padding(EdgeInsets(top: 15, leading: 10, bottom: 15, trailing: 10))
                     .background(Color(UIColor.systemGray6))
