@@ -45,7 +45,7 @@ class SyncManager {
 
     private static let UDDisabledAddressBookSynced = "isabledAddressBookSynced"
 
-    init(contactStore: ContactStore, xmppController: XMPPController) {
+    init(contactStore: ContactStore, xmppController: XMPPController, userData: UserData) {
         self.contactStore = contactStore
         self.xmppController = xmppController
 
@@ -58,6 +58,10 @@ class SyncManager {
             self.queue.async {
                 self.runSyncIfNecessary()
             }
+        })
+
+        self.cancellableSet.insert(userData.didLogOff.sink {
+            self.disableSync()
         })
     }
 

@@ -196,11 +196,19 @@ class ContactStore: ObservableObject {
         }
 
         self.cancellableSet.insert(userData.didLogOff.sink { _ in
+            // Reset server-provided data for all contacts.
             self.contactSerialQueue.async {
                 AppContext.shared.syncManager.queue.sync {
                     self.resetStatusForAllContacts()
                 }
             }
+
+            // Remove previous sync flag.
+            self.mutateDatabaseMetadata { (metadata) in
+                metadata[ContactsStoreMetadataContactsSynced] = nil
+            }
+
+            self.isContactsReady = false
         })
 
         let syncCompleted = self.databaseMetadata?[ContactsStoreMetadataContactsSynced] as? Bool
@@ -814,7 +822,9 @@ class ContactStore: ObservableObject {
         self.performOnBackgroundContextAndWait { managedObjectContext in
             let request = NSBatchUpdateRequest(entity: ABContact.entity())
             request.predicate = NSPredicate(format: "statusValue != %d", ABContact.Status.invalid.rawValue)
-            request.propertiesToUpdate = [ "statusValue": ABContact.Status.unknown.rawValue ]
+            request.propertiesToUpdate = [ "statusValue": ABContact.Status.unknown.rawValue,
+                                           "normalizedPhoneNumber": NSExpression(forConstantValue: nil),
+                                           "userId": NSExpression(forConstantValue: nil)]
             do {
                 let result = try managedObjectContext.execute(request) as? NSBatchUpdateResult
                 DDLogInfo("contacts/reset-status/complete result=[\(String(describing: result))]")

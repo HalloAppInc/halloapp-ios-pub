@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjack
+import Combine
 import CoreData
 import SwiftUI
 import UIKit
@@ -21,6 +22,8 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     private var isOnProfilePage: Bool = false
     private var fetchedResultsController: NSFetchedResultsController<FeedPost>?
 
+    private var cancellableSet: Set<AnyCancellable> = []
+
     init(isOnProfilePage: Bool) {
         self.isOnProfilePage = isOnProfilePage
         super.init(style: .plain)
@@ -32,6 +35,8 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     func dismantle() {
         DDLogInfo("FeedTableViewController/dismantle")
+        self.cancellableSet.forEach{ $0.cancel() }
+        self.cancellableSet.removeAll()
     }
 
     override func viewDidLoad() {
@@ -49,20 +54,19 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             self.tableView.tableHeaderView = headerView
         }
 
-        // Setup fetched results controller the old way because it allows granular control over UI update operations.
-        let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        if self.isOnProfilePage {
-            fetchRequest.predicate = NSPredicate(format: "userId == %@", AppContext.shared.userData.userId)
-        }
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
-        self.fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: AppContext.shared.feedData.viewContext,
-                                                                             sectionNameKeyPath: nil, cacheName: nil)
-        self.fetchedResultsController?.delegate = self
-        do {
-            try self.fetchedResultsController?.performFetch()
-        } catch {
-            fatalError("Failed to fetch feed items \(error)")
-        }
+        self.setupFetchedResultsController()
+
+        self.cancellableSet.insert(AppContext.shared.feedData.willDestroyStore.sink {
+            self.fetchedResultsController = nil
+            self.tableView.reloadData()
+            self.view.isUserInteractionEnabled = false
+        })
+
+        self.cancellableSet.insert(AppContext.shared.feedData.didReloadStore.sink {
+            self.view.isUserInteractionEnabled = true
+            self.setupFetchedResultsController()
+            self.tableView.reloadData()
+        })
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -79,7 +83,30 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     // MARK: Fetched Results Controller
 
     private var trackPerRowFRCChanges = false
+
     private var reloadTableViewInDidChangeContent = false
+
+    private func setupFetchedResultsController() {
+        self.fetchedResultsController = self.newFetchedResultsController()
+        do {
+            try self.fetchedResultsController?.performFetch()
+        } catch {
+            fatalError("Failed to fetch feed items \(error)")
+        }
+    }
+
+    private func newFetchedResultsController() -> NSFetchedResultsController<FeedPost> {
+        // Setup fetched results controller the old way because it allows granular control over UI update operations.
+        let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+        if self.isOnProfilePage {
+            fetchRequest.predicate = NSPredicate(format: "userId == %@", AppContext.shared.userData.userId)
+        }
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
+        let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: AppContext.shared.feedData.viewContext,
+                                                                            sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController.delegate = self
+        return fetchedResultsController
+    }
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         reloadTableViewInDidChangeContent = false

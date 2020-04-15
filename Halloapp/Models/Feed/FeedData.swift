@@ -28,6 +28,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private var xmppController: XMPPController
     private var cancellableSet: Set<AnyCancellable> = []
 
+    let willDestroyStore = PassthroughSubject<Void, Never>()
+    let didReloadStore = PassthroughSubject<Void, Never>()
+
     // Temporary until server implements pushing user's own past posts on first connect.
     private var fetchOwnFeed = false
 
@@ -70,8 +73,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.userData.didLogOff.sink {
                 DDLogInfo("Unloading feed data. \(self.feedDataItems.count) posts")
 
-                // TODO: disable NSFetchedResultsController?
-                self.feedDataItems.removeAll()
+                self.destroyStore()
             })
         
         /* getting new items, usually one */
@@ -126,16 +128,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
         let container = NSPersistentContainer(name: "Feed")
         container.persistentStoreDescriptions = [storeDescription]
-        container.loadPersistentStores { description, error in
+        self.loadPersistentStores(in: container)
+        return container
+    }()
+
+    private func loadPersistentStores(in persistentContainer: NSPersistentContainer) {
+        persistentContainer.loadPersistentStores { (description, error) in
             if let error = error {
                 DDLogError("Failed to load persistent store: \(error)")
                 DDLogError("Deleting persistent store at [\(FeedData.persistentStoreURL.absoluteString)]")
                 try! FileManager.default.removeItem(at: FeedData.persistentStoreURL)
                 fatalError("Unable to load persistent store: \(error)")
+            } else {
+                DDLogInfo("FeedData/load-store/completed [\(description)]")
             }
         }
-        return container
-    }()
+    }
 
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         self.backgroundProcessingQueue.async {
@@ -159,6 +167,62 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         } catch {
             DDLogError("FeedData/save-error error=[\(error)]")
         }
+    }
+
+    func destroyStore() {
+        DDLogInfo("FeedData/destroy/start")
+
+        // Tell subscribers that everything is going away forever.
+        self.willDestroyStore.send()
+
+        self.fetchedResultsController.delegate = nil
+        self.feedDataItems = []
+
+        // TODO: wait for all background tasks to finish.
+        // TODO: cancel all media downloads.
+
+        // Delete SQlite database.
+        let coordinator = self.persistentContainer.persistentStoreCoordinator
+        do {
+            let stores = coordinator.persistentStores
+            stores.forEach { (store) in
+                do {
+                    try coordinator.remove(store)
+                    DDLogError("FeedData/destroy/remove-store/finised [\(store)]")
+                }
+                catch {
+                    DDLogError("FeedData/destroy/remove-store/error [\(error)]")
+                }
+            }
+
+            try coordinator.destroyPersistentStore(at: FeedData.persistentStoreURL, ofType: NSSQLiteStoreType, options: nil)
+            DDLogInfo("FeedData/destroy/delete-store/complete")
+        }
+        catch {
+            DDLogError("FeedData/destroy/delete-store/error [\(error)]")
+            fatalError("Failed to destroy Feed store.")
+        }
+
+        // Delete saved Feed media.
+        do {
+            try FileManager.default.removeItem(at: AppContext.mediaDirectoryURL)
+            DDLogError("FeedData/destroy/delete-media/finished")
+        }
+        catch {
+            DDLogError("FeedData/destroy/delete-media/error [\(error)]")
+        }
+
+        // Load an empty store.
+        self.loadPersistentStores(in: self.persistentContainer)
+
+        // Reload fetched results controller.
+        self.fetchedResultsController = self.newFetchedResultsController()
+        self.fetchFeedPosts()
+
+        // Tell subscribers that store is ready to use again.
+        self.didReloadStore.send()
+
+        DDLogInfo("FeedData/destroy/finished")
     }
 
     // MARK: Fetched Results Controller
@@ -202,14 +266,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    lazy var fetchedResultsController: NSFetchedResultsController<FeedPost> = {
+    private lazy var fetchedResultsController: NSFetchedResultsController<FeedPost> = newFetchedResultsController()
+
+    private func newFetchedResultsController() -> NSFetchedResultsController<FeedPost> {
         let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
         let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: self.viewContext,
                                                                             sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         return fetchedResultsController
-    }()
+    }
 
     private var trackPerRowChanges = false
 
