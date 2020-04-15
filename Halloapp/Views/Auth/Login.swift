@@ -29,16 +29,16 @@ struct Login: View {
             VStack(spacing: 0) {
                 HStack {
                     /* Name */
-                    TextField("name", text: self.$userData.name, onEditingChanged: { (changed) in
-                    }) {
+                    TextField("name", text: self.$userData.name) {
                         // pressing enter
                         if self.userData.validate() {
                              self.authRouteData.gotoPage(page: "verify")
                          }
                     }
-                    .font(.gothamBody)
-                    .frame(height: 20)
-                    .keyboardType(.default)
+                    .font(.body)
+                    .keyboardType(.namePhonePad)
+                    .autocapitalization(.words)
+                    .textContentType(.name)
                     .multilineTextAlignment(.center)
                     .padding(EdgeInsets(top: 15, leading: 10, bottom: 15, trailing: 10))
                     .background(Color(UIColor.systemGray6))
@@ -48,7 +48,7 @@ struct Login: View {
                             .stroke(self.userData.highlight ? Color(UIColor.systemRed) : Color.clear, lineWidth: 2)
                     )
                 }
-                .padding(EdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0))
+                .padding(.bottom, 20)
                 
                 HStack {
                     Image(systemName: "plus")
@@ -56,13 +56,10 @@ struct Login: View {
                         .foregroundColor(Color(UIColor.systemGray))
                     
                     /* Country Code */
-                    TextField("", text: self.$userData.countryCode, onEditingChanged: { (changed) in
-                    }) {
+                    TextField("", text: self.$userData.countryCode) {
                         // TODO: pressing enter should go to the phone number input box, if it's empty
                     }
-                    .font(.gothamBody)
-                    .frame(minWidth: 0, maxWidth: 60, minHeight: 20, maxHeight: 20)
-                    .keyboardType(.numberPad)
+                    .frame(width: 60)
                     .multilineTextAlignment(.center)
                     .padding(EdgeInsets(top: 15, leading: 10, bottom: 15, trailing: 10))
                     .background(Color(UIColor.systemGray6))
@@ -73,17 +70,13 @@ struct Login: View {
                     )
                 
                     /* Phone Number */
-                    TextField("phone number", text: self.$userData.phoneInput, onEditingChanged: { (changed) in
-                    }) {
+                    TextField("phone number", text: self.$userData.phoneInput) {
                         // pressing enter
                         if self.userData.validate() {
                              self.authRouteData.gotoPage(page: "verify")
                          }
                     }
-                    .font(.gothamBody)
-                    .frame(height: 20)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.center)
+                    .multilineTextAlignment(.leading)
                     .padding(EdgeInsets(top: 15, leading: 10, bottom: 15, trailing: 10))
                     .background(Color(UIColor.systemGray6))
                     .cornerRadius(10)
@@ -92,15 +85,17 @@ struct Login: View {
                             .stroke(self.userData.highlight ? Color(UIColor.systemRed) : Color.clear, lineWidth: 2)
                     )
                 }
-                
+                .font(.body)
+                .keyboardType(.numberPad)
+
                 /* error messages */
-                    Text(self.userData.status)
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(Color(UIColor.systemOrange))
-                        .frame(height: 50)
-                }
-                .padding(.horizontal, 40)
-                .padding(.bottom, 0)
+                Text(self.userData.status)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(Color(UIColor.systemOrange))
+                    .frame(height: 50)
+            }
+            .padding(.horizontal, 40)
+            .padding(.bottom, 0)
 
             Button(action: {
                 self.isButtonClicked = true
