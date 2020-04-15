@@ -11,7 +11,6 @@
 		146B93772405F3AE00768AC6 /* GothamMedium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 146B93762405F3AE00768AC6 /* GothamMedium.ttf */; };
 		146B93792405F40500768AC6 /* FontExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* FontExtension.swift */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
-		761B394F241AF01100858251 /* XMPPMediaRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B394E241AF01100858251 /* XMPPMediaRequests.swift */; };
 		761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3953241C38A300858251 /* XMPPCommonRequests.swift */; };
 		761B3957241D815800858251 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3956241D815800858251 /* SyncManager.swift */; };
 		761B395E241D91C000858251 /* ABContact+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B395C241D91C000858251 /* ABContact+CoreDataClass.swift */; };
@@ -38,6 +37,7 @@
 		76B95CDE24295AB5007435AC /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CDD24295AB5007435AC /* CommentView.swift */; };
 		76B95CE22429C711007435AC /* CommentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE12429C711007435AC /* CommentsView.swift */; };
 		76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE3242A7A3F007435AC /* CommentInputView.swift */; };
+		76C69E432447A9A200338D4C /* XMPPFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E422447A9A200338D4C /* XMPPFeed.swift */; };
 		76D0C080240F40DF0061B90E /* MessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D0C07F240F40DF0061B90E /* MessagesView.swift */; };
 		76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */; };
 		76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEE2412A4E800F49CA4 /* Contacts.xcdatamodeld */; };
@@ -87,8 +87,7 @@
 		EABF313123F229350039B5A6 /* HAC.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF313023F229350039B5A6 /* HAC.swift */; };
 		EAC4AF23233E8DAB00739B2B /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */; };
 		EAC7E8F92385A6B700F5E711 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC7E8F82385A6B700F5E711 /* SettingsView.swift */; };
-		EAC84CEA2422E05700A5AAEF /* XMPPPostItemRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC84CE92422E05700A5AAEF /* XMPPPostItemRequest.swift */; };
-		EAC84CEC2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC84CEB2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift */; };
+		EAC84CEA2422E05700A5AAEF /* XMPPFeedRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */; };
 		EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = EAE6152D23970FDC00BB4552 /* Halloapp.xcdatamodeld */; };
 		EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C22334191E00805FF9 /* AppDelegate.swift */; };
 		EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */; };
@@ -126,7 +125,6 @@
 		146B93782405F40500768AC6 /* FontExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtension.swift; sourceTree = "<group>"; };
 		19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.release.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.release.xcconfig"; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
-		761B394E241AF01100858251 /* XMPPMediaRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPMediaRequests.swift; sourceTree = "<group>"; };
 		761B3953241C38A300858251 /* XMPPCommonRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPCommonRequests.swift; sourceTree = "<group>"; };
 		761B3956241D815800858251 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
 		761B395C241D91C000858251 /* ABContact+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ABContact+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -153,6 +151,7 @@
 		76B95CDD24295AB5007435AC /* CommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CE12429C711007435AC /* CommentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CE3242A7A3F007435AC /* CommentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentInputView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentInputView.swift; sourceTree = SOURCE_ROOT; };
+		76C69E422447A9A200338D4C /* XMPPFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = XMPPFeed.swift; path = HalloApp/Models/XMPP/XMPPFeed.swift; sourceTree = SOURCE_ROOT; };
 		76D0C07F240F40DF0061B90E /* MessagesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessagesView.swift; sourceTree = "<group>"; };
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
 		76DF9FEF2412A4E800F49CA4 /* Contacts.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Contacts.xcdatamodel; sourceTree = "<group>"; };
@@ -205,8 +204,7 @@
 		EABF313023F229350039B5A6 /* HAC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HAC.swift; sourceTree = "<group>"; };
 		EAC4AF22233E8DAB00739B2B /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
 		EAC7E8F82385A6B700F5E711 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		EAC84CE92422E05700A5AAEF /* XMPPPostItemRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPPostItemRequest.swift; sourceTree = "<group>"; };
-		EAC84CEB2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPPostCommentRequest.swift; sourceTree = "<group>"; };
+		EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPFeedRequests.swift; sourceTree = "<group>"; };
 		EAE6152E23970FDC00BB4552 /* Halloapp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Halloapp.xcdatamodel; sourceTree = "<group>"; };
 		EAF3A1BF2334191E00805FF9 /* HalloApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1C22334191E00805FF9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -287,9 +285,7 @@
 				76DFA0022419563500F49CA4 /* XMPPRequest.swift */,
 				761B3953241C38A300858251 /* XMPPCommonRequests.swift */,
 				76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */,
-				761B394E241AF01100858251 /* XMPPMediaRequests.swift */,
-				EAC84CE92422E05700A5AAEF /* XMPPPostItemRequest.swift */,
-				EAC84CEB2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift */,
+				EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */,
 			);
 			path = Requests;
 			sourceTree = "<group>";
@@ -366,6 +362,7 @@
 			children = (
 				761B3950241AF01E00858251 /* Requests */,
 				76DFA0062419BC1F00F49CA4 /* XMPPError.swift */,
+				76C69E422447A9A200338D4C /* XMPPFeed.swift */,
 			);
 			path = XMPP;
 			sourceTree = "<group>";
@@ -826,11 +823,11 @@
 				EAA6DEC62383AD8400C6D9C8 /* MessageUser.swift in Sources */,
 				EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */,
 				76DFA0072419BC1F00F49CA4 /* XMPPError.swift in Sources */,
+				76C69E432447A9A200338D4C /* XMPPFeed.swift in Sources */,
 				764A0E68244617D800E1BDCE /* schema.pb.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */,
 				76ECDC162409DD7700BB48AC /* FeedView.swift in Sources */,
-				761B394F241AF01100858251 /* XMPPMediaRequests.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
 				EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */,
 				76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */,
@@ -868,7 +865,6 @@
 				EA3861ED23342C7C00705943 /* Login.swift in Sources */,
 				763B42AC243274F400FF0E82 /* FeedTableView.swift in Sources */,
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
-				EAC84CEC2423DE5D00A5AAEF /* XMPPPostCommentRequest.swift in Sources */,
 				76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
@@ -876,7 +872,7 @@
 				EA80ADFB235A8325002F7680 /* Utils.swift in Sources */,
 				761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */,
 				EA0D20092363AD74008B8289 /* AuthRouter.swift in Sources */,
-				EAC84CEA2422E05700A5AAEF /* XMPPPostItemRequest.swift in Sources */,
+				EAC84CEA2422E05700A5AAEF /* XMPPFeedRequests.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				EA45713723EB7DF5008C2E44 /* UserCore.swift in Sources */,
 				EAB03B7F2400519400643EB6 /* WAVPlayer.swift in Sources */,
