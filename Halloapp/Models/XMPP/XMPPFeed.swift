@@ -128,8 +128,8 @@ struct XMPPFeedMedia {
     let url: URL
     let type: XMPPFeedMediaType
     let size: CGSize
-    let key: String?
-    let sha256: String?
+    let key: String
+    let sha256: String
 
     init(feedMedia: PendingMedia) {
         self.url = feedMedia.url!
@@ -139,8 +139,8 @@ struct XMPPFeedMedia {
             case .video: return .video }
         }()
         self.size = feedMedia.size!
-        self.key = feedMedia.key
-        self.sha256 = feedMedia.sha256
+        self.key = feedMedia.key!
+        self.sha256 = feedMedia.sha256!
     }
 
     /**
@@ -152,12 +152,14 @@ struct XMPPFeedMedia {
         guard let url = URL(string: urlString) else { return nil }
         let width = urlElement.attributeIntegerValue(forName: "width"), height = urlElement.attributeIntegerValue(forName: "height")
         guard width > 0 && height > 0 else { return nil }
+        guard let key = urlElement.attributeStringValue(forName: "key") else { return nil }
+        guard let sha256 = urlElement.attributeStringValue(forName: "sha256hash") else { return nil }
 
         self.url = url
         self.type = type
         self.size = CGSize(width: width, height: height)
-        self.key = urlElement.attributeStringValue(forName: "key")
-        self.sha256 = urlElement.attributeStringValue(forName: "sha256hash")
+        self.key = key
+        self.sha256 = sha256
     }
 
     init?(protoMedia: Proto_Media) {
@@ -184,10 +186,8 @@ struct XMPPFeedMedia {
             media.addAttribute(withName: "type", stringValue: self.type.rawValue)
             media.addAttribute(withName: "width", integerValue: Int(self.size.width))
             media.addAttribute(withName: "height", integerValue: Int(self.size.height))
-            if let key = self.key, let sha256 = self.sha256 {
-                media.addAttribute(withName: "key", stringValue: key)
-                media.addAttribute(withName: "sha256hash", stringValue: sha256)
-            }
+            media.addAttribute(withName: "key", stringValue: key)
+            media.addAttribute(withName: "sha256hash", stringValue: sha256)
             return media
         }
     }

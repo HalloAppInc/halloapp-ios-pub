@@ -464,10 +464,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             // Process post media
             for (index, xmppMedia) in xmppPost.media.enumerated() {
-                guard xmppMedia.key != nil && xmppMedia.sha256 != nil else {
-                    DDLogError("FeedData/process-posts/media-unencrypted [\(xmppMedia.url)]")
-                    continue
-                }
                 DDLogDebug("FeedData/process-posts/new/add-media [\(xmppMedia.url)]")
                 let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
                 switch xmppMedia.type {
@@ -479,9 +475,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedMedia.status = .none
                 feedMedia.url = xmppMedia.url
                 feedMedia.size = xmppMedia.size
-                feedMedia.key = xmppMedia.key!
+                feedMedia.key = xmppMedia.key
                 feedMedia.order = Int16(index)
-                feedMedia.sha256 = xmppMedia.sha256!
+                feedMedia.sha256 = xmppMedia.sha256
                 feedMedia.post = feedPost
             }
 
