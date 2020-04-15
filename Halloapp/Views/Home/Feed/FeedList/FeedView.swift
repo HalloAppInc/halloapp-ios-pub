@@ -80,6 +80,8 @@ struct FeedView: View {
             }
 
         }
+        .frame(maxWidth: .infinity)
+            
         .overlay(BottomBarView())
 
         .edgesIgnoringSafeArea(.all)
