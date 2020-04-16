@@ -14,9 +14,7 @@ enum XMPPFeedMediaType: String {
     case video = "video"
 }
 
-
 extension Proto_Container {
-
     static func feedPostContainer(from entry: XMLElement) -> Proto_Container? {
         guard let s1 = entry.element(forName: "s1")?.stringValue else { return nil }
         guard let data = Data(base64Encoded: s1, options: .ignoreUnknownCharacters) else { return nil }
@@ -117,9 +115,25 @@ struct XMPPFeedPost {
                     }
                     return feedPost
                     }())
+                if let protobufData = try? self.proto.serializedData() {
+                    entry.addChild(XMPPElement(name: "s1", stringValue: protobufData.base64EncodedString()))
+                }
                 return entry
             }())
             return item
+        }
+    }
+
+    fileprivate var proto: Proto_Container {
+        get {
+            var post = Proto_Post()
+            if self.text != nil {
+                post.text = self.text!
+            }
+            post.media = self.media.compactMap{ $0.proto }
+            var container = Proto_Container()
+            container.post = post
+            return container
         }
     }
 }
@@ -188,6 +202,27 @@ struct XMPPFeedMedia {
             media.addAttribute(withName: "height", integerValue: Int(self.size.height))
             media.addAttribute(withName: "key", stringValue: key)
             media.addAttribute(withName: "sha256hash", stringValue: sha256)
+            return media
+        }
+    }
+
+    fileprivate var proto: Proto_Media? {
+        get {
+            guard let encryptionKey = Data(base64Encoded: self.key) else { return nil }
+            guard let plaintextHash = Data(base64Encoded: self.sha256) else { return nil }
+
+            var media = Proto_Media()
+            media.type = {
+                switch self.type {
+                case .image: return .image
+                case .video: return .video
+                }
+            }()
+            media.width = Int32(self.size.width)
+            media.height = Int32(self.size.height)
+            media.encryptionKey = encryptionKey
+            media.plaintextHash = plaintextHash
+            media.downloadURL = self.url.absoluteString
             return media
         }
     }
@@ -268,9 +303,26 @@ struct XMPPComment {
                     }
                     return comment
                 }())
+                if let protobufData = try? self.proto.serializedData() {
+                    entry.addChild(XMPPElement(name: "s1", stringValue: protobufData.base64EncodedString()))
+                }
                 return entry
             }())
             return item
+        }
+    }
+
+    fileprivate var proto: Proto_Container {
+        get {
+            var comment = Proto_Comment()
+            comment.text = self.text
+            comment.feedPostID = self.feedPostId
+            if self.parentId != nil {
+                comment.parentCommentID = self.parentId!
+            }
+            var container = Proto_Container()
+            container.comment = comment
+            return container
         }
     }
 }
