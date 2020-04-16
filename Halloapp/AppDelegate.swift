@@ -63,7 +63,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         self.needsAPNSToken = false
-        let tokenString = deviceToken.hexString
+        let tokenString = deviceToken.hexString()
         DDLogInfo("appdelegate/notifications/push-token/success [\(tokenString)]")
         AppContext.shared.xmppController.apnsToken = tokenString
         AppContext.shared.xmppController.sendCurrentAPNSTokenIfPossible()
