@@ -39,6 +39,7 @@
 		76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE3242A7A3F007435AC /* CommentInputView.swift */; };
 		76C69E432447A9A200338D4C /* XMPPFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E422447A9A200338D4C /* XMPPFeed.swift */; };
 		76C69E482447E3B100338D4C /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E472447E3B100338D4C /* Data.swift */; };
+		76C69E4D2447E6D500338D4C /* UIApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E4C2447E6D500338D4C /* UIApplication.swift */; };
 		76D0C080240F40DF0061B90E /* MessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D0C07F240F40DF0061B90E /* MessagesView.swift */; };
 		76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */; };
 		76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEE2412A4E800F49CA4 /* Contacts.xcdatamodeld */; };
@@ -154,6 +155,7 @@
 		76B95CE3242A7A3F007435AC /* CommentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentInputView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentInputView.swift; sourceTree = SOURCE_ROOT; };
 		76C69E422447A9A200338D4C /* XMPPFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = XMPPFeed.swift; path = HalloApp/Models/XMPP/XMPPFeed.swift; sourceTree = SOURCE_ROOT; };
 		76C69E472447E3B100338D4C /* Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Data.swift; path = HalloApp/Components/Extensions/Data.swift; sourceTree = SOURCE_ROOT; };
+		76C69E4C2447E6D500338D4C /* UIApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIApplication.swift; path = HalloApp/Components/Extensions/UIApplication.swift; sourceTree = SOURCE_ROOT; };
 		76D0C07F240F40DF0061B90E /* MessagesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessagesView.swift; sourceTree = "<group>"; };
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
 		76DF9FEF2412A4E800F49CA4 /* Contacts.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Contacts.xcdatamodel; sourceTree = "<group>"; };
@@ -549,6 +551,7 @@
 				76DF9FFA2416ADF900F49CA4 /* String.swift */,
 				763B42AD2435A74E00FF0E82 /* Date.swift */,
 				76C69E472447E3B100338D4C /* Data.swift */,
+				76C69E4C2447E6D500338D4C /* UIApplication.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -904,6 +907,7 @@
 				76C69E482447E3B100338D4C /* Data.swift in Sources */,
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,
 				761B395F241D91C000858251 /* ABContact+CoreDataProperties.swift in Sources */,
+				76C69E4D2447E6D500338D4C /* UIApplication.swift in Sources */,
 				764A0E6524453FC900E1BDCE /* NotificationsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

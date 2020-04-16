@@ -62,7 +62,7 @@ class XMPPController: NSObject, ObservableObject {
         self.xmppStream = XMPPStream()
         self.xmppStream.hostPort = hostPort
   
-        let appVersionNStr:NSString = NSString(string: Utils().appVersion())
+        let appVersionNStr = NSString(string: UIApplication.shared.version)
         self.xmppStream.clientVersion = appVersionNStr
         
         /* probably should be "required" once all servers including test servers are secured */

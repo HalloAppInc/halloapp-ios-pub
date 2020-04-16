@@ -6,8 +6,9 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
-import SwiftUI
 import MessageUI
+import SwiftUI
+import UIKit
 
 struct SettingsView: View {
     @EnvironmentObject var mainViewController: MainViewController
@@ -42,7 +43,7 @@ struct SettingsView: View {
                     .cornerRadius(40)
                     .padding(.bottom, 16)
 
-                Text("Version \(Utils().appVersion())")
+                Text("Version \(UIApplication.shared.version)")
                 .font(Font.headline)
                 .foregroundColor(Color.primary)
             }

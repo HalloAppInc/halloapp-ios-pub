@@ -11,16 +11,6 @@ import XMPPFramework
 
 class Utils {
 
-    func appVersion() -> String {
-        guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
-            return ""
-        }
-        guard let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String else {
-            return "\(version)"
-        }
-        return "\(version) (\(buildNumber))"
-    }
-
     func userAlreadyExists(_ value: XMPPIQ) -> Bool {
         
         var result = false
