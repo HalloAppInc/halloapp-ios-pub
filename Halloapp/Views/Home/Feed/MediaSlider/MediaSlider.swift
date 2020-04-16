@@ -17,11 +17,17 @@ struct MediaSlider: View {
     @State var pageNum: Int = 0
     
     init(_ item: FeedDataItem) {
-        DDLogDebug("MediaSlider/init [\(item.id)]")
         self.item = item
         self._media = State(initialValue: item.media)
     }
-    
+
+    static var pageIndicatorHeight: CGFloat {
+        get {
+            // VStack spacing + height of indicator dots.
+            return 16
+        }
+    }
+
     var body: some View {        
         DispatchQueue.main.async {
             self.media = self.item.media
@@ -35,9 +41,8 @@ struct MediaSlider: View {
             )
         }
 
-        DDLogDebug("MediaSlider/body [\(item.id)]: \(self.media.count) items")
         return
-            VStack(spacing: 5) {
+            VStack(spacing: 10) {
                 WMediaSlider(media: $media, pageNum: $pageNum)
 
                 if (self.media.count > 1) {
@@ -50,7 +55,7 @@ struct MediaSlider: View {
                                 .resizable()
                                 .scaledToFit()
                                 .foregroundColor(self.pageNum == index ? Color.blue : Color(UIColor.systemGray4))
-                                .frame(width: 5, height: 5, alignment: .center)
+                                .frame(width: 6, height: 6, alignment: .center)
                         }
 
                         Spacer()

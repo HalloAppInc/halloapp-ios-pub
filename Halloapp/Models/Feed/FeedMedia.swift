@@ -54,6 +54,12 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
         }
     }
 
+    var displayAspectRatio: CGFloat {
+        get {
+            return max(self.size.width/self.size.height, 4/5)
+        }
+    }
+
     func loadImage() {
         guard !self.isImageLoaded else {
             return

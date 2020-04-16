@@ -13,23 +13,19 @@ struct MediaCell: View {
     @ObservedObject var media: FeedMedia
 
     var body: some View {
-        DDLogVerbose("MediaCell/body [\(media.feedPostId)]:[\(media.order)]")
         return HStack {
-
             if (media.type == .image) {
                 if media.isMediaAvailable {
                     Image(uiImage: media.image!)
-                        .renderingMode(.original)
                         .resizable()
-                        .aspectRatio(media.size, contentMode: .fit)
-                        .background(Color.gray)
-                        .cornerRadius(10)
+                        .scaledToFill()
+                        .aspectRatio(media.displayAspectRatio, contentMode: .fit)
                         .pinchToZoom()
                 } else {
                     VStack {
                         Spacer()
                         Image(systemName: "photo")
-                            .foregroundColor(Color.gray)
+                            .foregroundColor(.gray)
                         Spacer()
                     }
                 }
@@ -44,7 +40,7 @@ struct MediaCell: View {
                     VStack {
                         Spacer()
                         Image(systemName: "video")
-                            .foregroundColor(Color.gray)
+                            .foregroundColor(.gray)
                         Spacer()
                     }
                 }

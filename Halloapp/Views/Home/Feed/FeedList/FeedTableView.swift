@@ -12,7 +12,7 @@ import CoreData
 import SwiftUI
 import UIKit
 
-enum FeedTableSection {
+fileprivate enum FeedTableSection {
     case main
 }
 
@@ -180,7 +180,8 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FeedTableViewController.cellReuseIdentifier, for: indexPath) as! FeedTableViewCell
         if let feedPost = fetchedResultsController?.object(at: indexPath) {
-            cell.configure(with: feedPost)
+            let contentWidth = tableView.frame.size.width - tableView.layoutMargins.left - tableView.layoutMargins.right
+            cell.configure(with: feedPost, contentWidth: contentWidth)
         }
         return cell
     }
@@ -197,8 +198,20 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 }
 
 
-class FeedTableViewCell: UITableViewCell {
-    static let backgroundCornerRadius: CGFloat = 10
+fileprivate class FeedTableViewCell: UITableViewCell {
+    static let backgroundCornerRadius: CGFloat = 15
+    /**
+     Content view (vertical stack takes standard table view content width: tableView.width - tableView.layoutMargins.left - tableView.layoutMargins.right
+     Width of the background "card" is defined as: leftOutset + contentWidth + rightOutset. Margins around background "card" vary: 10 pt for plus screen devices, 8 pt for all others.
+     */
+    static let backgroundPanelViewOutsetH: CGFloat = 8
+    static let backgroundPanelViewOutsetV: CGFloat = 8
+    /**
+     In contrast with horizontal margins, vertical margins are defined relative to cell's top and bottom edges.
+     Background "card" has 25 pt margins on top and bottom (so that space between cards is 50 pt).
+     Content is further inset 8 points relative to the card's top and bottom edges.
+     */
+    static let backgroundPanelVMargin: CGFloat = 25
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -244,35 +257,50 @@ class FeedTableViewCell: UITableViewCell {
 
     private func setupView() {
         self.selectionStyle = .none
-        self.backgroundColor = UIColor.clear
-
-        let padding: CGFloat = 8
+        self.backgroundColor = .clear
 
         // Background
         let backgroundView = UIView()
         backgroundView.addSubview(self.backgroundPanelView)
-        let views = [ "panel": self.backgroundPanelView ]
-        let metrics = [ "padding": padding ]
-        // Priority isn't "required" because view is created with zero frame and that causes UIViewAlertForUnsatisfiableConstraints.
-        backgroundView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|-padding@750-[panel]-padding@750-|", options: .directionLeadingToTrailing, metrics: metrics, views: views))
-        backgroundView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-padding@750-[panel]-padding@750-|", options: [], metrics: metrics, views: views))
+        backgroundView.preservesSuperviewLayoutMargins = true
+        backgroundView.addConstraint({
+            let constraint = self.backgroundPanelView.leadingAnchor.constraint(equalTo: backgroundView.layoutMarginsGuide.leadingAnchor, constant: -FeedTableViewCell.backgroundPanelViewOutsetH)
+            constraint.priority = .defaultHigh
+            return constraint
+            }())
+        backgroundView.addConstraint({
+            let constraint = self.backgroundPanelView.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: FeedTableViewCell.backgroundPanelVMargin)
+            constraint.priority = .defaultHigh
+            return constraint
+            }())
+        backgroundView.addConstraint({
+            let constraint = self.backgroundPanelView.trailingAnchor.constraint(equalTo: backgroundView.layoutMarginsGuide.trailingAnchor, constant: FeedTableViewCell.backgroundPanelViewOutsetH)
+            constraint.priority = .defaultHigh
+            return constraint
+            }())
+        backgroundView.addConstraint({
+            let constraint = self.backgroundPanelView.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor, constant: -FeedTableViewCell.backgroundPanelVMargin)
+            constraint.priority = .defaultHigh
+            return constraint
+            }())
         self.backgroundPanelView.backgroundColor = UIColor.secondarySystemGroupedBackground
         self.backgroundView = backgroundView
 
+        // Content view: a vertical stack of header, content and footer.
         let vStack = UIStackView(arrangedSubviews: [ self.headerView, self.itemContentView, self.footerView ])
         vStack.axis = .vertical
         vStack.translatesAutoresizingMaskIntoConstraints = false
         self.contentView.addSubview(vStack)
-        vStack.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: padding).isActive = true
-        vStack.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: padding).isActive = true
-        vStack.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -padding).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -padding).isActive = true
+        vStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        vStack.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: FeedTableViewCell.backgroundPanelVMargin + FeedTableViewCell.backgroundPanelViewOutsetV).isActive = true
+        vStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -(FeedTableViewCell.backgroundPanelVMargin + FeedTableViewCell.backgroundPanelViewOutsetV)).isActive = true
     }
 
-    public func configure(with post: FeedPost) {
-        self.headerView.configure(with: post)
-        self.itemContentView.configure(with: post)
-        self.footerView.configure(with: post)
+    public func configure(with post: FeedPost, contentWidth: CGFloat) {
+        self.headerView.configure(with: post, contentWidth: contentWidth)
+        self.itemContentView.configure(with: post, contentWidth: contentWidth)
+        self.footerView.configure(with: post, contentWidth: contentWidth)
     }
 
     override func prepareForReuse() {
@@ -286,7 +314,7 @@ class FeedTableViewCell: UITableViewCell {
 }
 
 
-class FeedItemContentView: UIView {
+fileprivate class FeedItemContentView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
@@ -298,17 +326,29 @@ class FeedItemContentView: UIView {
     }
 
     private lazy var vStack: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ self.textLabel ])
+        let vStack = UIStackView()
         vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.spacing = 8
         vStack.axis = .vertical
         return vStack
+    }()
+
+    private lazy var textContentView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.layoutMargins.bottom = 5
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(self.textLabel)
+        self.textLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
+        self.textLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor).isActive = true
+        self.textLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor).isActive = true
+        self.textLabel.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor).isActive = true
+        return view
     }()
 
     private lazy var textLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.preferredFont(forTextStyle: .body)
-        label.textColor = UIColor.label
+        label.textColor = .label
         label.numberOfLines = 3
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -320,21 +360,25 @@ class FeedItemContentView: UIView {
         self.isUserInteractionEnabled = true
 
         self.addSubview(self.vStack)
-        self.vStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor, constant: 4).isActive = true
-        self.vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 4).isActive = true
-        self.vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor, constant: -4).isActive = true
-        self.vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -12).isActive = true
+        self.vStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
+        // This is the required amount of spacing between profile photo (bottom of the header view) and top of the post media.
+        self.vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 5).isActive = true
+        self.vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        self.vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8).isActive = true
     }
 
-    func configure(with post: FeedPost) {
+    func configure(with post: FeedPost, contentWidth: CGFloat) {
         guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: post.id) else { return }
         // TODO: This is a hack that needs to be improved.
-        let width = self.frame != .zero ? self.frame.size.width : UIScreen.main.bounds.size.width - 8*4
-        let mediaHeight = feedDataItem.mediaHeight(for: width)
+        var mediaHeight = feedDataItem.mediaHeight(for: contentWidth)
         if mediaHeight > 0 {
             DDLogDebug("FeedTableViewCell/configure [\(feedDataItem.id)]")
+            // Extra space for page indicator dots.
+            if feedDataItem.media.count > 1 {
+                mediaHeight += MediaSlider.pageIndicatorHeight
+            }
             let controller = UIHostingController(rootView: MediaSlider(feedDataItem).frame(height: mediaHeight))
-            controller.view.backgroundColor = UIColor.clear
+            controller.view.backgroundColor = .clear
             controller.view.addConstraint({
                 let constraint = NSLayoutConstraint.init(item: controller.view!, attribute: .height, relatedBy: .equal,
                                                          toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: mediaHeight)
@@ -346,7 +390,23 @@ class FeedItemContentView: UIView {
             self.mediaView = controller.view
         }
 
-        self.textLabel.text = post.text
+        // With media or > 180 chars long: System 16 pt (Callout)
+        // Text-only under 180 chars long: System 20 pt (Title 3)
+        if !(post.text ?? "").isEmpty {
+            self.textContentView.isHidden = false
+            self.vStack.insertArrangedSubview(self.textContentView, at: self.vStack.arrangedSubviews.count)
+
+            self.textLabel.text = post.text
+            if mediaHeight > 0 || (self.textLabel.text ?? "").count > 180 {
+                self.textLabel.font = UIFont.preferredFont(forTextStyle: .callout)
+            } else {
+                self.textLabel.font = UIFont.preferredFont(forTextStyle: .title3)
+            }
+            self.textLabel.numberOfLines = mediaHeight > 0 ? 3 : 10
+        }
+
+        // Adjust vertical margins around text.
+        self.textContentView.layoutMargins.top = mediaHeight > 0 ? 11 : 9
     }
 
     func prepareForReuse() {
@@ -355,11 +415,13 @@ class FeedItemContentView: UIView {
             mediaView.removeFromSuperview()
             self.mediaView = nil
         }
+        self.vStack.removeArrangedSubview(self.textContentView)
+        self.textContentView.isHidden = true
     }
 }
 
 
-class FeedItemHeaderView: UIView {
+fileprivate class FeedItemHeaderView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
@@ -378,19 +440,28 @@ class FeedItemHeaderView: UIView {
         return imageView
     }()
 
+    // Gotham Medium, 15 pt (Subhead)
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.font = {
+            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+            return UIFont.systemFont(ofSize: fontDescriptor.pointSize, weight: .medium)
+        }()
+        label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow - 10, for: .horizontal)
         return label
     }()
 
+    // Gotham Medium, 14 pt (Footnote + 1)
     private lazy var timestampLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
-        label.textColor = UIColor.secondaryLabel
+        label.font = {
+            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .footnote)
+            return UIFont.systemFont(ofSize: fontDescriptor.pointSize + 1, weight: .medium)
+        }()
+        label.textColor = .secondaryLabel
         label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -404,16 +475,16 @@ class FeedItemHeaderView: UIView {
 
         let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.nameLabel, self.timestampLabel ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.spacing = 10
+        hStack.spacing = 8
         hStack.axis = .horizontal
         self.addSubview(hStack)
-        hStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor, constant: 4).isActive = true
-        hStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor, constant: -4).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
+        hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
+        hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
     }
 
-    func configure(with post: FeedPost) {
+    func configure(with post: FeedPost, contentWidth: CGFloat) {
         self.nameLabel.text = AppContext.shared.contactStore.fullName(for: post.userId)
         self.timestampLabel.text = post.timestamp.postTimestamp()
     }
@@ -424,7 +495,7 @@ class FeedItemHeaderView: UIView {
 }
 
 
-class FeedItemFooterView: UIView {
+fileprivate class FeedItemFooterView: UIView {
     private var buttonsView: UIView?
 
     override init(frame: CGRect) {
@@ -441,24 +512,24 @@ class FeedItemFooterView: UIView {
         self.isUserInteractionEnabled = true
 
         let separator = UIView()
-        separator.backgroundColor = UIColor.separator
+        separator.backgroundColor = .separator
         separator.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(separator)
-        separator.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
-        separator.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        separator.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: -FeedTableViewCell.backgroundPanelViewOutsetH).isActive = true
+        separator.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: FeedTableViewCell.backgroundPanelViewOutsetH).isActive = true
         separator.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         separator.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
     }
 
-    func configure(with post: FeedPost) {
+    func configure(with post: FeedPost, contentWidth: CGFloat) {
         guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: post.id) else { return }
         let controller = UIHostingController(rootView: FeedItemFooterButtonsView(feedDataItem: feedDataItem))
-        controller.view.backgroundColor = UIColor.clear
+        controller.view.backgroundColor = .clear
         controller.view.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(controller.view)
-        controller.view.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
+        controller.view.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         controller.view.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        controller.view.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
+        controller.view.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
         controller.view.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
         let viewHeight = controller.view.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
         controller.view.heightAnchor.constraint(equalToConstant: viewHeight).isActive = true
@@ -475,7 +546,7 @@ class FeedItemFooterView: UIView {
 }
 
 
-class FeedTableHeaderView: UIView {
+fileprivate class FeedTableHeaderView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
@@ -535,7 +606,7 @@ class FeedTableHeaderView: UIView {
 /**
  * Implement buttons in the feed item card because of NavigationLink.
  */
-struct FeedItemFooterButtonsView: View {
+fileprivate struct FeedItemFooterButtonsView: View {
     private var feedDataItem: FeedDataItem
     @State private var showMessageView = false
     @State private var hasUnreadComments = false
@@ -550,25 +621,26 @@ struct FeedItemFooterButtonsView: View {
         HStack {
             // Comment button
             NavigationLink(destination: CommentsView(feedPostId: self.feedDataItem.id).navigationBarTitle("Comments", displayMode: .inline).edgesIgnoringSafeArea(.bottom)) {
-                HStack {
-                    Image(systemName: "message")
-                        .font(.system(size: 20, weight: .regular))
+                VStack {
+                    HStack {
+                        Image(systemName: "message")
+                            .font(.system(size: 20, weight: .regular))
 
-                    Text("Comment")
-                        .font(.system(.body))
-
-                    // Green Dot if there are unread comments
-                    if (self.hasUnreadComments) {
-                        Image(systemName: "circle.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .foregroundColor(Color.green)
-                            .clipShape(Circle())
-                            .frame(width: 10, height: 10, alignment: .center)
+                        Text("Comment")
+                            .font(Font.system(.subheadline).weight(.medium))
+                            // Green Dot if there are unread comments
+                            .overlay (
+                                Image(systemName: "circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .foregroundColor(self.hasUnreadComments ? Color.green : Color.clear)
+                                    .frame(width: 10, height: 10, alignment: .center)
+                                    .offset(x: 16)
+                                , alignment: .trailing)
                     }
+                    .padding(EdgeInsets(top: 15, leading: 20, bottom: 9, trailing: 24))
                 }
-                .padding(.vertical, 8)
-                .padding(.horizontal, 16)
+                .frame(maxWidth: .infinity)
             }
 
             // Message button
@@ -576,23 +648,24 @@ struct FeedItemFooterButtonsView: View {
                 Spacer()
 
                 Button(action: { self.showMessageView = true }) {
-                    HStack {
-                        Image(systemName: "envelope")
-                            .font(.system(size: 20, weight: .regular))
+                    VStack {
+                        HStack {
+                            Image(systemName: "envelope")
+                                .font(.system(size: 20, weight: .regular))
 
-                        Text("Message")
-                            .font(.system(.body))
+                            Text("Message")
+                                .font(Font.system(.subheadline).weight(.medium))
+                        }
+                        .padding(EdgeInsets(top: 15, leading: 24, bottom: 9, trailing: 20))
                     }
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 16)
+                    .frame(maxWidth: .infinity)
                 }
                 .sheet(isPresented: self.$showMessageView) {
                     MessageUser(isViewPresented: self.$showMessageView)
                 }
             }
         }
-        .foregroundColor(Color.primary)
-        .padding(.all, 10)
+        .foregroundColor(.primary)
         .onReceive(self.feedDataItem.commentsChange) { number in
             self.hasUnreadComments = number > 0
         }
