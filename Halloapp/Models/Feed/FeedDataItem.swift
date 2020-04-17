@@ -16,23 +16,31 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     var userId: UserID
     var media: [FeedMedia]
 
-    var commentsChange = PassthroughSubject<Int, Never>()
-    var unreadComments: Int {
+
+    var commentsDidChange = PassthroughSubject<(Int, Bool), Never>()
+    var hasUnreadComments: Bool {
         didSet {
-            commentsChange.send(unreadComments)
+            commentsDidChange.send((numberOfComments, hasUnreadComments))
+        }
+    }
+    var numberOfComments: Int {
+        didSet {
+            commentsDidChange.send((numberOfComments, hasUnreadComments))
         }
     }
 
     init(_ feedPost: FeedPost) {
         id = feedPost.id
         userId = feedPost.userId
-        unreadComments = Int(feedPost.unreadCount)
+        hasUnreadComments = feedPost.unreadCount > 0
+        numberOfComments = feedPost.comments?.count ?? 0
         media = feedPost.orderedMedia.map { FeedMedia($0) }
     }
 
     func reload(from feedPost: FeedPost) {
         // Only 'unreadComments' might change at this point.
-        unreadComments = Int(feedPost.unreadCount)
+        hasUnreadComments = feedPost.unreadCount > 0
+        numberOfComments = feedPost.comments?.count ?? 0
     }
 
     func reloadMedia(from feedPost: FeedPost, order: Int) {

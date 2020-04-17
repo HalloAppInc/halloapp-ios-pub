@@ -609,12 +609,14 @@ fileprivate class FeedTableHeaderView: UIView {
 fileprivate struct FeedItemFooterButtonsView: View {
     private var feedDataItem: FeedDataItem
     @State private var showMessageView = false
+    @State private var hasComments = false
     @State private var hasUnreadComments = false
     @State private var isNavigationLinkActive = false
 
     init(feedDataItem: FeedDataItem) {
         self.feedDataItem = feedDataItem
-        self._hasUnreadComments = State(wrappedValue: feedDataItem.unreadComments > 0)
+        self._hasComments = State(wrappedValue: feedDataItem.numberOfComments > 0)
+        self._hasUnreadComments = State(wrappedValue: feedDataItem.hasUnreadComments)
     }
 
     var body: some View {
@@ -633,7 +635,7 @@ fileprivate struct FeedItemFooterButtonsView: View {
                                 Image(systemName: "circle.fill")
                                     .resizable()
                                     .scaledToFit()
-                                    .foregroundColor(self.hasUnreadComments ? Color.green : Color.clear)
+                                    .foregroundColor(self.hasUnreadComments ? Color.green : (self.hasComments ? Color(UIColor.systemGray4) : Color.clear))
                                     .frame(width: 10, height: 10, alignment: .center)
                                     .offset(x: 16)
                                 , alignment: .trailing)
@@ -666,8 +668,9 @@ fileprivate struct FeedItemFooterButtonsView: View {
             }
         }
         .foregroundColor(.primary)
-        .onReceive(self.feedDataItem.commentsChange) { number in
-            self.hasUnreadComments = number > 0
+        .onReceive(self.feedDataItem.commentsDidChange) { (numberOfComments, hasUnreadComments) in
+            self.hasComments = numberOfComments > 0
+            self.hasUnreadComments = hasUnreadComments
         }
     }
 }
