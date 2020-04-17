@@ -637,7 +637,7 @@ fileprivate struct FeedItemFooterButtonsView: View {
                                     .scaledToFit()
                                     .foregroundColor(self.hasUnreadComments ? Color.green : (self.hasComments ? Color(UIColor.systemGray4) : Color.clear))
                                     .frame(width: 10, height: 10, alignment: .center)
-                                    .offset(x: 16)
+                                    .offset(x: 17)
                                 , alignment: .trailing)
                     }
                     .padding(EdgeInsets(top: 15, leading: 20, bottom: 9, trailing: 24))
