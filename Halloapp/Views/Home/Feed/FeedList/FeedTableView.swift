@@ -390,18 +390,18 @@ fileprivate class FeedItemContentView: UIView {
             self.mediaView = controller.view
         }
 
-        // With media or > 180 chars long: System 16 pt (Callout)
-        // Text-only under 180 chars long: System 20 pt (Title 3)
+        // With media or > 180 chars long: System 16 pt (Body - 1)
+        // Text-only under 180 chars long: System 20 pt (Body + 3)
         if !(post.text ?? "").isEmpty {
             self.textContentView.isHidden = false
             self.vStack.insertArrangedSubview(self.textContentView, at: self.vStack.arrangedSubviews.count)
 
             self.textLabel.text = post.text
-            if mediaHeight > 0 || (self.textLabel.text ?? "").count > 180 {
-                self.textLabel.font = UIFont.preferredFont(forTextStyle: .callout)
-            } else {
-                self.textLabel.font = UIFont.preferredFont(forTextStyle: .title3)
-            }
+            self.textLabel.font = {
+                let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
+                let fontSizeDiff: CGFloat = mediaHeight > 0 || (self.textLabel.text ?? "").count > 180 ? -1 : 3
+                return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
+            }()
             self.textLabel.numberOfLines = mediaHeight > 0 ? 3 : 10
         }
 
