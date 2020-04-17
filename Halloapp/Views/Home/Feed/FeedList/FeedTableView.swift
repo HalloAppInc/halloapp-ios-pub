@@ -620,7 +620,7 @@ fileprivate struct FeedItemFooterButtonsView: View {
     }
 
     var body: some View {
-        HStack {
+        HStack(spacing: 0) {
             // Comment button
             NavigationLink(destination: CommentsView(feedPostId: self.feedDataItem.id).navigationBarTitle("Comments", displayMode: .inline).edgesIgnoringSafeArea(.bottom)) {
                 VStack {
@@ -640,9 +640,9 @@ fileprivate struct FeedItemFooterButtonsView: View {
                                     .offset(x: 17)
                                 , alignment: .trailing)
                     }
+                    .frame(maxWidth: .infinity)
                     .padding(EdgeInsets(top: 15, leading: 20, bottom: 9, trailing: 24))
                 }
-                .frame(maxWidth: .infinity)
             }
 
             // Message button
@@ -658,9 +658,9 @@ fileprivate struct FeedItemFooterButtonsView: View {
                             Text("Message")
                                 .font(Font.system(.subheadline).weight(.medium))
                         }
+                        .frame(maxWidth: .infinity)
                         .padding(EdgeInsets(top: 15, leading: 24, bottom: 9, trailing: 20))
                     }
-                    .frame(maxWidth: .infinity)
                 }
                 .sheet(isPresented: self.$showMessageView) {
                     MessageUser(isViewPresented: self.$showMessageView)
