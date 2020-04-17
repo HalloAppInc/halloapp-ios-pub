@@ -66,34 +66,23 @@ extension Date {
      - returns: Localized timstamp to be used in Feed.
 
      Timestamp formatting rules are:
-     - under 1 minute: 15 seconds
-     - under 1 hour: 45 minutes
-     - under 1 day: 6 hours
-     - under 1 week: 4 days
-     - under 8 days: 1 week
-     - more than 8 days, same year: 24 February
-     - otherwise: 24 December, 2019
+     - under 1 minute: 15s
+     - under 1 hour: 45m
+     - under 1 day: 6h
+     - otherwise: 5d
      */
     func postTimestamp() -> String {
         let seconds = -self.timeIntervalSinceNow
 
         // TODO: Localize
         if seconds < Date.minutes(1) {
-            return "\(Date.toSeconds(seconds)) seconds ago"
+            return "\(Date.toSeconds(seconds))s"
         } else if seconds < Date.hours(1) {
-            return "\(Date.toMinutes(seconds, rounded: true)) minutes ago"
+            return "\(Date.toMinutes(seconds))m"
         } else if seconds < Date.days(1) {
-            return "\(Date.toHours(seconds, rounded: true)) hours ago"
-        } else if seconds < Date.weeks(1) {
-            return "\(Date.toDays(seconds, rounded: true)) days ago"
-        } else if seconds < Date.days(8) {
-            return "\(Date.toWeeks(seconds, rounded: true)) week ago"
+            return "\(Date.toHours(seconds))h"
         } else {
-            if Calendar.current.component(.year, from: self) == Calendar.current.component(.year, from: Date()) {
-                return DateFormatter.dateTimeFormatterLongStyleNoYearNoTime.string(from: self)
-            } else {
-                return DateFormatter.dateTimeFormatterLongStyleNoTime.string(from: self)
-            }
+            return "\(Date.toDays(seconds))d"
         }
     }
 
@@ -104,8 +93,7 @@ extension Date {
      - under 1 minute: 15s
      - under 1 hour: 45m
      - under 1 day: 6h
-     - under 1 week: 4d
-     - otherwise: 4w
+     - otherwise: 5d
      */
     func commentTimestamp() -> String {
         let seconds = -self.timeIntervalSinceNow
@@ -117,10 +105,8 @@ extension Date {
             return "\(Date.toMinutes(seconds, rounded: true))m"
         } else if seconds < Date.days(1) {
             return "\(Date.toHours(seconds, rounded: true))h"
-        } else if seconds < Date.weeks(1) {
-            return "\(Date.toDays(seconds, rounded: true))d"
         } else {
-            return "\(Date.toWeeks(seconds, rounded: true))w"
+            return "\(Date.toDays(seconds, rounded: true))d"
         }
     }
 }
