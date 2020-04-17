@@ -480,7 +480,7 @@ fileprivate class FeedItemHeaderView: UIView {
         self.addSubview(hStack)
         hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
     }
 
