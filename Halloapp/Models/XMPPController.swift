@@ -275,9 +275,12 @@ class XMPPController: NSObject, ObservableObject {
 extension XMPPController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream, didReceive message: XMPPMessage) {
-        if message.fromStr! != "pubsub.s.halloapp.net" {
-            DDLogInfo("Stream: didReceive \(message)")
+        guard message.fromStr ?? "" != "pubsub.s.halloapp.net" else {
+            // PubSub messages are handled separately.
+            return
         }
+
+        DDLogInfo("xmpp/message/incoming id=[\(message.elementID ?? "")]")
 
         // Notification about new contact on the app
         if let contactList = message.element(forName: "contact_list") {
