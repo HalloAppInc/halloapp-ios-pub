@@ -76,32 +76,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.destroyStore()
             })
         
-        /* getting new items, usually one */
         self.cancellableSet.insert(
-            xmppController.didGetNewFeedItem.sink { [weak self] xmppMessage in
-                if let items = xmppMessage.element(forName: "event")?.element(forName: "items") {
-                    DDLogInfo("Feed: new item \(items)")
-                    guard let self = self else { return }
-                    self.processIncomingFeedItems(items)
-                }
+            xmppController.didReceiveFeedItems.sink { [weak self] (itemElements) in
+                guard let self = self else { return }
+                self.processIncomingFeedItems(itemElements)
             })
         
-        /* getting the entire list of items back */
         self.cancellableSet.insert(
-            xmppController.didGetFeedItems.sink { [weak self] xmppIQ in
-                if let items = xmppIQ.element(forName: "pubsub")?.element(forName: "items") {
-                    DDLogInfo("Feed: fetched items \(items)")
-                    guard let self = self else { return }
-                    self.processIncomingFeedItems(items)
-               }
-            })
-        
-        /* retract item */
-        self.cancellableSet.insert(
-            xmppController.didGetRetractItem.sink { xmppMessage in
-                DDLogInfo("Feed: Retract Item \(xmppMessage)")
-                
-                //todo: handle retracted items
+            xmppController.didReceiveFeedRetracts.sink { [weak self] (itemElements) in
+                guard let self = self else { return }
+                self.processIncomingFeedRetracts(itemElements)
             })
 
         self.fetchFeedPosts()
@@ -573,10 +557,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newComments
     }
 
-    private func processIncomingFeedItems(_ itemsElement: XMLElement) {
+    private func processIncomingFeedItems(_ items: [XMLElement]) {
         var feedPosts: [XMPPFeedPost] = []
         var comments: [XMPPComment] = []
-        let items = itemsElement.elements(forName: "item")
         for item in items {
             guard let type = item.attribute(forName: "type")?.stringValue else {
                 DDLogError("Invalid item: [\(item)]")
@@ -654,6 +637,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         if managedObjectContext.hasChanges {
             self.save(managedObjectContext)
         }
+    }
+
+    private func processIncomingFeedRetracts(_ items: [XMLElement]) {
     }
 
     // MARK: Feed Media

@@ -34,10 +34,8 @@ class XMPPController: NSObject, ObservableObject {
     var isConnecting = PassthroughSubject<String, Never>()
     var didConnect = PassthroughSubject<String, Never>() // used by UserData to know if user is in or not
     
-    var didChangeMessage = PassthroughSubject<XMPPMessage, Never>()
-    var didGetNewFeedItem = PassthroughSubject<XMPPMessage, Never>()
-    var didGetRetractItem = PassthroughSubject<XMPPMessage, Never>()
-    var didGetFeedItems = PassthroughSubject<XMPPIQ, Never>()
+    var didReceiveFeedItems = PassthroughSubject<[XMLElement], Never>()
+    var didReceiveFeedRetracts = PassthroughSubject<[XMLElement], Never>()
 
     var xmppStream: XMPPStream
     private var xmppPubSub: XMPPPubSub
@@ -461,50 +459,85 @@ extension XMPPController: XMPPPingDelegate {
 extension XMPPController: XMPPPubSubDelegate {
 
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveItems iq: XMPPIQ, fromNode node: String) {
-//        DDLogInfo("PubSub: didRetrieveItems - \(iq)")
-        let pubsub = iq.element(forName: "pubsub")
-        let items = pubsub?.element(forName: "items")
-        if let node = items?.attributeStringValue(forName: "node") {
-            let nodeParts = node.components(separatedBy: "-")
-            if nodeParts.count > 0 {
-                if (nodeParts[0] == "feed") {
-                    self.didGetFeedItems.send(iq)
-                }
-            }
+        // TODO: redo this using XMPPRequest
+        guard let items = iq.element(forName: "pubsub")?.element(forName: "items") else {
+            return
+        }
+        guard let nodeAttr = items.attributeStringValue(forName: "node") else {
+            return
+        }
+        let nodeParts = nodeAttr.components(separatedBy: "-")
+        guard nodeParts.count == 2 else {
+            return
+        }
+        if nodeParts.first! == "feed" {
+            self.processIncomingFeedItems(items.elements(forName: "item")) {}
         }
     }
 
     func xmppPubSub(_ sender: XMPPPubSub, didReceive message: XMPPMessage) {
 
-//        DDLogInfo("PubSub: didReceive Message \(message)")
-
-        let event = message.element(forName: "event")
-        let items = event?.element(forName: "items")
-        
-        if (event?.element(forName: "delete")) != nil {
-            //todo: eating the deletes for now
-            DDLogInfo("eating the deletes for now")
+        guard let items = message.element(forName: "event")?.element(forName: "items") else {
+            DDLogError("xmpp/pubsub/message/incoming/error/invalid-message")
+            self.sendAck(for: message)
+            return
         }
-        
-        if let node = items?.attributeStringValue(forName: "node") {
 
-            let nodeParts = node.components(separatedBy: "-")
-            
-            if nodeParts.count > 0 {
-                if (nodeParts[0] == "feed") {
-                    if items?.element(forName: "retract") != nil {
-                        self.didGetRetractItem.send(message)
-                    } else {
-                        self.didGetNewFeedItem.send(message)
-                    }
-                } else if (nodeParts[0] == "metadata") {
-                    //todo: handle metadata messages before acking them
-                    DDLogInfo("eating metadata messages for now")
-                }
+        guard let nodeAttr = items.attributeStringValue(forName: "node") else {
+            DDLogError("xmpp/pubsub/message/incoming/error/missing-node")
+            self.sendAck(for: message)
+            return
+        }
+
+        let nodeParts = nodeAttr.components(separatedBy: "-")
+        guard nodeParts.count == 2 else {
+            DDLogError("xmpp/pubsub/message/incoming/error/invalid-node [\(nodeParts)]")
+            self.sendAck(for: message)
+            return
+        }
+
+        DDLogInfo("xmpp/pubsub/message/incoming node=[\(nodeAttr)] id=[\(message.elementID ?? "")]")
+
+        switch nodeParts.first! {
+        case "feed":
+            let itemProcessingGroup = DispatchGroup()
+            itemProcessingGroup.enter()
+            self.processIncomingFeedItems(items.elements(forName: "item")) {
+                itemProcessingGroup.leave()
             }
-            
-        }
+            itemProcessingGroup.enter()
+            self.processIncomingRetracts(items.elements(forName: "retract")) {
+                itemProcessingGroup.leave()
+            }
+            itemProcessingGroup.notify(queue: DispatchQueue.main) {
+                self.sendAck(for: message)
+            }
 
-        self.sendAck(for: message)
+        case "metadata":
+            DDLogInfo("xmpp/pubsub/message/incoming/metadata Ack metadata message silently.")
+            self.sendAck(for: message)
+
+        default:
+            DDLogError("xmpp/pubsub/message/error/unknown-type")
+            self.sendAck(for: message)
+        }
+    }
+
+    private func processIncomingFeedItems(_ feedItems: [XMLElement], completion: () -> Void) {
+        guard !feedItems.isEmpty else {
+            completion()
+            return
+        }
+        self.didReceiveFeedItems.send(feedItems)
+        completion()
+    }
+
+    private func processIncomingRetracts(_ feedItems: [XMLElement], completion: () -> Void) {
+        guard !feedItems.isEmpty else {
+            completion()
+            return
+        }
+        self.didReceiveFeedRetracts.send(feedItems)
+        completion()
     }
 }
