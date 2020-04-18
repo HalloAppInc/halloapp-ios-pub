@@ -41,6 +41,9 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
         // Only 'unreadComments' might change at this point.
         hasUnreadComments = feedPost.unreadCount > 0
         numberOfComments = feedPost.comments?.count ?? 0
+        if feedPost.isPostDeleted && !media.isEmpty {
+            media = []
+        }
     }
 
     func reloadMedia(from feedPost: FeedPost, order: Int) {

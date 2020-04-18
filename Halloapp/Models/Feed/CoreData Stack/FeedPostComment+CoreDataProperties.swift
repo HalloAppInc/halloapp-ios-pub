@@ -18,6 +18,7 @@ extension FeedPostComment {
         case sent = 2
         case sendError = 3
         case incoming = 4
+        case deleted = 5
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPostComment> {
@@ -30,7 +31,7 @@ extension FeedPostComment {
     @NSManaged var userId: UserID
     @NSManaged var parent: FeedPostComment?
     @NSManaged var post: FeedPost
-    @NSManaged var replies: FeedPostComment?
+    @NSManaged var replies: NSSet?
     @NSManaged private var statusValue: Int16
     var status: Status {
         get {
@@ -38,6 +39,15 @@ extension FeedPostComment {
         }
         set {
             self.statusValue = newValue.rawValue
+        }
+    }
+
+    var isCommentDeleted: Bool {
+        get {
+            return self.status == .deleted
+        }
+        set {
+            self.status = .deleted
         }
     }
 

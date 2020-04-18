@@ -57,6 +57,37 @@ class CommentView: UIView {
         return button
     }()
 
+    static let deletedCommentViewTag = 1
+    private lazy var deletedCommentView: UIView = {
+        let textLabel = UILabel()
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        textLabel.textColor = .secondaryLabel
+        textLabel.text = "This comment has been deleted"
+        textLabel.font = {
+            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline).withSymbolicTraits(.traitItalic)!
+            return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize)
+        }()
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.tag = CommentView.deletedCommentViewTag
+        view.addSubview(textLabel)
+        textLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        textLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor).isActive = true
+        textLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        textLabel.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor).isActive = true
+        return view
+
+    }()
+
+    private lazy var vStack: UIStackView = {
+        let vStack = UIStackView()
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.axis = .vertical
+        vStack.spacing = 4
+        return vStack
+    }()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
@@ -81,22 +112,23 @@ class CommentView: UIView {
         hStack.axis = .horizontal
         hStack.spacing = 8
 
-        let vStack = UIStackView(arrangedSubviews: [ self.textLabel, hStack ])
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        vStack.spacing = 4
-        self.addSubview(vStack)
+        vStack.addArrangedSubview(self.textLabel)
+        vStack.addArrangedSubview(hStack)
+        self.addSubview(self.vStack)
 
         let imageSize: CGFloat = 30.0
-        let views = [ "image": self.contactImageView, "vstack": vStack ]
-        NSLayoutConstraint(item: self.contactImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
-        NSLayoutConstraint(item: self.contactImageView, attribute: .height, relatedBy: .equal, toItem: self.contactImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
-        self.addConstraint({
-            self.leadingMargin = NSLayoutConstraint(item: self.contactImageView, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1, constant: 0)
-            return self.leadingMargin! }())
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "[image]-10-[vstack]|", options: .directionLeadingToTrailing, metrics: nil, views: views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[image]->=0-|", options: [], metrics: nil, views: views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[vstack]|", options: [], metrics: nil, views: views))
+        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
+        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
+
+        self.leadingMargin = self.contactImageView.leadingAnchor.constraint(equalTo: self.leadingAnchor)
+        self.leadingMargin?.isActive = true
+        self.contactImageView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        self.contactImageView.bottomAnchor.constraint(lessThanOrEqualTo: self.bottomAnchor).isActive = true
+
+        self.vStack.leadingAnchor.constraint(equalTo: self.contactImageView.trailingAnchor, constant: 10).isActive = true
+        self.vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        self.vStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        self.vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
     }
 
     private func contentString(author: String, text: String) -> ( NSAttributedString, Range<String.Index>? ) {
@@ -119,9 +151,22 @@ class CommentView: UIView {
 
     func updateWith(comment: FeedPostComment) {
         let contactName = AppContext.shared.contactStore.fullName(for: comment.userId)
-        let content = self.contentString(author: contactName, text: comment.text)
+        let content = self.contentString(author: contactName, text: comment.isCommentDeleted ? "" : comment.text)
         self.textLabel.attributedText = content.0
         self.textLabel.hyperlinkDetectionIgnoreRange = content.1
         self.timestampLabel.text = comment.timestamp.commentTimestamp()
+
+        if comment.isCommentDeleted {
+            self.deletedCommentView.isHidden = false
+            if self.deletedCommentView.superview == nil {
+                self.vStack.insertArrangedSubview(self.deletedCommentView, at: self.vStack.arrangedSubviews.firstIndex(of: self.textLabel)! + 1)
+            }
+        } else {
+            // Hide "This comment has been deleted" view.
+            // Use tags so as to not trigger lazy initialization of the view.
+            if let deletedCommentView = self.vStack.arrangedSubviews.first(where: { $0.tag == CommentView.deletedCommentViewTag }) {
+                deletedCommentView.isHidden = true
+            }
+        }
     }
 }

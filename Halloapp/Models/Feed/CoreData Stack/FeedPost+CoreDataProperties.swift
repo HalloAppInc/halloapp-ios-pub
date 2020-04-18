@@ -18,6 +18,7 @@ extension FeedPost {
         case sent = 2
         case sendError = 3
         case incoming = 4
+        case deleted = 5
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPost> {
@@ -45,6 +46,15 @@ extension FeedPost {
         get {
             let media = self.media as! Set<FeedPostMedia>
             return media.sorted { $0.order < $1.order }
+        }
+    }
+
+    var isPostDeleted: Bool {
+        get {
+            return self.status == .deleted
+        }
+        set {
+            self.status = .deleted
         }
     }
 

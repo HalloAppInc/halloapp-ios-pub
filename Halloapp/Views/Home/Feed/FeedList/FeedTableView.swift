@@ -149,8 +149,11 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         case .update:
             guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { return }
             DDLogDebug("FeedTableView/frc/update [\(feedPost)] at [\(indexPath)]")
-            // Do nothing for now because the only thing that updates is "unread comments" indicator,
-            // and those updates are driven by SwiftUI.
+            if trackPerRowFRCChanges {
+                self.tableView.reloadRows(at: [ indexPath ], with: .automatic)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
 
         default:
             break
@@ -300,7 +303,12 @@ fileprivate class FeedTableViewCell: UITableViewCell {
     public func configure(with post: FeedPost, contentWidth: CGFloat) {
         self.headerView.configure(with: post, contentWidth: contentWidth)
         self.itemContentView.configure(with: post, contentWidth: contentWidth)
-        self.footerView.configure(with: post, contentWidth: contentWidth)
+        if post.isPostDeleted {
+            self.footerView.isHidden = true
+        } else {
+            self.footerView.isHidden = false
+            self.footerView.configure(with: post, contentWidth: contentWidth)
+        }
     }
 
     override func prepareForReuse() {
@@ -326,7 +334,7 @@ fileprivate class FeedItemContentView: UIView {
     }
 
     private lazy var vStack: UIStackView = {
-        let vStack = UIStackView()
+        let vStack = UIStackView(arrangedSubviews: [ self.textContentView ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         return vStack
@@ -342,6 +350,31 @@ fileprivate class FeedItemContentView: UIView {
         self.textLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor).isActive = true
         self.textLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor).isActive = true
         self.textLabel.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor).isActive = true
+        return view
+    }()
+
+    static let deletedPostViewTag = 1
+    private lazy var deletedPostView: UIView = {
+        let textLabel = UILabel()
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        textLabel.textAlignment = .center
+        textLabel.textColor = .secondaryLabel
+        textLabel.text = "This post has been deleted"
+        textLabel.font = {
+            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body).withSymbolicTraits(.traitItalic)!
+            return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + 3)
+        }()
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.layoutMargins.top = 20
+        view.layoutMargins.bottom = 12
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.tag = FeedItemContentView.deletedPostViewTag
+        view.addSubview(textLabel)
+        textLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
+        textLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor).isActive = true
+        textLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor).isActive = true
+        textLabel.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor).isActive = true
         return view
     }()
 
@@ -390,11 +423,18 @@ fileprivate class FeedItemContentView: UIView {
             self.mediaView = controller.view
         }
 
+        if post.isPostDeleted {
+            self.textContentView.isHidden = true
+
+            self.deletedPostView.isHidden = false
+            if !self.vStack.arrangedSubviews.contains(self.deletedPostView) {
+                self.vStack.addArrangedSubview(self.deletedPostView)
+            }
+        }
         // With media or > 180 chars long: System 16 pt (Body - 1)
         // Text-only under 180 chars long: System 20 pt (Body + 3)
-        if !(post.text ?? "").isEmpty {
+        else if !(post.text ?? "").isEmpty {
             self.textContentView.isHidden = false
-            self.vStack.insertArrangedSubview(self.textContentView, at: self.vStack.arrangedSubviews.count)
 
             self.textLabel.text = post.text
             self.textLabel.font = {
@@ -403,10 +443,11 @@ fileprivate class FeedItemContentView: UIView {
                 return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
             }()
             self.textLabel.numberOfLines = mediaHeight > 0 ? 3 : 10
+            // Adjust vertical margins around text.
+            self.textContentView.layoutMargins.top = mediaHeight > 0 ? 11 : 9
+        } else {
+            self.textContentView.isHidden = true
         }
-
-        // Adjust vertical margins around text.
-        self.textContentView.layoutMargins.top = mediaHeight > 0 ? 11 : 9
     }
 
     func prepareForReuse() {
@@ -415,8 +456,11 @@ fileprivate class FeedItemContentView: UIView {
             mediaView.removeFromSuperview()
             self.mediaView = nil
         }
-        self.vStack.removeArrangedSubview(self.textContentView)
-        self.textContentView.isHidden = true
+        // Hide "This post has been deleted" view.
+        // Use tags so as to not trigger lazy initialization of the view.
+        if let deletedPostView = self.vStack.arrangedSubviews.first(where: { $0.tag == FeedItemContentView.deletedPostViewTag }) {
+            deletedPostView.isHidden = true
+        }
     }
 }
 

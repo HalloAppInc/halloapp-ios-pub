@@ -514,6 +514,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     continue
                 }
 
+                // Check if post has been retracted.
+                guard !feedPost.isPostDeleted else {
+                    DDLogError("FeedData/process-comments/retracted-post [\(xmppComment.feedPostId)]")
+                    ignoredCommentIds.insert(xmppComment.id)
+                    continue
+                }
+
                 // Find parent if necessary.
                 var parentComment: FeedPostComment? = nil
                 if xmppComment.parentId != nil {
@@ -522,6 +529,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         DDLogInfo("FeedData/process-comments/missing-parent/skip [\(xmppComment.id)]")
                         continue
                     }
+                }
+
+                // Check if parent comment has been retracted.
+                if parentComment?.isCommentDeleted ?? false {
+                    DDLogError("FeedData/process-comments/retracted-parent [\(parentComment!.id)]")
+                    ignoredCommentIds.insert(xmppComment.id)
+                    continue
                 }
 
                 // Add new FeedPostComment to database.
@@ -639,7 +653,82 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    // MARK: Processing Retracts
+
+    private func processRetract(forPostId postId: FeedPostID) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else {
+                DDLogError("FeedData/retract-post/error Missing post. [\(postId)]")
+                return
+            }
+            guard !feedPost.isPostDeleted else {
+                DDLogError("FeedData/retract-post/error Already retracted. [\(postId)]")
+                return
+            }
+            DDLogInfo("FeedData/retract-post [\(postId)]")
+
+            // 1. Delete media.
+            self.deleteMedia(in: feedPost)
+
+            // 2. Delete comments.
+            let comments = feedPost.comments as! Set<FeedPostComment>
+            comments.forEach { managedObjectContext.delete($0) }
+
+            // 3. Reset post data and mark post as deleted.
+            feedPost.text = nil
+            feedPost.isPostDeleted = true
+
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+
+    private func processRetract(forCommentId commentId: FeedPostCommentID) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let feedComment = self.feedComment(with: commentId, in: managedObjectContext) else {
+                DDLogError("FeedData/retract-comment/error Missing comment. [\(commentId)]")
+                return
+            }
+            guard !feedComment.isCommentDeleted else {
+                DDLogError("FeedData/retract-comment/error Already retracted. [\(commentId)]")
+                return
+            }
+            DDLogInfo("FeedData/retract-comment [\(commentId)]")
+
+            // Reset comment text and mark comment as deleted.
+            // TBD: should replies be deleted too?
+            feedComment.text = ""
+            feedComment.isCommentDeleted = true
+
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+
     private func processIncomingFeedRetracts(_ items: [XMLElement]) {
+        /**
+         Example:
+         <retract timestamp="1587161372" publisher="1000000000354803885@s.halloapp.net/android" type="feedpost" id="b2d888ecfe2343d9916173f2f416f4ae"><entry xmlns="http://halloapp.com/published-entry"><feedpost/><s1>CgA=</s1></entry></retract>
+         */
+        for item in items {
+            guard let itemId = item.attributeStringValue(forName: "id") else {
+                DDLogError("FeedData/process-retract/error Missing item id. [\(item)]")
+                continue
+            }
+            guard let type = item.attribute(forName: "type")?.stringValue else {
+                DDLogError("FeedData/process-retract/error Missing item type. [\(item)]")
+                continue
+            }
+            if type == "feedpost" {
+                self.processRetract(forPostId: itemId)
+            } else if type == "comment" {
+                self.processRetract(forCommentId: itemId)
+            } else {
+                DDLogError("FeedData/process-retract/error Invalid item type. [\(item)]")
+            }
+        }
     }
 
     // MARK: Feed Media
