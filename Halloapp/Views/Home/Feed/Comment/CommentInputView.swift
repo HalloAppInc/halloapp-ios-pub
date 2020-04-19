@@ -270,8 +270,21 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }
 
     @objc func postButtonClicked() {
+        self.acceptAutoCorrection()
         self.delegate?.commentInputView(self, wantsToSend: self.text)
     }
+
+    private func acceptAutoCorrection() {
+        if self.textView.isFirstResponder {
+            if !self.textView.text.isEmpty {
+                // Accept auto-correction.
+                self.textView.selectedRange = NSRange(location: 0, length: 0)
+                // Must clear selection to allow auto-correction to work again.
+                self.textView.selectedRange = NSRange(location: NSNotFound, length: 0)
+            }
+        }
+    }
+
 
     // MARK: Keyboard
     enum KeyboardState {
