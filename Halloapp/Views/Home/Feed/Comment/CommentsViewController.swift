@@ -10,9 +10,8 @@ import CocoaLumberjack
 import CoreData
 import UIKit
 
-class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetchedResultsControllerDelegate {
+class CommentsViewController: UIViewController, UITableViewDataSource, CommentInputViewDelegate, NSFetchedResultsControllerDelegate {
     static private let cellReuseIdentifier = "CommentCell"
-    static private let sectionMain = 0
 
     typealias ReplyContext = (parentCommentId: String, userId: String)
 
@@ -31,6 +30,7 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorStyle = .none
         tableView.allowsSelection = false
+        tableView.dataSource = self
         tableView.contentInsetAdjustmentBehavior = .scrollableAxes
         tableView.keyboardDismissMode = .interactive
         tableView.preservesSuperviewLayoutMargins = true
@@ -67,17 +67,6 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         headerView.commentView.updateWith(feedPost: feedPost)
         self.tableView.tableHeaderView = headerView
 
-        self.dataSource = UITableViewDiffableDataSource<Int, FeedPostComment>(tableView: self.tableView) { [weak self] tableView, indexPath, feedPostComment in
-            let cell = tableView.dequeueReusableCell(withIdentifier: CommentsViewController.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
-            cell.update(with: feedPostComment)
-            cell.replyAction = {
-                guard let self = self else { return }
-                self.replyContext = (parentCommentId: feedPostComment.id, userId: feedPostComment.userId)
-                self.commentsInputView.showKeyboard(from: self)
-            }
-            return cell
-        }
-
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "post.id = %@", self.feedPostId!)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true) ]
@@ -87,7 +76,6 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
         self.fetchedResultsController?.delegate = self
         do {
             try self.fetchedResultsController!.performFetch()
-            self.updateData(animatingDifferences: false)
         } catch {
             return
         }
@@ -134,43 +122,115 @@ class CommentsViewController: UIViewController, CommentInputViewDelegate, NSFetc
 
     // MARK: Data
 
-    func updateData(animatingDifferences: Bool = true) {
-        guard let comments = self.fetchedResultsController?.fetchedObjects else { return }
-        var sortedResults: [FeedPostComment] = []
+    private var trackPerRowFRCChanges = false
 
-        func findChildren(of commentId: FeedPostCommentID?) {
-            let children = comments.filter{ $0.parent?.id == commentId }
-            for child in children {
-                sortedResults.append(child)
-                findChildren(of: child.id)
+    private var reloadTableViewInDidChangeContent = false
+
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        reloadTableViewInDidChangeContent = false
+        trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
+        DDLogDebug("CommentsView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+    }
+
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        switch type {
+        case .insert:
+            guard let indexPath = newIndexPath, let comment = anObject as? FeedPostComment else { break }
+            DDLogDebug("CommentsView/frc/insert [\(comment)] at [\(indexPath)]")
+            if trackPerRowFRCChanges {
+                self.tableView.insertRows(at: [ indexPath ], with: .fade)
+            } else {
+                reloadTableViewInDidChangeContent = true
             }
+
+        case .delete:
+            guard let indexPath = indexPath, let comment = anObject as? FeedPostComment else { break }
+            DDLogDebug("CommentsView/frc/delete [\(comment)] at [\(indexPath)]")
+            if trackPerRowFRCChanges {
+                self.tableView.deleteRows(at: [ indexPath ], with: .fade)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
+
+        case .move:
+            guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let comment = anObject as? FeedPostComment else { break }
+            DDLogDebug("CommentsView/frc/move [\(comment)] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            if trackPerRowFRCChanges {
+                self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
+
+        case .update:
+            guard let indexPath = indexPath, let comment = anObject as? FeedPostComment else { return }
+            DDLogDebug("CommentsView/frc/update [\(comment)] at [\(indexPath)]")
+            if trackPerRowFRCChanges {
+                // Update cell directly if there are animations attached to the UITableView.
+                // This is done to prevent multiple animation from overlapping and breaking
+                // smooth animation on new comment send.
+                if self.tableView.layer.animationKeys()?.isEmpty ?? true {
+                    self.tableView.reloadRows(at: [ indexPath ], with: .fade)
+                } else {
+                    if let cell = self.tableView.cellForRow(at: indexPath) as? CommentsTableViewCell {
+                        cell.update(with: comment)
+                    }
+                }
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
+
+        default:
+            break
         }
-
-        findChildren(of: nil)
-
-        var diffableDataSourceSnapshot = NSDiffableDataSourceSnapshot<Int, FeedPostComment>()
-        diffableDataSourceSnapshot.appendSections([ CommentsViewController.sectionMain ])
-        diffableDataSourceSnapshot.appendItems(sortedResults)
-        self.dataSource?.apply(diffableDataSourceSnapshot, animatingDifferences: animatingDifferences)
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        let animateChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
-        self.updateData(animatingDifferences: animateChanges)
+        DDLogDebug("CommentsView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        if reloadTableViewInDidChangeContent {
+            self.tableView.reloadData()
+        }
         // TODO: Scroll table view on new comment from someone else.
         if self.scrollToBottomOnContentChange {
-            self.scrollToBottom()
+            DispatchQueue.main.async {
+                self.scrollToBottom(true)
+            }
             self.scrollToBottomOnContentChange = false
         }
     }
 
     private func scrollToBottom(_ animated: Bool = true) {
-        if let dataSnapshot = self.dataSource?.snapshot() {
-            let numberOfRows = dataSnapshot.numberOfItems(inSection: CommentsViewController.sectionMain)
-            let indexPath = IndexPath(row: numberOfRows - 1, section: CommentsViewController.sectionMain)
-            self.tableView.scrollToRow(at: indexPath, at: .none, animated: animated)
+        if let numSections = self.fetchedResultsController?.sections?.count, let numRows = self.fetchedResultsController?.sections?.last?.numberOfObjects {
+            if numSections > 0 && numRows > 0 {
+                let indexPath = IndexPath(row: numRows - 1, section: numSections - 1)
+                self.tableView.scrollToRow(at: indexPath, at: .none, animated: animated)
+            }
         }
     }
+
+    // MARK: UITableView
+
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return self.fetchedResultsController?.sections?.count ?? 0
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        guard let sections = self.fetchedResultsController?.sections else { return 0 }
+        return sections[section].numberOfObjects
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: CommentsViewController.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
+        if let feedPostComment = fetchedResultsController?.object(at: indexPath) {
+            cell.update(with: feedPostComment)
+            cell.replyAction = { [ weak self ] in
+                guard let self = self else { return }
+                self.replyContext = (parentCommentId: feedPostComment.id, userId: feedPostComment.userId)
+                self.commentsInputView.showKeyboard(from: self)
+            }
+        }
+        return cell
+    }
+
 
     // MARK: Input view
 
