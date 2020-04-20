@@ -21,8 +21,7 @@ struct Login: View {
                 .hidden()
             
             Text("Hallo")
-                .font(.gothamMedium(80))
-                .fontWeight(.heavy)
+                .font(.system(size: 80, weight: .bold))
                 .multilineTextAlignment(.center)
                 .foregroundColor(Color.primary)
                 
@@ -109,7 +108,7 @@ struct Login: View {
                 }
             }) {
                 Text("Sign In")
-                    .font(Font.gothamBody)
+                    .font(.system(.body, weight: .medium))
                     .padding(15)
                     .background(self.isButtonClicked ? Color(UIColor.systemGray5) : Color(UIColor.systemBlue))
                     .foregroundColor(self.isButtonClicked ? .gray : .white)

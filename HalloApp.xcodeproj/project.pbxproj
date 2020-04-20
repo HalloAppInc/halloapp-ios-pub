@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		146B93792405F40500768AC6 /* FontExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* FontExtension.swift */; };
+		146B93792405F40500768AC6 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* Font.swift */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3953241C38A300858251 /* XMPPCommonRequests.swift */; };
 		761B3957241D815800858251 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3956241D815800858251 /* SyncManager.swift */; };
@@ -32,6 +32,7 @@
 		762EDBD7244E2EB700986617 /* Gotham-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC7244E2EB700986617 /* Gotham-Black.otf */; };
 		762EDBD8244E2EB700986617 /* Gotham-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC8244E2EB700986617 /* Gotham-Bold.otf */; };
 		762EDBD9244E2EB700986617 /* Gotham-ThinIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC9244E2EB700986617 /* Gotham-ThinIta.otf */; };
+		762EDBDB244E344300986617 /* UIFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EDBDA244E344300986617 /* UIFont.swift */; };
 		763B42AC243274F400FF0E82 /* FeedTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AB243274F400FF0E82 /* FeedTableView.swift */; };
 		763B42AE2435A74E00FF0E82 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AD2435A74E00FF0E82 /* Date.swift */; };
 		764A0E6524453FC900E1BDCE /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E6424453FC900E1BDCE /* NotificationsView.swift */; };
@@ -135,7 +136,7 @@
 
 /* Begin PBXFileReference section */
 		0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.debug.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.debug.xcconfig"; sourceTree = "<group>"; };
-		146B93782405F40500768AC6 /* FontExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontExtension.swift; sourceTree = "<group>"; };
+		146B93782405F40500768AC6 /* Font.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Font.swift; sourceTree = "<group>"; };
 		19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.release.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.release.xcconfig"; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
 		761B3953241C38A300858251 /* XMPPCommonRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPCommonRequests.swift; sourceTree = "<group>"; };
@@ -161,6 +162,7 @@
 		762EDBC7244E2EB700986617 /* Gotham-Black.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-Black.otf"; path = "HalloApp/Resources/Fonts/Gotham-Black.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBC8244E2EB700986617 /* Gotham-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-Bold.otf"; path = "HalloApp/Resources/Fonts/Gotham-Bold.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBC9244E2EB700986617 /* Gotham-ThinIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-ThinIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-ThinIta.otf"; sourceTree = SOURCE_ROOT; };
+		762EDBDA244E344300986617 /* UIFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIFont.swift; path = HalloApp/Components/Extensions/UIFont.swift; sourceTree = SOURCE_ROOT; };
 		763B42AB243274F400FF0E82 /* FeedTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedTableView.swift; path = HalloApp/Views/Home/Feed/FeedList/FeedTableView.swift; sourceTree = SOURCE_ROOT; };
 		763B42AD2435A74E00FF0E82 /* Date.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Date.swift; path = HalloApp/Components/Extensions/Date.swift; sourceTree = SOURCE_ROOT; };
 		764A0E6424453FC900E1BDCE /* NotificationsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
@@ -585,12 +587,14 @@
 			isa = PBXGroup;
 			children = (
 				EABF312523EE1F240039B5A6 /* Array.swift */,
-				EABF312823EE1FC20039B5A6 /* Digest.swift */,
-				EABF312A23EE20E10039B5A6 /* UIImage.swift */,
-				76DF9FFA2416ADF900F49CA4 /* String.swift */,
-				763B42AD2435A74E00FF0E82 /* Date.swift */,
 				76C69E472447E3B100338D4C /* Data.swift */,
+				763B42AD2435A74E00FF0E82 /* Date.swift */,
+				EABF312823EE1FC20039B5A6 /* Digest.swift */,
+				146B93782405F40500768AC6 /* Font.swift */,
+				76DF9FFA2416ADF900F49CA4 /* String.swift */,
 				76C69E4C2447E6D500338D4C /* UIApplication.swift */,
+				762EDBDA244E344300986617 /* UIFont.swift */,
+				EABF312A23EE20E10039B5A6 /* UIImage.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -600,7 +604,6 @@
 			children = (
 				EA5414D823EE18CF00390EF6 /* General */,
 				EAB03B7A2400517500643EB6 /* MailView.swift */,
-				146B93782405F40500768AC6 /* FontExtension.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -932,6 +935,7 @@
 				EA0D20092363AD74008B8289 /* AuthRouter.swift in Sources */,
 				EAC84CEA2422E05700A5AAEF /* XMPPFeedRequests.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
+				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
 				EA45713723EB7DF5008C2E44 /* UserCore.swift in Sources */,
 				EAB03B7F2400519400643EB6 /* WAVPlayer.swift in Sources */,
 				EAF4F736237DEC2C006885F0 /* YPPicker.swift in Sources */,
@@ -944,7 +948,7 @@
 				EAFA65DA23AC245B004C36F7 /* WUITableView.swift in Sources */,
 				76B95CE22429C711007435AC /* CommentsView.swift in Sources */,
 				EA0D20112363E38E008B8289 /* HomeInit.swift in Sources */,
-				146B93792405F40500768AC6 /* FontExtension.swift in Sources */,
+				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */,
 				EA12006924209903008BFFAD /* VideoUtils.swift in Sources */,
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
