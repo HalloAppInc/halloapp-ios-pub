@@ -108,7 +108,7 @@ struct Login: View {
                 }
             }) {
                 Text("Sign In")
-                    .font(.system(.body, weight: .medium))
+                    .font(Font.system(.body).weight(.medium))
                     .padding(15)
                     .background(self.isButtonClicked ? Color(UIColor.systemGray5) : Color(UIColor.systemBlue))
                     .foregroundColor(self.isButtonClicked ? .gray : .white)
