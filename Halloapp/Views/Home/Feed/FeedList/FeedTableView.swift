@@ -489,8 +489,7 @@ fileprivate class FeedItemHeaderView: UIView {
         let label = UILabel()
         label.numberOfLines = 1
         label.font = {
-            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
-            return UIFont.systemFont(ofSize: fontDescriptor.pointSize, weight: .medium)
+            return UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
         }()
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -503,7 +502,7 @@ fileprivate class FeedItemHeaderView: UIView {
         let label = UILabel()
         label.font = {
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .footnote)
-            return UIFont.systemFont(ofSize: fontDescriptor.pointSize + 1, weight: .medium)
+            return UIFont.gothamFont(ofSize: fontDescriptor.pointSize + 1, weight: .medium)
         }()
         label.textColor = .secondaryLabel
         label.textAlignment = .natural
@@ -673,7 +672,7 @@ fileprivate struct FeedItemFooterButtonsView: View {
                             .font(.system(size: 20, weight: .regular))
 
                         Text("Comment")
-                            .font(Font.system(.subheadline).weight(.medium))
+                            .font(.gotham(.subheadline, weight: .medium))
                             // Green Dot if there are unread comments
                             .overlay (
                                 Image(systemName: "circle.fill")
@@ -700,7 +699,7 @@ fileprivate struct FeedItemFooterButtonsView: View {
                                 .font(.system(size: 20, weight: .regular))
 
                             Text("Message")
-                                .font(Font.system(.subheadline).weight(.medium))
+                                .font(.gotham(.subheadline, weight: .medium))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(EdgeInsets(top: 15, leading: 24, bottom: 9, trailing: 20))
