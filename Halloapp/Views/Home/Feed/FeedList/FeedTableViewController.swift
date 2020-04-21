@@ -317,7 +317,7 @@ fileprivate class FeedTableViewCell: UITableViewCell {
     public func configure(with post: FeedPost, contentWidth: CGFloat) {
         self.headerView.configure(with: post, contentWidth: contentWidth)
         self.itemContentView.configure(with: post, contentWidth: contentWidth)
-        if post.isPostDeleted {
+        if post.isPostRetracted {
             self.footerView.isHidden = true
         } else {
             self.footerView.isHidden = false
@@ -456,7 +456,7 @@ fileprivate class FeedItemContentView: UIView {
             self.mediaView = controller.view
         }
 
-        if post.isPostDeleted {
+        if post.isPostRetracted {
             self.textContentView.isHidden = true
 
             self.deletedPostView.isHidden = false

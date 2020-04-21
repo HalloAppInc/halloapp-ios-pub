@@ -18,7 +18,7 @@ extension FeedPost {
         case sent = 2
         case sendError = 3
         case incoming = 4
-        case deleted = 5
+        case retracted = 5
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPost> {
@@ -49,12 +49,12 @@ extension FeedPost {
         }
     }
 
-    var isPostDeleted: Bool {
+    var isPostRetracted: Bool {
         get {
-            return self.status == .deleted
+            return self.status == .retracted
         }
         set {
-            self.status = .deleted
+            self.status = .retracted
         }
     }
 

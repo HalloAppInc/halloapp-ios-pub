@@ -148,12 +148,12 @@ class CommentView: UIView {
 
     func updateWith(comment: FeedPostComment) {
         let contactName = AppContext.shared.contactStore.fullName(for: comment.userId)
-        let content = self.contentString(author: contactName, text: comment.isCommentDeleted ? "" : comment.text)
+        let content = self.contentString(author: contactName, text: comment.isCommentRetracted ? "" : comment.text)
         self.textLabel.attributedText = content.0
         self.textLabel.hyperlinkDetectionIgnoreRange = content.1
         self.timestampLabel.text = comment.timestamp.commentTimestamp()
 
-        if comment.isCommentDeleted {
+        if comment.isCommentRetracted {
             self.deletedCommentView.isHidden = false
             if self.deletedCommentView.superview == nil {
                 self.vStack.insertArrangedSubview(self.deletedCommentView, at: self.vStack.arrangedSubviews.firstIndex(of: self.textLabel)! + 1)
