@@ -567,6 +567,59 @@ fileprivate class FeedItemHeaderView: UIView {
 
 fileprivate class FeedItemFooterView: UIView {
 
+    class ButtonWithBadge: UIButton {
+
+        enum BadgeState {
+            case hidden
+            case green
+            case gray
+        }
+
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+            self.setupView()
+        }
+
+        required init?(coder: NSCoder) {
+            super.init(coder: coder)
+            self.setupView()
+        }
+
+        var badge: BadgeState = .hidden {
+            didSet {
+                switch self.badge {
+                case .hidden:
+                    self.badgeView.isHidden = true
+
+                case .green:
+                    self.badgeView.isHidden = false
+                    self.badgeView.fillColor = .systemGreen
+
+                case .gray:
+                    self.badgeView.isHidden = false
+                    self.badgeView.fillColor = .systemGray4
+                }
+            }
+        }
+
+        private let badgeView = CircleView(frame: CGRect(origin: .zero, size: CGSize(width: 6, height: 6)))
+
+        private func setupView() {
+            self.addSubview(badgeView)
+        }
+
+        override func layoutSubviews() {
+            super.layoutSubviews()
+
+            guard let titleLabel = self.titleLabel else { return }
+
+            let spacing: CGFloat = 8
+            let badgeCenterX: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? titleLabel.frame.maxX + spacing : titleLabel.frame.minX - spacing
+            self.badgeView.center = self.badgeView.alignedCenter(from: CGPoint(x: badgeCenterX, y: titleLabel.frame.midY))
+        }
+
+    }
+
     private var buttonsView: UIView?
 
     override init(frame: CGRect) {
@@ -580,9 +633,9 @@ fileprivate class FeedItemFooterView: UIView {
     }
 
     // Gotham Medium, 15 pt (Subhead)
-    lazy var commentButton: UIButton = {
-        let spacing: CGFloat = 8
-        let button = UIButton(type: .system)
+    lazy var commentButton: ButtonWithBadge = {
+        let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 8 : -8
+        let button = ButtonWithBadge(type: .system)
         button.setTitle("Comment", for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
         button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
@@ -595,7 +648,7 @@ fileprivate class FeedItemFooterView: UIView {
 
     // Gotham Medium, 15 pt (Subhead)
     lazy var messageButton: UIButton = {
-        let spacing: CGFloat = 8
+        let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 8 : -8
         let button = UIButton(type: .system)
         button.setTitle("Message", for: .normal)
         button.setImage(UIImage(named: "FeedPostMessage"), for: .normal)
@@ -631,6 +684,9 @@ fileprivate class FeedItemFooterView: UIView {
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
+        if let comments = post.comments as? Set<FeedPostComment> {
+            self.commentButton.badge = comments.isEmpty ? .hidden : (post.unreadCount > 0 ? .green : .gray)
+        }
         self.messageButton.isHidden = post.userId == AppContext.shared.userData.userId
     }
 
