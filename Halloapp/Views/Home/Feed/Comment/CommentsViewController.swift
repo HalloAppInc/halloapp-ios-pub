@@ -47,9 +47,8 @@ class CommentsViewController: UIViewController, UITableViewDataSource, CommentIn
         super.init(coder: coder)
     }
 
-    func dismantle() {
-        DDLogDebug("CommentsViewController/dismantle/\(feedPostId ?? "")")
-        self.fetchedResultsController = nil
+    deinit {
+        DDLogDebug("CommentsViewController/deinit/\(feedPostId ?? "")")
     }
 
     override func viewDidLoad() {
