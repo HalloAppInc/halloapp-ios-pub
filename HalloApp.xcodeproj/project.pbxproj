@@ -48,6 +48,8 @@
 		76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */; };
 		76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */; };
 		76A92444244E659600794859 /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92443244E659600794859 /* FeedViewController.swift */; };
+		76A92449244EBCB600794859 /* ShapeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92448244EBCB600794859 /* ShapeView.swift */; };
+		76A9244B244EC49000794859 /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A9244A244EC49000794859 /* UIView.swift */; };
 		76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CD62429331D007435AC /* CommentsViewController.swift */; };
 		76B95CDE24295AB5007435AC /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CDD24295AB5007435AC /* CommentView.swift */; };
 		76B95CE22429C711007435AC /* CommentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE12429C711007435AC /* CommentsView.swift */; };
@@ -176,6 +178,8 @@
 		7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedDownloadManager.swift; path = HalloApp/Models/Feed/FeedDownloadManager.swift; sourceTree = SOURCE_ROOT; };
 		76A92443244E659600794859 /* FeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedViewController.swift; path = HalloApp/Views/Home/Feed/FeedViewController.swift; sourceTree = SOURCE_ROOT; };
+		76A92448244EBCB600794859 /* ShapeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ShapeView.swift; path = HalloApp/Components/Views/ShapeView.swift; sourceTree = SOURCE_ROOT; };
+		76A9244A244EC49000794859 /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIView.swift; path = HalloApp/Components/Extensions/UIView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CD62429331D007435AC /* CommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsViewController.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsViewController.swift; sourceTree = SOURCE_ROOT; };
 		76B95CDD24295AB5007435AC /* CommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CE12429C711007435AC /* CommentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsView.swift; sourceTree = SOURCE_ROOT; };
@@ -354,6 +358,7 @@
 			isa = PBXGroup;
 			children = (
 				761C6167242D89F90028AE19 /* TextLabel.swift */,
+				76A92448244EBCB600794859 /* ShapeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -589,6 +594,7 @@
 				76C69E4C2447E6D500338D4C /* UIApplication.swift */,
 				762EDBDA244E344300986617 /* UIFont.swift */,
 				EABF312A23EE20E10039B5A6 /* UIImage.swift */,
+				76A9244A244EC49000794859 /* UIView.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -909,6 +915,7 @@
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
 				EAA6DEBE2381344800C6D9C8 /* Blur.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
+				76A9244B244EC49000794859 /* UIView.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* Verify.swift in Sources */,
 				EAB03B7D2400518D00643EB6 /* Player.swift in Sources */,
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
@@ -953,6 +960,7 @@
 				76D0C080240F40DF0061B90E /* MessagesView.swift in Sources */,
 				EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */,
 				76C69E482447E3B100338D4C /* Data.swift in Sources */,
+				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,
 				761B395F241D91C000858251 /* ABContact+CoreDataProperties.swift in Sources */,
 				76C69E4D2447E6D500338D4C /* UIApplication.swift in Sources */,
