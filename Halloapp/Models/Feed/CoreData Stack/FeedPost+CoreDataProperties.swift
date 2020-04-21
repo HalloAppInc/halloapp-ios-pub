@@ -19,6 +19,7 @@ extension FeedPost {
         case sendError = 3
         case incoming = 4
         case retracted = 5
+        case retracting = 6
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPost> {
@@ -51,7 +52,7 @@ extension FeedPost {
 
     var isPostRetracted: Bool {
         get {
-            return self.status == .retracted
+            return self.status == .retracted || self.status == .retracting
         }
         set {
             self.status = .retracted

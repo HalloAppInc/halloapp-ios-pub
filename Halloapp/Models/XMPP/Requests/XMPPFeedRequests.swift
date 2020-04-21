@@ -110,3 +110,48 @@ class XMPPPostCommentRequest : XMPPRequest {
         self.completion(nil, error)
     }
 }
+
+class XMPPRetractItemRequest: XMPPRequest {
+    typealias XMPPRetractItemRequestCompletion = (Error?) -> Void
+
+    let completion: XMPPRetractItemRequestCompletion
+
+    convenience init(feedPost: FeedPost, completion: @escaping XMPPRetractItemRequestCompletion) {
+        let item =  XMLElement(name: "item")
+        item.addAttribute(withName: "id", stringValue: feedPost.id)
+        item.addAttribute(withName: "type", stringValue: "feedpost")
+        self.init(itemElement: item, feedOwnerId: feedPost.userId, completion: completion)
+    }
+
+    convenience init(feedPostComment: FeedPostComment, completion: @escaping XMPPRetractItemRequestCompletion) {
+        let item =  XMLElement(name: "item")
+        item.addAttribute(withName: "id", stringValue: feedPostComment.id)
+        item.addAttribute(withName: "type", stringValue: "comment")
+        self.init(itemElement: item, feedOwnerId: feedPostComment.post.userId, completion: completion)
+    }
+
+    private init(itemElement: XMLElement, feedOwnerId: UserID, completion: @escaping XMPPRetractItemRequestCompletion) {
+        self.completion = completion
+
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"), elementID: UUID().uuidString)
+        iq.addChild({
+            let pubsub = XMPPElement(name: "pubsub", xmlns: "http://jabber.org/protocol/pubsub")
+            pubsub.addChild({
+                let retract = XMPPElement(name: "retract")
+                retract.addAttribute(withName: "node", stringValue: "feed-\(feedOwnerId)")
+                retract.addChild(itemElement)
+                return retract
+            }())
+            return pubsub
+        }())
+        super.init(iq: iq)
+    }
+
+    override func didFinish(with response: XMPPIQ) {
+        self.completion(nil)
+    }
+
+    override func didFail(with error: Error) {
+        self.completion(error)
+    }
+}

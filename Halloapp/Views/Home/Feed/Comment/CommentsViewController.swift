@@ -9,6 +9,7 @@
 import CocoaLumberjack
 import CoreData
 import UIKit
+import XMPPFramework
 
 class CommentsViewController: UIViewController, UITableViewDataSource, CommentInputViewDelegate, NSFetchedResultsControllerDelegate {
     static private let cellReuseIdentifier = "CommentCell"
@@ -58,6 +59,10 @@ class CommentsViewController: UIViewController, UITableViewDataSource, CommentIn
         guard let feedPost = AppContext.shared.feedData.feedPost(with: self.feedPostId!) else { return }
 
         self.navigationItem.title = "Comments"
+
+        if feedPost.userId == AppContext.shared.userData.userId {
+            self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .done, target: self, action: #selector(retractPost))
+        }
 
         self.view.addSubview(self.tableView)
         self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
@@ -120,6 +125,29 @@ class CommentsViewController: UIViewController, UITableViewDataSource, CommentIn
                 self.tableView.tableHeaderView = headerView
             }
         }
+    }
+
+    // MARK: UI Actions
+
+    @objc(deletePost)
+    private func retractPost() {
+        let actionSheet = UIAlertController(title: nil, message: "Delete this post? This action cannot be undone.", preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Delete Post", style: .destructive) { _ in
+            self.reallyRetractPost()
+        })
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        self.present(actionSheet, animated: true)
+    }
+
+    private func reallyRetractPost() {
+        guard let feedPost = AppContext.shared.feedData.feedPost(with: self.feedPostId!) else {
+            self.navigationController?.popViewController(animated: true)
+            return
+        }
+        // Stop processing data changes because all comments are about to be deleted.
+        self.fetchedResultsController?.delegate = nil
+        AppContext.shared.feedData.retract(post: feedPost)
+        self.navigationController?.popViewController(animated: true)
     }
 
     // MARK: Data
@@ -232,7 +260,6 @@ class CommentsViewController: UIViewController, UITableViewDataSource, CommentIn
         }
         return cell
     }
-
 
     // MARK: Input view
 

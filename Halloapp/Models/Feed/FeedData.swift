@@ -653,7 +653,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    // MARK: Processing Retracts
+    // MARK: Retracts
 
     private func processRetract(forPostId postId: FeedPostID) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
@@ -729,6 +729,26 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/process-retract/error Invalid item type. [\(item)]")
             }
         }
+    }
+
+    func retract(post feedPost: FeedPost) {
+        let postId = feedPost.id
+
+        // Mark post as "being retracted"
+        feedPost.status = .retracting
+        self.save(self.viewContext)
+
+        // Request to retract.
+        let request = XMPPRetractItemRequest(feedPost: feedPost) { (error) in
+            if error == nil {
+                self.processRetract(forPostId: postId)
+            } else {
+                self.updateFeedPost(with: postId) { (post) in
+                    post.status = .sent
+                }
+            }
+        }
+        self.xmppController.enqueue(request: request)
     }
 
     // MARK: Feed Media

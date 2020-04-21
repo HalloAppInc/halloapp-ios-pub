@@ -19,6 +19,7 @@ extension FeedPostComment {
         case sendError = 3
         case incoming = 4
         case retracted = 5
+        case retracting = 6
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPostComment> {
