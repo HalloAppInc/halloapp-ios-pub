@@ -581,23 +581,29 @@ fileprivate class FeedItemFooterView: UIView {
 
     // Gotham Medium, 15 pt (Subhead)
     lazy var commentButton: UIButton = {
+        let spacing: CGFloat = 8
         let button = UIButton(type: .system)
         button.setTitle("Comment", for: .normal)
+        button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
         button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
         button.contentEdgeInsets.top = 15
         button.contentEdgeInsets.bottom = 9
-        button.backgroundColor = .clear
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
         return button
     }()
 
     // Gotham Medium, 15 pt (Subhead)
     lazy var messageButton: UIButton = {
+        let spacing: CGFloat = 8
         let button = UIButton(type: .system)
         button.setTitle("Message", for: .normal)
+        button.setImage(UIImage(named: "FeedPostMessage"), for: .normal)
         button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
         button.contentEdgeInsets.top = 15
         button.contentEdgeInsets.bottom = 9
-        button.backgroundColor = .clear
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
         return button
     }()
 
@@ -616,7 +622,7 @@ fileprivate class FeedItemFooterView: UIView {
         let hStack = UIStackView(arrangedSubviews: [ self.commentButton, self.messageButton ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
-        hStack.distribution = .fillEqually
+        hStack.distribution = .fillProportionally
         self.addSubview(hStack)
         hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
