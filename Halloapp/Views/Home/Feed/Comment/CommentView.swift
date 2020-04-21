@@ -63,10 +63,7 @@ class CommentView: UIView {
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.textColor = .secondaryLabel
         textLabel.text = "This comment has been deleted"
-        textLabel.font = {
-            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline).withSymbolicTraits(.traitItalic)!
-            return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize)
-        }()
+        textLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
         let view = UIView()
         view.backgroundColor = .clear
         view.translatesAutoresizingMaskIntoConstraints = false

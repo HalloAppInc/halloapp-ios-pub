@@ -389,10 +389,7 @@ fileprivate class FeedItemContentView: UIView {
         textLabel.textAlignment = .center
         textLabel.textColor = .secondaryLabel
         textLabel.text = "This post has been deleted"
-        textLabel.font = {
-            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body).withSymbolicTraits(.traitItalic)!
-            return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + 3)
-        }()
+        textLabel.font = UIFont.preferredFont(forTextStyle: .body)
         let view = UIView()
         view.backgroundColor = .clear
         view.layoutMargins.top = 20
