@@ -296,6 +296,7 @@ fileprivate class FeedTableViewCell: UITableViewCell {
             return constraint
             }())
         self.backgroundPanelView.backgroundColor = UIColor.secondarySystemGroupedBackground
+        self.backgroundPanelView.layer.shadowColor = UIColor.systemGray5.cgColor
         self.backgroundView = backgroundView
 
         // Content view: a vertical stack of header, content and footer.
@@ -324,13 +325,19 @@ fileprivate class FeedTableViewCell: UITableViewCell {
         }
     }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if previousTraitCollection?.userInterfaceStyle != self.traitCollection.userInterfaceStyle {
+            // Shadow color needs to be updated when user interface style changes between dark and light.
+            self.backgroundPanelView.layer.shadowColor = UIColor.systemGray5.cgColor
+        }
+    }
+
     override func prepareForReuse() {
         super.prepareForReuse()
         self.headerView.prepareForReuse()
         self.itemContentView.prepareForReuse()
         self.footerView.prepareForReuse()
-        // Shadow color needs to be updated when user interface style changes between dark and light.
-        self.backgroundPanelView.layer.shadowColor = UIColor.systemGray5.cgColor
     }
 
     // MARK: Button actions
