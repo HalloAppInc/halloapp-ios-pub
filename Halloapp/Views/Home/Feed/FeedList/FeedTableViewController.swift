@@ -19,13 +19,11 @@ fileprivate enum FeedTableSection {
 class FeedTableViewController: UITableViewController, NSFetchedResultsControllerDelegate {
     private static let cellReuseIdentifier = "FeedTableViewCell"
 
-    private var isOnProfilePage: Bool = false
     private var fetchedResultsController: NSFetchedResultsController<FeedPost>?
 
     private var cancellableSet: Set<AnyCancellable> = []
 
-    init(isOnProfilePage: Bool) {
-        self.isOnProfilePage = isOnProfilePage
+    init() {
         super.init(style: .plain)
     }
 
@@ -41,18 +39,11 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     override func viewDidLoad() {
         DDLogInfo("FeedTableViewController/viewDidLoad")
-        // Initial width so that layout constraints aren't upset during setup.
-        let tableWidth = self.view.frame.size.width
+
         self.tableView.backgroundColor = UIColor.systemGroupedBackground
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = false
         self.tableView.register(FeedTableViewCell.self, forCellReuseIdentifier: FeedTableViewController.cellReuseIdentifier)
-
-        if self.isOnProfilePage {
-            let headerView = FeedTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
-            headerView.frame.size.height = headerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
-            self.tableView.tableHeaderView = headerView
-        }
 
         self.setupFetchedResultsController()
 
@@ -80,6 +71,16 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         super.viewDidAppear(animated)
     }
 
+    // MARK: FeedTableViewController Customization
+
+    public var fetchRequest: NSFetchRequest<FeedPost> {
+        get {
+            let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+            fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
+            return fetchRequest
+        }
+    }
+
     // MARK: Fetched Results Controller
 
     private var trackPerRowFRCChanges = false
@@ -97,12 +98,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     private func newFetchedResultsController() -> NSFetchedResultsController<FeedPost> {
         // Setup fetched results controller the old way because it allows granular control over UI update operations.
-        let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-        if self.isOnProfilePage {
-            fetchRequest.predicate = NSPredicate(format: "userId == %@", AppContext.shared.userData.userId)
-        }
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
-        let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: AppContext.shared.feedData.viewContext,
+        let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: self.fetchRequest, managedObjectContext: AppContext.shared.feedData.viewContext,
                                                                             sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         return fetchedResultsController
@@ -185,6 +181,10 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         if let feedPost = fetchedResultsController?.object(at: indexPath) {
             let contentWidth = tableView.frame.size.width - tableView.layoutMargins.left - tableView.layoutMargins.right
             cell.configure(with: feedPost, contentWidth: contentWidth)
+            cell.commentAction = { [weak self] in
+                guard let self = self else { return }
+                self.showCommentsView(for: feedPost.id)
+            }
         }
         return cell
     }
@@ -197,6 +197,12 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             // Initiate download for images that were not yet downloaded.
             AppContext.shared.feedData.downloadMedia(in: [ feedPost ])
         }
+    }
+
+    // MARK: Comments
+
+    private func showCommentsView(for postId: FeedPostID) {
+        self.navigationController?.pushViewController(CommentsViewController(feedPostId: postId), animated: true)
     }
 }
 
@@ -215,6 +221,9 @@ fileprivate class FeedTableViewCell: UITableViewCell {
      Content is further inset 8 points relative to the card's top and bottom edges.
      */
     static let backgroundPanelVMargin: CGFloat = 25
+
+    var commentAction: (() -> ())?
+    var messageAction: (() -> ())?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -251,7 +260,7 @@ fileprivate class FeedTableViewCell: UITableViewCell {
         return view
     }()
 
-    private lazy var footerView: FeedItemFooterView = {
+    lazy var footerView: FeedItemFooterView = {
         let view = FeedItemFooterView()
         view.preservesSuperviewLayoutMargins = true
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -298,6 +307,10 @@ fileprivate class FeedTableViewCell: UITableViewCell {
         vStack.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: FeedTableViewCell.backgroundPanelVMargin + FeedTableViewCell.backgroundPanelViewOutsetV).isActive = true
         vStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
         vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -(FeedTableViewCell.backgroundPanelVMargin + FeedTableViewCell.backgroundPanelViewOutsetV)).isActive = true
+
+        // Connect actions of footer view buttons
+        self.footerView.commentButton.addTarget(self, action: #selector(showComments), for: .touchUpInside)
+        self.footerView.messageButton.addTarget(self, action: #selector(messageContact), for: .touchUpInside)
     }
 
     public func configure(with post: FeedPost, contentWidth: CGFloat) {
@@ -318,6 +331,22 @@ fileprivate class FeedTableViewCell: UITableViewCell {
         self.footerView.prepareForReuse()
         // Shadow color needs to be updated when user interface style changes between dark and light.
         self.backgroundPanelView.layer.shadowColor = UIColor.systemGray5.cgColor
+    }
+
+    // MARK: Button actions
+
+    @objc(showComments)
+    private func showComments() {
+        if self.commentAction != nil {
+            self.commentAction!()
+        }
+    }
+
+    @objc(messageContact)
+    private func messageContact() {
+        if self.messageAction != nil {
+            self.messageAction!()
+        }
     }
 }
 
@@ -354,7 +383,7 @@ fileprivate class FeedItemContentView: UIView {
     }()
 
     static let deletedPostViewTag = 1
-    private lazy var deletedPostView: UIView = {
+    fileprivate lazy var deletedPostView: UIView = {
         let textLabel = UILabel()
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.textAlignment = .center
@@ -488,9 +517,7 @@ fileprivate class FeedItemHeaderView: UIView {
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = {
-            return UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
-        }()
+        label.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow - 10, for: .horizontal)
@@ -539,6 +566,7 @@ fileprivate class FeedItemHeaderView: UIView {
 
 
 fileprivate class FeedItemFooterView: UIView {
+
     private var buttonsView: UIView?
 
     override init(frame: CGRect) {
@@ -551,6 +579,28 @@ fileprivate class FeedItemFooterView: UIView {
         setupView()
     }
 
+    // Gotham Medium, 15 pt (Subhead)
+    lazy var commentButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Comment", for: .normal)
+        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        button.contentEdgeInsets.top = 15
+        button.contentEdgeInsets.bottom = 9
+        button.backgroundColor = .clear
+        return button
+    }()
+
+    // Gotham Medium, 15 pt (Subhead)
+    lazy var messageButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Message", for: .normal)
+        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        button.contentEdgeInsets.top = 15
+        button.contentEdgeInsets.bottom = 9
+        button.backgroundColor = .clear
+        return button
+    }()
+
     private func setupView() {
         self.isUserInteractionEnabled = true
 
@@ -562,89 +612,25 @@ fileprivate class FeedItemFooterView: UIView {
         separator.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: FeedTableViewCell.backgroundPanelViewOutsetH).isActive = true
         separator.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         separator.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
+
+        let hStack = UIStackView(arrangedSubviews: [ self.commentButton, self.messageButton ])
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        hStack.axis = .horizontal
+        hStack.distribution = .fillEqually
+        self.addSubview(hStack)
+        hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
+        hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
-        guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: post.id) else { return }
-        let controller = UIHostingController(rootView: FeedItemFooterButtonsView(feedDataItem: feedDataItem))
-        controller.view.backgroundColor = .clear
-        controller.view.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(controller.view)
-        controller.view.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
-        controller.view.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        controller.view.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
-        controller.view.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
-        let viewHeight = controller.view.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
-        controller.view.heightAnchor.constraint(equalToConstant: viewHeight).isActive = true
-        self.buttonsView = controller.view
-        // WARNING: Retaining UIHostingController instead of its view breaks NavigationLink.
+        self.messageButton.isHidden = post.userId == AppContext.shared.userData.userId
     }
 
-    func prepareForReuse() {
-        if let buttonsView = self.buttonsView {
-            buttonsView.removeFromSuperview()
-            self.buttonsView = nil
-        }
-    }
+    func prepareForReuse() { }
 }
 
-
-fileprivate class FeedTableHeaderView: UIView {
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupView()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupView()
-    }
-
-    private lazy var contactImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = UIColor.systemGray
-        return imageView
-    }()
-
-    private lazy var nameLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = UIColor.label
-        label.numberOfLines = 1
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = AppContext.shared.userData.name
-        return label
-    }()
-    
-    private lazy var textLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = UIColor.label
-        label.numberOfLines = 1
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = AppContext.shared.userData.phone
-        return label
-    }()
-
-    private func setupView() {
-        let vStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.nameLabel, self.textLabel ])
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.spacing = 8
-        vStack.axis = .vertical
-        self.addSubview(vStack)
-
-        vStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
-
-        contactImageView.heightAnchor.constraint(equalToConstant: 50).isActive = true
-    }
-}
 
 /**
  * Implement buttons in the feed item card because of NavigationLink.

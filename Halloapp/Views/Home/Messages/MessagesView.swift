@@ -10,7 +10,7 @@ import CoreData
 import SwiftUI
 
 struct MessagesView: View {
-    @EnvironmentObject var mainViewController: MainViewController
+
     @Environment(\.managedObjectContext) var managedObjectContext
 
     @FetchRequest(
@@ -56,15 +56,6 @@ struct MessagesView: View {
                 UITableView.appearance().separatorStyle = .none
             }
         }
-
-        .overlay(
-            BottomBarView(),
-            alignment: .bottom
-        )
-
-        .edgesIgnoringSafeArea(.bottom)
-
-        .navigationBarTitle(Text("Messages"))
 
         .navigationBarItems(trailing:
             HStack(alignment: .firstTextBaseline, spacing: 8) {

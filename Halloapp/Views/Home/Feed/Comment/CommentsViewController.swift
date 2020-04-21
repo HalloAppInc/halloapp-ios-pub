@@ -21,7 +21,6 @@ class CommentsViewController: UIViewController, UITableViewDataSource, CommentIn
             self.refreshCommentInputViewReplyPanel()
         }
     }
-    private var dataSource: UITableViewDiffableDataSource<Int, FeedPostComment>?
     private var fetchedResultsController: NSFetchedResultsController<FeedPostComment>?
     private var scrollToBottomOnContentChange = false
 
@@ -54,8 +53,12 @@ class CommentsViewController: UIViewController, UITableViewDataSource, CommentIn
     }
 
     override func viewDidLoad() {
+        super.viewDidLoad()
+
         guard self.feedPostId != nil else { return }
         guard let feedPost = AppContext.shared.feedData.feedPost(with: self.feedPostId!) else { return }
+
+        self.navigationItem.title = "Comments"
 
         self.view.addSubview(self.tableView)
         self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
@@ -319,7 +322,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, CommentIn
 }
 
 
-class CommentsTableHeaderView: UIView {
+fileprivate class CommentsTableHeaderView: UIView {
     lazy var commentView: CommentView = {
         let commentView = CommentView()
         commentView.isReplyButtonVisible = false
@@ -350,14 +353,14 @@ class CommentsTableHeaderView: UIView {
         let views = [ "content": self.commentView, "separator": separatorView]
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|-[content]-|", options: .directionLeadingToTrailing, metrics: nil, views: views))
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|[separator]|", options: .directionLeadingToTrailing, metrics: nil, views: views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-[content]-[separator]|", options: [], metrics: nil, views: views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-8-[content]-[separator]|", options: [], metrics: nil, views: views))
         let separatorHeight = 1.0 / UIScreen.main.scale
         self.addConstraint(NSLayoutConstraint(item: separatorView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: separatorHeight))
     }
 }
 
 
-class CommentsTableViewCell: UITableViewCell {
+fileprivate class CommentsTableViewCell: UITableViewCell {
     private lazy var commentView: CommentView = {
         CommentView()
     }()

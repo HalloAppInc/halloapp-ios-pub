@@ -9,7 +9,8 @@
 import SwiftUI
 
 struct DeveloperMenuView: View {
-    @Binding var isViewPresented: Bool
+
+    var dismiss: (() -> ())?
 
     private let userData = AppContext.shared.userData
     private let xmppController = AppContext.shared.xmppController
@@ -20,7 +21,9 @@ struct DeveloperMenuView: View {
                 Spacer()
 
                 Button(action: {
-                    self.isViewPresented = false
+                    if self.dismiss != nil {
+                        self.dismiss!()
+                    }
                 }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 20, weight: .semibold))
@@ -43,7 +46,10 @@ struct DeveloperMenuView: View {
                 
                 Button(action: {
                     AppContext.shared.syncManager.requestFullSync()
-                    self.isViewPresented = false
+
+                    if self.dismiss != nil {
+                        self.dismiss!()
+                    }
                 }) {
                     Text("Re-Sync Contacts")
                         .padding(.horizontal, 15)
@@ -55,7 +61,10 @@ struct DeveloperMenuView: View {
 
                 Button(action: {
                     AppContext.shared.feedData.refetchEverything()
-                    self.isViewPresented = false
+
+                    if self.dismiss != nil {
+                        self.dismiss!()
+                    }
                 }) {
                     Text("Refetch Feed")
                         .padding(.horizontal, 15)
@@ -69,7 +78,10 @@ struct DeveloperMenuView: View {
                     self.userData.switchToNetwork()
                     self.xmppController.xmppStream.disconnect()
                     self.xmppController.connect()
-                    self.isViewPresented = false
+
+                    if self.dismiss != nil {
+                        self.dismiss!()
+                    }
                 }) {
                     Text("Switch Network")
                         .padding(.horizontal, 15)
@@ -86,6 +98,6 @@ struct DeveloperMenuView: View {
 
 struct DeveloperMenuView_Previews: PreviewProvider {
     static var previews: some View {
-        DeveloperMenuView(isViewPresented: .constant(false))
+        DeveloperMenuView()
     }
 }

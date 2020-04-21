@@ -34,8 +34,6 @@ struct PostComposerView: View {
     @State var isShareClicked: Bool = false
     
     @State var isReadyToPost: Bool = false
-    
-    @State private var play: Bool = true
 
     init(mediaItemsToPost: [PendingMedia], didFinish: @escaping () -> Void) {
         self.mediaItemsToPost = mediaItemsToPost

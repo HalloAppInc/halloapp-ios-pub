@@ -11,8 +11,8 @@ import SwiftUI
 import UIKit
 
 struct SettingsView: View {
-    @EnvironmentObject var mainViewController: MainViewController
-    @Binding var isViewPresented: Bool
+
+    var dismiss: (() -> ())?
 
     private let userData = AppContext.shared.userData
 
@@ -25,7 +25,9 @@ struct SettingsView: View {
                 Spacer()
 
                 Button(action: {
-                    self.isViewPresented = false
+                    if self.dismiss != nil {
+                        self.dismiss!()
+                    }
                 }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 20, weight: .semibold))
@@ -53,8 +55,10 @@ struct SettingsView: View {
             VStack(alignment: .center, spacing: 32) {
                 Button(action: {
                     self.userData.logout()
-                    self.mainViewController.selectFeedTab()
-                    self.isViewPresented = false
+                    
+                    if self.dismiss != nil {
+                        self.dismiss!()
+                    }
                 }) {
                     Text("Log out")
                         .padding(.horizontal, 15)
@@ -85,6 +89,6 @@ struct SettingsView: View {
 
 struct Settings_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsView(isViewPresented: .constant(false))
+        SettingsView()
     }
 }

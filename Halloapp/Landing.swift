@@ -14,7 +14,8 @@ struct Landing: View {
     var body: some View {
         VStack {
             if (self.userData.isLoggedIn) {
-                HomeInit()
+                HomeView()
+                    .edgesIgnoringSafeArea(.all)
             } else {
                 AuthRouter()
             }
