@@ -11,7 +11,7 @@ import CoreData
 import UIKit
 import XMPPFramework
 
-class CommentsViewController: UIViewController, UITableViewDataSource, CommentInputViewDelegate, NSFetchedResultsControllerDelegate {
+class CommentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CommentInputViewDelegate, NSFetchedResultsControllerDelegate {
     static private let cellReuseIdentifier = "CommentCell"
 
     typealias ReplyContext = (parentCommentId: String, userId: String)
@@ -31,6 +31,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, CommentIn
         tableView.separatorStyle = .none
         tableView.allowsSelection = false
         tableView.dataSource = self
+        tableView.delegate = self
         tableView.contentInsetAdjustmentBehavior = .scrollableAxes
         tableView.keyboardDismissMode = .interactive
         tableView.preservesSuperviewLayoutMargins = true
@@ -150,6 +151,23 @@ class CommentsViewController: UIViewController, UITableViewDataSource, CommentIn
         self.navigationController?.popViewController(animated: true)
     }
 
+    private func retractComment(with commentId: FeedPostCommentID, completionHandler: @escaping (Bool) -> Void) {
+        let actionSheet = UIAlertController(title: nil, message: "Delete this comment? This action cannot be undone.", preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Delete Comment", style: .destructive) { _ in
+            self.reallyRetract(commentWithId: commentId)
+            completionHandler(true)
+        })
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
+            completionHandler(false)
+        })
+        self.present(actionSheet, animated: true)
+    }
+
+    private func reallyRetract(commentWithId commentId: FeedPostCommentID) {
+        guard let comment = AppContext.shared.feedData.feedComment(with: commentId) else { return }
+        AppContext.shared.feedData.retract(comment: comment)
+    }
+
     // MARK: Data
 
     private var trackPerRowFRCChanges = false
@@ -259,6 +277,24 @@ class CommentsViewController: UIViewController, UITableViewDataSource, CommentIn
             }
         }
         return cell
+    }
+
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        // Only allow to delete your own comments.
+        guard let feedPostComment = self.fetchedResultsController?.object(at: indexPath) else { return false }
+        guard !feedPostComment.isCommentRetracted else { return false }
+        return feedPostComment.userId == AppContext.shared.userData.userId
+    }
+
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        // Use this method instead of tableView(_:commit:forRowAt:) because this method
+        // allows in-cell Delete button to stay visible when confirmation (action sheet) is presented.
+        guard let feedPostComment = self.fetchedResultsController?.object(at: indexPath) else { return nil }
+        let commentId = feedPostComment.id
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (_, _, completionHandler) in
+            self.retractComment(with: commentId, completionHandler: completionHandler)
+        }
+        return UISwipeActionsConfiguration(actions: [ deleteAction ])
     }
 
     // MARK: Input view

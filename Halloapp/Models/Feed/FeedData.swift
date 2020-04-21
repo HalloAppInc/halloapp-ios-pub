@@ -353,7 +353,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return feedPosts(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext)
     }
 
-    private func feedComment(with id: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext) -> FeedPostComment? {
+    func feedComment(with id: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedPostComment? {
+        let managedObjectContext = managedObjectContext ?? self.viewContext
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", id)
         fetchRequest.returnsObjectsAsFaults = false
@@ -745,6 +746,26 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             } else {
                 self.updateFeedPost(with: postId) { (post) in
                     post.status = .sent
+                }
+            }
+        }
+        self.xmppController.enqueue(request: request)
+    }
+
+    func retract(comment: FeedPostComment) {
+        let commentId = comment.id
+
+        // Mark comment as "being retracted".
+        comment.status = .retracting
+        self.save(self.viewContext)
+
+        // Request to retract.
+        let request = XMPPRetractItemRequest(feedPostComment: comment) { (error) in
+            if error == nil {
+                self.processRetract(forCommentId: commentId)
+            } else {
+                self.updateFeedPostComment(with: commentId) { (comment) in
+                    comment.status = .sent
                 }
             }
         }

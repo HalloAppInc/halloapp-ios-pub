@@ -45,7 +45,7 @@ extension FeedPostComment {
 
     var isCommentRetracted: Bool {
         get {
-            return self.status == .retracted
+            return self.status == .retracted || self.status == .retracting
         }
         set {
             self.status = .retracted
