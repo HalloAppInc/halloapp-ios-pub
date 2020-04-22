@@ -162,12 +162,21 @@ class FeedDownloadManager {
         }
 
         // Decrypt data
+        guard let mediaKey = Data(base64Encoded: task.key), let sha256Hash = Data(base64Encoded: task.sha256) else {
+            DDLogError("FeedDownloadManager/\(task.id)/load/error Invalid key or hash.")
+            task.error = NSError(domain: "com.halloapp.downloadmanager", code: 1, userInfo: nil)
+            self.taskFailed(task)
+            return
+        }
+
         let ts = Date()
         DDLogDebug("FeedDownloadManager/\(task.id)/decrypt/begin size=[\(encryptedData.count)]")
-        guard let decryptedData = HAC.decrypt(data: encryptedData, key: task.key, sha256hash: task.sha256, mediaType: task.mediaType) else {
-            DDLogError("FeedDownloadManager/\(task.id)/decrypt/error")
-            // TODO: propagate error from HAC
-            task.error = NSError(domain: "com.halloapp.downloadmanager", code: 1, userInfo: nil)
+        let decryptedData: Data
+        do {
+            decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: task.mediaType)
+        } catch {
+            DDLogError("FeedDownloadManager/\(task.id)/decrypt/error [\(error)]")
+            task.error = error
             self.taskFailed(task)
             return
         }

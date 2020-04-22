@@ -153,9 +153,12 @@ class ImageServer {
                 }
 
                 let ts = Date()
+                let data: Data, key: Data, sha256Hash: Data
                 DDLogDebug("ImageServer/encrypt/begin")
-                guard let (data, key, sha256) = HAC.encrypt(data: plaintextData!, mediaType: item.type) else {
-                    DDLogError("ImageServer/encrypt/error [\(item)]")
+                do {
+                    (data, key, sha256Hash) = try MediaCrypter.encrypt(data: plaintextData!, mediaType: item.type)
+                } catch {
+                    DDLogError("ImageServer/encrypt/error item=[\(item)] [\(error)]")
                     self.mediaProcessingGroup.leave()
                     return
                 }
@@ -170,8 +173,8 @@ class ImageServer {
                     }
 
                     // Encryption data would be send over the wire and saved to db.
-                    item.key = key
-                    item.sha256 = sha256
+                    item.key = key.base64EncodedString()
+                    item.sha256 = sha256Hash.base64EncodedString()
 
                     // Start upload.
                     DDLogDebug("ImageServer/upload/begin url=[\(mediaURL.get)]")
