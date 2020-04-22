@@ -54,9 +54,6 @@ extension FeedPost {
         get {
             return self.status == .retracted || self.status == .retracting
         }
-        set {
-            self.status = .retracted
-        }
     }
 
 }

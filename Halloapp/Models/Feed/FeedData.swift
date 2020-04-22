@@ -662,7 +662,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/retract-post/error Missing post. [\(postId)]")
                 return
             }
-            guard !feedPost.isPostRetracted else {
+            guard feedPost.status != .retracted  else {
                 DDLogError("FeedData/retract-post/error Already retracted. [\(postId)]")
                 return
             }
@@ -677,7 +677,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             // 3. Reset post data and mark post as deleted.
             feedPost.text = nil
-            feedPost.isPostRetracted = true
+            feedPost.status = .retracted
 
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -691,7 +691,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/retract-comment/error Missing comment. [\(commentId)]")
                 return
             }
-            guard !feedComment.isCommentRetracted else {
+            guard feedComment.status != .retracted else {
                 DDLogError("FeedData/retract-comment/error Already retracted. [\(commentId)]")
                 return
             }
@@ -700,7 +700,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Reset comment text and mark comment as deleted.
             // TBD: should replies be deleted too?
             feedComment.text = ""
-            feedComment.isCommentRetracted = true
+            feedComment.status = .retracted
 
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
