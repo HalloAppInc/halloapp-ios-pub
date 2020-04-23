@@ -91,6 +91,15 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         return label
     }()
 
+    private lazy var unreadBadge: CircleView = {
+        let badge = CircleView()
+        badge.fillColor = .systemGreen
+        badge.translatesAutoresizingMaskIntoConstraints = false
+        badge.heightAnchor.constraint(equalToConstant: 6).isActive = true
+        badge.widthAnchor.constraint(equalToConstant: 6).isActive = true
+        return badge
+    }()
+
     private lazy var mediaPreview: UIImageView = {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -110,9 +119,15 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
+
+        self.contentView.addSubview(self.unreadBadge)
+        self.unreadBadge.centerYAnchor.constraint(equalTo: self.contentView.centerYAnchor).isActive = true
+        self.unreadBadge.trailingAnchor.constraint(equalTo: hStack.leadingAnchor, constant: -4).isActive = true
     }
 
     func configure(with notification: FeedNotification) {
+        self.unreadBadge.isHidden = notification.read
+        self.backgroundColor = notification.read ? .systemBackground : .systemGray5
         self.notificationTextLabel.attributedText = notification.formattedText
         self.mediaPreview.image = notification.image
     }
