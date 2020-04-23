@@ -28,6 +28,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private var xmppController: XMPPController
     private var cancellableSet: Set<AnyCancellable> = []
 
+    private(set) var feedNotifications: FeedNotifications?
+
     let willDestroyStore = PassthroughSubject<Void, Never>()
     let didReloadStore = PassthroughSubject<Void, Never>()
 
@@ -161,6 +163,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         self.fetchedResultsController.delegate = nil
         self.feedDataItems = []
+        self.feedNotifications = nil
 
         // TODO: wait for all background tasks to finish.
         // TODO: cancel all media downloads.
@@ -248,6 +251,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogError("FeedData/fetch/error [\(error)]")
             fatalError("Failed to fetch feed items \(error)")
         }
+
+        self.feedNotifications = FeedNotifications(self.viewContext)
     }
 
     private lazy var fetchedResultsController: NSFetchedResultsController<FeedPost> = newFetchedResultsController()

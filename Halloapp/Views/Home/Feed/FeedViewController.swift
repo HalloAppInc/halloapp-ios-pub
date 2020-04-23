@@ -8,6 +8,7 @@
 
 import AVFoundation
 import CocoaLumberjack
+import Combine
 import Photos
 import SwiftUI
 import UIKit
@@ -15,17 +16,33 @@ import YPImagePicker
 
 class FeedViewController: FeedTableViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, YPImagePickerDelegate {
 
+    private var cancellables: Set<AnyCancellable> = []
+
     // MARK: UIViewController
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        let notificationButton = BadgedButton(type: .system)
+        notificationButton.setImage(UIImage(named: "FeedNavbarNotifications"), for: .normal)
+        notificationButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
+        notificationButton.addTarget(self, action: #selector(presentNotificationsView), for: .touchUpInside)
+        if let feedNotifications = AppContext.shared.feedData.feedNotifications {
+            notificationButton.badge = feedNotifications.unreadCount
+            self.cancellables.insert(feedNotifications.unreadCountDidChange.sink { (unreadCount) in
+                notificationButton.badge = unreadCount
+            })
+        }
+
         self.navigationItem.title = "Home"
         self.navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(image: UIImage(named: "FeedNavbarNotifications"), style: .plain, target: self, action: #selector(presentNotificationsView)),
+            UIBarButtonItem(customView: notificationButton),
             UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(composePost)) ]
         self.navigationItem.largeTitleDisplayMode = .automatic
+    }
 
+    deinit {
+        self.cancellables.forEach { $0.cancel() }
     }
 
     // MARK: UI Actions
