@@ -662,25 +662,41 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    private func notifications(with predicate: NSPredicate, in managedObjectContext: NSManagedObjectContext) -> [ FeedNotification ] {
+        let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
+        fetchRequest.predicate = predicate
+        do {
+            let results = try managedObjectContext.fetch(fetchRequest)
+            return results
+        }
+        catch {
+            DDLogError("FeedData/notifications/mark-read-all/error [\(error)]")
+            fatalError("Failed to fetch notifications.")
+        }
+    }
+
+    private func notifications(for postId: FeedPostID, commentId: FeedPostCommentID? = nil, in managedObjectContext: NSManagedObjectContext) -> [FeedNotification] {
+        let postIdPredicate = NSPredicate(format: "postId = %@", postId)
+        if commentId != nil {
+            let commentIdPredicate = NSPredicate(format: "commentId = %@", commentId!)
+            return self.notifications(with: NSCompoundPredicate(andPredicateWithSubpredicates: [ postIdPredicate, commentIdPredicate ]), in: managedObjectContext)
+        } else {
+            return self.notifications(with: postIdPredicate, in: managedObjectContext)
+        }
+    }
+
     func markNotificationsAsRead(for postId: FeedPostID? = nil) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
+            let notifications: [FeedNotification]
             let isNotReadPredicate = NSPredicate(format: "read = %@", NSExpression(forConstantValue: false))
             if postId != nil {
                 let postIdPredicate = NSPredicate(format: "postId = %@", postId!)
-                fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [ isNotReadPredicate, postIdPredicate ])
+                notifications = self.notifications(with: NSCompoundPredicate(andPredicateWithSubpredicates: [ isNotReadPredicate, postIdPredicate ]), in: managedObjectContext)
             } else {
-                fetchRequest.predicate = isNotReadPredicate
+                notifications = self.notifications(with: isNotReadPredicate, in: managedObjectContext)
             }
-            do {
-                let results = try managedObjectContext.fetch(fetchRequest)
-                DDLogInfo("FeedData/notifications/mark-read-all Count: \(results.count)")
-                results.forEach { $0.read = true }
-            }
-            catch {
-                DDLogError("FeedData/notifications/mark-read-all/error [\(error)]")
-                fatalError("Failed to execute request: \(error)")
-            }
+            DDLogInfo("FeedData/notifications/mark-read-all Count: \(notifications.count)")
+            notifications.forEach { $0.read = true }
             self.save(managedObjectContext)
         }
     }
@@ -728,10 +744,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
             DDLogInfo("FeedData/retract-comment [\(commentId)]")
 
-            // Reset comment text and mark comment as deleted.
+            // 1. Reset comment text and mark comment as deleted.
             // TBD: should replies be deleted too?
             feedComment.text = ""
             feedComment.status = .retracted
+
+            // 2. Reset comment text copied over to notifications.
+            let notifications = self.notifications(for: feedComment.post.id, commentId: feedComment.id, in: managedObjectContext)
+            notifications.forEach { (notification) in
+                notification.event = .deletedComment
+                notification.text = nil
+            }
 
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
