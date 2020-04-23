@@ -21,7 +21,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
         super.viewDidLoad()
 
         self.navigationItem.title = "Notifications"
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(cancelAction))
 
         self.tableView.register(NotificationTableViewCell.self, forCellReuseIdentifier: NotificationsViewController.cellReuseIdentifier)
         self.tableView.separatorStyle = .none
