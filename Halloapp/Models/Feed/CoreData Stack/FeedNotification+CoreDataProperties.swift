@@ -13,9 +13,10 @@ import UIKit
 
 extension FeedNotification {
     enum Event: Int16 {
-        case comment = 0        // comment on your post
-        case reply = 1          // reply to your comment
-        case deletedComment = 2 // comment was deleted
+        case comment = 0          // comment on your post
+        case reply = 1            // reply to your comment
+        case retractedComment = 2 // comment was deleted
+        case retractedPost = 3    // post was deleted
     }
 
     enum MediaType: Int16 {
@@ -82,8 +83,11 @@ extension FeedNotification {
             case .reply:
                 eventText = "<$author$> replied to your comment"
 
-            case .deletedComment:
+            case .retractedComment:
                 eventText = "<$author$> deleted this comment"
+
+            case .retractedPost:
+                eventText = "<$author$> deleted this post"
             }
 
             let parameterRange = (eventText as NSString).range(of: "<$author$>")
