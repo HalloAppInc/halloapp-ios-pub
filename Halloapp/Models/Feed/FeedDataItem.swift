@@ -47,8 +47,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     }
 
     func reloadMedia(from feedPost: FeedPost, order: Int) {
-        let feedPostMediaObjects = feedPost.media as! Set<FeedPostMedia>
-        guard let feedPostMedia = feedPostMediaObjects.first(where: { $0.order == order }) else { return }
+        guard let feedPostMedia = feedPost.media?.first(where: { $0.order == order }) else { return }
         guard let feedMedia = self.media.first(where: { $0.order == order }) else { return }
         feedMedia.reload(from: feedPostMedia)
     }

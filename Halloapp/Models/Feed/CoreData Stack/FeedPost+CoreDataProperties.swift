@@ -30,8 +30,8 @@ extension FeedPost {
     @NSManaged var text: String?
     @NSManaged var timestamp: Date
     @NSManaged var userId: UserID
-    @NSManaged var comments: NSSet?
-    @NSManaged var media: NSSet?
+    @NSManaged var comments: Set<FeedPostComment>?
+    @NSManaged var media: Set<FeedPostMedia>?
     @NSManaged var unreadCount: Int32
     @NSManaged private var statusValue: Int16
     var status: Status {
@@ -45,7 +45,7 @@ extension FeedPost {
 
     var orderedMedia: [FeedPostMedia] {
         get {
-            let media = self.media as! Set<FeedPostMedia>
+            guard let media = self.media else { return [] }
             return media.sorted { $0.order < $1.order }
         }
     }

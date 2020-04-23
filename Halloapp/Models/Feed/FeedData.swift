@@ -642,7 +642,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             notification.userId = authorId
             notification.timestamp = comment.timestamp
             notification.text = comment.text
-            if let media = comment.post.media?.anyObject() as? FeedPostMedia {
+            if let media = comment.post.media?.first {
                 switch media.type {
                 case .image:
                     notification.mediaType = .image
@@ -719,8 +719,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.deleteMedia(in: feedPost)
 
             // 2. Delete comments.
-            let comments = feedPost.comments as! Set<FeedPostComment>
-            comments.forEach { managedObjectContext.delete($0) }
+            feedPost.comments?.forEach { managedObjectContext.delete($0) }
 
             // 3. Reset all notifications for this post.
             let notifications = self.notifications(for: postId, in: managedObjectContext)
@@ -1067,8 +1066,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Deletion
 
     private func deleteMedia(in feedPost: FeedPost) {
-        let postMedia = feedPost.media as! Set<FeedPostMedia>
-        for media in postMedia {
+        feedPost.media?.forEach { (media) in
             if media.relativeFilePath != nil {
                 let fileURL = AppContext.mediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
                 do {

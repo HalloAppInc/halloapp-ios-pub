@@ -688,9 +688,7 @@ fileprivate class FeedItemFooterView: UIView {
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
-        if let comments = post.comments as? Set<FeedPostComment> {
-            self.commentButton.badge = comments.isEmpty ? .hidden : (post.unreadCount > 0 ? .green : .gray)
-        }
+        self.commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .green : .gray)
         self.messageButton.isHidden = post.userId == AppContext.shared.userData.userId
     }
 

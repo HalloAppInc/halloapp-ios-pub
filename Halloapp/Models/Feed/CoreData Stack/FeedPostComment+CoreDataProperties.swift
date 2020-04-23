@@ -32,7 +32,7 @@ extension FeedPostComment {
     @NSManaged var userId: UserID
     @NSManaged var parent: FeedPostComment?
     @NSManaged var post: FeedPost
-    @NSManaged var replies: NSSet?
+    @NSManaged var replies: Set<FeedPostComment>?
     @NSManaged private var statusValue: Int16
     var status: Status {
         get {
