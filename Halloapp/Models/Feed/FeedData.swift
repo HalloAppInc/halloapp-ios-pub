@@ -602,6 +602,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    // MARK: Notifications
+
     private func generateNotifications(for comments: [FeedPostComment], using managedObjectContext: NSManagedObjectContext) {
         guard !comments.isEmpty else { return }
 
@@ -650,6 +652,29 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.generateMediaPreview(for: notification, feedPost: comment.post, using: managedObjectContext)
         }
         if managedObjectContext.hasChanges {
+            self.save(managedObjectContext)
+        }
+    }
+
+    func markNotificationsAsRead(for postId: FeedPostID? = nil) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
+            let isNotReadPredicate = NSPredicate(format: "read = %@", NSExpression(forConstantValue: false))
+            if postId != nil {
+                let postIdPredicate = NSPredicate(format: "postId = %@", postId!)
+                fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [ isNotReadPredicate, postIdPredicate ])
+            } else {
+                fetchRequest.predicate = isNotReadPredicate
+            }
+            do {
+                let results = try managedObjectContext.fetch(fetchRequest)
+                DDLogInfo("FeedData/notifications/mark-read-all Count: \(results.count)")
+                results.forEach { $0.read = true }
+            }
+            catch {
+                DDLogError("FeedData/notifications/mark-read-all/error [\(error)]")
+                fatalError("Failed to execute request: \(error)")
+            }
             self.save(managedObjectContext)
         }
     }

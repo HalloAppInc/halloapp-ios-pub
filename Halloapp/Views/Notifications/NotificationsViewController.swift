@@ -22,6 +22,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
 
         self.navigationItem.title = "Notifications"
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(cancelAction))
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Read All", style: .plain, target: self, action: #selector(markAllNotificationsRead))
 
         self.tableView.register(NotificationTableViewCell.self, forCellReuseIdentifier: NotificationsViewController.cellReuseIdentifier)
         self.tableView.separatorStyle = .none
@@ -52,7 +53,19 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
     // MARK: Fetched Results Controller
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {
-        self.dataSource?.applySnapshot(snapshot, animatingDifferences: true)
+        var reloadData = false
+        if let currentObjectIDs = self.dataSource?.snapshot().itemIdentifiers as? [NSManagedObjectID],
+            let updatedObjectIDs = snapshot.itemIdentifiers as? [NSManagedObjectID] {
+            // If this method is called, but list of object IDs is the same it means
+            // that one or more FeedNotification objects have been changed.
+            // To reflect changes we call UITableView.reloadData.
+            reloadData = currentObjectIDs == updatedObjectIDs
+        }
+        self.dataSource?.applySnapshot(snapshot, animatingDifferences: true) {
+            if reloadData {
+                self.tableView.reloadData()
+            }
+        }
     }
 
     // MARK: UI Actions
@@ -60,6 +73,16 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
     @objc(cancelAction)
     private func cancelAction() {
         self.dismiss(animated: true)
+    }
+
+    @objc(markAllNotificationsRead)
+    private func markAllNotificationsRead() {
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Mark All as Read", style:.destructive) { _ in
+            AppContext.shared.feedData.markNotificationsAsRead()
+        })
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        self.present(actionSheet, animated: true)
     }
 }
 
