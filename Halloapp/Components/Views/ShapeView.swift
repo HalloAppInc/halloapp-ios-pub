@@ -99,3 +99,37 @@ class CircleView: ShapeView {
         }
     }
 }
+
+class PillView: ShapeView {
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        if frame != .zero {
+            reloadPath()
+        }
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+
+    override var bounds: CGRect {
+        didSet {
+            if oldValue != self.bounds {
+                reloadPath()
+            }
+        }
+    }
+
+    override var frame: CGRect {
+        didSet {
+            if oldValue != self.frame {
+                reloadPath()
+            }
+        }
+    }
+
+    private func reloadPath() {
+        self.path = UIBezierPath(roundedRect: self.bounds, cornerRadius: min(self.bounds.height / 2, self.bounds.width / 2).rounded())
+    }
+}
