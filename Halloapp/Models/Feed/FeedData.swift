@@ -423,6 +423,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedPost.unreadCount = 0
             }
         }
+        self.markNotificationsAsRead(for: feedPostId)
     }
 
     // MARK: Process Incoming Feed Data

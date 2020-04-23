@@ -29,7 +29,6 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
 
         self.dataSource = UITableViewDiffableDataSourceReference(tableView: self.tableView) { tableView, indexPath, objectID in
             let cell = tableView.dequeueReusableCell(withIdentifier: NotificationsViewController.cellReuseIdentifier, for: indexPath) as! NotificationTableViewCell
-            cell.selectionStyle = .none
             if let notification = try? AppContext.shared.feedData.viewContext.existingObject(with: objectID as! NSManagedObjectID) as? FeedNotification {
                 cell.configure(with: notification)
             }
@@ -66,6 +65,13 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
                 self.tableView.reloadData()
             }
         }
+    }
+
+    // MARK: Table View
+
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let notification = self.fetchedResultsController?.object(at: indexPath) else { return }
+        self.navigationController?.pushViewController(CommentsViewController(feedPostId: notification.postId), animated: true)
     }
 
     // MARK: UI Actions
