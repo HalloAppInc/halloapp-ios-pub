@@ -66,12 +66,13 @@ class CommentView: UIView {
         textLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
         let view = UIView()
         view.backgroundColor = .clear
+        view.layoutMargins = UIEdgeInsets(top: 4, left: 0, bottom: 0, right: 0)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.tag = CommentView.deletedCommentViewTag
         view.addSubview(textLabel)
-        textLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        textLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
         textLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor).isActive = true
-        textLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        textLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor).isActive = true
         textLabel.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor).isActive = true
         return view
 
