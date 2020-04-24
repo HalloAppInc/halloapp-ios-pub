@@ -326,7 +326,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         // Only allow to delete your own comments.
         let feedPostComment = self.sortedComments[indexPath.row]
         guard !feedPostComment.isCommentRetracted else { return false }
-        return feedPostComment.userId == AppContext.shared.userData.userId
+        return feedPostComment.userId == AppContext.shared.userData.userId && abs(feedPostComment.timestamp.timeIntervalSinceNow) < Date.hours(1)
     }
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
