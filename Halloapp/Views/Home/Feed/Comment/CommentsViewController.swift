@@ -13,6 +13,7 @@ import XMPPFramework
 
 class CommentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CommentInputViewDelegate, NSFetchedResultsControllerDelegate {
     static private let cellReuseIdentifier = "CommentCell"
+    static private let sectionMain = 0
 
     typealias ReplyContext = (parentCommentId: String, userId: String)
 
@@ -84,6 +85,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         self.fetchedResultsController?.delegate = self
         do {
             try self.fetchedResultsController!.performFetch()
+            self.reloadComments()
         } catch {
             return
         }
@@ -174,6 +176,47 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
     private var reloadTableViewInDidChangeContent = false
 
+    private var sortedComments: [FeedPostComment] = []
+
+    private func reloadComments() {
+        guard let comments = self.fetchedResultsController?.fetchedObjects else { return }
+
+        func descendants(of comment: FeedPostComment) -> [FeedPostComment] {
+            var comments = Array<FeedPostComment>(comment.replies ?? [])
+            guard !comments.isEmpty else { return [ ] }
+            comments.append(contentsOf: comments.flatMap{ descendants(of: $0) })
+            return comments
+        }
+
+        var sorted: [FeedPostComment] = []
+        comments.filter{ $0.parent == nil }.forEach { (comment) in
+            sorted.append(comment)
+            sorted.append(contentsOf: descendants(of: comment).sorted { $0.timestamp < $1.timestamp })
+        }
+        self.sortedComments = sorted
+    }
+
+    private func insert(comment: FeedPostComment) {
+        var parent = comment
+        while parent.parent != nil {
+            parent = parent.parent!
+        }
+        var commentIndex = self.sortedComments.endIndex
+        if let nextRootCommentIndex = self.sortedComments.firstIndex(where: { $0.parent == nil && $0.timestamp > parent.timestamp }) {
+            commentIndex = nextRootCommentIndex
+        }
+        self.sortedComments.insert(comment, at: commentIndex)
+        DDLogDebug("CommentsView/frc/insert Position: [\(commentIndex)] Comment: [\(comment)]")
+        self.tableView.insertRows(at: [ IndexPath(row: commentIndex, section: CommentsViewController.sectionMain) ], with: .fade)
+    }
+
+    private func delete(comment: FeedPostComment) {
+        guard let commentIndex = self.sortedComments.firstIndex(where: { $0 == comment }) else { return }
+        self.sortedComments.remove(at: commentIndex)
+        DDLogDebug("CommentsView/frc/delete Position: [\(commentIndex)] Comment: [\(comment)]")
+        self.tableView.deleteRows(at: [ IndexPath(row: commentIndex, section: CommentsViewController.sectionMain) ], with: .fade)
+    }
+
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         reloadTableViewInDidChangeContent = false
         trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
@@ -183,19 +226,19 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
         case .insert:
-            guard let indexPath = newIndexPath, let comment = anObject as? FeedPostComment else { break }
-            DDLogDebug("CommentsView/frc/insert [\(comment)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.insertRows(at: [ indexPath ], with: .fade)
+                if let comment = anObject as? FeedPostComment {
+                    self.insert(comment: comment)
+                }
             } else {
                 reloadTableViewInDidChangeContent = true
             }
 
         case .delete:
-            guard let indexPath = indexPath, let comment = anObject as? FeedPostComment else { break }
-            DDLogDebug("CommentsView/frc/delete [\(comment)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.deleteRows(at: [ indexPath ], with: .fade)
+                if let comment = anObject as? FeedPostComment {
+                    self.delete(comment: comment)
+                }
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -203,23 +246,22 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let comment = anObject as? FeedPostComment else { break }
             DDLogDebug("CommentsView/frc/move [\(comment)] from [\(fromIndexPath)] to [\(toIndexPath)]")
-            if trackPerRowFRCChanges {
-                self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
-            } else {
-                reloadTableViewInDidChangeContent = true
-            }
+            trackPerRowFRCChanges = false
+            reloadTableViewInDidChangeContent = true
 
         case .update:
-            guard let indexPath = indexPath, let comment = anObject as? FeedPostComment else { return }
-            DDLogDebug("CommentsView/frc/update [\(comment)] at [\(indexPath)]")
-            if trackPerRowFRCChanges {
+            guard let comment = anObject as? FeedPostComment else { return }
+            let commentIndex = self.sortedComments.firstIndex(where: { $0 == comment })
+            if trackPerRowFRCChanges && commentIndex != nil {
+                DDLogDebug("CommentsView/frc/update Position: [\(commentIndex!)]  Comment: [\(comment)] ")
                 // Update cell directly if there are animations attached to the UITableView.
                 // This is done to prevent multiple animation from overlapping and breaking
                 // smooth animation on new comment send.
+                let tableViewIndexPath = IndexPath(row: commentIndex!, section: CommentsViewController.sectionMain)
                 if self.tableView.layer.animationKeys()?.isEmpty ?? true {
-                    self.tableView.reloadRows(at: [ indexPath ], with: .fade)
+                    self.tableView.reloadRows(at: [ tableViewIndexPath ], with: .fade)
                 } else {
-                    if let cell = self.tableView.cellForRow(at: indexPath) as? CommentsTableViewCell {
+                    if let cell = self.tableView.cellForRow(at: tableViewIndexPath) as? CommentsTableViewCell {
                         cell.update(with: comment)
                     }
                 }
@@ -234,6 +276,9 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("CommentsView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        if !trackPerRowFRCChanges {
+            self.reloadComments()
+        }
         if reloadTableViewInDidChangeContent {
             self.tableView.reloadData()
         }
@@ -258,30 +303,28 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     // MARK: UITableView
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        return self.fetchedResultsController?.sections?.count ?? 0
+        return 1
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let sections = self.fetchedResultsController?.sections else { return 0 }
-        return sections[section].numberOfObjects
+        return self.sortedComments.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: CommentsViewController.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
-        if let feedPostComment = fetchedResultsController?.object(at: indexPath) {
-            cell.update(with: feedPostComment)
-            cell.replyAction = { [ weak self ] in
-                guard let self = self else { return }
-                self.replyContext = (parentCommentId: feedPostComment.id, userId: feedPostComment.userId)
-                self.commentsInputView.showKeyboard(from: self)
-            }
+        let feedPostComment = self.sortedComments[indexPath.row]
+        cell.update(with: feedPostComment)
+        cell.replyAction = { [ weak self ] in
+            guard let self = self else { return }
+            self.replyContext = (parentCommentId: feedPostComment.id, userId: feedPostComment.userId)
+            self.commentsInputView.showKeyboard(from: self)
         }
         return cell
     }
 
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         // Only allow to delete your own comments.
-        guard let feedPostComment = self.fetchedResultsController?.object(at: indexPath) else { return false }
+        let feedPostComment = self.sortedComments[indexPath.row]
         guard !feedPostComment.isCommentRetracted else { return false }
         return feedPostComment.userId == AppContext.shared.userData.userId
     }
@@ -289,7 +332,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         // Use this method instead of tableView(_:commit:forRowAt:) because this method
         // allows in-cell Delete button to stay visible when confirmation (action sheet) is presented.
-        guard let feedPostComment = self.fetchedResultsController?.object(at: indexPath) else { return nil }
+        let feedPostComment = self.sortedComments[indexPath.row]
         let commentId = feedPostComment.id
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (_, _, completionHandler) in
             self.retractComment(with: commentId, completionHandler: completionHandler)
