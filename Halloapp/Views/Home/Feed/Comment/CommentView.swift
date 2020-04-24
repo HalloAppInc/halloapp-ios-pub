@@ -66,7 +66,7 @@ class CommentView: UIView {
         textLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
         let view = UIView()
         view.backgroundColor = .clear
-        view.layoutMargins = UIEdgeInsets(top: 4, left: 0, bottom: 0, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 4, left: 0, bottom: 4, right: 0)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.tag = CommentView.deletedCommentViewTag
         view.addSubview(textLabel)
@@ -153,6 +153,7 @@ class CommentView: UIView {
         self.textLabel.attributedText = content.0
         self.textLabel.hyperlinkDetectionIgnoreRange = content.1
         self.timestampLabel.text = comment.timestamp.commentTimestamp()
+        self.isReplyButtonVisible = !comment.isCommentRetracted
 
         if comment.isCommentRetracted {
             self.deletedCommentView.isHidden = false
