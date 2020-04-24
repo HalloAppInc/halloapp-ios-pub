@@ -46,7 +46,6 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
         } catch {
             return
         }
-
     }
 
     // MARK: Fetched Results Controller
@@ -60,7 +59,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
             // To reflect changes we call UITableView.reloadData.
             reloadData = currentObjectIDs == updatedObjectIDs
         }
-        self.dataSource?.applySnapshot(snapshot, animatingDifferences: true) {
+        self.dataSource?.applySnapshot(snapshot, animatingDifferences: self.view.window != nil) {
             if reloadData {
                 self.tableView.reloadData()
             }
