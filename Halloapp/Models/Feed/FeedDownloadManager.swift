@@ -208,16 +208,13 @@ class FeedDownloadManager {
     }
 
     private func taskFinished(_ task: Task) {
-        self.tasks.remove(task)
-
         DispatchQueue.main.async {
+            self.tasks.remove(task)
             self.delegate?.feedDownloadManager(self, didFinishTask: task)
         }
     }
 
     private func taskFailed(_ task: Task) {
-        self.tasks.remove(task)
-
         if task.fileURL != nil {
             do {
                 try FileManager.default.removeItem(at: task.fileURL!)
@@ -228,6 +225,7 @@ class FeedDownloadManager {
             task.fileURL = nil
         }
         DispatchQueue.main.async {
+            self.tasks.remove(task)
             self.delegate?.feedDownloadManager(self, didFinishTask: task)
         }
     }
