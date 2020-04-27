@@ -31,8 +31,6 @@ protocol FeedItemProtocol {
 
     // MARK: Serialization
 
-    func xmppEntryElement(withData: Bool) -> XMPPElement
-
     func protoMessage(withData: Bool) -> SwiftProtobuf.Message
 }
 
@@ -47,7 +45,13 @@ extension FeedItemProtocol {
         let item = XMPPElement(name: "item")
         item.addAttribute(withName: "id", stringValue: id)
         item.addAttribute(withName: "type", stringValue: type)
-        item.addChild(xmppEntryElement(withData: withData))
+        item.addChild({
+            let entry = XMPPElement(name: "entry")
+            if let protobufData = try? self.protoContainer(withData: withData).serializedData() {
+                entry.addChild(XMPPElement(name: "s1", stringValue: protobufData.base64EncodedString()))
+            }
+            return entry
+            }())
         return item
     }
 
@@ -80,24 +84,6 @@ protocol FeedMediaProtocol {
 
 extension FeedMediaProtocol {
 
-    var xmppElement: XMPPElement {
-        get {
-            let typeString: String = {
-                switch self.type {
-                case .image: return "image"
-                case .video: return "video"
-                }
-            }()
-            let media = XMPPElement(name: "url", stringValue: url.absoluteString)
-            media.addAttribute(withName: "type", stringValue: typeString)
-            media.addAttribute(withName: "width", integerValue: Int(size.width))
-            media.addAttribute(withName: "height", integerValue: Int(size.height))
-            media.addAttribute(withName: "key", stringValue: key)
-            media.addAttribute(withName: "sha256hash", stringValue: sha256)
-            return media
-        }
-    }
-
     var protoMessage: Proto_Media {
         get {
             var media = Proto_Media()
@@ -128,30 +114,6 @@ protocol FeedPostProtocol: FeedItemProtocol {
 
 extension FeedPostProtocol {
 
-    func xmppEntryElement(withData: Bool) -> XMPPElement {
-        let entry = XMPPElement(name: "entry")
-        entry.addChild({
-            let feedPost = XMPPElement(name: "feedpost")
-            if withData {
-                if let text = text {
-                    feedPost.addChild(XMPPElement(name: "text", stringValue: text))
-                }
-                if !orderedMedia.isEmpty {
-                    feedPost.addChild({
-                        let media = XMLElement(name: "media")
-                        media.setChildren(orderedMedia.map{ $0.xmppElement })
-                        return media
-                        }())
-                }
-            }
-            return feedPost
-            }())
-        if let protobufData = try? self.protoContainer(withData: withData).serializedData() {
-            entry.addChild(XMPPElement(name: "s1", stringValue: protobufData.base64EncodedString()))
-        }
-        return entry
-    }
-
     func protoMessage(withData: Bool) -> Message {
         var post = Proto_Post()
         if withData {
@@ -176,25 +138,6 @@ protocol FeedCommentProtocol: FeedItemProtocol {
 }
 
 extension FeedCommentProtocol {
-
-    func xmppEntryElement(withData: Bool) -> XMPPElement {
-        let entry = XMPPElement(name: "entry")
-        entry.addChild({
-            let comment = XMPPElement(name: "comment")
-            comment.addChild(XMPPElement(name: "feedItemId", stringValue: feedPostId))
-            if let parentId = parentId {
-                comment.addChild(XMPPElement(name: "parentCommentId", stringValue: parentId))
-            }
-            if withData {
-                comment.addChild(XMPPElement(name: "text", stringValue: text))
-            }
-            return comment
-            }())
-        if let protobufData = try? self.protoContainer(withData: withData).serializedData() {
-            entry.addChild(XMPPElement(name: "s1", stringValue: protobufData.base64EncodedString()))
-        }
-        return entry
-    }
 
     func protoMessage(withData: Bool) -> Message {
         var comment = Proto_Comment()
@@ -268,37 +211,19 @@ struct XMPPFeedPost: FeedPostProtocol {
         guard let id = item.attributeStringValue(forName: "id") else { return nil }
         guard let userId = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
         guard let entry = item.element(forName: "entry") else { return nil }
-
-        var hasProto = false, text: String?, media: [XMPPFeedMedia] = []
-        if let protoContainer = Proto_Container.feedItemContainer(from: entry) {
-            if protoContainer.hasPost {
-                text = protoContainer.post.text.isEmpty ? nil : protoContainer.post.text
-                media = protoContainer.post.media.compactMap { XMPPFeedMedia(protoMedia: $0) }
-
-                hasProto = true
-            }
-        }
-
-        if !hasProto {
-            guard let feedPost = entry.element(forName: "feedpost") else { return nil }
-
-            text = feedPost.element(forName: "text")?.stringValue
-            if let mediaElement = feedPost.element(forName: "media") {
-                media = mediaElement.elements(forName: "url").compactMap{ XMPPFeedMedia(urlElement: $0) }
-            }
-        }
+        guard let protoContainer = Proto_Container.feedItemContainer(from: entry) else { return nil }
+        guard protoContainer.hasPost else { return nil }
 
         self.id = id
         self.userId = userId
-        self.text = text
-        self.media = media
+        self.text = protoContainer.post.text.isEmpty ? nil : protoContainer.post.text
+        self.media = protoContainer.post.media.compactMap { XMPPFeedMedia(protoMedia: $0) }
         let ts = item.attributeDoubleValue(forName: "timestamp")
         if ts > 0 {
             self.timestamp = Date(timeIntervalSince1970: ts)
         }
     }
 }
-
 
 struct XMPPFeedMedia: FeedMediaProtocol {
 
@@ -360,7 +285,6 @@ struct XMPPFeedMedia: FeedMediaProtocol {
     }
 }
 
-
 struct XMPPComment: FeedCommentProtocol {
 
     // MARK: FeedItem
@@ -390,23 +314,14 @@ struct XMPPComment: FeedCommentProtocol {
         guard let userId = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
         guard let entry = item.element(forName: "entry") else { return nil }
 
-        var text: String?, feedPostId: String?, parentCommentId: String?
-        if let protoContainer = Proto_Container.feedItemContainer(from: entry) {
-            if protoContainer.hasComment {
-                let protoComment = protoContainer.comment
-                text = protoComment.text.isEmpty ? nil : protoComment.text
-                feedPostId = protoComment.feedPostID.isEmpty ? nil : protoComment.feedPostID
-                parentCommentId = protoComment.parentCommentID.isEmpty ? nil : protoComment.parentCommentID
-            }
-        }
+        guard let protoContainer = Proto_Container.feedItemContainer(from: entry) else { return nil }
+        guard protoContainer.hasComment else { return nil }
 
-        if text == nil || feedPostId == nil {
-            guard let comment = item.element(forName: "entry")?.element(forName: "comment") else { return nil }
-            feedPostId = comment.element(forName: "feedItemId")?.stringValue
-            text = comment.element(forName: "text")?.stringValue
-            parentCommentId = comment.element(forName: "parentCommentId")?.stringValue
-        }
+        let protoComment = protoContainer.comment
 
+        let text = protoComment.text.isEmpty ? nil : protoComment.text
+        let feedPostId = protoComment.feedPostID.isEmpty ? nil : protoComment.feedPostID
+        let parentCommentId = protoComment.parentCommentID.isEmpty ? nil : protoComment.parentCommentID
         guard feedPostId != nil && text != nil else { return nil }
 
         self.id = id
