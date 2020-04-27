@@ -447,11 +447,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.userId = xmppPost.userId
             feedPost.text = xmppPost.text
             feedPost.status = .incoming
-            if let ts = xmppPost.timestamp {
-                feedPost.timestamp = Date(timeIntervalSince1970: ts)
-            } else {
-                feedPost.timestamp = Date()
-            }
+            feedPost.timestamp = xmppPost.timestamp
 
             // Process post media
             for (index, xmppMedia) in xmppPost.media.enumerated() {
@@ -554,11 +550,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comment.parent = parentComment
                 comment.post = feedPost
                 comment.status = .incoming
-                if let ts = xmppComment.timestamp {
-                    comment.timestamp = Date(timeIntervalSince1970: ts)
-                } else {
-                    comment.timestamp = Date()
-                }
+                comment.timestamp = xmppComment.timestamp
 
                 comments[comment.id] = comment
                 newComments.append(comment)
@@ -802,7 +794,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(self.viewContext)
 
         // Request to retract.
-        let request = XMPPRetractItemRequest(feedPost: feedPost) { (error) in
+        let request = XMPPRetractItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (error) in
             if error == nil {
                 self.processRetract(forPostId: postId)
             } else {
@@ -822,7 +814,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(self.viewContext)
 
         // Request to retract.
-        let request = XMPPRetractItemRequest(feedPostComment: comment) { (error) in
+        let request = XMPPRetractItemRequest(feedItem: comment, feedOwnerId: comment.post.userId) { (error) in
             if error == nil {
                 self.processRetract(forCommentId: commentId)
             } else {
@@ -847,7 +839,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         var downloadStarted = false
         feedPosts.forEach { feedPost in
-            feedPost.orderedMedia.forEach { feedPostMedia in
+            feedPost.media?.forEach { feedPostMedia in
                 // Status could be "downloading" if download has previously started
                 // but the app was terminated before the download has finished.
                 if feedPostMedia.status == .none || feedPostMedia.status == .downloading || feedPostMedia.status == .downloadError {
@@ -933,7 +925,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func generateMediaPreview(for notification: FeedNotification, feedPost: FeedPost, using managedObjectContext: NSManagedObjectContext) {
-        guard let postMedia = feedPost.orderedMedia.first else { return }
+        guard let postMedia = feedPost.orderedMedia.first as? FeedPostMedia else { return }
         guard postMedia.type == .image else { return }
         // TODO: add support for video previews
         guard let mediaPath = postMedia.relativeFilePath else { return }
@@ -959,15 +951,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Posting
 
     func post(text: String, media: [PendingMedia]) {
-        let xmppPost = XMPPFeedPost(text: text, media: media)
+        let postId: FeedPostID = UUID().uuidString
 
         // Create and save new FeedPost object.
         let managedObjectContext = self.persistentContainer.viewContext
-        DDLogDebug("FeedData/new-post/create [\(xmppPost.id)]")
+        DDLogDebug("FeedData/new-post/create [\(postId)]")
         let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
-        feedPost.id = xmppPost.id
-        feedPost.userId = xmppPost.userId
-        feedPost.text = xmppPost.text
+        feedPost.id = postId
+        feedPost.userId = AppContext.shared.userData.userId
+        feedPost.text = text
         feedPost.status = .sending
         feedPost.timestamp = Date()
         // Add post media.
@@ -994,15 +986,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(managedObjectContext)
 
         // Now send data over the wire.
-        let request = XMPPPostItemRequest(xmppFeedPost: xmppPost) { (timestamp, error) in
+        let request = XMPPPostItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (timestamp, error) in
             if error != nil {
-                self.updateFeedPost(with: xmppPost.id) { (feedPost) in
+                self.updateFeedPost(with: postId) { (feedPost) in
                     feedPost.status = .sendError
                 }
             } else {
-                self.updateFeedPost(with: xmppPost.id) { (feedPost) in
+                self.updateFeedPost(with: postId) { (feedPost) in
                     if timestamp != nil {
-                        feedPost.timestamp = Date(timeIntervalSince1970: timestamp!)
+                        feedPost.timestamp = timestamp!
                     }
                     feedPost.status = .sent
                 }
@@ -1012,7 +1004,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func post(comment text: String, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostCommentID? = nil) {
-        let xmppComment = XMPPComment(text: text, feedPostId: feedItem.id, parentCommentId: parentCommentId)
+        let commentId: FeedPostCommentID = UUID().uuidString
 
         // Create and save FeedPostComment
         let managedObjectContext = self.persistentContainer.viewContext
@@ -1027,11 +1019,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/new-comment/error  Missing parent comment with id=[\(parentCommentId!)]")
             }
         }
-        DDLogDebug("FeedData/new-comment/create id=[\(xmppComment.id)]  postId=[\(feedPost.id)]")
+        DDLogDebug("FeedData/new-comment/create id=[\(commentId)]  postId=[\(feedPost.id)]")
         let comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
-        comment.id = xmppComment.id
-        comment.userId = xmppComment.userId
-        comment.text = xmppComment.text
+        comment.id = commentId
+        comment.userId = AppContext.shared.userData.userId
+        comment.text = text
         comment.parent = parentComment
         comment.post = feedPost
         comment.status = .sending
@@ -1039,15 +1031,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(managedObjectContext)
 
         // Now send data over the wire.
-        let request = XMPPPostCommentRequest(xmppComment: xmppComment, postAuthor: feedPost.userId) { (timestamp, error) in
+        let request = XMPPPostItemRequest(feedItem: comment, feedOwnerId: feedPost.userId) { (timestamp, error) in
             if error != nil {
-                 self.updateFeedPostComment(with: xmppComment.id) { (feedComment) in
+                 self.updateFeedPostComment(with: commentId) { (feedComment) in
                      feedComment.status = .sendError
                  }
              } else {
-                 self.updateFeedPostComment(with: xmppComment.id) { (feedComment) in
+                 self.updateFeedPostComment(with: commentId) { (feedComment) in
                      if timestamp != nil {
-                         feedComment.timestamp = Date(timeIntervalSince1970: timestamp!)
+                         feedComment.timestamp = timestamp!
                      }
                      feedComment.status = .sent
                  }

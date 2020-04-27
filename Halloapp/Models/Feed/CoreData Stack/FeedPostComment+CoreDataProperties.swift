@@ -48,5 +48,19 @@ extension FeedPostComment {
             return self.status == .retracted || self.status == .retracting
         }
     }
+}
 
+extension FeedPostComment: FeedCommentProtocol {
+
+    static var itemType: FeedItemType {
+        .comment
+    }
+
+    var feedPostId: String {
+        get { post.id }
+    }
+
+    var parentId: String? {
+        get { parent?.id }
+    }
 }

@@ -65,3 +65,7 @@ extension FeedPostMedia {
     @NSManaged var sha256: String
     @NSManaged var order: Int16
 }
+
+extension FeedPostMedia: FeedMediaProtocol {
+    
+}

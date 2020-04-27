@@ -16,7 +16,6 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     var userId: UserID
     var media: [FeedMedia]
 
-
     var commentsDidChange = PassthroughSubject<(Int, Bool), Never>()
     var hasUnreadComments: Bool {
         didSet {
@@ -34,7 +33,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
         userId = feedPost.userId
         hasUnreadComments = feedPost.unreadCount > 0
         numberOfComments = feedPost.comments?.count ?? 0
-        media = feedPost.orderedMedia.map { FeedMedia($0) }
+        media = (feedPost.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
     }
 
     func reload(from feedPost: FeedPost) {

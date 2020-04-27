@@ -43,19 +43,26 @@ extension FeedPost {
         }
     }
 
-    var orderedMedia: [FeedPostMedia] {
-        get {
-            guard let media = self.media else { return [] }
-            return media.sorted { $0.order < $1.order }
-        }
-    }
-
     var isPostRetracted: Bool {
         get {
             return self.status == .retracted || self.status == .retracting
         }
     }
 
+}
+
+extension FeedPost: FeedPostProtocol {
+
+    static var itemType: FeedItemType {
+        .post
+    }
+
+    var orderedMedia: [FeedMediaProtocol] {
+        get {
+            guard let media = self.media else { return [] }
+            return media.sorted { $0.order < $1.order }
+        }
+    }
 }
 
 // MARK: Generated accessors for comments
