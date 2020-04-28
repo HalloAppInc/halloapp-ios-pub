@@ -16,7 +16,7 @@ fileprivate enum FeedTableSection {
     case main
 }
 
-class FeedTableViewController: UITableViewController, NSFetchedResultsControllerDelegate {
+class FeedTableViewController: UITableViewController, NSFetchedResultsControllerDelegate, FeedTableViewCellDelegate {
     private static let cellReuseIdentifier = "FeedTableViewCell"
 
     private var fetchedResultsController: NSFetchedResultsController<FeedPost>?
@@ -186,6 +186,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
                 self.showCommentsView(for: feedPost.id)
             }
         }
+        cell.delegate = self
         return cell
     }
 
@@ -199,6 +200,20 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         }
     }
 
+    // MARK: FeedTableViewCellDelegate
+
+    fileprivate func feedTableViewCell(_ cell: FeedTableViewCell, didRequestOpen url: URL) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            UIApplication.shared.open(url, options: [:])
+        }
+    }
+
+    fileprivate func feedTableViewCellDidRequestReloadHeight(_ cell: FeedTableViewCell, animations animationBlock: () -> Void) {
+        self.tableView.beginUpdates()
+        animationBlock()
+        self.tableView.endUpdates()
+    }
+
     // MARK: Comments
 
     private func showCommentsView(for postId: FeedPostID) {
@@ -207,7 +222,13 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 }
 
 
-fileprivate class FeedTableViewCell: UITableViewCell {
+fileprivate protocol FeedTableViewCellDelegate: AnyObject {
+    func feedTableViewCell(_ cell: FeedTableViewCell, didRequestOpen url: URL)
+    func feedTableViewCellDidRequestReloadHeight(_ cell: FeedTableViewCell, animations animationBlock: () -> Void)
+}
+
+
+fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     static let backgroundCornerRadius: CGFloat = 15
     /**
      Content view (vertical stack takes standard table view content width: tableView.width - tableView.layoutMargins.left - tableView.layoutMargins.right
@@ -224,6 +245,8 @@ fileprivate class FeedTableViewCell: UITableViewCell {
 
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
+
+    weak var delegate: FeedTableViewCellDelegate?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -257,6 +280,7 @@ fileprivate class FeedTableViewCell: UITableViewCell {
         let view = FeedItemContentView()
         view.preservesSuperviewLayoutMargins = true
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.textLabel.delegate = self
         return view
     }()
 
@@ -340,6 +364,22 @@ fileprivate class FeedTableViewCell: UITableViewCell {
         self.footerView.prepareForReuse()
     }
 
+    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
+        switch link.textCheckingResult {
+        case .link, .phoneNumber:
+            if let url = link.url {
+                self.delegate?.feedTableViewCell(self, didRequestOpen: url)
+            }
+        case .readMoreLink:
+            self.delegate?.feedTableViewCellDidRequestReloadHeight(self) {
+                self.itemContentView.textLabel.numberOfLines = 0
+            }
+
+        default:
+            break
+        }
+    }
+
     // MARK: Button actions
 
     @objc(showComments)
@@ -411,11 +451,10 @@ fileprivate class FeedItemContentView: UIView {
         return view
     }()
 
-    private lazy var textLabel: UILabel = {
-        let label = UILabel()
+    private(set) lazy var textLabel: TextLabel = {
+        let label = TextLabel()
         label.font = UIFont.preferredFont(forTextStyle: .body)
         label.textColor = .label
-        label.numberOfLines = 3
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()

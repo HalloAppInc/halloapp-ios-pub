@@ -11,7 +11,7 @@ import CoreData
 import UIKit
 import XMPPFramework
 
-class CommentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CommentInputViewDelegate, NSFetchedResultsControllerDelegate {
+class CommentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate {
     static private let cellReuseIdentifier = "CommentCell"
     static private let sectionMain = 0
 
@@ -74,6 +74,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
         let headerView = CommentsTableHeaderView(frame: CGRect(x: 0, y: 0, width: self.tableView.bounds.size.width, height: 200))
         headerView.commentView.updateWith(feedPost: feedPost)
+        headerView.commentView.textLabel.delegate = self
         self.tableView.tableHeaderView = headerView
 
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
@@ -319,6 +320,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
             self.replyContext = (parentCommentId: feedPostComment.id, userId: feedPostComment.userId)
             self.commentsInputView.showKeyboard(from: self)
         }
+        cell.commentView.textLabel.delegate = self
         return cell
     }
 
@@ -424,6 +426,22 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
             self.commentsInputView.removeReplyPanel()
         }
     }
+
+    // MARK: TextLabelDelegate
+
+    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
+        switch link.textCheckingResult {
+        case .link, .phoneNumber:
+            if let url = link.url {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    UIApplication.shared.open(url, options: [:])
+                }
+            }
+
+        default:
+            break
+        }
+    }
 }
 
 
@@ -466,7 +484,7 @@ fileprivate class CommentsTableHeaderView: UIView {
 
 
 fileprivate class CommentsTableViewCell: UITableViewCell {
-    private lazy var commentView: CommentView = {
+    private(set) lazy var commentView: CommentView = {
         CommentView()
     }()
 

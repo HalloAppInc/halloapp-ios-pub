@@ -32,7 +32,7 @@ class CommentView: UIView {
         return imageView
     }()
 
-    private lazy var textLabel: TextLabel = {
+    private(set) lazy var textLabel: TextLabel = {
         let label = TextLabel()
         label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false

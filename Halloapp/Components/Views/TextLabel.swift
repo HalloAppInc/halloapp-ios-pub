@@ -9,17 +9,42 @@
 import Foundation
 import UIKit
 
+fileprivate class LayoutManager: NSLayoutManager {
+
+    override func usedRect(for container: NSTextContainer) -> CGRect {
+        self.glyphRange(for: container)
+        return super.usedRect(for: container)
+    }
+}
+
+struct AttributedTextLink: Equatable {
+    let text: String
+    let textCheckingResult: NSTextCheckingResult.CheckingType
+    let url: URL?
+    var rects: [ CGRect ] = []
+}
+
+extension NSTextCheckingResult.CheckingType {
+    static let readMoreLink = NSTextCheckingResult.CheckingType(rawValue: 1 << 34)
+}
+
+protocol TextLabelDelegate: AnyObject {
+    func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink)
+}
+
 class TextLabel: UILabel {
 
-    let textStorage: NSTextStorage
-    let textContainer: NSTextContainer
-    let layoutManager: NSLayoutManager
+    weak var delegate: TextLabelDelegate?
+
+    private let textStorage: NSTextStorage
+    private let textContainer: NSTextContainer
+    private let layoutManager: NSLayoutManager
 
     override init(frame: CGRect) {
         textContainer = NSTextContainer()
         textContainer.lineFragmentPadding = 0
 
-        layoutManager = NSLayoutManager()
+        layoutManager = LayoutManager()
         layoutManager.usesFontLeading = false
         layoutManager.addTextContainer(textContainer)
 
@@ -35,7 +60,7 @@ class TextLabel: UILabel {
         textContainer = NSTextContainer()
         textContainer.lineFragmentPadding = 0
 
-        layoutManager = NSLayoutManager()
+        layoutManager = LayoutManager()
         layoutManager.usesFontLeading = false
         layoutManager.addTextContainer(textContainer)
 
@@ -47,8 +72,8 @@ class TextLabel: UILabel {
         self.isUserInteractionEnabled = true
     }
 
-
     // MARK: UILabel
+
     override var text: String? {
         didSet {
             self.invalidateTextStorage()
@@ -69,28 +94,31 @@ class TextLabel: UILabel {
 
     override var numberOfLines: Int {
         didSet {
-            self.textContainer.maximumNumberOfLines = self.numberOfLines
-            self.setNeedsDisplay()
-            self.invalidateIntrinsicContentSize()
-        }
-    }
-
-    var hyperlinkDetectionIgnoreRange: Range<String.Index>? {
-        didSet {
             self.invalidateTextStorage()
+            self.textContainer.size = .zero
         }
     }
-
 
     // MARK: Text Metrics & Drawing
 
+    private var textStorageIsValid = false
+
+    private var textRect: CGRect = .zero // TODO: this might not be needed to be a property
+
+    private var lastValidCharacterIndex: Int = NSNotFound // NSNotFound == full range is valid
+
+    private var readMoreLink: AttributedTextLink?
+
     override var intrinsicContentSize: CGSize {
         get {
-            var boundingSize = CGSize(width: self.preferredMaxLayoutWidth, height: CGFloat.greatestFiniteMagnitude)
-            if boundingSize.width == 0 {
-                boundingSize.width = CGFloat.greatestFiniteMagnitude
+            var maxLayoutWidth = self.preferredMaxLayoutWidth
+            if maxLayoutWidth == 0 {
+                maxLayoutWidth = self.bounds.size.width
             }
-            return self.sizeThatFits(boundingSize)
+            if maxLayoutWidth == 0 {
+                maxLayoutWidth = CGFloat.greatestFiniteMagnitude
+            }
+            return self.sizeThatFits(CGSize(width: maxLayoutWidth, height: CGFloat.greatestFiniteMagnitude))
         }
     }
 
@@ -115,27 +143,23 @@ class TextLabel: UILabel {
             }
         }
 
-        self.performLayoutBlock { textStorage, textContainer, layoutManager in
+        self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
             let glyphRange = layoutManager.glyphRange(forBoundingRect: rect, in: textContainer)
             layoutManager.drawGlyphs(forGlyphRange: glyphRange, at: .zero)
         }
     }
 
-    private var maxTextContainerSize: CGSize = .zero
-    private var textRect: CGRect = .zero
-
     private func textBoundingRect(with size: CGSize) -> CGRect {
         self.prepareTextStorageIfNeeded()
 
-        self.maxTextContainerSize = size
-        self.textContainer.size = self.maxTextContainerSize
-        self.layoutManager.glyphRange(for: self.textContainer)
+        if self.textContainer.size != size {
+            self.textContainer.size = size
+            self.truncateAndAppendReadMoreLinkIfNeeded()
+        }
         self.textRect = self.layoutManager.usedRect(for: self.textContainer)
-
+        self.performHyperlinkDetectionIfNeeded()
         return textRect
     }
-
-    private var textStorageIsValid = false
 
     private func prepareTextStorageIfNeeded() {
         // FIXME: Access to this variable isn't thread safe.
@@ -143,16 +167,13 @@ class TextLabel: UILabel {
 
         if let attributedText = self.attributedText {
             let mutableAttributedText: NSMutableAttributedString = attributedText.mutableCopy() as! NSMutableAttributedString
-            let paragraphStyle = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
-            paragraphStyle.alignment = self.textAlignment
-            paragraphStyle.lineBreakMode = .byWordWrapping
-            mutableAttributedText.addAttribute(.paragraphStyle, value: paragraphStyle, range: NSRange(location: 0, length: textStorage.length))
+            mutableAttributedText.removeAttribute(.paragraphStyle, range: NSRange(location: 0, length: mutableAttributedText.length))
+            mutableAttributedText.removeAttribute(.shadow, range: NSRange(location: 0, length: mutableAttributedText.length))
             self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
-                textStorage.setAttributedString(attributedText)
+                textStorage.setAttributedString(mutableAttributedText)
             }
 
             self.needsDetectHyperlinks = true
-            self.performHyperlinkDetectionIfNeeded()
         }
         self.textStorageIsValid = true
     }
@@ -164,6 +185,79 @@ class TextLabel: UILabel {
         self.textStorageIsValid = false
     }
 
+    private func truncate(textStorage: NSTextStorage, forLayoutManager layoutManaged: NSLayoutManager, ofTextContainer textContainer: NSTextContainer, toLineCount maxLineCount: Int) -> NSRange {
+        assert(textContainer.maximumNumberOfLines == 0, "textContainer.maximumNumberOfLines not 0")
+        let glyphCount = layoutManager.numberOfGlyphs
+        var lastLineGlyphRange = NSRange(location: 0, length: 0)
+        var lineCount = 0
+        var startGlyphIndex = 0
+        while (startGlyphIndex < glyphCount && lineCount < maxLineCount) {
+            layoutManager.lineFragmentRect(forGlyphAt: startGlyphIndex, effectiveRange: &lastLineGlyphRange)
+            startGlyphIndex = NSMaxRange(lastLineGlyphRange)
+            lineCount += 1
+        }
+        guard startGlyphIndex != glyphCount else {
+            return NSRange(location: NSNotFound, length: 0)
+        }
+        textContainer.maximumNumberOfLines = maxLineCount
+        layoutManager.invalidateGlyphs(forCharacterRange: NSRange(location: 0, length: textStorage.length), changeInLength: 0, actualCharacterRange: nil)
+        var truncatedGlyphRange = layoutManager.truncatedGlyphRange(inLineFragmentForGlyphAt: lastLineGlyphRange.location)
+        textContainer.maximumNumberOfLines = 0
+        layoutManager.invalidateGlyphs(forCharacterRange: NSRange(location: 0, length: textStorage.length), changeInLength: 0, actualCharacterRange: nil)
+        if truncatedGlyphRange.location == NSNotFound {
+            // The last line may not be truncated if it is shown in full. In this case, we need to back
+            // up the character index by 1 to remove the trailing newline character.
+            let index = NSMaxRange(lastLineGlyphRange)
+            truncatedGlyphRange = NSRange(location: index, length: glyphCount - index)
+            var charRangeToDelete = layoutManager.characterRange(forGlyphRange: truncatedGlyphRange, actualGlyphRange: nil)
+            if charRangeToDelete.location > 0 {
+                charRangeToDelete.location -= 1
+                charRangeToDelete.length += 1
+            }
+            textStorage.replaceCharacters(in: charRangeToDelete, with: "")
+            return charRangeToDelete
+        } else {
+            self.needsDetectHyperlinks = true
+
+            // Add an ellipsis only if the default truncation behavior results in an ellipsis.
+            truncatedGlyphRange.length = glyphCount - truncatedGlyphRange.location
+            let charRangeToReplace = layoutManager.characterRange(forGlyphRange: truncatedGlyphRange, actualGlyphRange:nil)
+            textStorage.replaceCharacters(in: charRangeToReplace, with: "\u{2026}")
+            return charRangeToReplace
+        }
+    }
+
+    private func truncateAndAppendReadMoreLinkIfNeeded() {
+        self.readMoreLink = nil
+
+        guard self.numberOfLines != 0 else { return }
+        guard self.layoutManager.numberOfGlyphs > 10 else { return }
+
+        var replacedRange: NSRange = NSRange(location: NSNotFound, length: 0)
+        self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
+            replacedRange = self.truncate(textStorage: textStorage, forLayoutManager: layoutManager, ofTextContainer: textContainer, toLineCount: self.numberOfLines)
+        }
+        guard replacedRange.location != NSNotFound else {
+            return
+        }
+        if replacedRange.location > 0 {
+            self.lastValidCharacterIndex = replacedRange.location - 1
+        }
+
+        let readMoreLinkCharacterIndex = self.textStorage.length
+        let style = NSMutableParagraphStyle()
+        style.paragraphSpacingBefore = 6.0
+        let readMoreLinkText = "\n\("Read more")" // TODO: localize
+        let attributes: [ NSAttributedString.Key: Any ] = [ .font: UIFont.systemFont(ofSize: self.font.pointSize, weight: .medium),
+                                                            .foregroundColor: UIColor.systemGray,
+                                                            .paragraphStyle: style ]
+        self.textStorage.append(NSAttributedString(string: readMoreLinkText, attributes: attributes))
+
+        self.readMoreLink = AttributedTextLink(text: readMoreLinkText, textCheckingResult: .readMoreLink, url: nil)
+        let readMoreRange = NSRange(location: readMoreLinkCharacterIndex + 1, length: self.textStorage.length - readMoreLinkCharacterIndex - 1)
+        self.readMoreLink?.rects = self.rects(for: readMoreRange, in: self.textContainer, with: self.layoutManager)
+        self.links = [ self.readMoreLink! ]
+    }
 
     // MARK: Thread safety
 
@@ -178,18 +272,27 @@ class TextLabel: UILabel {
         self.textObjectsLock.unlock()
     }
 
-
     // MARK: Hyperlinks
-    struct AttributedTextLink: Equatable {
-        let text: String
-        let textCheckingResult: NSTextCheckingResult.CheckingType
-        let url: URL?
-        var rects: [ CGRect ] = []
+
+    var hyperlinkDetectionIgnoreRange: Range<String.Index>? {
+        didSet {
+            self.invalidateTextStorage()
+        }
     }
 
     private var needsDetectHyperlinks = false
+
     private var links: [AttributedTextLink]?
+
+    private static let linkAttributes: [ NSAttributedString.Key: Any ] =
+        [ NSAttributedString.Key.foregroundColor: UIColor.systemBlue ]
+
+    private static let addressAttributes: [ NSAttributedString.Key: Any ] =
+        [ NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue,
+          NSAttributedString.Key.underlineColor: UIColor.label.withAlphaComponent(0.5) ]
+
     static private let detectionQueue = DispatchQueue(label: "hyperlink-detection")
+
     static private let dataDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue | NSTextCheckingResult.CheckingType.phoneNumber.rawValue | NSTextCheckingResult.CheckingType.address.rawValue)
 
     private func performHyperlinkDetectionIfNeeded() {
@@ -203,22 +306,19 @@ class TextLabel: UILabel {
     private func reallyDetectHyperlinks() {
         var attributedText: NSAttributedString = NSAttributedString()
         var text: String = ""
-        self.performLayoutBlock { textStorage, textContainer, layoutManager in
+        self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
             attributedText = textStorage
             text = textStorage.string
         }
         let links = self.detectSystemDataTypes(in: text, attributedText: attributedText, ignoredRange: self.hyperlinkDetectionIgnoreRange)
         DispatchQueue.main.async {
             self.links = links
+            if self.readMoreLink != nil {
+                self.links?.append(self.readMoreLink!)
+            }
             self.setNeedsDisplay()
         }
     }
-
-    private static let linkAttributes: [ NSAttributedString.Key: Any ] =
-        [ NSAttributedString.Key.foregroundColor: UIColor.systemBlue ]
-    private static let addressAttributes: [ NSAttributedString.Key: Any ] =
-        [ NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue,
-          NSAttributedString.Key.underlineColor: UIColor.label.withAlphaComponent(0.5) ]
 
     private func textAttributes(for textCheckingType: NSTextCheckingResult.CheckingType) -> [ NSAttributedString.Key: Any ] {
         if textCheckingType == .address || textCheckingType == .date {
@@ -236,10 +336,19 @@ class TextLabel: UILabel {
                 if ignoredRange != nil && ignoredRange!.overlaps(range) {
                     continue
                 }
+                // Don't linkify if up against truncation boundary, as the extracted data could be based on
+                // a partial string and could therefore be invalid.
+                guard NSIntersectionRange(match.range, NSRange(location: self.lastValidCharacterIndex, length: 1)).length == 0 else {
+                    continue
+                }
                 var link = AttributedTextLink(text: String(text[range]), textCheckingResult: match.resultType, url: match.url)
 
                 var rects: [CGRect] = []
-                self.performLayoutBlock { textStorage, textContainer, layoutManager in
+                self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
+                    // Do nothing if text was truncated while link detection was happening on a background thread.
+                    guard textStorage.string == text else {
+                        return
+                    }
                     rects = self.rects(for: match.range, in: textContainer, with: layoutManager)
                     let attributes = self.textAttributes(for: match.resultType)
                     textStorage.addAttributes(attributes, range: match.range)
@@ -275,9 +384,10 @@ class TextLabel: UILabel {
         return rects
     }
 
-
     // MARK: Tap handling
+
     private var trackedLink: AttributedTextLink?
+
     private var highlightedLink: AttributedTextLink?
 
     private func link(at point: CGPoint) -> AttributedTextLink? {
@@ -321,11 +431,7 @@ class TextLabel: UILabel {
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if self.trackedLink != nil {
-            if let url = self.trackedLink!.url {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                }
-            }
+            self.delegate?.textLabel(self, didRequestHandle: self.trackedLink!)
             self.trackedLink = nil
         } else {
             super.touchesEnded(touches, with: event)
