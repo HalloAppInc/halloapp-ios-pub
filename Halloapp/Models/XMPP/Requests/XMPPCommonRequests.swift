@@ -19,7 +19,11 @@ class XMPPPushTokenRequest: XMPPRequest {
             let pushRegister = XMLElement(name: "push_register", xmlns: "halloapp:push:notifications")
             pushRegister.addChild({
                 let pushToken = XMPPElement(name: "push_token", stringValue: token)
+                #if DEBUG
+                pushToken.addAttribute(withName: "os", stringValue: "ios_dev")
+                #else
                 pushToken.addAttribute(withName: "os", stringValue: "ios")
+                #endif
                 return pushToken
             }())
             return pushRegister
