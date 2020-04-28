@@ -419,7 +419,6 @@ fileprivate class FeedItemContentView: UIView {
     private lazy var textContentView: UIView = {
         let view = UIView()
         view.backgroundColor = .clear
-        view.layoutMargins.bottom = 5
         view.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(self.textLabel)
         self.textLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
