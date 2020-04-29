@@ -54,6 +54,11 @@ class HomeViewController: UITabBarController {
     }
 
     private func setupViewControllers() {
+        let appearance = UITabBarAppearance()
+        appearance.shadowColor = nil
+        self.tabBar.standardAppearance = appearance
+        self.updateTabBarBackgroundEffect()
+
         self.viewControllers = [
             feedNavigationController(),
             chatNavigationController(),
@@ -66,7 +71,13 @@ class HomeViewController: UITabBarController {
         super.traitCollectionDidChange(previousTraitCollection)
         if self.traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
             UIView.appearance().tintColor = HomeViewController.tintColor(for: self.traitCollection)
+            self.updateTabBarBackgroundEffect()
         }
+    }
+
+    private func updateTabBarBackgroundEffect() {
+        let blurStyle: UIBlurEffect.Style = self.traitCollection.userInterfaceStyle == .light ? .systemUltraThinMaterial : .systemChromeMaterial
+        self.tabBar.standardAppearance.backgroundEffect = UIBlurEffect(style: blurStyle)
     }
 
     static let tabBarItemImageInsets = UIEdgeInsets(top: 8, left: 0, bottom: -8, right: 0)
