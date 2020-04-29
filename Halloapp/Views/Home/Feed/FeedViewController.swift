@@ -28,9 +28,9 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
         notificationButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
         notificationButton.addTarget(self, action: #selector(presentNotificationsView), for: .touchUpInside)
         if let feedNotifications = AppContext.shared.feedData.feedNotifications {
-            notificationButton.badge = feedNotifications.unreadCount
+            notificationButton.isBadgeHidden = feedNotifications.unreadCount == 0
             self.cancellables.insert(feedNotifications.unreadCountDidChange.sink { (unreadCount) in
-                notificationButton.badge = unreadCount
+                notificationButton.isBadgeHidden = unreadCount == 0
             })
         }
 

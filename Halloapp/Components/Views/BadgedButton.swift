@@ -22,9 +22,10 @@ class BadgedButton: UIButton {
 
     private func setupView() {
         self.badgeView.translatesAutoresizingMaskIntoConstraints = false
-        self.badgeView.isHidden = true
         self.badgeView.isUserInteractionEnabled = false
         self.addSubview(self.badgeView)
+        self.badgeView.widthAnchor.constraint(equalToConstant: 16).isActive = true
+        self.badgeView.widthAnchor.constraint(equalTo: self.badgeView.heightAnchor).isActive = true
         self.setupBadgeViewPositionConstraints()
     }
     // MARK: Badge
@@ -60,12 +61,8 @@ class BadgedButton: UIButton {
         }
     }
 
-    public var badge: Int {
-        get { Int(badgeView.text ?? "") ?? 0 }
-        set {
-            // TODO: use proper number formatting here
-            badgeView.text = String(newValue)
-            badgeView.isHidden = newValue == 0
-        }
+    public var isBadgeHidden: Bool {
+        get { self.badgeView.isHidden }
+        set { self.badgeView.isHidden = newValue }
     }
 }
