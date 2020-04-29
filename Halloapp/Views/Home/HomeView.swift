@@ -83,7 +83,7 @@ class HomeViewController: UITabBarController {
     static let tabBarItemImageInsets = UIEdgeInsets(top: 8, left: 0, bottom: -8, right: 0)
 
     private func feedNavigationController() -> UINavigationController {
-        let navigationController = UINavigationController(rootViewController: FeedViewController())
+        let navigationController = UINavigationController(rootViewController: FeedViewController(title: "Home"))
         navigationController.tabBarItem.title = nil
         navigationController.tabBarItem.image = UIImage(named: "TabBarHome")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
@@ -102,7 +102,8 @@ class HomeViewController: UITabBarController {
     }
 
     private func profileNavigationController() -> UINavigationController {
-        let navigationController = UINavigationController(rootViewController: ProfileViewController())
+        let navigationController = UINavigationController(rootViewController: ProfileViewController(title: "Profile"))
+        navigationController.tabBarItem.title = nil
         navigationController.tabBarItem.image = UIImage(named: "TabBarProfile")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController

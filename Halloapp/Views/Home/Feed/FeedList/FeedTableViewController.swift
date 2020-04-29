@@ -23,8 +23,9 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     private var cancellableSet: Set<AnyCancellable> = []
 
-    init() {
+    init(title: String) {
         super.init(style: .plain)
+        self.title = title
     }
 
     required init?(coder: NSCoder) {
@@ -38,12 +39,23 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     override func viewDidLoad() {
+        super.viewDidLoad()
+        
         DDLogInfo("FeedTableViewController/viewDidLoad")
 
-        self.tableView.backgroundColor = UIColor.systemGroupedBackground
+        self.navigationItem.standardAppearance = Self.noBorderNavigationBarAppearance
+
+        let titleLabel = UILabel()
+        titleLabel.text = self.title
+        titleLabel.font = .gothamFont(ofSize: 33, weight: .bold)
+        titleLabel.textColor = UIColor.label.withAlphaComponent(0.1)
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
+
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = false
+        self.tableView.showsVerticalScrollIndicator = false
         self.tableView.register(FeedTableViewCell.self, forCellReuseIdentifier: FeedTableViewController.cellReuseIdentifier)
+        self.updateTableViewBackgroundColor()
 
         self.setupFetchedResultsController()
 
@@ -60,16 +72,58 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         })
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        DDLogInfo("FeedTableViewController/viewWillAppear")
-        super.viewWillAppear(animated)
-//        self.tableView.reloadData()
+    static var noBorderNavigationBarAppearance: UINavigationBarAppearance {
+        get {
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithDefaultBackground()
+            appearance.shadowColor = nil
+            return appearance
+        }
+    }
+
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        // Add additional scrolling treshold of 25pts - the amount of vertical padding on top of each feed post card.
+        let makeNavigationBarTransparent = self.tableView.contentOffset.y - 25 <= -self.tableView.adjustedContentInset.top
+        let isNavigationBarTransparent = self.navigationItem.standardAppearance?.backgroundEffect == nil
+        guard makeNavigationBarTransparent != isNavigationBarTransparent else { return }
+        if makeNavigationBarTransparent {
+            self.navigationItem.standardAppearance?.backgroundEffect = nil
+        } else {
+            self.updateNavigationBarBackgroundEffect()
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("FeedTableViewController/viewDidAppear")
         super.viewDidAppear(animated)
     }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if self.traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            self.updateTableViewBackgroundColor()
+            if self.navigationItem.standardAppearance?.backgroundEffect != nil {
+                self.updateNavigationBarBackgroundEffect()
+            }
+        }
+    }
+
+    // MARK: Appearance
+
+    static let bgColorLight = UIColor(red: 0xF3/0xFF, green: 0xF2/0xFF, blue: 0xEF/0xFF, alpha: 1)
+
+    static let bgColorDark = UIColor(white: 0, alpha: 1)
+
+    private func updateTableViewBackgroundColor() {
+        self.tableView.backgroundColor = self.traitCollection.userInterfaceStyle == .light ? Self.bgColorLight : Self.bgColorDark
+    }
+
+    private func updateNavigationBarBackgroundEffect() {
+        let blurStyle: UIBlurEffect.Style = self.traitCollection.userInterfaceStyle == .light ? .systemUltraThinMaterial : .systemChromeMaterial
+        self.navigationItem.standardAppearance?.backgroundEffect = UIBlurEffect(style: blurStyle)
+
+    }
+
 
     // MARK: FeedTableViewController Customization
 
@@ -320,8 +374,11 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
             return constraint
             }())
         self.backgroundPanelView.backgroundColor = UIColor.secondarySystemGroupedBackground
-        self.backgroundPanelView.layer.shadowColor = UIColor.systemGray5.cgColor
+        self.backgroundPanelView.layer.shadowRadius = 8
+        self.backgroundPanelView.layer.shadowOpacity = 0.08
+        self.backgroundPanelView.layer.shadowOffset = CGSize(width: 0, height: 8)
         self.backgroundView = backgroundView
+        self.setPanelShadowColor()
 
         // Content view: a vertical stack of header, content and footer.
         let vStack = UIStackView(arrangedSubviews: [ self.headerView, self.itemContentView, self.footerView ])
@@ -353,8 +410,13 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         super.traitCollectionDidChange(previousTraitCollection)
         if previousTraitCollection?.userInterfaceStyle != self.traitCollection.userInterfaceStyle {
             // Shadow color needs to be updated when user interface style changes between dark and light.
-            self.backgroundPanelView.layer.shadowColor = UIColor.systemGray5.cgColor
+            self.setPanelShadowColor()
         }
+    }
+
+    private func setPanelShadowColor() {
+        let shadowColor = self.traitCollection.userInterfaceStyle == .light ? UIColor.black : UIColor.clear
+        self.backgroundPanelView.layer.shadowColor = shadowColor.cgColor
     }
 
     override func prepareForReuse() {

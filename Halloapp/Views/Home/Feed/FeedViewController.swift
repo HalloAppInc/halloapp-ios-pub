@@ -34,11 +34,9 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
             })
         }
 
-        self.navigationItem.title = "Home"
         self.navigationItem.rightBarButtonItems = [
             UIBarButtonItem(customView: notificationButton),
             UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(composePost)) ]
-        self.navigationItem.largeTitleDisplayMode = .automatic
     }
 
     deinit {
