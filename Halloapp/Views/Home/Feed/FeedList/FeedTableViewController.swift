@@ -50,6 +50,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         titleLabel.font = .gothamFont(ofSize: 33, weight: .bold)
         titleLabel.textColor = UIColor.label.withAlphaComponent(0.1)
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
+        self.navigationItem.title = nil
 
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = false
