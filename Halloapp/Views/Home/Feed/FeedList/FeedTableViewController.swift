@@ -636,7 +636,7 @@ fileprivate class FeedItemHeaderView: UIView {
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .footnote)
             return UIFont.gothamFont(ofSize: fontDescriptor.pointSize + 1, weight: .medium)
         }()
-        label.textColor = .secondaryLabel
+        label.textColor = .tertiaryLabel
         label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
