@@ -28,6 +28,9 @@ struct MessagesView: View {
     var body: some View {
         VStack {
             List(contacts, id: \.self) { contact in
+                NavigationLink(destination: ChatSView(fromUserId: contact.userId!).navigationBarTitle("\(contact.fullName!)", displayMode: .inline).edgesIgnoringSafeArea(.bottom)) {
+                    EmptyView()             
+                }.frame(width: 0)
                 HStack {
                     Image(systemName: "circle.fill")
                         .resizable()

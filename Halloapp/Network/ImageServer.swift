@@ -17,6 +17,16 @@ class ImageServer {
     private let mediaProcessingGroup = DispatchGroup()
     private var cancelled = false
 
+    func upload(_ mediaItems: [PendingMedia], completion: @escaping () -> Void) {
+        mediaItems.forEach{ self.initiateUpload($0) }
+        self.mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
+            guard let self = self else { return }
+            if !self.cancelled {
+                completion()
+            }
+        }
+    }
+    
     func upload(_ mediaItems: [PendingMedia], isReady: Binding<Bool>) {
         mediaItems.forEach{ self.initiateUpload($0) }
         self.mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in

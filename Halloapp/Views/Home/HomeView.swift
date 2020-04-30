@@ -90,17 +90,25 @@ class HomeViewController: UITabBarController {
         return navigationController
     }
 
+//    private func chatNavigationController() -> UINavigationController {
+//        let messagesView = MessagesView().environment(\.managedObjectContext, AppContext.shared.contactStore.viewContext)
+//        let chatListViewController = UIHostingController(rootView: messagesView)
+//        chatListViewController.navigationItem.title = "Messages"
+//        let navigationController = UINavigationController(rootViewController: chatListViewController)
+//        navigationController.tabBarItem.title = nil
+//        navigationController.tabBarItem.image = UIImage(named: "TabBarMessages")
+//        navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
+//        return navigationController
+//    }
+
     private func chatNavigationController() -> UINavigationController {
-        let messagesView = MessagesView().environment(\.managedObjectContext, AppContext.shared.contactStore.viewContext)
-        let chatListViewController = UIHostingController(rootView: messagesView)
-        chatListViewController.navigationItem.title = "Messages"
-        let navigationController = UINavigationController(rootViewController: chatListViewController)
+        let navigationController = UINavigationController(rootViewController: ChatListViewController(title: "Messages"))
         navigationController.tabBarItem.title = nil
         navigationController.tabBarItem.image = UIImage(named: "TabBarMessages")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
     }
-
+    
     private func profileNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: ProfileViewController(title: "Profile"))
         navigationController.tabBarItem.title = nil

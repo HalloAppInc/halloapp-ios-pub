@@ -36,6 +36,7 @@ class XMPPController: NSObject, ObservableObject {
     
     var didReceiveFeedItems = PassthroughSubject<[XMLElement], Never>()
     var didReceiveFeedRetracts = PassthroughSubject<[XMLElement], Never>()
+    var didGetNewChatMessage = PassthroughSubject<XMPPMessage, Never>()
 
     var xmppStream: XMPPStream
     private var xmppPubSub: XMPPPubSub
@@ -287,6 +288,10 @@ extension XMPPController: XMPPStreamDelegate {
             AppContext.shared.syncManager.processNotification(contacts: contactList.elements(forName: "contact").compactMap{ XMPPContact($0) })
         }
 
+        if message.element(forName: "chat") != nil {
+            self.didGetNewChatMessage.send(message)
+        }
+        
         // TODO: do not set ack for pubsub messages - that must be done in pubsub message handler, after processing of a message is complete.
         self.sendAck(for: message)
     }

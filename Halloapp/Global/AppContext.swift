@@ -17,12 +17,14 @@ struct AppContext {
     static let appGroupName = "group.com.halloapp.shared"
     static let contactsDatabaseFilename = "contacts.sqlite"
     static let feedDatabaseFilename = "feed.sqlite"
+    static let chatDatabaseFilename = "chat.sqlite"
 
     // MARK: - Global objects
     private(set) var userData: UserData
     private(set) var metaData: MetaData
     private(set) var xmppController: XMPPController
     private(set) var feedData: FeedData
+    private(set) var chatData: ChatData
     private(set) var contactStore: ContactStore
     private(set) var syncManager: SyncManager
     private(set) var fileLogger: DDFileLogger
@@ -44,6 +46,10 @@ struct AppContext {
         AppContext.libraryDirectoryURL.appendingPathComponent("Media", isDirectory: false)
     }()
 
+    static let chatMediaDirectoryURL = {
+        AppContext.libraryDirectoryURL.appendingPathComponent("ChatMedia", isDirectory: false)
+    }()
+    
     static let contactStoreURL = {
         AppContext.sharedDirectoryURL!.appendingPathComponent(AppContext.contactsDatabaseFilename)
     }()
@@ -52,6 +58,11 @@ struct AppContext {
         AppContext.documentsDirectoryURL.appendingPathComponent(AppContext.feedDatabaseFilename)
     }()
 
+    static let chatStoreURL = {
+        AppContext.documentsDirectoryURL.appendingPathComponent(AppContext.chatDatabaseFilename)
+    }()
+
+    
     // MARK: - Initializer
     static var shared: AppContext {
         get {
@@ -76,6 +87,7 @@ struct AppContext {
         self.metaData = MetaData()
         self.xmppController = XMPPController(userData: self.userData, metaData: self.metaData)
         self.feedData = FeedData(xmppController: self.xmppController, userData: self.userData)
+        self.chatData = ChatData(xmppController: self.xmppController, userData: self.userData)
         self.contactStore = ContactStore(xmppController: self.xmppController, userData: self.userData)
         self.syncManager = SyncManager(contactStore: self.contactStore, xmppController: self.xmppController, userData: self.userData)
     }

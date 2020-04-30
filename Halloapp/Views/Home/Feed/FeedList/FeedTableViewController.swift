@@ -240,6 +240,10 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
                 guard let self = self else { return }
                 self.showCommentsView(for: feedPost.id)
             }
+            cell.messageAction = { [weak self] in
+                guard let self = self else { return }
+                self.showMessageView(with: feedPost.userId)
+            }
         }
         cell.delegate = self
         return cell
@@ -273,6 +277,12 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     private func showCommentsView(for postId: FeedPostID) {
         self.navigationController?.pushViewController(CommentsViewController(feedPostId: postId), animated: true)
+    }
+
+    // MARK: Message
+
+    private func showMessageView(with chatWithUserId: String) {
+        self.navigationController?.pushViewController(ChatViewController(fromUserId: chatWithUserId), animated: true)
     }
 }
 
