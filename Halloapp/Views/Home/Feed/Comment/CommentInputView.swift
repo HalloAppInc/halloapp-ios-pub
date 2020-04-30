@@ -20,8 +20,13 @@ protocol CommentInputViewDelegate: AnyObject {
     func commentInputViewResetReplyContext(_ inputView: CommentInputView)
 }
 
-class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
+class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
+
     weak var delegate: CommentInputViewDelegate?
+
+    private var textViewHeight: NSLayoutConstraint?
+    private var textView1LineHeight: CGFloat = 0
+    private var textView5LineHeight: CGFloat = 0
 
     private var previousHeight: CGFloat = 0
 
@@ -34,12 +39,6 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
         required init?(coder: NSCoder) {
             super.init(coder: coder)
-        }
-
-        func setupView() {
-            self.translatesAutoresizingMaskIntoConstraints = false
-            self.setContentHuggingPriority(.required, for: .vertical)
-            self.setContentCompressionResistancePriority(.required, for: .vertical)
         }
 
         override func safeAreaInsetsDidChange() {
@@ -64,24 +63,34 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         let view = ContainerView()
         view.delegate = self
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.setContentHuggingPriority(.required, for: .vertical)
         view.preservesSuperviewLayoutMargins = true
         return view
     }()
 
-    private lazy var contentView: UIStackView = {
-        let view = UIStackView()
-        view.axis = .vertical
-        view.spacing = 8
+    private lazy var contentView: UIView = {
+        let view = UIView()
         view.preservesSuperviewLayoutMargins = true
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
 
-    private lazy var textView: UITextView = {
-        let textView = UITextView()
+    private lazy var vStack: UIStackView = {
+        let vStack = UIStackView()
+        vStack.spacing = 8
+        vStack.axis = .vertical
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        return vStack
+    }()
+
+    private lazy var textView: InputTextView = {
+        let textView = InputTextView(frame: .zero)
         textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        textView.backgroundColor = UIColor.clear
-        textView.delegate = self
+        textView.backgroundColor = .clear
+        textView.autocapitalizationType = .sentences
+        textView.autocorrectionType = .yes
+        textView.enablesReturnKeyAutomatically = true
+        textView.scrollsToTop = false
         textView.textContainerInset.left = 8
         textView.textContainerInset.right = 8
         textView.translatesAutoresizingMaskIntoConstraints = false
@@ -143,59 +152,89 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
         self.autoresizingMask = .flexibleHeight
 
+        // Container view - needs for correct size calculations.
         self.addSubview(self.containerView)
         self.containerView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         self.containerView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         self.containerView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
         self.containerView.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
 
-        let blurView = UIVisualEffectView(effect: UIBlurEffect.init(style: .systemChromeMaterial))
-        blurView.translatesAutoresizingMaskIntoConstraints = false
-        blurView.preservesSuperviewLayoutMargins = true
-        blurView.contentView.preservesSuperviewLayoutMargins = true
+        // Background view.
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = .systemBackground
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        self.containerView.addSubview(backgroundView)
+        backgroundView.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor).isActive = true
+        backgroundView.topAnchor.constraint(equalTo: self.containerView.topAnchor).isActive = true
+        backgroundView.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor).isActive = true
+        backgroundView.bottomAnchor.constraint(equalTo: self.containerView.bottomAnchor).isActive = true
 
-        self.containerView.addSubview(blurView)
-        blurView.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor).isActive = true
-        blurView.topAnchor.constraint(equalTo: self.containerView.topAnchor).isActive = true
-        blurView.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor).isActive = true
-        blurView.bottomAnchor.constraint(equalTo: self.containerView.bottomAnchor).isActive = true
+        // Content view - everything must go in there.
+        self.containerView.addSubview(self.contentView)
+        self.contentView.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor).isActive = true
+        self.contentView.topAnchor.constraint(equalTo: self.containerView.topAnchor).isActive = true
+        self.contentView.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor).isActive = true
+        self.contentView.bottomAnchor.constraint(equalTo: self.containerView.safeAreaLayoutGuide.bottomAnchor).isActive = true
 
         let borderWidth = 1 / UIScreen.main.scale
 
+        // Top border.
         let topBorder = UIView()
-        topBorder.backgroundColor = UIColor.separator
+        topBorder.backgroundColor = .separator
         topBorder.translatesAutoresizingMaskIntoConstraints = false
-        blurView.contentView.addSubview(topBorder)
-        NSLayoutConstraint(item: topBorder, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: borderWidth).isActive = true
-        topBorder.leadingAnchor.constraint(equalTo: blurView.leadingAnchor).isActive = true
-        topBorder.topAnchor.constraint(equalTo: blurView.topAnchor).isActive = true
-        topBorder.trailingAnchor.constraint(equalTo: blurView.trailingAnchor).isActive = true
+        self.contentView.addSubview(topBorder)
+        topBorder.heightAnchor.constraint(equalToConstant: borderWidth).isActive = true
+        topBorder.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor).isActive = true
+        topBorder.topAnchor.constraint(equalTo: self.contentView.topAnchor).isActive = true
+        topBorder.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor).isActive = true
 
-        blurView.contentView.addSubview(self.contentView)
-        self.contentView.leadingAnchor.constraint(equalTo: blurView.layoutMarginsGuide.leadingAnchor).isActive = true
-        self.contentView.topAnchor.constraint(equalTo: blurView.layoutMarginsGuide.topAnchor).isActive = true
-        self.contentView.trailingAnchor.constraint(equalTo: blurView.layoutMarginsGuide.trailingAnchor).isActive = true
-        self.contentView.bottomAnchor.constraint(equalTo: blurView.layoutMarginsGuide.bottomAnchor).isActive = true
-
+        // Input field wrapper
         let textViewContainer = UIView()
-        textViewContainer.backgroundColor = UIColor.systemBackground
-        textViewContainer.layer.cornerRadius = 12
-        textViewContainer.layer.borderColor = UIColor.separator.cgColor
-        textViewContainer.layer.borderWidth = borderWidth
+        textViewContainer.backgroundColor = .clear
         textViewContainer.translatesAutoresizingMaskIntoConstraints = false
+
+        // Rounded rect box.
+        let textViewBox = UIView()
+        textViewBox.backgroundColor = .secondarySystemBackground
+        textViewBox.layer.cornerRadius = 12
+        textViewBox.layer.borderColor = UIColor.separator.cgColor
+        textViewBox.layer.borderWidth = borderWidth
+        textViewBox.translatesAutoresizingMaskIntoConstraints = false
+        textViewContainer.addSubview(textViewBox)
+        textViewBox.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
+        textViewBox.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
+        textViewBox.trailingAnchor.constraint(equalTo: textViewContainer.trailingAnchor).isActive = true
+        textViewBox.bottomAnchor.constraint(equalTo: textViewContainer.bottomAnchor).isActive = true
+
         textViewContainer.addSubview(self.textView)
         self.textView.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
         self.textView.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
         self.textView.trailingAnchor.constraint(equalTo: textViewContainer.trailingAnchor).isActive = true
         self.textView.bottomAnchor.constraint(equalTo: textViewContainer.bottomAnchor).isActive = true
-        let textViewHeight = round(2 * self.textView.font!.lineHeight)
-        self.textView.addConstraint(NSLayoutConstraint(item: self.textView, attribute: .height, relatedBy: .greaterThanOrEqual, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: textViewHeight))
+        self.textView.inputTextViewDelegate = self
+        self.textView.text = ""
 
+        // Horizontal stack view: [input field][post button]
         let hStack = UIStackView(arrangedSubviews: [textViewContainer, self.postButton ])
+        hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.spacing = 0
 
-        self.contentView.addArrangedSubview(hStack)
+        // Vertical stack view:
+        // [Replying to]?
+        // [Input Field]
+        self.contentView.addSubview(self.vStack)
+        self.vStack.addArrangedSubview(hStack)
+        self.vStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        self.vStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
+        self.vStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        self.vStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
+
+        self.recalculateSingleLineHeight()
+
+        self.textViewHeight = self.textView.heightAnchor.constraint(equalToConstant: self.textView1LineHeight)
+        self.textViewHeight?.priority = .defaultHigh
+        self.textViewHeight?.isActive = true
     }
 
     func willAppear(in viewController: UIViewController) {
@@ -239,10 +278,10 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
     func showReplyPanel(with contactName: String) {
         self.contactNameLabel.text = "Replying to \(contactName)"
-        if self.contentView.arrangedSubviews.contains(self.replyContextPanel) {
+        if self.vStack.arrangedSubviews.contains(self.replyContextPanel) {
             self.replyContextPanel.isHidden = false
         } else {
-            self.contentView.insertArrangedSubview(self.replyContextPanel, at: 0)
+            self.vStack.insertArrangedSubview(self.replyContextPanel, at: 0)
         }
     }
 
@@ -255,23 +294,20 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }
 
     // MARK: Text view
-    var text: String {
+    var text: String! {
         get {
-            return self.textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            return self.textView.text
         }
         set {
             self.textView.text = newValue
-            self.textViewDidChange(self.textView)
+            self.inputTextViewDidChange(self.textView)
         }
-    }
-
-    func textViewDidChange(_ textView: UITextView) {
-        self.postButton.isEnabled = !self.text.isEmpty
     }
 
     @objc func postButtonClicked() {
         self.acceptAutoCorrection()
-        self.delegate?.commentInputView(self, wantsToSend: self.text)
+        let trimmedText = (self.textView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        self.delegate?.commentInputView(self, wantsToSend: trimmedText)
     }
 
     private func acceptAutoCorrection() {
@@ -285,6 +321,44 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         }
     }
 
+    // MARK: InputTextViewDelegate
+
+    func inputTextViewDidChange(_ inputTextView: InputTextView) {
+        let trimmedText = (inputTextView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        self.postButton.isEnabled = !trimmedText.isEmpty
+    }
+
+    func maximumHeight(for inputTextView: InputTextView) -> CGFloat {
+        var maxHeight = self.textView5LineHeight
+        let screenHeight = UIScreen.main.bounds.height
+        maxHeight = ceil(max(min(maxHeight, 0.3 * screenHeight), self.textView1LineHeight))
+        return maxHeight
+    }
+
+    func inputTextView(_ inputTextView: InputTextView, needsHeightChangedTo newHeight: CGFloat) {
+        self.textViewHeight?.constant = newHeight
+        self.setNeedsUpdateHeight()
+    }
+
+    func inputTextViewShouldBeginEditing(_ inputTextView: InputTextView) -> Bool {
+        return true
+    }
+
+    func inputTextViewDidBeginEditing(_ inputTextView: InputTextView) {
+
+    }
+
+    func inputTextViewShouldEndEditing(_ inputTextView: InputTextView) -> Bool {
+        return true
+    }
+
+    func inputTextViewDidEndEditing(_ inputTextView: InputTextView) {
+
+    }
+
+    func inputTextView(_ inputTextView: InputTextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        return true
+    }
 
     // MARK: Keyboard
     enum KeyboardState {
@@ -398,8 +472,8 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         // will already have taken place.
         if self.window == nil {
             self.ignoreKeyboardNotifications = true
-            if self.bottomInset != self.containerView.bounds.size.height {
-                self.bottomInset = self.containerView.bounds.size.height
+            if self.bottomInset != self.bounds.height {
+                self.bottomInset = self.bounds.height
                 self.delegate?.commentInputView(self, didChangeBottomInsetWith: 0, animationCurve: .easeInOut)
             }
         }
@@ -409,7 +483,16 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
     func setInputViewWidth(_ width: CGFloat) {
         guard self.bounds.size.width != width else { return }
-        self.bounds = CGRect(origin: .zero, size: CGSize(width: width, height: self.containerView.preferredHeight(for: width)))
+        let height = self.preferredHeight(for: width)
+        var bottomSafeAreaInset = self.safeAreaInsets.bottom
+        if bottomSafeAreaInset == 0 && keyboardState == .hidden {
+            if let windowScene = UIApplication.shared.connectedScenes.randomElement() as? UIWindowScene {
+                if let window = windowScene.windows.last {
+                    bottomSafeAreaInset = window.safeAreaInsets.bottom
+                }
+            }
+        }
+        self.bounds = CGRect(origin: .zero, size: CGSize(width: width, height: height + bottomSafeAreaInset))
     }
 
     func containerView(_ containerView: ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat {
@@ -464,7 +547,7 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
     private func updateHeight() {
         self.updateHeightScheduled = false
-        let duration = self.animationDurationForHeightUpdate;
+        let duration = self.animationDurationForHeightUpdate
         self.animationDurationForHeightUpdate = -1
 
         let animationBlock = {
@@ -483,8 +566,14 @@ class CommentInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         }
     }
 
+    private func recalculateSingleLineHeight() {
+        self.textView5LineHeight = self.textView.bestHeight(for: "\n\n\n\n")
+        self.textView1LineHeight = self.textView.bestHeight(for: nil)
+    }
+
     private func preferredHeight(for layoutWidth: CGFloat) -> CGFloat {
-        return 0
+        let contentSize = self.contentView.systemLayoutSizeFitting(CGSize(width: layoutWidth, height: 1e5), withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+        return contentSize.height
     }
 
     override var intrinsicContentSize: CGSize {

@@ -44,6 +44,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         DDLogDebug("CommentsViewController/init/\(feedPostId)")
         self.feedPostId = feedPostId
         super.init(nibName: nil, bundle: nil)
+        self.hidesBottomBarWhenPushed = true
     }
 
     required init?(coder: NSCoder) {
@@ -345,7 +346,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     // MARK: Input view
 
     lazy var commentsInputView: CommentInputView = {
-        let inputView = CommentInputView(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 90))
+        let inputView = CommentInputView(frame: .zero)
         inputView.delegate = self
         return inputView
     }()
