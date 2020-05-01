@@ -37,6 +37,7 @@
 		762EDBDD244E5A7800986617 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EDBDC244E5A7800986617 /* HomeView.swift */; };
 		763B42AC243274F400FF0E82 /* FeedTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AB243274F400FF0E82 /* FeedTableViewController.swift */; };
 		763B42AE2435A74E00FF0E82 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AD2435A74E00FF0E82 /* Date.swift */; };
+		76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DF7245CA3F00031F96A /* UIViewController.swift */; };
 		764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */; };
 		764A0E68244617D800E1BDCE /* schema.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E67244617D800E1BDCE /* schema.pb.swift */; };
 		76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */; };
@@ -179,6 +180,7 @@
 		762EDBDC244E5A7800986617 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeView.swift; path = HalloApp/Views/Home/HomeView.swift; sourceTree = SOURCE_ROOT; };
 		763B42AB243274F400FF0E82 /* FeedTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedTableViewController.swift; path = HalloApp/Views/Home/Feed/FeedList/FeedTableViewController.swift; sourceTree = SOURCE_ROOT; };
 		763B42AD2435A74E00FF0E82 /* Date.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Date.swift; path = HalloApp/Components/Extensions/Date.swift; sourceTree = SOURCE_ROOT; };
+		76407DF7245CA3F00031F96A /* UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIViewController.swift; path = HalloApp/Components/Extensions/UIViewController.swift; sourceTree = SOURCE_ROOT; };
 		764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationsViewController.swift; sourceTree = "<group>"; };
 		764A0E67244617D800E1BDCE /* schema.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = schema.pb.swift; path = HalloApp/Proto/schema.pb.swift; sourceTree = SOURCE_ROOT; };
 		76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPost+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPost+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -639,6 +641,7 @@
 				762EDBDA244E344300986617 /* UIFont.swift */,
 				EABF312A23EE20E10039B5A6 /* UIImage.swift */,
 				76A9244A244EC49000794859 /* UIView.swift */,
+				76407DF7245CA3F00031F96A /* UIViewController.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -986,6 +989,7 @@
 				763B42AC243274F400FF0E82 /* FeedTableViewController.swift in Sources */,
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
 				EAD476F92458F9FE00EF8591 /* ChatMessageMedia.swift in Sources */,
+				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,

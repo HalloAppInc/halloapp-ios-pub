@@ -56,9 +56,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
 
         let titleLabel = UILabel()
-        titleLabel.text = self.title
-        titleLabel.font = .gothamFont(ofSize: 33, weight: .bold)
-        titleLabel.textColor = UIColor.label.withAlphaComponent(0.1)
+        titleLabel.attributedText = self.largeTitleUsingGothamFont
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
         self.navigationItem.title = nil
         
