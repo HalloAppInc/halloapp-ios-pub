@@ -478,7 +478,6 @@
 				EA6057BA239AD26D005DED66 /* MetaData.swift */,
 				EA72F2112335A0A3008B696F /* UserData.swift */,
 				EA45713623EB7DF5008C2E44 /* UserCore.swift */,
-				EA56404D233D373800E68A7E /* Verification.swift */,
 				EA0E64CA234BF4BC006A22EB /* XMPPController.swift */,
 				EABF313023F229350039B5A6 /* MediaCrypter.swift */,
 			);
@@ -601,20 +600,21 @@
 			children = (
 				76B7E2F5243BB0560048A2FC /* Notifications */,
 				EAC4AF1E233E7F6500739B2B /* Common */,
-				EA880C3A2368EE3C008965CF /* Auth */,
+				EA880C3A2368EE3C008965CF /* Registration */,
 				EA880C3B2368EE53008965CF /* Home */,
 			);
 			path = Views;
 			sourceTree = "<group>";
 		};
-		EA880C3A2368EE3C008965CF /* Auth */ = {
+		EA880C3A2368EE3C008965CF /* Registration */ = {
 			isa = PBXGroup;
 			children = (
+				EA56404D233D373800E68A7E /* Verification.swift */,
 				EA0D20082363AD74008B8289 /* AuthRouter.swift */,
 				EA3861EC23342C7C00705943 /* Login.swift */,
 				EA8D4720233C25B8006E2BA5 /* Verify.swift */,
 			);
-			path = Auth;
+			path = Registration;
 			sourceTree = "<group>";
 		};
 		EA880C3B2368EE53008965CF /* Home */ = {
