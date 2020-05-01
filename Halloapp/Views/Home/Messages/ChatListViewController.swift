@@ -16,7 +16,8 @@ fileprivate enum ChatListViewSection {
     case main
 }
 
-class ChatListViewController: UITableViewController, NSFetchedResultsControllerDelegate {
+class ChatListViewController: UITableViewController, NSFetchedResultsControllerDelegate, NewMessageViewControllerDelegate {
+
     private static let cellReuseIdentifier = "ChatListViewCell"
 
     private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
@@ -32,6 +33,12 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         super.init(coder: coder)
     }
 
+    private lazy var newMessageViewController: NewMessageViewController = {
+        let controller = NewMessageViewController()
+        controller.delegate = self
+        return controller
+    }()
+    
     func dismantle() {
         DDLogInfo("ChatListViewController/dismantle")
         self.cancellableSet.forEach{ $0.cancel() }
@@ -96,7 +103,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     
     @objc(showContacts)
     private func showContacts() {
-        self.present(UINavigationController(rootViewController: NewMessageViewController()), animated: true)
+        self.present(UINavigationController(rootViewController: self.newMessageViewController), animated: true)
     }
     
     // MARK: Fetched Results Controller
@@ -224,6 +231,13 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
             
         }
         
+    }
+    
+    // MARK: New Message Delegates
+    
+    func newMessageViewController(_ newMessageViewController: NewMessageViewController, chatWithUserId: String) {
+        print("here")
+        self.navigationController?.pushViewController(ChatViewController(fromUserId: chatWithUserId), animated: true)
     }
 
 }

@@ -17,7 +17,14 @@ fileprivate enum NewMessageViewSection {
     case main
 }
 
+protocol NewMessageViewControllerDelegate: AnyObject {
+    func newMessageViewController(_ newMessageViewController: NewMessageViewController, chatWithUserId: String)
+}
+
 class NewMessageViewController: UITableViewController, NSFetchedResultsControllerDelegate {
+    
+    weak var delegate: NewMessageViewControllerDelegate?
+    
     private static let cellReuseIdentifier = "NewMessageViewCell"
 
     private var fetchedResultsController: NSFetchedResultsController<ABContact>?
@@ -218,10 +225,10 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let abContact = fetchedResultsController?.object(at: indexPath) {
             if let userId = abContact.userId {
-                self.navigationController?.pushViewController(ChatViewController(fromUserId: userId), animated: true)
+                self.delegate?.newMessageViewController(self, chatWithUserId: userId)
+                self.dismiss(animated: true)
             }
         }
-        
     }
 
 }

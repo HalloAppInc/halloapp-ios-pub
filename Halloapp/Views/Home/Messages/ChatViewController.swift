@@ -61,7 +61,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     override func viewDidLoad() {
         
         guard self.fromUserId != nil else { return }
-//        guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: self.fromUserId!) else { return }
 
         super.viewDidLoad()
         
@@ -89,13 +88,10 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.tableView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
         self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
 
-//        self.tableView.imageInsets = UIEdgeInsetsMake(0, 25, 0, -25)
-        
         self.tableView.tableHeaderView = nil
-
         self.tableView.backgroundColor = UIColor.systemGray6
         
-        let spacerFooter = UIView(frame: CGRect(x: 0, y: 0, width: Int(self.tableView.bounds.width), height: 15))
+        let spacerFooter = UIView(frame: CGRect(x: 0, y: 0, width: Int(self.tableView.bounds.width), height: 25))
         spacerFooter.backgroundColor = .clear
         self.tableView.tableFooterView = spacerFooter
         
@@ -115,15 +111,12 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
                 
             let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.otherUserCellReuseIdentifier, for: indexPath) as! ChatTableViewCell
             cell.update(with: chatMessage)
-
             cell.backgroundColor = UIColor.systemGray6
-            
             return cell
         }
 
-        
         let fetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "fromUserId = %@ || (toUserId = %@ && fromUserId = %@)", self.fromUserId!, self.fromUserId!, AppContext.shared.userData.userId)
+        fetchRequest.predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", self.fromUserId!, AppContext.shared.userData.userId, self.fromUserId!, AppContext.shared.userData.userId)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true) ]
         
         self.fetchedResultsController =
@@ -145,44 +138,32 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
         self.chatInputView.willAppear(in: self)
-        
     }
 
     override func viewDidAppear(_ animated: Bool) {
-        
         super.viewDidAppear(animated)
-
         if let chatWithUserId = self.fromUserId {
             AppContext.shared.chatData.markThreadAsRead(for: chatWithUserId)
             AppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
         }
-        
         self.chatInputView.didAppear(in: self)
-        
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-
         if let chatWithUserId = self.fromUserId {
             AppContext.shared.chatData.markThreadAsRead(for: chatWithUserId)
             AppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
         }
-
         self.chatInputView.willDisappear(in: self)
-
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-                
         self.tableView.tableHeaderView = nil
-        
         let scrollPoint = CGPoint(x: 0, y: self.tableView.contentSize.height + 1000)
         self.tableView.setContentOffset(scrollPoint, animated: false)
-
     }
 
     // MARK: Data
@@ -203,13 +184,11 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }
 
     private func scrollToBottom(_ animated: Bool = true) {
-        
         if let dataSnapshot = self.dataSource?.snapshot() {
             let numberOfRows = dataSnapshot.numberOfItems(inSection: ChatViewController.sectionMain)
             let indexPath = IndexPath(row: numberOfRows - 1, section: ChatViewController.sectionMain)
             self.tableView.scrollToRow(at: indexPath, at: .none, animated: animated)
         }
-        
     }
 
     // MARK: Input view
@@ -232,10 +211,8 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }
 
     func updateTableViewContentInsets(with keyboardHeight: CGFloat, adjustContentOffset: Bool) {
-        
         let topInset = self.tableView.contentInset.top
         let bottomInset = keyboardHeight - self.tableView.safeAreaInsets.bottom
-        
         let currentInset = self.tableView.contentInset
         var contentOffset = self.tableView.contentOffset
         var adjustContentOffset = adjustContentOffset
@@ -250,13 +227,11 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         if (adjustContentOffset) {
             self.tableView.contentOffset = contentOffset
         }
-        
         // Setting contentInset below will also adjust contentOffset as needed if it is outside of the
         // UITableView's scrollable range.
         self.tableView.contentInset = UIEdgeInsets(top: topInset, left: 0, bottom: bottomInset, right: 0)
         let scrollIndicatorInsets = UIEdgeInsets(top: topInset, left: 0, bottom: bottomInset, right: 0)
         self.tableView.scrollIndicatorInsets = scrollIndicatorInsets
-        
     }
 
     func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
@@ -281,14 +256,12 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }
 
     func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
-        
         if let toUserId = self.fromUserId {
             AppContext.shared.chatData.sendMessage(toUserId: toUserId, text: text, media: [])
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
                 self.scrollToBottom(false)
             }
         }
-            
         self.chatInputView.text = ""
     }
     
@@ -396,7 +369,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
         self.chatInputView.hideKeyboard()
     }
-
 }
 
 
@@ -440,9 +412,6 @@ fileprivate class TitleView: UIView {
     }()
     
     private func setup() {
-
-//        self.backgroundColor = UIColor.red
-        
         let imageSize: CGFloat = 40.0
         self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
@@ -511,16 +480,11 @@ class ChatTableViewCell: UITableViewCell {
 
         self.chatView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.8).isActive = true
         self.chatView.layer.cornerRadius = 20.0
-
-    
     }
 
     override func prepareForReuse() {
         super.prepareForReuse()
-   
     }
-
-
 
     func update(with chatMessage: ChatMessage) {
         self.chatView.updateWith(chatMessageItem: chatMessage)
@@ -532,7 +496,6 @@ class ChatTableViewUserCell: UITableViewCell {
         ChatUserView()
     }()
 
-  
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupTableViewCell()
@@ -560,15 +523,11 @@ class ChatTableViewUserCell: UITableViewCell {
 
         self.chatUserView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.8).isActive = true
         self.chatUserView.layer.cornerRadius = 20.0
-        
     }
 
     override func prepareForReuse() {
         super.prepareForReuse()
-
     }
-
-
 
     func update(with chatMessage: ChatMessage) {
         self.chatUserView.updateWith(chatMessageItem: chatMessage)

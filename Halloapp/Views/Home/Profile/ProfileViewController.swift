@@ -17,7 +17,6 @@ class ProfileViewController: FeedTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.navigationItem.title = "Profile"
         self.navigationItem.rightBarButtonItems = [
             UIBarButtonItem(image: UIImage(systemName: "hammer"), style: .plain, target: self, action: #selector(presentDeveloperMenu)),
             UIBarButtonItem(image: UIImage(systemName: "gear"), style: .plain, target: self, action: #selector(presentSettingsScreen)) ]

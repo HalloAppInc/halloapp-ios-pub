@@ -106,11 +106,13 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.isEnabled = false
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        // gotcha: keep insets at 5 or higher to have a bigger hit area,
+        // rotating image by 45 degree is problematic so perhaps getting a pre-rotated custom icon is better
+        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
         button.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
         button.tintColor = UIColor.link
-        button.transform = CGAffineTransform(rotationAngle: CGFloat.pi / 4.0)
+        button.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi / 4))
         return button
     }()
 

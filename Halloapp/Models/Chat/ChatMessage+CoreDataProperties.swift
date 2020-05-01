@@ -15,9 +15,8 @@ extension ChatMessage {
 
     enum ReceiverStatus: Int16 {
         case none = 0
-        case deliveryReceiptSent = 1
-        case seenReceiptSent = 2
-        case error = 3
+        case sentSeenReceipt = 1
+        case error = 2
     }
     
     enum SenderStatus: Int16 {

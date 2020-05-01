@@ -432,11 +432,11 @@ extension XMPPController: XMPPStreamDelegate {
     }
     
     func xmppStream(_ sender: XMPPStream, didSendCustomElement element: DDXMLElement) {
-        DDLogInfo("Stream: didSendCustomElement: \(element)")
+//        DDLogInfo("Stream: didSendCustomElement: \(element)")
     }
 
     func xmppStream(_ sender: XMPPStream, didReceiveCustomElement element: DDXMLElement) {
-        DDLogInfo("Stream: didReceiveCustomElement: \(element)")
+//        DDLogInfo("Stream: didReceiveCustomElement: \(element)")
     }
 }
 

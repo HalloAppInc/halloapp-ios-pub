@@ -1,62 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19E287" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="CContactsAvatar" representedClassName="CContactsAvatar" syncable="YES">
-        <attribute name="imageBlob" optional="YES" attributeType="Binary"/>
-        <attribute name="imageUrl" optional="YES" attributeType="String"/>
-        <attribute name="phone" optional="YES" attributeType="String"/>
-    </entity>
-    <entity name="CFeedImage" representedClassName="CFeedImage" syncable="YES">
-        <attribute name="blob" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
-        <attribute name="feedItemId" optional="YES" attributeType="String"/>
-        <attribute name="height" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="key" optional="YES" attributeType="String" defaultValueString=""/>
-        <attribute name="numTries" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="sha256hash" optional="YES" attributeType="String" defaultValueString=""/>
-        <attribute name="smallBlob" optional="YES" attributeType="Binary"/>
-        <attribute name="type" optional="YES" attributeType="String" defaultValueString=""/>
-        <attribute name="url" optional="YES" attributeType="String"/>
-        <attribute name="width" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-    </entity>
-    <entity name="CMisc" representedClassName="CMisc" syncable="YES" codeGenerationType="class">
-        <attribute name="logs" optional="YES" attributeType="String" defaultValueString=""/>
-    </entity>
-    <entity name="ContactsCore" representedClassName="ContactsCore" syncable="YES">
-        <attribute name="isConnected" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="isNormalized" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="isProcessed" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="isWhiteListed" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="name" optional="YES" attributeType="String"/>
-        <attribute name="normPhone" optional="YES" attributeType="String"/>
-        <attribute name="phone" optional="YES" attributeType="String"/>
-        <attribute name="timeLastChecked" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-    </entity>
-    <entity name="CPending" representedClassName="CPending" syncable="YES">
-        <attribute name="blob" optional="YES" attributeType="Binary"/>
-        <attribute name="type" optional="YES" attributeType="String"/>
-        <attribute name="url" optional="YES" attributeType="String"/>
-    </entity>
-    <entity name="FeedComments" representedClassName="FeedComments" syncable="YES">
-        <attribute name="commentId" optional="YES" attributeType="String"/>
-        <attribute name="feedItemId" optional="YES" attributeType="String"/>
-        <attribute name="parentCommentId" optional="YES" attributeType="String"/>
-        <attribute name="text" optional="YES" attributeType="String"/>
-        <attribute name="timestamp" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="userImageUrl" optional="YES" attributeType="String"/>
-        <attribute name="username" optional="YES" attributeType="String"/>
-    </entity>
-    <entity name="FeedCore" representedClassName="FeedCore" syncable="YES">
-        <attribute name="cellHeight" optional="YES" attributeType="Integer 16" defaultValueString="-1" usesScalarValueType="YES"/>
-        <attribute name="imageBlob" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
-        <attribute name="imageUrl" optional="YES" attributeType="String"/>
-        <attribute name="itemId" optional="YES" attributeType="String"/>
-        <attribute name="mediaHeight" optional="YES" attributeType="Integer 16" defaultValueString="-1" usesScalarValueType="YES"/>
-        <attribute name="text" optional="YES" attributeType="String"/>
-        <attribute name="timestamp" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="unreadComments" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="userImageUrl" optional="YES" attributeType="String"/>
-        <attribute name="username" optional="YES" attributeType="String"/>
-    </entity>
     <entity name="User" representedClassName="User" syncable="YES" codeGenerationType="class">
         <attribute name="countryCode" optional="YES" attributeType="String"/>
         <attribute name="imageBlob" optional="YES" attributeType="Binary"/>
@@ -69,13 +12,6 @@
         <attribute name="userId" optional="YES" attributeType="String" defaultValueString=""/>
     </entity>
     <elements>
-        <element name="CContactsAvatar" positionX="-54" positionY="81" width="128" height="88"/>
-        <element name="CFeedImage" positionX="-54" positionY="81" width="128" height="208"/>
-        <element name="CMisc" positionX="-54" positionY="108" width="128" height="58"/>
-        <element name="ContactsCore" positionX="-63" positionY="36" width="128" height="163"/>
-        <element name="CPending" positionX="-54" positionY="81" width="128" height="88"/>
-        <element name="FeedComments" positionX="-45" positionY="81" width="128" height="148"/>
-        <element name="FeedCore" positionX="-63" positionY="0" width="128" height="28"/>
         <element name="User" positionX="-63" positionY="-18" width="128" height="178"/>
     </elements>
 </model>
