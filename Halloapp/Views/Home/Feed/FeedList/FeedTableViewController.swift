@@ -109,12 +109,8 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     // MARK: Appearance
 
-    static let bgColorLight = UIColor(red: 0xF3/0xFF, green: 0xF2/0xFF, blue: 0xEF/0xFF, alpha: 1)
-
-    static let bgColorDark = UIColor(white: 0, alpha: 1)
-
     private func updateTableViewBackgroundColor() {
-        self.tableView.backgroundColor = self.traitCollection.userInterfaceStyle == .light ? Self.bgColorLight : Self.bgColorDark
+        self.tableView.backgroundColor = self.traitCollection.userInterfaceStyle == .light ? .standardBackgroundColorLight : .standardBackgroundColorDark
     }
 
     private func updateNavigationBarBackgroundEffect() {
