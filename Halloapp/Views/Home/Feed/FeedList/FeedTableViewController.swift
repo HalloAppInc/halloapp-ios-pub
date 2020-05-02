@@ -54,7 +54,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         self.tableView.allowsSelection = false
         self.tableView.showsVerticalScrollIndicator = false
         self.tableView.register(FeedTableViewCell.self, forCellReuseIdentifier: FeedTableViewController.cellReuseIdentifier)
-        self.updateTableViewBackgroundColor()
+        self.tableView.backgroundColor = .feedBackgroundColor
 
         self.setupFetchedResultsController()
 
@@ -100,7 +100,6 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         if self.traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-            self.updateTableViewBackgroundColor()
             if self.navigationItem.standardAppearance?.backgroundEffect != nil {
                 self.updateNavigationBarBackgroundEffect()
             }
@@ -108,10 +107,6 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     // MARK: Appearance
-
-    private func updateTableViewBackgroundColor() {
-        self.tableView.backgroundColor = self.traitCollection.userInterfaceStyle == .light ? .standardBackgroundColorLight : .standardBackgroundColorDark
-    }
 
     private func updateNavigationBarBackgroundEffect() {
         let blurStyle: UIBlurEffect.Style = self.traitCollection.userInterfaceStyle == .light ? .systemUltraThinMaterial : .systemChromeMaterial

@@ -10,11 +10,13 @@ import UIKit
 
 extension UIColor {
 
-    static var standardBackgroundColorLight: UIColor {
-        get { UIColor(red: 0xF3/0xFF, green: 0xF2/0xFF, blue: 0xEF/0xFF, alpha: 1) }
-    }
-
-    static var standardBackgroundColorDark: UIColor {
-        get { UIColor(white: 0, alpha: 1) }
+    static var feedBackgroundColor: UIColor {
+        get { UIColor { (traitCollection) -> UIColor in
+            if traitCollection.userInterfaceStyle == .dark {
+                return UIColor.black
+            } else {
+                return UIColor(red: 0xF3/0xFF, green: 0xF2/0xFF, blue: 0xEF/0xFF, alpha: 1)
+            } }
+        }
     }
 }
