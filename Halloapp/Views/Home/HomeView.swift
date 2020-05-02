@@ -45,14 +45,6 @@ class HomeViewController: UITabBarController {
         self.setupViewControllers()
     }
 
-    private static func tintColor(for traitCollection: UITraitCollection) -> UIColor {
-        if traitCollection.userInterfaceStyle == .dark {
-            return UIColor(white: 0.9, alpha: 1)
-        } else {
-            return UIColor(white: 0.1, alpha: 1)
-        }
-    }
-
     private func setupViewControllers() {
         let appearance = UITabBarAppearance()
         appearance.shadowColor = nil
@@ -64,13 +56,16 @@ class HomeViewController: UITabBarController {
             chatNavigationController(),
             profileNavigationController()
         ]
-        UIView.appearance().tintColor = HomeViewController.tintColor(for: self.traitCollection)
+
+        if let tintColor = UIColor(named: "Tint") {
+            self.view.tintColor = tintColor
+            UIView.appearance().tintColor = tintColor
+        }
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         if self.traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-            UIView.appearance().tintColor = HomeViewController.tintColor(for: self.traitCollection)
             self.updateTabBarBackgroundEffect()
         }
     }
