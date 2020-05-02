@@ -80,7 +80,10 @@ class HomeViewController: UITabBarController {
         self.tabBar.standardAppearance.backgroundEffect = UIBlurEffect(style: blurStyle)
     }
 
-    static let tabBarItemImageInsets = UIEdgeInsets(top: 8, left: 0, bottom: -8, right: 0)
+    static let tabBarItemImageInsets: UIEdgeInsets = {
+        let vInset: CGFloat = UIDevice.current.hasNotch ? 10 : 4
+        return UIEdgeInsets(top: vInset, left: 0, bottom: -vInset, right: 0)
+    }()
 
     private func feedNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: FeedViewController(title: "Home"))
