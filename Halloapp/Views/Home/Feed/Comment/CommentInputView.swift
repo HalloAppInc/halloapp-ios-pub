@@ -283,10 +283,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         } else {
             self.vStack.insertArrangedSubview(self.replyContextPanel, at: 0)
         }
+        self.setNeedsUpdateHeight()
     }
 
     func removeReplyPanel() {
         self.replyContextPanel.isHidden = true
+        self.setNeedsUpdateHeight()
     }
 
     @objc private func closeReplyPanel() {
