@@ -94,7 +94,7 @@ fileprivate class FeedTableHeaderView: UIView {
         label.numberOfLines = 1
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = AppContext.shared.userData.phone
+        label.text = AppContext.shared.userData.formattedPhoneNumber 
         return label
     }()
 

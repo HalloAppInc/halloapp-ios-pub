@@ -13,4 +13,8 @@ extension UIColor {
     static var feedBackgroundColor: UIColor {
         get { UIColor(named: "FeedBackground")! }
     }
+
+    static var textFieldBackgroundColor: UIColor {
+        get { UIColor(named: "TextFieldBackground")! }
+    }
 }

@@ -55,4 +55,8 @@ extension String {
         let hexBytes = digest.map { String(format: "%02hhx", $0) }
         return hexBytes.joined()
     }
+
+    func strippingNonDigits() -> String {
+        return String(self.unicodeScalars.filter { CharacterSet.decimalDigits.contains($0) })
+    }
 }

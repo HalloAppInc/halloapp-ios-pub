@@ -19,12 +19,12 @@ enum XMPPControllerError: Error {
 class XMPPController: NSObject, ObservableObject {
     var allowedToConnect: Bool = false {
         didSet {
-            if (self.allowedToConnect) {
-                if (!self.isConnectedToServer) {
+            if self.allowedToConnect {
+                if !self.isConnectedToServer {
                     self.connect()
                 }
             } else {
-                if (self.isConnectedToServer) {
+                if self.isConnectedToServer {
                     self.xmppStream.disconnect()
                 }
             }
@@ -100,7 +100,7 @@ class XMPPController: NSObject, ObservableObject {
 //        self.xmppAutoPing.pingTimeout = 5
 
         self.allowedToConnect = userData.isLoggedIn
-        if (self.allowedToConnect) {
+        if self.allowedToConnect {
             self.connect()
         }
 

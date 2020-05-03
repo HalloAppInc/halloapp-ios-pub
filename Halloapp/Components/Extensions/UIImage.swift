@@ -251,4 +251,13 @@ extension UIImage {
         return true
     }
 
+    class func singleColorImage(ofSize size: CGSize, color: UIColor) -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(size, false, 1)
+        color.setFill()
+        UIRectFill(CGRect(origin: .zero, size: size))
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return image
+    }
+
 }

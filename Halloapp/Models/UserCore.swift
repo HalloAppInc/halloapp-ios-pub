@@ -9,162 +9,77 @@
 import CocoaLumberjack
 import CoreData
 
+fileprivate class CoreDataManager {
+
+    static let shared = CoreDataManager()
+
+    lazy var persistentContainer: NSPersistentContainer = {
+        /*
+         The persistent container for the application. This implementation
+         creates and returns a container, having loaded the store for the
+         application to it. This property is optional since there are legitimate
+         error conditions that could cause the creation of the store to fail.
+        */
+        let container = NSPersistentContainer(name: "Halloapp")
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error as NSError? {
+                // Replace this implementation with code to handle the error appropriately.
+                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+
+                /*
+                 Typical reasons for an error here include:
+                 * The parent directory does not exist, cannot be created, or disallows writing.
+                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
+                 * The device is out of space.
+                 * The store could not be migrated to the current model version.
+                 Check the error message to determine what the actual problem was.
+                 */
+                fatalError("Unresolved error \(error), \(error.userInfo)")
+            }
+        })
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        return container
+    }()
+
+}
+
 class UserCore {
 
-    func get() -> ( String,
-                    String,
-                    String,
-                    String,
-                    String,
-                    String,
-                    Bool) {
-                        
-        var countryCode: String = "1"
-        var phoneInput: String = ""
-        var userId: String = ""
-        var password: String = ""
-        var name: String = ""
-        var phone: String = ""
-        var isLoggedIn: Bool = false
-                        
-        let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
-        
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
-        
+    static func fetch() -> User? {
+        return fetch(using: CoreDataManager.shared.persistentContainer.viewContext)
+    }
+
+    static func fetch(using managedObjectContext: NSManagedObjectContext) -> User? {
+        let fetchRequest: NSFetchRequest<User> = User.fetchRequest()
+        fetchRequest.returnsObjectsAsFaults = false
         do {
-            let result = try managedContext.fetch(fetchRequest)
-            
-            for data in result as! [NSManagedObject] {
-
-                if let countryCodeData = data.value(forKey: "countryCode") as! String? {
-                    countryCode = countryCodeData
-                }
-                
-                if let phoneInputData = data.value(forKey: "phoneInput") as! String? {
-                    phoneInput = phoneInputData
-                }
-                
-                userId = data.value(forKey: "userId") as! String
-                name = data.value(forKey: "name") as! String
-                phone = data.value(forKey: "phone") as! String
-                
-                if let passwordData = data.value(forKey: "password") as! String? {
-                    password = passwordData
-                }
-                    
-                if let isLoggedInData = data.value(forKey: "isLoggedIn") as! Bool? {
-                    isLoggedIn = isLoggedInData
-                } else {
-                    isLoggedIn = false
-                }
-
-            }
-            
+            let result = try managedObjectContext.fetch(fetchRequest)
+            return result.first
         } catch  {
-            DDLogError("usercore/get failed")
-        }
-                        
-        return (countryCode, phoneInput, userId, password, name, phone, isLoggedIn)
-    }
-    
-    func create(countryCode: String,
-                phoneInput: String,
-                userId: String,
-                password: String,
-                name: String,
-                phone: String,
-                isLoggedIn: Bool) {
-        let managedContext = CoreDataManager.sharedManager.bgContext
-
-        managedContext.perform {
-        
-            let userEntity = NSEntityDescription.entity(forEntityName: "User", in: managedContext)!
-            
-            let user = NSManagedObject(entity: userEntity, insertInto: managedContext)
-            user.setValue(countryCode, forKeyPath: "countryCode")
-            user.setValue(phoneInput, forKeyPath: "phoneInput")
-            user.setValue(name, forKeyPath: "name")
-            user.setValue(phone, forKeyPath: "phone")
-            user.setValue(userId, forKeyPath: "userId")
-            user.setValue(password, forKeyPath: "password")
-            user.setValue(isLoggedIn, forKeyPath: "isLoggedIn")
-            
-            do {
-                try managedContext.save()
-            } catch let error as NSError {
-                DDLogError("usercore/create \(error), \(error.userInfo)")
-            }
+            DDLogError("usercore/fetch/error [\(error)]")
+            fatalError()
         }
     }
-    
-    func update(countryCode: String,
-                phoneInput: String,
-                userId: String,
-                password: String,
-                name: String,
-                phone: String,
-                isLoggedIn: Bool) {
-        
-        let managedContext = CoreDataManager.sharedManager.bgContext
 
-        managedContext.perform {
-            
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
-            
-            do {
-                let result = try managedContext.fetch(fetchRequest)
-                
-                if (result.count == 0) {
-                    return
-                }
-                
-                let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
-                
-                do {
-                    let result = try managedContext.fetch(fetchRequest)
-
-                    let objectUpdate = result[0] as! NSManagedObject
-                    objectUpdate.setValue(countryCode, forKey: "countryCode")
-                    objectUpdate.setValue(phoneInput, forKey: "phoneInput")
-                    objectUpdate.setValue(userId, forKey: "userId")
-                    objectUpdate.setValue(password, forKey: "password")
-                    objectUpdate.setValue(name, forKey: "name")
-                    objectUpdate.setValue(phone, forKey: "phone")
-                    objectUpdate.setValue(isLoggedIn, forKey: "isLoggedIn")
-                    
-                    do {
-                        try managedContext.save()
-                    } catch {
-                        DDLogError("usercore/update \(error)")
-                    }
-                } catch  {
-                    DDLogError("usercore/update failed")
-                }
-            } catch  {
-                DDLogError("usercore/update failed")
-            }
+    static func save(countryCode: String, phoneInput: String, normalizedPhoneNumber: String,
+                     userId: String, password: String, name: String) {
+        let managedObjectContext = CoreDataManager.shared.persistentContainer.viewContext
+        var user = self.fetch(using: managedObjectContext)
+        if user == nil {
+            user = NSEntityDescription.insertNewObject(forEntityName: User.entity().name!, into: managedObjectContext) as? User
         }
-    }
-    
-    
-    func isPresent() -> Bool {
-        
-        let managedContext = CoreDataManager.sharedManager.persistentContainer.viewContext
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "User")
-        
+        user?.countryCode = countryCode
+        user?.phoneInput = phoneInput
+        user?.phone = normalizedPhoneNumber
+        user?.userId = userId
+        user?.password = password
+        user?.name = name
         do {
-            let result = try managedContext.fetch(fetchRequest)
-            
-            if (result.count > 0) {
-                return true
-            } else {
-                return false
-            }
-        } catch  {
-            DDLogError("failed")
+            try managedObjectContext.save()
+        } catch let error as NSError {
+            DDLogError("usercore/save/error [\(error)]")
+            fatalError()
         }
-        
-        return false
     }
     
 }

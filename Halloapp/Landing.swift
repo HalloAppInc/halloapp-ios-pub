@@ -12,12 +12,13 @@ struct Landing: View {
     @ObservedObject var userData = AppContext.shared.userData
 
     var body: some View {
-        VStack {
+        ZStack {
             if (self.userData.isLoggedIn) {
                 HomeView()
                     .edgesIgnoringSafeArea(.all)
             } else {
-                AuthRouter()
+                VerificationView()
+                    .edgesIgnoringSafeArea(.all)
             }
         }
     }

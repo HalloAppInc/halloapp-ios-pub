@@ -795,7 +795,7 @@ class ContactStore: ObservableObject {
 
     func processNotification(contacts xmppContacts: [XMPPContact], using managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("contacts/notification/process")
-        let selfPhoneNumber = self.userData.phone
+        let selfPhoneNumber = self.userData.normalizedPhoneNumber
         // Server can send a "new friend" notification for user's own phone number too (on first sync) - filter that one out.
         let allNormalizedPhoneNumbers = xmppContacts.map{ $0.normalized! }.filter{ $0 != selfPhoneNumber }
         guard !allNormalizedPhoneNumbers.isEmpty else {
