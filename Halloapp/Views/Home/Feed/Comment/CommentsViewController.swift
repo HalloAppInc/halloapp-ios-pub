@@ -95,7 +95,6 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
         self.commentsInputView.willAppear(in: self)
     }
 
@@ -107,6 +106,9 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         }
 
         self.commentsInputView.didAppear(in: self)
+        if self.sortedComments.isEmpty {
+            self.commentsInputView.showKeyboard(from: self)
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
