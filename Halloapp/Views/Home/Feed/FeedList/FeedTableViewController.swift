@@ -106,6 +106,11 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         }
     }
 
+    func scrollToTop(animated: Bool) {
+        let contentOffset = CGPoint(x: 0, y: -self.tableView.adjustedContentInset.top)
+        self.tableView.setContentOffset(contentOffset, animated: animated)
+    }
+
     // MARK: Appearance
 
     private func updateNavigationBarBackgroundEffect() {
@@ -113,7 +118,6 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         self.navigationItem.standardAppearance?.backgroundEffect = UIBlurEffect(style: blurStyle)
 
     }
-
 
     // MARK: FeedTableViewController Customization
 

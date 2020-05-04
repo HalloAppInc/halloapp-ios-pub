@@ -33,19 +33,21 @@ struct HomeView: UIViewControllerRepresentable {
     }
 }
 
-class HomeViewController: UITabBarController {
+class HomeViewController: UITabBarController, UITabBarControllerDelegate {
 
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
-        self.setupViewControllers()
+        self.commonSetup()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        self.setupViewControllers()
+        self.commonSetup()
     }
 
-    private func setupViewControllers() {
+    private func commonSetup() {
+        self.delegate = self
+        
         let appearance = UITabBarAppearance()
         appearance.shadowColor = nil
         self.tabBar.standardAppearance = appearance
@@ -113,6 +115,20 @@ class HomeViewController: UITabBarController {
         navigationController.tabBarItem.image = UIImage(named: "TabBarProfile")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
+    }
+
+    // MARK: UITabBarControllerDelegate
+
+    func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+        // Tap on selected tab again to make it scroll to the top.
+        if tabBarController.selectedViewController == viewController {
+            if let navigationController = viewController as? UINavigationController {
+                if let visibleViewController = navigationController.topViewController as? FeedTableViewController {
+                    visibleViewController.scrollToTop(animated: true)
+                }
+            }
+        }
+        return true
     }
 
 }
