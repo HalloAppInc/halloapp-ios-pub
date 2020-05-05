@@ -11,7 +11,7 @@ import Combine
 
 typealias ChatMessageID = String
 
-class ChatData {
+class ChatData: XMPPControllerChatDelegate {
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
@@ -255,7 +255,6 @@ class ChatData {
 
         AppContext.shared.xmppController.xmppStream.send(xmppChatMessage.xmppElement)
     }
-    
 
     // MARK: Fetching Chat Data
 
@@ -316,7 +315,6 @@ class ChatData {
             }
         }
     }
-        
     
     func markThreadAsRead(for chatWithUserId: String) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
@@ -333,6 +331,16 @@ class ChatData {
     
     func setCurrentlyChattingWithUserId(for chatWithUserId: String?) {
         self.currentlyChattingWithUserId = chatWithUserId
+    }
+
+    // MARK: XMPPControllerChatDelegate
+
+    func xmppController(_ xmppController: XMPPController, didReceiveMessageReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?) {
+        // Process receipt here.
+
+        if let message = xmppMessage {
+            xmppController.sendAck(for: message)
+        }
     }
     
 }

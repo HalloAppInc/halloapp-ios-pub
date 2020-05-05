@@ -837,6 +837,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.xmppController.enqueue(request: request)
     }
 
+    // MARK: Read Receipts
+
+    func xmppController(_ xmppController: XMPPController, didReceiveFeedReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?) {
+
+        if let message = xmppMessage {
+            xmppController.sendAck(for: message)
+        }
+    }
+
     // MARK: Feed Media
 
     /**

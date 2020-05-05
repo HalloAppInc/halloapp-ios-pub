@@ -19,6 +19,11 @@ enum XMPPControllerError: Error {
 protocol XMPPControllerFeedDelegate: AnyObject {
     func xmppController(_ xmppController: XMPPController, didReceiveFeedItems items: [XMLElement], in xmppMessage: XMPPMessage?)
     func xmppController(_ xmppController: XMPPController, didReceiveFeedRetracts items: [XMLElement], in xmppMessage: XMPPMessage?)
+    func xmppController(_ xmppController: XMPPController, didReceiveFeedReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?)
+}
+
+protocol XMPPControllerChatDelegate: AnyObject {
+    func xmppController(_ xmppController: XMPPController, didReceiveMessageReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?)
 }
 
 class XMPPController: NSObject, ObservableObject {
@@ -56,6 +61,7 @@ class XMPPController: NSObject, ObservableObject {
     private var cancellableSet: Set<AnyCancellable> = []
 
     weak var feedDelegate: XMPPControllerFeedDelegate?
+    weak var chatDelegate: XMPPControllerChatDelegate?
 
     init(userData: UserData, metaData: MetaData) {
         
@@ -293,6 +299,39 @@ extension XMPPController: XMPPStreamDelegate {
             let contacts = contactList.elements(forName: "contact").compactMap{ XMPPContact($0) }
             AppContext.shared.syncManager.processNotification(contacts: contacts) {
                 self.sendAck(for: message)
+            }
+            return
+        }
+
+        // Delivery receipt.
+        if let deliveryReceipt = message.deliveryReceipt {
+            // Feed doesn't have delivery receipts.
+            if let delegate = self.chatDelegate {
+                delegate.xmppController(self, didReceiveMessageReceipt: deliveryReceipt, in: message)
+            } else {
+                self.sendAck(for: message)
+            }
+            return
+        }
+
+        // "Seen" receipt.
+        if let readReceipt = message.readReceipt {
+            switch readReceipt.thread {
+            case .feed:
+                if let delegate = self.feedDelegate {
+                    delegate.xmppController(self, didReceiveFeedReceipt: readReceipt, in: message)
+                } else {
+                    self.sendAck(for: message)
+                }
+                break
+
+            case .group(_), .none:
+                if let delegate = self.chatDelegate {
+                    delegate.xmppController(self, didReceiveMessageReceipt: readReceipt, in: message)
+                } else {
+                    self.sendAck(for: message)
+                }
+                break
             }
             return
         }
