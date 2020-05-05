@@ -847,14 +847,16 @@ class ContactStore: ObservableObject {
     // MARK: Fetching contacts
 
     func allRegisteredContactIDs() -> [UserID] {
-        let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
+        let fetchRequst = NSFetchRequest<NSDictionary>(entityName: "ABContact")
         fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
+        fetchRequst.propertiesToFetch = [ "userId" ]
+        fetchRequst.resultType = .dictionaryResultType
         do {
             let allContacts = try self.persistentContainer.viewContext.fetch(fetchRequst)
-            return allContacts.compactMap { $0.userId }
+            return allContacts.compactMap { $0["userId"] as? UserID }
         }
         catch {
-            fatalError()
+            fatalError("Unable to fetch contacts: \(error)")
         }
     }
 
@@ -876,7 +878,7 @@ class ContactStore: ObservableObject {
             }
         }
         catch {
-            fatalError()
+            fatalError("Unable to fetch contacts: \(error)")
         }
         return fullName
     }
@@ -897,7 +899,7 @@ class ContactStore: ObservableObject {
             }
         }
         catch {
-            fatalError()
+            fatalError("Unable to fetch contacts: \(error)")
         }
         return firstName
     }
