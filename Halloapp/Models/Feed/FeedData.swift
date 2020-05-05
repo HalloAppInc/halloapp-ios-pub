@@ -22,7 +22,7 @@ enum FeedMediaType: Int {
     case video = 1
 }
 
-class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate {
+class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate, XMPPControllerFeedDelegate {
 
     private var userData: UserData
     private var xmppController: XMPPController
@@ -51,6 +51,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         super.init()
 
+        self.xmppController.feedDelegate = self
+
         /* enable videoes to play with sound even when the phone is set to ringer mode */
         do {
            try AVAudioSession.sharedInstance().setCategory(.playback)
@@ -77,18 +79,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                 self.destroyStore()
                 self.fetchOwnFeedOnConnect = true
-            })
-        
-        self.cancellableSet.insert(
-            xmppController.didReceiveFeedItems.sink { [weak self] (itemElements) in
-                guard let self = self else { return }
-                self.processIncomingFeedItems(itemElements)
-            })
-        
-        self.cancellableSet.insert(
-            xmppController.didReceiveFeedRetracts.sink { [weak self] (itemElements) in
-                guard let self = self else { return }
-                self.processIncomingFeedRetracts(itemElements)
             })
 
         self.fetchFeedPosts()
@@ -571,7 +561,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newComments
     }
 
-    private func processIncomingFeedItems(_ items: [XMLElement]) {
+    func xmppController(_ xmppController: XMPPController, didReceiveFeedItems items: [XMLElement], in xmppMessage: XMPPMessage?) {
         var feedPosts: [XMPPFeedPost] = []
         var comments: [XMPPComment] = []
         for item in items {
@@ -597,7 +587,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let comments = self.process(comments: comments, using: managedObjectContext)
             self.generateNotifications(for: comments, using: managedObjectContext)
 
-            // TODO: Send acks now
+            if let message = xmppMessage {
+                DispatchQueue.main.async {
+                    xmppController.sendAck(for: message)
+                }
+            }
         }
     }
 
@@ -696,7 +690,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Retracts
 
-    private func processRetract(forPostId postId: FeedPostID) {
+    private func processRetract(forPostId postId: FeedPostID, completion: @escaping () -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else {
                 DDLogError("FeedData/retract-post/error Missing post. [\(postId)]")
@@ -730,10 +724,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
+
+            completion()
         }
     }
 
-    private func processRetract(forCommentId commentId: FeedPostCommentID) {
+    private func processRetract(forCommentId commentId: FeedPostCommentID, completion: @escaping () -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedComment = self.feedComment(with: commentId, in: managedObjectContext) else {
                 DDLogError("FeedData/retract-comment/error Missing comment. [\(commentId)]")
@@ -760,14 +756,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
+
+            completion()
         }
     }
 
-    private func processIncomingFeedRetracts(_ items: [XMLElement]) {
+    func xmppController(_ xmppController: XMPPController, didReceiveFeedRetracts items: [XMLElement], in xmppMessage: XMPPMessage?) {
         /**
          Example:
          <retract timestamp="1587161372" publisher="1000000000354803885@s.halloapp.net/android" type="feedpost" id="b2d888ecfe2343d9916173f2f416f4ae"><entry xmlns="http://halloapp.com/published-entry"><feedpost/><s1>CgA=</s1></entry></retract>
          */
+        let processingGroup = DispatchGroup()
         for item in items {
             guard let itemId = item.attributeStringValue(forName: "id") else {
                 DDLogError("FeedData/process-retract/error Missing item id. [\(item)]")
@@ -778,11 +777,22 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 continue
             }
             if type == "feedpost" {
-                self.processRetract(forPostId: itemId)
+                processingGroup.enter()
+                self.processRetract(forPostId: itemId) {
+                    processingGroup.leave()
+                }
             } else if type == "comment" {
-                self.processRetract(forCommentId: itemId)
+                processingGroup.enter()
+                self.processRetract(forCommentId: itemId) {
+                    processingGroup.leave()
+                }
             } else {
                 DDLogError("FeedData/process-retract/error Invalid item type. [\(item)]")
+            }
+        }
+        processingGroup.notify(queue: DispatchQueue.main) {
+            if let message = xmppMessage {
+                xmppController.sendAck(for: message)
             }
         }
     }
@@ -797,7 +807,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Request to retract.
         let request = XMPPRetractItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (error) in
             if error == nil {
-                self.processRetract(forPostId: postId)
+                self.processRetract(forPostId: postId) {}
             } else {
                 self.updateFeedPost(with: postId) { (post) in
                     post.status = .sent
@@ -817,7 +827,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Request to retract.
         let request = XMPPRetractItemRequest(feedItem: comment, feedOwnerId: comment.post.userId) { (error) in
             if error == nil {
-                self.processRetract(forCommentId: commentId)
+                self.processRetract(forCommentId: commentId) {}
             } else {
                 self.updateFeedPostComment(with: commentId) { (comment) in
                     comment.status = .sent

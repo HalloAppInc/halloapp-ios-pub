@@ -16,6 +16,11 @@ enum XMPPControllerError: Error {
     case wrongUserJID
 }
 
+protocol XMPPControllerFeedDelegate: AnyObject {
+    func xmppController(_ xmppController: XMPPController, didReceiveFeedItems items: [XMLElement], in xmppMessage: XMPPMessage?)
+    func xmppController(_ xmppController: XMPPController, didReceiveFeedRetracts items: [XMLElement], in xmppMessage: XMPPMessage?)
+}
+
 class XMPPController: NSObject, ObservableObject {
     var allowedToConnect: Bool = false {
         didSet {
@@ -34,8 +39,6 @@ class XMPPController: NSObject, ObservableObject {
     var isConnecting = PassthroughSubject<String, Never>()
     var didConnect = PassthroughSubject<String, Never>() // used by UserData to know if user is in or not
     
-    var didReceiveFeedItems = PassthroughSubject<[XMLElement], Never>()
-    var didReceiveFeedRetracts = PassthroughSubject<[XMLElement], Never>()
     var didGetNewChatMessage = PassthroughSubject<XMPPMessage, Never>()
 
     var xmppStream: XMPPStream
@@ -51,6 +54,8 @@ class XMPPController: NSObject, ObservableObject {
     
     var isConnectedToServer: Bool = false
     private var cancellableSet: Set<AnyCancellable> = []
+
+    weak var feedDelegate: XMPPControllerFeedDelegate?
 
     init(userData: UserData, metaData: MetaData) {
         
@@ -187,7 +192,7 @@ class XMPPController: NSObject, ObservableObject {
         self.enqueue(request: request)
     }
 
-    private func sendAck(for message: XMPPMessage) {
+    func sendAck(for message: XMPPMessage) {
         guard let id = message.elementID else { return }
         guard let from = message.toStr else { return }
         guard let to = message.fromStr else { return }
@@ -471,19 +476,15 @@ extension XMPPController: XMPPPingDelegate {
 extension XMPPController: XMPPPubSubDelegate {
 
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveItems iq: XMPPIQ, fromNode node: String) {
+        guard let delegate = self.feedDelegate else { return }
+
         // TODO: redo this using XMPPRequest
-        guard let items = iq.element(forName: "pubsub")?.element(forName: "items") else {
-            return
-        }
-        guard let nodeAttr = items.attributeStringValue(forName: "node") else {
-            return
-        }
+        guard let items = iq.element(forName: "pubsub")?.element(forName: "items") else { return }
+        guard let nodeAttr = items.attributeStringValue(forName: "node") else { return }
         let nodeParts = nodeAttr.components(separatedBy: "-")
-        guard nodeParts.count == 2 else {
-            return
-        }
+        guard nodeParts.count == 2 else { return }
         if nodeParts.first! == "feed" {
-            self.processIncomingFeedItems(items.elements(forName: "item")) {}
+            delegate.xmppController(self, didReceiveFeedItems: items.elements(forName: "item"), in: nil)
         }
     }
 
@@ -512,16 +513,19 @@ extension XMPPController: XMPPPubSubDelegate {
 
         switch nodeParts.first! {
         case "feed":
-            let itemProcessingGroup = DispatchGroup()
-            itemProcessingGroup.enter()
-            self.processIncomingFeedItems(items.elements(forName: "item")) {
-                itemProcessingGroup.leave()
+            guard let delegate = self.feedDelegate else {
+                self.sendAck(for: message)
+                break
             }
-            itemProcessingGroup.enter()
-            self.processIncomingRetracts(items.elements(forName: "retract")) {
-                itemProcessingGroup.leave()
-            }
-            itemProcessingGroup.notify(queue: DispatchQueue.main) {
+            let feedItems = items.elements(forName: "item")
+            let feedRetracts = items.elements(forName: "retract")
+            // One message could not contain both feed items and retracts.
+            // Delegate is responsible for sending an ack once it's finished processing data.
+            if !feedItems.isEmpty {
+                delegate.xmppController(self, didReceiveFeedItems: feedItems, in: message)
+            } else if !feedRetracts.isEmpty {
+                delegate.xmppController(self, didReceiveFeedRetracts: feedRetracts, in: message)
+            } else {
                 self.sendAck(for: message)
             }
 
@@ -533,23 +537,5 @@ extension XMPPController: XMPPPubSubDelegate {
             DDLogError("xmpp/pubsub/message/error/unknown-type")
             self.sendAck(for: message)
         }
-    }
-
-    private func processIncomingFeedItems(_ feedItems: [XMLElement], completion: () -> Void) {
-        guard !feedItems.isEmpty else {
-            completion()
-            return
-        }
-        self.didReceiveFeedItems.send(feedItems)
-        completion()
-    }
-
-    private func processIncomingRetracts(_ feedItems: [XMLElement], completion: () -> Void) {
-        guard !feedItems.isEmpty else {
-            completion()
-            return
-        }
-        self.didReceiveFeedRetracts.send(feedItems)
-        completion()
     }
 }
