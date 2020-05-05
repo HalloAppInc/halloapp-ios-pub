@@ -19,6 +19,7 @@
         <attribute name="unreadCount" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="userId" attributeType="String"/>
         <relationship name="comments" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FeedPostComment" inverseName="post" inverseEntity="FeedPostComment"/>
+        <relationship name="info" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FeedPostInfo" inverseName="post" inverseEntity="FeedPostInfo"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Deny" destinationEntity="FeedPostMedia" inverseName="post" inverseEntity="FeedPostMedia"/>
         <fetchIndex name="byTimestamp">
             <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
@@ -46,6 +47,10 @@
             </uniquenessConstraint>
         </uniquenessConstraints>
     </entity>
+    <entity name="FeedPostInfo" representedClassName="FeedPostInfo" syncable="YES">
+        <attribute name="receiptInfo" optional="YES" attributeType="Transformable" valueTransformerName="FeedPostReceiptInfoTransformer"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="info" inverseEntity="FeedPost"/>
+    </entity>
     <entity name="FeedPostMedia" representedClassName="FeedPostMedia" syncable="YES">
         <attribute name="height" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="key" attributeType="String"/>
@@ -62,6 +67,7 @@
         <element name="FeedNotification" positionX="-18" positionY="45" width="128" height="178"/>
         <element name="FeedPost" positionX="-63" positionY="-18" width="128" height="163"/>
         <element name="FeedPostComment" positionX="-54" positionY="18" width="128" height="163"/>
+        <element name="FeedPostInfo" positionX="-45" positionY="117" width="128" height="73"/>
         <element name="FeedPostMedia" positionX="-27" positionY="81" width="128" height="193"/>
     </elements>
 </model>

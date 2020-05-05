@@ -839,10 +839,34 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Read Receipts
 
-    func xmppController(_ xmppController: XMPPController, didReceiveFeedReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?) {
+    func xmppController(_ xmppController: XMPPController, didReceiveFeedReceipt xmppReceipt: XMPPReceipt, in xmppMessage: XMPPMessage?) {
+        DDLogInfo("FeedData/seen-receipt/incoming itemId=[\(xmppReceipt.itemId)]")
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let feedPost = self.feedPost(with: xmppReceipt.itemId, in: managedObjectContext) else {
+                DDLogError("FeedData/seen-receipt/missing-post [\(xmppReceipt.itemId)]")
+                if let message = xmppMessage {
+                    xmppController.sendAck(for: message)
+                }
+                return
+            }
+            if feedPost.info == nil {
+                feedPost.info = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as? FeedPostInfo
+            }
+            var receipts = feedPost.info!.receipts ?? [:]
+            if receipts[xmppReceipt.userId] == nil {
+                receipts[xmppReceipt.userId] = Receipt()
+            }
+            receipts[xmppReceipt.userId]!.seenDate = xmppReceipt.timestamp
+            DDLogInfo("FeedData/seen-receipt/update  userId=[\(xmppReceipt.userId)]  ts=[\(xmppReceipt.timestamp)]  itemId=[\(xmppReceipt.itemId)]")
+            feedPost.info!.receipts = receipts
 
-        if let message = xmppMessage {
-            xmppController.sendAck(for: message)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+
+            if let message = xmppMessage {
+                xmppController.sendAck(for: message)
+            }
         }
     }
 

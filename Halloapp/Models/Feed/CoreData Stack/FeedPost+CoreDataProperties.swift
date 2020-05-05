@@ -33,6 +33,7 @@ extension FeedPost {
     @NSManaged var comments: Set<FeedPostComment>?
     @NSManaged var media: Set<FeedPostMedia>?
     @NSManaged var unreadCount: Int32
+    @NSManaged var info: FeedPostInfo?
     @NSManaged private var statusValue: Int16
     var status: Status {
         get {

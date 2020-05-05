@@ -83,6 +83,8 @@ struct AppContext {
         DDLog.add(DDOSLogger.sharedInstance)
         DDLog.add(self.fileLogger)
 
+        ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
+
         self.userData = UserData()
         self.metaData = MetaData()
         self.xmppController = XMPPController(userData: self.userData, metaData: self.metaData)

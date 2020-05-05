@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+message Receipts {
+    message Receipt {
+        string user_id = 1;
+        google.protobuf.Timestamp timestamp_delivered = 2;
+        google.protobuf.Timestamp timestamp_seen = 3;
+    }
+
+    repeated Receipt receipts = 1;
+}
