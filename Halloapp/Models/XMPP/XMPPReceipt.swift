@@ -23,17 +23,19 @@ struct XMPPReceipt {
     }
 
     let itemId: String
+    let userId: UserID
     let `type`: Type
     let timestamp: Date
     let thread: Thread
 
-    init?(xmlElement: XMLElement, type: XMPPReceipt.`Type`) {
+    init?(xmlElement: XMLElement, userId: UserID, type: XMPPReceipt.`Type`) {
         guard let itemId = xmlElement.attributeStringValue(forName: "id") else { return nil }
         let timestamp = xmlElement.attributeDoubleValue(forName: "timestamp")
         guard timestamp > 0 else { return nil }
 
-        self.timestamp = Date(timeIntervalSince1970: timestamp)
         self.itemId = itemId
+        self.userId = userId
+        self.timestamp = Date(timeIntervalSince1970: timestamp)
         if let threadId = xmlElement.attributeStringValue(forName: "thread_id") {
             if threadId == "feed" {
                 self.thread = .feed
@@ -53,14 +55,16 @@ extension XMPPMessage {
     var deliveryReceipt: XMPPReceipt? {
         get {
             guard let received = self.element(forName: "received") else { return nil }
-            return XMPPReceipt(xmlElement: received, type: .delivery)
+            guard let userId = self.from?.user else { return nil }
+            return XMPPReceipt(xmlElement: received, userId: userId, type: .delivery)
         }
     }
 
     var readReceipt: XMPPReceipt? {
         get {
             guard let seen = self.element(forName: "seen") else { return nil }
-            return XMPPReceipt(xmlElement: seen, type: .read)
+            guard let userId = self.from?.user else { return nil }
+            return XMPPReceipt(xmlElement: seen, userId: userId, type: .read)
         }
     }
 }
