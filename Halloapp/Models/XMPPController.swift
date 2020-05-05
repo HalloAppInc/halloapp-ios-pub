@@ -285,7 +285,11 @@ extension XMPPController: XMPPStreamDelegate {
 
         // Notification about new contact on the app
         if let contactList = message.element(forName: "contact_list") {
-            AppContext.shared.syncManager.processNotification(contacts: contactList.elements(forName: "contact").compactMap{ XMPPContact($0) })
+            let contacts = contactList.elements(forName: "contact").compactMap{ XMPPContact($0) }
+            AppContext.shared.syncManager.processNotification(contacts: contacts) {
+                self.sendAck(for: message)
+            }
+            return
         }
 
         if message.element(forName: "chat") != nil {

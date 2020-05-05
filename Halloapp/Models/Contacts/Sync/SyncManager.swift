@@ -273,15 +273,17 @@ class SyncManager {
         self.finishSync(with: mode, result: .success, failureReason: .none)
     }
 
-    func processNotification(contacts: [XMPPContact]) {
+    func processNotification(contacts: [XMPPContact], completion: @escaping () -> Void) {
         DDLogInfo("syncmanager/notification contacts=[\(contacts)]")
         guard !contacts.isEmpty else {
+            completion()
             return
         }
         self.queue.async {
             self.contactStore.performOnBackgroundContextAndWait{ managedObjectContext in
                 self.contactStore.processNotification(contacts: contacts, using: managedObjectContext)
             }
+            completion()
         }
     }
 
