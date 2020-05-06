@@ -41,7 +41,7 @@ struct DeveloperMenuView: View {
 
             Spacer()
 
-            VStack(alignment: .center, spacing: 32) {
+            VStack(alignment: .center, spacing: 24) {
                 Text("Server: \(self.userData.hostName)")
                 
                 Button(action: {
@@ -84,6 +84,21 @@ struct DeveloperMenuView: View {
                     }
                 }) {
                     Text("Switch Network")
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 12)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(24)
+                }
+
+                Button(action: {
+                    self.userData.logout()
+
+                    if self.dismiss != nil {
+                        self.dismiss!()
+                    }
+                }) {
+                    Text("Log out")
                         .padding(.horizontal, 15)
                         .padding(.vertical, 12)
                         .background(Color.blue)
