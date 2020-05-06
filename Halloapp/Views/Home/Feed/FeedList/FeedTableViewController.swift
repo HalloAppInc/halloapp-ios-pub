@@ -781,15 +781,7 @@ fileprivate class FeedItemFooterView: UIView {
         button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
         return button
     }()
-
-    lazy var seenByLabel: UILabel = {
-        let label = UILabel()
-        label.font = .preferredFont(forTextStyle: .footnote)
-        label.textColor = .secondaryLabel
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
+    
     lazy var seenByButton: UIButton = {
         let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 4 : -4
         let button = UIButton(type: .system)
