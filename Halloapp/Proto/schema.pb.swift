@@ -106,8 +106,6 @@ struct Proto_Comment {
 
   var feedPostID: String = String()
 
-  var senderUserID: String = String()
-
   var parentCommentID: String = String()
 
   var text: String = String()
@@ -125,6 +123,10 @@ struct Proto_ChatMessage {
   var media: [Proto_Media] = []
 
   var text: String = String()
+
+  var feedPostID: String = String()
+
+  var feedPostMediaIndex: Int32 = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -324,7 +326,6 @@ extension Proto_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   static let protoMessageName: String = _protobuf_package + ".Comment"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "feed_post_id"),
-    2: .standard(proto: "sender_user_id"),
     3: .standard(proto: "parent_comment_id"),
     4: .same(proto: "text"),
   ]
@@ -333,7 +334,6 @@ extension Proto_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularStringField(value: &self.feedPostID)
-      case 2: try decoder.decodeSingularStringField(value: &self.senderUserID)
       case 3: try decoder.decodeSingularStringField(value: &self.parentCommentID)
       case 4: try decoder.decodeSingularStringField(value: &self.text)
       default: break
@@ -344,9 +344,6 @@ extension Proto_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if !self.feedPostID.isEmpty {
       try visitor.visitSingularStringField(value: self.feedPostID, fieldNumber: 1)
-    }
-    if !self.senderUserID.isEmpty {
-      try visitor.visitSingularStringField(value: self.senderUserID, fieldNumber: 2)
     }
     if !self.parentCommentID.isEmpty {
       try visitor.visitSingularStringField(value: self.parentCommentID, fieldNumber: 3)
@@ -359,7 +356,6 @@ extension Proto_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
 
   static func ==(lhs: Proto_Comment, rhs: Proto_Comment) -> Bool {
     if lhs.feedPostID != rhs.feedPostID {return false}
-    if lhs.senderUserID != rhs.senderUserID {return false}
     if lhs.parentCommentID != rhs.parentCommentID {return false}
     if lhs.text != rhs.text {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
@@ -372,6 +368,8 @@ extension Proto_ChatMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "media"),
     2: .same(proto: "text"),
+    3: .standard(proto: "feed_post_id"),
+    4: .standard(proto: "feed_post_media_index"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -379,6 +377,8 @@ extension Proto_ChatMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       switch fieldNumber {
       case 1: try decoder.decodeRepeatedMessageField(value: &self.media)
       case 2: try decoder.decodeSingularStringField(value: &self.text)
+      case 3: try decoder.decodeSingularStringField(value: &self.feedPostID)
+      case 4: try decoder.decodeSingularInt32Field(value: &self.feedPostMediaIndex)
       default: break
       }
     }
@@ -391,12 +391,20 @@ extension Proto_ChatMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if !self.text.isEmpty {
       try visitor.visitSingularStringField(value: self.text, fieldNumber: 2)
     }
+    if !self.feedPostID.isEmpty {
+      try visitor.visitSingularStringField(value: self.feedPostID, fieldNumber: 3)
+    }
+    if self.feedPostMediaIndex != 0 {
+      try visitor.visitSingularInt32Field(value: self.feedPostMediaIndex, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Proto_ChatMessage, rhs: Proto_ChatMessage) -> Bool {
     if lhs.media != rhs.media {return false}
     if lhs.text != rhs.text {return false}
+    if lhs.feedPostID != rhs.feedPostID {return false}
+    if lhs.feedPostMediaIndex != rhs.feedPostMediaIndex {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
