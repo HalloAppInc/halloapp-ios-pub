@@ -109,4 +109,28 @@ extension Date {
             return "\(Date.toDays(seconds, rounded: true))d"
         }
     }
+    
+    /**
+     - returns: Localized timstamp to be used in Chat.
+
+     Timestamp formatting rules are:
+     - under 1 minute: now
+     - under 1 hour: 45m
+     - under 1 day: 6h
+     - otherwise: 5d
+     */
+    func chatTimestamp() -> String {
+        let seconds = -self.timeIntervalSinceNow
+
+        // TODO: Localize
+        if seconds < Date.minutes(1) {
+            return "now"
+        } else if seconds < Date.hours(1) {
+            return "\(Date.toMinutes(seconds, rounded: true))m"
+        } else if seconds < Date.days(1) {
+            return "\(Date.toHours(seconds, rounded: true))h"
+        } else {
+            return "\(Date.toDays(seconds, rounded: true))d"
+        }
+    }
 }

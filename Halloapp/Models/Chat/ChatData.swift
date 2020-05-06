@@ -11,7 +11,9 @@ import Combine
 
 typealias ChatMessageID = String
 
-class ChatData: XMPPControllerChatDelegate {
+class ChatData: ObservableObject, XMPPControllerChatDelegate {
+    
+    let didChangeUnreadCount = PassthroughSubject<Int, Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
@@ -20,23 +22,38 @@ class ChatData: XMPPControllerChatDelegate {
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var currentlyChattingWithUserId: String? = nil
+    
+    private var unreadMessageCount: Int = 0 {
+        didSet {
+            self.didChangeUnreadCount.send(unreadMessageCount)
+        }
+    }
 
     init(xmppController: XMPPController, userData: UserData) {
         
         self.xmppController = xmppController
         self.userData = userData
+        self.xmppController.chatDelegate = self
+        
+        self.cancellableSet.insert(
+            xmppController.didGetAck.sink { [weak self] xmppAck in
+                DDLogInfo("Chat: got ack \(xmppAck)")
+                guard let self = self else { return }
+                self.processIncomingChatAck(xmppAck)
+            }
+        )
         
         self.cancellableSet.insert(
             xmppController.didGetNewChatMessage.sink { [weak self] xmppMessage in
-            
                 if xmppMessage.element(forName: "chat") != nil {
                     DDLogInfo("Chat: new item \(xmppMessage)")
                     guard let self = self else { return }
                     self.processIncomingChatMessage(xmppMessage)
                 }
-                
             }
         )
+        
+        // TODO: check for any pending outgoing messages and send them out
         
     }
     
@@ -100,6 +117,15 @@ class ChatData: XMPPControllerChatDelegate {
         }
     }
     
+    private func processIncomingChatAck(_ xmppChatAckEl: XMLElement) {
+        guard let xmppChatAck = XMPPChatAck(itemElement: xmppChatAckEl) else {
+            DDLogError("Invalid chatAck: [\(xmppChatAckEl)]")
+            return
+        }
+
+        self.processAck(xmppChatAck: xmppChatAck)
+    }
+    
     private func processIncomingChatMessage(_ chatMessageEl: XMLElement) {
  
         guard let xmppChatMessage = XMPPChatMessage(itemElement: chatMessageEl) else {
@@ -113,6 +139,30 @@ class ChatData: XMPPControllerChatDelegate {
         
     }
     
+    
+    private func processAck(xmppChatAck: XMPPChatAck) {
+        
+        self.updateChatMessage(with: xmppChatAck.id) { (chatMessage) in
+            DDLogError("ChatData/processAck [\(xmppChatAck.id)]")
+            
+            // outgoing message
+            if chatMessage.senderStatus != .none {
+                if chatMessage.senderStatus == .pending {
+                    chatMessage.senderStatus = .sentOut
+                }
+                if let serverTimestamp = xmppChatAck.timestamp {
+                    chatMessage.timestamp = Date(timeIntervalSince1970: serverTimestamp)
+                }
+            } else {
+//                if chatMessage.receiverStatus == .haveSeen {
+//                    chatMessage.receiverStatus = .sentSeenReceipt
+//                }
+            }
+            
+        }
+
+    }
+    
     private func process(xmppChatMessage: XMPPChatMessage, using managedObjectContext: NSManagedObjectContext) {
         
         guard self.chatMessage(with: xmppChatMessage.id, in: managedObjectContext) == nil else {
@@ -120,13 +170,13 @@ class ChatData: XMPPControllerChatDelegate {
             return
         }
 
-//        var isCurrentlyChattingWithUser = false
-//        
-//        if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
-//            if xmppChatMessage.fromUserId == currentlyChattingWithUserId {
-//                isCurrentlyChattingWithUser = true
-//            }
-//        }
+        var isCurrentlyChattingWithUser = false
+        
+        if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
+            if xmppChatMessage.fromUserId == currentlyChattingWithUserId {
+                isCurrentlyChattingWithUser = true
+            }
+        }
         
         // Add new ChatMessage to database.
         DDLogDebug("ChatData/process/new [\(xmppChatMessage.id)]")
@@ -146,7 +196,7 @@ class ChatData: XMPPControllerChatDelegate {
             print("no time:")
         }
         
-        // Process post media
+        // Process chat media
         for (index, xmppMedia) in xmppChatMessage.media.enumerated() {
             DDLogDebug("ChatData/process-posts/new/add-media [\(xmppMedia.url)]")
             let feedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
@@ -171,7 +221,7 @@ class ChatData: XMPPControllerChatDelegate {
             chatThread.lastMsgText = chatMessage.text
             chatThread.lastMsgTimestamp = chatMessage.timestamp
             
-            chatThread.unreadCount = chatThread.unreadCount + 1
+            chatThread.unreadCount = isCurrentlyChattingWithUser ? 0 : chatThread.unreadCount + 1
         } else {
             let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
             chatThread.chatWithUserId = chatMessage.fromUserId
@@ -183,28 +233,26 @@ class ChatData: XMPPControllerChatDelegate {
 
         self.save(managedObjectContext)
         
-//        self.sendDeliveryReceipt(to: chatMessage.fromUserId)
-//        
-//        if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
-//            if chatMessage.fromUserId == currentlyChattingWithUserId {
-//                self.sendSeenReceipt(to: chatMessage.fromUserId)
-//            }
-//        }
+        // TODO: send this only after save was successful
+        if isCurrentlyChattingWithUser {
+            self.sendSeenReceipt(toUserId: chatMessage.fromUserId, forMessageId: chatMessage.id)
+            // TODO: update core data to reflect status, after ack back from server that message was sent
+            self.updateChatMessage(with: chatMessage.id) { (chatMessage) in
+                chatMessage.receiverStatus = .sentSeenReceipt
+            }
+        } else {
+            self.unreadMessageCount += 1
+        }
         
     }
-    
-    func sendDeliveryReceipt(to id: String) {
-        print("send delivery")
-    }
-    
-    func sendSeenReceipt(to id: String) {
-        print("send seen")
+        
+    func sendSeenReceipt(toUserId: String, forMessageId: String) {
+        let xmppChatMessageSeenReceipt = XMPPChatMessageReceipt(type: .seen, toUserId: toUserId, forMessageId: forMessageId)
+        AppContext.shared.xmppController.xmppStream.send(xmppChatMessageSeenReceipt.xmppElement)
     }
     
     func sendMessage(toUserId: String, text: String, media: [PendingChatMessageMedia]) {
         let xmppChatMessage = XMPPChatMessage(toUserId: toUserId, text: text, media: [])
-        
-        // TODO: timestamps need to be from the server ack'ed
         
         // Create and save new ChatMessage object.
         let managedObjectContext = self.persistentContainer.viewContext
@@ -215,7 +263,7 @@ class ChatData: XMPPControllerChatDelegate {
         chatMessage.fromUserId = xmppChatMessage.fromUserId
         chatMessage.text = xmppChatMessage.text
         chatMessage.receiverStatus = .none
-        chatMessage.senderStatus = .none
+        chatMessage.senderStatus = .pending
         chatMessage.timestamp = Date()
 
         for (index, mediaItem) in media.enumerated() {
@@ -256,7 +304,7 @@ class ChatData: XMPPControllerChatDelegate {
         AppContext.shared.xmppController.xmppStream.send(xmppChatMessage.xmppElement)
     }
 
-    // MARK: Fetching Chat Data
+    // MARK: Fetching Messages
 
     private func chatMessages(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
         let managedObjectContext = managedObjectContext ?? self.viewContext
@@ -279,6 +327,15 @@ class ChatData: XMPPControllerChatDelegate {
         return self.chatMessages(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
     
+    func unseenChatMessages(with fromUserId: String, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
+        ]
+        return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && toUserId = %@ && (receiverStatusValue = %d OR receiverStatusValue = %d)", fromUserId, AppContext.shared.userData.userId, ChatMessage.ReceiverStatus.none.rawValue, ChatMessage.ReceiverStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+    
+    // MARK: Fetching Threads
+    
     private func chatThreads(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
         let managedObjectContext = managedObjectContext ?? self.viewContext
         let fetchRequest: NSFetchRequest<ChatThread> = ChatThread.fetchRequest()
@@ -300,7 +357,26 @@ class ChatData: XMPPControllerChatDelegate {
         return self.chatThreads(predicate: NSPredicate(format: "chatWithUserId == %@", id), in: managedObjectContext).first
     }
     
-    // MARK: Updates
+    func updateUnreadMessageCount() {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let threads = self.chatThreads(predicate: NSPredicate(format: "unreadCount > 0"), in: managedObjectContext)
+            self.unreadMessageCount = Int(threads.reduce(0) { $0 + $1.unreadCount })
+        }
+    }
+    
+    func subscribeToPresence(to chatWithUserId: String) {
+//        let message = XMPPElement(name: "presence")
+//        message.addAttribute(withName: "to", stringValue: "\(chatWithUserId)@s.halloapp.net")
+//        message.addAttribute(withName: "type", stringValue: "subscribe")
+//        AppContext.shared.xmppController.xmppStream.send(message)
+//        
+//        let ownPresence = XMPPElement(name: "presence")
+//        ownPresence.addAttribute(withName: "to", stringValue: "\(chatWithUserId)@s.halloapp.net")
+//        ownPresence.addAttribute(withName: "type", stringValue: "available")
+//        AppContext.shared.xmppController.xmppStream.send(ownPresence)
+    }
+    
+    // MARK: Update Thread
     
     private func updateChatThread(chatWithUserId id: String, block: @escaping (ChatThread) -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
@@ -323,6 +399,31 @@ class ChatData: XMPPControllerChatDelegate {
                 chatThread.unreadCount = 0
             }
 
+            let unseenChatMessages = self.unseenChatMessages(with: chatWithUserId, in: managedObjectContext)
+                        
+            // TODO: only change to sent after ack from server
+            unseenChatMessages.forEach {
+                self.sendSeenReceipt(toUserId: $0.fromUserId, forMessageId: $0.id)
+
+                $0.receiverStatus = ChatMessage.ReceiverStatus.sentSeenReceipt
+            }
+
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+
+    // MARK: Update Message
+    
+    private func updateChatMessage(with chatMessageId: String, block: @escaping (ChatMessage) -> Void) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let chatMessage = self.chatMessage(with: chatMessageId, in: managedObjectContext) else {
+                DDLogError("ChatData/update-message/missing [\(chatMessageId)]")
+                return
+            }
+            DDLogVerbose("ChatData/update-message [\(chatMessageId)]")
+            block(chatMessage)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
@@ -336,10 +437,51 @@ class ChatData: XMPPControllerChatDelegate {
     // MARK: XMPPControllerChatDelegate
 
     func xmppController(_ xmppController: XMPPController, didReceiveMessageReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?) {
-        // Process receipt here.
-
+    
+        self.updateChatMessage(with: receipt.itemId) { (chatMessage) in
+            if chatMessage.senderStatus != .seen {
+                if receipt.type == .delivery {
+                    chatMessage.senderStatus = .delivered
+                } else if receipt.type == .read {
+                    chatMessage.senderStatus = .seen
+                }
+            }
+        }
         if let message = xmppMessage {
             xmppController.sendAck(for: message)
+        }
+    }
+}
+
+
+struct XMPPChatAck {
+    let from: String
+    let to: String
+    let id: String
+    var timestamp: TimeInterval?
+
+    init(id: String) {
+        self.from = AppContext.shared.userData.userId
+        self.to = "pubsub.s.halloapp.net"
+        self.id = id
+    }
+
+    init?(itemElement item: XMLElement) {
+        guard let from = item.attributeStringValue(forName: "from") else { return nil }
+        guard let to = item.attributeStringValue(forName: "to")?.components(separatedBy: "@").first else { return nil }
+        guard let id = item.attributeStringValue(forName: "id") else { return nil }
+        self.from = from
+        self.to = to
+        self.id = id
+        self.timestamp = item.attributeDoubleValue(forName: "timestamp")
+    }
+
+    var xmppElement: XMPPElement {
+        get {
+            let message = XMPPElement(name: "ack")
+            message.addAttribute(withName: "to", stringValue: to)
+            message.addAttribute(withName: "id", stringValue: id)
+            return message
         }
     }
     
@@ -530,3 +672,76 @@ extension Proto_Container {
     }
 }
 
+
+struct XMPPChatMessageReceipt {
+    
+    enum ReceiptType: Int16 {
+        case received = 0
+        case seen = 1
+    }
+    
+    let id: String
+    let fromUserId: UserID
+    let toUserId: UserID
+    let type: ReceiptType
+    let forMessageId: String
+    var timestamp: TimeInterval?
+
+    init(type: ReceiptType, toUserId: String, forMessageId: String) {
+        self.id = UUID().uuidString
+        self.toUserId = toUserId
+        self.fromUserId = AppContext.shared.userData.userId
+        self.forMessageId = forMessageId
+        self.type = type
+    }
+
+    init?(itemElement item: XMLElement) {
+        guard let id = item.attributeStringValue(forName: "id") else { return nil }
+        guard let toUserId = item.attributeStringValue(forName: "to")?.components(separatedBy: "@").first else { return nil }
+        guard let fromUserId = item.attributeStringValue(forName: "from")?.components(separatedBy: "@").first else { return nil }
+
+        var typeEl = item.element(forName: "received")
+        var type: ReceiptType = .received
+        if typeEl == nil {
+            typeEl = item.element(forName: "seen")
+            type = .seen
+        }
+        
+        guard let forMessageId = typeEl?.attributeStringValue(forName: "id") else { return nil }
+        guard let timestamp = typeEl?.attributeDoubleValue(forName: "timestamp") else { return nil }
+        
+        self.id = id
+        self.toUserId = toUserId
+        self.fromUserId = fromUserId
+        self.type = type
+        self.forMessageId = forMessageId
+        self.timestamp = timestamp
+    }
+
+    var xmppElement: XMPPElement {
+        get {
+            let message = XMPPElement(name: "message")
+            message.addAttribute(withName: "id", stringValue: id)
+            message.addAttribute(withName: "to", stringValue: "\(toUserId)@s.halloapp.net")
+            
+            if type == .received {
+                message.addChild({
+                    let received = XMPPElement(name: "received")
+                    received.addAttribute(withName: "xmlns", stringValue: "urn:xmpp:receipts")
+                    received.addAttribute(withName: "id", stringValue: forMessageId)
+                    return received
+                }())
+            } else if type == .seen {
+                message.addChild({
+                    let seen = XMPPElement(name: "seen")
+                    seen.addAttribute(withName: "xmlns", stringValue: "urn:xmpp:receipts")
+                    seen.addAttribute(withName: "id", stringValue: forMessageId)
+                    return seen
+                }())
+            }
+
+            return message
+        }
+    }
+    
+}

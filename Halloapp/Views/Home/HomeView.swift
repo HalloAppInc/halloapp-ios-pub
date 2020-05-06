@@ -8,6 +8,7 @@
 
 import SwiftUI
 import UIKit
+import Combine
 
 struct HomeView: UIViewControllerRepresentable {
     typealias UIViewControllerType = HomeViewController
@@ -35,6 +36,8 @@ struct HomeView: UIViewControllerRepresentable {
 
 class HomeViewController: UITabBarController, UITabBarControllerDelegate {
 
+    private var cancellableSet: Set<AnyCancellable> = []
+    
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
         self.commonSetup()
@@ -50,6 +53,8 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         
         let appearance = UITabBarAppearance()
         appearance.shadowColor = nil
+        appearance.stackedLayoutAppearance.normal.badgeBackgroundColor = UIColor.systemGreen
+        appearance.stackedLayoutAppearance.normal.badgePositionAdjustment = UIOffset(horizontal: 1, vertical: 7)
         self.tabBar.standardAppearance = appearance
         self.updateTabBarBackgroundEffect()
 
@@ -63,6 +68,13 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
             self.view.tintColor = tintColor
             UIView.appearance().tintColor = tintColor
         }
+
+        self.cancellableSet.insert(
+            AppContext.shared.chatData.didChangeUnreadCount.sink { [weak self] (count) in
+                guard let self = self else { return }
+                self.updateChatNavigationControllerBadge(count)
+            })
+        AppContext.shared.chatData.updateUnreadMessageCount()
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -90,17 +102,6 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         return navigationController
     }
 
-//    private func chatNavigationController() -> UINavigationController {
-//        let messagesView = MessagesView().environment(\.managedObjectContext, AppContext.shared.contactStore.viewContext)
-//        let chatListViewController = UIHostingController(rootView: messagesView)
-//        chatListViewController.navigationItem.title = "Messages"
-//        let navigationController = UINavigationController(rootViewController: chatListViewController)
-//        navigationController.tabBarItem.title = nil
-//        navigationController.tabBarItem.image = UIImage(named: "TabBarMessages")
-//        navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
-//        return navigationController
-//    }
-
     private func chatNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: ChatListViewController(title: "Messages"))
         navigationController.tabBarItem.title = nil
@@ -117,6 +118,14 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         return navigationController
     }
 
+    private func updateChatNavigationControllerBadge(_ count: Int) {
+        DispatchQueue.main.async {
+            if let controller = self.viewControllers?[1] {
+                controller.tabBarItem.badgeValue = count == 0 ? nil : String(count)
+            }
+        }
+    }
+    
     // MARK: UITabBarControllerDelegate
 
     func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
@@ -130,5 +139,4 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         }
         return true
     }
-
 }

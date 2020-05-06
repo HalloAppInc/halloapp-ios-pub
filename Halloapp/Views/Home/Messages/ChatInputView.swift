@@ -24,7 +24,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
     private var previousHeight: CGFloat = 0
     
-    private var placeholderText = "Type something"
+    private var placeholderText = "Type a message"
 
     class ContainerView: UIView {
         fileprivate weak var delegate: ContainerViewDelegate?
@@ -108,7 +108,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         // gotcha: keep insets at 5 or higher to have a bigger hit area,
         // rotating image by 45 degree is problematic so perhaps getting a pre-rotated custom icon is better
-        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
+        button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
         button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
         button.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
         button.tintColor = UIColor.link

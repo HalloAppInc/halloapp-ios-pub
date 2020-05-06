@@ -55,7 +55,9 @@ struct SettingsView: View {
             VStack(alignment: .center, spacing: 32) {
 
                 Button(action: {
-                    self.isShowingMailView = true
+                    if MFMailComposeViewController.canSendMail() {
+                        self.isShowingMailView = true
+                    }
                 }) {
                     Text("Send Logs")
                         .padding(.horizontal, 15)

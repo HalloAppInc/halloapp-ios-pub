@@ -24,6 +24,8 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
     private var cancellableSet: Set<AnyCancellable> = []
     
+    // MARK: Lifecycle
+    
     init(title: String) {
         super.init(style: .plain)
         self.title = title
@@ -33,24 +35,12 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         super.init(coder: coder)
     }
 
-    private lazy var newMessageViewController: NewMessageViewController = {
-        let controller = NewMessageViewController()
-        controller.delegate = self
-        return controller
-    }()
-    
-    func dismantle() {
-        DDLogInfo("ChatListViewController/dismantle")
-        self.cancellableSet.forEach{ $0.cancel() }
-        self.cancellableSet.removeAll()
-    }
-
     override func viewDidLoad() {
         DDLogInfo("ChatListViewController/viewDidLoad")
 
         self.navigationItem.title = "Messages"
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        
+
         self.navigationItem.largeTitleDisplayMode = .automatic
         self.navigationItem.standardAppearance = Self.noBorderNavigationBarAppearance
         self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
@@ -59,31 +49,17 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         titleLabel.attributedText = self.largeTitleUsingGothamFont
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
         self.navigationItem.title = nil
-        
+
         self.navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(showContacts)) ]
-   
+         UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(showContacts)) ]
+
         self.tableView.backgroundColor = .clear
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = true
         self.tableView.register(ChatListViewCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
         self.tableView.backgroundColor = UIColor.systemGray6
-        
+
         self.setupFetchedResultsController()
-        
-    }
-
-    // MARK: Appearance
-
-
-    
-    static var noBorderNavigationBarAppearance: UINavigationBarAppearance {
-        get {
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithDefaultBackground()
-            appearance.shadowColor = nil
-            return appearance
-        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -96,6 +72,32 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         DDLogInfo("ChatListViewController/viewDidAppear")
         super.viewDidAppear(animated)
     }
+    
+    func dismantle() {
+        DDLogInfo("ChatListViewController/dismantle")
+        self.cancellableSet.forEach{ $0.cancel() }
+        self.cancellableSet.removeAll()
+    }
+    
+    private lazy var newMessageViewController: NewMessageViewController = {
+        let controller = NewMessageViewController()
+        controller.delegate = self
+        return controller
+    }()
+
+
+    // MARK: Appearance
+
+    static var noBorderNavigationBarAppearance: UINavigationBarAppearance {
+        get {
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithDefaultBackground()
+            appearance.shadowColor = nil
+            return appearance
+        }
+    }
+    
+
 
     // MARK: Top Nav Button Actions
     
@@ -212,7 +214,6 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
         let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ChatListViewCell
         
         if let chatThread = fetchedResultsController?.object(at: indexPath) {
@@ -224,11 +225,8 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let chatThread = fetchedResultsController?.object(at: indexPath) {
-   
             self.navigationController?.pushViewController(ChatViewController(fromUserId: chatThread.chatWithUserId), animated: true)
-            
         }
-        
     }
     
     // MARK: New Message Delegates
@@ -237,7 +235,6 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         print("here")
         self.navigationController?.pushViewController(ChatViewController(fromUserId: chatWithUserId), animated: true)
     }
-
 }
 
 
@@ -289,29 +286,32 @@ fileprivate class ChatListViewCell: UITableViewCell {
         return label
     }()
     
-    private lazy var unreadBadge: CircleView = {
-        let badge = CircleView()
-        badge.fillColor = .systemGreen
-        badge.translatesAutoresizingMaskIntoConstraints = false
-        badge.heightAnchor.constraint(equalToConstant: 10).isActive = true
-        badge.widthAnchor.constraint(equalToConstant: 10).isActive = true
-        return badge
+    private lazy var unreadBadge: UIButton = {
+        let unreadBadge = UIButton()
+        unreadBadge.isUserInteractionEnabled = false
+        unreadBadge.translatesAutoresizingMaskIntoConstraints = false
+        unreadBadge.backgroundColor = UIColor.systemGreen
+        unreadBadge.contentEdgeInsets = UIEdgeInsets(top: 1, left: 6, bottom: 1, right: 6)
+        unreadBadge.titleLabel?.font = UIFont.preferredFont(forTextStyle: .footnote)
+        unreadBadge.tintColor = UIColor.systemGray6
+        unreadBadge.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        unreadBadge.layer.cornerRadius = 9
+        unreadBadge.clipsToBounds = true
+        return unreadBadge
     }()
     
-    
     private func setup() {
-
         let imageSize: CGFloat = 40.0
         self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
         
-        let hStackName = UIStackView(arrangedSubviews: [ self.nameLabel, self.timeLabel])
+        let hStackName = UIStackView(arrangedSubviews: [self.nameLabel, self.timeLabel])
         hStackName.translatesAutoresizingMaskIntoConstraints = false
         hStackName.axis = .horizontal
         hStackName.alignment = .leading
         hStackName.spacing = 5
         
-        let hStackLastMsg = UIStackView(arrangedSubviews: [ self.lastMessageLabel, self.unreadBadge])
+        let hStackLastMsg = UIStackView(arrangedSubviews: [self.lastMessageLabel, self.unreadBadge])
         hStackLastMsg.translatesAutoresizingMaskIntoConstraints = false
         hStackLastMsg.axis = .horizontal
         hStackLastMsg.alignment = .leading
@@ -327,7 +327,7 @@ fileprivate class ChatListViewCell: UITableViewCell {
         spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
         spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
 
-        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, vStack])
+        let hStack = UIStackView(arrangedSubviews: [self.contactImageView, vStack])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.alignment = .leading
@@ -340,9 +340,7 @@ fileprivate class ChatListViewCell: UITableViewCell {
         hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
     
         self.backgroundColor = .clear
-        
     }
-
 
     public func configure(with chatThread: ChatThread, contentWidth: CGFloat) {
         self.nameLabel.text = AppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId)
@@ -352,16 +350,15 @@ fileprivate class ChatListViewCell: UITableViewCell {
             self.timeLabel.textColor = UIColor.secondaryLabel
         } else {
             self.unreadBadge.isHidden = false
+            self.unreadBadge.setTitle(String(chatThread.unreadCount), for: .normal)
             self.timeLabel.textColor = UIColor.systemGreen
         }
         if let timestamp = chatThread.lastMsgTimestamp {
-            self.timeLabel.text = timestamp.commentTimestamp()
+            self.timeLabel.text = timestamp.chatTimestamp()
         }
     }
 
     override func prepareForReuse() {
         super.prepareForReuse()
     }
-
 }
-

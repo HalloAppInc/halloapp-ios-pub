@@ -46,6 +46,8 @@ class XMPPController: NSObject, ObservableObject {
     
     var didGetNewChatMessage = PassthroughSubject<XMPPMessage, Never>()
 
+    var didGetAck = PassthroughSubject<XMLElement, Never>()
+
     var xmppStream: XMPPStream
     private var xmppPubSub: XMPPPubSub
     private var xmppReconnect: XMPPReconnect
@@ -305,6 +307,7 @@ extension XMPPController: XMPPStreamDelegate {
 
         // Delivery receipt.
         if let deliveryReceipt = message.deliveryReceipt {
+            
             // Feed doesn't have delivery receipts.
             if let delegate = self.chatDelegate {
                 delegate.xmppController(self, didReceiveMessageReceipt: deliveryReceipt, in: message)
@@ -485,6 +488,9 @@ extension XMPPController: XMPPStreamDelegate {
 
     func xmppStream(_ sender: XMPPStream, didReceiveCustomElement element: DDXMLElement) {
 //        DDLogInfo("Stream: didReceiveCustomElement: \(element)")
+        if element.name == "ack" {
+            self.didGetAck.send(element)
+        }
     }
 }
 

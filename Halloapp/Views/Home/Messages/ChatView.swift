@@ -11,14 +11,37 @@ import UIKit
 class ChatView: UIView {
     private var leadingMargin: NSLayoutConstraint?
 
-    private lazy var contactImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
+    private lazy var mediaImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage.init(systemName: "photo"))
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
         imageView.tintColor = UIColor.systemGray
+        imageView.isHidden = true
         return imageView
     }()
+    
+    private lazy var mediaLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 0)
+        label.textColor = UIColor.secondaryLabel
+        label.textAlignment = .natural
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "(media is not supported yet)"
+        label.isHidden = true
+        return label
+    }()
 
+    private lazy var hStack: UIStackView = {
+        let hStack = UIStackView()
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        hStack.axis = .horizontal
+        hStack.isLayoutMarginsRelativeArrangement = true
+        hStack.layoutMargins = UIEdgeInsets(top: 0, left: 3, bottom: 0, right: 5)
+        hStack.spacing = 0
+        return hStack
+    }()
+    
     private lazy var textView: UITextView = {
         let textView = UITextView()
         textView.translatesAutoresizingMaskIntoConstraints = false
@@ -59,9 +82,11 @@ class ChatView: UIView {
         
         self.preservesSuperviewLayoutMargins = true
 
-//        self.addSubview(self.contactImageView)
-
-        let vStack = UIStackView(arrangedSubviews: [ self.textView ])
+        self.hStack.addArrangedSubview(self.mediaImageView)
+        self.hStack.addArrangedSubview(self.mediaLabel)
+        self.hStack.setCustomSpacing(10, after: self.mediaImageView)
+        
+        let vStack = UIStackView(arrangedSubviews: [ self.hStack, self.textView ])
 
         vStack.layoutMargins = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 15)
         vStack.isLayoutMarginsRelativeArrangement = true
@@ -69,6 +94,7 @@ class ChatView: UIView {
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         vStack.spacing = 4
+        vStack.setCustomSpacing(0, after: self.hStack)
         self.addSubview(vStack)
 
         let views = [ "vstack": vStack ]
@@ -81,13 +107,21 @@ class ChatView: UIView {
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[vstack]|", options: [], metrics: nil, views: views))
     }
 
+    func clearMedia() {
+        self.mediaImageView.isHidden = true
+        self.mediaLabel.isHidden = true
+    }
+    
     func updateWith(chatMessageItem: ChatMessage) {
         let text = chatMessageItem.text ?? ""
         self.textView.text = text
         
-//        if let media = chatMessageItem.media {
-//            self.textView.text += " \(media.count)"
-//        }
+        if let media = chatMessageItem.media {
+            if media.count > 0 {
+                self.mediaImageView.isHidden = false
+                self.mediaLabel.isHidden = false
+            }
+        }
         
     }
 

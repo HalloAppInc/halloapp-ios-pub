@@ -111,7 +111,8 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
                 NSSortDescriptor(keyPath: \ABContact.sort, ascending: true)
             ]
             fetchRequest.predicate = NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
-            
+            fetchRequest.propertiesToFetch = ["fullName"]
+            fetchRequest.returnsDistinctResults = true
             return fetchRequest
         }
     }

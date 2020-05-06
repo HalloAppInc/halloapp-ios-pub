@@ -14,15 +14,16 @@ import Photos
 import SwiftUI
 
 class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDelegate, NSFetchedResultsControllerDelegate {
-    static private let otherUserCellReuseIdentifier = "OtherUserCell"
-    static private let userCellReuseIdentifier = "UserCell"
-    static private let sectionMain = 0
-
+    
     private var fromUserId: String?
     
-    private var dataSource: UITableViewDiffableDataSource<Int, ChatMessage>?
     private var fetchedResultsController: NSFetchedResultsController<ChatMessage>?
-
+    private var dataSource: UITableViewDiffableDataSource<Int, ChatMessage>?
+    
+    static private let sectionMain = 0
+    static private let otherUserCellReuseIdentifier = "OtherUserCell"
+    static private let userCellReuseIdentifier = "UserCell"
+    
     private lazy var titleView: TitleView = {
         let titleView = TitleView()
         titleView.translatesAutoresizingMaskIntoConstraints = false
@@ -43,6 +44,8 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         return tableView
     }()
 
+    // MARK: Lifecycle
+    
     init(fromUserId: String) {
         DDLogDebug("ChatViewController/init/\(fromUserId)")
         self.fromUserId = fromUserId
@@ -53,13 +56,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         super.init(coder: coder)
     }
 
-    func dismantle() {
-        DDLogDebug("ChatViewController/dismantle/\(fromUserId ?? "")")
-        self.fetchedResultsController = nil
-    }
-
     override func viewDidLoad() {
-        
         guard self.fromUserId != nil else { return }
 
         super.viewDidLoad()
@@ -80,33 +77,30 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         titleView.update(with: self.fromUserId!)
         
-//        self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .done, target: self, action: #selector(self.dismissKeyboard(_:)))
-        
         self.view.addSubview(self.tableView)
         self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
         self.tableView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
         self.tableView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
         self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
 
-        self.tableView.tableHeaderView = nil
         self.tableView.backgroundColor = UIColor.systemGray6
+        self.tableView.tableHeaderView = nil
+        self.tableView.tableFooterView = nil
         
-        let spacerFooter = UIView(frame: CGRect(x: 0, y: 0, width: Int(self.tableView.bounds.width), height: 25))
-        spacerFooter.backgroundColor = .clear
-        self.tableView.tableFooterView = spacerFooter
+        /* NOTE: seem too brittle to have to estimate a correct height, else wonkiness happens
+         * should investigate if there's a way to find the exact height,
+         * perhaps manually calculate it and then cache it
+         */
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 50
         
-        self.dataSource = UITableViewDiffableDataSource<Int, ChatMessage>(tableView: self.tableView) { [weak self] tableView, indexPath, chatMessage in
-            
+        self.dataSource = UITableViewDiffableDataSource<Int, ChatMessage>(tableView: self.tableView) { tableView, indexPath, chatMessage in
             if chatMessage.fromUserId == AppContext.shared.userData.userId {
-                
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.userCellReuseIdentifier, for: indexPath) as? ChatTableViewUserCell {
                     cell.update(with: chatMessage)
-
                     cell.backgroundColor = UIColor.systemGray6
-                    
                     return cell
                 }
-            
             }
                 
             let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.otherUserCellReuseIdentifier, for: indexPath) as! ChatTableViewCell
@@ -133,7 +127,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard(_:)))
         self.view.addGestureRecognizer(tapGesture)
-        
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -141,10 +134,20 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.chatInputView.willAppear(in: self)
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        self.tableView.tableHeaderView = nil
+        self.tableView.tableFooterView = nil
+        let scrollPoint = CGPoint(x: 0, y: self.tableView.contentSize.height + 1000)
+        self.tableView.setContentOffset(scrollPoint, animated: false)
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let chatWithUserId = self.fromUserId {
             AppContext.shared.chatData.markThreadAsRead(for: chatWithUserId)
+            AppContext.shared.chatData.updateUnreadMessageCount()
+            AppContext.shared.chatData.subscribeToPresence(to: chatWithUserId)
             AppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
         }
         self.chatInputView.didAppear(in: self)
@@ -152,22 +155,47 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        if let chatWithUserId = self.fromUserId {
-            AppContext.shared.chatData.markThreadAsRead(for: chatWithUserId)
-            AppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
-        }
+        AppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
         self.chatInputView.willDisappear(in: self)
     }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        self.tableView.tableHeaderView = nil
-        let scrollPoint = CGPoint(x: 0, y: self.tableView.contentSize.height + 1000)
-        self.tableView.setContentOffset(scrollPoint, animated: false)
+    
+    func dismantle() {
+        DDLogDebug("ChatViewController/dismantle/\(fromUserId ?? "")")
+        self.fetchedResultsController = nil
     }
 
     // MARK: Data
 
+    private var shouldScrollToBottom = true
+    
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any,
+                    at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        
+        switch type {
+        case .insert:
+            DDLogDebug("ChatView/frc/insert")
+            self.shouldScrollToBottom = true
+        case .delete:
+            DDLogDebug("ChatView/frc/delete")
+        case .update:
+            DDLogDebug("ChatView/frc/update")
+        case .move:
+            DDLogDebug("ChatView/frc/move")
+        default:
+            break
+        }
+    }
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        self.updateData(animatingDifferences: false)
+        
+        if self.shouldScrollToBottom {
+            self.shouldScrollToBottom = false
+            self.scrollToBottom(true)
+        }
+    }
+
+    
     func updateData(animatingDifferences: Bool = true) {
         guard let chatMessages = self.fetchedResultsController?.fetchedObjects else { return}
 
@@ -175,12 +203,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         diffableDataSourceSnapshot.appendSections([ ChatViewController.sectionMain ])
         diffableDataSourceSnapshot.appendItems(chatMessages)
         self.dataSource?.apply(diffableDataSourceSnapshot, animatingDifferences: animatingDifferences)
-    }
 
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        let animateChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
-        self.updateData(animatingDifferences: animateChanges)
-        self.scrollToBottom(false)
     }
 
     private func scrollToBottom(_ animated: Bool = true) {
@@ -199,15 +222,15 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         return inputView
     }()
 
+    override var inputAccessoryView: UIView? {
+        self.chatInputView.setInputViewWidth(self.view.bounds.size.width)
+        return self.chatInputView
+    }
+    
     override var canBecomeFirstResponder: Bool {
         get {
             return true
         }
-    }
-
-    override var inputAccessoryView: UIView? {
-        self.chatInputView.setInputViewWidth(self.view.bounds.size.width)
-        return self.chatInputView
     }
 
     func updateTableViewContentInsets(with keyboardHeight: CGFloat, adjustContentOffset: Bool) {
@@ -221,6 +244,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
             // and bottom inset increased from 0 to some value. Do not scroll when that happens.
             adjustContentOffset = false
         }
+        
         if adjustContentOffset {
             contentOffset.y += bottomInset - currentInset.bottom
         }
@@ -255,12 +279,14 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         }
     }
 
+    // MARK: ChatInputView Delegates
+    
     func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
         if let toUserId = self.fromUserId {
             AppContext.shared.chatData.sendMessage(toUserId: toUserId, text: text, media: [])
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-                self.scrollToBottom(false)
-            }
+//            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+//                self.scrollToBottom(false)
+//            }
         }
         self.chatInputView.text = ""
     }
@@ -467,8 +493,8 @@ class ChatTableViewCell: UITableViewCell {
         self.selectionStyle = .none
         
         self.contentView.preservesSuperviewLayoutMargins = false
-        self.contentView.layoutMargins.top = 5
-        self.contentView.layoutMargins.bottom = 5
+        self.contentView.layoutMargins.top = 0
+        self.contentView.layoutMargins.bottom = 10
         
         self.contentView.addSubview(self.chatView)
         
@@ -484,8 +510,9 @@ class ChatTableViewCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        self.chatView.clearMedia()
     }
-
+    
     func update(with chatMessage: ChatMessage) {
         self.chatView.updateWith(chatMessageItem: chatMessage)
     }
@@ -510,8 +537,8 @@ class ChatTableViewUserCell: UITableViewCell {
         self.selectionStyle = .none
         
         self.contentView.preservesSuperviewLayoutMargins = false
-        self.contentView.layoutMargins.top = 5
-        self.contentView.layoutMargins.bottom = 5
+        self.contentView.layoutMargins.top = 0
+        self.contentView.layoutMargins.bottom = 10
         
         self.contentView.addSubview(self.chatUserView)
         
@@ -527,6 +554,7 @@ class ChatTableViewUserCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        self.chatUserView.clearTicks()
     }
 
     func update(with chatMessage: ChatMessage) {
