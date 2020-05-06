@@ -117,13 +117,24 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         }
     }
     
-    private func processIncomingChatAck(_ xmppChatAckEl: XMLElement) {
-        guard let xmppChatAck = XMPPChatAck(itemElement: xmppChatAckEl) else {
-            DDLogError("Invalid chatAck: [\(xmppChatAckEl)]")
-            return
-        }
+    private func processIncomingChatAck(_ xmppChatAck: XMPPAck) {
+        self.updateChatMessage(with: xmppChatAck.id) { (chatMessage) in
+            DDLogError("ChatData/processAck [\(xmppChatAck.id)]")
 
-        self.processAck(xmppChatAck: xmppChatAck)
+            // outgoing message
+            if chatMessage.senderStatus != .none {
+                if chatMessage.senderStatus == .pending {
+                    chatMessage.senderStatus = .sentOut
+                }
+                if let serverTimestamp = xmppChatAck.timestamp {
+                    chatMessage.timestamp = serverTimestamp
+                }
+            } else {
+//                if chatMessage.receiverStatus == .haveSeen {
+//                    chatMessage.receiverStatus = .sentSeenReceipt
+//                }
+            }
+        }
     }
     
     private func processIncomingChatMessage(_ chatMessageEl: XMLElement) {
@@ -137,30 +148,6 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             self.process(xmppChatMessage: xmppChatMessage, using: managedObjectContext)
         }
         
-    }
-    
-    
-    private func processAck(xmppChatAck: XMPPChatAck) {
-        
-        self.updateChatMessage(with: xmppChatAck.id) { (chatMessage) in
-            DDLogError("ChatData/processAck [\(xmppChatAck.id)]")
-            
-            // outgoing message
-            if chatMessage.senderStatus != .none {
-                if chatMessage.senderStatus == .pending {
-                    chatMessage.senderStatus = .sentOut
-                }
-                if let serverTimestamp = xmppChatAck.timestamp {
-                    chatMessage.timestamp = Date(timeIntervalSince1970: serverTimestamp)
-                }
-            } else {
-//                if chatMessage.receiverStatus == .haveSeen {
-//                    chatMessage.receiverStatus = .sentSeenReceipt
-//                }
-            }
-            
-        }
-
     }
     
     private func process(xmppChatMessage: XMPPChatMessage, using managedObjectContext: NSManagedObjectContext) {
@@ -452,41 +439,6 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         }
     }
 }
-
-
-struct XMPPChatAck {
-    let from: String
-    let to: String
-    let id: String
-    var timestamp: TimeInterval?
-
-    init(id: String) {
-        self.from = AppContext.shared.userData.userId
-        self.to = "pubsub.s.halloapp.net"
-        self.id = id
-    }
-
-    init?(itemElement item: XMLElement) {
-        guard let from = item.attributeStringValue(forName: "from") else { return nil }
-        guard let to = item.attributeStringValue(forName: "to")?.components(separatedBy: "@").first else { return nil }
-        guard let id = item.attributeStringValue(forName: "id") else { return nil }
-        self.from = from
-        self.to = to
-        self.id = id
-        self.timestamp = item.attributeDoubleValue(forName: "timestamp")
-    }
-
-    var xmppElement: XMPPElement {
-        get {
-            let message = XMPPElement(name: "ack")
-            message.addAttribute(withName: "to", stringValue: to)
-            message.addAttribute(withName: "id", stringValue: id)
-            return message
-        }
-    }
-    
-}
-
 
 struct XMPPChatMessage {
     let id: String

@@ -46,7 +46,7 @@ class XMPPController: NSObject, ObservableObject {
     
     var didGetNewChatMessage = PassthroughSubject<XMPPMessage, Never>()
 
-    var didGetAck = PassthroughSubject<XMLElement, Never>()
+    var didGetAck = PassthroughSubject<XMPPAck, Never>()
 
     var xmppStream: XMPPStream
     private var xmppPubSub: XMPPPubSub
@@ -200,18 +200,13 @@ class XMPPController: NSObject, ObservableObject {
         self.enqueue(request: request)
     }
 
+    // MARK: Acks
+
     func sendAck(for message: XMPPMessage) {
-        guard let id = message.elementID else { return }
-        guard let from = message.toStr else { return }
-        guard let to = message.fromStr else { return }
-
-        DDLogDebug("connection/send-ack id=[\(id)] to=[\(to)] from=[\(from)]")
-
-        let ack = XMLElement(name: "ack")
-        ack.addAttribute(withName: "from", stringValue: from)
-        ack.addAttribute(withName: "to", stringValue: to)
-        ack.addAttribute(withName: "id", stringValue: id)
-        self.xmppStream.send(ack)
+        if let ack = XMPPAck.ack(for: message) {
+            DDLogDebug("connection/send-ack id=[\(ack.id)] to=[\(ack.to)] from=[\(ack.from)]")
+            self.xmppStream.send(ack.xmlElement)
+        }
     }
 
     // MARK: Requests
@@ -489,7 +484,12 @@ extension XMPPController: XMPPStreamDelegate {
     func xmppStream(_ sender: XMPPStream, didReceiveCustomElement element: DDXMLElement) {
 //        DDLogInfo("Stream: didReceiveCustomElement: \(element)")
         if element.name == "ack" {
-            self.didGetAck.send(element)
+            if let ack = XMPPAck(itemElement: element) {
+                self.didGetAck.send(ack)
+            } else {
+                DDLogError("xmpp/ack/invalid [\(element)]")
+            }
+            return
         }
     }
 }

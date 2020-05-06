@@ -63,6 +63,7 @@
 		766103A72461EE8200728870 /* receipts.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A62461EE8200728870 /* receipts.pb.swift */; };
 		766103AA2461F08A00728870 /* FeedPostInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A82461F08A00728870 /* FeedPostInfo+CoreDataClass.swift */; };
 		766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A92461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift */; };
+		766481FE246335D900639692 /* XMPPAck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766481FD246335D900639692 /* XMPPAck.swift */; };
 		766492232450DDB9009BC368 /* BadgedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492222450DDB9009BC368 /* BadgedButton.swift */; };
 		766492252450E04D009BC368 /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492242450E04D009BC368 /* BadgeView.swift */; };
 		76649227245119F2009BC368 /* FeedNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76649226245119F2009BC368 /* FeedNotifications.swift */; };
@@ -217,6 +218,7 @@
 		766103A62461EE8200728870 /* receipts.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = receipts.pb.swift; path = HalloApp/Models/Receipts/receipts.pb.swift; sourceTree = SOURCE_ROOT; };
 		766103A82461F08A00728870 /* FeedPostInfo+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FeedPostInfo+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostInfo+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		766103A92461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FeedPostInfo+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostInfo+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		766481FD246335D900639692 /* XMPPAck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = XMPPAck.swift; path = HalloApp/Models/XMPP/XMPPAck.swift; sourceTree = SOURCE_ROOT; };
 		766492222450DDB9009BC368 /* BadgedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgedButton.swift; path = HalloApp/Components/Views/BadgedButton.swift; sourceTree = SOURCE_ROOT; };
 		766492242450E04D009BC368 /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgeView.swift; path = HalloApp/Components/Views/BadgeView.swift; sourceTree = SOURCE_ROOT; };
 		76649226245119F2009BC368 /* FeedNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedNotifications.swift; path = HalloApp/Models/Feed/FeedNotifications.swift; sourceTree = SOURCE_ROOT; };
@@ -479,6 +481,7 @@
 			isa = PBXGroup;
 			children = (
 				761B3950241AF01E00858251 /* Requests */,
+				766481FD246335D900639692 /* XMPPAck.swift */,
 				76DFA0062419BC1F00F49CA4 /* XMPPError.swift */,
 				76C69E422447A9A200338D4C /* XMPPFeed.swift */,
 				766103A02460DBA200728870 /* XMPPReceipt.swift */,
@@ -1069,6 +1072,7 @@
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				EAD476D02457B09600EF8591 /* MessageComposerView.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
+				766481FE246335D900639692 /* XMPPAck.swift in Sources */,
 				EA45713923EB7EC8008C2E44 /* MediaCell.swift in Sources */,
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
