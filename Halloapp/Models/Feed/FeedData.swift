@@ -872,6 +872,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    func xmppController(_ xmppController: XMPPController, didSendFeedReceipt receipt: XMPPReceipt) {
+    }
+
     // MARK: Feed Media
 
     /**

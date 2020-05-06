@@ -20,10 +20,12 @@ protocol XMPPControllerFeedDelegate: AnyObject {
     func xmppController(_ xmppController: XMPPController, didReceiveFeedItems items: [XMLElement], in xmppMessage: XMPPMessage?)
     func xmppController(_ xmppController: XMPPController, didReceiveFeedRetracts items: [XMLElement], in xmppMessage: XMPPMessage?)
     func xmppController(_ xmppController: XMPPController, didReceiveFeedReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?)
+    func xmppController(_ xmppController: XMPPController, didSendFeedReceipt receipt: XMPPReceipt)
 }
 
 protocol XMPPControllerChatDelegate: AnyObject {
     func xmppController(_ xmppController: XMPPController, didReceiveMessageReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?)
+    func xmppController(_ xmppController: XMPPController, didSendMessageReceipt receipt: XMPPReceipt)
 }
 
 class XMPPController: NSObject, ObservableObject {
@@ -200,7 +202,7 @@ class XMPPController: NSObject, ObservableObject {
         self.enqueue(request: request)
     }
 
-    // MARK: Acks
+    // MARK: Acks & Receipts
 
     func sendAck(for message: XMPPMessage) {
         if let ack = XMPPAck.ack(for: message) {
@@ -210,16 +212,44 @@ class XMPPController: NSObject, ObservableObject {
     }
 
     fileprivate func processIncomingAck(_ ack: XMPPAck) {
-        // TODO: process receipt acks and don't propagate them outside of XMPPController.
+        // Receipt acks.
+        let receiptKey = ack.id
+        if let receipt = self.sentSeenReceipts[ack.id] {
+            self.unackedReceipts.removeValue(forKey: receiptKey)
+            self.sentSeenReceipts.removeValue(forKey: receiptKey)
+
+            if case .feed = receipt.thread {
+                if let delegate = self.feedDelegate {
+                    delegate.xmppController(self, didSendFeedReceipt: receipt)
+                }
+            } else {
+                if let delegate = self.chatDelegate {
+                    delegate.xmppController(self, didSendMessageReceipt: receipt)
+                }
+            }
+            return
+        }
+
+        // Message acks.
         self.didGetAck.send(ack)
     }
 
-    // MARK: "Seen" Receipts
+    // Key is message's id - it would be the same as "id" in ack.
+    private var sentSeenReceipts: [ String : XMPPReceipt ] = [:]
+    private var unackedReceipts: [ String : XMPPMessage ] = [:]
 
     func sendSeenReceipt(_ receipt: XMPPReceipt, to userId: UserID) {
         let toJID = XMPPJID(user: userId, domain: "s.halloapp.net", resource: nil)
-        let message = XMPPMessage(messageType: nil, to: toJID, elementID: UUID().uuidString, child: receipt.xmlElement)
+        let messageId = UUID().uuidString
+        let message = XMPPMessage(messageType: nil, to: toJID, elementID: messageId, child: receipt.xmlElement)
+        let receiptKey = messageId
+        self.sentSeenReceipts[receiptKey] = receipt
+        self.unackedReceipts[receiptKey] = message
         self.xmppStream.send(message)
+    }
+
+    fileprivate func resendAllPendingReceipts() {
+        self.unackedReceipts.forEach { self.xmppStream.send($1) }
     }
 
     // MARK: Requests
@@ -459,6 +489,8 @@ extension XMPPController: XMPPStreamDelegate {
         self.xmppStream.send(XMPPPresence())
 
         self.resendAllPendingRequests()
+
+        self.resendAllPendingReceipts()
     }
     
     func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: DDXMLElement) {

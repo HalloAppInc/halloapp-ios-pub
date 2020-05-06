@@ -437,6 +437,10 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             xmppController.sendAck(for: message)
         }
     }
+
+    func xmppController(_ xmppController: XMPPController, didSendMessageReceipt receipt: XMPPReceipt) {
+        // TODO: change message status to "read".
+    }
 }
 
 struct XMPPChatMessage {
