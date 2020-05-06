@@ -47,6 +47,8 @@
 		76407DFE245CBAE30031F96A /* Registration.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 76407DFD245CBAE30031F96A /* Registration.storyboard */; };
 		764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */; };
 		764A0E68244617D800E1BDCE /* schema.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E67244617D800E1BDCE /* schema.pb.swift */; };
+		764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
+		764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F7750246226120063645A /* FeedPostSeenByViewController.swift */; };
 		76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */; };
 		76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538089243D4B32000AD9A1 /* FeedNotification+CoreDataClass.swift */; };
 		76538092243D4B33000AD9A1 /* FeedPostComment+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808A243D4B32000AD9A1 /* FeedPostComment+CoreDataClass.swift */; };
@@ -198,6 +200,8 @@
 		76407DFD245CBAE30031F96A /* Registration.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Registration.storyboard; path = HalloApp/Views/Registration/Registration.storyboard; sourceTree = SOURCE_ROOT; };
 		764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationsViewController.swift; sourceTree = "<group>"; };
 		764A0E67244617D800E1BDCE /* schema.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = schema.pb.swift; path = HalloApp/Proto/schema.pb.swift; sourceTree = SOURCE_ROOT; };
+		764F774D246224C30063645A /* ContactTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactTableViewCell.swift; path = HalloApp/Components/Views/ContactTableViewCell.swift; sourceTree = SOURCE_ROOT; };
+		764F7750246226120063645A /* FeedPostSeenByViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPostSeenByViewController.swift; path = "HalloApp/Views/Home/Feed/Seen By/FeedPostSeenByViewController.swift"; sourceTree = SOURCE_ROOT; };
 		76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPost+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPost+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		76538089243D4B32000AD9A1 /* FeedNotification+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedNotification+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedNotification+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		7653808A243D4B32000AD9A1 /* FeedPostComment+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostComment+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostComment+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -405,6 +409,7 @@
 				766492222450DDB9009BC368 /* BadgedButton.swift */,
 				766492242450E04D009BC368 /* BadgeView.swift */,
 				761905A22459EB07008FC600 /* InputTextView.swift */,
+				764F774D246224C30063645A /* ContactTableViewCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -415,6 +420,14 @@
 				764A0E67244617D800E1BDCE /* schema.pb.swift */,
 			);
 			path = Proto;
+			sourceTree = "<group>";
+		};
+		764F774F246225E30063645A /* Seen By */ = {
+			isa = PBXGroup;
+			children = (
+				764F7750246226120063645A /* FeedPostSeenByViewController.swift */,
+			);
+			path = "Seen By";
 			sourceTree = "<group>";
 		};
 		766103A22461E63200728870 /* Receipts */ = {
@@ -522,6 +535,7 @@
 				EA5414D623EE16D500390EF6 /* Comment */,
 				EA5414D423EE164C00390EF6 /* Media */,
 				EA5414D523EE169E00390EF6 /* MediaSlider */,
+				764F774F246225E30063645A /* Seen By */,
 				76A92443244E659600794859 /* FeedViewController.swift */,
 			);
 			path = Feed;
@@ -988,6 +1002,7 @@
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */,
 				76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */,
+				764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */,
 				766103A72461EE8200728870 /* receipts.pb.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
 				EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */,
@@ -1032,6 +1047,7 @@
 				EAD476F92458F9FE00EF8591 /* ChatMessageMedia.swift in Sources */,
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */,
+				764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
 				EA45713F23EB7F76008C2E44 /* WMediaSlider.swift in Sources */,

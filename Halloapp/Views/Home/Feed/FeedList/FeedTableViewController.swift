@@ -237,6 +237,10 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
                 guard let self = self else { return }
                 self.showMessageView(with: feedPost.userId)
             }
+            cell.showSeenByAction = { [weak self] in
+                guard let self = self else { return }
+                self.showSeenByView(for: feedPost.id)
+            }
         }
         cell.delegate = self
         return cell
@@ -266,16 +270,19 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         self.tableView.endUpdates()
     }
 
-    // MARK: Comments
+    // MARK: Post Actions
 
     private func showCommentsView(for postId: FeedPostID) {
         self.navigationController?.pushViewController(CommentsViewController(feedPostId: postId), animated: true)
     }
 
-    // MARK: Message
-
     private func showMessageView(with chatWithUserId: String) {
         self.navigationController?.pushViewController(ChatViewController(fromUserId: chatWithUserId), animated: true)
+    }
+
+    private func showSeenByView(for postId: FeedPostID) {
+        let seenByViewController = FeedPostSeenByViewController(feedPostId: postId)
+        self.present(UINavigationController(rootViewController: seenByViewController), animated: true)
     }
 }
 
@@ -303,6 +310,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
 
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
+    var showSeenByAction: (() -> ())?
 
     weak var delegate: FeedTableViewCellDelegate?
 
@@ -397,6 +405,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         // Connect actions of footer view buttons
         self.footerView.commentButton.addTarget(self, action: #selector(showComments), for: .touchUpInside)
         self.footerView.messageButton.addTarget(self, action: #selector(messageContact), for: .touchUpInside)
+        self.footerView.seenByButton.addTarget(self, action: #selector(showSeenBy), for: .touchUpInside)
     }
 
     public func configure(with post: FeedPost, contentWidth: CGFloat) {
@@ -459,6 +468,13 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     private func messageContact() {
         if self.messageAction != nil {
             self.messageAction!()
+        }
+    }
+
+    @objc(showSeenBy)
+    private func showSeenBy() {
+        if self.showSeenByAction != nil {
+            self.showSeenByAction!()
         }
     }
 }
@@ -728,8 +744,6 @@ fileprivate class FeedItemFooterView: UIView {
 
     }
 
-    private var buttonsView: UIView?
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.setupView()
@@ -768,6 +782,26 @@ fileprivate class FeedItemFooterView: UIView {
         return button
     }()
 
+    lazy var seenByLabel: UILabel = {
+        let label = UILabel()
+        label.font = .preferredFont(forTextStyle: .footnote)
+        label.textColor = .secondaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    lazy var seenByButton: UIButton = {
+        let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 4 : -4
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "eye.fill"), for: .normal)
+        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        button.contentEdgeInsets.top = 15
+        button.contentEdgeInsets.bottom = 9
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
+        return button
+    }()
+
     private func setupView() {
         self.isUserInteractionEnabled = true
 
@@ -780,7 +814,7 @@ fileprivate class FeedItemFooterView: UIView {
         separator.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         separator.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
 
-        let hStack = UIStackView(arrangedSubviews: [ self.commentButton, self.messageButton ])
+        let hStack = UIStackView(arrangedSubviews: [ self.commentButton, self.messageButton, self.seenByButton ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.distribution = .fillProportionally
@@ -793,7 +827,13 @@ fileprivate class FeedItemFooterView: UIView {
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
         self.commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .green : .gray)
-        self.messageButton.isHidden = post.userId == AppContext.shared.userData.userId
+        let usersOwnPost = post.userId == AppContext.shared.userData.userId
+        self.messageButton.isHidden = usersOwnPost
+        self.seenByButton.isHidden = !usersOwnPost
+        if usersOwnPost {
+            let seenCount = post.info?.receipts?.count ?? 0
+            self.seenByButton.setTitle("\(seenCount)", for: .normal)
+        }
     }
 
     func prepareForReuse() { }

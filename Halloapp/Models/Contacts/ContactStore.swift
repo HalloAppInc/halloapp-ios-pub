@@ -860,6 +860,22 @@ class ContactStore: ObservableObject {
         }
     }
 
+    func allRegisteredContacts(sorted: Bool) -> [ABContact] {
+        let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
+        fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
+        fetchRequst.returnsObjectsAsFaults = false
+        if sorted {
+            fetchRequst.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
+        }
+        do {
+            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequst)
+            return contacts
+        }
+        catch {
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+    }
+
     // MARK: SwiftUI Support
 
     func fullName(for userID: UserID) -> String {
