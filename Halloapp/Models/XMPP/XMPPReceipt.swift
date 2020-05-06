@@ -25,8 +25,34 @@ struct XMPPReceipt {
     let itemId: String
     let userId: UserID
     let `type`: Type
-    let timestamp: Date
+    let timestamp: Date?
     let thread: Thread
+
+    private init(feedItem: FeedItemProtocol) {
+        self.itemId = feedItem.id
+        self.userId = feedItem.userId
+        self.type = .read
+        self.thread = .feed
+        // Server timestamps outgoing receipts.
+        self.timestamp = nil
+    }
+
+    static func seenReceipt(for feedItem: FeedItemProtocol) -> XMPPReceipt {
+        return XMPPReceipt(feedItem: feedItem)
+    }
+
+    private init(chatMessage: ChatMessage) {
+        self.itemId =  chatMessage.id
+        self.userId = chatMessage.fromUserId
+        self.type = .read
+        self.thread = .none
+        // Server timestamps outgoing receipts.
+        self.timestamp = nil
+    }
+
+    static func seenReceipt(for chatMessage: ChatMessage) -> XMPPReceipt {
+        return XMPPReceipt(chatMessage: chatMessage)
+    }
 
     init?(xmlElement: XMLElement, userId: UserID, type: XMPPReceipt.`Type`) {
         guard let itemId = xmlElement.attributeStringValue(forName: "id") else { return nil }
@@ -47,6 +73,28 @@ struct XMPPReceipt {
         }
         self.type = type
     }
+
+    var xmlElement: XMLElement {
+        get {
+            let elementName: String = {
+                switch type {
+                case .delivery: return "received"
+                case .read: return "seen"
+                }}()
+            let receipt = XMLElement(name: elementName, xmlns: "urn:xmpp:receipts")
+            receipt.addAttribute(withName: "id", stringValue: itemId)
+            if let threadId: String = {
+                switch thread {
+                case .none: return nil
+                case .feed: return "feed"
+                case let .group(groupId): return groupId
+                }}() {
+                receipt.addAttribute(withName: "thread_id", stringValue: threadId)
+            }
+            return receipt
+        }
+    }
+
 }
 
 

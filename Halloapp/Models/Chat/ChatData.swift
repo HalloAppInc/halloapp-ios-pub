@@ -222,7 +222,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         // TODO: send this only after save was successful
         if isCurrentlyChattingWithUser {
-            self.sendSeenReceipt(toUserId: chatMessage.fromUserId, forMessageId: chatMessage.id)
+            self.sendSeenReceipt(for: chatMessage)
             // TODO: update core data to reflect status, after ack back from server that message was sent
             self.updateChatMessage(with: chatMessage.id) { (chatMessage) in
                 chatMessage.receiverStatus = .sentSeenReceipt
@@ -233,9 +233,8 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
     }
         
-    func sendSeenReceipt(toUserId: String, forMessageId: String) {
-        let xmppChatMessageSeenReceipt = XMPPChatMessageReceipt(type: .seen, toUserId: toUserId, forMessageId: forMessageId)
-        AppContext.shared.xmppController.xmppStream.send(xmppChatMessageSeenReceipt.xmppElement)
+    func sendSeenReceipt(for chatMessage: ChatMessage) {
+        self.xmppController.sendSeenReceipt(XMPPReceipt.seenReceipt(for: chatMessage), to: chatMessage.fromUserId)
     }
     
     func sendMessage(toUserId: String, text: String, media: [PendingChatMessageMedia]) {
@@ -390,7 +389,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                         
             // TODO: only change to sent after ack from server
             unseenChatMessages.forEach {
-                self.sendSeenReceipt(toUserId: $0.fromUserId, forMessageId: $0.id)
+                self.sendSeenReceipt(for: $0)
 
                 $0.receiverStatus = ChatMessage.ReceiverStatus.sentSeenReceipt
             }
@@ -622,78 +621,4 @@ extension Proto_Container {
         }
         return nil
     }
-}
-
-
-struct XMPPChatMessageReceipt {
-    
-    enum ReceiptType: Int16 {
-        case received = 0
-        case seen = 1
-    }
-    
-    let id: String
-    let fromUserId: UserID
-    let toUserId: UserID
-    let type: ReceiptType
-    let forMessageId: String
-    var timestamp: TimeInterval?
-
-    init(type: ReceiptType, toUserId: String, forMessageId: String) {
-        self.id = UUID().uuidString
-        self.toUserId = toUserId
-        self.fromUserId = AppContext.shared.userData.userId
-        self.forMessageId = forMessageId
-        self.type = type
-    }
-
-    init?(itemElement item: XMLElement) {
-        guard let id = item.attributeStringValue(forName: "id") else { return nil }
-        guard let toUserId = item.attributeStringValue(forName: "to")?.components(separatedBy: "@").first else { return nil }
-        guard let fromUserId = item.attributeStringValue(forName: "from")?.components(separatedBy: "@").first else { return nil }
-
-        var typeEl = item.element(forName: "received")
-        var type: ReceiptType = .received
-        if typeEl == nil {
-            typeEl = item.element(forName: "seen")
-            type = .seen
-        }
-        
-        guard let forMessageId = typeEl?.attributeStringValue(forName: "id") else { return nil }
-        guard let timestamp = typeEl?.attributeDoubleValue(forName: "timestamp") else { return nil }
-        
-        self.id = id
-        self.toUserId = toUserId
-        self.fromUserId = fromUserId
-        self.type = type
-        self.forMessageId = forMessageId
-        self.timestamp = timestamp
-    }
-
-    var xmppElement: XMPPElement {
-        get {
-            let message = XMPPElement(name: "message")
-            message.addAttribute(withName: "id", stringValue: id)
-            message.addAttribute(withName: "to", stringValue: "\(toUserId)@s.halloapp.net")
-            
-            if type == .received {
-                message.addChild({
-                    let received = XMPPElement(name: "received")
-                    received.addAttribute(withName: "xmlns", stringValue: "urn:xmpp:receipts")
-                    received.addAttribute(withName: "id", stringValue: forMessageId)
-                    return received
-                }())
-            } else if type == .seen {
-                message.addChild({
-                    let seen = XMPPElement(name: "seen")
-                    seen.addAttribute(withName: "xmlns", stringValue: "urn:xmpp:receipts")
-                    seen.addAttribute(withName: "id", stringValue: forMessageId)
-                    return seen
-                }())
-            }
-
-            return message
-        }
-    }
-    
 }

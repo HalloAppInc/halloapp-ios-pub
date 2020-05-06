@@ -858,7 +858,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 receipts[xmppReceipt.userId] = Receipt()
             }
             receipts[xmppReceipt.userId]!.seenDate = xmppReceipt.timestamp
-            DDLogInfo("FeedData/seen-receipt/update  userId=[\(xmppReceipt.userId)]  ts=[\(xmppReceipt.timestamp)]  itemId=[\(xmppReceipt.itemId)]")
+            DDLogInfo("FeedData/seen-receipt/update  userId=[\(xmppReceipt.userId)]  ts=[\(xmppReceipt.timestamp!)]  itemId=[\(xmppReceipt.itemId)]")
             feedPost.info!.receipts = receipts
             feedPost.didChangeValue(forKey: "info")
 

@@ -214,6 +214,14 @@ class XMPPController: NSObject, ObservableObject {
         self.didGetAck.send(ack)
     }
 
+    // MARK: "Seen" Receipts
+
+    func sendSeenReceipt(_ receipt: XMPPReceipt, to userId: UserID) {
+        let toJID = XMPPJID(user: userId, domain: "s.halloapp.net", resource: nil)
+        let message = XMPPMessage(messageType: nil, to: toJID, elementID: UUID().uuidString, child: receipt.xmlElement)
+        self.xmppStream.send(message)
+    }
+
     // MARK: Requests
     private var requestsInFlight: [XMPPRequest] = []
     private var requestsToSend: [XMPPRequest] = []
