@@ -504,7 +504,7 @@ class ChatTableViewCell: UITableViewCell {
         self.chatView.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = false
         self.chatView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        self.chatView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.8).isActive = true
+        self.chatView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.85).isActive = true
         self.chatView.layer.cornerRadius = 20.0
     }
 
@@ -548,7 +548,7 @@ class ChatTableViewUserCell: UITableViewCell {
         self.chatUserView.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
         self.chatUserView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        self.chatUserView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.8).isActive = true
+        self.chatUserView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.85).isActive = true
         self.chatUserView.layer.cornerRadius = 20.0
     }
 
