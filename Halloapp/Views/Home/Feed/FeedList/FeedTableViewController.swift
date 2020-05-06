@@ -794,6 +794,8 @@ fileprivate class FeedItemFooterView: UIView {
         return button
     }()
 
+    var hStack: UIStackView?
+
     private func setupView() {
         self.isUserInteractionEnabled = true
 
@@ -815,6 +817,7 @@ fileprivate class FeedItemFooterView: UIView {
         hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        self.hStack = hStack
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
@@ -826,6 +829,7 @@ fileprivate class FeedItemFooterView: UIView {
             let seenCount = post.info?.receipts?.count ?? 0
             self.seenByButton.setTitle("\(seenCount)", for: .normal)
         }
+        hStack?.setNeedsLayout()
     }
 
     func prepareForReuse() { }
