@@ -209,6 +209,11 @@ class XMPPController: NSObject, ObservableObject {
         }
     }
 
+    fileprivate func processIncomingAck(_ ack: XMPPAck) {
+        // TODO: process receipt acks and don't propagate them outside of XMPPController.
+        self.didGetAck.send(ack)
+    }
+
     // MARK: Requests
     private var requestsInFlight: [XMPPRequest] = []
     private var requestsToSend: [XMPPRequest] = []
@@ -485,7 +490,7 @@ extension XMPPController: XMPPStreamDelegate {
 //        DDLogInfo("Stream: didReceiveCustomElement: \(element)")
         if element.name == "ack" {
             if let ack = XMPPAck(itemElement: element) {
-                self.didGetAck.send(ack)
+                self.processIncomingAck(ack)
             } else {
                 DDLogError("xmpp/ack/invalid [\(element)]")
             }
