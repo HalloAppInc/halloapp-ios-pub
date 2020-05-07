@@ -172,15 +172,15 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
                     at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         
         switch type {
+        case .update:
+            DDLogDebug("ChatView/frc/update")
         case .insert:
             DDLogDebug("ChatView/frc/insert")
             self.shouldScrollToBottom = true
-        case .delete:
-            DDLogDebug("ChatView/frc/delete")
-        case .update:
-            DDLogDebug("ChatView/frc/update")
         case .move:
             DDLogDebug("ChatView/frc/move")
+        case .delete:
+            DDLogDebug("ChatView/frc/delete")
         default:
             break
         }
@@ -190,8 +190,8 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.updateData(animatingDifferences: false)
         
         if self.shouldScrollToBottom {
-            self.shouldScrollToBottom = false
             self.scrollToBottom(true)
+            self.shouldScrollToBottom = false
         }
     }
 

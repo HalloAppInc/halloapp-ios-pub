@@ -116,6 +116,8 @@ class ChatView: UIView {
         let text = chatMessageItem.text ?? ""
         self.textView.text = text
         
+//        self.textView.text += " \(chatMessageItem.timestamp!)"
+        
         if let media = chatMessageItem.media {
             if media.count > 0 {
                 self.mediaImageView.isHidden = false

@@ -27,18 +27,18 @@ class ChatUserView: UIView {
     }()
     
     private lazy var sentTickImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.init(systemName: "checkmark"))
+        let imageView = UIImageView(image: UIImage(named: "CheckmarkSingle")?.withRenderingMode(.alwaysTemplate))
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
+        imageView.contentMode = .scaleAspectFill
         imageView.tintColor = UIColor.systemGray3
         imageView.isHidden = true
         return imageView
     }()
     
     private lazy var deliveredTickImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.init(systemName: "checkmark"))
+        let imageView = UIImageView(image: UIImage(named: "CheckmarkDouble")?.withRenderingMode(.alwaysTemplate))
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
+        imageView.contentMode = .scaleAspectFill
         imageView.tintColor = UIColor.systemGray3
         imageView.isHidden = true
         return imageView
@@ -76,8 +76,7 @@ class ChatUserView: UIView {
         vStack.spacing = 4
         self.addSubview(vStack)
         
-        let imageSize: CGFloat = 12.0
-        let views = [ "vstack": vStack, "sentTick": self.sentTickImageView, "deliveredTick": self.deliveredTickImageView ]
+        let imageSize: CGFloat = 10.0
         
         NSLayoutConstraint(item: self.sentTickImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
         NSLayoutConstraint(item: self.sentTickImageView, attribute: .height, relatedBy: .equal, toItem: self.sentTickImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
@@ -85,13 +84,15 @@ class ChatUserView: UIView {
         NSLayoutConstraint(item: self.deliveredTickImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
         NSLayoutConstraint(item: self.deliveredTickImageView, attribute: .height, relatedBy: .equal, toItem: self.deliveredTickImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
         
+        let views = [ "vstack": vStack, "sentTick": self.sentTickImageView, "deliveredTick": self.deliveredTickImageView ]
+        
         self.addConstraint({
             self.leadingMargin = NSLayoutConstraint(item: vStack, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1, constant: 0)
             return self.leadingMargin! }())
         
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "[vstack]-(-3)-[sentTick]-(-4)-[deliveredTick]-5-|", options: .directionLeadingToTrailing, metrics: nil, views: views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[sentTick]-13-|", options: [], metrics: nil, views: views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[deliveredTick]-13-|", options: [], metrics: nil, views: views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "[vstack]-0-[sentTick]-(-8)-[deliveredTick]-10-|", options: .directionLeadingToTrailing, metrics: nil, views: views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[sentTick]-14-|", options: [], metrics: nil, views: views))
+        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[deliveredTick]-14-|", options: [], metrics: nil, views: views))
         self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[vstack]|", options: [], metrics: nil, views: views))
     }
 
@@ -107,12 +108,12 @@ class ChatUserView: UIView {
 
         switch chatMessageItem.senderStatus {
         case .seen:
-            self.sentTickImageView.isHidden = false
+            self.sentTickImageView.isHidden = true
             self.sentTickImageView.tintColor = UIColor.systemBlue
             self.deliveredTickImageView.isHidden = false
             self.deliveredTickImageView.tintColor = UIColor.systemBlue
         case .delivered:
-            self.sentTickImageView.isHidden = false
+            self.sentTickImageView.isHidden = true
             self.sentTickImageView.tintColor = UIColor.systemGray3
             self.deliveredTickImageView.isHidden = false
             self.deliveredTickImageView.tintColor = UIColor.systemGray3

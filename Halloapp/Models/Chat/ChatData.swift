@@ -53,7 +53,29 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             }
         )
         
-        // TODO: check for any pending outgoing messages and send them out
+        self.cancellableSet.insert(
+            self.xmppController.didConnect.sink { _ in
+                self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+                    let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: managedObjectContext)
+                    
+                    // inject delay between batch sends so that they won't be timestamped the same time,
+                    // which causes display of messages to be in mixed order
+                    var timeDelay = 0.0
+                    pendingOutgoingChatMessages.forEach {
+                        let xmppChatMessage = XMPPChatMessage(chatMessage: $0).xmppElement
+                        self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) {
+                            AppContext.shared.xmppController.xmppStream.send(xmppChatMessage)
+                        }
+                        timeDelay += 1.0
+                    }
+
+                    let pendingOutgoingSeenReceipts = self.pendingOutgoingSeenReceipts(in: managedObjectContext)
+                    pendingOutgoingSeenReceipts.forEach {
+                        self.sendSeenReceipt(for: $0)
+                    }
+                }
+            }
+        )
         
     }
     
@@ -220,12 +242,11 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
 
         self.save(managedObjectContext)
         
-        // TODO: send this only after save was successful
         if isCurrentlyChattingWithUser {
             self.sendSeenReceipt(for: chatMessage)
-            // TODO: update core data to reflect status, after ack back from server that message was sent
+            
             self.updateChatMessage(with: chatMessage.id) { (chatMessage) in
-                chatMessage.receiverStatus = .sentSeenReceipt
+                chatMessage.receiverStatus = .haveSeen
             }
         } else {
             self.unreadMessageCount += 1
@@ -287,6 +308,8 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         self.save(managedObjectContext)
 
+        print("send realtime: \(xmppChatMessage.xmppElement)")
+        
         AppContext.shared.xmppController.xmppStream.send(xmppChatMessage.xmppElement)
     }
 
@@ -318,6 +341,20 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
         ]
         return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && toUserId = %@ && (receiverStatusValue = %d OR receiverStatusValue = %d)", fromUserId, AppContext.shared.userData.userId, ChatMessage.ReceiverStatus.none.rawValue, ChatMessage.ReceiverStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+    
+    func pendingOutgoingChatMessages(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
+        ]
+        return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && senderStatusValue = %d", AppContext.shared.userData.userId, ChatMessage.SenderStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+    
+    func pendingOutgoingSeenReceipts(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
+        ]
+        return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && receiverStatusValue = %d", AppContext.shared.userData.userId, ChatMessage.ReceiverStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     // MARK: Fetching Threads
@@ -387,11 +424,9 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
 
             let unseenChatMessages = self.unseenChatMessages(with: chatWithUserId, in: managedObjectContext)
                         
-            // TODO: only change to sent after ack from server
             unseenChatMessages.forEach {
                 self.sendSeenReceipt(for: $0)
-
-                $0.receiverStatus = ChatMessage.ReceiverStatus.sentSeenReceipt
+                $0.receiverStatus = ChatMessage.ReceiverStatus.haveSeen
             }
 
             if managedObjectContext.hasChanges {
@@ -439,7 +474,14 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     }
 
     func xmppController(_ xmppController: XMPPController, didSendMessageReceipt receipt: XMPPReceipt) {
-        // TODO: change message status to "read".
+        self.updateChatMessage(with: receipt.itemId) { (chatMessage) in
+            DDLogError("ChatData/processReceiptAck [\(receipt.itemId)]")
+
+            if chatMessage.receiverStatus == .haveSeen {
+                chatMessage.receiverStatus = .sentSeenReceipt
+            }
+            
+        }
     }
 }
 
@@ -463,6 +505,16 @@ struct XMPPChatMessage {
         }
     }
 
+    init(chatMessage: ChatMessage) {
+        self.id = chatMessage.id
+        self.fromUserId = chatMessage.fromUserId
+        self.toUserId = chatMessage.toUserId
+        self.text = chatMessage.text
+        
+        // TODO: Media
+        self.media = []
+    }
+    
     init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id") else { return nil }
         guard let toUserId = item.attributeStringValue(forName: "to")?.components(separatedBy: "@").first else { return nil }
