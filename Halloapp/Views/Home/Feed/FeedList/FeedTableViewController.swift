@@ -827,7 +827,7 @@ fileprivate class FeedItemFooterView: UIView {
         let usersOwnPost = post.userId == AppContext.shared.userData.userId
         self.messageButton.isHidden = usersOwnPost
         self.seenByButton.isHidden = !usersOwnPost
-        self.seenByButton.tintColor = .systemGray3
+        self.seenByButton.tintColor = .tertiaryLabel
         hStack?.setNeedsLayout()
     }
 
