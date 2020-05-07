@@ -569,6 +569,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     func xmppController(_ xmppController: XMPPController, didReceiveFeedItems items: [XMLElement], in xmppMessage: XMPPMessage?) {
         var feedPosts: [XMPPFeedPost] = []
         var comments: [XMPPComment] = []
+        var contactNames: [UserID:String] = [:]
         for item in items {
             guard let type = item.attribute(forName: "type")?.stringValue else {
                 DDLogError("Invalid item: [\(item)]")
@@ -581,12 +582,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             } else if type == "comment" {
                 if let comment = XMPPComment(itemElement: item) {
                     comments.append(comment)
+
+                    if let contactName = item.attributeStringValue(forName: "publisher_name") {
+                        contactNames[comment.userId] = contactName
+                    }
                 }
             } else {
                 DDLogError("Invalid item type: [\(type)]")
             }
         }
 
+        if !contactNames.isEmpty {
+            self.contactStore.addPushNames(contactNames)
+        }
+        
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             self.process(posts: feedPosts, using: managedObjectContext)
             let comments = self.process(comments: comments, using: managedObjectContext)

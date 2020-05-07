@@ -874,6 +874,81 @@ class ContactStore: ObservableObject {
         }
     }
 
+    // MARK: Push names
+
+    lazy var pushNames: [UserID : String] = {
+        return fetchAllPushNames()
+    }()
+
+    private func fetchAllPushNames() -> [UserID : String] {
+        let fetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
+        do {
+            let results = try self.persistentContainer.viewContext.fetch(fetchRequest)
+            let names = results.reduce(into: [:]) { $0[$1.userId!] = $1.name }
+            DDLogDebug("contacts/push-name/fetched  count=[\(names.count)]")
+            return names
+        }
+        catch {
+            fatalError("Failed to fetch push names  [\(error)]")
+        }
+    }
+
+    private var pushNameUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.push-name")
+
+    private func savePushNames(_ names: [UserID : String]) {
+        self.performOnBackgroundContextAndWait { (managedObjectContect) in
+            var existingNames: [UserID : PushName] = [:]
+
+            // Fetch existing names.
+            let fetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "userId in %@", Set(names.keys))
+            do {
+                let results = try managedObjectContect.fetch(fetchRequest)
+                existingNames = results.reduce(into: [:]) { $0[$1.userId!] = $1 }
+            }
+            catch {
+                fatalError("Failed to fetch push names  [\(error)]")
+            }
+
+            // Insert new names / update existing
+            names.forEach { (userId, contactName) in
+                if let existingName = existingNames[userId] {
+                    if existingName.name != contactName {
+                        DDLogDebug("contacts/push-name/update  userId=[\(userId)] from=[\(existingName.name ?? "")] to=[\(contactName)]")
+                        existingName.name = contactName
+                    }
+                } else {
+                    DDLogDebug("contacts/push-name/new  userId=[\(userId)] name=[\(contactName)]")
+                    let newPushName = NSEntityDescription.insertNewObject(forEntityName: PushName.entity().name!, into: managedObjectContect) as! PushName
+                    newPushName.userId = userId
+                    newPushName.name = contactName
+                }
+            }
+
+            // Save
+            if managedObjectContect.hasChanges {
+                do {
+                    try managedObjectContect.save()
+                }
+                catch {
+                    fatalError("Failed to save managed object context [\(error)]")
+                }
+            }
+        }
+    }
+
+    func addPushNames(_ names: [UserID : String]) {
+        guard !names.isEmpty else { return }
+
+        self.pushNames.merge(names) { (existingName, newName) -> String in
+            return newName
+        }
+
+        self.pushNameUpdateQueue.async {
+            self.savePushNames(names)
+        }
+    }
+
     // MARK: SwiftUI Support
 
     func fullName(for userID: UserID) -> String {
@@ -882,7 +957,9 @@ class ContactStore: ObservableObject {
             return "Me"
         }
 
-        var fullName = String(userID.suffix(9)) // TODO: name!
+        var fullName: String? = nil
+
+        // Fetch from the address book.
         let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
         fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
         do {
@@ -894,7 +971,16 @@ class ContactStore: ObservableObject {
         catch {
             fatalError("Unable to fetch contacts: \(error)")
         }
-        return fullName
+
+        // Try push name as necessary.
+        if fullName == nil {
+            if let pushName = self.pushNames[userID] {
+                fullName = "~\(pushName)"
+            }
+        }
+
+        // Fallback to a static string.
+        return fullName ?? "Unknown Contact"
     }
 
     func firstName(for userID: UserID) -> String {
@@ -902,8 +988,9 @@ class ContactStore: ObservableObject {
             // TODO: return correct pronoun.
             return "I"
         }
+        var firstName: String? = nil
 
-        var firstName = String(userID.suffix(9)) // TODO: name!
+        // Fetch from the address book.
         let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
         fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
         do {
@@ -915,6 +1002,15 @@ class ContactStore: ObservableObject {
         catch {
             fatalError("Unable to fetch contacts: \(error)")
         }
-        return firstName
+
+        // Try push name as necessary.
+        if firstName == nil {
+            if let pushName = self.pushNames[userID] {
+                firstName = "~\(pushName)"
+            }
+        }
+
+        // Fallback to a static string.
+        return firstName ?? "Unknown Contact"
     }
 }
