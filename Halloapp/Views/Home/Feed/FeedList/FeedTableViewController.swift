@@ -107,8 +107,10 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     func scrollToTop(animated: Bool) {
-        let contentOffset = CGPoint(x: 0, y: -self.tableView.adjustedContentInset.top)
-        self.tableView.setContentOffset(contentOffset, animated: animated)
+        guard let firstSection = self.fetchedResultsController?.sections?.first else { return }
+        if firstSection.numberOfObjects > 0 {
+            self.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
+        }
     }
 
     // MARK: Appearance
