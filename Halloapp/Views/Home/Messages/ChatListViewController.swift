@@ -175,6 +175,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
             DDLogDebug("ChatListView/frc/move [\(chatThread)] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
+                reloadTableViewInDidChangeContent = true
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -197,7 +198,8 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         DDLogDebug("ChatListView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
         if trackPerRowFRCChanges {
             self.tableView.endUpdates()
-        } else if reloadTableViewInDidChangeContent {
+        }
+        if reloadTableViewInDidChangeContent {
             self.tableView.reloadData()
         }
     }
