@@ -56,10 +56,14 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
                 cell.imageView?.image = UIImage(systemName: "person.circle")
                 cell.imageView?.tintColor = .systemGray
             }
-            if cell.accessoryView == nil {
-                cell.accessoryView = UIImageView(image: UIImage(systemName: "checkmark")?.withRenderingMode(.alwaysTemplate))
+            let showDoubleBlueCheck = indexPath.section == TableSection.seen.rawValue
+            let checkmarkImage = showDoubleBlueCheck ? UIImage(named: "CheckmarkDouble") : UIImage(named: "CheckmarkSingle")
+            if let imageView = cell.accessoryView as? UIImageView {
+                imageView.image = checkmarkImage
+            } else {
+                cell.accessoryView = UIImageView(image: checkmarkImage?.withRenderingMode(.alwaysTemplate))
             }
-            cell.accessoryView?.tintColor = indexPath.section == TableSection.seen.rawValue ? .systemBlue : .systemGray
+            cell.accessoryView?.tintColor = showDoubleBlueCheck ? .systemBlue : .systemGray
             return cell
         }
 
