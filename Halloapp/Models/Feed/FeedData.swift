@@ -25,7 +25,9 @@ enum FeedMediaType: Int {
 class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate, XMPPControllerFeedDelegate {
 
     private var userData: UserData
+    private var contactStore: ContactStore
     private var xmppController: XMPPController
+
     private var cancellableSet: Set<AnyCancellable> = []
 
     private(set) var feedNotifications: FeedNotifications?
@@ -43,8 +45,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return manager
     }()
 
-    init(xmppController: XMPPController, userData: UserData) {
+    init(xmppController: XMPPController, contactStore: ContactStore, userData: UserData) {
         self.xmppController = xmppController
+        self.contactStore = contactStore
         self.userData = userData
 
         self.fetchOwnFeedOnConnect = !userData.isLoggedIn
@@ -1151,7 +1154,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Debug
 
     func refetchEverything() {
-        let userIds = AppContext.shared.contactStore.allRegisteredContactIDs()
+        let userIds = self.contactStore.allRegisteredContactIDs()
         self.xmppController.retrieveFeedData(for: userIds)
     }
 

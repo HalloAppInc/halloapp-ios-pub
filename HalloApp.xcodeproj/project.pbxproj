@@ -107,7 +107,6 @@
 		EA52EB18245A012700FB03F6 /* NewMessageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */; };
 		EA53556923CCF0CD001DF10F /* KeyboardResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA53556823CCF0CD001DF10F /* KeyboardResponder.swift */; };
 		EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */; };
-		EA6057BB239AD26D005DED66 /* MetaData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA6057BA239AD26D005DED66 /* MetaData.swift */; };
 		EA72F2122335A0A3008B696F /* UserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA72F2112335A0A3008B696F /* UserData.swift */; };
 		EA8D4721233C25B8006E2BA5 /* VerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationView.swift */; };
 		EAA6DEC42383A4E800C6D9C8 /* TextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA6DEC32383A4E800C6D9C8 /* TextView.swift */; };
@@ -264,7 +263,6 @@
 		EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMessageViewController.swift; sourceTree = "<group>"; };
 		EA53556823CCF0CD001DF10F /* KeyboardResponder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardResponder.swift; sourceTree = "<group>"; };
 		EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPickerView.swift; sourceTree = "<group>"; };
-		EA6057BA239AD26D005DED66 /* MetaData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaData.swift; sourceTree = "<group>"; };
 		EA72F2112335A0A3008B696F /* UserData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserData.swift; sourceTree = "<group>"; };
 		EA8D4720233C25B8006E2BA5 /* VerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationView.swift; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
@@ -522,7 +520,6 @@
 				766103A22461E63200728870 /* Receipts */,
 				76DFA0012419560300F49CA4 /* XMPP */,
 				EA12006824209903008BFFAD /* VideoUtils.swift */,
-				EA6057BA239AD26D005DED66 /* MetaData.swift */,
 				EA72F2112335A0A3008B696F /* UserData.swift */,
 				EA45713623EB7DF5008C2E44 /* UserCore.swift */,
 				EA0E64CA234BF4BC006A22EB /* XMPPController.swift */,
@@ -1017,7 +1014,6 @@
 				EAC7E8F92385A6B700F5E711 /* SettingsView.swift in Sources */,
 				EAB03B7B2400517500643EB6 /* MailView.swift in Sources */,
 				EAD476CD245513EF00EF8591 /* ChatListViewController.swift in Sources */,
-				EA6057BB239AD26D005DED66 /* MetaData.swift in Sources */,
 				76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */,
 				766103AA2461F08A00728870 /* FeedPostInfo+CoreDataClass.swift in Sources */,
 				76538092243D4B33000AD9A1 /* FeedPostComment+CoreDataClass.swift in Sources */,

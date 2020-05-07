@@ -184,7 +184,6 @@ class ContactStore: ObservableObject {
         }
     }
 
-
     init(xmppController: XMPPController, userData: UserData) {
         self.xmppController = xmppController
         self.userData = userData
@@ -214,7 +213,6 @@ class ContactStore: ObservableObject {
         let syncCompleted = self.databaseMetadata?[ContactsStoreMetadataContactsSynced] as? Bool
         self.isContactsReady = self.isContactsAvailable && (syncCompleted ?? false)
     }
-
 
     // MARK: Metadata
     /**

@@ -21,7 +21,6 @@ struct AppContext {
 
     // MARK: - Global objects
     private(set) var userData: UserData
-    private(set) var metaData: MetaData
     private(set) var xmppController: XMPPController
     private(set) var feedData: FeedData
     private(set) var chatData: ChatData
@@ -85,12 +84,11 @@ struct AppContext {
 
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
 
-        self.userData = UserData()
-        self.metaData = MetaData()
-        self.xmppController = XMPPController(userData: self.userData, metaData: self.metaData)
-        self.feedData = FeedData(xmppController: self.xmppController, userData: self.userData)
-        self.chatData = ChatData(xmppController: self.xmppController, userData: self.userData)
-        self.contactStore = ContactStore(xmppController: self.xmppController, userData: self.userData)
-        self.syncManager = SyncManager(contactStore: self.contactStore, xmppController: self.xmppController, userData: self.userData)
+        userData = UserData()
+        xmppController = XMPPController(userData: userData)
+        contactStore = ContactStore(xmppController: xmppController, userData: userData)
+        feedData = FeedData(xmppController: xmppController, contactStore: contactStore, userData: userData)
+        chatData = ChatData(xmppController: xmppController, userData: userData)
+        syncManager = SyncManager(contactStore: contactStore, xmppController: xmppController, userData: userData)
     }
 }

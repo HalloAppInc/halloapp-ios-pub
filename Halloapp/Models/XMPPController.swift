@@ -59,7 +59,6 @@ class XMPPController: NSObject, ObservableObject {
     private let hostPort: UInt16 = 5222
 
     var userData: UserData
-    var metaData: MetaData
     
     var isConnectedToServer: Bool = false
     private var cancellableSet: Set<AnyCancellable> = []
@@ -67,10 +66,9 @@ class XMPPController: NSObject, ObservableObject {
     weak var feedDelegate: XMPPControllerFeedDelegate?
     weak var chatDelegate: XMPPControllerChatDelegate?
 
-    init(userData: UserData, metaData: MetaData) {
+    init(userData: UserData) {
         
         self.userData = userData
-        self.metaData = metaData
 
         // Stream Configuration
         self.xmppStream = XMPPStream()
