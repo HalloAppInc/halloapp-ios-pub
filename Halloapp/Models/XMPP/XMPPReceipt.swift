@@ -9,7 +9,7 @@
 import Foundation
 import XMPPFramework
 
-struct XMPPReceipt {
+struct XMPPReceipt: Equatable {
 
     enum `Type` {
         case delivery
@@ -93,6 +93,13 @@ struct XMPPReceipt {
             }
             return receipt
         }
+    }
+
+    static func == (lhs: XMPPReceipt, rhs: XMPPReceipt) -> Bool {
+        if lhs.type != rhs.type { return false }
+        if lhs.itemId != rhs.itemId { return false }
+        if lhs.userId != rhs.userId { return false }
+        return true
     }
 
 }

@@ -71,6 +71,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
                 
                 self.deleteExpiredPosts()
+
+                self.resendPendingReadReceipts()
             })
         
         self.cancellableSet.insert(
@@ -872,7 +874,56 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    private func resendPendingReadReceipts() {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let feedPosts = self.feedPosts(predicate: NSPredicate(format: "statusValue == %d", FeedPost.Status.seenSending.rawValue), in: managedObjectContext)
+            guard !feedPosts.isEmpty else { return }
+            DDLogInfo("FeedData/seen-receipt/resend count=[\(feedPosts.count)]")
+            feedPosts.forEach { (feedPost) in
+                self.internalSendSeenReceipt(for: feedPost)
+            }
+
+            self.save(managedObjectContext)
+        }
+    }
+
+    private func internalSendSeenReceipt(for feedPost: FeedPost) {
+        feedPost.status = .seenSending
+
+        self.xmppController.sendSeenReceipt(XMPPReceipt.seenReceipt(for: feedPost), to: feedPost.userId)
+    }
+
+    func sendSeenReceiptIfNecessary(for feedPost: FeedPost) {
+        guard feedPost.status == .incoming else { return }
+
+        let postId = feedPost.id
+        self.updateFeedPost(with: postId) { (post) in
+            self.internalSendSeenReceipt(for: post)
+        }
+    }
+
+    func sendSeenReceiptsForPostsBeforeAndIncluding(_ feedPost: FeedPost) {
+        let postTimestamp = feedPost.timestamp
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let feedPosts = self.feedPosts(predicate: NSPredicate(format: "statusValue == %d && timestamp <= %@", FeedPost.Status.incoming.rawValue, postTimestamp as NSDate),
+                                           sortDescriptors: [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ],
+                                           in: managedObjectContext)
+            guard !feedPosts.isEmpty else { return }
+            DDLogInfo("FeedData/seen-receipt/resend count=[\(feedPosts.count)]")
+            feedPosts.forEach { (feedPost) in
+                self.internalSendSeenReceipt(for: feedPost)
+            }
+
+            self.save(managedObjectContext)
+        }
+    }
+
     func xmppController(_ xmppController: XMPPController, didSendFeedReceipt receipt: XMPPReceipt) {
+        self.updateFeedPost(with: receipt.itemId) { (feedPost) in
+            if !feedPost.isPostRetracted {
+                feedPost.status = .seen
+            }
+        }
     }
 
     // MARK: Feed Media

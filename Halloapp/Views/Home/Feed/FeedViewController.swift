@@ -39,6 +39,16 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
             UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(composePost)) ]
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        if let topMostVisibleIndexPath = self.tableView.indexPathsForVisibleRows?.first {
+            if let topMostPost = self.fetchedResultsController?.object(at: topMostVisibleIndexPath) {
+                AppContext.shared.feedData.sendSeenReceiptsForPostsBeforeAndIncluding(topMostPost)
+            }
+        }
+    }
+
     deinit {
         self.cancellables.forEach { $0.cancel() }
     }

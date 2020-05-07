@@ -20,6 +20,8 @@ extension FeedPost {
         case incoming = 4
         case retracted = 5
         case retracting = 6
+        case seenSending = 7
+        case seen = 8
     }
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<FeedPost> {

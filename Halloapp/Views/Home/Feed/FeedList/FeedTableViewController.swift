@@ -19,7 +19,7 @@ fileprivate enum FeedTableSection {
 class FeedTableViewController: UITableViewController, NSFetchedResultsControllerDelegate, FeedTableViewCellDelegate {
     private static let cellReuseIdentifier = "FeedTableViewCell"
 
-    private var fetchedResultsController: NSFetchedResultsController<FeedPost>?
+    private(set) var fetchedResultsController: NSFetchedResultsController<FeedPost>?
 
     private var cancellableSet: Set<AnyCancellable> = []
 
@@ -255,6 +255,9 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
             // Initiate download for images that were not yet downloaded.
             AppContext.shared.feedData.downloadMedia(in: [ feedPost ])
+
+            // Send "seen" receipt.
+            AppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
         }
     }
 

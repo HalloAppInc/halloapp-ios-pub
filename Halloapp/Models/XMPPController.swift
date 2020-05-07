@@ -239,6 +239,11 @@ class XMPPController: NSObject, ObservableObject {
     private var unackedReceipts: [ String : XMPPMessage ] = [:]
 
     func sendSeenReceipt(_ receipt: XMPPReceipt, to userId: UserID) {
+        guard !sentSeenReceipts.values.contains(where: { $0 == receipt }) else {
+            DDLogWarn("xmpp/seen-receipt/duplicate receipt=[\(receipt)]")
+            return
+        }
+        // TODO: check for duplicates
         let toJID = XMPPJID(user: userId, domain: "s.halloapp.net", resource: nil)
         let messageId = UUID().uuidString
         let message = XMPPMessage(messageType: nil, to: toJID, elementID: messageId, child: receipt.xmlElement)
