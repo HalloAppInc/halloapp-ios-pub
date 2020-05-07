@@ -790,13 +790,11 @@ fileprivate class FeedItemFooterView: UIView {
     lazy var seenByButton: UIButton = {
         let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 4 : -4
         let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(named: "FeedPostSeenBy"), for: .normal)
-        button.contentEdgeInsets.top = 15
-        button.contentEdgeInsets.bottom = 9
+        button.contentEdgeInsets = UIEdgeInsets(top: 15, left: 9, bottom: 9, right: 8)
         return button
     }()
-
-    var hStack: UIStackView?
 
     private func setupView() {
         self.isUserInteractionEnabled = true
@@ -810,7 +808,7 @@ fileprivate class FeedItemFooterView: UIView {
         separator.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         separator.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
 
-        let hStack = UIStackView(arrangedSubviews: [ self.commentButton, self.messageButton, self.seenByButton ])
+        let hStack = UIStackView(arrangedSubviews: [ self.commentButton, self.messageButton ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.distribution = .fillProportionally
@@ -819,16 +817,18 @@ fileprivate class FeedItemFooterView: UIView {
         hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
-        self.hStack = hStack
+
+        self.addSubview(self.seenByButton)
+        self.seenByButton.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        self.seenByButton.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
         self.commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .green : .gray)
         let usersOwnPost = post.userId == AppContext.shared.userData.userId
-        self.messageButton.isHidden = usersOwnPost
+        self.messageButton.alpha = usersOwnPost ? 0 : 1
         self.seenByButton.isHidden = !usersOwnPost
         self.seenByButton.tintColor = .tertiaryLabel
-        hStack?.setNeedsLayout()
     }
 
     func prepareForReuse() { }
