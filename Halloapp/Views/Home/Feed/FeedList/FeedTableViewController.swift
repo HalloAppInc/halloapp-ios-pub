@@ -790,12 +790,9 @@ fileprivate class FeedItemFooterView: UIView {
     lazy var seenByButton: UIButton = {
         let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 4 : -4
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "eye.fill"), for: .normal)
-        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        button.setImage(UIImage(named: "FeedPostSeenBy"), for: .normal)
         button.contentEdgeInsets.top = 15
         button.contentEdgeInsets.bottom = 9
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
         return button
     }()
 
@@ -830,10 +827,7 @@ fileprivate class FeedItemFooterView: UIView {
         let usersOwnPost = post.userId == AppContext.shared.userData.userId
         self.messageButton.isHidden = usersOwnPost
         self.seenByButton.isHidden = !usersOwnPost
-        if usersOwnPost {
-            let seenCount = post.info?.receipts?.count ?? 0
-            self.seenByButton.setTitle("\(seenCount)", for: .normal)
-        }
+        self.seenByButton.tintColor = .systemGray3
         hStack?.setNeedsLayout()
     }
 
