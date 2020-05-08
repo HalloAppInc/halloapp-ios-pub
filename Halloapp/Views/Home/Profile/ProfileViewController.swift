@@ -17,9 +17,12 @@ class ProfileViewController: FeedTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(image: UIImage(systemName: "hammer"), style: .plain, target: self, action: #selector(presentDeveloperMenu)),
-            UIBarButtonItem(image: UIImage(systemName: "gear"), style: .plain, target: self, action: #selector(presentSettingsScreen)) ]
+        var rightBarButtonItems = [ UIBarButtonItem(image: UIImage(systemName: "gear"), style: .plain, target: self, action: #selector(presentSettingsScreen)) ]
+        #if INTERNAL
+        rightBarButtonItems.insert(UIBarButtonItem(image: UIImage(systemName: "hammer"), style: .plain, target: self, action: #selector(presentDeveloperMenu)), at: 0)
+        #endif
+
+        self.navigationItem.rightBarButtonItems = rightBarButtonItems
         self.navigationItem.largeTitleDisplayMode = .automatic
 
         let tableWidth = self.view.frame.size.width
