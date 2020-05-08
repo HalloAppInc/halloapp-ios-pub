@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -24,6 +24,10 @@
 		761C6168242D89F90028AE19 /* TextLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6167242D89F90028AE19 /* TextLabel.swift */; };
 		761E9A9B2464CF9000864AE9 /* LogFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761E9A9A2464CF9000864AE9 /* LogFormatter.swift */; };
 		761E9A9D2464D14600864AE9 /* CrashHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761E9A9C2464D14600864AE9 /* CrashHandler.swift */; };
+		761E9AA42465C3B500864AE9 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AA32465C3B500864AE9 /* SwiftProtobuf */; };
+		761E9AA72465E79700864AE9 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AA62465E79700864AE9 /* Alamofire */; };
+		761E9AAA2465E7E300864AE9 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AA92465E7E300864AE9 /* CryptoSwift */; };
+		761E9AAD2465E83900864AE9 /* Zip in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AAC2465E83900864AE9 /* Zip */; };
 		762EDBCA244E2EB700986617 /* Gotham-BlackIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */; };
 		762EDBCB244E2EB700986617 /* Gotham-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBB244E2EB500986617 /* Gotham-Medium.otf */; };
 		762EDBCC244E2EB700986617 /* Gotham-UltraIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBC244E2EB600986617 /* Gotham-UltraIta.otf */; };
@@ -314,7 +318,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				761E9AA72465E79700864AE9 /* Alamofire in Frameworks */,
+				761E9AAA2465E7E300864AE9 /* CryptoSwift in Frameworks */,
 				49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */,
+				761E9AA42465C3B500864AE9 /* SwiftProtobuf in Frameworks */,
+				761E9AAD2465E83900864AE9 /* Zip in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -835,6 +843,12 @@
 			dependencies = (
 			);
 			name = HalloApp;
+			packageProductDependencies = (
+				761E9AA32465C3B500864AE9 /* SwiftProtobuf */,
+				761E9AA62465E79700864AE9 /* Alamofire */,
+				761E9AA92465E7E300864AE9 /* CryptoSwift */,
+				761E9AAC2465E83900864AE9 /* Zip */,
+			);
 			productName = Halloapp;
 			productReference = EAF3A1BF2334191E00805FF9 /* HalloApp.app */;
 			productType = "com.apple.product-type.application";
@@ -907,6 +921,12 @@
 				Base,
 			);
 			mainGroup = EAF3A1B62334191E00805FF9;
+			packageReferences = (
+				761E9AA22465C3B500864AE9 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
+				761E9AA52465E79700864AE9 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				761E9AA82465E7E300864AE9 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
+				761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */,
+			);
 			productRefGroup = EAF3A1C02334191E00805FF9 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -1577,6 +1597,64 @@
 			defaultConfigurationName = "External Beta";
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		761E9AA22465C3B500864AE9 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-protobuf.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.8.0;
+			};
+		};
+		761E9AA52465E79700864AE9 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.0;
+			};
+		};
+		761E9AA82465E7E300864AE9 /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/krzyzanowskim/CryptoSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.1;
+			};
+		};
+		761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/marmelroy/Zip.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		761E9AA32465C3B500864AE9 /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 761E9AA22465C3B500864AE9 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		761E9AA62465E79700864AE9 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 761E9AA52465E79700864AE9 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		761E9AA92465E7E300864AE9 /* CryptoSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 761E9AA82465E7E300864AE9 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
+			productName = CryptoSwift;
+		};
+		761E9AAC2465E83900864AE9 /* Zip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */;
+			productName = Zip;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */ = {

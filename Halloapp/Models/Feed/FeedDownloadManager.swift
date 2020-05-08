@@ -113,28 +113,27 @@ class FeedDownloadManager {
         }
         DDLogDebug("FeedDownloadManager/\(task.id)/download/start [\(task.downloadURL)]")
         let fileURL = FeedDownloadManager.self.fileURL(for: task.filename).appendingPathExtension("enc")
-        let destination: DownloadRequest.DownloadFileDestination = { _, _ in
+        let destination: DownloadRequest.Destination = { _, _ in
             return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
         }
         // TODO: move reponse handler off the main thread.
-        Alamofire.download(task.downloadURL, to: destination)
-            .response { response in
-                if let httpResponse = response.response {
-                    DDLogDebug("FeedDownloadManager/\(task.id)/download/finished [\(httpResponse)]")
-                    task.fileURL = response.destinationURL
-                    if httpResponse.statusCode == 200 {
-                        self.decryptionQueue.async {
-                            self.decryptData(for: task)
-                        }
-                    } else {
-                        task.error = NSError(domain: "com.halloapp.downloadmanager", code: httpResponse.statusCode, userInfo: nil)
-                        self.taskFailed(task)
+        AF.download(task.downloadURL, to: destination).responseData { (afDownloadResponse) in
+            if afDownloadResponse.error == nil, let httpURLResponse = afDownloadResponse.response {
+                DDLogDebug("FeedDownloadManager/\(task.id)/download/finished [\(afDownloadResponse.response!)]")
+                if httpURLResponse.statusCode == 200, let fileURL = afDownloadResponse.fileURL {
+                    task.fileURL = fileURL
+                    self.decryptionQueue.async {
+                        self.decryptData(for: task)
                     }
                 } else {
-                    DDLogDebug("FeedDownloadManager/\(task.id)/download/error [\(String(describing: response.error))]")
-                    task.error = response.error
+                    task.error = NSError(domain: "com.halloapp.downloadmanager", code: httpURLResponse.statusCode, userInfo: nil)
                     self.taskFailed(task)
                 }
+            } else {
+                DDLogDebug("FeedDownloadManager/\(task.id)/download/error [\(String(describing: afDownloadResponse.error))]")
+                task.error = afDownloadResponse.error
+                self.taskFailed(task)
+            }
         }
         self.tasks.insert(task)
         return true

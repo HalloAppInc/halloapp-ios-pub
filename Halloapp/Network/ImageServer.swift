@@ -39,7 +39,7 @@ class ImageServer {
 
     func cancel() {
         self.cancelled = true
-        Alamofire.SessionManager.default.session.getTasksWithCompletionHandler { (dataTasks, uploadTasks, downloadTasks) in
+        AF.session.getTasksWithCompletionHandler { (dataTasks, uploadTasks, downloadTasks) in
             uploadTasks.forEach { (task) in
                 // Cancellation of a task will invoke task completion handler.
                 DDLogDebug("ImageServer/upload/cancel")
@@ -189,8 +189,7 @@ class ImageServer {
                     // Start upload.
                     DDLogDebug("ImageServer/upload/begin url=[\(mediaURL.get)]")
                     self.mediaProcessingGroup.enter()
-                    Alamofire.upload(data, to: mediaURL.put, method: .put, headers: [ "Content-Type": "application/octet-stream" ])
-                        .responseData { response in
+                    AF.upload(data, to: mediaURL.put, method: .put, headers: [ "Content-Type": "application/octet-stream" ]).response { (response) in
                         if (response.error != nil) {
                             DDLogError("ImageServer/upload/error url=[\(mediaURL.get)] [\(response.error!)]")
                             // TODO: update `item` to indicate that url is invalid.
