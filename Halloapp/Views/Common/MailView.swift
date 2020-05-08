@@ -58,7 +58,7 @@ struct MailView: UIViewControllerRepresentable {
             
         vc.setSubject("iOS Logs \(time)")
 
-        vc.setToRecipients(["tony@halloapp.com", "igor@halloapp.com"])
+        vc.setToRecipients(["iphone-support@halloapp.com"])
 
         vc.setMessageBody("short description of issue (if needed): \n", isHTML:false)
 
