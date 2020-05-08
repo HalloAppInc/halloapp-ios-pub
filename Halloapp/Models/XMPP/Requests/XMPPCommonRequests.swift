@@ -39,3 +39,26 @@ class XMPPPushTokenRequest: XMPPRequest {
         self.completion(error)
     }
 }
+
+class XMPPSendNameRequest: XMPPRequest {
+    var completion: XMPPRequestCompletion
+
+    init(name: String, completion: @escaping XMPPRequestCompletion) {
+        self.completion = completion
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo), elementID: UUID().uuidString)
+        iq.addChild({
+            let nameElement = XMLElement(name: "name", xmlns: "halloapp:users:name")
+            nameElement.stringValue = name
+            return nameElement
+            }())
+        super.init(iq: iq)
+    }
+
+    override func didFinish(with response: XMPPIQ) {
+        self.completion(nil)
+    }
+
+    override func didFail(with error: Error) {
+        self.completion(error)
+    }
+}

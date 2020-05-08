@@ -324,6 +324,21 @@ class XMPPController: NSObject, ObservableObject {
             self.xmppPubSub.retrieveItems(fromNode: "feed-\($0)")
         }
     }
+
+    // MARK: Misc
+
+    fileprivate func resendNameIfNecessary() {
+        let userDefaultsKey = "xmpp.name-sent"
+        guard !UserDefaults.standard.bool(forKey: userDefaultsKey) else { return }
+        guard !self.userData.name.isEmpty else { return }
+
+        let request = XMPPSendNameRequest(name: self.userData.name) { (error) in
+            if error == nil {
+                UserDefaults.standard.set(true, forKey: userDefaultsKey)
+            }
+        }
+        self.enqueue(request: request)
+    }
 }
 
 
@@ -494,6 +509,8 @@ extension XMPPController: XMPPStreamDelegate {
         self.resendAllPendingRequests()
 
         self.resendAllPendingReceipts()
+
+        self.resendNameIfNecessary()
     }
     
     func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: DDXMLElement) {
