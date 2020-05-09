@@ -95,7 +95,6 @@ class TextLabel: UILabel {
     override var numberOfLines: Int {
         didSet {
             self.invalidateTextStorage()
-            self.textContainer.size = .zero
         }
     }
 
@@ -103,7 +102,7 @@ class TextLabel: UILabel {
 
     private var textStorageIsValid = false
 
-    private var textRect: CGRect = .zero // TODO: this might not be needed to be a property
+    private var textRect: CGRect = .zero
 
     private var lastValidCharacterIndex: Int = NSNotFound // NSNotFound == full range is valid
 
@@ -113,7 +112,7 @@ class TextLabel: UILabel {
         get {
             var maxLayoutWidth = self.preferredMaxLayoutWidth
             if maxLayoutWidth == 0 {
-                maxLayoutWidth = self.bounds.size.width
+                maxLayoutWidth = self.bounds.width
             }
             if maxLayoutWidth == 0 {
                 maxLayoutWidth = CGFloat.greatestFiniteMagnitude
@@ -155,15 +154,17 @@ class TextLabel: UILabel {
         if self.textContainer.size != size {
             self.textContainer.size = size
             self.truncateAndAppendReadMoreLinkIfNeeded()
+            performLayoutBlock { (textStorage, textContainer, layoutManager) in
+                self.textRect = layoutManager.usedRect(for: textContainer)
+            }
+            self.performHyperlinkDetectionIfNeeded()
         }
-        self.textRect = self.layoutManager.usedRect(for: self.textContainer)
-        self.performHyperlinkDetectionIfNeeded()
         return textRect
     }
 
     private func prepareTextStorageIfNeeded() {
         // FIXME: Access to this variable isn't thread safe.
-        guard !textStorageIsValid else { return }
+        guard !self.textStorageIsValid else { return }
 
         if let attributedText = self.attributedText {
             let mutableAttributedText: NSMutableAttributedString = attributedText.mutableCopy() as! NSMutableAttributedString
@@ -181,6 +182,7 @@ class TextLabel: UILabel {
     private func invalidateTextStorage() {
         self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
             textStorage.deleteCharacters(in: NSRange(location: 0, length: textStorage.length))
+            textContainer.size = .zero
         }
         self.textStorageIsValid = false
     }
@@ -233,7 +235,7 @@ class TextLabel: UILabel {
         guard self.numberOfLines != 0 else { return }
         guard self.layoutManager.numberOfGlyphs > 10 else { return }
 
-        var replacedRange: NSRange = NSRange(location: NSNotFound, length: 0)
+        var replacedRange = NSRange(location: NSNotFound, length: 0)
         self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
             replacedRange = self.truncate(textStorage: textStorage, forLayoutManager: layoutManager, ofTextContainer: textContainer, toLineCount: self.numberOfLines)
         }
@@ -246,7 +248,7 @@ class TextLabel: UILabel {
 
         let readMoreLinkCharacterIndex = self.textStorage.length
         let style = NSMutableParagraphStyle()
-        style.paragraphSpacingBefore = 6.0
+        style.paragraphSpacingBefore = 6
         let readMoreLinkText = "\n\("Read more")" // TODO: localize
         let attributes: [ NSAttributedString.Key: Any ] = [ .font: UIFont.systemFont(ofSize: self.font.pointSize, weight: .medium),
                                                             .foregroundColor: UIColor.systemGray,
@@ -304,13 +306,11 @@ class TextLabel: UILabel {
     }
 
     private func reallyDetectHyperlinks() {
-        var attributedText: NSAttributedString = NSAttributedString()
         var text: String = ""
         self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
-            attributedText = textStorage
             text = textStorage.string
         }
-        let links = self.detectSystemDataTypes(in: text, attributedText: attributedText, ignoredRange: self.hyperlinkDetectionIgnoreRange)
+        let links = self.detectSystemDataTypes(in: text, ignoredRange: self.hyperlinkDetectionIgnoreRange)
         DispatchQueue.main.async {
             self.links = links
             if self.readMoreLink != nil {
@@ -328,7 +328,7 @@ class TextLabel: UILabel {
         }
     }
 
-    private func detectSystemDataTypes(in text: String, attributedText: NSAttributedString, ignoredRange: Range<String.Index>? = nil) -> [AttributedTextLink] {
+    private func detectSystemDataTypes(in text: String, ignoredRange: Range<String.Index>? = nil) -> [AttributedTextLink] {
         var results: [AttributedTextLink] = []
         let matches = TextLabel.dataDetector.matches(in: text, options: [], range: NSRange(location: 0, length: text.count))
         for match in matches {
