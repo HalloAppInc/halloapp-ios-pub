@@ -362,5 +362,6 @@ fileprivate class ChatListViewCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        self.unreadBadge.isHidden = true
     }
 }
