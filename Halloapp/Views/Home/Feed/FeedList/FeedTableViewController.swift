@@ -297,6 +297,48 @@ fileprivate protocol FeedTableViewCellDelegate: AnyObject {
     func feedTableViewCellDidRequestReloadHeight(_ cell: FeedTableViewCell, animations animationBlock: () -> Void)
 }
 
+fileprivate class FeedTableViewCellBackgroundPanelView: UIView {
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        commonInit()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        commonInit()
+    }
+
+    private func commonInit() {
+        self.backgroundColor = .secondarySystemGroupedBackground
+        self.layer.shadowRadius = 8
+        self.layer.shadowOffset = CGSize(width: 0, height: 8)
+        self.layer.shadowColor = UIColor.black.cgColor
+        self.updateShadowPath()
+    }
+
+    override var bounds: CGRect {
+        didSet { updateShadowPath() }
+    }
+
+    override var frame: CGRect {
+        didSet { updateShadowPath() }
+    }
+
+    var isShadowHidden: Bool = false {
+        didSet { self.layer.shadowOpacity = isShadowHidden ? 0 : 0.08 }
+    }
+
+    var cornerRadius: CGFloat = 0 {
+        didSet { self.layer.cornerRadius = cornerRadius }
+    }
+
+    private func updateShadowPath() {
+        // Explicitly set shadow's path for better performance.
+        self.layer.shadowPath = UIBezierPath(roundedRect: self.bounds, cornerRadius: cornerRadius).cgPath
+    }
+}
+
 
 fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     static let backgroundCornerRadius: CGFloat = 15
@@ -329,14 +371,10 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         setupView()
     }
 
-    private lazy var backgroundPanelView: UIView = {
-        let panel = UIView()
+    private lazy var backgroundPanelView: FeedTableViewCellBackgroundPanelView = {
+        let panel = FeedTableViewCellBackgroundPanelView()
         panel.translatesAutoresizingMaskIntoConstraints = false
-        panel.layer.cornerRadius = FeedTableViewCell.backgroundCornerRadius
-        panel.layer.shadowColor = UIColor.systemGray5.cgColor
-        panel.layer.shadowRadius = 5
-        panel.layer.shadowOpacity = 1
-        panel.layer.shadowOffset = .zero
+        panel.cornerRadius = FeedTableViewCell.backgroundCornerRadius
         return panel
     }()
 
@@ -390,12 +428,8 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
             constraint.priority = .defaultHigh
             return constraint
             }())
-        self.backgroundPanelView.backgroundColor = UIColor.secondarySystemGroupedBackground
-        self.backgroundPanelView.layer.shadowRadius = 8
-        self.backgroundPanelView.layer.shadowOpacity = 0.08
-        self.backgroundPanelView.layer.shadowOffset = CGSize(width: 0, height: 8)
         self.backgroundView = backgroundView
-        self.setPanelShadowColor()
+        self.updateBackgroundPanelShadow()
 
         // Content view: a vertical stack of header, content and footer.
         let vStack = UIStackView(arrangedSubviews: [ self.headerView, self.itemContentView, self.footerView ])
@@ -428,13 +462,12 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         super.traitCollectionDidChange(previousTraitCollection)
         if previousTraitCollection?.userInterfaceStyle != self.traitCollection.userInterfaceStyle {
             // Shadow color needs to be updated when user interface style changes between dark and light.
-            self.setPanelShadowColor()
+            self.updateBackgroundPanelShadow()
         }
     }
 
-    private func setPanelShadowColor() {
-        let shadowColor = self.traitCollection.userInterfaceStyle == .light ? UIColor.black : UIColor.clear
-        self.backgroundPanelView.layer.shadowColor = shadowColor.cgColor
+    private func updateBackgroundPanelShadow() {
+        self.backgroundPanelView.isShadowHidden = self.traitCollection.userInterfaceStyle == .dark
     }
 
     override func prepareForReuse() {
