@@ -75,6 +75,7 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
             let checkmarkImage = UIImage(named: showDoubleBlueCheck ? "CheckmarkDouble" : "CheckmarkSingle")?.withRenderingMode(.alwaysTemplate)
             if let imageView = cell.accessoryView as? UIImageView {
                 imageView.image = checkmarkImage
+                imageView.sizeToFit()
             } else {
                 cell.accessoryView = UIImageView(image: checkmarkImage)
             }
