@@ -35,9 +35,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let willDestroyStore = PassthroughSubject<Void, Never>()
     let didReloadStore = PassthroughSubject<Void, Never>()
 
-    // Temporary until server implements pushing user's own past posts on first connect.
-    private var fetchOwnFeedOnConnect = false
-
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.feed")
     private lazy var downloadManager: FeedDownloadManager = {
         let manager = FeedDownloadManager()
@@ -49,8 +46,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.xmppController = xmppController
         self.contactStore = contactStore
         self.userData = userData
-
-        self.fetchOwnFeedOnConnect = !userData.isLoggedIn
 
         super.init()
 
@@ -68,11 +63,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.xmppController.didConnect.sink { _ in
                 DDLogInfo("Feed: Got event for didConnect")
 
-                if self.fetchOwnFeedOnConnect {
-                    self.xmppController.retrieveFeedData(for: [ userData.userId ])
-                    self.fetchOwnFeedOnConnect = false
-                }
-                
                 self.deleteExpiredPosts()
 
                 self.resendPendingReadReceipts()
@@ -83,7 +73,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogInfo("Unloading feed data. \(self.feedDataItems.count) posts")
 
                 self.destroyStore()
-                self.fetchOwnFeedOnConnect = true
             })
 
         self.fetchFeedPosts()
