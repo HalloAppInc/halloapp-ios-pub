@@ -94,27 +94,8 @@ HalloApp</string>
                                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="9zU-np-hAj">
                                                                 <rect key="frame" x="0.0" y="72" width="334" height="58.5"/>
                                                                 <subviews>
-                                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="+" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BNf-FM-vjD">
-                                                                        <rect key="frame" x="8" y="17.5" width="11" height="20.5"/>
-                                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                                                        <color key="textColor" systemColor="secondaryLabelColor" red="0.23529411759999999" green="0.23529411759999999" blue="0.26274509800000001" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
-                                                                        <nil key="highlightedColor"/>
-                                                                    </label>
-                                                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="1" textAlignment="right" adjustsFontForContentSizeCategory="YES" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="8KK-BN-RDq">
-                                                                        <rect key="frame" x="8" y="8" width="44" height="42.5"/>
-                                                                        <constraints>
-                                                                            <constraint firstAttribute="width" constant="44" id="k68-12-MtP"/>
-                                                                        </constraints>
-                                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                                                        <textInputTraits key="textInputTraits" keyboardType="numberPad" returnKeyType="next" enablesReturnKeyAutomatically="YES"/>
-                                                                        <connections>
-                                                                            <action selector="countryCodeFieldAction:" destination="nZZ-3T-4G6" eventType="primaryActionTriggered" id="J20-S7-55h"/>
-                                                                            <action selector="textFieldEditingChanged:" destination="nZZ-3T-4G6" eventType="editingChanged" id="Vnd-vT-OwX"/>
-                                                                            <outlet property="delegate" destination="nZZ-3T-4G6" id="NO6-0l-9Mq"/>
-                                                                        </connections>
-                                                                    </textField>
-                                                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Phone Number" textAlignment="natural" adjustsFontForContentSizeCategory="YES" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Jyl-7t-MHk">
-                                                                        <rect key="frame" x="72" y="8" width="254" height="42.5"/>
+                                                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Phone Number" textAlignment="natural" adjustsFontForContentSizeCategory="YES" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Jyl-7t-MHk" customClass="PhoneNumberTextField" customModule="PhoneNumberKit">
+                                                                        <rect key="frame" x="8" y="8" width="318" height="42.5"/>
                                                                         <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                                         <textInputTraits key="textInputTraits" keyboardType="phonePad" returnKeyType="go" enablesReturnKeyAutomatically="YES" textContentType="tel"/>
                                                                         <connections>
@@ -128,14 +109,9 @@ HalloApp</string>
                                                                 <constraints>
                                                                     <constraint firstAttribute="bottomMargin" secondItem="Jyl-7t-MHk" secondAttribute="bottom" id="1bS-h5-B8V"/>
                                                                     <constraint firstAttribute="trailingMargin" secondItem="Jyl-7t-MHk" secondAttribute="trailing" id="3tk-mG-Dqb"/>
-                                                                    <constraint firstItem="8KK-BN-RDq" firstAttribute="top" secondItem="9zU-np-hAj" secondAttribute="topMargin" id="9LU-VG-dJq"/>
+                                                                    <constraint firstItem="Jyl-7t-MHk" firstAttribute="leading" secondItem="9zU-np-hAj" secondAttribute="leadingMargin" id="7p8-Q8-GyY"/>
                                                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="52" id="Xu0-ps-LpY"/>
-                                                                    <constraint firstAttribute="bottomMargin" secondItem="8KK-BN-RDq" secondAttribute="bottom" id="YvU-k8-mtH"/>
-                                                                    <constraint firstItem="8KK-BN-RDq" firstAttribute="leading" secondItem="9zU-np-hAj" secondAttribute="leadingMargin" id="bN4-lV-QTR"/>
-                                                                    <constraint firstItem="Jyl-7t-MHk" firstAttribute="leading" secondItem="8KK-BN-RDq" secondAttribute="trailing" constant="20" id="fbM-aX-9q2"/>
-                                                                    <constraint firstItem="8KK-BN-RDq" firstAttribute="leading" secondItem="BNf-FM-vjD" secondAttribute="leading" id="gKt-WV-Lu1"/>
                                                                     <constraint firstItem="Jyl-7t-MHk" firstAttribute="top" secondItem="9zU-np-hAj" secondAttribute="topMargin" id="juQ-ma-Pg6"/>
-                                                                    <constraint firstItem="BNf-FM-vjD" firstAttribute="firstBaseline" secondItem="8KK-BN-RDq" secondAttribute="firstBaseline" constant="-2" id="pYi-zS-bOQ"/>
                                                                 </constraints>
                                                             </view>
                                                         </subviews>
@@ -207,10 +183,8 @@ HalloApp</string>
                     <navigationItem key="navigationItem" id="43z-rv-cC9"/>
                     <connections>
                         <outlet property="buttonSignIn" destination="kGP-hU-J1E" id="MK8-mI-ZRs"/>
-                        <outlet property="labelPlusSign" destination="BNf-FM-vjD" id="W9S-gD-Aby"/>
                         <outlet property="scrollView" destination="6Bd-O6-BXv" id="trJ-4m-c9E"/>
                         <outlet property="scrollViewBottomMargin" destination="Ipk-tD-KE9" id="3eO-xd-3KS"/>
-                        <outlet property="textFieldCountryCode" destination="8KK-BN-RDq" id="IYG-wX-M4D"/>
                         <outlet property="textFieldPhoneNumber" destination="Jyl-7t-MHk" id="Xm2-9h-lf1"/>
                         <outlet property="textFieldUserName" destination="2bM-7H-zU2" id="bxm-mn-p2q"/>
                         <outletCollection property="titleLabels" destination="d3Z-ji-wjm" collectionClass="NSMutableArray" id="LRK-KV-hOq"/>
@@ -435,7 +409,7 @@ HalloApp</string>
     <color key="tintColor" name="Tint"/>
     <resources>
         <namedColor name="Tint">
-            <color red="0.099999842047691342" green="0.099999842047691342" blue="0.099999842047691342" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.10000000149011612" green="0.10000000149011612" blue="0.10000000149011612" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
     </resources>
 </document>

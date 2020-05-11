@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import PhoneNumberKit
 import UIKit
 
 protocol PhoneInputViewControllerDelegate: AnyObject {
@@ -16,15 +17,13 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
     weak var delegate: PhoneInputViewControllerDelegate?
 
     enum UserInputStatus {
-        case valid(String, String, String) // code, phone number, name
+        case valid(PhoneNumber, String) // phone number, name
         case invalid(UITextField, String)  // text field to activate, error message
     }
 
     @IBOutlet var titleLabels: [UILabel]!
 
-    @IBOutlet weak var labelPlusSign: UILabel!
-    @IBOutlet weak var textFieldCountryCode: UITextField!
-    @IBOutlet weak var textFieldPhoneNumber: UITextField!
+    @IBOutlet weak var textFieldPhoneNumber: PhoneNumberTextField!
     @IBOutlet weak var textFieldUserName: UITextField!
     @IBOutlet var textFieldBackgrounds: [UIView]!
 
@@ -47,7 +46,10 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
             textFieldBackground.layer.cornerRadius = 10
         }
 
-        textFieldCountryCode.text = AppContext.shared.userData.countryCode
+        textFieldPhoneNumber.withFlag = true
+        textFieldPhoneNumber.withPrefix = true
+        textFieldPhoneNumber.withExamplePlaceholder = true
+        textFieldPhoneNumber.withDefaultPickerUI = true
 
         reloadButtonBackground()
 
@@ -90,10 +92,6 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         buttonSignIn.setBackgroundColor(.systemGray4, for: .disabled)
     }
 
-    private var countryCode: String {
-        get { (self.textFieldCountryCode.text ?? "").strippingNonDigits() }
-    }
-
     private var phoneNumber: String {
         get { (self.textFieldPhoneNumber.text ?? "").strippingNonDigits() }
     }
@@ -103,24 +101,17 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
     }
     
     private func validateUserInput() -> UserInputStatus {
-        guard !countryCode.isEmpty else {
-            return .invalid(textFieldCountryCode, "Enter country code")
-        }
-        guard phoneNumber.count > 5 else {
+        guard textFieldPhoneNumber.isValidNumber else {
             return .invalid(textFieldPhoneNumber, "Enter phone number")
         }
         guard !userName.isEmpty else {
             return .invalid(textFieldUserName, "Enter your name")
         }
-        return .valid(countryCode, phoneNumber, userName)
+        return .valid(textFieldPhoneNumber.phoneNumber!, userName)
     }
 
     @IBAction func nameFieldAction(_ sender: Any) {
-        if !countryCode.isEmpty && phoneNumber.isEmpty {
-            textFieldPhoneNumber.becomeFirstResponder()
-        } else {
-            textFieldCountryCode.becomeFirstResponder()
-        }
+        textFieldPhoneNumber.becomeFirstResponder()
     }
 
     @IBAction func countryCodeFieldAction(_ sender: Any) {
@@ -134,9 +125,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
     @IBAction func phoneNumberFieldAction(_ sender: Any) {
         if userName.isEmpty {
             textFieldUserName.becomeFirstResponder()
-        } else if countryCode.isEmpty {
-            textFieldCountryCode.becomeFirstResponder()
-        } else {
+        } else if textFieldPhoneNumber.isValidNumber {
             signInAction(buttonSignIn!)
         }
     }
@@ -152,33 +141,9 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
 
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let resultingStringLength = (textField.text ?? "").count - range.length + string.count
-        // Country code
-        if textField == textFieldCountryCode {
-            // Only allow digits.
-            if string.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) != nil {
-                return false
-            }
-            // Max length is 3.
-            if resultingStringLength > 3 {
-                return false
-            }
-            return true
-        }
-        // Phone Number
-        if textField == textFieldPhoneNumber {
-            // Only allow certain characters.
-            if string.rangeOfCharacter(from: CharacterSet.phoneNumberCharacters.inverted) != nil {
-                return false
-            }
-            // Max Length is 15.
-            if resultingStringLength > 15 {
-                return false
-            }
-            return true
-        }
         // Name
         if textField == textFieldUserName {
-            if resultingStringLength > 30 {
+            if resultingStringLength > 25 {
                 return false
             }
             return true
@@ -190,10 +155,10 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         let userInputStatus = self.validateUserInput()
 
         switch userInputStatus {
-        case let .valid(countryCode, phoneNumber, userName):
+        case let .valid(phoneNumber, userName):
             let userData = AppContext.shared.userData
-            userData.countryCode = countryCode
-            userData.phoneInput = phoneNumber
+            userData.countryCode = String(phoneNumber.countryCode)
+            userData.phoneInput = String(phoneNumber.nationalNumber)
             userData.name = userName
             userData.save()
             self.delegate?.phoneInputViewControllerDidFinish(self)
