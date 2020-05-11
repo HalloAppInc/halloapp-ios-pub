@@ -20,6 +20,15 @@
         }
       },
       {
+        "package": "PhoneNumberKit",
+        "repositoryURL": "git@github.com:marmelroy/PhoneNumberKit.git",
+        "state": {
+          "branch": "master",
+          "revision": "896174b848f47b3ca7f1f0cf26e5109fe61f4b5f",
+          "version": null
+        }
+      },
+      {
         "package": "SwiftProtobuf",
         "repositoryURL": "https://github.com/apple/swift-protobuf.git",
         "state": {

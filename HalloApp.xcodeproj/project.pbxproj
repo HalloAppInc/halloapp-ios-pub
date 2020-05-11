@@ -64,6 +64,8 @@
 		76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */; };
 		76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */; };
 		76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */; };
+		765FE0FC2469C2E600806CED /* PhoneNumberKit in Frameworks */ = {isa = PBXBuildFile; productRef = 765FE0FB2469C2E600806CED /* PhoneNumberKit */; };
+		765FE0FE2469C4E500806CED /* PhoneNumberMetadata.json in Resources */ = {isa = PBXBuildFile; fileRef = 765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */; };
 		766103A12460DBA200728870 /* XMPPReceipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A02460DBA200728870 /* XMPPReceipt.swift */; };
 		766103A42461E65300728870 /* Receipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A32461E65300728870 /* Receipt.swift */; };
 		766103A72461EE8200728870 /* receipts.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A62461EE8200728870 /* receipts.pb.swift */; };
@@ -220,6 +222,7 @@
 		7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostComment+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostComment+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedDownloadManager.swift; path = HalloApp/Models/Feed/FeedDownloadManager.swift; sourceTree = SOURCE_ROOT; };
+		765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = PhoneNumberMetadata.json; path = HalloApp/Resources/PhoneNumberMetadata.json; sourceTree = SOURCE_ROOT; };
 		766103A02460DBA200728870 /* XMPPReceipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = XMPPReceipt.swift; path = HalloApp/Models/XMPP/XMPPReceipt.swift; sourceTree = SOURCE_ROOT; };
 		766103A32461E65300728870 /* Receipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Receipt.swift; path = HalloApp/Models/Receipts/Receipt.swift; sourceTree = SOURCE_ROOT; };
 		766103A52461E7BA00728870 /* receipts.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = receipts.proto; sourceTree = "<group>"; };
@@ -321,6 +324,7 @@
 				761E9AA72465E79700864AE9 /* Alamofire in Frameworks */,
 				761E9AAA2465E7E300864AE9 /* CryptoSwift in Frameworks */,
 				49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */,
+				765FE0FC2469C2E600806CED /* PhoneNumberKit in Frameworks */,
 				761E9AA42465C3B500864AE9 /* SwiftProtobuf in Frameworks */,
 				761E9AAD2465E83900864AE9 /* Zip in Frameworks */,
 			);
@@ -346,6 +350,7 @@
 		146B93702405F2F900768AC6 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */,
 				146B93752405F35E00768AC6 /* Fonts */,
 				EAF3A1C82334192000805FF9 /* Assets.xcassets */,
 			);
@@ -848,6 +853,7 @@
 				761E9AA62465E79700864AE9 /* Alamofire */,
 				761E9AA92465E7E300864AE9 /* CryptoSwift */,
 				761E9AAC2465E83900864AE9 /* Zip */,
+				765FE0FB2469C2E600806CED /* PhoneNumberKit */,
 			);
 			productName = Halloapp;
 			productReference = EAF3A1BF2334191E00805FF9 /* HalloApp.app */;
@@ -926,6 +932,7 @@
 				761E9AA52465E79700864AE9 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				761E9AA82465E7E300864AE9 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
 				761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */,
+				765FE0FA2469C2E600806CED /* XCRemoteSwiftPackageReference "PhoneNumberKit" */,
 			);
 			productRefGroup = EAF3A1C02334191E00805FF9 /* Products */;
 			projectDirPath = "";
@@ -955,6 +962,7 @@
 				762EDBD6244E2EB700986617 /* Gotham-MediumIta.otf in Resources */,
 				762EDBD9244E2EB700986617 /* Gotham-ThinIta.otf in Resources */,
 				EAF3A1CC2334192000805FF9 /* Preview Assets.xcassets in Resources */,
+				765FE0FE2469C4E500806CED /* PhoneNumberMetadata.json in Resources */,
 				762EDBD1244E2EB700986617 /* Gotham-Book.otf in Resources */,
 				762EDBD4244E2EB700986617 /* Gotham-Thin.otf in Resources */,
 				762EDBCA244E2EB700986617 /* Gotham-BlackIta.otf in Resources */,
@@ -1631,6 +1639,14 @@
 				minimumVersion = 2.0.0;
 			};
 		};
+		765FE0FA2469C2E600806CED /* XCRemoteSwiftPackageReference "PhoneNumberKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:marmelroy/PhoneNumberKit.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1653,6 +1669,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */;
 			productName = Zip;
+		};
+		765FE0FB2469C2E600806CED /* PhoneNumberKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 765FE0FA2469C2E600806CED /* XCRemoteSwiftPackageReference "PhoneNumberKit" */;
+			productName = PhoneNumberKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 

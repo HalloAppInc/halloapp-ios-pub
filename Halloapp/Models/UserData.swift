@@ -38,11 +38,15 @@ final class UserData: ObservableObject {
 
     var formattedPhoneNumber: String {
         get {
-            var phoneNumber = normalizedPhoneNumber
-            if phoneNumber.isEmpty {
-                phoneNumber = countryCode.appending(phoneInput)
+            var phoneNumberStr = normalizedPhoneNumber
+            if phoneNumberStr.isEmpty {
+                phoneNumberStr = countryCode.appending(phoneInput)
             }
-            return "+\(phoneNumber)"
+            phoneNumberStr = "+\(phoneNumberStr)"
+            if let phoneNumber = try? AppContext.shared.phoneNumberFormatter.parse(phoneNumberStr) {
+                phoneNumberStr = AppContext.shared.phoneNumberFormatter.format(phoneNumber, toType: .international)
+            }
+            return phoneNumberStr
         }
     }
 

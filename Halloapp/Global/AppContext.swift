@@ -9,6 +9,7 @@
 import CocoaLumberjack
 import Contacts
 import Foundation
+import PhoneNumberKit
 
 fileprivate var sharedContext: AppContext?
 
@@ -27,6 +28,7 @@ struct AppContext {
     private(set) var contactStore: ContactStore
     private(set) var syncManager: SyncManager
     private(set) var fileLogger: DDFileLogger
+    let phoneNumberFormatter = PhoneNumberKit()
 
     // MARK: - Paths
     static let sharedDirectoryURL = {
