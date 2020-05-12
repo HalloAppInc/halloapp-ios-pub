@@ -196,7 +196,12 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { return }
             DDLogDebug("FeedTableView/frc/update [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.reloadRows(at: [ indexPath ], with: .none)
+                if let cell = self.tableView.cellForRow(at: indexPath) as? FeedTableViewCell {
+                    let contentWidth = tableView.frame.width - tableView.layoutMargins.left - tableView.layoutMargins.right
+                    cell.configure(with: feedPost, contentWidth: contentWidth)
+                } else {
+                    self.tableView.reloadRows(at: [ indexPath ], with: .none)
+                }
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -448,6 +453,8 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     }
 
     public func configure(with post: FeedPost, contentWidth: CGFloat) {
+        DDLogVerbose("FeedTableViewCell/configure [\(post.id)]")
+
         self.headerView.configure(with: post, contentWidth: contentWidth)
         self.itemContentView.configure(with: post, contentWidth: contentWidth)
         if post.isPostRetracted {
@@ -580,6 +587,8 @@ fileprivate class FeedItemContentView: UIView {
 
     private var mediaView: UIView?
 
+    private var feedPostId: FeedPostID? = nil
+
     private func setupView() {
         self.isUserInteractionEnabled = true
 
@@ -593,10 +602,24 @@ fileprivate class FeedItemContentView: UIView {
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
         guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: post.id) else { return }
+
+        var reuseMediaView = false
+        if let mediaView = self.mediaView {
+            reuseMediaView = feedPostId == post.id && !post.isPostRetracted
+            if !reuseMediaView {
+                self.vStack.removeArrangedSubview(mediaView)
+                mediaView.removeFromSuperview()
+                self.mediaView = nil
+            }
+        }
+
+        if reuseMediaView {
+            DDLogInfo("FeedTableViewCell/content-view/reuse-media post=[\(post.id)]")
+        }
+
         // TODO: This is a hack that needs to be improved.
         var mediaHeight = feedDataItem.mediaHeight(for: contentWidth)
-        if mediaHeight > 0 {
-            DDLogDebug("FeedTableViewCell/configure [\(feedDataItem.id)]")
+        if mediaHeight > 0 && !reuseMediaView {
             // Extra space for page indicator dots.
             if feedDataItem.media.count > 1 {
                 mediaHeight += MediaSlider.pageIndicatorHeight
@@ -639,14 +662,11 @@ fileprivate class FeedItemContentView: UIView {
         } else {
             self.textContentView.isHidden = true
         }
+
+        feedPostId = post.id
     }
 
     func prepareForReuse() {
-        if let mediaView = self.mediaView {
-            self.vStack.removeArrangedSubview(mediaView)
-            mediaView.removeFromSuperview()
-            self.mediaView = nil
-        }
         // Hide "This post has been deleted" view.
         // Use tags so as to not trigger lazy initialization of the view.
         if let deletedPostView = self.vStack.arrangedSubviews.first(where: { $0.tag == FeedItemContentView.deletedPostViewTag }) {
