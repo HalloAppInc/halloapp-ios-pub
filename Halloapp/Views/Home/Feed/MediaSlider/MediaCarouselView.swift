@@ -1,0 +1,185 @@
+
+//  Halloapp
+//
+//  Created by Tony Jiang on 1/29/20.
+//  Copyright © 2020 Halloapp, Inc. All rights reserved.
+//
+
+import SwiftUI
+import UIKit
+
+class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+
+    enum MediaSliderSection {
+        case main
+    }
+
+    private let media: [FeedMedia]
+
+    private var currentIndex = 0 {
+        didSet {
+            self.pageControl?.currentPage = currentIndex
+        }
+    }
+
+    private func setCurrentIndex(_ index: Int, animated: Bool) {
+        let pageWidth = self.collectionView.frame.width
+        var contentOffset = self.collectionView.contentOffset
+        if collectionView.effectiveUserInterfaceLayoutDirection == .rightToLeft {
+            contentOffset.x = CGFloat(self.media.count - 1 - index) * pageWidth
+        } else {
+            contentOffset.x = CGFloat(index) * pageWidth
+        }
+        self.collectionView.setContentOffset(contentOffset, animated: animated)
+    }
+
+    class func preferredHeight(for media: [FeedMedia], width: CGFloat) -> CGFloat {
+        guard !media.isEmpty else { return 0 }
+
+        let tallestItem = media.max { return $0.size.height < $1.size.height }
+        let tallestItemAspectRatio = tallestItem!.size.height / tallestItem!.size.width
+        let maxAllowedAspectRatio: CGFloat = 5/4
+        var height = (width * min(maxAllowedAspectRatio, tallestItemAspectRatio)).rounded()
+
+        if media.count > 1 {
+            height += MediaCarouselView.pageControlAreaHeight
+        }
+        return height
+    }
+
+    static private let cellSpacing: CGFloat = 20
+
+    static private let cellReuseIdentifier = "MediaCarouselCell"
+
+    private let collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+        layout.itemSize = UICollectionViewFlowLayout.automaticSize
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = MediaCarouselView.cellSpacing
+        layout.minimumInteritemSpacing = MediaCarouselView.cellSpacing // This is actually necessary for the collection view to have correct content size.
+        layout.scrollDirection = .horizontal
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 0.5*MediaCarouselView.cellSpacing, bottom: 0, right: 0.5*MediaCarouselView.cellSpacing)
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.register(MediaCarouselCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifier)
+        collectionView.isPagingEnabled = true
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.backgroundColor = .clear
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+    }()
+
+    private lazy var pageControl: UIPageControl? = nil
+    private static let pageControlSpacingTop: CGFloat = -4
+    private static let pageControlSpacingBottom: CGFloat = -12
+    private static let pageControlAreaHeight: CGFloat = {
+        let pageControl = UIPageControl()
+        pageControl.numberOfPages = 2
+        pageControl.sizeToFit()
+        return MediaCarouselView.pageControlSpacingTop + pageControl.frame.height + MediaCarouselView.pageControlSpacingBottom
+    }()
+
+    private var dataSource: UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>?
+
+    required init(media: [FeedMedia]) {
+        self.media = media
+        super.init(frame: .zero)
+        commonInit()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("Use init(feedDataItem)")
+    }
+
+    private func commonInit() {
+        self.clipsToBounds = true
+        self.isUserInteractionEnabled = true
+
+        self.addSubview(self.collectionView)
+
+        self.collectionView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: -0.5*Self.cellSpacing).isActive = true
+        self.collectionView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        self.collectionView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: 0.5*Self.cellSpacing).isActive = true
+
+        if self.media.count > 1 {
+            let pageControl = UIPageControl()
+            pageControl.pageIndicatorTintColor = UIColor(named: "Tint")?.withAlphaComponent(0.2)
+            pageControl.currentPageIndicatorTintColor = UIColor(named: "Tint")
+            pageControl.translatesAutoresizingMaskIntoConstraints = false
+            pageControl.numberOfPages = self.media.count
+            pageControl.addTarget(self, action: #selector(pageControlAction), for: .valueChanged)
+            pageControl.sizeToFit()
+            addSubview(pageControl)
+
+            pageControl.topAnchor.constraint(equalTo: self.collectionView.bottomAnchor, constant: Self.pageControlSpacingTop).isActive = true
+            pageControl.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -Self.pageControlSpacingBottom).isActive = true
+            pageControl.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+
+            self.pageControl = pageControl
+        } else {
+            self.collectionView.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        }
+
+        self.collectionView.delegate = self
+
+        let dataSource = UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>(collectionView: self.collectionView) { collectionView, indexPath, feedMedia in
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.cellReuseIdentifier, for: indexPath) as? MediaCarouselCollectionViewCell {
+                cell.configure(with: feedMedia)
+                return cell
+            }
+            return MediaCarouselCollectionViewCell()
+        }
+        var snapshot = NSDiffableDataSourceSnapshot<MediaSliderSection, FeedMedia>()
+        snapshot.appendSections([.main])
+        if collectionView.effectiveUserInterfaceLayoutDirection == .rightToLeft {
+            snapshot.appendItems(self.media.reversed())
+        } else {
+            snapshot.appendItems(self.media)
+        }
+        dataSource.apply(snapshot, animatingDifferences: false)
+        self.dataSource = dataSource
+    }
+
+    @objc(pageControlAction)
+    private func pageControlAction() {
+        self.setCurrentIndex(self.pageControl?.currentPage ?? 0, animated: true)
+    }
+
+    // MARK: UICollectionViewDelegate
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        var size = self.bounds.size
+        if self.pageControl != nil {
+            size.height -= Self.pageControlAreaHeight
+        }
+        return size
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let pageWidth = scrollView.frame.width
+        let viewCenterXInScrollViewCoordinates = scrollView.convert(self.center, from: self).x
+        let pageIndex = Int(viewCenterXInScrollViewCoordinates / pageWidth)
+        if scrollView.effectiveUserInterfaceLayoutDirection == .rightToLeft {
+            self.currentIndex = self.media.count - 1 - pageIndex
+        } else {
+            self.currentIndex = pageIndex
+        }
+    }
+
+}
+
+fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
+    func configure(with media: FeedMedia) {
+        let controller = UIHostingController(rootView: MediaCell(media: media))
+        controller.view.frame = self.contentView.bounds
+        controller.view.backgroundColor = .clear
+        self.contentView.addSubview(controller.view)
+    }
+
+    override func prepareForReuse() {
+        let subviews = self.contentView.subviews
+        for view in subviews {
+            view.removeFromSuperview()
+        }
+    }
+}

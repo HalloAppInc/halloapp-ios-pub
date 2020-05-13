@@ -51,15 +51,6 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
         feedMedia.reload(from: feedPostMedia)
     }
 
-    func mediaHeight(for mediaWidth: CGFloat) -> CGFloat {
-        guard !self.media.isEmpty else { return 0 }
-
-        let tallestItem = self.media.max { return $0.size.height < $1.size.height }
-        let tallestItemAspectRatio = tallestItem!.size.height / tallestItem!.size.width
-        let maxAllowedAspectRatio: CGFloat = 5/4
-        return (mediaWidth * min(maxAllowedAspectRatio, tallestItemAspectRatio)).rounded()
-    }
-
     func loadImages() {
         self.media.forEach { $0.loadImage() }
     }

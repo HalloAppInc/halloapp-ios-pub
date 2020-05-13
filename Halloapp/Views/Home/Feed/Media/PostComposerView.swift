@@ -128,34 +128,30 @@ struct PostComposerView: View {
     }
 }
 
-struct MediaPreviewSlider: View {
-    @State var media: [FeedMedia]
-    @State var pageNum: Int = 0
+fileprivate struct MediaPreviewSlider: UIViewRepresentable {
+
+    var media: [FeedMedia]
 
     init(_ media: [FeedMedia]) {
-        DDLogDebug("MediaPreviewSlider/init [\(media.count)]")
-        self._media = State(initialValue: media)
+        self.media = media
     }
 
-    var body: some View {
-        VStack(spacing: 5) {
-            WMediaSlider(media: $media, pageNum: $pageNum)
+    func makeUIView(context: Context) -> MediaCarouselView {
+        let carouselView = MediaCarouselView(media: context.coordinator.parent.media)
+        return carouselView
+    }
 
-            if (self.media.count > 1) {
-                HStack {
-                    Spacer()
+    func updateUIView(_ uiView: MediaCarouselView, context: Context) { }
 
-                    ForEach(self.media.indices) { index in
-                        Image(systemName: "circle.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .foregroundColor(self.pageNum == index ? Color.blue : Color(UIColor.systemGray4))
-                            .frame(width: 5, height: 5, alignment: .center)
-                    }
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
 
-                    Spacer()
-                }
-            }
+    class Coordinator {
+        var parent: MediaPreviewSlider
+
+        init(_ view: MediaPreviewSlider) {
+            self.parent = view
         }
     }
 }

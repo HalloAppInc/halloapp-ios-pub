@@ -109,8 +109,7 @@
 		EA45713723EB7DF5008C2E44 /* UserCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713623EB7DF5008C2E44 /* UserCore.swift */; };
 		EA45713923EB7EC8008C2E44 /* MediaCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713823EB7EC8008C2E44 /* MediaCell.swift */; };
 		EA45713B23EB7EDE008C2E44 /* PinchZoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713A23EB7EDE008C2E44 /* PinchZoomView.swift */; };
-		EA45713D23EB7F47008C2E44 /* MediaSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713C23EB7F47008C2E44 /* MediaSlider.swift */; };
-		EA45713F23EB7F76008C2E44 /* WMediaSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713E23EB7F76008C2E44 /* WMediaSlider.swift */; };
+		EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */; };
 		EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */; };
 		EA52EB18245A012700FB03F6 /* NewMessageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */; };
 		EA53556923CCF0CD001DF10F /* KeyboardResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA53556823CCF0CD001DF10F /* KeyboardResponder.swift */; };
@@ -270,8 +269,7 @@
 		EA45713623EB7DF5008C2E44 /* UserCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCore.swift; sourceTree = "<group>"; };
 		EA45713823EB7EC8008C2E44 /* MediaCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCell.swift; sourceTree = "<group>"; };
 		EA45713A23EB7EDE008C2E44 /* PinchZoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinchZoomView.swift; sourceTree = "<group>"; };
-		EA45713C23EB7F47008C2E44 /* MediaSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaSlider.swift; sourceTree = "<group>"; };
-		EA45713E23EB7F76008C2E44 /* WMediaSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WMediaSlider.swift; sourceTree = "<group>"; };
+		EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarouselView.swift; sourceTree = "<group>"; };
 		EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
 		EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMessageViewController.swift; sourceTree = "<group>"; };
 		EA53556823CCF0CD001DF10F /* KeyboardResponder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardResponder.swift; sourceTree = "<group>"; };
@@ -611,8 +609,7 @@
 			isa = PBXGroup;
 			children = (
 				EAB03B7E2400519400643EB6 /* WAVPlayer.swift */,
-				EA45713C23EB7F47008C2E44 /* MediaSlider.swift */,
-				EA45713E23EB7F76008C2E44 /* WMediaSlider.swift */,
+				EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */,
 				EA45713823EB7EC8008C2E44 /* MediaCell.swift */,
 			);
 			path = MediaSlider;
@@ -1040,7 +1037,7 @@
 				761E9A9D2464D14600864AE9 /* CrashHandler.swift in Sources */,
 				EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */,
 				761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */,
-				EA45713D23EB7F47008C2E44 /* MediaSlider.swift in Sources */,
+				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
 				EA52EB18245A012700FB03F6 /* NewMessageViewController.swift in Sources */,
 				EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */,
 				76DFA0072419BC1F00F49CA4 /* XMPPError.swift in Sources */,
@@ -1096,7 +1093,6 @@
 				764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
-				EA45713F23EB7F76008C2E44 /* WMediaSlider.swift in Sources */,
 				761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */,
 				EAD476F32458F03700EF8591 /* ChatMedia+CoreDataProperties.swift in Sources */,
 				EAC84CEA2422E05700A5AAEF /* XMPPFeedRequests.swift in Sources */,

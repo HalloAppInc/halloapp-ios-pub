@@ -9,7 +9,6 @@
 import CocoaLumberjack
 import Combine
 import CoreData
-import SwiftUI
 import UIKit
 
 fileprivate enum FeedTableSection {
@@ -617,24 +616,17 @@ fileprivate class FeedItemContentView: UIView {
             DDLogInfo("FeedTableViewCell/content-view/reuse-media post=[\(post.id)]")
         }
 
-        // TODO: This is a hack that needs to be improved.
-        var mediaHeight = feedDataItem.mediaHeight(for: contentWidth)
-        if mediaHeight > 0 && !reuseMediaView {
-            // Extra space for page indicator dots.
-            if feedDataItem.media.count > 1 {
-                mediaHeight += MediaSlider.pageIndicatorHeight
-            }
-            let controller = UIHostingController(rootView: MediaSlider(feedDataItem).frame(height: mediaHeight))
-            controller.view.backgroundColor = .clear
-            controller.view.addConstraint({
-                let constraint = NSLayoutConstraint.init(item: controller.view!, attribute: .height, relatedBy: .equal,
-                                                         toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: mediaHeight)
-                constraint.priority = .defaultHigh + 10
+        let postContainsMedia = !feedDataItem.media.isEmpty
+        if postContainsMedia && !reuseMediaView {
+            let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
+            let mediaView = MediaCarouselView(media: feedDataItem.media)
+            mediaView.addConstraint({
+                let constraint = NSLayoutConstraint.init(item: mediaView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: mediaViewHeight)
+                constraint.priority = .defaultHigh
                 return constraint
             }())
-
-            self.vStack.insertArrangedSubview(controller.view, at: 0)
-            self.mediaView = controller.view
+            self.vStack.insertArrangedSubview(mediaView, at: 0)
+            self.mediaView = mediaView
         }
 
         if post.isPostRetracted {
@@ -653,12 +645,12 @@ fileprivate class FeedItemContentView: UIView {
             self.textLabel.text = post.text
             self.textLabel.font = {
                 let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
-                let fontSizeDiff: CGFloat = mediaHeight > 0 || (self.textLabel.text ?? "").count > 180 ? -1 : 3
+                let fontSizeDiff: CGFloat = postContainsMedia || (self.textLabel.text ?? "").count > 180 ? -1 : 3
                 return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
             }()
-            self.textLabel.numberOfLines = mediaHeight > 0 ? 3 : 10
+            self.textLabel.numberOfLines = postContainsMedia ? 3 : 10
             // Adjust vertical margins around text.
-            self.textContentView.layoutMargins.top = mediaHeight > 0 ? 11 : 9
+            self.textContentView.layoutMargins.top = postContainsMedia ? 11 : 9
         } else {
             self.textContentView.isHidden = true
         }
@@ -784,7 +776,7 @@ fileprivate class FeedItemFooterView: UIView {
             }
         }
 
-        private let badgeView = CircleView(frame: CGRect(origin: .zero, size: CGSize(width: 6, height: 6)))
+        private let badgeView = CircleView(frame: CGRect(origin: .zero, size: CGSize(width: 7, height: 7)))
 
         private func setupView() {
             self.addSubview(badgeView)
