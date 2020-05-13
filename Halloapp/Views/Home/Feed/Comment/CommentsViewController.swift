@@ -174,6 +174,17 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         AppContext.shared.feedData.retract(comment: comment)
     }
 
+    private func confirmResending(commentWithId commentId: FeedPostCommentID) {
+        guard  let comment = AppContext.shared.feedData.feedComment(with: commentId) else { return }
+        guard comment.status == .sendError else { return }
+        let actionSheet = UIAlertController(title: nil, message: "Resend comment?", preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Resend", style: .default, handler: { _ in
+            AppContext.shared.feedData.resend(commentWithId: commentId)
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        self.present(actionSheet, animated: true)
+    }
+
     // MARK: Data
 
     private var trackPerRowFRCChanges = false
@@ -317,11 +328,17 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: CommentsViewController.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
         let feedPostComment = self.sortedComments[indexPath.row]
+        let commentId = feedPostComment.id
+        let commentAuthorUserId = feedPostComment.userId
         cell.update(with: feedPostComment)
         cell.replyAction = { [ weak self ] in
             guard let self = self else { return }
-            self.replyContext = (parentCommentId: feedPostComment.id, userId: feedPostComment.userId)
+            self.replyContext = (parentCommentId: commentId, userId: commentAuthorUserId)
             self.commentsInputView.showKeyboard(from: self)
+        }
+        cell.accessoryViewAction = { [weak self] in
+            guard let self = self else { return }
+            self.confirmResending(commentWithId: commentId)
         }
         cell.commentView.textLabel.delegate = self
         return cell
@@ -493,6 +510,8 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
 
     var replyAction: (() -> ()) = {}
 
+    var accessoryViewAction: (() -> ()) = {}
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupTableViewCell()
@@ -525,8 +544,25 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
         self.replyAction()
     }
 
+    @objc private func accessoryButtonAction() {
+        self.accessoryViewAction()
+    }
+
     func update(with comment: FeedPostComment) {
         self.commentView.updateWith(comment: comment)
         self.commentView.isContentInset = comment.parent != nil
+        if comment.status == .sendError {
+            self.accessoryView = {
+                let button = UIButton(type: .system)
+                button.setImage(UIImage(systemName: "exclamationmark.circle"), for: .normal)
+                button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 6, bottom: 12, right: 6)
+                button.tintColor = .red
+                button.sizeToFit()
+                button.addTarget(self, action: #selector(accessoryButtonAction), for: .touchUpInside)
+                return button
+            }()
+        } else {
+            self.accessoryView = nil
+        }
     }
 }

@@ -1132,7 +1132,25 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(managedObjectContext)
 
         // Now send data over the wire.
-        let request = XMPPPostItemRequest(feedItem: comment, feedOwnerId: feedPost.userId) { (timestamp, error) in
+        self.send(comment: comment)
+    }
+
+    func resend(commentWithId commentId: FeedPostCommentID) {
+        let managedObjectContext = self.persistentContainer.viewContext
+
+        guard let comment = self.feedComment(with: commentId, in: managedObjectContext) else { return }
+        guard comment.status == .sendError else { return }
+
+        // Change status to "sending" and send.
+        comment.status = .sending
+        self.save(managedObjectContext)
+
+        self.send(comment: comment)
+    }
+
+    private func send(comment: FeedPostComment) {
+        let commentId = comment.id
+        let request = XMPPPostItemRequest(feedItem: comment, feedOwnerId: comment.post.userId) { (timestamp, error) in
             if error != nil {
                  self.updateFeedPostComment(with: commentId) { (feedComment) in
                      feedComment.status = .sendError
