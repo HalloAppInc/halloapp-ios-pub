@@ -241,7 +241,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             }
             cell.messageAction = { [weak self] in
                 guard let self = self else { return }
-                self.showMessageView(with: feedPost.userId)
+                self.showMessageView(for: feedPost.id)
             }
             cell.showSeenByAction = { [weak self] in
                 guard let self = self else { return }
@@ -285,8 +285,10 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         self.navigationController?.pushViewController(CommentsViewController(feedPostId: postId), animated: true)
     }
 
-    private func showMessageView(with chatWithUserId: String) {
-        self.navigationController?.pushViewController(ChatViewController(fromUserId: chatWithUserId), animated: true)
+    private func showMessageView(for postId: FeedPostID) {
+        if let feedDataItem = AppContext.shared.feedData.feedDataItem(with: postId) {
+            self.navigationController?.pushViewController(ChatViewController(fromUserId: feedDataItem.userId), animated: true)
+        }
     }
 
     private func showSeenByView(for postId: FeedPostID) {
