@@ -15,6 +15,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     var id: FeedPostID
     var userId: UserID
     var media: [FeedMedia]
+    var currentMediaIndex: Int? = nil
 
     var commentsDidChange = PassthroughSubject<(Int, Bool), Never>()
     var hasUnreadComments: Bool {
@@ -34,6 +35,9 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
         hasUnreadComments = feedPost.unreadCount > 0
         numberOfComments = feedPost.comments?.count ?? 0
         media = (feedPost.media ?? []).sorted(by: { $0.order < $1.order }).map{ FeedMedia($0) }
+        if !media.isEmpty {
+            currentMediaIndex = 0
+        }
     }
 
     func reload(from feedPost: FeedPost) {
@@ -42,6 +46,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
         numberOfComments = feedPost.comments?.count ?? 0
         if feedPost.isPostRetracted && !media.isEmpty {
             media = []
+            currentMediaIndex = nil
         }
     }
 

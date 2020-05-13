@@ -619,7 +619,7 @@ fileprivate class FeedItemContentView: UIView {
         let postContainsMedia = !feedDataItem.media.isEmpty
         if postContainsMedia && !reuseMediaView {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
-            let mediaView = MediaCarouselView(media: feedDataItem.media)
+            let mediaView = MediaCarouselView(feedDataItem: feedDataItem)
             mediaView.addConstraint({
                 let constraint = NSLayoutConstraint.init(item: mediaView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: mediaViewHeight)
                 constraint.priority = .defaultHigh

@@ -14,13 +14,18 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         case main
     }
 
+    private let feedDataItem: FeedDataItem?
+
     private let media: [FeedMedia]
 
     private var currentIndex = 0 {
         didSet {
+            self.feedDataItem?.currentMediaIndex = currentIndex
             self.pageControl?.currentPage = currentIndex
         }
     }
+
+    private var mediaIndexToScrollToInLayoutSubviews: Int? = nil
 
     private func setCurrentIndex(_ index: Int, animated: Bool) {
         let pageWidth = self.collectionView.frame.width
@@ -81,8 +86,17 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     private var dataSource: UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>?
 
-    required init(media: [FeedMedia]) {
+    convenience init(feedDataItem: FeedDataItem) {
+        self.init(media: feedDataItem.media, feedDataItem: feedDataItem)
+    }
+
+    convenience init(media: [FeedMedia]) {
+        self.init(media: media, feedDataItem: nil)
+    }
+
+    required init(media: [FeedMedia], feedDataItem: FeedDataItem?) {
         self.media = media
+        self.feedDataItem = feedDataItem
         super.init(frame: .zero)
         commonInit()
     }
@@ -143,6 +157,22 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     @objc(pageControlAction)
     private func pageControlAction() {
         self.setCurrentIndex(self.pageControl?.currentPage ?? 0, animated: true)
+    }
+
+    override func willMove(toWindow newWindow: UIWindow?) {
+        super.willMove(toWindow: newWindow)
+        if newWindow != nil && feedDataItem?.currentMediaIndex != nil {
+            // Delay scrolling until view has a non-zero size.
+            mediaIndexToScrollToInLayoutSubviews = (feedDataItem?.currentMediaIndex)!
+        }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if self.bounds != .zero && mediaIndexToScrollToInLayoutSubviews != nil {
+            setCurrentIndex(mediaIndexToScrollToInLayoutSubviews!, animated: false)
+            mediaIndexToScrollToInLayoutSubviews = nil
+        }
     }
 
     // MARK: UICollectionViewDelegate
