@@ -49,6 +49,7 @@ class XMPPController: NSObject, ObservableObject {
     var didGetNewChatMessage = PassthroughSubject<XMPPMessage, Never>()
 
     var didGetAck = PassthroughSubject<XMPPAck, Never>()
+    var didGetPresence = PassthroughSubject<XMPPPresence, Never>()
 
     var xmppStream: XMPPStream
     private var xmppPubSub: XMPPPubSub
@@ -542,8 +543,8 @@ extension XMPPController: XMPPStreamDelegate {
         DDLogInfo("Stream: didNotRegister: \(error)")
     }
     
-    func xmppStream(_ sender: XMPPStream, didSendCustomElement element: DDXMLElement) {
-//        DDLogInfo("Stream: didSendCustomElement: \(element)")
+    func xmppStream(_ sender: XMPPStream, didReceive presence: XMPPPresence) {
+        self.didGetPresence.send(presence)
     }
 
     func xmppStream(_ sender: XMPPStream, didReceiveCustomElement element: DDXMLElement) {

@@ -16,6 +16,8 @@ import SwiftUI
 class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDelegate, NSFetchedResultsControllerDelegate {
     
     private var fromUserId: String?
+    private var feedPostId: FeedPostID?
+    private var feedPostMediaIndex: Int32 = 0
     
     private var fetchedResultsController: NSFetchedResultsController<ChatMessage>?
     private var dataSource: UITableViewDiffableDataSource<Int, ChatMessage>?
@@ -23,32 +25,14 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     static private let sectionMain = 0
     static private let otherUserCellReuseIdentifier = "OtherUserCell"
     static private let userCellReuseIdentifier = "UserCell"
-    
-    private lazy var titleView: TitleView = {
-        let titleView = TitleView()
-        titleView.translatesAutoresizingMaskIntoConstraints = false
-        return titleView
-    }()
-    
-    private lazy var tableView: UITableView = {
-        let tableView = UITableView(frame: self.view.bounds, style: .plain)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.separatorStyle = .none
-        tableView.allowsSelection = false
-        tableView.contentInsetAdjustmentBehavior = .scrollableAxes
-        tableView.keyboardDismissMode = .interactive
-        tableView.preservesSuperviewLayoutMargins = true
-        tableView.register(ChatTableViewCell.self, forCellReuseIdentifier: ChatViewController.otherUserCellReuseIdentifier)
-        tableView.register(ChatTableViewUserCell.self, forCellReuseIdentifier: ChatViewController.userCellReuseIdentifier)
-        tableView.delegate = self
-        return tableView
-    }()
 
     // MARK: Lifecycle
     
-    init(fromUserId: String) {
+    init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
         DDLogDebug("ChatViewController/init/\(fromUserId)")
         self.fromUserId = fromUserId
+        self.feedPostId = feedPostId
+        self.feedPostMediaIndex = feedPostMediaIndex
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -87,18 +71,26 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.tableView.tableHeaderView = nil
         self.tableView.tableFooterView = nil
         
-        /* NOTE: seem too brittle to have to estimate a correct height, else wonkiness happens
-         * should investigate if there's a way to find the exact height,
-         * perhaps manually calculate it and then cache it
-         */
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 50
+//        /* NOTE: seem too brittle to have to estimate a correct height, else wonkiness happens
+//         * should investigate if there's a way to find the exact height,
+//         * perhaps manually calculate it and then cache it
+//         */
+////        tableView.rowHeight = UITableView.automaticDimension
+//        tableView.estimatedRowHeight = 53
         
         self.dataSource = UITableViewDiffableDataSource<Int, ChatMessage>(tableView: self.tableView) { tableView, indexPath, chatMessage in
             if chatMessage.fromUserId == AppContext.shared.userData.userId {
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.userCellReuseIdentifier, for: indexPath) as? ChatTableViewUserCell {
                     cell.update(with: chatMessage)
                     cell.backgroundColor = UIColor.systemGray6
+                    
+                    if chatMessage.quoted != nil && chatMessage.quoted?.media != nil {
+                        cell.previewAction = { [weak self] in
+                            guard let self = self else { return }
+                            self.showPreviewView(for: chatMessage)
+                        }
+                    }
+                    
                     return cell
                 }
             }
@@ -106,6 +98,14 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
             let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.otherUserCellReuseIdentifier, for: indexPath) as! ChatTableViewCell
             cell.update(with: chatMessage)
             cell.backgroundColor = UIColor.systemGray6
+
+            if chatMessage.quoted != nil && chatMessage.quoted?.media != nil {
+                cell.previewAction = { [weak self] in
+                    guard let self = self else { return }
+                    self.showPreviewView(for: chatMessage)
+                }
+            }
+            
             return cell
         }
 
@@ -127,6 +127,16 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard(_:)))
         self.view.addGestureRecognizer(tapGesture)
+        
+        if let feedPostId = self.feedPostId {
+            if let feedPost = AppContext.shared.feedData.feedPost(with: feedPostId) {
+                if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
+                    self.chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: mediaItem.type, mediaUrl: mediaItem.relativeFilePath)
+                } else {
+                    self.chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: nil, mediaUrl: nil)
+                }
+            }
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -164,6 +174,59 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.fetchedResultsController = nil
     }
 
+    // MARK:
+    
+    private func showPreviewView(for chatMessage: ChatMessage) {
+        
+        let detailVC = MediaPreviewController(for: chatMessage)
+        let navigationController = UINavigationController(rootViewController: detailVC)
+        navigationController.modalPresentationStyle = .overFullScreen
+        navigationController.modalTransitionStyle = .crossDissolve
+        self.present(navigationController, animated: true)
+        
+//        self.navigationController?.pushViewController(MediaPreviewController(for: chatMessage), animated: false)
+    }
+    
+    
+    private lazy var titleView: TitleView = {
+        let titleView = TitleView()
+        titleView.translatesAutoresizingMaskIntoConstraints = false
+        return titleView
+    }()
+    
+    private lazy var tableView: UITableView = {
+        let tableView = UITableView(frame: self.view.bounds, style: .plain)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.separatorStyle = .none
+        tableView.allowsSelection = false
+        tableView.contentInsetAdjustmentBehavior = .scrollableAxes
+        tableView.keyboardDismissMode = .interactive
+        tableView.preservesSuperviewLayoutMargins = true
+        tableView.register(ChatTableViewCell.self, forCellReuseIdentifier: ChatViewController.otherUserCellReuseIdentifier)
+        tableView.register(ChatTableViewUserCell.self, forCellReuseIdentifier: ChatViewController.userCellReuseIdentifier)
+        tableView.delegate = self
+        return tableView
+    }()
+    
+    // MARK: Tableview Delegates
+    
+    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        // TODO: too brittle, need a way to have correct heights
+        guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else { return 50 }
+        var result:CGFloat = 50.0
+        if chatMessage.quoted != nil {
+            result += 70
+        }
+        
+        if chatMessage.media != nil {
+            if !chatMessage.media!.isEmpty {
+                result += 30
+            }
+        }
+        
+        return result
+    }
+    
     // MARK: Data
 
     private var shouldScrollToBottom = true
@@ -195,7 +258,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         }
     }
 
-    
     func updateData(animatingDifferences: Bool = true) {
         guard let chatMessages = self.fetchedResultsController?.fetchedObjects else { return}
 
@@ -203,7 +265,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         diffableDataSourceSnapshot.appendSections([ ChatViewController.sectionMain ])
         diffableDataSourceSnapshot.appendItems(chatMessages)
         self.dataSource?.apply(diffableDataSourceSnapshot, animatingDifferences: animatingDifferences)
-
     }
 
     private func scrollToBottom(_ animated: Bool = true) {
@@ -258,6 +319,8 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.tableView.scrollIndicatorInsets = scrollIndicatorInsets
     }
 
+    // MARK: ChatInputView Delegates
+    
     func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
         var animationDuration = animationDuration
         if self.transitionCoordinator != nil {
@@ -279,20 +342,28 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         }
     }
 
-    // MARK: ChatInputView Delegates
-    
     func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
         if let toUserId = self.fromUserId {
-            AppContext.shared.chatData.sendMessage(toUserId: toUserId, text: text, media: [])
+            AppContext.shared.chatData.sendMessage(toUserId: toUserId, text: text, media: [], feedPostId: self.feedPostId ?? "", feedPostMediaIndex: self.feedPostMediaIndex)
 //            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
 //                self.scrollToBottom(false)
 //            }
+            
+            self.feedPostId = nil
+            self.feedPostMediaIndex = 0
+            self.chatInputView.text = ""
+            
         }
-        self.chatInputView.text = ""
+        
     }
     
     func chatInputView(_ inputView: ChatInputView) {
         self.presentPhotoLibraryPicker()
+    }
+    
+    func chatInputViewCloseQuotePanel(_ inputView: ChatInputView) {
+        self.feedPostId = nil
+        self.feedPostMediaIndex = 0
     }
     
     private func presentPhotoLibraryPicker() {
@@ -473,12 +544,10 @@ fileprivate class TitleView: UIView {
 }
 
 
-class ChatTableViewCell: UITableViewCell {
-    
-    private lazy var chatView: ChatView = {
-        ChatView()
-    }()
+class ChatTableViewCell: UITableViewCell, ChatViewDelegate {
 
+    var previewAction: (() -> ())?
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupTableViewCell()
@@ -487,6 +556,11 @@ class ChatTableViewCell: UITableViewCell {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupTableViewCell()
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        self.chatView.reset()
     }
 
     private func setupTableViewCell() {
@@ -506,23 +580,32 @@ class ChatTableViewCell: UITableViewCell {
 
         self.chatView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.85).isActive = true
         self.chatView.layer.cornerRadius = 20.0
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        self.chatView.clearMedia()
+        
     }
     
+    private lazy var chatView: ChatView = {
+        let view = ChatView()
+        view.delegate = self
+        return view
+    }()
+    
     func update(with chatMessage: ChatMessage) {
-        self.chatView.updateWith(chatMessageItem: chatMessage)
+        self.chatView.updateWith(chatMessage: chatMessage)
+    }
+    
+    // MARK: ChatViewDelegates
+    
+    func chatView(_ chatView: ChatView) {
+        if self.previewAction != nil {
+            self.previewAction!()
+        }
     }
 }
 
-class ChatTableViewUserCell: UITableViewCell {
-    private lazy var chatUserView: ChatUserView = {
-        ChatUserView()
-    }()
+class ChatTableViewUserCell: UITableViewCell, ChatUserViewDelegate {
 
+    var previewAction: (() -> ())?
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupTableViewCell()
@@ -531,6 +614,11 @@ class ChatTableViewUserCell: UITableViewCell {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupTableViewCell()
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        self.chatUserView.reset()
     }
 
     private func setupTableViewCell() {
@@ -550,14 +638,26 @@ class ChatTableViewUserCell: UITableViewCell {
 
         self.chatUserView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.85).isActive = true
         self.chatUserView.layer.cornerRadius = 20.0
+        
     }
 
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        self.chatUserView.clearTicks()
-    }
-
+    private lazy var chatUserView: ChatUserView = {
+        let view = ChatUserView()
+        view.delegate = self
+        return view
+    }()
+    
     func update(with chatMessage: ChatMessage) {
-        self.chatUserView.updateWith(chatMessageItem: chatMessage)
+        self.chatUserView.updateWith(with: chatMessage)
     }
+    
+    // MARK: ChatUserViewDelegates
+    
+    func chatUserView(_ chatView: ChatUserView) {
+        print("chatuser")
+        if self.previewAction != nil {
+            self.previewAction!()
+        }
+    }
+    
 }

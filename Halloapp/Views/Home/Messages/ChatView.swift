@@ -7,10 +7,108 @@
 //
 
 import UIKit
+import AVKit
+
+protocol ChatViewDelegate: AnyObject {
+    func chatView(_ chatView: ChatView)
+}
 
 class ChatView: UIView {
-    private var leadingMargin: NSLayoutConstraint?
 
+    weak var delegate: ChatViewDelegate?
+    
+    // MARK: Lifecycle
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupView()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupView()
+    }
+
+    private func setupView() {
+        self.backgroundColor = UIColor.systemGray5
+        self.addSubview(mainView)
+        self.mainView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
+        self.mainView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        self.mainView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        self.mainView.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+    }
+
+    // MARK: Quoted
+    
+    private lazy var quotedNameLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = UIColor.label
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        return label
+    }()
+    
+    private lazy var quotedTextLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = UIColor.secondaryLabel
+        label.numberOfLines = 2
+        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        return label
+    }()
+    
+    private lazy var quotedTextVStack: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        
+        let view = UIStackView(arrangedSubviews: [ self.quotedNameLabel, self.quotedTextLabel, spacer ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.axis = .vertical
+        view.spacing = 3
+        view.isHidden = true
+        return view
+    }()
+    
+    private lazy var quotedImageView: UIImageView = {
+        let view = UIImageView()
+        view.contentMode = .scaleAspectFill
+        
+        view.layer.cornerRadius = 10
+        view.layer.masksToBounds = true
+        view.isHidden = true
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoPreview(_:)))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
+        
+        return view
+    }()
+    
+    private lazy var quotedRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.quotedTextVStack, self.quotedImageView ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        view.axis = .horizontal
+        view.spacing = 10
+
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.layer.cornerRadius = 15
+        subView.layer.backgroundColor = UIColor.systemBackground.cgColor
+        subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        
+        view.insertSubview(subView, at: 0)
+        view.isHidden = true
+
+        return view
+    }()
+    
     private lazy var mediaImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage.init(systemName: "photo"))
         imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -32,14 +130,14 @@ class ChatView: UIView {
         return label
     }()
 
-    private lazy var hStack: UIStackView = {
-        let hStack = UIStackView()
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.axis = .horizontal
-        hStack.isLayoutMarginsRelativeArrangement = true
-        hStack.layoutMargins = UIEdgeInsets(top: 0, left: 3, bottom: 0, right: 5)
-        hStack.spacing = 0
-        return hStack
+    private lazy var mediaRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.mediaImageView, self.mediaLabel ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .horizontal
+        view.isLayoutMarginsRelativeArrangement = true
+        view.layoutMargins = UIEdgeInsets(top: 5, left: 15, bottom: 0, right: 10)
+        view.spacing = 5
+        return view
     }()
     
     private lazy var textView: UITextView = {
@@ -57,74 +155,108 @@ class ChatView: UIView {
         return textView
     }()
     
-    private lazy var timestampLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
-        label.textColor = UIColor.secondaryLabel
-        label.textAlignment = .natural
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
+    private lazy var textRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        
+        let view = UIStackView(arrangedSubviews: [ self.textView ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .horizontal
+        view.layoutMargins = UIEdgeInsets(top: 5, left: 15, bottom: 10, right: 15)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.alignment = .bottom
+        view.spacing = 1
+
+        return view
+    }()
+    
+    private lazy var mainView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.quotedRow, self.mediaRow, self.textRow ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .vertical
+
+        view.spacing = 0
+        return view
     }()
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupView()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupView()
-    }
-
-    private func setupView() {
-        
-        self.backgroundColor = UIColor.systemGray5
-        
-        self.preservesSuperviewLayoutMargins = true
-
-        self.hStack.addArrangedSubview(self.mediaImageView)
-        self.hStack.addArrangedSubview(self.mediaLabel)
-        self.hStack.setCustomSpacing(10, after: self.mediaImageView)
-        
-        let vStack = UIStackView(arrangedSubviews: [ self.hStack, self.textView ])
-
-        vStack.layoutMargins = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 15)
-        vStack.isLayoutMarginsRelativeArrangement = true
-        
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        vStack.spacing = 4
-        vStack.setCustomSpacing(0, after: self.hStack)
-        self.addSubview(vStack)
-
-        let views = [ "vstack": vStack ]
-
-        self.addConstraint({
-            self.leadingMargin = NSLayoutConstraint(item: vStack, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1, constant: 0)
-            return self.leadingMargin! }())
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "[vstack]|", options: .directionLeadingToTrailing, metrics: nil, views: views))
+    // MARK: Updates
     
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|[vstack]|", options: [], metrics: nil, views: views))
-    }
-
-    func clearMedia() {
-        self.mediaImageView.isHidden = true
-        self.mediaLabel.isHidden = true
-    }
-    
-    func updateWith(chatMessageItem: ChatMessage) {
-        let text = chatMessageItem.text ?? ""
+    func updateWith(chatMessage: ChatMessage) {
+        let text = chatMessage.text ?? ""
         self.textView.text = text
         
-//        self.textView.text += " \(chatMessageItem.timestamp!)"
-        
-        if let media = chatMessageItem.media {
+        if let media = chatMessage.media {
             if media.count > 0 {
                 self.mediaImageView.isHidden = false
                 self.mediaLabel.isHidden = false
             }
         }
         
+        if let quoted = chatMessage.quoted {
+            if let userId = quoted.userId {
+                self.quotedNameLabel.text = AppContext.shared.contactStore.fullName(for: userId)
+            }
+            self.quotedTextLabel.text = quoted.text ?? ""
+            
+            if let media = quoted.media {
+
+                if let med = media.first(where: { $0.order == chatMessage.feedPostMediaIndex }) {
+                    let fileURL = AppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
+
+                    if let image = UIImage(contentsOfFile: fileURL.path) {
+                        self.quotedImageView.image = image
+                    } else if med.type == .video {
+                        if let image = self.videoPreviewImage(url: fileURL) {
+                            self.quotedImageView.image = image
+                        }
+                    }
+
+                    let imageSize: CGFloat = 80.0
+
+                    NSLayoutConstraint(item: self.quotedImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
+                    NSLayoutConstraint(item: self.quotedImageView, attribute: .height, relatedBy: .equal, toItem: self.quotedImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
+
+                    self.quotedImageView.isHidden = false
+                }
+            }
+            
+            self.quotedTextVStack.isHidden = false
+            self.quotedRow.isHidden = false
+        }
+        
+    }
+    
+    // MARK: reuse
+    
+    func reset() {
+        self.quotedNameLabel.text = ""
+        self.quotedTextLabel.text = ""
+        self.quotedTextVStack.isHidden = true
+        self.quotedImageView.isHidden = true
+        self.quotedRow.isHidden = true
+                
+        self.mediaImageView.isHidden = true
+        self.mediaLabel.isHidden = true
+        
+        self.textView.text = ""
+
     }
 
+    func videoPreviewImage(url: URL) -> UIImage? {
+        let asset = AVURLAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        
+        if let cgImage = try? generator.copyCGImage(at: CMTime(seconds: 2, preferredTimescale: 60), actualTime: nil) {
+            return UIImage(cgImage: cgImage)
+        }
+        else {
+            return nil
+        }
+    }
+    
+    @objc func gotoPreview(_ sender: UIView) {
+        self.delegate?.chatView(self)
+    }
+    
 }

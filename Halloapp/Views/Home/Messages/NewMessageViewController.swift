@@ -223,8 +223,10 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let abContact = fetchedResultsController?.object(at: indexPath) {
             if let userId = abContact.userId {
+                
+                self.dismiss(animated: false) // gotcha: don't animate or else chatInput will not be shown
                 self.delegate?.newMessageViewController(self, chatWithUserId: userId)
-                self.dismiss(animated: true)
+                
             }
         }
     }

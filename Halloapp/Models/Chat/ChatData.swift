@@ -14,6 +14,7 @@ typealias ChatMessageID = String
 class ChatData: ObservableObject, XMPPControllerChatDelegate {
     
     let didChangeUnreadCount = PassthroughSubject<Int, Never>()
+    let didGetCurrentChatPresence = PassthroughSubject<TimeInterval, Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
@@ -37,7 +38,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         self.cancellableSet.insert(
             xmppController.didGetAck.sink { [weak self] xmppAck in
-                DDLogInfo("Chat: got ack \(xmppAck)")
+                DDLogInfo("ChatData/gotAck \(xmppAck)")
                 guard let self = self else { return }
                 self.processIncomingChatAck(xmppAck)
             }
@@ -46,7 +47,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         self.cancellableSet.insert(
             xmppController.didGetNewChatMessage.sink { [weak self] xmppMessage in
                 if xmppMessage.element(forName: "chat") != nil {
-                    DDLogInfo("Chat: new item \(xmppMessage)")
+                    DDLogInfo("ChatData/newMsg \(xmppMessage)")
                     guard let self = self else { return }
                     self.processIncomingChatMessage(xmppMessage)
                 }
@@ -62,6 +63,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                     // which causes display of messages to be in mixed order
                     var timeDelay = 0.0
                     pendingOutgoingChatMessages.forEach {
+                        DDLogInfo("ChatData/onConnect/processPending/chatMessages \($0.id)")
                         let xmppChatMessage = XMPPChatMessage(chatMessage: $0).xmppElement
                         self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) {
                             AppContext.shared.xmppController.xmppStream.send(xmppChatMessage)
@@ -71,9 +73,18 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
 
                     let pendingOutgoingSeenReceipts = self.pendingOutgoingSeenReceipts(in: managedObjectContext)
                     pendingOutgoingSeenReceipts.forEach {
+                        DDLogInfo("ChatData/onConnect/processPending/seenReceipts \($0.id)")
                         self.sendSeenReceipt(for: $0)
                     }
                 }
+            }
+        )
+        
+        self.cancellableSet.insert(
+            xmppController.didGetPresence.sink { [weak self] xmppPresence in
+                DDLogInfo("ChatData/gotPresence \(xmppPresence)")
+                guard let self = self else { return }
+                self.processIncomingPresence(xmppPresence)
             }
         )
         
@@ -194,20 +205,20 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         chatMessage.toUserId = xmppChatMessage.toUserId
         chatMessage.fromUserId = xmppChatMessage.fromUserId
         chatMessage.text = xmppChatMessage.text
+        chatMessage.feedPostId = xmppChatMessage.feedPostId
+        chatMessage.feedPostMediaIndex = xmppChatMessage.feedPostMediaIndex
         chatMessage.receiverStatus = .none
         chatMessage.senderStatus = .none
 
         if let ts = xmppChatMessage.timestamp {
-            print("server time: \(ts)")
             chatMessage.timestamp = Date(timeIntervalSince1970: ts)
         } else {
             chatMessage.timestamp = Date()
-            print("no time:")
         }
         
         // Process chat media
         for (index, xmppMedia) in xmppChatMessage.media.enumerated() {
-            DDLogDebug("ChatData/process-posts/new/add-media [\(xmppMedia.url)]")
+            DDLogDebug("ChatData/process/new/add-media [\(xmppMedia.url)]")
             let feedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
             switch xmppMedia.type {
             case .image:
@@ -222,6 +233,43 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             feedMedia.order = Int16(index)
             feedMedia.sha256 = xmppMedia.sha256
             feedMedia.message = chatMessage
+        }
+        
+        // Process Quoted
+        if xmppChatMessage.feedPostId != nil {
+            if let feedPost = AppContext.shared.feedData.feedPost(with: xmppChatMessage.feedPostId!) {
+                let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
+                quoted.type = .feedpost
+                quoted.userId = feedPost.userId
+                quoted.text = feedPost.text
+                quoted.message = chatMessage
+                                
+                if feedPost.media != nil {
+                    if let feedPostMedia = feedPost.media!.first(where: { $0.order == xmppChatMessage.feedPostMediaIndex}) {
+                        let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
+                        if feedPostMedia.type == .image {
+                            quotedMedia.type = .image
+                        } else {
+                            quotedMedia.type = .video
+                        }
+                        quotedMedia.order = feedPostMedia.order
+                        quotedMedia.width = Float(feedPostMedia.size.width)
+                        quotedMedia.height = Float(feedPostMedia.size.height)
+                        
+                        quotedMedia.quoted = quoted
+                        
+                        do {
+                            try copyMediaToQuotedMedia(fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
+                        }
+                        catch {
+                            DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
+                        }
+                            
+
+                        
+                    }
+                }
+            }
         }
         
         // Update Chat Thread
@@ -244,7 +292,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         if isCurrentlyChattingWithUser {
             self.sendSeenReceipt(for: chatMessage)
-            
+
             self.updateChatMessage(with: chatMessage.id) { (chatMessage) in
                 chatMessage.receiverStatus = .haveSeen
             }
@@ -254,12 +302,39 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
     }
         
+    func copyMediaToQuotedMedia(fromPath: String?, to quotedMedia: ChatQuotedMedia) throws {
+        guard let fromRelativePath = fromPath else {
+            return
+        }
+        
+        let fromURL = AppContext.mediaDirectoryURL.appendingPathComponent(fromRelativePath, isDirectory: false)
+        
+        // append unique id to allow multiple quoted messages of the same feedpost so each message can be deleted independently in the future
+        
+        var pathComponents = fromRelativePath.components(separatedBy: ".")
+        
+        guard pathComponents.count > 1 else {
+            return
+        }
+        
+        pathComponents[0] += "-\(UUID().uuidString)"
+        
+        let newPath = "\(pathComponents[0]).\(pathComponents[1])"
+        
+        let toURL = AppContext.chatMediaDirectoryURL.appendingPathComponent(newPath, isDirectory: false)
+        
+        try FileManager.default.createDirectory(at: toURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+
+        try FileManager.default.copyItem(at: fromURL, to: toURL)
+        quotedMedia.relativeFilePath = newPath
+    }
+    
     func sendSeenReceipt(for chatMessage: ChatMessage) {
         self.xmppController.sendSeenReceipt(XMPPReceipt.seenReceipt(for: chatMessage), to: chatMessage.fromUserId)
     }
     
-    func sendMessage(toUserId: String, text: String, media: [PendingChatMessageMedia]) {
-        let xmppChatMessage = XMPPChatMessage(toUserId: toUserId, text: text, media: [])
+    func sendMessage(toUserId: String, text: String, media: [PendingChatMessageMedia], feedPostId: String, feedPostMediaIndex: Int32) {
+        let xmppChatMessage = XMPPChatMessage(toUserId: toUserId, text: text, media: [], feedPostId: feedPostId, feedPostMediaIndex: feedPostMediaIndex)
         
         // Create and save new ChatMessage object.
         let managedObjectContext = self.persistentContainer.viewContext
@@ -269,6 +344,8 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         chatMessage.toUserId = xmppChatMessage.toUserId
         chatMessage.fromUserId = xmppChatMessage.fromUserId
         chatMessage.text = xmppChatMessage.text
+        chatMessage.feedPostId = xmppChatMessage.feedPostId
+        chatMessage.feedPostMediaIndex = xmppChatMessage.feedPostMediaIndex
         chatMessage.receiverStatus = .none
         chatMessage.senderStatus = .pending
         chatMessage.timestamp = Date()
@@ -288,6 +365,41 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             // TODO: save the media to file directory
         }
         
+        // Create and save Quoted
+        if xmppChatMessage.feedPostId != nil {
+            if let feedPost = AppContext.shared.feedData.feedPost(with: xmppChatMessage.feedPostId!) {
+                let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
+                quoted.type = .feedpost
+                quoted.userId = feedPost.userId
+                quoted.text = feedPost.text
+                quoted.message = chatMessage
+                
+                if feedPost.media != nil {
+                    if let feedPostMedia = feedPost.media!.first(where: { $0.order == xmppChatMessage.feedPostMediaIndex }) {
+                        let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
+                        if feedPostMedia.type == .image {
+                            quotedMedia.type = .image
+                        } else {
+                            quotedMedia.type = .video
+                        }
+                        quotedMedia.order = feedPostMedia.order
+                        quotedMedia.width = Float(feedPostMedia.size.width)
+                        quotedMedia.height = Float(feedPostMedia.size.height)
+                        
+                        quotedMedia.quoted = quoted
+                        
+                        do {
+                            try copyMediaToQuotedMedia(fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
+                        }
+                        catch {
+                            DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
+                        }
+
+                    }
+                }
+            }
+        }
+        
         // Update Chat Thread
         if let chatThread = self.chatThread(chatWithUserId: chatMessage.toUserId, in: managedObjectContext) {
             DDLogDebug("ChatData/new-msg/update-thread")
@@ -302,14 +414,9 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             chatThread.lastMsgText = chatMessage.text
             chatThread.lastMsgTimestamp = chatMessage.timestamp
             chatThread.unreadCount = 0
-            
-            print("chatThread: \(chatThread)")
         }
         
         self.save(managedObjectContext)
-
-        print("send realtime: \(xmppChatMessage.xmppElement)")
-        
         AppContext.shared.xmppController.xmppStream.send(xmppChatMessage.xmppElement)
     }
 
@@ -357,6 +464,11 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && receiverStatusValue = %d", AppContext.shared.userData.userId, ChatMessage.ReceiverStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
+    // MARK: Presence
+    
+    private func processIncomingPresence(_ xmppPresence: XMPPPresence) {
+    }
+    
     // MARK: Fetching Threads
     
     private func chatThreads(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
@@ -392,7 +504,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
 //        message.addAttribute(withName: "to", stringValue: "\(chatWithUserId)@s.halloapp.net")
 //        message.addAttribute(withName: "type", stringValue: "subscribe")
 //        AppContext.shared.xmppController.xmppStream.send(message)
-//        
+        
 //        let ownPresence = XMPPElement(name: "presence")
 //        ownPresence.addAttribute(withName: "to", stringValue: "\(chatWithUserId)@s.halloapp.net")
 //        ownPresence.addAttribute(withName: "type", stringValue: "available")
@@ -419,7 +531,9 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             
             if let chatThread = self.chatThread(chatWithUserId: chatWithUserId, in: managedObjectContext) {
-                chatThread.unreadCount = 0
+                if chatThread.unreadCount != 0 {
+                    chatThread.unreadCount = 0
+                }
             }
 
             let unseenChatMessages = self.unseenChatMessages(with: chatWithUserId, in: managedObjectContext)
@@ -491,9 +605,11 @@ struct XMPPChatMessage {
     let toUserId: UserID
     let text: String?
     let media: [XMPPChatMedia]
+    let feedPostId: String?
+    let feedPostMediaIndex: Int32
     var timestamp: TimeInterval?
 
-    init(toUserId: String, text: String?, media: [PendingChatMessageMedia]?) {
+    init(toUserId: String, text: String?, media: [PendingChatMessageMedia]?, feedPostId: String?, feedPostMediaIndex: Int32) {
         self.id = UUID().uuidString
         self.fromUserId = AppContext.shared.userData.userId
         self.toUserId = toUserId
@@ -503,6 +619,8 @@ struct XMPPChatMessage {
         } else {
             self.media = []
         }
+        self.feedPostId = feedPostId
+        self.feedPostMediaIndex = feedPostMediaIndex
     }
 
     init(chatMessage: ChatMessage) {
@@ -510,6 +628,8 @@ struct XMPPChatMessage {
         self.fromUserId = chatMessage.fromUserId
         self.toUserId = chatMessage.toUserId
         self.text = chatMessage.text
+        self.feedPostId = chatMessage.feedPostId
+        self.feedPostMediaIndex = chatMessage.feedPostMediaIndex
         
         // TODO: Media
         self.media = []
@@ -521,23 +641,31 @@ struct XMPPChatMessage {
         guard let fromUserId = item.attributeStringValue(forName: "from")?.components(separatedBy: "@").first else { return nil }
         guard let chat = item.element(forName: "chat") else { return nil }
 
-        var text: String?, media: [XMPPChatMedia] = []
+        var text: String?, media: [XMPPChatMedia] = [], feedPostId: String?, feedPostMediaIndex: Int32 = 0
         
         if let protoContainer = Proto_Container.chatMessageContainer(from: chat) {
             if protoContainer.hasChatMessage {
                 text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
                 media = protoContainer.chatMessage.media.compactMap { XMPPChatMedia(protoMedia: $0) }
+                
+                feedPostId = protoContainer.chatMessage.feedPostID.isEmpty ? nil : protoContainer.chatMessage.feedPostID
+                feedPostMediaIndex = protoContainer.chatMessage.feedPostMediaIndex
+                
             }
         }
         
         self.id = id
-        self.toUserId = toUserId
         self.fromUserId = fromUserId
+        self.toUserId = toUserId
+        self.text = text
+        
+        self.feedPostId = feedPostId
+        self.feedPostMediaIndex = feedPostMediaIndex
+        self.media = media
         
         self.timestamp = chat.attributeDoubleValue(forName: "timestamp")
         
-        self.text = text
-        self.media = media
+
     }
 
     var xmppElement: XMPPElement {
@@ -564,6 +692,11 @@ struct XMPPChatMessage {
             var chatMessage = Proto_ChatMessage()
             if self.text != nil {
                 chatMessage.text = self.text!
+            }
+            
+            if self.feedPostId != nil {
+                chatMessage.feedPostID = self.feedPostId!
+                chatMessage.feedPostMediaIndex = self.feedPostMediaIndex
             }
             
             var container = Proto_Container()

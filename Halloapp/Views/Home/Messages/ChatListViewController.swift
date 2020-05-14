@@ -51,7 +51,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         self.navigationItem.title = nil
 
         self.navigationItem.rightBarButtonItems = [
-         UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(showContacts)) ]
+            UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(showContacts)) ]
 
         self.tableView.backgroundColor = .clear
         self.tableView.separatorStyle = .none
@@ -97,12 +97,16 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         }
     }
     
-
-
     // MARK: Top Nav Button Actions
     
     @objc(showContacts)
     private func showContacts() {
+
+//        let detailVC = self.newMessageViewController
+//        let navigationController = UINavigationController(rootViewController: detailVC)
+//        navigationController.modalPresentationStyle = .fullScreen
+//        self.present(navigationController, animated: true)
+        
         self.present(UINavigationController(rootViewController: self.newMessageViewController), animated: true)
     }
     
@@ -227,15 +231,14 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let chatThread = fetchedResultsController?.object(at: indexPath) {
-            self.navigationController?.pushViewController(ChatViewController(fromUserId: chatThread.chatWithUserId), animated: true)
+            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId), animated: true)
         }
     }
     
     // MARK: New Message Delegates
     
     func newMessageViewController(_ newMessageViewController: NewMessageViewController, chatWithUserId: String) {
-        print("here")
-        self.navigationController?.pushViewController(ChatViewController(fromUserId: chatWithUserId), animated: true)
+        self.navigationController?.pushViewController(ChatViewController(for: chatWithUserId), animated: true)
     }
 }
 

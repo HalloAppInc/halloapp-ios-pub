@@ -13,6 +13,8 @@
         <relationship name="message" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="media" inverseEntity="ChatMessage"/>
     </entity>
     <entity name="ChatMessage" representedClassName="ChatMessage" syncable="YES">
+        <attribute name="feedPostId" optional="YES" attributeType="String"/>
+        <attribute name="feedPostMediaIndex" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="fromUserId" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
         <attribute name="receiverStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -21,6 +23,22 @@
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="toUserId" attributeType="String"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Deny" destinationEntity="ChatMedia" inverseName="message" inverseEntity="ChatMedia"/>
+        <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="message" inverseEntity="ChatQuoted"/>
+    </entity>
+    <entity name="ChatQuoted" representedClassName="ChatQuoted" syncable="YES">
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userId" optional="YES" attributeType="String"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatQuotedMedia" inverseName="quoted" inverseEntity="ChatQuotedMedia"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="quoted" inverseEntity="ChatMessage"/>
+    </entity>
+    <entity name="ChatQuotedMedia" representedClassName="ChatQuotedMedia" syncable="YES">
+        <attribute name="height" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="relativeFilePath" optional="YES" attributeType="String"/>
+        <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="width" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="media" inverseEntity="ChatQuoted"/>
     </entity>
     <entity name="ChatThread" representedClassName="ChatThread" syncable="YES">
         <attribute name="chatWithUserId" optional="YES" attributeType="String"/>
@@ -31,7 +49,9 @@
     </entity>
     <elements>
         <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="193"/>
-        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="163"/>
+        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="208"/>
+        <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="118"/>
+        <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="133"/>
         <element name="ChatThread" positionX="-36" positionY="108" width="128" height="118"/>
     </elements>
 </model>

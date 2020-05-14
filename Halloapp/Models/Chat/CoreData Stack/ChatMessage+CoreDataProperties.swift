@@ -33,14 +33,21 @@ extension ChatMessage {
         return NSFetchRequest<ChatMessage>(entityName: "ChatMessage")
     }
 
-    @NSManaged var fromUserId: String
     @NSManaged var id: ChatMessageID
+    @NSManaged var fromUserId: String
+    @NSManaged var toUserId: String
+    @NSManaged var text: String?
+    @NSManaged var media: Set<ChatMedia>?
+    
+    @NSManaged var feedPostId: String?
+    @NSManaged var feedPostMediaIndex: Int32
+    
+    @NSManaged var quoted: ChatQuoted?
+    
     @NSManaged var receiverStatusValue: Int16
     @NSManaged var senderStatusValue: Int16
-    @NSManaged var text: String?
+
     @NSManaged var timestamp: Date?
-    @NSManaged var toUserId: String
-    @NSManaged var media: Set<ChatMedia>?
     
     var receiverStatus: ReceiverStatus {
         get {

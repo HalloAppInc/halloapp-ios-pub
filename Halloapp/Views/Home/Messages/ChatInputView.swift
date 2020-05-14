@@ -7,6 +7,7 @@
 
 import CocoaLumberjack
 import UIKit
+import AVKit
 
 fileprivate protocol ContainerViewDelegate: AnyObject {
     func containerView(_ containerView: ChatInputView.ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat
@@ -17,6 +18,7 @@ protocol ChatInputViewDelegate: AnyObject {
     func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve)
     func chatInputView(_ inputView: ChatInputView, wantsToSend text: String)
     func chatInputView(_ inputView: ChatInputView)
+    func chatInputViewCloseQuotePanel(_ inputView: ChatInputView)
 }
 
 class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
@@ -89,6 +91,88 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         return textView
     }()
     
+    private lazy var quoteFeedPanelNameLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = UIColor.label
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        return label
+    }()
+    
+    private lazy var quoteFeedPanelTextLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = UIColor.secondaryLabel
+        label.numberOfLines = 2
+        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        return label
+    }()
+    
+    private lazy var quoteFeedPanelTextContent: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [ self.quoteFeedPanelNameLabel, self.quoteFeedPanelTextLabel ])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 10, right: 0)
+        stackView.isLayoutMarginsRelativeArrangement = true
+        stackView.axis = .vertical
+        stackView.spacing = 3
+        return stackView
+    }()
+    
+    private lazy var quoteFeedPanelImage: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        
+        imageView.layer.cornerRadius = 10
+        imageView.layer.masksToBounds = true
+        imageView.isHidden = true
+        
+        return imageView
+    }()
+    
+    private lazy var quoteFeedPanelTextMediaContent: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.quoteFeedPanelTextContent, self.quoteFeedPanelImage ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        view.axis = .horizontal
+        view.spacing = 3
+        view.alignment = .top
+        
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 5, bottom: 10, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.layer.cornerRadius = 15
+        subView.layer.borderWidth = 1
+        subView.layer.borderColor = UIColor.link.cgColor
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        
+        view.insertSubview(subView, at: 0)
+        
+        return view
+    }()
+    
+    private lazy var quoteFeedPanelCloseButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "xmark"), for: .normal)
+        button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
+        button.tintColor = UIColor.systemGray
+        button.addTarget(self, action: #selector(self.closeQuoteFeedPanel), for: .touchUpInside)
+        button.setContentHuggingPriority(.required, for: .horizontal)
+        return button
+    }()
+    
+    private lazy var quoteFeedPanel: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [ self.quoteFeedPanelTextMediaContent, self.quoteFeedPanelCloseButton ])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .horizontal
+        stackView.alignment = .top
+        stackView.spacing = 8
+
+        stackView.isHidden = true
+        return stackView
+    }()
+    
     private lazy var postMediaButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -106,7 +190,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.isEnabled = false
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-        // gotcha: keep insets at 5 or higher to have a bigger hit area,
+        // gotcha: keep insets at 6 or higher to have a bigger hit area,
         // rotating image by 45 degree is problematic so perhaps getting a pre-rotated custom icon is better
         button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
         button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
@@ -116,14 +200,14 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         return button
     }()
 
-    private lazy var contactNameLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.secondaryLabel
-        label.numberOfLines = 2
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        return label
+    private lazy var vStack: UIStackView = {
+        let vStack = UIStackView()
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.axis = .vertical
+        return vStack
     }()
-
+    
+    // MARK: ChatInput Lifecycle
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -134,6 +218,38 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupView()
+    }
+
+    func willAppear(in viewController: UIViewController) {
+        self.setInputViewWidth(viewController.view.bounds.size.width)
+//        viewController.becomeFirstResponder()
+    }
+
+    func didAppear(in viewController: UIViewController) {
+//        viewController.becomeFirstResponder()
+    }
+
+    func willDisappear(in viewController: UIViewController) {
+        guard self.isKeyboardVisible || !viewController.isFirstResponder else { return }
+
+        var deferResigns = false
+        if viewController.isMovingFromParent {
+            // Popping
+            deferResigns = true
+        } else if self.isKeyboardVisible {
+            // Pushing or presenting
+            deferResigns = viewController.transitionCoordinator != nil && viewController.transitionCoordinator!.initiallyInteractive
+        }
+        if deferResigns && viewController.transitionCoordinator != nil {
+            viewController.transitionCoordinator?.animate(alongsideTransition: nil,
+                                                          completion: { context in
+                if !context.isCancelled {
+                    self.resignFirstResponderOnDisappear(in: viewController)
+                }
+            })
+        } else {
+            self.resignFirstResponderOnDisappear(in: viewController)
+        }
     }
 
     private func setupView() {
@@ -174,52 +290,190 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         hStack.axis = .horizontal
         hStack.spacing = 0
 
-        self.contentView.addArrangedSubview(hStack)
+        self.vStack.addArrangedSubview(hStack)
+        self.vStack.insertArrangedSubview(self.quoteFeedPanel, at: 0)
+        
+        self.contentView.addArrangedSubview(self.vStack)
         
         
-        self.postMediaButton.isHidden = true 
+        self.postMediaButton.isHidden = true
         
         setPlaceholderText()
         
+        
+
     }
-
-    func willAppear(in viewController: UIViewController) {
-        self.setInputViewWidth(viewController.view.bounds.size.width)
-        viewController.becomeFirstResponder()
-    }
-
-    func didAppear(in viewController: UIViewController) {
-        viewController.becomeFirstResponder()
-    }
-
-    func willDisappear(in viewController: UIViewController) {
-        guard self.isKeyboardVisible || !viewController.isFirstResponder else { return }
-
-        var deferResigns = false
-        if viewController.isMovingFromParent {
-            // Popping
-            deferResigns = true
-        } else if self.isKeyboardVisible {
-            // Pushing or presenting
-            deferResigns = viewController.transitionCoordinator != nil && viewController.transitionCoordinator!.initiallyInteractive
-        }
-        if deferResigns && viewController.transitionCoordinator != nil {
-            viewController.transitionCoordinator?.animate(alongsideTransition: nil,
-                                                          completion: { context in
-                if !context.isCancelled {
-                    self.resignFirstResponderOnDisappear(in: viewController)
-                }
-            })
-        } else {
-            self.resignFirstResponderOnDisappear(in: viewController)
-        }
-    }
-
+    
     private func resignFirstResponderOnDisappear(in viewController: UIViewController) {
         self.hideKeyboard()
         viewController.resignFirstResponder()
     }
 
+    // MARK: Layout
+
+    func setInputViewWidth(_ width: CGFloat) {
+        guard self.bounds.size.width != width else { return }
+        self.bounds = CGRect(origin: .zero, size: CGSize(width: width, height: self.containerView.preferredHeight(for: width)))
+    }
+
+    func containerView(_ containerView: ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat {
+        return self.preferredHeight(for: layoutWidth)
+    }
+
+    func currentLayoutWidth(for containerView: ContainerView) -> CGFloat {
+        return self.currentLayoutWidth
+    }
+
+    private var currentLayoutWidth: CGFloat {
+        get {
+            var view: UIView? = self.superview
+            if view == nil || view?.bounds.size.width == 0 {
+                view = self
+            }
+            return view!.frame.size.width
+        }
+    }
+
+    private func setNeedsUpdateHeight() {
+        self.setNeedsUpdateHeight(animationDuration:CommentInputView.heightChangeAnimationDuration)
+    }
+
+    private func setNeedsUpdateHeight(animationDuration: TimeInterval) {
+        guard self.window != nil else {
+            self.invalidateLayout()
+            return
+        }
+
+        // Don't defer the initial layout to avoid UI glitches.
+        if self.bounds.size.height == 0.0 {
+            self.animationDurationForHeightUpdate = 0.0
+            self.updateHeight()
+            return
+        }
+
+        self.animationDurationForHeightUpdate = max(animationDuration, self.animationDurationForHeightUpdate)
+        if (!self.updateHeightScheduled) {
+            self.updateHeightScheduled = true
+            // Coalesce multiple calls to -setNeedsUpdateHeight.
+            DispatchQueue.main.async {
+                self.updateHeight()
+            }
+        }
+    }
+
+    private func invalidateLayout() {
+        self.invalidateIntrinsicContentSize()
+        self.containerView.invalidateIntrinsicContentSize()
+    }
+
+    private func updateHeight() {
+        self.updateHeightScheduled = false
+        let duration = self.animationDurationForHeightUpdate;
+        self.animationDurationForHeightUpdate = -1
+
+        let animationBlock = {
+            self.invalidateLayout()
+            self.superview?.setNeedsLayout()
+            self.superview?.layoutIfNeeded()
+
+            self.window?.rootViewController?.view.setNeedsLayout()
+            // Triggering this layout pass will fire UIKeyboardWillShowNotification.
+            self.window?.rootViewController?.view.layoutIfNeeded()
+        };
+        if duration > 0 {
+            UIView.animate(withDuration: duration, animations: animationBlock)
+        } else {
+            animationBlock()
+        }
+    }
+
+    private func preferredHeight(for layoutWidth: CGFloat) -> CGFloat {
+        return 0
+    }
+
+    override var intrinsicContentSize: CGSize {
+        get {
+            return self.containerView.intrinsicContentSize
+        }
+    }
+
+    override var bounds: CGRect {
+        get {
+            return super.bounds
+        }
+        set {
+            let oldBounds = self.bounds
+            super.bounds = newValue
+            if (newValue.size.height != self.previousHeight) {
+                self.previousHeight = newValue.size.height
+            }
+            if (newValue.size.width != oldBounds.size.width) {
+                self.setNeedsUpdateHeight()
+            }
+        }
+    }
+
+    // MARK: Quote Panel
+
+    func videoPreviewImage(url: URL) -> UIImage? {
+        let asset = AVURLAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        
+        if let cgImage = try? generator.copyCGImage(at: CMTime(seconds: 2, preferredTimescale: 60), actualTime: nil) {
+            return UIImage(cgImage: cgImage)
+        }
+        else {
+            return nil
+        }
+    }
+    
+    func showQuoteFeedPanel(with userId: String, text: String, mediaType: FeedMediaType?, mediaUrl: String?) {
+        self.quoteFeedPanelNameLabel.text = AppContext.shared.contactStore.fullName(for: userId)
+        self.quoteFeedPanelTextLabel.text = text
+        if self.vStack.arrangedSubviews.contains(self.quoteFeedPanel) {
+            self.quoteFeedPanel.isHidden = false
+        } else {
+            self.vStack.insertArrangedSubview(self.quoteFeedPanel, at: 0)
+        }
+        
+        if mediaType != nil && mediaUrl != nil {
+            let fileURL = AppContext.mediaDirectoryURL.appendingPathComponent(mediaUrl ?? "", isDirectory: false)
+            
+            if mediaType == .image {
+                if let image = UIImage(contentsOfFile: fileURL.path) {
+                    self.quoteFeedPanelImage.image = image
+                }
+            } else if mediaType == .video {
+                if let image = self.videoPreviewImage(url: fileURL) {
+                    self.quoteFeedPanelImage.image = image
+                }
+            }
+            
+            let imageSize: CGFloat = 80.0
+            
+            NSLayoutConstraint(item: self.quoteFeedPanelImage, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
+            NSLayoutConstraint(item: self.quoteFeedPanelImage, attribute: .height, relatedBy: .equal, toItem: self.quoteFeedPanelImage, attribute: .width, multiplier: 1, constant: 0).isActive = true
+            self.quoteFeedPanelImage.isHidden = false
+            
+        } else {
+            self.quoteFeedPanelImage.isHidden = true
+        }
+    
+
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.9) {
+            self.textView.becomeFirstResponder()
+        }
+      
+//        self.setNeedsUpdateHeight()
+    }
+
+    @objc private func closeQuoteFeedPanel() {
+        self.quoteFeedPanel.isHidden = true
+        self.delegate?.chatInputViewCloseQuotePanel(self)
+//        self.setNeedsUpdateHeight()
+    }
+    
     // MARK: Text view
     
     var text: String {
@@ -239,6 +493,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
     @objc func postButtonClicked() {
         self.delegate?.chatInputView(self, wantsToSend: self.text)
+        self.closeQuoteFeedPanel()
     }
 
     @objc func postMediaButtonClicked() {
@@ -268,6 +523,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }
     
     // MARK: Keyboard
+    
     enum KeyboardState {
         case hidden
         case hiding
@@ -385,108 +641,5 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
             }
         }
     }
-
-    // MARK: Layout
-
-    func setInputViewWidth(_ width: CGFloat) {
-        guard self.bounds.size.width != width else { return }
-        self.bounds = CGRect(origin: .zero, size: CGSize(width: width, height: self.containerView.preferredHeight(for: width)))
-    }
-
-    func containerView(_ containerView: ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat {
-        return self.preferredHeight(for: layoutWidth)
-    }
-
-    func currentLayoutWidth(for containerView: ContainerView) -> CGFloat {
-        return self.currentLayoutWidth
-    }
-
-    private var currentLayoutWidth: CGFloat {
-        get {
-            var view: UIView? = self.superview
-            if view == nil || view?.bounds.size.width == 0 {
-                view = self
-            }
-            return view!.frame.size.width
-        }
-    }
-
-    private func setNeedsUpdateHeight() {
-        self.setNeedsUpdateHeight(animationDuration:CommentInputView.heightChangeAnimationDuration)
-    }
-
-    private func setNeedsUpdateHeight(animationDuration: TimeInterval) {
-        guard self.window != nil else {
-            self.invalidateLayout()
-            return
-        }
-
-        // Don't defer the initial layout to avoid UI glitches.
-        if self.bounds.size.height == 0.0 {
-            self.animationDurationForHeightUpdate = 0.0
-            self.updateHeight()
-            return
-        }
-
-        self.animationDurationForHeightUpdate = max(animationDuration, self.animationDurationForHeightUpdate)
-        if (!self.updateHeightScheduled) {
-            self.updateHeightScheduled = true
-            // Coalesce multiple calls to -setNeedsUpdateHeight.
-            DispatchQueue.main.async {
-                self.updateHeight()
-            }
-        }
-    }
-
-    private func invalidateLayout() {
-        self.invalidateIntrinsicContentSize()
-        self.containerView.invalidateIntrinsicContentSize()
-    }
-
-    private func updateHeight() {
-        self.updateHeightScheduled = false
-        let duration = self.animationDurationForHeightUpdate;
-        self.animationDurationForHeightUpdate = -1
-
-        let animationBlock = {
-            self.invalidateLayout()
-            self.superview?.setNeedsLayout()
-            self.superview?.layoutIfNeeded()
-
-            self.window?.rootViewController?.view.setNeedsLayout()
-            // Triggering this layout pass will fire UIKeyboardWillShowNotification.
-            self.window?.rootViewController?.view.layoutIfNeeded()
-        };
-        if duration > 0 {
-            UIView.animate(withDuration: duration, animations: animationBlock)
-        } else {
-            animationBlock()
-        }
-    }
-
-    private func preferredHeight(for layoutWidth: CGFloat) -> CGFloat {
-        return 0
-    }
-
-    override var intrinsicContentSize: CGSize {
-        get {
-            return self.containerView.intrinsicContentSize
-        }
-    }
-
-    override var bounds: CGRect {
-        get {
-            return super.bounds
-        }
-        set {
-            let oldBounds = self.bounds
-            super.bounds = newValue
-            if (newValue.size.height != self.previousHeight) {
-                self.previousHeight = newValue.size.height
-            }
-            if (newValue.size.width != oldBounds.size.width) {
-                self.setNeedsUpdateHeight()
-            }
-        }
-    }
+    
 }
