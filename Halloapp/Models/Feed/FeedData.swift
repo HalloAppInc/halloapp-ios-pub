@@ -60,7 +60,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // when app resumes, xmpp reconnects, feed should try uploading any pending again
         self.cancellableSet.insert(
-            self.xmppController.didConnect.sink { _ in
+            self.xmppController.didConnect.sink {
                 DDLogInfo("Feed: Got event for didConnect")
 
                 self.deleteExpiredPosts()

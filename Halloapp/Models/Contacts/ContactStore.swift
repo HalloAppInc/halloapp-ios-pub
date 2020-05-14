@@ -355,12 +355,12 @@ class ContactStore: ObservableObject {
     private var syncWillBeEnabled = false
     
     func enableContactSync() {
-        if self.xmppController.isConnectedToServer {
+        if self.xmppController.isConnected {
             AppContext.shared.syncManager.enableSync()
         } else if (!self.syncWillBeEnabled) {
             self.syncWillBeEnabled = true
             self.cancellableSet.insert(
-                self.xmppController.didConnect.sink { _ in
+                self.xmppController.didConnect.sink {
                     AppContext.shared.syncManager.enableSync()
                     self.syncWillBeEnabled = false
                 }

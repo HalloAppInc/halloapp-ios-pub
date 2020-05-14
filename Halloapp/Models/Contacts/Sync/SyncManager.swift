@@ -54,7 +54,7 @@ class SyncManager {
             self.runFullSyncIfNecessary()
         }
 
-        self.cancellableSet.insert(self.xmppController.didConnect.sink { _ in
+        self.cancellableSet.insert(self.xmppController.didConnect.sink {
             self.queue.async {
                 self.runSyncIfNecessary()
             }
@@ -192,7 +192,7 @@ class SyncManager {
         }
 
         // Must be connected.
-        guard self.xmppController.xmppStream.isConnected else {
+        guard self.xmppController.isConnected else {
             return .notAllowed
         }
 

@@ -28,143 +28,135 @@ protocol XMPPControllerChatDelegate: AnyObject {
     func xmppController(_ xmppController: XMPPController, didSendMessageReceipt receipt: XMPPReceipt)
 }
 
-class XMPPController: NSObject, ObservableObject {
+class XMPPController: NSObject {
+
+    enum ConnectionState {
+        case notConnected
+        case connecting
+        case connected
+        case disconnecting
+    }
+
+    // MARK: Connection State
     var allowedToConnect: Bool = false {
         didSet {
-            if self.allowedToConnect {
-                if !self.isConnectedToServer {
-                    self.connect()
+            if allowedToConnect {
+                if connectionState == .notConnected || connectionState == .disconnecting {
+                    connect()
                 }
             } else {
-                if self.isConnectedToServer {
-                    self.xmppStream.disconnect()
+                if connectionState == .connected || connectionState == .connecting {
+                    disconnect()
                 }
             }
         }
     }
+    private(set) var connectionState: ConnectionState = .notConnected {
+        didSet {
+            DDLogDebug("xmpp/connectionState/change [\(oldValue)] -> [\(connectionState)]")
+            if connectionState == .connected {
+                didConnect.send()
+            }
+        }
+    }
+    var isConnected: Bool { get { connectionState == .connected } }
+    // This will be sent automatically when value of `connectionState` changes.
+    let didConnect = PassthroughSubject<Void, Never>()
 
-    var isConnecting = PassthroughSubject<String, Never>()
-    var didConnect = PassthroughSubject<String, Never>() // used by UserData to know if user is in or not
-    
-    var didGetNewChatMessage = PassthroughSubject<XMPPMessage, Never>()
+    // MARK: Chat
+    weak var chatDelegate: XMPPControllerChatDelegate?
+    let didGetNewChatMessage = PassthroughSubject<XMPPMessage, Never>()
 
-    var didGetAck = PassthroughSubject<XMPPAck, Never>()
-    var didGetPresence = PassthroughSubject<XMPPPresence, Never>()
+    // MARK: Feed
+    weak var feedDelegate: XMPPControllerFeedDelegate?
 
-    var xmppStream: XMPPStream
-    private var xmppPubSub: XMPPPubSub
-    private var xmppReconnect: XMPPReconnect
-    private var xmppPing: XMPPPing
+    // MARK: Misc
+    let didGetAck = PassthroughSubject<XMPPAck, Never>()
+    let didGetPresence = PassthroughSubject<XMPPPresence, Never>()
 
-    var userJID: XMPPJID?
-    private let hostPort: UInt16 = 5222
+    // MARK: XMPP Modules
+    let xmppStream = XMPPStream()
+    private let xmppPubSub = XMPPPubSub(serviceJID: XMPPJID(string: "pubsub.s.halloapp.net"))
 
-    var userData: UserData
-    
-    var isConnectedToServer: Bool = false
+    private let userData: UserData
     private var cancellableSet: Set<AnyCancellable> = []
 
-    weak var feedDelegate: XMPPControllerFeedDelegate?
-    weak var chatDelegate: XMPPControllerChatDelegate?
-
     init(userData: UserData) {
-        
         self.userData = userData
 
-        // Stream Configuration
-        self.xmppStream = XMPPStream()
-        self.xmppStream.hostPort = hostPort
-  
-        let appVersionNStr = NSString(string: UIApplication.shared.version)
-        self.xmppStream.clientVersion = appVersionNStr
-        
-        /* probably should be "required" once all servers including test servers are secured */
-        self.xmppStream.startTLSPolicy = XMPPStreamStartTLSPolicy.preferred
-        
-//        self.xmppStream.keepAliveInterval = 0.5;
-        
-        self.xmppStream.registerCustomElementNames(["ack"])
-        
-        let pubsubId = XMPPJID(string: "pubsub.s.halloapp.net")
-        self.xmppPubSub = XMPPPubSub(serviceJID: pubsubId)
-        
-        self.xmppReconnect = XMPPReconnect()
-        
-        self.xmppPing = XMPPPing()
-        
-//        self.xmppAutoPing = XMPPAutoPing()
-        
         super.init()
 
-        self.xmppStream.addDelegate(self, delegateQueue: DispatchQueue.main)
-        self.xmppPubSub.addDelegate(self, delegateQueue: DispatchQueue.main)
-        self.xmppPubSub.activate(self.xmppStream)
-        
-        self.xmppReconnect.addDelegate(self, delegateQueue: DispatchQueue.main)
-        self.xmppReconnect.activate(self.xmppStream)
-        self.xmppReconnect.autoReconnect = true
-        
-//        self.xmppPing.respondsToQueries = true
-        self.xmppPing.addDelegate(self, delegateQueue: DispatchQueue.main)
-        self.xmppPing.activate(self.xmppStream)
-        
-//        self.xmppAutoPing.addDelegate(self, delegateQueue: DispatchQueue.main)
-//        self.xmppAutoPing.activate(self.xmppStream)
-//        self.xmppAutoPing.pingInterval = 5
-//        self.xmppAutoPing.pingTimeout = 5
+        /* probably should be "required" once all servers including test servers are secured */
+        xmppStream.startTLSPolicy = XMPPStreamStartTLSPolicy.preferred
+        let clientVersion = NSString(string: UIApplication.shared.version)
+        xmppStream.clientVersion = clientVersion
+//        self.xmppStream.keepAliveInterval = 0.5;
+        xmppStream.registerCustomElementNames(["ack"])
+        xmppStream.addDelegate(self, delegateQueue: DispatchQueue.main)
 
-        self.allowedToConnect = userData.isLoggedIn
-        if self.allowedToConnect {
-            self.connect()
+        // XMPP Modules
+        xmppPubSub.addDelegate(self, delegateQueue: DispatchQueue.main)
+        xmppPubSub.activate(xmppStream)
+
+        let xmppReconnect = XMPPReconnect()
+        xmppReconnect.addDelegate(self, delegateQueue: DispatchQueue.main)
+        xmppReconnect.activate(xmppStream)
+
+        let xmppPing = XMPPPing()
+        xmppPing.addDelegate(self, delegateQueue: DispatchQueue.main)
+        xmppPing.activate(xmppStream)
+        
+        allowedToConnect = userData.isLoggedIn
+        if allowedToConnect {
+            connect()
         }
 
         ///TODO: consider doing the same for didLogIn.
         self.cancellableSet.insert(
             self.userData.didLogOff.sink(receiveValue: {
-                DDLogInfo("XMPPController: got didLogOff, disconnecting")
-                self.isConnectedToServer = false
-                self.xmppStream.disconnect()
+                DDLogInfo("xmpp/userdata-didlogoff")
+
                 self.allowedToConnect = false
             })
         )
     }
 
-    /* we do our own manual connection timeout as the xmppStream.connect timeout is not working */
+    // MARK: Connection management
+
     func connect() {
-        // Reconfigure credentials
-        
-        self.userJID = XMPPJID(user: self.userData.userId, domain: "s.halloapp.net", resource: "iphone")
+        DDLogInfo("xmpp/connect")
 
-        self.xmppStream.hostName = self.userData.hostName
-        self.xmppStream.myJID = self.userJID
+        xmppStream.hostName = userData.hostName
+        xmppStream.myJID = XMPPJID(user: userData.userId, domain: "s.halloapp.net", resource: "iphone")
 
-        do {
-            DDLogInfo("Connecting")
-//            self.metaData.setIsOffline(value: true)
-            
-            self.isConnecting.send("isConnecting")
-            self.isConnectedToServer = false
-            try xmppStream.connect(withTimeout: XMPPStreamTimeoutNone)
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                if !self.isConnectedToServer && self.allowedToConnect {
-                    self.connect()
-                }
-            }
-    
-        } catch {
-            /* this never fires, probably bug with xmppframework */
-            DDLogError("connection failed after WillConnect (spotty internet)")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                if !self.isConnectedToServer && self.allowedToConnect {
-                    self.connect()
-                }
+        try! xmppStream.connect(withTimeout: XMPPStreamTimeoutNone) // this only throws if stream isn't configured which doesn't happen for us.
+
+        /* we do our own manual connection timeout as the xmppStream.connect timeout is not working */
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+            if (self.connectionState == .notConnected || self.connectionState == .disconnecting) && self.allowedToConnect {
+                self.connect()
             }
         }
     }
 
+    func disconnect() {
+        DDLogInfo("xmpp/disconnect")
+
+        connectionState = .disconnecting
+        xmppStream.disconnectAfterSending()
+    }
+
+    func disconnectImmediately() {
+        DDLogInfo("xmpp/disconnectImmediately")
+
+        connectionState = .notConnected
+        xmppStream.disconnect()
+    }
+
     // MARK: Push token
+
     private static let apnsTokenUserDefaultsKey = "apnsPushToken"
+
     var hasValidAPNSPushToken: Bool {
         get {
             if let token = UserDefaults.standard.string(forKey: XMPPController.apnsTokenUserDefaultsKey) {
@@ -178,9 +170,9 @@ class XMPPController: NSObject, ObservableObject {
         get {
             return UserDefaults.standard.string(forKey: XMPPController.apnsTokenUserDefaultsKey)
         }
-        set(newToken) {
-            if newToken != nil {
-                UserDefaults.standard.set(newToken, forKey: XMPPController.apnsTokenUserDefaultsKey)
+        set {
+            if newValue != nil {
+                UserDefaults.standard.set(newValue!, forKey: XMPPController.apnsTokenUserDefaultsKey)
             } else {
                 UserDefaults.standard.removeObject(forKey: XMPPController.apnsTokenUserDefaultsKey)
             }
@@ -188,8 +180,8 @@ class XMPPController: NSObject, ObservableObject {
     }
 
     public func sendCurrentAPNSTokenIfPossible() {
-        if self.xmppStream.isAuthenticated {
-            self.sendCurrentAPNSToken()
+        if isConnected {
+            sendCurrentAPNSToken()
         }
     }
     
@@ -351,7 +343,7 @@ extension XMPPController: XMPPStreamDelegate {
             return
         }
 
-        DDLogInfo("xmpp/message/incoming id=[\(message.elementID ?? "")]")
+        DDLogInfo("xmpp/stream/didReceiveMessage id=[\(message.elementID ?? "<empty>")]")
 
         // Notification about new contact on the app
         if let contactList = message.element(forName: "contact_list") {
@@ -400,11 +392,12 @@ extension XMPPController: XMPPStreamDelegate {
             self.didGetNewChatMessage.send(message)
         }
         
-        // TODO: do not set ack for pubsub messages - that must be done in pubsub message handler, after processing of a message is complete.
         self.sendAck(for: message)
     }
     
     func xmppStream(_ sender: XMPPStream, didReceive iq: XMPPIQ) -> Bool {
+        DDLogInfo("xmpp/stream/didReceiveIQ")
+
         if let requestId = iq.elementID {
             func removeRequest(with id: String, outOf requests: inout [XMPPRequest]) -> [XMPPRequest] {
                 let filteredSequence = requests.enumerated().filter { $0.element.requestId == id }
@@ -434,37 +427,39 @@ extension XMPPController: XMPPStreamDelegate {
     }
     
     func xmppStreamWillConnect(_ sender: XMPPStream) {
-        DDLogInfo("Stream: WillConnect")
+        DDLogInfo("xmpp/stream/willConnect")
+
+        connectionState = .connecting
     }
     
     func xmppStreamConnectDidTimeout(_ stream: XMPPStream) {
-        DDLogInfo("Stream: DidTimeout")
+        DDLogInfo("xmpp/stream/connectDidTimeout")
+    }
+
+    func xmppStreamDidDisconnect(_ sender: XMPPStream, withError error: Error?) {
+        DDLogInfo("xmpp/stream/didDisconnect [\(String(describing: error))]")
+
+        connectionState = .notConnected
     }
     
     func xmppStream(_ sender: XMPPStream, socketDidConnect socket: GCDAsyncSocket) {
-        DDLogInfo("Stream: SocketDidConnect")
+        DDLogInfo("xmpp/stream/socketDidConnect")
     }
     
     func xmppStreamDidStartNegotiation(_ sender: XMPPStream) {
-        DDLogInfo("Stream: Start Negotiation")
+        DDLogInfo("xmpp/stream/didStartNegotiation")
     }
     
     func xmppStream(_ sender: XMPPStream, willSecureWithSettings settings: NSMutableDictionary) {
-        DDLogInfo("Stream: willSecureWithSettings")
+        DDLogInfo("xmpp/stream/willSecureWithSettings [\(settings)]")
+
         settings.setObject(true, forKey:GCDAsyncSocketManuallyEvaluateTrust as NSCopying)
     }
 
     func xmppStream(_ sender: XMPPStream, didReceive trust: SecTrust, completionHandler: ((Bool) -> Void)) {
-        DDLogInfo("Stream: didReceive trust")
+        DDLogInfo("xmpp/stream/didReceiveTrust")
 
-//        let certificate = SecTrustGetCertificateAtIndex(trust, 0)
-//        var cn: CFString?
-//        SecCertificateCopyCommonName(certificate!, &cn)
-//        print(cn)
-        
-        let result = SecTrustEvaluateWithError(trust, nil)
-        
-        if result {
+        if SecTrustEvaluateWithError(trust, nil) {
             completionHandler(true)
         } else {
             //todo: handle gracefully and reflect in global state
@@ -473,31 +468,27 @@ extension XMPPController: XMPPStreamDelegate {
     }
     
     func xmppStreamDidSecure(_ sender: XMPPStream) {
-        DDLogInfo("Stream: xmppStreamDidSecure")
+        DDLogInfo("xmpp/stream/didSecure")
     }
     
     func xmppStreamDidConnect(_ stream: XMPPStream) {
-        DDLogInfo("Stream: Connected")
+        DDLogInfo("xmpp/stream/didConnect")
         
         try! stream.authenticate(withPassword: self.userData.password)
     }
 
     func xmppStreamDidDisconnect(_ stream: XMPPStream) {
-        DDLogInfo("Stream: disconnect")
+        DDLogInfo("xmpp/stream/didDisconnect")
 
-        self.cancelAllRequests()
+        connectionState = .notConnected
+        cancelAllRequests()
     }
-    
-    func xmppStreamDidRegister(_ sender: XMPPStream) {
-        DDLogInfo("Stream Did Register")
-    }
-    
+
     func xmppStreamDidAuthenticate(_ sender: XMPPStream) {
-        DDLogInfo("Stream: Authenticated")
+        DDLogInfo("xmpp/stream/didAuthenticate")
         
-        self.isConnectedToServer = true
-        self.didConnect.send("didConnect")
-        
+        connectionState = .connected
+
         if self.hasValidAPNSPushToken {
             self.sendCurrentAPNSToken()
         }
@@ -515,40 +506,33 @@ extension XMPPController: XMPPStreamDelegate {
     }
     
     func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: DDXMLElement) {
-        DDLogInfo("Stream: Fail to Authenticate")
+        DDLogInfo("xmpp/stream/didNotAuthenticate")
+
         self.userData.logout()
     }
     
     func xmppStream(_ sender: XMPPStream, didReceiveError error: DDXMLElement) {
-        DDLogInfo("Stream: error \(error)")
+        DDLogInfo("xmpp/stream/didReceiveError [\(error)]")
         
         if error.element(forName: "conflict") != nil {
-            
-            if let text = error.element(forName: "text") {
-            
-                if let value = text.stringValue {
-                    if value == "User removed" {
-                        DDLogInfo("Stream: Same user logged into another device, logging out of this one")
-                        self.userData.logout()
-                    }
+            if let text = error.element(forName: "text")?.stringValue {
+                if text == "User removed" {
+                    DDLogInfo("Stream: Same user logged into another device, logging out of this one")
+                    self.userData.logout()
                 }
-                
             }
-            
         }
-        
     }
 
-    func xmppStream(_ sender: XMPPStream, didNotRegister error: DDXMLElement) {
-        DDLogInfo("Stream: didNotRegister: \(error)")
-    }
-    
     func xmppStream(_ sender: XMPPStream, didReceive presence: XMPPPresence) {
+        DDLogInfo("xmpp/stream/didReceivePresence")
+
         self.didGetPresence.send(presence)
     }
 
     func xmppStream(_ sender: XMPPStream, didReceiveCustomElement element: DDXMLElement) {
-//        DDLogInfo("Stream: didReceiveCustomElement: \(element)")
+        DDLogInfo("xmpp/stream/didReceiveCustomElement [\(element)]")
+
         if element.name == "ack" {
             if let ack = XMPPAck(itemElement: element) {
                 self.processIncomingAck(ack)
@@ -563,12 +547,10 @@ extension XMPPController: XMPPStreamDelegate {
 extension XMPPController: XMPPReconnectDelegate {
 
     public func xmppReconnect(_ sender: XMPPReconnect, didDetectAccidentalDisconnect connectionFlags: SCNetworkConnectionFlags) {
-        DDLogInfo("xmppReconnect: didDetectAccidentalDisconnect")
+        DDLogInfo("xmpp/xmppReconnect/didDetectAccidentalDisconnect")
     }
 
     public func xmppReconnect(_ sender: XMPPReconnect, shouldAttemptAutoReconnect connectionFlags: SCNetworkConnectionFlags) -> Bool {
-        DDLogInfo("xmppReconnect: shouldAttemptAutoReconnect")
-        self.isConnecting.send("isConnecting")
         return true
     }
 }
@@ -576,17 +558,19 @@ extension XMPPController: XMPPReconnectDelegate {
 extension XMPPController: XMPPPingDelegate {
 
     public func xmppPing(_ sender: XMPPPing!, didReceivePong pong: XMPPIQ!, withRTT rtt: TimeInterval) {
-        DDLogInfo("Ping: didReceivePong")
+        DDLogInfo("xmpp/ping/didReceivePong")
     }
 
     public func xmppPing(_ sender: XMPPPing!, didNotReceivePong pingID: String!, dueToTimeout timeout: TimeInterval) {
-        DDLogInfo("Ping: didNotReceivePong")
+        DDLogInfo("xmpp/ping/didNotReceivePong")
     }
 }
 
 extension XMPPController: XMPPPubSubDelegate {
 
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveItems iq: XMPPIQ, fromNode node: String) {
+        DDLogInfo("xmpp/pubsub/didRetrieveItems")
+
         guard let delegate = self.feedDelegate else { return }
 
         // TODO: redo this using XMPPRequest
@@ -600,7 +584,6 @@ extension XMPPController: XMPPPubSubDelegate {
     }
 
     func xmppPubSub(_ sender: XMPPPubSub, didReceive message: XMPPMessage) {
-
         guard let items = message.element(forName: "event")?.element(forName: "items") else {
             DDLogError("xmpp/pubsub/message/incoming/error/invalid-message")
             self.sendAck(for: message)

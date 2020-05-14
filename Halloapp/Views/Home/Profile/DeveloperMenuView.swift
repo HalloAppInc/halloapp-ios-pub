@@ -76,7 +76,7 @@ struct DeveloperMenuView: View {
 
                 Button(action: {
                     self.userData.switchToNetwork()
-                    self.xmppController.xmppStream.disconnect()
+                    self.xmppController.disconnectImmediately()
                     self.xmppController.connect()
 
                     if self.dismiss != nil {
