@@ -255,6 +255,28 @@ fileprivate class ChatListViewCell: UITableViewCell {
         setup()
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        self.lastMessageLabel.text = ""
+        self.unreadNumButton.isHidden = true
+    }
+
+    public func configure(with chatThread: ChatThread, contentWidth: CGFloat) {
+        self.nameLabel.text = AppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId)
+        self.lastMessageLabel.text = chatThread.lastMsgText
+        if chatThread.unreadCount == 0 {
+            self.unreadNumButton.isHidden = true
+            self.timeLabel.textColor = UIColor.secondaryLabel
+        } else {
+            self.unreadNumButton.isHidden = false
+            self.unreadNumButton.setTitle(String(chatThread.unreadCount), for: .normal)
+            self.timeLabel.textColor = UIColor.systemGreen
+        }
+        if let timestamp = chatThread.lastMsgTimestamp {
+            self.timeLabel.text = timestamp.chatTimestamp()
+        }
+    }
+    
     private lazy var contactImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
         imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -272,15 +294,6 @@ fileprivate class ChatListViewCell: UITableViewCell {
         return label
     }()
     
-    private lazy var lastMessageLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        label.textColor = .secondaryLabel
-        return label
-    }()
-    
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -291,21 +304,48 @@ fileprivate class ChatListViewCell: UITableViewCell {
         return label
     }()
     
-    private lazy var unreadBadge: UIButton = {
-        let unreadBadge = UIButton()
-        unreadBadge.isUserInteractionEnabled = false
-        unreadBadge.translatesAutoresizingMaskIntoConstraints = false
-        unreadBadge.backgroundColor = UIColor.systemGreen
-        unreadBadge.contentEdgeInsets = UIEdgeInsets(top: 1, left: 6, bottom: 1, right: 6)
-        unreadBadge.titleLabel?.font = UIFont.preferredFont(forTextStyle: .footnote)
-        unreadBadge.tintColor = UIColor.systemGray6
-        unreadBadge.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        unreadBadge.layer.cornerRadius = 9
-        unreadBadge.clipsToBounds = true
-        return unreadBadge
+    private lazy var lastMessageLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        label.textColor = .secondaryLabel
+        return label
     }()
     
+    private lazy var unreadNumButton: UIButton = {
+        let view = UIButton()
+        view.isUserInteractionEnabled = false
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor.systemGreen
+        view.contentEdgeInsets = UIEdgeInsets(top: 1, left: 6, bottom: 1, right: 6)
+        view.titleLabel?.font = UIFont.preferredFont(forTextStyle: .footnote)
+        view.tintColor = UIColor.systemGray6
+        view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        view.layer.cornerRadius = 9
+        view.clipsToBounds = true
+        view.isHidden = true
+        
+        view.widthAnchor.constraint(greaterThanOrEqualToConstant: 15.0).isActive = true
+        return view
+    }()
+    
+    private lazy var lastMsgRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
+        spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
+        
+        let view = UIStackView(arrangedSubviews: [self.lastMessageLabel, spacer, self.unreadNumButton])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .horizontal
+        view.spacing = 5
+        return view
+    }()
+
     private func setup() {
+        self.backgroundColor = .clear
+        
         let imageSize: CGFloat = 40.0
         self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
@@ -316,22 +356,11 @@ fileprivate class ChatListViewCell: UITableViewCell {
         hStackName.alignment = .leading
         hStackName.spacing = 5
         
-        let hStackLastMsg = UIStackView(arrangedSubviews: [self.lastMessageLabel, self.unreadBadge])
-        hStackLastMsg.translatesAutoresizingMaskIntoConstraints = false
-        hStackLastMsg.axis = .horizontal
-        hStackLastMsg.alignment = .leading
-        hStackLastMsg.spacing = 5
-        
-        let vStack = UIStackView(arrangedSubviews: [hStackName, hStackLastMsg])
+        let vStack = UIStackView(arrangedSubviews: [hStackName, self.lastMsgRow])
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         vStack.spacing = 2
         
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
-        spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-
         let hStack = UIStackView(arrangedSubviews: [self.contactImageView, vStack])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
@@ -343,28 +372,6 @@ fileprivate class ChatListViewCell: UITableViewCell {
         hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+    }
     
-        self.backgroundColor = .clear
-    }
-
-    public func configure(with chatThread: ChatThread, contentWidth: CGFloat) {
-        self.nameLabel.text = AppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId)
-        self.lastMessageLabel.text = chatThread.lastMsgText
-        if chatThread.unreadCount == 0 {
-            self.unreadBadge.isHidden = true
-            self.timeLabel.textColor = UIColor.secondaryLabel
-        } else {
-            self.unreadBadge.isHidden = false
-            self.unreadBadge.setTitle(String(chatThread.unreadCount), for: .normal)
-            self.timeLabel.textColor = UIColor.systemGreen
-        }
-        if let timestamp = chatThread.lastMsgTimestamp {
-            self.timeLabel.text = timestamp.chatTimestamp()
-        }
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        self.unreadBadge.isHidden = true
-    }
 }
