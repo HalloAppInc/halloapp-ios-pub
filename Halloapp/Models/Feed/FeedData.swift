@@ -701,10 +701,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else {
                 DDLogError("FeedData/retract-post/error Missing post. [\(postId)]")
+                completion()
                 return
             }
             guard feedPost.status != .retracted  else {
                 DDLogError("FeedData/retract-post/error Already retracted. [\(postId)]")
+                completion()
                 return
             }
             DDLogInfo("FeedData/retract-post [\(postId)]")
@@ -740,10 +742,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedComment = self.feedComment(with: commentId, in: managedObjectContext) else {
                 DDLogError("FeedData/retract-comment/error Missing comment. [\(commentId)]")
+                completion()
                 return
             }
             guard feedComment.status != .retracted else {
                 DDLogError("FeedData/retract-comment/error Already retracted. [\(commentId)]")
+                completion()
                 return
             }
             DDLogInfo("FeedData/retract-comment [\(commentId)]")
