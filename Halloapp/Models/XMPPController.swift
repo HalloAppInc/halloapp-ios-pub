@@ -37,6 +37,16 @@ class XMPPController: NSObject {
         case disconnecting
     }
 
+    private class ConnectionStateCallback {
+        let state: ConnectionState
+        let work: (DispatchGroup) -> ()
+
+        required init(state: ConnectionState, work: @escaping (DispatchGroup) -> ()) {
+            self.state = state
+            self.work = work
+        }
+    }
+
     // MARK: Connection State
     var allowedToConnect: Bool = false {
         didSet {
@@ -57,6 +67,7 @@ class XMPPController: NSObject {
             if connectionState == .connected {
                 didConnect.send()
             }
+            runCallbacksForCurrentConnectionState()
         }
     }
     var isConnected: Bool { get { connectionState == .connected } }
@@ -151,6 +162,32 @@ class XMPPController: NSObject {
 
         connectionState = .notConnected
         xmppStream.disconnect()
+    }
+
+    // MARK: State Change Callbacks
+
+    private var stateChangeCallbacks: [ConnectionStateCallback] = []
+
+    func execute(whenConnectionStateIs state: ConnectionState, onQueue queue: DispatchQueue, work: @escaping @convention(block) () -> Void) {
+        stateChangeCallbacks.append(ConnectionStateCallback(state: state) { (dispatchGroup) in
+            queue.async(group: dispatchGroup, execute: work)
+        })
+
+        if connectionState == state {
+            runCallbacksForCurrentConnectionState()
+        }
+    }
+
+    private func runCallbacksForCurrentConnectionState() {
+        let currentState = connectionState
+
+        let callbacks = stateChangeCallbacks.filter { $0.state == currentState }
+        guard !callbacks.isEmpty else { return }
+
+        stateChangeCallbacks.removeAll(where: { $0.state == currentState })
+
+        let group = DispatchGroup()
+        callbacks.forEach{ $0.work(group) }
     }
 
     // MARK: Push token
