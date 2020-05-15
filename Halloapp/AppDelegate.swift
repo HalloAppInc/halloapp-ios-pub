@@ -15,11 +15,13 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
-
         AppContext.initContext()
-
+        DDLogInfo("application/didFinishLaunching")
         return true
+    }
+
+    func applicationWillTerminate(_ application: UIApplication) {
+        DDLogInfo("application/willTermimate")
     }
 
     // MARK: UISceneSession Lifecycle
@@ -43,16 +45,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     public func checkNotificationsAuthorizationStatus() {
         // Do not allow to ask about access to notifications until user is done with Contacts access prompt.
-        guard !ContactStore.contactsAccessRequestNecessary else {
-            return
-        }
-        guard self.needsAPNSToken || !AppContext.shared.xmppController.hasValidAPNSPushToken else {
-            return
-        }
-        guard UIApplication.shared.applicationState != .background else {
-            return
-        }
+        guard !ContactStore.contactsAccessRequestNecessary else { return }
+        guard self.needsAPNSToken || !AppContext.shared.xmppController.hasValidAPNSPushToken else { return }
+        guard UIApplication.shared.applicationState != .background else { return }
+
         DDLogInfo("appdelegate/notifications/access-request")
+
         UNUserNotificationCenter.current().requestAuthorization(options: [.sound, .alert, .badge]) { (granted, error) in
             DDLogInfo("appdelegate/notifications/access-request [\(granted)]")
             DispatchQueue.main.async {
@@ -62,25 +60,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        self.needsAPNSToken = false
         let tokenString = deviceToken.hexString()
         DDLogInfo("appdelegate/notifications/push-token/success [\(tokenString)]")
+
+        self.needsAPNSToken = false
         AppContext.shared.xmppController.apnsToken = tokenString
         AppContext.shared.xmppController.sendCurrentAPNSTokenIfPossible()
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        DDLogError("appdelegate/notifications/push-token/error [\(error)]")
+
         self.needsAPNSToken = false
         AppContext.shared.xmppController.apnsToken = nil
-        DDLogError("appdelegate/notifications/push-token/error [\(error)]")
     }
 
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        DDLogInfo("appdelegate/notifications/received-remote \(userInfo)")
+        DDLogInfo("appdelegate/notifications/background-push \(userInfo)")
+
         // Handle the silent remote notification when received.
         completionHandler(UIBackgroundFetchResult.newData)
     }
-
 
     // MARK: Privacy Access Requests
 
@@ -107,7 +107,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 
-    public func requestAccessToContactsAndNotifications() {
+    func requestAccessToContactsAndNotifications() {
         guard !self.contactsAccessRequestInProgress else {
             DDLogWarn("appdelegate/contacts/access-request/in-progress")
             return
