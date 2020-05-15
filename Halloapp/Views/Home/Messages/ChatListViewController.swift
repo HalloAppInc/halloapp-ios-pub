@@ -66,6 +66,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         DDLogInfo("ChatListViewController/viewWillAppear")
         super.viewWillAppear(animated)
         self.tableView.reloadData()
+        self.populateWithSymmetricContacts()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -208,6 +209,12 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         }
     }
 
+    private func populateWithSymmetricContacts() {
+        guard self.fetchedResultsController?.fetchedObjects?.count == 0 else { return }
+        DDLogDebug("ChatList/populateWithSymmetricContacts")
+        AppContext.shared.chatData.populateThreadsWithSymmetricContacts()
+    }
+    
     // MARK: UITableView
 
     override func numberOfSections(in tableView: UITableView) -> Int {

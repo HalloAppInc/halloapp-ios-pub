@@ -87,7 +87,24 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 self.processIncomingPresence(xmppPresence)
             }
         )
-        
+    
+    }
+    
+    func populateThreadsWithSymmetricContacts() {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let contacts = AppContext.shared.contactStore.allRegisteredContacts(sorted: true)
+            contacts.forEach {
+                if let userId = $0.userId {
+                    DDLogInfo("ChatData/populateThreads/contact \(userId)")
+                    let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
+                    chatThread.chatWithUserId = userId
+                    chatThread.lastMsgUserId = userId
+                    chatThread.lastMsgText = $0.phoneNumber ?? ""
+                    chatThread.unreadCount = 0
+                }
+            }
+            self.save(managedObjectContext)
+        }
     }
     
     private class var persistentStoreURL: URL {
@@ -171,7 +188,6 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     }
     
     private func processIncomingChatMessage(_ chatMessageEl: XMLElement) {
- 
         guard let xmppChatMessage = XMPPChatMessage(itemElement: chatMessageEl) else {
             DDLogError("Invalid chatMessage: [\(chatMessageEl)]")
             return
@@ -180,7 +196,6 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             self.process(xmppChatMessage: xmppChatMessage, using: managedObjectContext)
         }
-        
     }
     
     private func process(xmppChatMessage: XMPPChatMessage, using managedObjectContext: NSManagedObjectContext) {
@@ -483,8 +498,8 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             return chatThreads
         }
         catch {
-            DDLogError("ChatThread/fetch-messages/error  [\(error)]")
-            fatalError("Failed to fetch chat messages")
+            DDLogError("ChatThread/fetch/error  [\(error)]")
+            fatalError("Failed to fetch chat threads")
         }
     }
     
