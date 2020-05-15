@@ -280,7 +280,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 return
             }
             DDLogDebug("FeedData/frc/delete [\(feedPost)] at [\(index)]")
-            self.feedDataItems.remove(at: index)
+            if index < self.feedDataItems.count {
+                self.feedDataItems.remove(at: index)
+            } else {
+                self.trackPerRowChanges = false
+            }
 
         case .update:
             guard let index = indexPath?.row, let feedPost = anObject as? FeedPost else {
