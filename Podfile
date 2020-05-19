@@ -8,4 +8,6 @@ target 'HalloApp' do
   pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
   pod 'YPImagePicker', :git => 'git@github.com:HalloAppInc/YPImagePicker.git'
   pod 'NextLevelSessionExporter', '~> 0.4.5'
+  pod "NextLevelSessionExporter", "~> 0.4.5"
+  pod 'Firebase/Crashlytics'
 end

@@ -8,6 +8,7 @@
 
 import CocoaLumberjack
 import Contacts
+import Firebase
 import Foundation
 import PhoneNumberKit
 
@@ -88,8 +89,7 @@ struct AppContext {
         osLogger.logFormatter = LogFormatter()
         DDLog.add(osLogger)
 
-        // Register crash handler(s)
-        CrashHandler.registerHandlers()
+        FirebaseApp.configure()
 
         // This is needed to encode/decode protobuf in FeedPostInfo.
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)

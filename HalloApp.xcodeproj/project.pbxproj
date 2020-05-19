@@ -75,6 +75,7 @@
 		766492232450DDB9009BC368 /* BadgedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492222450DDB9009BC368 /* BadgedButton.swift */; };
 		766492252450E04D009BC368 /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492242450E04D009BC368 /* BadgeView.swift */; };
 		76649227245119F2009BC368 /* FeedNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76649226245119F2009BC368 /* FeedNotifications.swift */; };
+		76955DEA24746E4C0088BE8C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76A92444244E659600794859 /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92443244E659600794859 /* FeedViewController.swift */; };
 		76A92449244EBCB600794859 /* ShapeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92448244EBCB600794859 /* ShapeView.swift */; };
 		76A9244B244EC49000794859 /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A9244A244EC49000794859 /* UIView.swift */; };
@@ -238,6 +239,7 @@
 		766492222450DDB9009BC368 /* BadgedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgedButton.swift; path = HalloApp/Components/Views/BadgedButton.swift; sourceTree = SOURCE_ROOT; };
 		766492242450E04D009BC368 /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgeView.swift; path = HalloApp/Components/Views/BadgeView.swift; sourceTree = SOURCE_ROOT; };
 		76649226245119F2009BC368 /* FeedNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedNotifications.swift; path = HalloApp/Models/Feed/FeedNotifications.swift; sourceTree = SOURCE_ROOT; };
+		76955DE924746E4C0088BE8C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = "GoogleService-Info.plist"; path = "HalloApp/GoogleService-Info.plist"; sourceTree = SOURCE_ROOT; };
 		76A92443244E659600794859 /* FeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedViewController.swift; path = HalloApp/Views/Home/Feed/FeedViewController.swift; sourceTree = SOURCE_ROOT; };
 		76A92448244EBCB600794859 /* ShapeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ShapeView.swift; path = HalloApp/Components/Views/ShapeView.swift; sourceTree = SOURCE_ROOT; };
 		76A9244A244EC49000794859 /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIView.swift; path = HalloApp/Components/Extensions/UIView.swift; sourceTree = SOURCE_ROOT; };
@@ -818,6 +820,7 @@
 				764A0E662446167600E1BDCE /* Proto */,
 				146B93702405F2F900768AC6 /* Resources */,
 				EAF3A1D02334192000805FF9 /* Info.plist */,
+				76955DE924746E4C0088BE8C /* GoogleService-Info.plist */,
 				EAF3A1C22334191E00805FF9 /* AppDelegate.swift */,
 				EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */,
 				EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */,
@@ -865,6 +868,7 @@
 				EAF3A1BC2334191E00805FF9 /* Frameworks */,
 				EAF3A1BD2334191E00805FF9 /* Resources */,
 				D51A16EB7C89AD8DAF43C14C /* [CP] Embed Pods Frameworks */,
+				76955DEB2474762D0088BE8C /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -992,6 +996,7 @@
 				762EDBD2244E2EB700986617 /* Gotham-Light.otf in Resources */,
 				762EDBD7244E2EB700986617 /* Gotham-Black.otf in Resources */,
 				762EDBCE244E2EB700986617 /* Gotham-XLight.otf in Resources */,
+				76955DEA24746E4C0088BE8C /* GoogleService-Info.plist in Resources */,
 				EAF3A1C92334192000805FF9 /* Assets.xcassets in Resources */,
 				762EDBCB244E2EB700986617 /* Gotham-Medium.otf in Resources */,
 			);
@@ -1014,6 +1019,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		76955DEB2474762D0088BE8C /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/FirebaseCrashlytics/run\"\n";
+		};
 		A4AC85EF7BFDCB135FC900FF /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1254,7 +1276,6 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -1375,7 +1396,6 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -1436,7 +1456,6 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
