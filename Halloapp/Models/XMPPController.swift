@@ -477,6 +477,7 @@ extension XMPPController: XMPPStreamDelegate {
         DDLogInfo("xmpp/stream/didDisconnect [\(String(describing: error))]")
 
         connectionState = .notConnected
+        cancelAllRequests()
     }
     
     func xmppStream(_ sender: XMPPStream, socketDidConnect socket: GCDAsyncSocket) {
@@ -512,13 +513,6 @@ extension XMPPController: XMPPStreamDelegate {
         DDLogInfo("xmpp/stream/didConnect")
         
         try! stream.authenticate(withPassword: self.userData.password)
-    }
-
-    func xmppStreamDidDisconnect(_ stream: XMPPStream) {
-        DDLogInfo("xmpp/stream/didDisconnect")
-
-        connectionState = .notConnected
-        cancelAllRequests()
     }
 
     func xmppStreamDidAuthenticate(_ sender: XMPPStream) {
