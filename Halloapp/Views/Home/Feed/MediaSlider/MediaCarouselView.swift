@@ -179,7 +179,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         var size = self.bounds.size
-        if self.pageControl != nil && size != .zero {
+        if self.pageControl != nil && size.height > Self.pageControlAreaHeight {
             size.height -= Self.pageControlAreaHeight
         }
         return size
