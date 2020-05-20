@@ -911,22 +911,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func sendSeenReceiptsForPostsBeforeAndIncluding(_ feedPost: FeedPost) {
-        let postTimestamp = feedPost.timestamp
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let feedPosts = self.feedPosts(predicate: NSPredicate(format: "statusValue == %d && timestamp <= %@", FeedPost.Status.incoming.rawValue, postTimestamp as NSDate),
-                                           sortDescriptors: [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ],
-                                           in: managedObjectContext)
-            guard !feedPosts.isEmpty else { return }
-            DDLogInfo("FeedData/seen-receipt/resend count=[\(feedPosts.count)]")
-            feedPosts.forEach { (feedPost) in
-                self.internalSendSeenReceipt(for: feedPost)
-            }
-
-            self.save(managedObjectContext)
-        }
-    }
-
     func xmppController(_ xmppController: XMPPController, didSendFeedReceipt receipt: XMPPReceipt) {
         self.updateFeedPost(with: receipt.itemId) { (feedPost) in
             if !feedPost.isPostRetracted {
