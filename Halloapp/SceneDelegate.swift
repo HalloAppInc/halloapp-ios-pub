@@ -66,6 +66,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 appDelegate.checkNotificationsAuthorizationStatus()
             }
         }
+
+        // Need to tell XMPPStream to start connecting every time app is foregrounded
+        // because XMPPReconnect won't keep the connection alive unless stream has authenticated
+        // at least once since initialization time.
+        AppContext.shared.xmppController.startConnectingIfNecessary()
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {

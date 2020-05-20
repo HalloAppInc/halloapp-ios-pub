@@ -48,19 +48,6 @@ class XMPPController: NSObject {
     }
 
     // MARK: Connection State
-    var allowedToConnect: Bool = false {
-        didSet {
-            if allowedToConnect {
-                if connectionState == .notConnected || connectionState == .disconnecting {
-                    connect()
-                }
-            } else {
-                if connectionState == .connected || connectionState == .connecting {
-                    disconnect()
-                }
-            }
-        }
-    }
     private(set) var connectionState: ConnectionState = .notConnected {
         didSet {
             DDLogDebug("xmpp/connectionState/change [\(oldValue)] -> [\(connectionState)]")
@@ -103,6 +90,7 @@ class XMPPController: NSObject {
         xmppStream.clientVersion = clientVersion
 //        self.xmppStream.keepAliveInterval = 0.5;
         xmppStream.registerCustomElementNames(["ack"])
+        xmppStream.myJID = userData.userJID
         xmppStream.addDelegate(self, delegateQueue: DispatchQueue.main)
 
         // XMPP Modules
@@ -116,37 +104,42 @@ class XMPPController: NSObject {
         let xmppPing = XMPPPing()
         xmppPing.addDelegate(self, delegateQueue: DispatchQueue.main)
         xmppPing.activate(xmppStream)
-        
-        allowedToConnect = userData.isLoggedIn
-        if allowedToConnect {
-            connect()
-        }
 
         ///TODO: consider doing the same for didLogIn.
         self.cancellableSet.insert(
-            self.userData.didLogOff.sink(receiveValue: {
-                DDLogInfo("xmpp/userdata-didlogoff")
-
-                self.allowedToConnect = false
+            userData.didLogIn.sink {
+                DDLogInfo("xmpp/userdata/didLogIn")
+                self.xmppStream.myJID = userData.userJID
+                self.connect()
             })
-        )
+        self.cancellableSet.insert(
+            userData.didLogOff.sink {
+                DDLogInfo("xmpp/userdata/didLogOff")
+                self.xmppStream.disconnect() // this is only necessary when manually logging out from a developer menu.
+                self.xmppStream.myJID = nil
+            })
     }
 
     // MARK: Connection management
 
+    func startConnectingIfNecessary() {
+        if xmppStream.myJID != nil && xmppStream.isDisconnected {
+            connect()
+        }
+    }
+
     func connect() {
+        guard xmppStream.myJID != nil else { return }
+
         DDLogInfo("xmpp/connect")
 
         xmppStream.hostName = userData.hostName
-        xmppStream.myJID = XMPPJID(user: userData.userId, domain: "s.halloapp.net", resource: "iphone")
 
         try! xmppStream.connect(withTimeout: XMPPStreamTimeoutNone) // this only throws if stream isn't configured which doesn't happen for us.
 
         /* we do our own manual connection timeout as the xmppStream.connect timeout is not working */
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            if (self.connectionState == .notConnected || self.connectionState == .disconnecting) && self.allowedToConnect {
-                self.connect()
-            }
+            self.startConnectingIfNecessary()
         }
     }
 

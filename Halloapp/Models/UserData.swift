@@ -11,12 +11,14 @@ import Combine
 import CoreData
 import Foundation
 import SwiftUI
+import XMPPFramework
 
 final class UserData: ObservableObject {
 
 //    public var hostName = "s-test.halloapp.net"
     public var hostName = "s.halloapp.net"
 
+    var didLogIn = PassthroughSubject<Void, Never>()
     var didLogOff = PassthroughSubject<Void, Never>()
 
     /**
@@ -35,6 +37,13 @@ final class UserData: ObservableObject {
     var normalizedPhoneNumber: String = ""
     var userId: UserID = ""
     var password = "11111111"
+
+    var userJID: XMPPJID? {
+        get {
+            guard !userId.isEmpty && !password.isEmpty else { return nil }
+            return XMPPJID(user: userId, domain: "s.halloapp.net", resource: "iphone")
+        }
+    }
 
     var formattedPhoneNumber: String {
         get {
@@ -67,9 +76,9 @@ final class UserData: ObservableObject {
     func tryLogIn() {
         if !userId.isEmpty && !password.isEmpty {
             self.isLoggedIn = true
+            self.didLogIn.send()
 
             ///TODO: redo this using Combine
-            AppContext.shared.xmppController.allowedToConnect = self.isLoggedIn
             AppContext.shared.contactStore.enableContactSync()
         }
     }
