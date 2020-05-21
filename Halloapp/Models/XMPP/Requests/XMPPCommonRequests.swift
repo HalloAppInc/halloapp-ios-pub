@@ -14,7 +14,7 @@ class XMPPPushTokenRequest: XMPPRequest {
 
     init(token: String, completion: @escaping XMPPRequestCompletion) {
         self.completion = completion
-        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo), elementID: UUID().uuidString)
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
         iq.addChild({
             let pushRegister = XMLElement(name: "push_register", xmlns: "halloapp:push:notifications")
             pushRegister.addChild({
@@ -45,7 +45,7 @@ class XMPPSendNameRequest: XMPPRequest {
 
     init(name: String, completion: @escaping XMPPRequestCompletion) {
         self.completion = completion
-        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo), elementID: UUID().uuidString)
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
         iq.addChild({
             let nameElement = XMLElement(name: "name", xmlns: "halloapp:users:name")
             nameElement.stringValue = name

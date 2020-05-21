@@ -18,7 +18,7 @@ class XMPPPostItemRequest : XMPPRequest {
     init<T>(feedItem: T, feedOwnerId: UserID, completion: @escaping XMPPPostItemRequestCompletion) where T: FeedItemProtocol {
         self.completion = completion
         
-        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"), elementID: UUID().uuidString)
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"))
         iq.addChild({
             let pubsub = XMPPElement(name: "pubsub", xmlns: "http://jabber.org/protocol/pubsub")
             pubsub.addChild({
@@ -57,7 +57,7 @@ class XMPPMediaUploadURLRequest : XMPPRequest {
 
     init(completion: @escaping XMPPMediaUploadURLRequestCompletion) {
         self.completion = completion
-        let iq = XMPPIQ(iqType: .get, to: XMPPJID(string: XMPPIQDefaultTo), elementID: UUID().uuidString)
+        let iq = XMPPIQ(iqType: .get, to: XMPPJID(string: XMPPIQDefaultTo))
         iq.addChild(XMPPElement(name: "upload_media", xmlns: "ns:upload_media"))
         super.init(iq: iq)
     }
@@ -89,7 +89,7 @@ class XMPPRetractItemRequest: XMPPRequest {
     init<T>(feedItem: T, feedOwnerId: UserID, completion: @escaping XMPPRetractItemRequestCompletion) where T: FeedItemProtocol {
         self.completion = completion
 
-        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"), elementID: UUID().uuidString)
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"))
         iq.addChild({
             let pubsub = XMPPElement(name: "pubsub", xmlns: "http://jabber.org/protocol/pubsub")
             pubsub.addChild({

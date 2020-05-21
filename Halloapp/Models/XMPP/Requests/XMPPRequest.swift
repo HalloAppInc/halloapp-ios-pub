@@ -30,7 +30,7 @@ class XMPPRequest {
 
     init(iq: XMPPIQ) {
         self.iq = iq;
-        self.requestId = iq.elementID ?? UUID().uuidString
+        self.requestId = iq.elementID!
     }
 
     func send(using xmppController: XMPPController) {

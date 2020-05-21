@@ -108,7 +108,7 @@ class XMPPContactSyncRequest : XMPPRequest {
     init<T: Sequence>(with contacts: T, type: RequestType, syncID: String, batchIndex: Int? = nil, isLastBatch: Bool? = nil,
                       completion: @escaping XMPPContactListRequestCompletion) where T.Iterator.Element == XMPPContact {
         self.completion = completion
-        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo), elementID: UUID().uuidString)
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
         iq.addChild({
             let contactList = XMPPElement(name: "contact_list", xmlns: xmppNamespaceContacts)
             contactList.addAttribute(withName: "type", stringValue: type.rawValue)
