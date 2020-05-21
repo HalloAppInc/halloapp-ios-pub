@@ -100,7 +100,11 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 
         let notificationCenter = NotificationCenter.default
         notificationCenter.addObserver(self, selector: #selector(appMovedToForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
-        notificationCenter.addObserver(self, selector: #selector(appMovedToBackground), name: UIApplication.willResignActiveNotification, object: nil)        
+        notificationCenter.addObserver(self, selector: #selector(appMovedToBackground), name: UIApplication.willResignActiveNotification, object: nil)
+
+        // download pending media
+//        self.processPendingChatMedia()
+        
     }
     
     func populateThreadsWithSymmetricContacts() {
@@ -119,6 +123,51 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             }
         }
     }
+    
+    func processPendingChatMedia() {
+
+        guard self.currentlyDownloading.count < self.maxNumDownloads else { return }
+        
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            
+            let pendingMessagesWithMedia = self.pendingIncomingMessagesMedia(in: managedObjectContext)
+            
+//            print("count: \(pendingMessagesWithMedia.count)")
+            for chatMessage in pendingMessagesWithMedia {
+                
+                guard let media = chatMessage.media else { continue }
+                
+                let sortedMedia = media.sorted(by: { $0.order < $1.order })
+                
+                for med in sortedMedia {
+                
+                    guard med.incomingStatus == ChatMedia.IncomingStatus.pending else { continue }
+                    guard !self.currentlyDownloading.contains(med.url) else { continue }
+                    
+//                    let completion = {
+//
+//                    }
+    
+//                    self.download(med.url, completion: {
+//                      
+//                        // if not ok, save attempts
+//                        
+//                        // if ok, decrypt and save
+//                        
+//                        // do it again
+//                        
+//                    })
+                        
+                
+                }
+                
+            }
+            
+        }
+    
+    }
+    
+
     
     @objc func appMovedToForeground() {
         DDLogInfo("ChatData/appMovedToForeground/sendAvailablePresence")
@@ -338,10 +387,28 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             self.unreadMessageCount += 1
         }
         
+        self.presentLocalNotifications(for: chatMessage)
+
         // download media
-        let pendingChatMedia = self.pendingIncomingMessagesMedia(in: managedObjectContext)
-        print("count: \(pendingChatMedia.count)")
-        
+//        let pendingChatMedia = self.pendingIncomingMessagesMedia(in: managedObjectContext)
+    }
+    
+    private func presentLocalNotifications(for chatMessage: ChatMessage) {
+        let contactName = AppContext.shared.contactStore.fullName(for: chatMessage.fromUserId)
+        var notifications: [UNMutableNotificationContent] = []
+        let notification = UNMutableNotificationContent()
+        notification.title = "New message"
+        notification.subtitle = contactName
+        if let text = chatMessage.text {
+            notification.body = text
+        }
+        notifications.append(notification)
+        guard !notifications.isEmpty else { return }
+        let notificationCenter = UNUserNotificationCenter.current()
+        notifications.forEach { (notificationContent) in
+            DDLogDebug("ChatData/new-msg/localNotification [\(chatMessage.id)]")
+            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+        }
     }
         
     func copyMediaToQuotedMedia(fromPath: String?, to quotedMedia: ChatQuotedMedia) throws {
