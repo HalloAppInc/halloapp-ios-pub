@@ -58,6 +58,7 @@ class XMPPController: NSObject {
         }
     }
     var isConnected: Bool { get { connectionState == .connected } }
+    var isDisconnected: Bool { get { connectionState == .disconnecting || connectionState == .notConnected } }
     // This will be sent automatically when value of `connectionState` changes.
     let didConnect = PassthroughSubject<Void, Never>()
 

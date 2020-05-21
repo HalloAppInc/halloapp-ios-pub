@@ -26,6 +26,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             self.handleFeedRefresh(task: task as! BGAppRefreshTask)
         }
 
+        // This is necessary otherwise application(_:didReceiveRemoteNotification:fetchCompletionHandler:) won't be called.
+        UIApplication.shared.registerForRemoteNotifications()
+
         return true
     }
 
@@ -57,10 +60,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         guard self.needsAPNSToken || !AppContext.shared.xmppController.hasValidAPNSPushToken else { return }
         guard UIApplication.shared.applicationState != .background else { return }
 
-        DDLogInfo("appdelegate/notifications/access-request")
-
+        DDLogInfo("appdelegate/notifications/authorization/request")
         UNUserNotificationCenter.current().requestAuthorization(options: [.sound, .alert, .badge]) { (granted, error) in
-            DDLogInfo("appdelegate/notifications/access-request [\(granted)]")
+            DDLogInfo("appdelegate/notifications/authorization granted=[\(granted)]")
             DispatchQueue.main.async {
                 UIApplication.shared.registerForRemoteNotifications()
             }
@@ -84,10 +86,39 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        DDLogInfo("appdelegate/notifications/background-push \(userInfo)")
+        DDLogInfo("appdelegate/background-push \(userInfo)")
 
-        // Handle the silent remote notification when received.
-        completionHandler(UIBackgroundFetchResult.newData)
+        guard application.applicationState == .background else {
+            DDLogInfo("appdelegate/background-push Application is not backgrounded")
+            completionHandler(.failed)
+            return
+        }
+
+        let xmppController = AppContext.shared.xmppController
+
+        guard xmppController.isDisconnected else {
+            DDLogInfo("appdelegate/background-push Already connected")
+            completionHandler(.noData)
+            return
+        }
+
+        xmppController.startConnectingIfNecessary()
+        xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            DDLogInfo("application/background-push/connected")
+
+            // Disconnect gracefully after 3 seconds, which should be enough to finish processing.
+            // TODO: disconnect immediately after receiving "offline marker".
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                DDLogInfo("application/background-push/disconnect")
+                xmppController.disconnect()
+            }
+
+            // Finish bg task once we're disconnected.
+            xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
+                DDLogInfo("application/background-push/complete")
+                completionHandler(.newData)
+            }
+        }
     }
 
     // MARK: Privacy Access Requests
@@ -165,6 +196,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         let xmppController = AppContext.shared.xmppController
+
+        guard xmppController.isDisconnected else {
+            DDLogInfo("appdelegate/bg-feed-refresh Already connected")
+            task.setTaskCompleted(success: true)
+            return
+        }
+
         xmppController.startConnectingIfNecessary()
         xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
             DDLogInfo("application/bg-feed-refresh/connected")
