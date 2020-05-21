@@ -133,4 +133,24 @@ extension Date {
             return "\(Date.toDays(seconds, rounded: true))d"
         }
     }
+    
+    func lastSeenTimestamp() -> String {
+        let seconds = -self.timeIntervalSinceNow
+        
+        if seconds < Date.minutes(1) {
+            return "Last seen less than a minute ago"
+        } else if seconds < Date.hours(1) {
+            let unitTime = Date.toMinutes(seconds, rounded: true)
+            let plural = unitTime == 1 ? "" : "s"
+            return "Last seen \(unitTime) minute\(plural) ago"
+        } else if seconds < Date.days(1) {
+            let unitTime = Date.toHours(seconds, rounded: true)
+            let plural = unitTime == 1 ? "" : "s"
+            return "Last seen \(Date.toHours(seconds, rounded: true)) hour\(plural) ago"
+        } else {
+            let unitTime = Date.toDays(seconds, rounded: true)
+            let plural = unitTime == 1 ? "" : "s"
+            return "Last seen \(Date.toDays(seconds, rounded: true)) day\(plural) ago"
+        }
+    }
 }

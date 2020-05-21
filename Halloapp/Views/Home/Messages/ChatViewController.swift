@@ -12,12 +12,14 @@ import YPImagePicker
 import AVFoundation
 import Photos
 import SwiftUI
+import Combine
 
 class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDelegate, NSFetchedResultsControllerDelegate {
     
     private var fromUserId: String?
     private var feedPostId: FeedPostID?
     private var feedPostMediaIndex: Int32 = 0
+    private var lastSeen: Date? = nil
     
     private var fetchedResultsController: NSFetchedResultsController<ChatMessage>?
     private var dataSource: UITableViewDiffableDataSource<Int, ChatMessage>?
@@ -26,13 +28,16 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     static private let otherUserCellReuseIdentifier = "OtherUserCell"
     static private let userCellReuseIdentifier = "UserCell"
 
+    private var cancellableSet: Set<AnyCancellable> = []
+    
     // MARK: Lifecycle
     
-    init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
+    init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0, lastSeen: Date? = nil) {
         DDLogDebug("ChatViewController/init/\(fromUserId)")
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
+        self.lastSeen = lastSeen
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -59,7 +64,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
         self.titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        titleView.update(with: self.fromUserId!)
+        titleView.update(with: self.fromUserId!, lastSeen: self.lastSeen)
         
         self.view.addSubview(self.tableView)
         self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
@@ -70,13 +75,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.tableView.backgroundColor = UIColor.systemGray6
         self.tableView.tableHeaderView = nil
         self.tableView.tableFooterView = nil
-        
-//        /* NOTE: seem too brittle to have to estimate a correct height, else wonkiness happens
-//         * should investigate if there's a way to find the exact height,
-//         * perhaps manually calculate it and then cache it
-//         */
-////        tableView.rowHeight = UITableView.automaticDimension
-//        tableView.estimatedRowHeight = 53
         
         self.dataSource = UITableViewDiffableDataSource<Int, ChatMessage>(tableView: self.tableView) { tableView, indexPath, chatMessage in
             if chatMessage.fromUserId == AppContext.shared.userData.userId {
@@ -137,6 +135,15 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
                 }
             }
         }
+        
+        self.cancellableSet.insert(
+            AppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] ts in
+                DDLogInfo("ChatViewController/didGetCurrentChatPresence")
+                guard let self = self else { return }
+                guard let userId = self.fromUserId else { return }
+                self.titleView.update(with: userId, lastSeen: ts)
+            }
+        )
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -177,7 +184,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     // MARK:
     
     private func showPreviewView(for chatMessage: ChatMessage) {
-        
         let detailVC = MediaPreviewController(for: chatMessage)
         let navigationController = UINavigationController(rootViewController: detailVC)
         navigationController.modalPresentationStyle = .overFullScreen
@@ -186,7 +192,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         
 //        self.navigationController?.pushViewController(MediaPreviewController(for: chatMessage), animated: false)
     }
-    
     
     private lazy var titleView: TitleView = {
         let titleView = TitleView()
@@ -210,12 +215,29 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     
     // MARK: Tableview Delegates
     
+    
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else { return }
+        let height = Int(cell.bounds.height)
+       
+        if chatMessage.cellHeight != height {
+            DDLogDebug("ChatViewController/updateCellHeight/\(chatMessage.id) \(height)")
+            AppContext.shared.chatData.updateChatMessageCellHeight(for: chatMessage.id, with: height)
+        }
+    }
+    
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-        // TODO: too brittle, need a way to have correct heights
+                
         guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else { return 50 }
-        var result:CGFloat = 50.0
+        
+        if chatMessage.cellHeight != 0 {
+            return CGFloat(chatMessage.cellHeight)
+        }
+        
+        var result:CGFloat = 50
         if chatMessage.quoted != nil {
-            result += 70
+            result += 100
         }
         
         if chatMessage.media != nil {
@@ -224,6 +246,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
             }
         }
         
+        DDLogDebug("ChatViewController/estimateCellHeight/\(chatMessage.id) \(result)")
         return result
     }
     
@@ -482,30 +505,38 @@ fileprivate class TitleView: UIView {
     }
 
     private lazy var contactImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFill
-        imageView.tintColor = UIColor.systemGray
-        return imageView
+        let view = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.contentMode = .scaleAspectFill
+        view.tintColor = UIColor.systemGray
+        return view
     }()
     
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-
-        label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.textColor = .label
         return label
     }()
     
     private lazy var lastSeenLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.textColor = .secondaryLabel
+        label.isHidden = true
         return label
+    }()
+    
+    private lazy var nameColumn: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [self.nameLabel, self.lastSeenLabel])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .vertical
+        view.spacing = 0
+        return view
     }()
     
     private func setup() {
@@ -513,17 +544,12 @@ fileprivate class TitleView: UIView {
         self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
         
-        let vStack = UIStackView(arrangedSubviews: [self.nameLabel, self.lastSeenLabel])
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        vStack.spacing = 2
-        
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
         spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
 
-        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, vStack, spacer ])
+        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.nameColumn, spacer ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.alignment = .leading
@@ -536,11 +562,41 @@ fileprivate class TitleView: UIView {
         hStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
     }
 
-    func update(with fromUserId: String) {
+    func update(with fromUserId: String, lastSeen: Date?) {
         self.nameLabel.text = AppContext.shared.contactStore.fullName(for: fromUserId)
-//        self.lastSeenLabel.text = AppContext.shared.contactStore.fullName(for: fromUserId)
+        if let lastSeen = lastSeen {
+            self.lastSeenLabel.text = lastSeen.lastSeenTimestamp()
+            self.lastSeenLabel.isHidden = false
+        } else {
+            self.lastSeenLabel.isHidden = true
+        }
     }
     
+}
+
+extension UIView {
+
+    func fadeIn(_ duration: TimeInterval? = 0.2, onCompletion: (() -> Void)? = nil) {
+        self.alpha = 0
+        self.isHidden = false
+        UIView.animate(withDuration: duration!,
+                       animations: { self.alpha = 1 },
+                       completion: { (value: Bool) in
+                          if let complete = onCompletion { complete() }
+                       }
+        )
+    }
+
+    func fadeOut(_ duration: TimeInterval? = 0.2, onCompletion: (() -> Void)? = nil) {
+        UIView.animate(withDuration: duration!,
+                       animations: { self.alpha = 0 },
+                       completion: { (value: Bool) in
+                           self.isHidden = true
+                           if let complete = onCompletion { complete() }
+                       }
+        )
+    }
+
 }
 
 
@@ -580,7 +636,6 @@ class ChatTableViewCell: UITableViewCell, ChatViewDelegate {
 
         self.chatView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.85).isActive = true
         self.chatView.layer.cornerRadius = 20.0
-        
     }
     
     private lazy var chatView: ChatView = {
@@ -654,7 +709,6 @@ class ChatTableViewUserCell: UITableViewCell, ChatUserViewDelegate {
     // MARK: ChatUserViewDelegates
     
     func chatUserView(_ chatView: ChatUserView) {
-        print("chatuser")
         if self.previewAction != nil {
             self.previewAction!()
         }

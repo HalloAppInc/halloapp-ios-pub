@@ -49,6 +49,8 @@ extension ChatMessage {
 
     @NSManaged var timestamp: Date?
     
+    @NSManaged var cellHeight: Int16
+    
     var receiverStatus: ReceiverStatus {
         get {
             return ReceiverStatus(rawValue: self.receiverStatusValue)!

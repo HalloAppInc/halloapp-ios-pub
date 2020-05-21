@@ -6,6 +6,6 @@ target 'HalloApp' do
 
   use_frameworks!
   pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
-  pod 'YPImagePicker', '~> 4.2.0'
-  pod "NextLevelSessionExporter", "~> 0.4.5"
+  pod 'YPImagePicker', :git => 'git@github.com:HalloAppInc/YPImagePicker.git'
+  pod 'NextLevelSessionExporter', '~> 0.4.5'
 end

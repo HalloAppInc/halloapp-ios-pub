@@ -28,6 +28,51 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     
     private var placeholderText = "Type a message"
 
+    // MARK: ChatInput Lifecycle
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        previousHeight = frame.size.height
+        setupView()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupView()
+    }
+
+    func willAppear(in viewController: UIViewController) {
+        self.setInputViewWidth(viewController.view.bounds.size.width)
+//        viewController.becomeFirstResponder()
+    }
+
+    func didAppear(in viewController: UIViewController) {
+//        viewController.becomeFirstResponder()
+    }
+
+    func willDisappear(in viewController: UIViewController) {
+        guard self.isKeyboardVisible || !viewController.isFirstResponder else { return }
+
+        var deferResigns = false
+        if viewController.isMovingFromParent {
+            // Popping
+            deferResigns = true
+        } else if self.isKeyboardVisible {
+            // Pushing or presenting
+            deferResigns = viewController.transitionCoordinator != nil && viewController.transitionCoordinator!.initiallyInteractive
+        }
+        if deferResigns && viewController.transitionCoordinator != nil {
+            viewController.transitionCoordinator?.animate(alongsideTransition: nil,
+                                                          completion: { context in
+                if !context.isCancelled {
+                    self.resignFirstResponderOnDisappear(in: viewController)
+                }
+            })
+        } else {
+            self.resignFirstResponderOnDisappear(in: viewController)
+        }
+    }
+    
     class ContainerView: UIView {
         fileprivate weak var delegate: ContainerViewDelegate?
 
@@ -74,23 +119,13 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     private lazy var contentView: UIStackView = {
         let view = UIStackView()
         view.axis = .vertical
-        view.spacing = 8
-        view.preservesSuperviewLayoutMargins = true
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.preservesSuperviewLayoutMargins = true
+        view.spacing = 8
+
         return view
     }()
 
-    private lazy var textView: UITextView = {
-        let textView = UITextView()
-        textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        textView.backgroundColor = UIColor.clear
-        textView.delegate = self
-        textView.textContainerInset.left = 8
-        textView.textContainerInset.right = 8
-        textView.translatesAutoresizingMaskIntoConstraints = false
-        return textView
-    }()
-    
     private lazy var quoteFeedPanelNameLabel: UILabel = {
         let label = UILabel()
         label.textColor = UIColor.label
@@ -172,86 +207,97 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         stackView.isHidden = true
         return stackView
     }()
+
+    private var textViewContainerHeightConstraint: NSLayoutConstraint?
+    
+    private lazy var textView: UITextView = {
+        let view = UITextView()
+        view.isScrollEnabled = false
+        view.delegate = self
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor.clear
+        view.textContainerInset.left = 8
+        view.textContainerInset.right = 8
+        view.font = UIFont.preferredFont(forTextStyle: .subheadline)
+
+        return view
+    }()
+    
+    private lazy var textViewContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor.systemBackground
+        view.addSubview(self.textView)
+        return view
+    }()
     
     private lazy var postMediaButton: UIButton = {
         let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.isEnabled = true
-        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 20)
-        button.addTarget(self, action: #selector(self.postMediaButtonClicked), for: .touchUpInside)
         button.setImage(UIImage(systemName: "photo.fill"), for: .normal)
+        button.addTarget(self, action: #selector(self.postMediaButtonClicked), for: .touchUpInside)
+        button.isEnabled = true
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 20)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.tintColor = UIColor.systemGray
         return button
     }()
     
     private lazy var postButton: UIButton = {
         let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
+        button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
         button.isEnabled = false
-        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
+        button.translatesAutoresizingMaskIntoConstraints = false
         // gotcha: keep insets at 6 or higher to have a bigger hit area,
         // rotating image by 45 degree is problematic so perhaps getting a pre-rotated custom icon is better
         button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
-        button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
-        button.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.tintColor = UIColor.link
         button.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi / 4))
+        
+        
+        button.layer.zPosition = -10
+        
+        button.backgroundColor = UIColor.systemBackground
+//        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+//        button.setContentHuggingPriority(.defaultHigh, for: .vertical)
+//        button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+//        button.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
+        
+//        let buttonSize: CGFloat = 30.0
+//
+//        NSLayoutConstraint(item: button, attribute: .width, relatedBy: .equal, toItem: button, attribute: .width, multiplier: 1, constant: buttonSize).isActive = true
+//        NSLayoutConstraint(item: button, attribute: .height, relatedBy: .equal, toItem: button, attribute: .width, multiplier: 1, constant: 0).isActive = true
+
+        
         return button
     }()
-
-    private lazy var vStack: UIStackView = {
-        let vStack = UIStackView()
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        return vStack
+    
+    private lazy var postButtonsContainer: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [self.postMediaButton, self.postButton ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .horizontal
+        return view
     }()
     
-    // MARK: ChatInput Lifecycle
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        previousHeight = frame.size.height
-        setupView()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupView()
-    }
-
-    func willAppear(in viewController: UIViewController) {
-        self.setInputViewWidth(viewController.view.bounds.size.width)
-//        viewController.becomeFirstResponder()
-    }
-
-    func didAppear(in viewController: UIViewController) {
-//        viewController.becomeFirstResponder()
-    }
-
-    func willDisappear(in viewController: UIViewController) {
-        guard self.isKeyboardVisible || !viewController.isFirstResponder else { return }
-
-        var deferResigns = false
-        if viewController.isMovingFromParent {
-            // Popping
-            deferResigns = true
-        } else if self.isKeyboardVisible {
-            // Pushing or presenting
-            deferResigns = viewController.transitionCoordinator != nil && viewController.transitionCoordinator!.initiallyInteractive
-        }
-        if deferResigns && viewController.transitionCoordinator != nil {
-            viewController.transitionCoordinator?.animate(alongsideTransition: nil,
-                                                          completion: { context in
-                if !context.isCancelled {
-                    self.resignFirstResponderOnDisappear(in: viewController)
-                }
-            })
-        } else {
-            self.resignFirstResponderOnDisappear(in: viewController)
-        }
-    }
-
+    private lazy var textInputRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [self.textViewContainer, self.postButtonsContainer ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .horizontal
+        
+        view.spacing = 0
+        return view
+    }()
+    
+    private lazy var vStack: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [self.quoteFeedPanel, self.textInputRow ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .vertical
+        view.alignment = .trailing
+        return view
+    }()
+    
     private func setupView() {
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.keyboardDidShow), name: UIResponder.keyboardDidShowNotification, object: nil)
@@ -274,34 +320,44 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         self.contentView.trailingAnchor.constraint(equalTo: self.containerView.layoutMarginsGuide.trailingAnchor).isActive = true
         self.contentView.bottomAnchor.constraint(equalTo: self.containerView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        let textViewContainer = UIView()
-        textViewContainer.backgroundColor = UIColor.systemBackground
-
-        textViewContainer.translatesAutoresizingMaskIntoConstraints = false
-        textViewContainer.addSubview(self.textView)
-        self.textView.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
-        self.textView.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
-        self.textView.trailingAnchor.constraint(equalTo: textViewContainer.trailingAnchor).isActive = true
-        self.textView.bottomAnchor.constraint(equalTo: textViewContainer.bottomAnchor).isActive = true
-        let textViewHeight = round(2 * self.textView.font!.lineHeight)
-        self.textView.addConstraint(NSLayoutConstraint(item: self.textView, attribute: .height, relatedBy: .greaterThanOrEqual, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: textViewHeight))
+        self.quoteFeedPanel.leadingAnchor.constraint(equalTo: self.vStack.leadingAnchor).isActive = true
         
-        let hStack = UIStackView(arrangedSubviews: [textViewContainer, self.postMediaButton, self.postButton ])
-        hStack.axis = .horizontal
-        hStack.spacing = 0
+        self.textView.leadingAnchor.constraint(equalTo: self.textViewContainer.leadingAnchor).isActive = true
+        self.textView.topAnchor.constraint(equalTo: self.textViewContainer.topAnchor).isActive = true
+        self.textView.trailingAnchor.constraint(equalTo: self.textViewContainer.trailingAnchor).isActive = true
+        self.textView.bottomAnchor.constraint(equalTo: self.textViewContainer.bottomAnchor).isActive = true
+        
+        self.textViewContainer.leadingAnchor.constraint(equalTo: self.textInputRow.leadingAnchor).isActive = true
+        self.textViewContainer.topAnchor.constraint(equalTo: self.textInputRow.topAnchor).isActive = true
+        self.textViewContainer.trailingAnchor.constraint(equalTo: self.textInputRow.trailingAnchor, constant: -40).isActive = true
+        self.textViewContainer.bottomAnchor.constraint(equalTo: self.textInputRow.bottomAnchor).isActive = true
+        
+        self.textViewContainerHeightConstraint = self.textViewContainer.heightAnchor.constraint(equalToConstant: 115)
+        
+        self.textInputRow.leadingAnchor.constraint(equalTo: self.vStack.leadingAnchor).isActive = true
+        
+        self.textInputRow.trailingAnchor.constraint(equalTo: self.vStack.trailingAnchor).isActive = true
+      
 
-        self.vStack.addArrangedSubview(hStack)
-        self.vStack.insertArrangedSubview(self.quoteFeedPanel, at: 0)
+//        self.postButtonsContainer.leadingAnchor.constraint(equalTo: textInputRow.leadingAnchor).isActive = false
+//        self.postButtonsContainer.topAnchor.constraint(equalTo: textInputRow.topAnchor).isActive = true
+        self.postButtonsContainer.trailingAnchor.constraint(equalTo: textInputRow.trailingAnchor).isActive = true
+//        self.postButtonsContainer.bottomAnchor.constraint(equalTo: textInputRow.bottomAnchor).isActive = true
+        
+
+//        let textViewHeight = round(2 * self.textView.font!.lineHeight)
+//        self.textView.addConstraint(NSLayoutConstraint(item: self.textView, attribute: .height, relatedBy: .greaterThanOrEqual, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: textViewHeight))
         
         self.contentView.addArrangedSubview(self.vStack)
         
+        self.vStack.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor).isActive = true
+        self.vStack.topAnchor.constraint(equalTo: self.contentView.topAnchor).isActive = true
+        self.vStack.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor).isActive = true
+        self.vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor).isActive = true
         
         self.postMediaButton.isHidden = true
         
         setPlaceholderText()
-        
-        
-
     }
     
     private func resignFirstResponderOnDisappear(in viewController: UIViewController) {
@@ -488,7 +544,24 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
     func textViewDidChange(_ textView: UITextView) {
         self.postButton.isEnabled = !self.text.isEmpty
-//        self.postMediaButton.isHidden = !self.text.isEmpty
+        self.postMediaButton.isHidden = !self.text.isEmpty
+
+        
+        if self.textView.contentSize.height >= 115 {
+            self.textViewContainerHeightConstraint?.constant = 115
+            self.textViewContainerHeightConstraint?.isActive = true
+            self.textView.isScrollEnabled = true
+        } else {
+
+            if self.textView.isScrollEnabled {
+                self.textViewContainerHeightConstraint?.constant = self.textView.contentSize.height
+                self.textView.isScrollEnabled = false
+            } else {
+                self.textViewContainerHeightConstraint?.isActive = false
+            }
+        }
+
+        
     }
 
     @objc func postButtonClicked() {

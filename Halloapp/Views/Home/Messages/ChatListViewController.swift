@@ -60,6 +60,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         self.tableView.backgroundColor = UIColor.systemGray6
 
         self.setupFetchedResultsController()
+                
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -209,10 +210,22 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         }
     }
 
+    private var timeIntervalToCheck: TimeInterval = 60
+    private var lastCheckedForNewContacts: Date?
+    
     private func populateWithSymmetricContacts() {
-        guard self.fetchedResultsController?.fetchedObjects?.count == 0 else { return }
-        DDLogDebug("ChatList/populateWithSymmetricContacts")
-        AppContext.shared.chatData.populateThreadsWithSymmetricContacts()
+        var isTimeToCheck = false
+        if let lastCheckedForNewContacts = self.lastCheckedForNewContacts {
+            isTimeToCheck = Date().timeIntervalSince(lastCheckedForNewContacts) >= self.timeIntervalToCheck
+        } else {
+            isTimeToCheck = true
+        }
+
+        if isTimeToCheck {
+            DDLogDebug("ChatList/populateWithSymmetricContacts")
+            AppContext.shared.chatData.populateThreadsWithSymmetricContacts()
+            self.lastCheckedForNewContacts = Date()
+        }
     }
     
     // MARK: UITableView
@@ -230,15 +243,18 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ChatListViewCell
         
         if let chatThread = fetchedResultsController?.object(at: indexPath) {
-            let contentWidth = tableView.frame.size.width - tableView.layoutMargins.left - tableView.layoutMargins.right
-            cell.configure(with: chatThread, contentWidth: contentWidth)
+            cell.configure(with: chatThread)
         }
         return cell
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let chatThread = fetchedResultsController?.object(at: indexPath) {
-            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId), animated: true)
+            var lastSeen = chatThread.lastSeenTimestamp
+            if chatThread.status == .available {
+                lastSeen = nil // UX - prevents the last seen timestamp to show for a brief moment if user is online
+            }
+            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId, with: nil, at: 0, lastSeen: lastSeen), animated: true)
         }
     }
     
@@ -264,11 +280,12 @@ fileprivate class ChatListViewCell: UITableViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.lastMessageLabel.text = ""
+        self.lastMessageLabel.text = nil
+        self.timeLabel.text = nil
         self.unreadNumButton.isHidden = true
     }
 
-    public func configure(with chatThread: ChatThread, contentWidth: CGFloat) {
+    public func configure(with chatThread: ChatThread) {
         self.nameLabel.text = AppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId)
         self.lastMessageLabel.text = chatThread.lastMsgText
         if chatThread.unreadCount == 0 {

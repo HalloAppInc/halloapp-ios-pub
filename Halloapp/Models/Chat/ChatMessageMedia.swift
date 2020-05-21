@@ -24,7 +24,8 @@ class ChatMessageMedia: Identifiable, ObservableObject, Hashable {
     var order: Int = 0
     var type: ChatMessageMediaType
     var size: CGSize
-    private var status: ChatMedia.Status
+    private var incomingStatus: ChatMedia.IncomingStatus
+    private var outgoingStatus: ChatMedia.OutgoingStatus
 
     @Published var isMediaAvailable: Bool = false
 
@@ -91,7 +92,8 @@ class ChatMessageMedia: Identifiable, ObservableObject, Hashable {
             isMediaAvailable = fileURL != nil
         }
         id = "\(chatMessageId)-\(order)"
-        status = chatMedia.status
+        incomingStatus = chatMedia.incomingStatus
+        outgoingStatus = chatMedia.outgoingStatus
     }
 
     func reload(from chatMedia: ChatMedia) {
@@ -99,7 +101,8 @@ class ChatMessageMedia: Identifiable, ObservableObject, Hashable {
         assert(chatMedia.message.id == self.chatMessageId)
         assert(chatMedia.type == self.type)
         assert(chatMedia.size == self.size)
-        guard chatMedia.status != self.status else { return }
+        guard chatMedia.incomingStatus != self.incomingStatus else { return }
+        guard chatMedia.outgoingStatus != self.outgoingStatus else { return }
         // Media was downloaded
         if self.fileURL == nil && chatMedia.relativeFilePath != nil {
             self.fileURL = AppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath!, isDirectory: false)
@@ -107,12 +110,14 @@ class ChatMessageMedia: Identifiable, ObservableObject, Hashable {
 
         // TODO: other kinds of updates possible?
 
-        self.status = chatMedia.status
+        self.incomingStatus = chatMedia.incomingStatus
+        self.outgoingStatus = chatMedia.outgoingStatus
     }
 
     init(_ media: PendingChatMessageMedia, chatMessageId: String) {
         self.id = "\(chatMessageId)-\(media.order)"
-        self.status = .none
+        self.incomingStatus = .none
+        self.outgoingStatus = .none
         self.chatMessageId = chatMessageId
         self.order = media.order
         self.type = media.type

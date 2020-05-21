@@ -12,15 +12,19 @@ import CoreData
 import UIKit
 
 extension ChatMedia {
-
-    enum Status: Int16 {
+    
+    enum IncomingStatus: Int16 {
         case none = 0
-        case uploading = 1
+        case pending = 1
+        case downloaded = 2
+        case error = 3
+    }
+    
+    enum OutgoingStatus: Int16 {
+        case none = 0
+        case pending = 1
         case uploaded = 2
-        case uploadError = 3
-        case downloading = 4
-        case downloaded = 5
-        case downloadError = 6
+        case error = 3
     }
     
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatMedia> {
@@ -40,13 +44,24 @@ extension ChatMedia {
     @NSManaged var relativeFilePath: String?
     @NSManaged var url: URL
     @NSManaged var message: ChatMessage
-    @NSManaged private var statusValue: Int16
-    var status: Status {
+    @NSManaged private var incomingStatusValue: Int16
+    @NSManaged private var outgoingStatusValue: Int16
+    
+    var incomingStatus: IncomingStatus {
         get {
-            return Status(rawValue: self.statusValue)!
+            return IncomingStatus(rawValue: self.incomingStatusValue)!
         }
         set {
-            self.statusValue = newValue.rawValue
+            self.incomingStatusValue = newValue.rawValue
+        }
+    }
+    
+    var outgoingStatus: OutgoingStatus {
+        get {
+            return OutgoingStatus(rawValue: self.outgoingStatusValue)!
+        }
+        set {
+            self.outgoingStatusValue = newValue.rawValue
         }
     }
     

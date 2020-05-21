@@ -13,15 +13,33 @@ import CoreData
 
 extension ChatThread {
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatThread> {
+    enum Status: Int16 {
+        case none = 0
+        case available = 1
+        case away = 2
+    }
+    
+    @nonobjc class func fetchRequest() -> NSFetchRequest<ChatThread> {
         return NSFetchRequest<ChatThread>(entityName: "ChatThread")
     }
 
-    @NSManaged public var chatWithUserId: String
-    @NSManaged public var unreadCount: Int32
-    @NSManaged public var lastMsgUserId: String?
-    @NSManaged public var lastMsgTimestamp: Date?
-    @NSManaged public var lastMsgText: String?
+    @NSManaged var chatWithUserId: String
+    @NSManaged var unreadCount: Int32
     
+    @NSManaged var statusValue: Int16
+    @NSManaged var lastSeenTimestamp: Date?
+    
+    @NSManaged var lastMsgUserId: String?
+    @NSManaged var lastMsgTimestamp: Date?
+    @NSManaged var lastMsgText: String?
+    
+    var status: Status {
+        get {
+            return Status(rawValue: self.statusValue)!
+        }
+        set {
+            self.statusValue = newValue.rawValue
+        }
+    }
 
 }

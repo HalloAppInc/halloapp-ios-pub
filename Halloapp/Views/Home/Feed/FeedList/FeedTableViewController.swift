@@ -287,7 +287,6 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     private func showMessageView(for postId: FeedPostID) {
         if let feedDataItem = AppContext.shared.feedData.feedDataItem(with: postId) {
-            print("index at: \(feedDataItem.currentMediaIndex)")
             self.navigationController?.pushViewController(ChatViewController(for: feedDataItem.userId, with: postId, at: Int32(feedDataItem.currentMediaIndex ?? 0)), animated: true)
         }
     }

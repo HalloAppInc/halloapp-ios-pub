@@ -14,7 +14,7 @@ typealias ChatMessageID = String
 class ChatData: ObservableObject, XMPPControllerChatDelegate {
     
     let didChangeUnreadCount = PassthroughSubject<Int, Never>()
-    let didGetCurrentChatPresence = PassthroughSubject<TimeInterval, Never>()
+    let didGetCurrentChatPresence = PassthroughSubject<Date?, Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
@@ -30,6 +30,16 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         }
     }
 
+    private let downloadQueue = DispatchQueue(label: "com.halloapp.chat.download", qos: .userInitiated)
+    private let maxNumDownloads: Int = 1
+    private var currentlyDownloading: [URL] = []
+
+    public func updateChatMessageCellHeight(for chatUserId: String, with cellHeight: Int) {
+        self.updateChatMessage(with: chatUserId) { (chatMessage) in
+            chatMessage.cellHeight = Int16(cellHeight)
+        }
+    }
+    
     init(xmppController: XMPPController, userData: UserData) {
         
         self.xmppController = xmppController
@@ -87,24 +97,41 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 self.processIncomingPresence(xmppPresence)
             }
         )
-    
+                
+        let notificationCenter = NotificationCenter.default
+        notificationCenter.addObserver(self, selector: #selector(appMovedToForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
+        notificationCenter.addObserver(self, selector: #selector(appMovedToBackground), name: UIApplication.willResignActiveNotification, object: nil)        
     }
     
     func populateThreadsWithSymmetricContacts() {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             let contacts = AppContext.shared.contactStore.allRegisteredContacts(sorted: true)
-            contacts.forEach {
-                if let userId = $0.userId {
-                    DDLogInfo("ChatData/populateThreads/contact \(userId)")
-                    let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
-                    chatThread.chatWithUserId = userId
-                    chatThread.lastMsgUserId = userId
-                    chatThread.lastMsgText = $0.phoneNumber ?? ""
-                    chatThread.unreadCount = 0
-                }
+            for contact in contacts {
+                guard let userId = contact.userId else { continue }
+                guard self.chatThread(chatWithUserId: userId) == nil else { continue }
+                DDLogInfo("ChatData/populateThreads/contact \(userId)")
+                let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
+                chatThread.chatWithUserId = userId
+                chatThread.lastMsgUserId = userId
+                chatThread.lastMsgText = contact.phoneNumber ?? ""
+                chatThread.unreadCount = 0
+                self.save(managedObjectContext)
             }
-            self.save(managedObjectContext)
         }
+    }
+    
+    @objc func appMovedToForeground() {
+        DDLogInfo("ChatData/appMovedToForeground/sendAvailablePresence")
+        let xmppJID = XMPPJID(user: AppContext.shared.userData.userId, domain: "s.halloapp.net", resource: nil)
+        let xmppPresence = XMPPPresence(type: "available", to: xmppJID)
+        AppContext.shared.xmppController.xmppStream.send(xmppPresence)
+    }
+    
+    @objc func appMovedToBackground() {
+        DDLogInfo("ChatData/appMovedToBackground/sendAwayPresence")
+        let xmppJID = XMPPJID(user: AppContext.shared.userData.userId, domain: "s.halloapp.net", resource: nil)
+        let xmppPresence = XMPPPresence(type: "away", to: xmppJID)
+        AppContext.shared.xmppController.xmppStream.send(xmppPresence)
     }
     
     private class var persistentStoreURL: URL {
@@ -241,7 +268,8 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             case .video:
                 feedMedia.type = .video
             }
-            feedMedia.status = .none
+            feedMedia.incomingStatus = .pending
+            feedMedia.outgoingStatus = .none
             feedMedia.url = xmppMedia.url
             feedMedia.size = xmppMedia.size
             feedMedia.key = xmppMedia.key
@@ -270,18 +298,13 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                         quotedMedia.order = feedPostMedia.order
                         quotedMedia.width = Float(feedPostMedia.size.width)
                         quotedMedia.height = Float(feedPostMedia.size.height)
-                        
                         quotedMedia.quoted = quoted
-                        
                         do {
                             try copyMediaToQuotedMedia(fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
                         }
                         catch {
                             DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
                         }
-                            
-
-                        
                     }
                 }
             }
@@ -314,6 +337,10 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         } else {
             self.unreadMessageCount += 1
         }
+        
+        // download media
+        let pendingChatMedia = self.pendingIncomingMessagesMedia(in: managedObjectContext)
+        print("count: \(pendingChatMedia.count)")
         
     }
         
@@ -369,7 +396,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             DDLogDebug("ChatData/new-msg/add-media [\(mediaItem.url!)]")
             let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
             chatMedia.type = mediaItem.type
-            chatMedia.status = .uploaded // For now we're only posting when all uploads are completed.
+            chatMedia.outgoingStatus = .uploaded // For now we're only posting when all uploads are completed.
             chatMedia.url = mediaItem.url!
             chatMedia.size = mediaItem.size!
             chatMedia.key = mediaItem.key!
@@ -400,7 +427,6 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                         quotedMedia.order = feedPostMedia.order
                         quotedMedia.width = Float(feedPostMedia.size.width)
                         quotedMedia.height = Float(feedPostMedia.size.height)
-                        
                         quotedMedia.quoted = quoted
                         
                         do {
@@ -409,7 +435,6 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                         catch {
                             DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
                         }
-
                     }
                 }
             }
@@ -479,9 +504,11 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && receiverStatusValue = %d", AppContext.shared.userData.userId, ChatMessage.ReceiverStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
-    // MARK: Presence
-    
-    private func processIncomingPresence(_ xmppPresence: XMPPPresence) {
+    func pendingIncomingMessagesMedia(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
+        ]
+        return self.chatMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     // MARK: Fetching Threads
@@ -515,20 +542,15 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     }
     
     func subscribeToPresence(to chatWithUserId: String) {
-//        let message = XMPPElement(name: "presence")
-//        message.addAttribute(withName: "to", stringValue: "\(chatWithUserId)@s.halloapp.net")
-//        message.addAttribute(withName: "type", stringValue: "subscribe")
-//        AppContext.shared.xmppController.xmppStream.send(message)
-        
-//        let ownPresence = XMPPElement(name: "presence")
-//        ownPresence.addAttribute(withName: "to", stringValue: "\(chatWithUserId)@s.halloapp.net")
-//        ownPresence.addAttribute(withName: "type", stringValue: "available")
-//        AppContext.shared.xmppController.xmppStream.send(ownPresence)
+        let message = XMPPElement(name: "presence")
+        message.addAttribute(withName: "to", stringValue: "\(chatWithUserId)@s.halloapp.net")
+        message.addAttribute(withName: "type", stringValue: "subscribe")
+        AppContext.shared.xmppController.xmppStream.send(message)
     }
     
     // MARK: Update Thread
     
-    private func updateChatThread(chatWithUserId id: String, block: @escaping (ChatThread) -> Void) {
+    private func updateChatThread(for id: String, block: @escaping (ChatThread) -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let chatThread = self.chatThread(chatWithUserId: id, in: managedObjectContext) else {
                 DDLogError("ChatData/update-chatThread/missing-post [\(id)]")
@@ -584,6 +606,44 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         self.currentlyChattingWithUserId = chatWithUserId
     }
 
+    // MARK: Presence
+    
+    private func processIncomingPresence(_ xmppPresence: XMPPPresence) {
+        guard let fromUserId = xmppPresence.from?.user else {
+            return
+        }
+
+        var presenceStatus = ChatThread.Status.available
+        var presenceLastSeen: Date?
+        
+        if let status = xmppPresence.type {
+            if status == "away" {
+                presenceStatus = ChatThread.Status.away
+                presenceLastSeen = Date(timeIntervalSince1970: xmppPresence.attributeDoubleValue(forName: "last_seen"))
+            }
+        }
+        
+        // update core data
+        self.updateChatThread(for: fromUserId) { (chatThread) in
+            if chatThread.status != presenceStatus {
+                chatThread.status = presenceStatus
+            }
+            if let lastSeen = presenceLastSeen {
+                if chatThread.lastSeenTimestamp != lastSeen {
+                    chatThread.lastSeenTimestamp = lastSeen
+                }
+            }
+        }
+        
+        // notify chat screen
+        if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
+            if currentlyChattingWithUserId == fromUserId {
+                self.didGetCurrentChatPresence.send(presenceLastSeen)
+            }
+        }
+
+    }
+    
     // MARK: XMPPControllerChatDelegate
 
     func xmppController(_ xmppController: XMPPController, didReceiveMessageReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?) {
