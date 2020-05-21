@@ -29,7 +29,7 @@ class XMPPRequest {
     private(set) var response: XMPPIQ?
 
     init(iq: XMPPIQ) {
-        self.iq = iq;
+        self.iq = iq
         self.requestId = iq.elementID!
     }
 
