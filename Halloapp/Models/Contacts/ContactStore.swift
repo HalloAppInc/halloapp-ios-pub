@@ -381,7 +381,7 @@ class ContactStore: ObservableObject {
         let startTime = Date()
         let contactsAvailable = self.isContactsAvailable
 
-        let allContactsRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
+        let allContactsRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         allContactsRequest.returnsObjectsAsFaults = false
 
         var numberOfContactsBeingUpdated = 0
@@ -682,16 +682,16 @@ class ContactStore: ObservableObject {
     // MARK: Server Sync
 
     func contactsFor(fullSync: Bool) -> [ABContact] {
-        let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         if fullSync {
-            fetchRequst.predicate = NSPredicate(format: "phoneNumber != nil")
+            fetchRequest.predicate = NSPredicate(format: "phoneNumber != nil")
         } else {
-            fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.unknown.rawValue)
+            fetchRequest.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.unknown.rawValue)
         }
         var allContacts: [ABContact] = []
         do {
             ///TODO: should use a private context here likely
-            allContacts = try self.persistentContainer.viewContext.fetch(fetchRequst)
+            allContacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
         }
         catch {
             fatalError()
@@ -700,12 +700,12 @@ class ContactStore: ObservableObject {
     }
 
     private func contactsMatching(phoneNumbers: [String], in managedObjectContext: NSManagedObjectContext) -> [String: [ABContact]] {
-        let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
-        fetchRequst.predicate = NSPredicate(format: "phoneNumber IN %@", phoneNumbers)
-        fetchRequst.returnsObjectsAsFaults = false
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "phoneNumber IN %@", phoneNumbers)
+        fetchRequest.returnsObjectsAsFaults = false
         var contacts: [ABContact] = []
         do {
-            try contacts = managedObjectContext.fetch(fetchRequst)
+            try contacts = managedObjectContext.fetch(fetchRequest)
         }
         catch {
             fatalError()
@@ -714,12 +714,12 @@ class ContactStore: ObservableObject {
     }
 
     private func contactsMatching(normalizedPhoneNumbers: [ABContact.NormalizedPhoneNumber], in managedObjectContext: NSManagedObjectContext) -> [String: [ABContact]] {
-        let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
-        fetchRequst.predicate = NSPredicate(format: "normalizedPhoneNumber IN %@", normalizedPhoneNumbers)
-        fetchRequst.returnsObjectsAsFaults = false
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber IN %@", normalizedPhoneNumbers)
+        fetchRequest.returnsObjectsAsFaults = false
         var contacts: [ABContact] = []
         do {
-            try contacts = managedObjectContext.fetch(fetchRequst)
+            try contacts = managedObjectContext.fetch(fetchRequest)
         }
         catch {
             fatalError()
@@ -859,14 +859,14 @@ class ContactStore: ObservableObject {
     }
 
     func allRegisteredContacts(sorted: Bool) -> [ABContact] {
-        let fetchRequst = NSFetchRequest<ABContact>(entityName: "ABContact")
-        fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
-        fetchRequst.returnsObjectsAsFaults = false
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
+        fetchRequest.returnsObjectsAsFaults = false
         if sorted {
-            fetchRequst.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
+            fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
         }
         do {
-            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequst)
+            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
             return contacts
         }
         catch {
@@ -960,7 +960,7 @@ class ContactStore: ObservableObject {
         var fullName: String? = nil
 
         // Fetch from the address book.
-        let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
         do {
             let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
@@ -991,7 +991,7 @@ class ContactStore: ObservableObject {
         var firstName: String? = nil
 
         // Fetch from the address book.
-        let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
         do {
             let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)

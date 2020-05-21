@@ -12,6 +12,10 @@ import CoreData
 
 extension ABContact {
 
+    @nonobjc class func fetchRequest() -> NSFetchRequest<ABContact> {
+        return NSFetchRequest<ABContact>(entityName: "ABContact")
+    }
+
     typealias NormalizedPhoneNumber = String
 
     // Raw values are persisted as ABContact.statusValue. Do not change.
