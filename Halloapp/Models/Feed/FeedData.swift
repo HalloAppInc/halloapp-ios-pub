@@ -590,7 +590,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            self.process(posts: feedPosts, using: managedObjectContext)
+            let posts = self.process(posts: feedPosts, using: managedObjectContext)
             let comments = self.process(comments: comments, using: managedObjectContext)
             self.generateNotifications(for: comments, using: managedObjectContext)
 
@@ -599,41 +599,48 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     xmppController.sendAck(for: message)
                 }
             }
+
+            self.presentLocalNotifications(forPosts: posts, comments: comments)
         }
     }
 
     // MARK: Notifications
 
+    static private func isCommentEligibleForNotification(_ comment: FeedPostComment) -> Bool {
+        return notificationEvent(for: comment) != nil
+    }
+
+    static private func notificationEvent(for comment: FeedPostComment) -> FeedNotification.Event? {
+        let selfId = AppContext.shared.userData.userId
+
+        // This would be the person who posted comment.
+        let authorId = comment.userId
+        guard authorId != selfId else { return nil }
+
+        // Someone replied to your comment.
+        if comment.parent != nil && comment.parent?.userId == selfId {
+            return .reply
+        }
+        // Someone commented on your post.
+        else if comment.post.userId == selfId {
+            return .comment
+        }
+        return nil
+    }
+
     private func generateNotifications(for comments: [FeedPostComment], using managedObjectContext: NSManagedObjectContext) {
         guard !comments.isEmpty else { return }
 
-        let selfId = AppContext.shared.userData.userId
         for comment in comments {
             // Step 1. Determine if comment is eligible for a notification.
-            // This would be the person who posted comment.
-            let authorId = comment.userId
-            guard authorId != selfId else {
-                DDLogError("FeedData/generateNotifications  Comment from self post=[\(comment.post.id)]  comment=[\(comment.id)]")
-                continue
-            }
-
-            var event: FeedNotification.Event? = nil
-            // Someone replied to your comment.
-            if comment.parent != nil && comment.parent?.userId == selfId {
-                event = .reply
-            }
-            // Someone commented on your post.
-            else if comment.post.userId == selfId {
-                event = .comment
-            }
-            guard event != nil else { continue }
+            guard let event = Self.notificationEvent(for: comment) else { continue }
 
             // Step 2. Add notification entry to the database.
             let notification = NSEntityDescription.insertNewObject(forEntityName: FeedNotification.entity().name!, into: managedObjectContext) as! FeedNotification
             notification.commentId = comment.id
             notification.postId = comment.post.id
-            notification.event = event!
-            notification.userId = authorId
+            notification.event = event
+            notification.userId = comment.userId
             notification.timestamp = comment.timestamp
             notification.text = comment.text
             if let media = comment.post.media?.first {
@@ -692,6 +699,43 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogInfo("FeedData/notifications/mark-read-all Count: \(notifications.count)")
             notifications.forEach { $0.read = true }
             self.save(managedObjectContext)
+        }
+    }
+
+    // MARK: Local Notifications
+
+    private func presentLocalNotifications(forPosts posts: [FeedPost], comments: [FeedPostComment]) {
+        let userIds = Set(posts.map{ $0.userId }).union(comments.map { $0.userId })
+        let contactNames = contactStore.fullNames(forUserIds: userIds)
+
+        var notifications: [UNMutableNotificationContent] = []
+
+        posts.forEach { (post) in
+            let notification = UNMutableNotificationContent()
+            notification.title = "New post"
+            notification.subtitle = contactNames[post.userId] ?? "Unknown contact"
+            if let text = post.text {
+                notification.body = text
+            }
+            // TODO: category
+            // TODO: media
+            notifications.append(notification)
+        }
+
+        // TODO: skip comments that are not eligible for a notification.
+        comments.filter{ FeedData.isCommentEligibleForNotification($0) }.forEach { (comment) in
+            let notification = UNMutableNotificationContent()
+            notification.title = "New comment"
+            notification.subtitle = contactNames[comment.userId] ?? "Unknown contact"
+            notification.body = comment.text
+            notifications.append(notification)
+        }
+
+        guard !notifications.isEmpty else { return }
+
+        let notificationCenter = UNUserNotificationCenter.current()
+        notifications.forEach { (notificationContent) in
+            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
         }
     }
 

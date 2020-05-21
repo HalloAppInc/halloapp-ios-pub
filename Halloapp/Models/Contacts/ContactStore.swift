@@ -949,7 +949,7 @@ class ContactStore: ObservableObject {
         }
     }
 
-    // MARK: SwiftUI Support
+    // MARK: UI Support
 
     func fullName(for userID: UserID) -> String {
         if userID == self.userData.userId {
@@ -1012,5 +1012,38 @@ class ContactStore: ObservableObject {
 
         // Fallback to a static string.
         return firstName ?? "Unknown Contact"
+    }
+
+    func fullNames(forUserIds userIds: Set<UserID>) -> [UserID : String] {
+        guard !userIds.isEmpty else { return [:] }
+
+        var results: [UserID : String] = [:]
+
+        // 1. Try finding address book names.
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userId in %@", userIds)
+        fetchRequest.returnsObjectsAsFaults = false
+        let managedObjectContext = self.persistentContainer.newBackgroundContext()
+        managedObjectContext.performAndWait {
+            do {
+                let contacts = try managedObjectContext.fetch(fetchRequest)
+                results = contacts.reduce(into: [:]) { (names, contact) in
+                    names[contact.userId!] = contact.fullName
+                }
+            }
+            catch {
+                fatalError("Unable to fetch contacts: \(error)")
+            }
+        }
+
+        // 2. Get push names for everyone else.
+        let pushNames = self.pushNames // TODO: probably need a lock here
+        userIds.forEach { (userId) in
+            if results[userId] == nil {
+                results[userId] = pushNames[userId]
+            }
+        }
+
+        return results
     }
 }

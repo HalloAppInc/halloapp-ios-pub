@@ -6,17 +6,26 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import BackgroundTasks
 import CocoaLumberjack
 import Contacts
 import CoreData
 import UIKit
+
+fileprivate let BackgroundFeedRefreshTaskIdentifier = "com.halloapp.hallo.feed.refresh"
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         AppContext.initContext()
+
         DDLogInfo("application/didFinishLaunching")
+
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundFeedRefreshTaskIdentifier, using: nil) { (task) in
+            self.handleFeedRefresh(task: task as! BGAppRefreshTask)
+        }
+
         return true
     }
 
@@ -37,7 +46,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
-
 
     // MARK: Remote notifications
 
@@ -127,5 +135,55 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
     }
-}
 
+    // MARK: Background App Refresh
+
+    func scheduleFeedRefresh(after timeInterval: TimeInterval) {
+        let request = BGAppRefreshTaskRequest(identifier: BackgroundFeedRefreshTaskIdentifier)
+        request.earliestBeginDate = Date(timeIntervalSinceNow: timeInterval)
+        do {
+            try BGTaskScheduler.shared.submit(request)
+            DDLogInfo("application/bg-feed-refresh/scheduled after=[\(timeInterval)]")
+        } catch {
+            DDLogError("application/bg-feed-refresh  Could not schedule refresh: \(error)")
+        }
+    }
+
+    private func handleFeedRefresh(task: BGAppRefreshTask) {
+        DDLogInfo("application/bg-feed-refresh/begin")
+
+        // Nothing to fetch if user isn't yet registered.
+        guard AppContext.shared.userData.isLoggedIn else {
+            DDLogWarn("application/bg-feed-refresh/not-authorized")
+            task.setTaskCompleted(success: true)
+            return
+        }
+
+        task.expirationHandler = {
+            DDLogError("application/bg-feed-refresh Expiration handler")
+            AppContext.shared.xmppController.disconnect()
+        }
+
+        let xmppController = AppContext.shared.xmppController
+        xmppController.startConnectingIfNecessary()
+        xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            DDLogInfo("application/bg-feed-refresh/connected")
+
+            // Disconnect gracefully after 3 seconds, which should be enough to finish processing.
+            // TODO: disconnect immediately after receiving "offline marker".
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                DDLogInfo("application/bg-feed-refresh/disconnect")
+                xmppController.disconnect()
+            }
+
+            // Finish bg task once we're disconnected.
+            xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
+                DDLogInfo("application/bg-feed-refresh/complete")
+                task.setTaskCompleted(success: true)
+            }
+        }
+
+        // Schedule next bg fetch.
+        scheduleFeedRefresh(after: Date.minutes(5))
+    }
+}
