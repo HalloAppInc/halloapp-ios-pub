@@ -10,6 +10,8 @@ import SwiftUI
 
 struct DeveloperMenuView: View {
 
+    @State var useTestServer: Bool
+
     var dismiss: (() -> ())?
 
     private let userData = AppContext.shared.userData
@@ -43,7 +45,8 @@ struct DeveloperMenuView: View {
 
             VStack(alignment: .center, spacing: 24) {
                 Text("Server: \(self.userData.hostName)")
-                
+                    .frame(maxWidth: .infinity)
+
                 Button(action: {
                     AppContext.shared.syncManager.requestFullSync()
 
@@ -75,15 +78,13 @@ struct DeveloperMenuView: View {
                 }
 
                 Button(action: {
-                    self.userData.switchToNetwork()
+                    self.useTestServer = !self.useTestServer
+                    self.userData.useTestServer = self.useTestServer
                     self.xmppController.disconnectImmediately()
                     self.xmppController.connect()
 
-                    if self.dismiss != nil {
-                        self.dismiss!()
-                    }
                 }) {
-                    Text("Switch Network")
+                    Text("Use Dev Server \(self.useTestServer ? "👍" : "👎")")
                         .padding(.horizontal, 15)
                         .padding(.vertical, 12)
                         .background(Color.blue)
@@ -108,11 +109,5 @@ struct DeveloperMenuView: View {
             }
             .padding(.bottom, 32)
         }
-    }
-}
-
-struct DeveloperMenuView_Previews: PreviewProvider {
-    static var previews: some View {
-        DeveloperMenuView()
     }
 }

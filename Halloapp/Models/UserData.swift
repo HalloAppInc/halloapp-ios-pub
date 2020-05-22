@@ -15,9 +15,6 @@ import XMPPFramework
 
 final class UserData: ObservableObject {
 
-//    public var hostName = "s-test.halloapp.net"
-    public var hostName = "s.halloapp.net"
-
     var didLogIn = PassthroughSubject<Void, Never>()
     var didLogOff = PassthroughSubject<Void, Never>()
 
@@ -25,6 +22,15 @@ final class UserData: ObservableObject {
      Value is derived from presence of saved userId/password pair.
      */
     @Published var isLoggedIn = false
+
+    var useTestServer: Bool {
+        get {
+            UserDefaults.standard.bool(forKey: "UseTestServer")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "UseTestServer")
+        }
+    }
     
     public var compressionQuality: Float = 0.4
 
@@ -42,6 +48,12 @@ final class UserData: ObservableObject {
         get {
             guard !userId.isEmpty && !password.isEmpty else { return nil }
             return XMPPJID(user: userId, domain: "s.halloapp.net", resource: "iphone")
+        }
+    }
+
+    var hostName: String {
+        get {
+            self.useTestServer ? "s-test.halloapp.net" : "s.halloapp.net"
         }
     }
 
@@ -96,15 +108,7 @@ final class UserData: ObservableObject {
 
         self.isLoggedIn = false
     }
-    
-    func switchToNetwork() {
-        if self.hostName == "s.halloapp.net" {
-            self.hostName = "s-test.halloapp.net"
-        } else {
-            self.hostName = "s.halloapp.net"
-        }
-    }
-    
+        
     func save() {
         UserCore.save(countryCode: self.countryCode, phoneInput: self.phoneInput, normalizedPhoneNumber: self.normalizedPhoneNumber,
                       userId: self.userId, password: self.password, name: self.name)
