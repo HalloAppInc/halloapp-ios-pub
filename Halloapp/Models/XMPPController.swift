@@ -517,11 +517,6 @@ extension XMPPController: XMPPStreamDelegate {
         if self.hasValidAPNSPushToken {
             self.sendCurrentAPNSToken()
         }
-        
-        // This function sends an initial presence stanza to the server indicating that the user is online.
-        // This is necessary so that the server will then respond with all the offline messages for the client.
-        // stanza: <presence />
-        self.xmppStream.send(XMPPPresence())
 
         self.resendAllPendingRequests()
 
