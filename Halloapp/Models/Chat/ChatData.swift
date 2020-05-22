@@ -66,6 +66,11 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         self.cancellableSet.insert(
             self.xmppController.didConnect.sink {
+                
+                if (UIApplication.shared.applicationState == .active) {
+                    self.xmppController.xmppStream.send(XMPPPresence())
+                }
+                
                 self.performSeriallyOnBackgroundContext { (managedObjectContext) in
                     let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: managedObjectContext)
                     
