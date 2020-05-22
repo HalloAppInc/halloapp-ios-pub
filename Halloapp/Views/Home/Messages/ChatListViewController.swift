@@ -250,11 +250,8 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let chatThread = fetchedResultsController?.object(at: indexPath) {
-            var lastSeen = chatThread.lastSeenTimestamp
-            if chatThread.status == .available {
-                lastSeen = nil // UX - prevents the last seen timestamp to show for a brief moment if user is online
-            }
-            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId, with: nil, at: 0, lastSeen: lastSeen), animated: true)
+            let lastSeen = chatThread.lastSeenTimestamp
+            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId, with: nil, at: 0, status: chatThread.status, lastSeen: lastSeen), animated: true)
         }
     }
     

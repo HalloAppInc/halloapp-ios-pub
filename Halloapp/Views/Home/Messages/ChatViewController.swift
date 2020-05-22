@@ -19,6 +19,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     private var fromUserId: String?
     private var feedPostId: FeedPostID?
     private var feedPostMediaIndex: Int32 = 0
+    private var status: ChatThread.Status = ChatThread.Status.none
     private var lastSeen: Date? = nil
     
     private var fetchedResultsController: NSFetchedResultsController<ChatMessage>?
@@ -32,11 +33,12 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     
     // MARK: Lifecycle
     
-    init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0, lastSeen: Date? = nil) {
+    init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0, status: ChatThread.Status = ChatThread.Status.none, lastSeen: Date? = nil) {
         DDLogDebug("ChatViewController/init/\(fromUserId)")
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
+        self.status = status
         self.lastSeen = lastSeen
         super.init(nibName: nil, bundle: nil)
     }
@@ -64,7 +66,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
         self.titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        titleView.update(with: self.fromUserId!, lastSeen: self.lastSeen)
+        titleView.update(with: self.fromUserId!, status: self.status, lastSeen: self.lastSeen)
         
         self.view.addSubview(self.tableView)
         self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
@@ -137,11 +139,11 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         }
         
         self.cancellableSet.insert(
-            AppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] ts in
+            AppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in
                 DDLogInfo("ChatViewController/didGetCurrentChatPresence")
                 guard let self = self else { return }
                 guard let userId = self.fromUserId else { return }
-                self.titleView.update(with: userId, lastSeen: ts)
+                self.titleView.update(with: userId, status: status, lastSeen: ts)
             }
         )
     }
@@ -174,6 +176,10 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         super.viewWillDisappear(animated)
         AppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
         self.chatInputView.willDisappear(in: self)
+        
+        self.cancellableSet.forEach {
+            $0.cancel()
+        }
     }
     
     func dismantle() {
@@ -562,14 +568,29 @@ fileprivate class TitleView: UIView {
         hStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
     }
 
-    func update(with fromUserId: String, lastSeen: Date?) {
+    func update(with fromUserId: String, status: ChatThread.Status, lastSeen: Date?) {
+                
         self.nameLabel.text = AppContext.shared.contactStore.fullName(for: fromUserId)
-        if let lastSeen = lastSeen {
-            self.lastSeenLabel.text = lastSeen.lastSeenTimestamp()
-            self.lastSeenLabel.isHidden = false
-        } else {
-            self.lastSeenLabel.isHidden = true
+        
+        if status == .away {
+            if let lastSeen = lastSeen {
+                self.lastSeenLabel.text = lastSeen.lastSeenTimestamp()
+                self.lastSeenLabel.isHidden = false
+            }
+        } else if status == .available {
+            if lastSeen != nil {
+                self.lastSeenLabel.isHidden = false
+                self.lastSeenLabel.text = "online..."
+            } else {
+                /**
+                 * Edge Case: When user status is unknown
+                 * - User last seen was never set even once
+                 */
+                self.lastSeenLabel.isHidden = false
+                self.lastSeenLabel.text = ""
+            }
         }
+        
     }
     
 }

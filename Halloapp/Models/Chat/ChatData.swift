@@ -14,7 +14,7 @@ typealias ChatMessageID = String
 class ChatData: ObservableObject, XMPPControllerChatDelegate {
     
     let didChangeUnreadCount = PassthroughSubject<Int, Never>()
-    let didGetCurrentChatPresence = PassthroughSubject<Date?, Never>()
+    let didGetCurrentChatPresence = PassthroughSubject<(ChatThread.Status, Date?), Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
@@ -710,7 +710,11 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         // notify chat screen
         if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
             if currentlyChattingWithUserId == fromUserId {
-                self.didGetCurrentChatPresence.send(presenceLastSeen)
+                if presenceLastSeen == nil {
+                    let chatThread = self.chatThread(chatWithUserId: fromUserId)
+                    presenceLastSeen = chatThread?.lastSeenTimestamp
+                }
+                self.didGetCurrentChatPresence.send((presenceStatus, presenceLastSeen))
             }
         }
 
