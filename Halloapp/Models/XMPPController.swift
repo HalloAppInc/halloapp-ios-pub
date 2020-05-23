@@ -132,7 +132,7 @@ class XMPPController: NSObject {
     func connect() {
         guard xmppStream.myJID != nil else { return }
 
-        DDLogInfo("xmpp/connect")
+        DDLogInfo("xmpp/connect [version \(NSString(string: UIApplication.shared.version))]")
 
         xmppStream.hostName = userData.hostName
 
