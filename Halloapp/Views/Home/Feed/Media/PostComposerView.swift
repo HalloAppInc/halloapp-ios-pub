@@ -35,6 +35,8 @@ struct PostComposerView: View {
     
     @State var isReadyToPost: Bool = false
 
+    @State var numberOfFailedUploads: Int = 0
+
     init(mediaItemsToPost: [PendingMedia], didFinish: @escaping () -> Void) {
         self.mediaItemsToPost = mediaItemsToPost
         self.didFinish = didFinish
@@ -70,6 +72,14 @@ struct PostComposerView: View {
             if self.mediaItemsToPost.count > 0 {
                 MediaPreviewSlider(self.mediaItemsToPost.map { FeedMedia($0, feedPostId: "") })
                     .frame(height: 200, alignment: .center)
+
+                if self.numberOfFailedUploads > 1 {
+                    Text("Failed to upload \(self.numberOfFailedUploads) media items. Please try again.")
+                        .foregroundColor(.red)
+                } else if self.numberOfFailedUploads > 0 {
+                    Text("Failed to upload media. Please try again.")
+                        .foregroundColor(.red)
+                }
             }
         
             HStack {
@@ -95,6 +105,10 @@ struct PostComposerView: View {
                     return
                 }
 
+                if self.numberOfFailedUploads > 0 {
+                    return
+                }
+
                 if self.isReadyToPost {
                     self.isShareClicked = true
                     AppContext.shared.feedData.post(text: self.msgToSend, media: self.mediaItemsToPost)
@@ -107,7 +121,7 @@ struct PostComposerView: View {
             }) {
                 Text("SHARE")
                     .padding(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
-                    .background((self.isJustText && self.msgToSend != "") || (!self.isJustText && self.isReadyToPost) ? Color.blue : Color.gray)
+                    .background((self.isJustText && self.msgToSend != "") || (!self.isJustText && self.isReadyToPost && self.numberOfFailedUploads == 0) ? Color.blue : Color.gray)
                     .foregroundColor(.white)
                     .cornerRadius(20)
                     .shadow(radius: 2)
@@ -121,7 +135,7 @@ struct PostComposerView: View {
                 self.isJustText = true
                 self.isReadyToPost = true
             } else {
-                self.imageServer.upload(self.mediaItemsToPost, isReady: self.$isReadyToPost)
+                self.imageServer.upload(self.mediaItemsToPost, isReady: self.$isReadyToPost, numberOfFailedUploads: self.$numberOfFailedUploads)
             }
         }
         .background(Color(UIColor.systemBackground))

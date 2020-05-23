@@ -17,22 +17,24 @@ class ImageServer {
     private let mediaProcessingGroup = DispatchGroup()
     private var cancelled = false
 
-    func upload(_ mediaItems: [PendingMedia], completion: @escaping () -> Void) {
+    func upload(_ mediaItems: [PendingMedia], completion: @escaping (Bool) -> Void) {
         mediaItems.forEach{ self.initiateUpload($0) }
         self.mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
             guard let self = self else { return }
             if !self.cancelled {
-                completion()
+                let allUploadsSuccessful = mediaItems.filter{ $0.error != nil }.isEmpty
+                completion(allUploadsSuccessful)
             }
         }
     }
     
-    func upload(_ mediaItems: [PendingMedia], isReady: Binding<Bool>) {
+    func upload(_ mediaItems: [PendingMedia], isReady: Binding<Bool>, numberOfFailedUploads: Binding<Int>) {
         mediaItems.forEach{ self.initiateUpload($0) }
         self.mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
             guard let self = self else { return }
             if !self.cancelled {
                 isReady.wrappedValue = true
+                numberOfFailedUploads.wrappedValue = mediaItems.filter{ $0.error != nil }.count
             }
         }
     }
@@ -58,7 +60,7 @@ class ImageServer {
             if urls != nil {
                 self.processAndUpload(item, to: urls!)
             } else {
-                // TODO: handle error
+                item.error = error!
             }
             self.mediaProcessingGroup.leave()
         })
@@ -77,6 +79,7 @@ class ImageServer {
             case .image:
                 guard let image = item.image else {
                     DDLogError("ImageServer/image/prepare/error  Empty image [\(item)]")
+                    // TODO: assign error
                     break
                 }
                 DDLogInfo("ImageServer/image/prepare  Original image size: [\(NSCoder.string(for: item.size!))]")
@@ -92,6 +95,7 @@ class ImageServer {
                     let ts = Date()
                     guard let resized = image.resized(to: targetSize) else {
                         DDLogError("ImageServer/image/prepare/error  Resize failed [\(item)]")
+                        // TODO: assign error
                         break
                     }
                     DDLogDebug("ImageServer/image/prepare  Resized in \(-ts.timeIntervalSinceNow) s")
@@ -108,6 +112,7 @@ class ImageServer {
 
                 guard let imgData = item.image!.jpegData(compressionQuality: self.jpegCompressionQuality) else {
                     DDLogError("ImageServer/image/prepare/error  Failed to generate JPEG data. \(item)")
+                    // TODO: assign error
                     break
                 }
                 DDLogInfo("ImageServer/image/prepare/ready  JPEG Quality: [\(self.jpegCompressionQuality)] Size: [\(imgData.count)]")
@@ -117,10 +122,12 @@ class ImageServer {
             case .video:
                 guard let videoUrl = item.videoURL else {
                     DDLogError("ImageServer/video/prepare/error  Empty video URL. \(item)")
+                    // TODO: assign error
                     break
                 }
                 guard let fileAttrs = try? FileManager.default.attributesOfItem(atPath: videoUrl.path) else {
                     DDLogError("ImageServer/video/prepare/error  Failed to get file attributes. \(item)")
+                    // TODO: assign error
                     break
                 }
                 let fileSize = fileAttrs[FileAttributeKey.size] as! NSNumber
@@ -136,6 +143,8 @@ class ImageServer {
                         }
                         DDLogInfo("ImageServer/video/prepare/ready  New Video size: [\(resizedVideoData.count)]")
                         plaintextData = resizedVideoData
+                    } else {
+                        // TODO: assign error
                     }
                     mediaResizeGroup.leave()
                 }
@@ -158,6 +167,7 @@ class ImageServer {
                 }
                 catch {
                     DDLogError("ImageServer/media/copy/error [\(error)]")
+                    // TODO: assign error
                     self.mediaProcessingGroup.leave()
                     return
                 }
@@ -169,6 +179,7 @@ class ImageServer {
                     (data, key, sha256Hash) = try MediaCrypter.encrypt(data: plaintextData!, mediaType: item.type)
                 } catch {
                     DDLogError("ImageServer/encrypt/error item=[\(item)] [\(error)]")
+                    // TODO: assign error
                     self.mediaProcessingGroup.leave()
                     return
                 }
@@ -192,7 +203,7 @@ class ImageServer {
                     AF.upload(data, to: mediaURL.put, method: .put, headers: [ "Content-Type": "application/octet-stream" ]).response { (response) in
                         if (response.error != nil) {
                             DDLogError("ImageServer/upload/error url=[\(mediaURL.get)] [\(response.error!)]")
-                            // TODO: update `item` to indicate that url is invalid.
+                            item.error = response.error
                         } else {
                             DDLogDebug("ImageServer/upload/success url=[\(mediaURL.get)]")
                         }

@@ -143,6 +143,7 @@ class PendingMedia {
     var image: UIImage?
     var videoURL: URL?
     var fileURL: URL?
+    var error: Error?
 
     init(type: FeedMediaType) {
         self.type = type

@@ -105,9 +105,10 @@ class MessageComposerView: UIViewController, UITextViewDelegate, MessageComposer
      override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let media = self.mediaItemsToPost {
-            self.imageServer.upload(media) {
-                print("completed")
-                self.messageComposerBodyView.enableSendButton()
+            self.imageServer.upload(media) { (allUploadsSuccessful) in
+                if allUploadsSuccessful {
+                    self.messageComposerBodyView.enableSendButton()
+                }
             }
         }
     }
