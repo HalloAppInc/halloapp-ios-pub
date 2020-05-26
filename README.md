@@ -16,7 +16,7 @@ XCode 11
 
 ### Build and Run
 
-Please follow the doc [here](https://github.com/HalloAppInc/halloapp-ios/tree/master/docs/build_and_run.md) to build and run the app.
+Please follow the doc [here](docs/build_and_run.md) to build and run the app.
 
 ## Deployment
 
