@@ -1,10 +1,8 @@
-# Halloapp iOS
+# HalloApp iOS
 
-Halloapp
+HalloApp
 
 ## Getting Started
-
-Open Halloapp.xcworkspace and build
 
 ### Prerequisites
 
@@ -12,18 +10,13 @@ iOS 13
 
 XCode 11
 
-CocoaPods
+[CocoaPods](https://cocoapods.org/)
 
-XMPPFramework (from HalloApp's repositories)
+[XMPPFramework](https://github.com/HalloAppInc/XMPPFramework) (from HalloApp's repositories)
 
-### Installing
+### Build and Run
 
-CocoaPod's Pods directory is not checked in, so it must be installed
-
-```
-pods install
-```
-When re-installing cocoapods (when there are updates), it's safer to just remove the Pods directory and then install from scratch
+Please follow the doc [here](https://github.com/HalloAppInc/halloapp-ios/tree/master/docs/build_and_run.md) to build and run the app.
 
 ## Deployment
 
