@@ -121,6 +121,11 @@ class TextLabel: UILabel {
         }
     }
 
+    override func invalidateIntrinsicContentSize() {
+        super.invalidateIntrinsicContentSize()
+        textContainer.size = .zero
+    }
+
     override func sizeThatFits(_ size: CGSize) -> CGSize {
         let maxSize = CGSize(width: size.width, height: CGFloat.greatestFiniteMagnitude)
         var textSize = self.textBoundingRect(with: maxSize).size
@@ -182,7 +187,6 @@ class TextLabel: UILabel {
     private func invalidateTextStorage() {
         self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
             textStorage.deleteCharacters(in: NSRange(location: 0, length: textStorage.length))
-            textContainer.size = .zero
         }
         self.textStorageIsValid = false
     }
@@ -247,12 +251,8 @@ class TextLabel: UILabel {
         }
 
         let readMoreLinkCharacterIndex = self.textStorage.length
-        let style = NSMutableParagraphStyle()
-        style.paragraphSpacingBefore = 6
-        let readMoreLinkText = "\n\("Read more")" // TODO: localize
-        let attributes: [ NSAttributedString.Key: Any ] = [ .font: UIFont.systemFont(ofSize: self.font.pointSize, weight: .medium),
-                                                            .foregroundColor: UIColor.systemGray,
-                                                            .paragraphStyle: style ]
+        let readMoreLinkText = "\n\("more")" // TODO: localize
+        let attributes: [ NSAttributedString.Key: Any ] = [ .font: self.font, .foregroundColor: UIColor.systemGray ]
         self.textStorage.append(NSAttributedString(string: readMoreLinkText, attributes: attributes))
 
         self.readMoreLink = AttributedTextLink(text: readMoreLinkText, textCheckingResult: .readMoreLink, url: nil)
