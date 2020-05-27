@@ -88,35 +88,39 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         DDLogInfo("appdelegate/background-push \(userInfo)")
 
+        // Ignore notifications received when the app is in foreground.
         guard application.applicationState == .background else {
-            DDLogInfo("appdelegate/background-push Application is not backgrounded")
-            completionHandler(.failed)
-            return
-        }
-
-        let xmppController = AppContext.shared.xmppController
-
-        guard xmppController.isDisconnected else {
-            DDLogInfo("appdelegate/background-push Already connected")
+            DDLogWarn("appdelegate/background-push Application is not backgrounded")
             completionHandler(.noData)
             return
         }
 
+        let xmppController = AppContext.shared.xmppController
         xmppController.startConnectingIfNecessary()
         xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            // App was opened while connection attempt was in progress - end task and do nothing else.
+            guard application.applicationState == .background else {
+                DDLogWarn("application/background-push Connected while in foreground")
+                completionHandler(.noData)
+                return
+            }
+
             DDLogInfo("application/background-push/connected")
 
             // Disconnect gracefully after 3 seconds, which should be enough to finish processing.
             // TODO: disconnect immediately after receiving "offline marker".
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                DDLogInfo("application/background-push/disconnect")
-                xmppController.disconnect()
-            }
+                // Make sure to check if the app is still backgrounded.
+                if application.applicationState == .background {
+                    DDLogInfo("application/background-push/disconnect")
+                    xmppController.disconnect()
 
-            // Finish bg task once we're disconnected.
-            xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
-                DDLogInfo("application/background-push/complete")
-                completionHandler(.newData)
+                    // Finish bg task once we're disconnected.
+                    xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
+                        DDLogInfo("application/background-push/complete")
+                        completionHandler(.newData)
+                    }
+                }
             }
         }
     }
@@ -185,39 +189,44 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         // Nothing to fetch if user isn't yet registered.
         guard AppContext.shared.userData.isLoggedIn else {
-            DDLogWarn("application/bg-feed-refresh/not-authorized")
+            DDLogWarn("application/bg-feed-refresh Not logged in")
             task.setTaskCompleted(success: true)
             return
         }
 
         task.expirationHandler = {
             DDLogError("application/bg-feed-refresh Expiration handler")
-            AppContext.shared.xmppController.disconnect()
         }
 
+        let application = UIApplication.shared
         let xmppController = AppContext.shared.xmppController
-
-        guard xmppController.isDisconnected else {
-            DDLogInfo("appdelegate/bg-feed-refresh Already connected")
-            task.setTaskCompleted(success: true)
-            return
-        }
-
         xmppController.startConnectingIfNecessary()
         xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            // App was opened while connection attempt was in progress - end task and do nothing else.
+            guard application.applicationState == .background else {
+                DDLogWarn("application/bg-feed-refresh Connected while in foreground")
+                task.setTaskCompleted(success: true)
+                return
+            }
+
             DDLogInfo("application/bg-feed-refresh/connected")
 
             // Disconnect gracefully after 3 seconds, which should be enough to finish processing.
             // TODO: disconnect immediately after receiving "offline marker".
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                DDLogInfo("application/bg-feed-refresh/disconnect")
-                xmppController.disconnect()
-            }
+                // Make sure to check if the app is still backgrounded.
+                if application.applicationState == .background {
+                    DDLogInfo("application/bg-feed-refresh/disconnect")
+                    xmppController.disconnect()
 
-            // Finish bg task once we're disconnected.
-            xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
-                DDLogInfo("application/bg-feed-refresh/complete")
-                task.setTaskCompleted(success: true)
+                    // Finish bg task once we're disconnected.
+                    xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
+                        DDLogInfo("application/bg-feed-refresh/complete")
+                        task.setTaskCompleted(success: true)
+                    }
+                } else {
+                    task.setTaskCompleted(success: true)
+                }
             }
         }
 
