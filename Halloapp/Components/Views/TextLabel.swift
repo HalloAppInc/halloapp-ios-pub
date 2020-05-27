@@ -252,7 +252,7 @@ class TextLabel: UILabel {
 
         let readMoreLinkCharacterIndex = self.textStorage.length
         let readMoreLinkText = "\n\("more")" // TODO: localize
-        let attributes: [ NSAttributedString.Key: Any ] = [ .font: self.font, .foregroundColor: UIColor.systemGray ]
+        let attributes: [ NSAttributedString.Key: Any ] = [ .font: self.font ?? UIFont.preferredFont(forTextStyle: .body), .foregroundColor: UIColor.systemGray ]
         self.textStorage.append(NSAttributedString(string: readMoreLinkText, attributes: attributes))
 
         self.readMoreLink = AttributedTextLink(text: readMoreLinkText, textCheckingResult: .readMoreLink, url: nil)
