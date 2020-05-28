@@ -30,12 +30,14 @@ class ChatView: UIView {
     }
 
     private func setupView() {
-        self.backgroundColor = UIColor.systemGray5
+        self.backgroundColor = .clear
+        self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
         self.addSubview(mainView)
-        self.mainView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
-        self.mainView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        self.mainView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
-        self.mainView.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        
+        self.mainView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
+        self.mainView.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
+        self.mainView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
+        self.mainView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
     }
 
     // MARK: Quoted
@@ -97,7 +99,7 @@ class ChatView: UIView {
         
         let subView = UIView(frame: view.bounds)
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        subView.layer.cornerRadius = 15
+        subView.layer.cornerRadius = 20
         subView.layer.backgroundColor = UIColor.systemBackground.cgColor
         subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         subView.layer.masksToBounds = true
@@ -156,33 +158,48 @@ class ChatView: UIView {
     }()
     
     private lazy var textRow: UIStackView = {
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        
         let view = UIStackView(arrangedSubviews: [ self.textView ])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .horizontal
-        view.layoutMargins = UIEdgeInsets(top: 5, left: 15, bottom: 10, right: 15)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 15)
         view.isLayoutMarginsRelativeArrangement = true
-        view.alignment = .bottom
+//        view.alignment = .bottom
         view.spacing = 1
 
         return view
     }()
     
+
     private lazy var mainView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.quotedRow, self.mediaRow, self.textRow ])
+        let view = UIStackView(arrangedSubviews: [ self.quotedRow, self.textRow ])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .vertical
-
         view.spacing = 0
+        
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.layer.cornerRadius = 20
+        subView.layer.backgroundColor = UIColor.systemGray5.cgColor
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        view.insertSubview(subView, at: 0)
+
         return view
     }()
-
     // MARK: Updates
     
-    func updateWith(chatMessage: ChatMessage) {
+    func updateWith(chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
+        
+        if isPreviousMsgSameSender {
+            self.layoutMargins = UIEdgeInsets(top: 3, left: 0, bottom: 0, right: 0)
+        } else {
+            self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        }
+        
         let text = chatMessage.text ?? ""
+        if text.count <= 3 && text.containsOnlyEmoji {
+            self.textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+        }
         self.textView.text = text
         
         if let media = chatMessage.media {
@@ -238,8 +255,8 @@ class ChatView: UIView {
         self.mediaImageView.isHidden = true
         self.mediaLabel.isHidden = true
         
+        self.textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
         self.textView.text = ""
-
     }
 
     func videoPreviewImage(url: URL) -> UIImage? {
@@ -258,5 +275,17 @@ class ChatView: UIView {
     @objc func gotoPreview(_ sender: UIView) {
         self.delegate?.chatView(self)
     }
-    
+}
+
+fileprivate extension Character {
+    var isSimpleEmoji: Bool {
+        guard let firstScalar = unicodeScalars.first else { return false }
+        return firstScalar.properties.isEmoji && firstScalar.value > 0x238C
+    }
+    var isCombinedIntoEmoji: Bool { unicodeScalars.count > 1 && unicodeScalars.first?.properties.isEmoji ?? false }
+    var isEmoji: Bool { isSimpleEmoji || isCombinedIntoEmoji }
+}
+
+fileprivate extension String {
+    var containsOnlyEmoji: Bool { !isEmpty && !contains { !$0.isEmoji } }
 }

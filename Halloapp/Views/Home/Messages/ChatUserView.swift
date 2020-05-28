@@ -30,12 +30,14 @@ class ChatUserView: UIView {
     }
     
     private func setupView() {
-        self.backgroundColor = UIColor.systemBackground
-        self.addSubview(mainView)
-        self.mainView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
-        self.mainView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        self.mainView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
-        self.mainView.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        self.backgroundColor = .clear
+        self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        self.addSubview(self.mainView)
+        
+        self.mainView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
+        self.mainView.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
+        self.mainView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
+        self.mainView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
     }
     
     // MARK: Quoted
@@ -95,7 +97,7 @@ class ChatUserView: UIView {
         
         let subView = UIView(frame: stackView.bounds)
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        subView.layer.cornerRadius = 15
+        subView.layer.cornerRadius = 20
         subView.layer.backgroundColor = UIColor.systemGray5.cgColor
         subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         subView.layer.masksToBounds = true
@@ -167,7 +169,7 @@ class ChatUserView: UIView {
         view.spacing = 0
         return view
     }()
-    
+            
     private lazy var textRow: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
@@ -194,16 +196,28 @@ class ChatUserView: UIView {
         let view = UIStackView(arrangedSubviews: [ self.quotedRow, self.textRow ])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .vertical
-
         view.spacing = 0
+        
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.layer.cornerRadius = 20
+        subView.layer.backgroundColor = UIColor.systemBackground.cgColor
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        view.insertSubview(subView, at: 0)
+
         return view
     }()
-
-
+    
     // MARK: Update
     
-    func updateWith(with chatMessage: ChatMessage) {
-
+    func updateWith(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
+        if isPreviousMsgSameSender {
+            self.layoutMargins = UIEdgeInsets(top: 3, left: 0, bottom: 0, right: 0)
+        } else {
+            self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        }
+        
         switch chatMessage.senderStatus {
         case .seen:
             self.sentTickImageView.isHidden = true
@@ -226,8 +240,11 @@ class ChatUserView: UIView {
             self.deliveredTickImageView.isHidden = true
             self.deliveredTickImageView.tintColor = UIColor.systemGray3
         }
-        
+
         let text = chatMessage.text ?? ""
+        if text.count <= 3 && text.containsOnlyEmoji {
+            self.textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+        }
         self.textView.text = text
         
         if let quoted = chatMessage.quoted {
@@ -270,12 +287,15 @@ class ChatUserView: UIView {
     // MARK: Reuse
     
     func reset() {
+        self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        
         self.quotedNameLabel.text = ""
         self.quotedTextLabel.text = ""
         self.quotedTextVStack.isHidden = true
         self.quotedImageView.isHidden = true
         self.quotedRow.isHidden = true
         
+        self.textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
         self.textView.text = ""
         self.sentTickImageView.isHidden = true
         self.sentTickImageView.tintColor = UIColor.systemGray3
@@ -299,7 +319,17 @@ class ChatUserView: UIView {
     @objc func gotoPreview(_ sender: UIView) {
         self.delegate?.chatUserView(self)
     }
-    
 }
 
+fileprivate extension Character {
+    var isSimpleEmoji: Bool {
+        guard let firstScalar = unicodeScalars.first else { return false }
+        return firstScalar.properties.isEmoji && firstScalar.value > 0x238C
+    }
+    var isCombinedIntoEmoji: Bool { unicodeScalars.count > 1 && unicodeScalars.first?.properties.isEmoji ?? false }
+    var isEmoji: Bool { isSimpleEmoji || isCombinedIntoEmoji }
+}
 
+fileprivate extension String {
+    var containsOnlyEmoji: Bool { !isEmpty && !contains { !$0.isEmoji } }
+}

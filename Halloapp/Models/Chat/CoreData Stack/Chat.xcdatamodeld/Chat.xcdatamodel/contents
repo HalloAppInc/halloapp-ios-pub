@@ -49,6 +49,7 @@
         <attribute name="lastMsgUserId" optional="YES" attributeType="String"/>
         <attribute name="lastSeenTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="statusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="unreadCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <elements>
@@ -56,6 +57,6 @@
         <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="223"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="118"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="133"/>
-        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="148"/>
+        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="163"/>
     </elements>
 </model>

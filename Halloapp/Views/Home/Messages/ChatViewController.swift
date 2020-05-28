@@ -46,7 +46,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     required init?(coder: NSCoder) {
         super.init(coder: coder)
     }
-
+    
     override func viewDidLoad() {
         guard self.fromUserId != nil else { return }
 
@@ -79,9 +79,25 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.tableView.tableFooterView = nil
         
         self.dataSource = UITableViewDiffableDataSource<Int, ChatMessage>(tableView: self.tableView) { tableView, indexPath, chatMessage in
+
+            var isPreviousMsgSameSender = false
+
             if chatMessage.fromUserId == AppContext.shared.userData.userId {
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.userCellReuseIdentifier, for: indexPath) as? ChatTableViewUserCell {
-                    cell.update(with: chatMessage)
+
+                    let previousRow = indexPath.row - 1
+                    
+                    if previousRow >= 0 {
+                        let previousIndexPath = IndexPath(row: previousRow, section: indexPath.section)
+                        
+                        if let previousChatMessage = self.fetchedResultsController?.object(at: previousIndexPath) {
+                            if previousChatMessage.fromUserId == chatMessage.fromUserId {
+                                isPreviousMsgSameSender = true
+                            }
+                        }
+                    }
+                    
+                    cell.update(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
                     cell.backgroundColor = UIColor.systemGray6
                     
                     if chatMessage.quoted != nil && chatMessage.quoted?.media != nil {
@@ -96,7 +112,20 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
             }
                 
             let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.otherUserCellReuseIdentifier, for: indexPath) as! ChatTableViewCell
-            cell.update(with: chatMessage)
+
+            let previousRow = indexPath.row - 1
+            
+            if previousRow >= 0 {
+                let previousIndexPath = IndexPath(row: previousRow, section: indexPath.section)
+                
+                if let previousChatMessage = self.fetchedResultsController?.object(at: previousIndexPath) {
+                    if previousChatMessage.fromUserId == chatMessage.fromUserId {
+                        isPreviousMsgSameSender = true
+                    }
+                }
+            }
+
+            cell.update(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
             cell.backgroundColor = UIColor.systemGray6
 
             if chatMessage.quoted != nil && chatMessage.quoted?.media != nil {
@@ -221,8 +250,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     
     // MARK: Tableview Delegates
     
-    
-    
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else { return }
         let height = Int(cell.bounds.height)
@@ -241,19 +268,19 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
             return CGFloat(chatMessage.cellHeight)
         }
         
-        var result:CGFloat = 50
-        if chatMessage.quoted != nil {
-            result += 100
-        }
-        
-        if chatMessage.media != nil {
-            if !chatMessage.media!.isEmpty {
-                result += 30
-            }
-        }
-        
-        DDLogDebug("ChatViewController/estimateCellHeight/\(chatMessage.id) \(result)")
-        return result
+//        var result:CGFloat = 50
+//        if chatMessage.quoted != nil {
+//            result += 100
+//        }
+//
+//        if chatMessage.media != nil {
+//            if !chatMessage.media!.isEmpty {
+//                result += 30
+//            }
+//        }
+
+//        DDLogDebug("ChatViewController/estimateCellHeight/\(chatMessage.id)")
+        return 50
     }
     
     // MARK: Data
@@ -325,7 +352,8 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 
     func updateTableViewContentInsets(with keyboardHeight: CGFloat, adjustContentOffset: Bool) {
         let topInset = self.tableView.contentInset.top
-        let bottomInset = keyboardHeight - self.tableView.safeAreaInsets.bottom
+        let extraBottomInset: CGFloat = 10 // extra margin for the bottom of the table
+        let bottomInset = keyboardHeight - self.tableView.safeAreaInsets.bottom + extraBottomInset
         let currentInset = self.tableView.contentInset
         var contentOffset = self.tableView.contentOffset
         var adjustContentOffset = adjustContentOffset
@@ -580,7 +608,7 @@ fileprivate class TitleView: UIView {
         } else if status == .available {
             if lastSeen != nil {
                 self.lastSeenLabel.isHidden = false
-                self.lastSeenLabel.text = "online..."
+                self.lastSeenLabel.text = "online"
             } else {
                 /**
                  * Edge Case: When user status is unknown
@@ -595,35 +623,10 @@ fileprivate class TitleView: UIView {
     
 }
 
-extension UIView {
-
-    func fadeIn(_ duration: TimeInterval? = 0.2, onCompletion: (() -> Void)? = nil) {
-        self.alpha = 0
-        self.isHidden = false
-        UIView.animate(withDuration: duration!,
-                       animations: { self.alpha = 1 },
-                       completion: { (value: Bool) in
-                          if let complete = onCompletion { complete() }
-                       }
-        )
-    }
-
-    func fadeOut(_ duration: TimeInterval? = 0.2, onCompletion: (() -> Void)? = nil) {
-        UIView.animate(withDuration: duration!,
-                       animations: { self.alpha = 0 },
-                       completion: { (value: Bool) in
-                           self.isHidden = true
-                           if let complete = onCompletion { complete() }
-                       }
-        )
-    }
-
-}
-
-
 class ChatTableViewCell: UITableViewCell, ChatViewDelegate {
 
     var previewAction: (() -> ())?
+    var isSame: Bool = false
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -637,6 +640,7 @@ class ChatTableViewCell: UITableViewCell, ChatViewDelegate {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+//        self.contentView.layoutMargins.top = 10
         self.chatView.reset()
     }
 
@@ -645,7 +649,7 @@ class ChatTableViewCell: UITableViewCell, ChatViewDelegate {
         
         self.contentView.preservesSuperviewLayoutMargins = false
         self.contentView.layoutMargins.top = 0
-        self.contentView.layoutMargins.bottom = 10
+        self.contentView.layoutMargins.bottom = 0
         
         self.contentView.addSubview(self.chatView)
         
@@ -656,7 +660,6 @@ class ChatTableViewCell: UITableViewCell, ChatViewDelegate {
         self.chatView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
         self.chatView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.85).isActive = true
-        self.chatView.layer.cornerRadius = 20.0
     }
     
     private lazy var chatView: ChatView = {
@@ -665,8 +668,8 @@ class ChatTableViewCell: UITableViewCell, ChatViewDelegate {
         return view
     }()
     
-    func update(with chatMessage: ChatMessage) {
-        self.chatView.updateWith(chatMessage: chatMessage)
+    func update(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
+        self.chatView.updateWith(chatMessage: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
     }
     
     // MARK: ChatViewDelegates
@@ -681,6 +684,7 @@ class ChatTableViewCell: UITableViewCell, ChatViewDelegate {
 class ChatTableViewUserCell: UITableViewCell, ChatUserViewDelegate {
 
     var previewAction: (() -> ())?
+    var isSame: Bool = false
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -694,6 +698,7 @@ class ChatTableViewUserCell: UITableViewCell, ChatUserViewDelegate {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+//        self.contentView.layoutMargins.top = 10
         self.chatUserView.reset()
     }
 
@@ -702,7 +707,7 @@ class ChatTableViewUserCell: UITableViewCell, ChatUserViewDelegate {
         
         self.contentView.preservesSuperviewLayoutMargins = false
         self.contentView.layoutMargins.top = 0
-        self.contentView.layoutMargins.bottom = 10
+        self.contentView.layoutMargins.bottom = 0
         
         self.contentView.addSubview(self.chatUserView)
         
@@ -713,8 +718,6 @@ class ChatTableViewUserCell: UITableViewCell, ChatUserViewDelegate {
         self.chatUserView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
         self.chatUserView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.85).isActive = true
-        self.chatUserView.layer.cornerRadius = 20.0
-        
     }
 
     private lazy var chatUserView: ChatUserView = {
@@ -723,8 +726,8 @@ class ChatTableViewUserCell: UITableViewCell, ChatUserViewDelegate {
         return view
     }()
     
-    func update(with chatMessage: ChatMessage) {
-        self.chatUserView.updateWith(with: chatMessage)
+    func update(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
+        self.chatUserView.updateWith(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
     }
     
     // MARK: ChatUserViewDelegates

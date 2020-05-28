@@ -103,12 +103,6 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     
     @objc(showContacts)
     private func showContacts() {
-
-//        let detailVC = self.newMessageViewController
-//        let navigationController = UINavigationController(rootViewController: detailVC)
-//        navigationController.modalPresentationStyle = .fullScreen
-//        self.present(navigationController, animated: true)
-        
         self.present(UINavigationController(rootViewController: self.newMessageViewController), animated: true)
     }
     
@@ -118,7 +112,8 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         get {
             let fetchRequest = NSFetchRequest<ChatThread>(entityName: "ChatThread")
             fetchRequest.sortDescriptors = [
-                NSSortDescriptor(keyPath: \ChatThread.lastMsgTimestamp, ascending: false)
+                NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
+                NSSortDescriptor(key: "title", ascending: true)
             ]
             fetchRequest.predicate = NSPredicate(format: "chatWithUserId != nil")
             
@@ -250,8 +245,9 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let chatThread = fetchedResultsController?.object(at: indexPath) {
-            let lastSeen = chatThread.lastSeenTimestamp
-            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId, with: nil, at: 0, status: chatThread.status, lastSeen: lastSeen), animated: true)
+            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId, with: nil, at: 0, status: chatThread.status, lastSeen: nil), animated: true)
+//            let lastSeen = chatThread.lastSeenTimestamp
+//            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId, with: nil, at: 0, status: chatThread.status, lastSeen: lastSeen), animated: true)
         }
     }
     

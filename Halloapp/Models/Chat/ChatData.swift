@@ -66,9 +66,11 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         self.cancellableSet.insert(
             self.xmppController.didConnect.sink {
+                DDLogInfo("ChatData/onConnect ")
                 
                 if (UIApplication.shared.applicationState == .active) {
-                    self.xmppController.xmppStream.send(XMPPPresence())
+                    DDLogInfo("ChatData/onConnect/sendPresence")
+                    self.sendPresence(type: "available")
                 }
                 
                 self.performSeriallyOnBackgroundContext { (managedObjectContext) in
@@ -102,14 +104,25 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 self.processIncomingPresence(xmppPresence)
             }
         )
-                
-        let notificationCenter = NotificationCenter.default
-        notificationCenter.addObserver(self, selector: #selector(appMovedToForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
-        notificationCenter.addObserver(self, selector: #selector(appMovedToBackground), name: UIApplication.willResignActiveNotification, object: nil)
-
-        // download pending media
-//        self.processPendingChatMedia()
         
+        /** gotcha: use Combine sink instead of notificationCenter.addObserver because for some reason if the user flicks the app to the background and foreground
+            really quickly, the observer doesn't fire
+         */
+        self.cancellableSet.insert(
+            NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] notification in
+                guard let self = self else { return }
+                self.sendPresence(type: "available")
+            }
+        )
+        
+        self.cancellableSet.insert(
+            NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] notification in
+                guard let self = self else { return }
+                self.sendPresence(type: "away")
+            }
+        )
+        
+        self.processPendingChatMedia()
     }
     
     func populateThreadsWithSymmetricContacts() {
@@ -117,74 +130,39 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             let contacts = AppContext.shared.contactStore.allRegisteredContacts(sorted: true)
             for contact in contacts {
                 guard let userId = contact.userId else { continue }
-                guard self.chatThread(chatWithUserId: userId) == nil else { continue }
-                DDLogInfo("ChatData/populateThreads/contact \(userId)")
-                let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
-                chatThread.chatWithUserId = userId
-                chatThread.lastMsgUserId = userId
-                chatThread.lastMsgText = contact.phoneNumber ?? ""
-                chatThread.unreadCount = 0
-                self.save(managedObjectContext)
-            }
-        }
-    }
-    
-    func processPendingChatMedia() {
-
-        guard self.currentlyDownloading.count < self.maxNumDownloads else { return }
-        
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            
-            let pendingMessagesWithMedia = self.pendingIncomingMessagesMedia(in: managedObjectContext)
-            
-//            print("count: \(pendingMessagesWithMedia.count)")
-            for chatMessage in pendingMessagesWithMedia {
-                
-                guard let media = chatMessage.media else { continue }
-                
-                let sortedMedia = media.sorted(by: { $0.order < $1.order })
-                
-                for med in sortedMedia {
-                
-                    guard med.incomingStatus == ChatMedia.IncomingStatus.pending else { continue }
-                    guard !self.currentlyDownloading.contains(med.url) else { continue }
-                    
-//                    let completion = {
-//
-//                    }
-    
-//                    self.download(med.url, completion: {
-//                      
-//                        // if not ok, save attempts
-//                        
-//                        // if ok, decrypt and save
-//                        
-//                        // do it again
-//                        
-//                    })
-                        
-                
+                if let chatThread = self.chatThread(chatWithUserId: userId) {
+                    guard chatThread.lastMsgTimestamp == nil else { continue }
+                    if chatThread.title != AppContext.shared.contactStore.fullName(for: userId) {
+                        DDLogDebug("ChatData/populateThreads/contact/rename \(userId)")
+                        self.updateChatThread(for: userId) { (chatThread) in
+                            chatThread.title = AppContext.shared.contactStore.fullName(for: userId)
+                        }
+                    }
+                } else {
+                    DDLogInfo("ChatData/populateThreads/contact/new \(userId)")
+                    let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
+                    chatThread.title = AppContext.shared.contactStore.fullName(for: userId)
+                    chatThread.chatWithUserId = userId
+                    chatThread.lastMsgUserId = userId
+                    chatThread.lastMsgText = contact.phoneNumber ?? ""
+                    chatThread.unreadCount = 0
+                    self.save(managedObjectContext)
                 }
                 
             }
             
         }
-    
+        // TODO: take care of deletes, ie. user removes contact from address book
     }
     
-
-    
-    @objc func appMovedToForeground() {
-        DDLogInfo("ChatData/appMovedToForeground/sendAvailablePresence")
-        let xmppJID = XMPPJID(user: AppContext.shared.userData.userId, domain: "s.halloapp.net", resource: nil)
-        let xmppPresence = XMPPPresence(type: "available", to: xmppJID)
-        AppContext.shared.xmppController.xmppStream.send(xmppPresence)
+    func processPendingChatMedia() {
     }
     
-    @objc func appMovedToBackground() {
-        DDLogInfo("ChatData/appMovedToBackground/sendAwayPresence")
+    private func sendPresence(type: String) {
+        guard AppContext.shared.xmppController.isConnected else { return }
+        DDLogInfo("ChatData/sendPresence \(type)")
         let xmppJID = XMPPJID(user: AppContext.shared.userData.userId, domain: "s.halloapp.net", resource: nil)
-        let xmppPresence = XMPPPresence(type: "away", to: xmppJID)
+        let xmppPresence = XMPPPresence(type: type, to: xmppJID)
         AppContext.shared.xmppController.xmppStream.send(xmppPresence)
     }
     
@@ -416,6 +394,33 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         }
     }
         
+//    func copyDownloadedMedia(fromUrl: URL, to quotedMedia: ChatQuotedMedia) throws {
+//        guard let fromRelativePath = fromPath else {
+//            return
+//        }
+//
+//        let fromURL = AppContext.mediaDirectoryURL.appendingPathComponent(fromRelativePath, isDirectory: false)
+//
+//        // append unique id to allow multiple quoted messages of the same feedpost so each message can be deleted independently in the future
+//
+//        var pathComponents = fromRelativePath.components(separatedBy: ".")
+//
+//        guard pathComponents.count > 1 else {
+//            return
+//        }
+//
+//        pathComponents[0] += "-\(UUID().uuidString)"
+//
+//        let newPath = "\(pathComponents[0]).\(pathComponents[1])"
+//
+//        let toURL = AppContext.chatMediaDirectoryURL.appendingPathComponent(newPath, isDirectory: false)
+//
+//        try FileManager.default.createDirectory(at: toURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+//
+//        try FileManager.default.copyItem(at: fromURL, to: toURL)
+//        quotedMedia.relativeFilePath = newPath
+//    }
+    
     func copyMediaToQuotedMedia(fromPath: String?, to quotedMedia: ChatQuotedMedia) throws {
         guard let fromRelativePath = fromPath else {
             return
@@ -614,6 +619,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     }
     
     func subscribeToPresence(to chatWithUserId: String) {
+        DDLogDebug("ChatData/subscribeToPresence [\(chatWithUserId)]")
         let message = XMPPElement(name: "presence")
         message.addAttribute(withName: "to", stringValue: "\(chatWithUserId)@s.halloapp.net")
         message.addAttribute(withName: "type", stringValue: "subscribe")

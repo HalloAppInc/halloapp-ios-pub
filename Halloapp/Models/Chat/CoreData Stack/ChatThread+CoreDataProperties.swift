@@ -23,6 +23,8 @@ extension ChatThread {
         return NSFetchRequest<ChatThread>(entityName: "ChatThread")
     }
 
+    @NSManaged var title: String?
+    
     @NSManaged var chatWithUserId: String
     @NSManaged var unreadCount: Int32
     

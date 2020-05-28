@@ -714,5 +714,4 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
             }
         }
     }
-    
 }
