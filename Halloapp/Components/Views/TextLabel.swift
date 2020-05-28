@@ -17,11 +17,27 @@ fileprivate class LayoutManager: NSLayoutManager {
     }
 }
 
-struct AttributedTextLink: Equatable {
+class AttributedTextLink: Equatable {
     let text: String
     let textCheckingResult: NSTextCheckingResult.CheckingType
+    let range: NSRange
     let url: URL?
     var rects: [ CGRect ] = []
+
+    init(text: String, textCheckingResult: NSTextCheckingResult.CheckingType, range: NSRange, url: URL?) {
+        self.text = text
+        self.textCheckingResult = textCheckingResult
+        self.range = range
+        self.url = url
+    }
+
+    static func == (lhs: AttributedTextLink, rhs: AttributedTextLink) -> Bool {
+        if lhs.textCheckingResult != rhs.textCheckingResult { return false }
+        if lhs.range != rhs.range { return false }
+        if lhs.text != rhs.text { return false }
+        return true
+    }
+
 }
 
 extension NSTextCheckingResult.CheckingType {
@@ -137,6 +153,11 @@ class TextLabel: UILabel {
     override func draw(_ rect: CGRect) {
         self.prepareTextStorageIfNeeded()
 
+        links?.forEach { link in
+            guard link.rects.isEmpty else { return }
+            link.rects = Self.textRects(forCharacterRange: link.range, inTextContainer: textContainer, withLayoutManager: layoutManager)
+        }
+
         // Background for highlighted link
         if let link = self.highlightedLink {
             UIColor.systemGray.withAlphaComponent(0.5).setFill()
@@ -187,6 +208,7 @@ class TextLabel: UILabel {
     private func invalidateTextStorage() {
         self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
             textStorage.deleteCharacters(in: NSRange(location: 0, length: textStorage.length))
+            self.links = []
         }
         self.textStorageIsValid = false
     }
@@ -255,9 +277,8 @@ class TextLabel: UILabel {
         let attributes: [ NSAttributedString.Key: Any ] = [ .font: self.font ?? UIFont.preferredFont(forTextStyle: .body), .foregroundColor: UIColor.systemGray ]
         self.textStorage.append(NSAttributedString(string: readMoreLinkText, attributes: attributes))
 
-        self.readMoreLink = AttributedTextLink(text: readMoreLinkText, textCheckingResult: .readMoreLink, url: nil)
         let readMoreRange = NSRange(location: readMoreLinkCharacterIndex + 1, length: self.textStorage.length - readMoreLinkCharacterIndex - 1)
-        self.readMoreLink?.rects = self.rects(for: readMoreRange, in: self.textContainer, with: self.layoutManager)
+        self.readMoreLink = AttributedTextLink(text: readMoreLinkText, textCheckingResult: .readMoreLink, range:readMoreRange, url: nil)
         self.links = [ self.readMoreLink! ]
     }
 
@@ -320,7 +341,7 @@ class TextLabel: UILabel {
         }
     }
 
-    private func textAttributes(for textCheckingType: NSTextCheckingResult.CheckingType) -> [ NSAttributedString.Key: Any ] {
+    private class func textAttributes(for textCheckingType: NSTextCheckingResult.CheckingType) -> [ NSAttributedString.Key: Any ] {
         if textCheckingType == .address || textCheckingType == .date {
             return TextLabel.addressAttributes
         } else {
@@ -341,28 +362,22 @@ class TextLabel: UILabel {
                 guard NSIntersectionRange(match.range, NSRange(location: self.lastValidCharacterIndex, length: 1)).length == 0 else {
                     continue
                 }
-                var link = AttributedTextLink(text: String(text[range]), textCheckingResult: match.resultType, url: match.url)
 
-                var rects: [CGRect] = []
                 self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
                     // Do nothing if text was truncated while link detection was happening on a background thread.
-                    guard textStorage.string == text else {
-                        return
-                    }
-                    rects = self.rects(for: match.range, in: textContainer, with: layoutManager)
-                    let attributes = self.textAttributes(for: match.resultType)
-                    textStorage.addAttributes(attributes, range: match.range)
-                }
-                if !rects.isEmpty {
-                    link.rects = rects
+                    guard textStorage.string == text else { return }
+
+                    let link = AttributedTextLink(text: String(text[range]), textCheckingResult: match.resultType, range:match.range, url: match.url)
                     results.append(link)
+
+                    textStorage.addAttributes(Self.textAttributes(for: match.resultType), range: match.range)
                 }
             }
         }
         return results
     }
 
-    private func rects(for characterRange: NSRange, in textContainer: NSTextContainer, with layoutManager: NSLayoutManager) -> [CGRect] {
+    private class func textRects(forCharacterRange characterRange: NSRange, inTextContainer textContainer: NSTextContainer, withLayoutManager layoutManager: NSLayoutManager) -> [CGRect] {
         var rects: [CGRect] = []
         var glyphRange = layoutManager.glyphRange(forCharacterRange: characterRange, actualCharacterRange: nil)
         while (true) {
