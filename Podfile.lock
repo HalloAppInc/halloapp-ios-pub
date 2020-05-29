@@ -72,15 +72,15 @@ PODS:
   - XMPPFramework/Swift (4.0.1):
     - CocoaLumberjack/Swift
     - XMPPFramework/default
-  - YPImagePicker (4.2.1):
+  - YPImagePicker (4.2.6):
     - PryntTrimmerView (~> 4.0.0)
     - SteviaLayout (~> 4.7.3)
 
 DEPENDENCIES:
   - Firebase/Crashlytics
-  - NextLevelSessionExporter (~> 0.4.5)
+  - NextLevelSessionExporter (>= 0.4.5)
   - "XMPPFramework/Swift (from `git@github.com:HalloAppInc/XMPPFramework.git`)"
-  - "YPImagePicker (from `git@github.com:HalloAppInc/YPImagePicker.git`)"
+  - "YPImagePicker (from `git@github.com:HalloAppInc/YPImagePicker.git`, tag `4.2.6`)"
 
 SPEC REPOS:
   trunk:
@@ -109,14 +109,15 @@ EXTERNAL SOURCES:
     :git: "git@github.com:HalloAppInc/XMPPFramework.git"
   YPImagePicker:
     :git: "git@github.com:HalloAppInc/YPImagePicker.git"
+    :tag: 4.2.6
 
 CHECKOUT OPTIONS:
   XMPPFramework:
     :commit: e6bd99d2c2c284a6c8cf313534138f89f7e8ec9f
     :git: "git@github.com:HalloAppInc/XMPPFramework.git"
   YPImagePicker:
-    :commit: bc1bae3b9f83af91a023149aedd3532e9f0a7158
     :git: "git@github.com:HalloAppInc/YPImagePicker.git"
+    :tag: 4.2.6
 
 SPEC CHECKSUMS:
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
@@ -139,8 +140,8 @@ SPEC CHECKSUMS:
   PryntTrimmerView: 67e67573ffd4c073f1308effa66aefd0cfa667a0
   SteviaLayout: c2ecdcff57d44e38fd2f65e54ad52aeae28ca0c4
   XMPPFramework: 759900cc7eb3c22036d622da72f66a05ae7b6948
-  YPImagePicker: 40796aa8ea7fea39e2861b705c2e154d3f43f78e
+  YPImagePicker: bf0f1f30d4d7542b4c7b1ff6a5eabf7eec228da0
 
-PODFILE CHECKSUM: 36dd85c09d48ef223268d8b6d5044d83a7aaf319
+PODFILE CHECKSUM: f8b06eba7ef62c326a6156dedd38f982d61f4add
 
 COCOAPODS: 1.8.4
