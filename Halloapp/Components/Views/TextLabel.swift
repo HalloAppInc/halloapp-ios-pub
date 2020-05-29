@@ -257,6 +257,7 @@ class TextLabel: UILabel {
 
     private func truncateAndAppendReadMoreLinkIfNeeded() {
         self.readMoreLink = nil
+        self.lastValidCharacterIndex = NSNotFound
 
         guard self.numberOfLines != 0 else { return }
         guard self.layoutManager.numberOfGlyphs > 10 else { return }
@@ -299,7 +300,9 @@ class TextLabel: UILabel {
 
     var hyperlinkDetectionIgnoreRange: Range<String.Index>? {
         didSet {
-            self.invalidateTextStorage()
+            if oldValue != hyperlinkDetectionIgnoreRange {
+                self.invalidateTextStorage()
+            }
         }
     }
 
