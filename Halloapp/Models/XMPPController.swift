@@ -349,19 +349,28 @@ class XMPPController: NSObject {
         }
     }
 
-    // MARK: Misc
+    // MARK: User Name
+    
+    let userDefaultsKeyForNameSync = "xmpp.name-sent"
 
     fileprivate func resendNameIfNecessary() {
-        let userDefaultsKey = "xmpp.name-sent"
-        guard !UserDefaults.standard.bool(forKey: userDefaultsKey) else { return }
+        guard !UserDefaults.standard.bool(forKey: userDefaultsKeyForNameSync) else { return }
         guard !self.userData.name.isEmpty else { return }
 
         let request = XMPPSendNameRequest(name: self.userData.name) { (error) in
             if error == nil {
-                UserDefaults.standard.set(true, forKey: userDefaultsKey)
+                UserDefaults.standard.set(true, forKey: self.userDefaultsKeyForNameSync)
             }
         }
         self.enqueue(request: request)
+    }
+    
+    public func sendCurrentUserNameIfPossible() {
+        UserDefaults.standard.set(false, forKey: userDefaultsKeyForNameSync)
+        
+        if isConnected {
+            resendNameIfNecessary()
+        }
     }
 }
 

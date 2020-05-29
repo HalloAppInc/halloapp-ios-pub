@@ -29,6 +29,9 @@ class ProfileViewController: FeedTableViewController {
         let headerView = FeedTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
         headerView.frame.size.height = headerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
         self.tableView.tableHeaderView = headerView
+        
+        let headerTapGesture = UITapGestureRecognizer(target: self, action: #selector(presentProfileEditScreen))
+        headerView.addGestureRecognizer(headerTapGesture)
     }
 
     // MARK: UI Actions
@@ -44,6 +47,17 @@ class ProfileViewController: FeedTableViewController {
         var settingsView = SettingsView()
         settingsView.dismiss = { self.dismiss(animated: true) }
         self.present(UIHostingController(rootView: settingsView), animated: true)
+    }
+    
+    @objc(presentProfileEditScreen)
+    private func presentProfileEditScreen() {
+        var profileEditView = ProfileEditView()
+        profileEditView.dismiss = {
+            (self.tableView.tableHeaderView as! FeedTableHeaderView).updateNameLabelAndEditProfileIcon()
+            self.dismiss(animated: true)
+        }
+        
+        self.present(UIHostingController(rootView: profileEditView), animated: true)
     }
 
     // MARK: FeedTableViewController
@@ -99,6 +113,37 @@ fileprivate class FeedTableHeaderView: UIView {
         label.text = AppContext.shared.userData.formattedPhoneNumber 
         return label
     }()
+    
+    private lazy var editProfileIconImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage.init(systemName: "pencil"))
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = UIColor.systemGray
+        return imageView
+    }()
+    
+    private var iconHorizontalConstraint: NSLayoutConstraint?
+    
+    public func updateNameLabelAndEditProfileIcon() {
+        if (nameLabel.text! != AppContext.shared.userData.name) {
+            nameLabel.text = AppContext.shared.userData.name
+        }
+        
+        /*
+         nameLabel is wider than the text inside.
+         We need to get the actual width of the text and calculate the relative distance.
+         */
+        let iconDistanceToNameLabelCenterX = nameLabel.intrinsicContentSize.width / 2 + 8
+        
+        if let hConstraint = iconHorizontalConstraint {
+            hConstraint.constant = iconDistanceToNameLabelCenterX
+        } else {
+            iconHorizontalConstraint = NSLayoutConstraint(item: editProfileIconImageView, attribute: .leading, relatedBy: .equal, toItem: nameLabel, attribute: .centerX, multiplier: 1, constant: iconDistanceToNameLabelCenterX)
+            let iconVerticalConstraint = NSLayoutConstraint(item: editProfileIconImageView, attribute: .centerY, relatedBy: .equal, toItem: nameLabel, attribute: .centerY, multiplier: 1, constant: 0)
+            
+            self.addConstraints([iconHorizontalConstraint!, iconVerticalConstraint])
+        }
+    }
 
     private func setupView() {
         self.layoutMargins.top = 16
@@ -115,5 +160,8 @@ fileprivate class FeedTableHeaderView: UIView {
         vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
 
         contactImageView.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        
+        self.addSubview(editProfileIconImageView)
+        self.updateNameLabelAndEditProfileIcon()
     }
 }
