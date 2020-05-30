@@ -22,7 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         DDLogInfo("application/didFinishLaunching")
 
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundFeedRefreshTaskIdentifier, using: nil) { (task) in
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundFeedRefreshTaskIdentifier, using: DispatchQueue.main) { (task) in
             self.handleFeedRefresh(task: task as! BGAppRefreshTask)
         }
 
