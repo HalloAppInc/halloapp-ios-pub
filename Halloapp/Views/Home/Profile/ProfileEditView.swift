@@ -12,7 +12,7 @@ struct ProfileEditView: View {
     
     var dismiss: (() -> ())?
     
-    @State private var name: String = AppContext.shared.userData.name
+    @ObservedObject var name = TextWithLengthLimit(limit: 25, text: AppContext.shared.userData.name)
     
     var body: some View {
         NavigationView {
@@ -29,7 +29,10 @@ struct ProfileEditView: View {
                     
                     Section(header: Text("Your Name")) {
                         HStack {
-                            TextField("Enter your name", text: $name)
+                            TextField("Enter your name", text: $name.text)
+                            
+                            Text("\(name.text.count)/25")
+                                .foregroundColor(.gray)
                         }
                     }
                     
@@ -49,13 +52,13 @@ struct ProfileEditView: View {
                         }
                     }) {
                         Text("Cancel")
-                            .foregroundColor(Color.red)
+                            .foregroundColor(Color("Tint"))
                     }
                 }, trailing:
                 HStack {
                     Button(action: {
-                        if (self.name != AppContext.shared.userData.name) {
-                            AppContext.shared.userData.name = self.name
+                        if (self.name.text != AppContext.shared.userData.name) {
+                            AppContext.shared.userData.name = self.name.text
                             AppContext.shared.userData.save()
                             
                             AppContext.shared.xmppController.sendCurrentUserNameIfPossible()
@@ -66,11 +69,30 @@ struct ProfileEditView: View {
                         }
                     }) {
                         Text("Done")
-                            .foregroundColor(Color("Tint"))
-                    }
+                            .fontWeight(.medium)
+                            .foregroundColor(name.text == "" ? .gray : Color("Tint"))
+                    }.disabled(name.text == "")
+                    
                 }
             )
         }
+    }
+}
+
+class TextWithLengthLimit: ObservableObject {
+    let limit: Int
+    
+    @Published var text: String {
+        didSet {
+            if text.count > limit {
+                text = oldValue
+            }
+        }
+    }
+    
+    init(limit: Int, text: String) {
+        self.limit = limit
+        self.text = text
     }
 }
 
