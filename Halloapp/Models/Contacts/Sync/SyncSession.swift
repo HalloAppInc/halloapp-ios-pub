@@ -92,7 +92,7 @@ class SyncSession {
             self.contacts.removeSubrange(range)
             self.batchIndex += 1
 
-            AppContext.shared.xmppController.enqueue(request: request)
+            MainAppContext.shared.xmppController.enqueue(request: request)
 
             return
         }

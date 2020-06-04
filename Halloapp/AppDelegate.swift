@@ -9,6 +9,7 @@
 import BackgroundTasks
 import CocoaLumberjack
 import Contacts
+import Core
 import CoreData
 import UIKit
 
@@ -18,7 +19,7 @@ fileprivate let BackgroundFeedRefreshTaskIdentifier = "com.halloapp.hallo.feed.r
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        AppContext.initContext()
+        initAppContext(MainAppContext.self, xmppControllerClass: XMPPControllerMain.self, contactStoreClass: ContactStoreMain.self)
 
         DDLogInfo("application/didFinishLaunching")
 
@@ -57,7 +58,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     public func checkNotificationsAuthorizationStatus() {
         // Do not allow to ask about access to notifications until user is done with Contacts access prompt.
         guard !ContactStore.contactsAccessRequestNecessary else { return }
-        guard self.needsAPNSToken || !AppContext.shared.xmppController.hasValidAPNSPushToken else { return }
+        guard self.needsAPNSToken || !MainAppContext.shared.xmppController.hasValidAPNSPushToken else { return }
         guard UIApplication.shared.applicationState != .background else { return }
 
         DDLogInfo("appdelegate/notifications/authorization/request")
@@ -74,15 +75,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DDLogInfo("appdelegate/notifications/push-token/success [\(tokenString)]")
 
         self.needsAPNSToken = false
-        AppContext.shared.xmppController.apnsToken = tokenString
-        AppContext.shared.xmppController.sendCurrentAPNSTokenIfPossible()
+        MainAppContext.shared.xmppController.apnsToken = tokenString
+        MainAppContext.shared.xmppController.sendCurrentAPNSTokenIfPossible()
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         DDLogError("appdelegate/notifications/push-token/error [\(error)]")
 
         self.needsAPNSToken = false
-        AppContext.shared.xmppController.apnsToken = nil
+        MainAppContext.shared.xmppController.apnsToken = nil
     }
 
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
@@ -95,7 +96,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return
         }
 
-        let xmppController = AppContext.shared.xmppController
+        let xmppController = MainAppContext.shared.xmppController
         xmppController.startConnectingIfNecessary()
         xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
             // App was opened while connection attempt was in progress - end task and do nothing else.
@@ -162,7 +163,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.contactsAccessRequestInProgress = true
         self.checkContactsAuthorizationStatus{ requestPresented, accessAuthorized in
             self.contactsAccessRequestInProgress = false
-            AppContext.shared.contactStore.reloadContactsIfNecessary()
+            MainAppContext.shared.contactStore.reloadContactsIfNecessary()
             if requestPresented {
                 // This is likely the first app launch and now that Contacts access popup is gone,
                 // time to request access to notifications.
@@ -188,7 +189,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DDLogInfo("application/bg-feed-refresh/begin")
 
         // Nothing to fetch if user isn't yet registered.
-        guard AppContext.shared.userData.isLoggedIn else {
+        guard MainAppContext.shared.userData.isLoggedIn else {
             DDLogWarn("application/bg-feed-refresh Not logged in")
             task.setTaskCompleted(success: true)
             return
@@ -199,7 +200,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
         let application = UIApplication.shared
-        let xmppController = AppContext.shared.xmppController
+        let xmppController = MainAppContext.shared.xmppController
         xmppController.startConnectingIfNecessary()
         xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
             // App was opened while connection attempt was in progress - end task and do nothing else.

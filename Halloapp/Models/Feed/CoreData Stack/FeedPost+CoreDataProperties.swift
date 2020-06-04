@@ -7,8 +7,9 @@
 //
 //
 
-import Foundation
+import Core
 import CoreData
+import Foundation
 
 extension FeedPost {
 
@@ -28,10 +29,10 @@ extension FeedPost {
         return NSFetchRequest<FeedPost>(entityName: "FeedPost")
     }
 
-    @NSManaged var id: FeedPostID
-    @NSManaged var text: String?
-    @NSManaged var timestamp: Date
-    @NSManaged var userId: UserID
+    @NSManaged public var id: FeedPostID
+    @NSManaged public var text: String?
+    @NSManaged public var timestamp: Date
+    @NSManaged public var userId: UserID
     @NSManaged var comments: Set<FeedPostComment>?
     @NSManaged var media: Set<FeedPostMedia>?
     @NSManaged var unreadCount: Int32
@@ -56,11 +57,11 @@ extension FeedPost {
 
 extension FeedPost: FeedPostProtocol {
 
-    static var itemType: FeedItemType {
+    public static var itemType: FeedItemType {
         .post
     }
 
-    var orderedMedia: [FeedMediaProtocol] {
+    public var orderedMedia: [FeedMediaProtocol] {
         get {
             guard let media = self.media else { return [] }
             return media.sorted { $0.order < $1.order }

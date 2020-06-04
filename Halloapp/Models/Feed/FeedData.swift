@@ -9,24 +9,17 @@
 import AVKit
 import CocoaLumberjack
 import Combine
+import Core
 import Foundation
 import SwiftUI
 import XMPPFramework
 
-// MARK: Types
-
-typealias FeedPostID = String
-typealias FeedPostCommentID = String
-enum FeedMediaType: Int {
-    case image = 0
-    case video = 1
-}
 
 class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate, XMPPControllerFeedDelegate {
 
     private var userData: UserData
-    private var contactStore: ContactStore
-    private var xmppController: XMPPController
+    private var contactStore: ContactStoreMain
+    private var xmppController: XMPPControllerMain
 
     private var cancellableSet: Set<AnyCancellable> = []
 
@@ -42,7 +35,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return manager
     }()
 
-    init(xmppController: XMPPController, contactStore: ContactStore, userData: UserData) {
+    init(xmppController: XMPPControllerMain, contactStore: ContactStoreMain, userData: UserData) {
         self.xmppController = xmppController
         self.contactStore = contactStore
         self.userData = userData
@@ -82,7 +75,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private class var persistentStoreURL: URL {
         get {
-            return AppContext.feedStoreURL
+            return MainAppContext.feedStoreURL
         }
     }
 
@@ -177,7 +170,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Delete saved Feed media.
         do {
-            try FileManager.default.removeItem(at: AppContext.mediaDirectoryURL)
+            try FileManager.default.removeItem(at: MainAppContext.mediaDirectoryURL)
             DDLogError("FeedData/destroy/delete-media/finished")
         }
         catch {
@@ -1052,7 +1045,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         do {
             let notifications = try managedObjectContext.fetch(fetchRequest)
             if !notifications.isEmpty {
-                self.updateMediaPreview(for: notifications, usingImageAt: AppContext.mediaDirectoryURL.appendingPathComponent(postMedia.relativeFilePath!, isDirectory: false))
+                self.updateMediaPreview(for: notifications, usingImageAt: MainAppContext.mediaDirectoryURL.appendingPathComponent(postMedia.relativeFilePath!, isDirectory: false))
             }
         }
         catch {
@@ -1066,7 +1059,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         guard postMedia.type == .image else { return }
         // TODO: add support for video previews
         guard let mediaPath = postMedia.relativeFilePath else { return }
-        self.updateMediaPreview(for: [ notification ], usingImageAt: AppContext.mediaDirectoryURL.appendingPathComponent(mediaPath, isDirectory: false))
+        self.updateMediaPreview(for: [ notification ], usingImageAt: MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaPath, isDirectory: false))
     }
 
     private func updateMediaPreview(for notifications: [FeedNotification], usingImageAt url: URL) {
@@ -1215,7 +1208,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func deleteMedia(in feedPost: FeedPost) {
         feedPost.media?.forEach { (media) in
             if media.relativeFilePath != nil {
-                let fileURL = AppContext.mediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
+                let fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
                 do {
                     try FileManager.default.removeItem(at: fileURL)
                 }

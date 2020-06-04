@@ -19,18 +19,18 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
-enum Proto_MediaType: SwiftProtobuf.Enum {
-  typealias RawValue = Int
+public enum Proto_MediaType: SwiftProtobuf.Enum {
+  public typealias RawValue = Int
   case unspecified // = 0
   case image // = 1
   case video // = 2
   case UNRECOGNIZED(Int)
 
-  init() {
+  public init() {
     self = .unspecified
   }
 
-  init?(rawValue: Int) {
+  public init?(rawValue: Int) {
     switch rawValue {
     case 0: self = .unspecified
     case 1: self = .image
@@ -39,7 +39,7 @@ enum Proto_MediaType: SwiftProtobuf.Enum {
     }
   }
 
-  var rawValue: Int {
+  public var rawValue: Int {
     switch self {
     case .unspecified: return 0
     case .image: return 1
@@ -54,7 +54,7 @@ enum Proto_MediaType: SwiftProtobuf.Enum {
 
 extension Proto_MediaType: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
-  static var allCases: [Proto_MediaType] = [
+  public static var allCases: [Proto_MediaType] = [
     .unspecified,
     .image,
     .video,
@@ -63,157 +63,157 @@ extension Proto_MediaType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
-struct Proto_Media {
+public struct Proto_Media {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var type: Proto_MediaType = .unspecified
+  public var type: Proto_MediaType = .unspecified
 
-  var width: Int32 = 0
+  public var width: Int32 = 0
 
-  var height: Int32 = 0
+  public var height: Int32 = 0
 
-  var encryptionKey: Data = SwiftProtobuf.Internal.emptyData
+  public var encryptionKey: Data = SwiftProtobuf.Internal.emptyData
 
-  var plaintextHash: Data = SwiftProtobuf.Internal.emptyData
+  public var plaintextHash: Data = SwiftProtobuf.Internal.emptyData
 
-  var downloadURL: String = String()
+  public var downloadURL: String = String()
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public init() {}
 }
 
-struct Proto_Post {
+public struct Proto_Post {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var media: [Proto_Media] = []
+  public var media: [Proto_Media] = []
 
-  var text: String = String()
+  public var text: String = String()
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public init() {}
 }
 
-struct Proto_Comment {
+public struct Proto_Comment {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var feedPostID: String = String()
+  public var feedPostID: String = String()
 
-  var parentCommentID: String = String()
+  public var parentCommentID: String = String()
 
-  var text: String = String()
+  public var text: String = String()
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public init() {}
 }
 
-struct Proto_ChatMessage {
+public struct Proto_ChatMessage {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var media: [Proto_Media] = []
+  public var media: [Proto_Media] = []
 
-  var text: String = String()
+  public var text: String = String()
 
-  var feedPostID: String = String()
+  public var feedPostID: String = String()
 
-  var feedPostMediaIndex: Int32 = 0
+  public var feedPostMediaIndex: Int32 = 0
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public init() {}
 }
 
-struct Proto_Container {
+public struct Proto_Container {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var post: Proto_Post {
+  public var post: Proto_Post {
     get {return _post ?? Proto_Post()}
     set {_post = newValue}
   }
   /// Returns true if `post` has been explicitly set.
-  var hasPost: Bool {return self._post != nil}
+  public var hasPost: Bool {return self._post != nil}
   /// Clears the value of `post`. Subsequent reads from it will return its default value.
-  mutating func clearPost() {self._post = nil}
+  public mutating func clearPost() {self._post = nil}
 
-  var comment: Proto_Comment {
+  public var comment: Proto_Comment {
     get {return _comment ?? Proto_Comment()}
     set {_comment = newValue}
   }
   /// Returns true if `comment` has been explicitly set.
-  var hasComment: Bool {return self._comment != nil}
+  public var hasComment: Bool {return self._comment != nil}
   /// Clears the value of `comment`. Subsequent reads from it will return its default value.
-  mutating func clearComment() {self._comment = nil}
+  public mutating func clearComment() {self._comment = nil}
 
-  var chatMessage: Proto_ChatMessage {
+  public var chatMessage: Proto_ChatMessage {
     get {return _chatMessage ?? Proto_ChatMessage()}
     set {_chatMessage = newValue}
   }
   /// Returns true if `chatMessage` has been explicitly set.
-  var hasChatMessage: Bool {return self._chatMessage != nil}
+  public var hasChatMessage: Bool {return self._chatMessage != nil}
   /// Clears the value of `chatMessage`. Subsequent reads from it will return its default value.
-  mutating func clearChatMessage() {self._chatMessage = nil}
+  public mutating func clearChatMessage() {self._chatMessage = nil}
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public init() {}
 
   fileprivate var _post: Proto_Post? = nil
   fileprivate var _comment: Proto_Comment? = nil
   fileprivate var _chatMessage: Proto_ChatMessage? = nil
 }
 
-struct Proto_IdentityKey {
+public struct Proto_IdentityKey {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var publicKey: Data = SwiftProtobuf.Internal.emptyData
+  public var publicKey: Data = SwiftProtobuf.Internal.emptyData
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public init() {}
 }
 
-struct Proto_SignedPreKey {
+public struct Proto_SignedPreKey {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var id: Int32 = 0
+  public var id: Int32 = 0
 
-  var publicKey: Data = SwiftProtobuf.Internal.emptyData
+  public var publicKey: Data = SwiftProtobuf.Internal.emptyData
 
-  var signature: Data = SwiftProtobuf.Internal.emptyData
+  public var signature: Data = SwiftProtobuf.Internal.emptyData
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public init() {}
 }
 
-struct Proto_OneTimePreKey {
+public struct Proto_OneTimePreKey {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var id: Int32 = 0
+  public var id: Int32 = 0
 
-  var publicKey: Data = SwiftProtobuf.Internal.emptyData
+  public var publicKey: Data = SwiftProtobuf.Internal.emptyData
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  init() {}
+  public init() {}
 }
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -221,7 +221,7 @@ struct Proto_OneTimePreKey {
 fileprivate let _protobuf_package = "proto"
 
 extension Proto_MediaType: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "MEDIA_TYPE_UNSPECIFIED"),
     1: .same(proto: "MEDIA_TYPE_IMAGE"),
     2: .same(proto: "MEDIA_TYPE_VIDEO"),
@@ -229,8 +229,8 @@ extension Proto_MediaType: SwiftProtobuf._ProtoNameProviding {
 }
 
 extension Proto_Media: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".Media"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  public static let protoMessageName: String = _protobuf_package + ".Media"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "type"),
     2: .same(proto: "width"),
     3: .same(proto: "height"),
@@ -239,7 +239,7 @@ extension Proto_Media: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     6: .standard(proto: "download_url"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularEnumField(value: &self.type)
@@ -253,7 +253,7 @@ extension Proto_Media: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     }
   }
 
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if self.type != .unspecified {
       try visitor.visitSingularEnumField(value: self.type, fieldNumber: 1)
     }
@@ -275,7 +275,7 @@ extension Proto_Media: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Proto_Media, rhs: Proto_Media) -> Bool {
+  public static func ==(lhs: Proto_Media, rhs: Proto_Media) -> Bool {
     if lhs.type != rhs.type {return false}
     if lhs.width != rhs.width {return false}
     if lhs.height != rhs.height {return false}
@@ -288,13 +288,13 @@ extension Proto_Media: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
 }
 
 extension Proto_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".Post"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  public static let protoMessageName: String = _protobuf_package + ".Post"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "media"),
     2: .same(proto: "text"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeRepeatedMessageField(value: &self.media)
@@ -304,7 +304,7 @@ extension Proto_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     }
   }
 
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if !self.media.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.media, fieldNumber: 1)
     }
@@ -314,7 +314,7 @@ extension Proto_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Proto_Post, rhs: Proto_Post) -> Bool {
+  public static func ==(lhs: Proto_Post, rhs: Proto_Post) -> Bool {
     if lhs.media != rhs.media {return false}
     if lhs.text != rhs.text {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
@@ -323,14 +323,14 @@ extension Proto_Post: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
 }
 
 extension Proto_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".Comment"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  public static let protoMessageName: String = _protobuf_package + ".Comment"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "feed_post_id"),
     3: .standard(proto: "parent_comment_id"),
     4: .same(proto: "text"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularStringField(value: &self.feedPostID)
@@ -341,7 +341,7 @@ extension Proto_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     }
   }
 
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if !self.feedPostID.isEmpty {
       try visitor.visitSingularStringField(value: self.feedPostID, fieldNumber: 1)
     }
@@ -354,7 +354,7 @@ extension Proto_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Proto_Comment, rhs: Proto_Comment) -> Bool {
+  public static func ==(lhs: Proto_Comment, rhs: Proto_Comment) -> Bool {
     if lhs.feedPostID != rhs.feedPostID {return false}
     if lhs.parentCommentID != rhs.parentCommentID {return false}
     if lhs.text != rhs.text {return false}
@@ -364,15 +364,15 @@ extension Proto_Comment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
 }
 
 extension Proto_ChatMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".ChatMessage"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  public static let protoMessageName: String = _protobuf_package + ".ChatMessage"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "media"),
     2: .same(proto: "text"),
     3: .standard(proto: "feed_post_id"),
     4: .standard(proto: "feed_post_media_index"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeRepeatedMessageField(value: &self.media)
@@ -384,7 +384,7 @@ extension Proto_ChatMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     }
   }
 
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if !self.media.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.media, fieldNumber: 1)
     }
@@ -400,7 +400,7 @@ extension Proto_ChatMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Proto_ChatMessage, rhs: Proto_ChatMessage) -> Bool {
+  public static func ==(lhs: Proto_ChatMessage, rhs: Proto_ChatMessage) -> Bool {
     if lhs.media != rhs.media {return false}
     if lhs.text != rhs.text {return false}
     if lhs.feedPostID != rhs.feedPostID {return false}
@@ -411,14 +411,14 @@ extension Proto_ChatMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
 }
 
 extension Proto_Container: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".Container"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  public static let protoMessageName: String = _protobuf_package + ".Container"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "post"),
     2: .same(proto: "comment"),
     3: .standard(proto: "chat_message"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularMessageField(value: &self._post)
@@ -429,7 +429,7 @@ extension Proto_Container: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     }
   }
 
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if let v = self._post {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }
@@ -442,7 +442,7 @@ extension Proto_Container: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Proto_Container, rhs: Proto_Container) -> Bool {
+  public static func ==(lhs: Proto_Container, rhs: Proto_Container) -> Bool {
     if lhs._post != rhs._post {return false}
     if lhs._comment != rhs._comment {return false}
     if lhs._chatMessage != rhs._chatMessage {return false}
@@ -452,12 +452,12 @@ extension Proto_Container: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
 }
 
 extension Proto_IdentityKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".IdentityKey"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  public static let protoMessageName: String = _protobuf_package + ".IdentityKey"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "public_key"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularBytesField(value: &self.publicKey)
@@ -466,14 +466,14 @@ extension Proto_IdentityKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     }
   }
 
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if !self.publicKey.isEmpty {
       try visitor.visitSingularBytesField(value: self.publicKey, fieldNumber: 1)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Proto_IdentityKey, rhs: Proto_IdentityKey) -> Bool {
+  public static func ==(lhs: Proto_IdentityKey, rhs: Proto_IdentityKey) -> Bool {
     if lhs.publicKey != rhs.publicKey {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -481,14 +481,14 @@ extension Proto_IdentityKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
 }
 
 extension Proto_SignedPreKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".SignedPreKey"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  public static let protoMessageName: String = _protobuf_package + ".SignedPreKey"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
     2: .standard(proto: "public_key"),
     3: .same(proto: "signature"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularInt32Field(value: &self.id)
@@ -499,7 +499,7 @@ extension Proto_SignedPreKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     }
   }
 
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if self.id != 0 {
       try visitor.visitSingularInt32Field(value: self.id, fieldNumber: 1)
     }
@@ -512,7 +512,7 @@ extension Proto_SignedPreKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Proto_SignedPreKey, rhs: Proto_SignedPreKey) -> Bool {
+  public static func ==(lhs: Proto_SignedPreKey, rhs: Proto_SignedPreKey) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.publicKey != rhs.publicKey {return false}
     if lhs.signature != rhs.signature {return false}
@@ -522,13 +522,13 @@ extension Proto_SignedPreKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
 }
 
 extension Proto_OneTimePreKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".OneTimePreKey"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+  public static let protoMessageName: String = _protobuf_package + ".OneTimePreKey"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
     2: .standard(proto: "public_key"),
   ]
 
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularInt32Field(value: &self.id)
@@ -538,7 +538,7 @@ extension Proto_OneTimePreKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     }
   }
 
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if self.id != 0 {
       try visitor.visitSingularInt32Field(value: self.id, fieldNumber: 1)
     }
@@ -548,7 +548,7 @@ extension Proto_OneTimePreKey: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: Proto_OneTimePreKey, rhs: Proto_OneTimePreKey) -> Bool {
+  public static func ==(lhs: Proto_OneTimePreKey, rhs: Proto_OneTimePreKey) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.publicKey != rhs.publicKey {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}

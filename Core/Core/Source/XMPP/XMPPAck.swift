@@ -8,11 +8,11 @@
 
 import XMPPFramework
 
-struct XMPPAck {
-    let from: XMPPJID
-    let to: XMPPJID
-    let id: String
-    let timestamp: Date?
+public struct XMPPAck {
+    public let from: XMPPJID
+    public let to: XMPPJID
+    public let id: String
+    public let timestamp: Date?
 
     private init(from: XMPPJID, to: XMPPJID, id: String) {
         self.from = from

@@ -5,6 +5,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Core
 import CocoaLumberjack
 import UIKit
 import AVKit
@@ -485,7 +486,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }
     
     func showQuoteFeedPanel(with userId: String, text: String, mediaType: FeedMediaType?, mediaUrl: String?) {
-        self.quoteFeedPanelNameLabel.text = AppContext.shared.contactStore.fullName(for: userId)
+        self.quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
         self.quoteFeedPanelTextLabel.text = text
         if self.vStack.arrangedSubviews.contains(self.quoteFeedPanel) {
             self.quoteFeedPanel.isHidden = false
@@ -494,7 +495,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         }
         
         if mediaType != nil && mediaUrl != nil {
-            let fileURL = AppContext.mediaDirectoryURL.appendingPathComponent(mediaUrl ?? "", isDirectory: false)
+            let fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaUrl ?? "", isDirectory: false)
             
             if mediaType == .image {
                 if let image = UIImage(contentsOfFile: fileURL.path) {

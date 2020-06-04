@@ -14,7 +14,7 @@ struct SettingsView: View {
 
     var dismiss: (() -> ())?
 
-    private let userData = AppContext.shared.userData
+    private let userData = MainAppContext.shared.userData
 
     @State var result: Result<MFMailComposeResult, Error>? = nil
     @State var isShowingMailView = false

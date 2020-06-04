@@ -139,7 +139,7 @@ class CommentView: UIView {
     }
 
     func updateWith(feedPost: FeedPost) {
-        let contactName = AppContext.shared.contactStore.fullName(for: feedPost.userId)
+        let contactName = MainAppContext.shared.contactStore.fullName(for: feedPost.userId)
         let comment = feedPost.text ?? ""
         let content = self.contentString(author: contactName, text: comment)
         self.textLabel.attributedText = content.0
@@ -148,7 +148,7 @@ class CommentView: UIView {
     }
 
     func updateWith(comment: FeedPostComment) {
-        let contactName = AppContext.shared.contactStore.fullName(for: comment.userId)
+        let contactName = MainAppContext.shared.contactStore.fullName(for: comment.userId)
         let content = self.contentString(author: contactName, text: comment.isCommentRetracted ? "" : comment.text)
         self.textLabel.attributedText = content.0
         self.textLabel.hyperlinkDetectionIgnoreRange = content.1

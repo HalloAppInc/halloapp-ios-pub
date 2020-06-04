@@ -8,6 +8,7 @@
 
 import CocoaLumberjack
 import Combine
+import Core
 import Foundation
 
 class FeedMedia: Identifiable, ObservableObject, Hashable {
@@ -86,7 +87,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
         type = feedPostMedia.type
         size = feedPostMedia.size
         if let relativePath = feedPostMedia.relativeFilePath {
-            fileURL = AppContext.mediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
+            fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
         }
         if type == .video {
             isMediaAvailable = fileURL != nil
@@ -103,7 +104,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
         guard feedPostMedia.status != self.status else { return }
         // Media was downloaded
         if self.fileURL == nil && feedPostMedia.relativeFilePath != nil {
-            self.fileURL = AppContext.mediaDirectoryURL.appendingPathComponent(feedPostMedia.relativeFilePath!, isDirectory: false)
+            self.fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(feedPostMedia.relativeFilePath!, isDirectory: false)
         }
 
         // TODO: other kinds of updates possible?
@@ -147,5 +148,12 @@ class PendingMedia {
 
     init(type: FeedMediaType) {
         self.type = type
+    }
+}
+
+extension XMPPFeedMedia {
+
+    init(feedMedia: PendingMedia) {
+        self.init(url: feedMedia.url!, type: feedMedia.type, size: feedMedia.size!, key: feedMedia.key!, sha256: feedMedia.sha256!)
     }
 }

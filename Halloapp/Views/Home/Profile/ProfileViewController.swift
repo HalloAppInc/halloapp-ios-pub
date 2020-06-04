@@ -38,7 +38,7 @@ class ProfileViewController: FeedTableViewController {
 
     @objc(presentDeveloperMenu)
     private func presentDeveloperMenu() {
-        let developerMenuView = DeveloperMenuView(useTestServer: AppContext.shared.userData.useTestServer, dismiss: { self.dismiss(animated: true) })
+        let developerMenuView = DeveloperMenuView(useTestServer: MainAppContext.shared.userData.useTestServer, dismiss: { self.dismiss(animated: true) })
         self.present(UIHostingController(rootView: developerMenuView), animated: true)
     }
 
@@ -65,7 +65,7 @@ class ProfileViewController: FeedTableViewController {
     override var fetchRequest: NSFetchRequest<FeedPost> {
         get {
             let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "userId == %@", AppContext.shared.userData.userId)
+            fetchRequest.predicate = NSPredicate(format: "userId == %@", MainAppContext.shared.userData.userId)
             fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
             return fetchRequest
         }
@@ -99,7 +99,7 @@ fileprivate class FeedTableHeaderView: UIView {
         label.numberOfLines = 1
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = AppContext.shared.userData.name
+        label.text = MainAppContext.shared.userData.name
         return label
     }()
 
@@ -110,7 +110,7 @@ fileprivate class FeedTableHeaderView: UIView {
         label.numberOfLines = 1
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = AppContext.shared.userData.formattedPhoneNumber 
+        label.text = MainAppContext.shared.userData.formattedPhoneNumber
         return label
     }()
     
@@ -125,8 +125,8 @@ fileprivate class FeedTableHeaderView: UIView {
     private var iconHorizontalConstraint: NSLayoutConstraint?
     
     public func updateNameLabelAndEditProfileIcon() {
-        if (nameLabel.text! != AppContext.shared.userData.name) {
-            nameLabel.text = AppContext.shared.userData.name
+        if (nameLabel.text! != MainAppContext.shared.userData.name) {
+            nameLabel.text = MainAppContext.shared.userData.name
         }
         
         /*

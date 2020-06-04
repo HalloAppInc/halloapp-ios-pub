@@ -19,7 +19,7 @@ extension String {
 
      Example: "Michael Donohue" would produce ["michael" , "donohue"]
      */
-    func searchTokens() -> [String] {
+    public func searchTokens() -> [String] {
         let tokenizer = NLTokenizer(unit: .word)
         tokenizer.string = self
         var result: [String] = []
@@ -36,7 +36,7 @@ extension String {
      - returns:
      Phone number with non-digits removed.
      */
-    func unformattedPhoneNumber() -> String {
+    public func unformattedPhoneNumber() -> String {
         let mutable = NSMutableString(string: self)
         let stringsToRemove = [" ", "\u{00A0}", "(", ")", "-", "\u{2011}", "#", ".", "\u{202A}", "\u{202C}"]
         for string in stringsToRemove {
@@ -46,7 +46,7 @@ extension String {
     }
 
 
-    func sha1() -> String {
+    public func sha1() -> String {
         let data = Data(self.utf8)
         var digest = [UInt8](repeating: 0, count:Int(CC_SHA1_DIGEST_LENGTH))
         data.withUnsafeBytes {
@@ -56,7 +56,7 @@ extension String {
         return hexBytes.joined()
     }
 
-    func strippingNonDigits() -> String {
+    public func strippingNonDigits() -> String {
         return String(self.unicodeScalars.filter { CharacterSet.decimalDigits.contains($0) })
     }
 }

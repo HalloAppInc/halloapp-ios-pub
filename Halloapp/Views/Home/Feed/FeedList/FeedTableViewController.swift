@@ -8,6 +8,7 @@
 
 import CocoaLumberjack
 import Combine
+import Core
 import CoreData
 import UIKit
 
@@ -57,13 +58,13 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
         self.setupFetchedResultsController()
 
-        self.cancellableSet.insert(AppContext.shared.feedData.willDestroyStore.sink {
+        self.cancellableSet.insert(MainAppContext.shared.feedData.willDestroyStore.sink {
             self.fetchedResultsController = nil
             self.tableView.reloadData()
             self.view.isUserInteractionEnabled = false
         })
 
-        self.cancellableSet.insert(AppContext.shared.feedData.didReloadStore.sink {
+        self.cancellableSet.insert(MainAppContext.shared.feedData.didReloadStore.sink {
             self.view.isUserInteractionEnabled = true
             self.setupFetchedResultsController()
             self.tableView.reloadData()
@@ -147,7 +148,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     private func newFetchedResultsController() -> NSFetchedResultsController<FeedPost> {
         // Setup fetched results controller the old way because it allows granular control over UI update operations.
-        let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: self.fetchRequest, managedObjectContext: AppContext.shared.feedData.viewContext,
+        let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: self.fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext,
                                                                             sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         return fetchedResultsController
@@ -255,13 +256,13 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if let feedPost = fetchedResultsController?.object(at: indexPath) {
             // Load downloaded images into memory.
-            AppContext.shared.feedData.feedDataItem(with: feedPost.id)?.loadImages()
+            MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)?.loadImages()
 
             // Initiate download for images that were not yet downloaded.
-            AppContext.shared.feedData.downloadMedia(in: [ feedPost ])
+            MainAppContext.shared.feedData.downloadMedia(in: [ feedPost ])
 
             // Send "seen" receipt.
-            AppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+            MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
         }
     }
 
@@ -286,7 +287,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     private func showMessageView(for postId: FeedPostID) {
-        if let feedDataItem = AppContext.shared.feedData.feedDataItem(with: postId) {
+        if let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) {
             self.navigationController?.pushViewController(ChatViewController(for: feedDataItem.userId, with: postId, at: Int32(feedDataItem.currentMediaIndex ?? 0)), animated: true)
         }
     }
@@ -602,7 +603,7 @@ fileprivate class FeedItemContentView: UIView {
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
-        guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: post.id) else { return }
+        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) else { return }
 
         var reuseMediaView = false
         if let mediaView = self.mediaView {
@@ -731,7 +732,7 @@ fileprivate class FeedItemHeaderView: UIView {
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
-        self.nameLabel.text = AppContext.shared.contactStore.fullName(for: post.userId)
+        self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
         self.timestampLabel.text = post.timestamp.postTimestamp()
     }
 
@@ -872,7 +873,7 @@ fileprivate class FeedItemFooterView: UIView {
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
         self.commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .green : .gray)
-        let usersOwnPost = post.userId == AppContext.shared.userData.userId
+        let usersOwnPost = post.userId == MainAppContext.shared.userData.userId
         self.messageButton.alpha = usersOwnPost ? 0 : 1
         self.seenByButton.isHidden = !usersOwnPost
         self.seenByButton.tintColor = .tertiaryLabel

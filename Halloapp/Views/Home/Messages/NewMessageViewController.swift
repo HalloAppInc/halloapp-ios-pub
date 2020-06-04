@@ -9,6 +9,7 @@
 import Foundation
 import CocoaLumberjack
 import Combine
+import Core
 import CoreData
 import SwiftUI
 import UIKit

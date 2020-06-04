@@ -10,7 +10,7 @@
 import Foundation
 import CoreData
 
-extension ABContact {
+public extension ABContact {
 
     @nonobjc class func fetchRequest() -> NSFetchRequest<ABContact> {
         return NSFetchRequest<ABContact>(entityName: "ABContact")

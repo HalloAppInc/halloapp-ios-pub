@@ -10,7 +10,7 @@ import CocoaLumberjack
 import Foundation
 import XMPPFramework
 
-let XMPPIQDefaultTo = "s.halloapp.net"
+public let XMPPIQDefaultTo = "s.halloapp.net"
 
 enum XMPPRequestState {
     case ready
@@ -19,16 +19,16 @@ enum XMPPRequestState {
     case finished
 }
 
-typealias XMPPRequestCompletion = (Error?) -> Void
+public typealias XMPPRequestCompletion = (Error?) -> Void
 
-class XMPPRequest {
+open class XMPPRequest {
     internal var state: XMPPRequestState = .ready
     internal var retriesRemaining = 0
     private(set) var requestId: String
     internal var iq: XMPPIQ
     private(set) var response: XMPPIQ?
 
-    init(iq: XMPPIQ) {
+    public init(iq: XMPPIQ) {
         self.iq = iq
         self.requestId = iq.elementID!
     }
@@ -95,9 +95,9 @@ class XMPPRequest {
         } else {
             assert(false, "Malformed IQ respose")
         }
-   }
+    }
 
-    func didFinish(with response: XMPPIQ) { }
+    open func didFinish(with response: XMPPIQ) { }
 
-    func didFail(with error: Error) { }
+    open func didFail(with error: Error) { }
 }

@@ -12,7 +12,7 @@ struct ProfileEditView: View {
     
     var dismiss: (() -> ())?
     
-    @ObservedObject var name = TextWithLengthLimit(limit: 25, text: AppContext.shared.userData.name)
+    @ObservedObject var name = TextWithLengthLimit(limit: 25, text: MainAppContext.shared.userData.name)
     
     var body: some View {
         NavigationView {
@@ -38,7 +38,7 @@ struct ProfileEditView: View {
                     
                     Section(header: Text("Your Phone Number")) {
                         HStack {
-                            Text(AppContext.shared.userData.formattedPhoneNumber)
+                            Text(MainAppContext.shared.userData.formattedPhoneNumber)
                                 .foregroundColor(.gray)
                         }
                     }
@@ -57,11 +57,11 @@ struct ProfileEditView: View {
                 }, trailing:
                 HStack {
                     Button(action: {
-                        if (self.name.text != AppContext.shared.userData.name) {
-                            AppContext.shared.userData.name = self.name.text
-                            AppContext.shared.userData.save()
+                        if (self.name.text != MainAppContext.shared.userData.name) {
+                            MainAppContext.shared.userData.name = self.name.text
+                            MainAppContext.shared.userData.save()
                             
-                            AppContext.shared.xmppController.sendCurrentUserNameIfPossible()
+                            MainAppContext.shared.xmppController.sendCurrentUserNameIfPossible()
                         }
                         
                         if self.dismiss != nil {

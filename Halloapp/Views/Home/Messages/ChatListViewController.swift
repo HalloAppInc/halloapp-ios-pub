@@ -136,7 +136,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
     private func newFetchedResultsController() -> NSFetchedResultsController<ChatThread> {
         // Setup fetched results controller the old way because it allows granular control over UI update operations.
-        let fetchedResultsController = NSFetchedResultsController<ChatThread>(fetchRequest: self.fetchRequest, managedObjectContext: AppContext.shared.chatData.viewContext,
+        let fetchedResultsController = NSFetchedResultsController<ChatThread>(fetchRequest: self.fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext,
                                                                             sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         return fetchedResultsController
@@ -218,7 +218,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
         if isTimeToCheck {
             DDLogDebug("ChatList/populateWithSymmetricContacts")
-            AppContext.shared.chatData.populateThreadsWithSymmetricContacts()
+            MainAppContext.shared.chatData.populateThreadsWithSymmetricContacts()
             self.lastCheckedForNewContacts = Date()
         }
     }
@@ -279,7 +279,7 @@ fileprivate class ChatListViewCell: UITableViewCell {
     }
 
     public func configure(with chatThread: ChatThread) {
-        self.nameLabel.text = AppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId)
+        self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId)
         self.lastMessageLabel.text = chatThread.lastMsgText
         if chatThread.unreadCount == 0 {
             self.unreadNumButton.isHidden = true

@@ -9,24 +9,32 @@
 import Foundation
 import XMPPFramework
 
-struct XMPPReceipt: Equatable {
+public struct XMPPReceipt: Equatable {
 
-    enum `Type` {
+    public enum `Type` {
         case delivery
         case read
     }
 
-    enum Thread {
+    public enum Thread {
         case none           // 1-1 messages
         case feed           // feed
         case group(String)  // associated value is group id
     }
 
-    let itemId: String
-    let userId: UserID
-    let `type`: Type
-    let timestamp: Date?
-    let thread: Thread
+    public let itemId: String
+    public let userId: UserID
+    public let type: Type
+    public let timestamp: Date?
+    public let thread: Thread
+
+    public init(itemId: String, userId: UserID, type: Type, timestamp: Date?, thread: Thread) {
+        self.itemId = itemId
+        self.userId = userId
+        self.type = type
+        self.timestamp = timestamp
+        self.thread = thread
+    }
 
     private init(feedItem: FeedItemProtocol) {
         self.itemId = feedItem.id
@@ -37,21 +45,8 @@ struct XMPPReceipt: Equatable {
         self.timestamp = nil
     }
 
-    static func seenReceipt(for feedItem: FeedItemProtocol) -> XMPPReceipt {
+    public static func seenReceipt(for feedItem: FeedItemProtocol) -> XMPPReceipt {
         return XMPPReceipt(feedItem: feedItem)
-    }
-
-    private init(chatMessage: ChatMessage) {
-        self.itemId =  chatMessage.id
-        self.userId = chatMessage.fromUserId
-        self.type = .read
-        self.thread = .none
-        // Server timestamps outgoing receipts.
-        self.timestamp = nil
-    }
-
-    static func seenReceipt(for chatMessage: ChatMessage) -> XMPPReceipt {
-        return XMPPReceipt(chatMessage: chatMessage)
     }
 
     init?(xmlElement: XMLElement, userId: UserID, type: XMPPReceipt.`Type`) {
@@ -74,7 +69,7 @@ struct XMPPReceipt: Equatable {
         self.type = type
     }
 
-    var xmlElement: XMLElement {
+    public var xmlElement: XMLElement {
         get {
             let elementName: String = {
                 switch type {
@@ -95,7 +90,7 @@ struct XMPPReceipt: Equatable {
         }
     }
 
-    static func == (lhs: XMPPReceipt, rhs: XMPPReceipt) -> Bool {
+    public static func == (lhs: XMPPReceipt, rhs: XMPPReceipt) -> Bool {
         if lhs.type != rhs.type { return false }
         if lhs.itemId != rhs.itemId { return false }
         if lhs.userId != rhs.userId { return false }
@@ -107,7 +102,7 @@ struct XMPPReceipt: Equatable {
 
 extension XMPPMessage {
 
-    var deliveryReceipt: XMPPReceipt? {
+    public var deliveryReceipt: XMPPReceipt? {
         get {
             guard let received = self.element(forName: "received") else { return nil }
             guard let userId = self.from?.user else { return nil }
@@ -115,7 +110,7 @@ extension XMPPMessage {
         }
     }
 
-    var readReceipt: XMPPReceipt? {
+    public var readReceipt: XMPPReceipt? {
         get {
             guard let seen = self.element(forName: "seen") else { return nil }
             guard let userId = self.from?.user else { return nil }

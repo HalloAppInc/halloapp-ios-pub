@@ -29,7 +29,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
 
         self.dataSource = UITableViewDiffableDataSourceReference(tableView: self.tableView) { tableView, indexPath, objectID in
             let cell = tableView.dequeueReusableCell(withIdentifier: NotificationsViewController.cellReuseIdentifier, for: indexPath) as! NotificationTableViewCell
-            if let notification = try? AppContext.shared.feedData.viewContext.existingObject(with: objectID as! NSManagedObjectID) as? FeedNotification {
+            if let notification = try? MainAppContext.shared.feedData.viewContext.existingObject(with: objectID as! NSManagedObjectID) as? FeedNotification {
                 cell.configure(with: notification)
             }
             return cell
@@ -38,7 +38,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
         let fetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedNotification.timestamp, ascending: false) ]
         self.fetchedResultsController =
-            NSFetchedResultsController<FeedNotification>(fetchRequest: fetchRequest, managedObjectContext: AppContext.shared.feedData.viewContext,
+            NSFetchedResultsController<FeedNotification>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext,
                                                          sectionNameKeyPath: nil, cacheName: nil)
         self.fetchedResultsController?.delegate = self
         do {
@@ -84,7 +84,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
     private func markAllNotificationsRead() {
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: "Mark All as Read", style:.destructive) { _ in
-            AppContext.shared.feedData.markNotificationsAsRead()
+            MainAppContext.shared.feedData.markNotificationsAsRead()
         })
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         self.present(actionSheet, animated: true)

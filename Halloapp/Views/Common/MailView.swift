@@ -62,7 +62,7 @@ struct MailView: UIViewControllerRepresentable {
 
         vc.setMessageBody("short description of issue (if needed): \n", isHTML:false)
 
-        let logFilePaths = AppContext.shared.fileLogger.logFileManager.sortedLogFilePaths.compactMap{ URL(fileURLWithPath: $0) }
+        let logFilePaths = MainAppContext.shared.fileLogger.logFileManager.sortedLogFilePaths.compactMap{ URL(fileURLWithPath: $0) }
         do {
             let zipFilePath = try Zip.quickZipFiles(logFilePaths, fileName: "\(logfileName)") // Zip
             if let fileData = try? Data(contentsOf: zipFilePath) {

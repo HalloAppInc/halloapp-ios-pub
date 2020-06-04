@@ -44,7 +44,7 @@ class MediaPreviewController: UIViewController {
                 
                 if let med = media.first(where: { $0.order == chatMessage!.feedPostMediaIndex }) {
                   
-                    let fileURL = AppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
+                    let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
 
                     if let image = UIImage(contentsOfFile: fileURL.path) {
                         

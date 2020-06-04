@@ -8,6 +8,7 @@
 
 import Alamofire
 import CocoaLumberjack
+import Core
 import CoreData
 import Foundation
 
@@ -60,7 +61,7 @@ class FeedDownloadManager {
         var fileURL: URL? {
             get {
                 guard self.relativeFilePath != nil else { return nil }
-                return AppContext.mediaDirectoryURL.appendingPathComponent(self.relativeFilePath!, isDirectory: false)
+                return MainAppContext.mediaDirectoryURL.appendingPathComponent(self.relativeFilePath!, isDirectory: false)
             }
             set {
                 if newValue == nil {
@@ -244,7 +245,7 @@ class FeedDownloadManager {
                 break
             }
         }
-        return AppContext.mediaDirectoryURL
+        return MainAppContext.mediaDirectoryURL
                 .appendingPathComponent(first!, isDirectory: true)
                 .appendingPathComponent(second!, isDirectory: true)
                 .appendingPathComponent(mediaFilename, isDirectory: false)
@@ -252,7 +253,7 @@ class FeedDownloadManager {
 
     private class func relativePath(from fileURL: URL) -> String? {
         let fullPath = fileURL.path
-        let mediaDirectoryPath = AppContext.mediaDirectoryURL.path
+        let mediaDirectoryPath = MainAppContext.mediaDirectoryURL.path
         if let range = fullPath.range(of: mediaDirectoryPath, options: [.anchored]) {
             return String(fullPath.suffix(from: range.upperBound))
         }

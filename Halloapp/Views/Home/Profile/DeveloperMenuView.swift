@@ -14,8 +14,8 @@ struct DeveloperMenuView: View {
 
     var dismiss: (() -> ())?
 
-    private let userData = AppContext.shared.userData
-    private let xmppController = AppContext.shared.xmppController
+    private let userData = MainAppContext.shared.userData
+    private let xmppController = MainAppContext.shared.xmppController
 
     var body: some View {
         VStack {
@@ -48,7 +48,7 @@ struct DeveloperMenuView: View {
                     .frame(maxWidth: .infinity)
 
                 Button(action: {
-                    AppContext.shared.syncManager.requestFullSync()
+                    MainAppContext.shared.syncManager.requestFullSync()
 
                     if self.dismiss != nil {
                         self.dismiss!()
@@ -63,7 +63,7 @@ struct DeveloperMenuView: View {
                 }
 
                 Button(action: {
-                    AppContext.shared.feedData.refetchEverything()
+                    MainAppContext.shared.feedData.refetchEverything()
 
                     if self.dismiss != nil {
                         self.dismiss!()

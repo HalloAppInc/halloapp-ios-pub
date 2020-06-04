@@ -8,6 +8,7 @@
 
 import CocoaLumberjack
 import CommonCrypto
+import Core
 import CryptoKit
 import CryptoSwift
 import Foundation

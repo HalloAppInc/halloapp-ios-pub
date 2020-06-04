@@ -70,11 +70,11 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         }
 
         self.cancellableSet.insert(
-            AppContext.shared.chatData.didChangeUnreadCount.sink { [weak self] (count) in
+            MainAppContext.shared.chatData.didChangeUnreadCount.sink { [weak self] (count) in
                 guard let self = self else { return }
                 self.updateChatNavigationControllerBadge(count)
             })
-        AppContext.shared.chatData.updateUnreadMessageCount()
+        MainAppContext.shared.chatData.updateUnreadMessageCount()
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {

@@ -13,13 +13,8 @@
 import CocoaLumberjack
 import Combine
 import Contacts
+import Core
 import CoreData
-import Foundation
-import UIKit
-
-// MARK: Types
-typealias UserID = String
-
 
 // MARK: Constants
 
@@ -118,75 +113,15 @@ fileprivate struct ContactProxy {
     }
 }
 
-
-class ContactStore: ObservableObject {
-    private var userData: UserData
-    private var xmppController: XMPPController
+class ContactStoreMain: ContactStore {
 
     private let contactSerialQueue = DispatchQueue(label: "com.halloapp.contacts")
     private var cancellableSet: Set<AnyCancellable> = []
 
-    // MARK: Access to Contacts
+    // MARK: Init
 
-    class var contactsAccessAuthorized: Bool {
-        get {
-            return ContactStore.contactsAccessStatus == .authorized
-        }
-    }
-
-    class var contactsAccessRequestNecessary: Bool {
-        get {
-            return ContactStore.contactsAccessStatus == .notDetermined
-        }
-    }
-
-    private class var contactsAccessStatus: CNAuthorizationStatus {
-        get {
-            return CNContactStore.authorizationStatus(for: .contacts)
-        }
-    }
-
-    // MARK: CoreData stack
-
-    private class var persistentStoreURL: URL {
-        get {
-            return AppContext.contactStoreURL
-        }
-    }
-
-    private lazy var persistentContainer: NSPersistentContainer = {
-        let storeDescription = NSPersistentStoreDescription(url: ContactStore.persistentStoreURL)
-        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
-        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
-        storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
-        storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
-        let container = NSPersistentContainer(name: "Contacts")
-        container.persistentStoreDescriptions = [storeDescription]
-        container.loadPersistentStores { description, error in
-            if let error = error {
-                fatalError("Unable to load persistent stores: \(error)")
-            }
-        }
-        return container
-    }()
-
-    func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        let managedObjectContext = self.persistentContainer.newBackgroundContext()
-        managedObjectContext.performAndWait {
-            block(managedObjectContext)
-        }
-    }
-
-    var viewContext: NSManagedObjectContext {
-        get {
-            self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-            return self.persistentContainer.viewContext
-        }
-    }
-
-    init(xmppController: XMPPController, userData: UserData) {
-        self.xmppController = xmppController
-        self.userData = userData
+    required init(userData: UserData) {
+        super.init(userData: userData)
 
         NotificationCenter.default.addObserver(forName: NSNotification.Name.CNContactStoreDidChange, object: nil, queue: nil) { _ in
             DDLogDebug("CNContactStoreDidChange")
@@ -194,10 +129,14 @@ class ContactStore: ObservableObject {
             self.reloadContactsIfNecessary()
         }
 
+        self.cancellableSet.insert(userData.didLogIn.sink { _ in
+            self.enableContactSync()
+        })
+
         self.cancellableSet.insert(userData.didLogOff.sink { _ in
             // Reset server-provided data for all contacts.
             self.contactSerialQueue.async {
-                AppContext.shared.syncManager.queue.sync {
+                MainAppContext.shared.syncManager.queue.sync {
                     self.resetStatusForAllContacts()
                 }
             }
@@ -206,34 +145,10 @@ class ContactStore: ObservableObject {
             self.mutateDatabaseMetadata { (metadata) in
                 metadata[ContactsStoreMetadataContactsSynced] = nil
             }
-
-            self.isContactsReady = false
         })
-
-        let syncCompleted = self.databaseMetadata?[ContactsStoreMetadataContactsSynced] as? Bool
-        self.isContactsReady = self.isContactsAvailable && (syncCompleted ?? false)
     }
 
-    // MARK: Metadata
-    /**
-     - returns:
-     Metadata associated with contact's store.
-     */
-    var databaseMetadata: [String: Any]? {
-        get {
-            var result: [String: Any] = [:]
-            self.persistentContainer.persistentStoreCoordinator.performAndWait {
-                do {
-                    try result = NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL)
-                }
-                catch {
-                    DDLogError("contacts/metadata/read error=[\(error)]")
-                }
-            }
-            return result
-        }
-    }
-
+    // MARK: Database Metadata
     /**
      Update metadata associated with contact's store.
 
@@ -267,12 +182,6 @@ class ContactStore: ObservableObject {
     private var isReloadingContacts = false
 
     /**
-     UI needs this to distinguish "no contacts" and "sync not yet done" cases.
-     This property is set to `true` when initial processing and sync of device contacts has been completed.
-     */
-    @Published var isContactsReady = false
-
-    /**
      Whether or not contacts have been loaded from device Address Book into app's contact store.
      */
     private lazy var isContactsAvailable: Bool = {
@@ -300,7 +209,7 @@ class ContactStore: ObservableObject {
             return
         }
 
-        let syncManager = AppContext.shared.syncManager
+        let syncManager = MainAppContext.shared.syncManager!
 
         if (ContactStore.contactsAccessAuthorized) {
             DDLogInfo("contacts/reload/required")
@@ -355,13 +264,15 @@ class ContactStore: ObservableObject {
     private var syncWillBeEnabled = false
     
     func enableContactSync() {
-        if self.xmppController.isConnected {
-            AppContext.shared.syncManager.enableSync()
+        let xmppController = MainAppContext.shared.xmppController
+        let syncManager = MainAppContext.shared.syncManager!
+        if xmppController.isConnected {
+            syncManager.enableSync()
         } else if (!self.syncWillBeEnabled) {
             self.syncWillBeEnabled = true
-            self.cancellableSet.insert(
-                self.xmppController.didConnect.sink {
-                    AppContext.shared.syncManager.enableSync()
+            cancellableSet.insert(
+                xmppController.didConnect.sink {
+                    syncManager.enableSync()
                     self.syncWillBeEnabled = false
                 }
             )
@@ -783,9 +694,6 @@ class ContactStore: ObservableObject {
             self.mutateDatabaseMetadata { (metadata) in
                 metadata[ContactsStoreMetadataContactsSynced] = true
             }
-            DispatchQueue.main.async {
-                self.isContactsReady = true
-            }
         }
 
         DDLogInfo("contacts/sync/process-results/finish time=[\(Date().timeIntervalSince(startTime))]")
@@ -842,56 +750,7 @@ class ContactStore: ObservableObject {
         }
     }
 
-    // MARK: Fetching contacts
-
-    func allRegisteredContactIDs() -> [UserID] {
-        let fetchRequst = NSFetchRequest<NSDictionary>(entityName: "ABContact")
-        fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
-        fetchRequst.propertiesToFetch = [ "userId" ]
-        fetchRequst.resultType = .dictionaryResultType
-        do {
-            let allContacts = try self.persistentContainer.viewContext.fetch(fetchRequst)
-            return allContacts.compactMap { $0["userId"] as? UserID }
-        }
-        catch {
-            fatalError("Unable to fetch contacts: \(error)")
-        }
-    }
-
-    func allRegisteredContacts(sorted: Bool) -> [ABContact] {
-        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
-        fetchRequest.returnsObjectsAsFaults = false
-        if sorted {
-            fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
-        }
-        do {
-            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
-            return contacts
-        }
-        catch {
-            fatalError("Unable to fetch contacts: \(error)")
-        }
-    }
-
     // MARK: Push names
-
-    lazy var pushNames: [UserID : String] = {
-        return fetchAllPushNames()
-    }()
-
-    private func fetchAllPushNames() -> [UserID : String] {
-        let fetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
-        do {
-            let results = try self.persistentContainer.viewContext.fetch(fetchRequest)
-            let names = results.reduce(into: [:]) { $0[$1.userId!] = $1.name }
-            DDLogDebug("contacts/push-name/fetched  count=[\(names.count)]")
-            return names
-        }
-        catch {
-            fatalError("Failed to fetch push names  [\(error)]")
-        }
-    }
 
     private var pushNameUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.push-name")
 
@@ -947,103 +806,5 @@ class ContactStore: ObservableObject {
         self.pushNameUpdateQueue.async {
             self.savePushNames(names)
         }
-    }
-
-    // MARK: UI Support
-
-    func fullName(for userID: UserID) -> String {
-        if userID == self.userData.userId {
-            // TODO: return correct pronoun.
-            return "Me"
-        }
-
-        var fullName: String? = nil
-
-        // Fetch from the address book.
-        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
-        do {
-            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
-            if let name = contacts.first?.fullName {
-                fullName = name
-            }
-        }
-        catch {
-            fatalError("Unable to fetch contacts: \(error)")
-        }
-
-        // Try push name as necessary.
-        if fullName == nil {
-            if let pushName = self.pushNames[userID] {
-                fullName = "~\(pushName)"
-            }
-        }
-
-        // Fallback to a static string.
-        return fullName ?? "Unknown Contact"
-    }
-
-    func firstName(for userID: UserID) -> String {
-        if userID == self.userData.userId {
-            // TODO: return correct pronoun.
-            return "I"
-        }
-        var firstName: String? = nil
-
-        // Fetch from the address book.
-        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
-        do {
-            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
-            if let name = contacts.first?.givenName {
-                firstName = name
-            }
-        }
-        catch {
-            fatalError("Unable to fetch contacts: \(error)")
-        }
-
-        // Try push name as necessary.
-        if firstName == nil {
-            if let pushName = self.pushNames[userID] {
-                firstName = "~\(pushName)"
-            }
-        }
-
-        // Fallback to a static string.
-        return firstName ?? "Unknown Contact"
-    }
-
-    func fullNames(forUserIds userIds: Set<UserID>) -> [UserID : String] {
-        guard !userIds.isEmpty else { return [:] }
-
-        var results: [UserID : String] = [:]
-
-        // 1. Try finding address book names.
-        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId in %@", userIds)
-        fetchRequest.returnsObjectsAsFaults = false
-        let managedObjectContext = self.persistentContainer.newBackgroundContext()
-        managedObjectContext.performAndWait {
-            do {
-                let contacts = try managedObjectContext.fetch(fetchRequest)
-                results = contacts.reduce(into: [:]) { (names, contact) in
-                    names[contact.userId!] = contact.fullName
-                }
-            }
-            catch {
-                fatalError("Unable to fetch contacts: \(error)")
-            }
-        }
-
-        // 2. Get push names for everyone else.
-        let pushNames = self.pushNames // TODO: probably need a lock here
-        userIds.forEach { (userId) in
-            if results[userId] == nil {
-                results[userId] = pushNames[userId]
-            }
-        }
-
-        return results
     }
 }

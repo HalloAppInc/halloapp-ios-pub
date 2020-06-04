@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16096" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Oqj-ba-nDJ">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Oqj-ba-nDJ">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
@@ -93,25 +93,9 @@ HalloApp</string>
                                                             </view>
                                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="9zU-np-hAj">
                                                                 <rect key="frame" x="0.0" y="72" width="334" height="58.5"/>
-                                                                <subviews>
-                                                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Phone Number" textAlignment="natural" adjustsFontForContentSizeCategory="YES" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Jyl-7t-MHk" customClass="PhoneNumberTextField" customModule="PhoneNumberKit">
-                                                                        <rect key="frame" x="8" y="8" width="318" height="42.5"/>
-                                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                                                        <textInputTraits key="textInputTraits" keyboardType="phonePad" returnKeyType="go" enablesReturnKeyAutomatically="YES" textContentType="tel"/>
-                                                                        <connections>
-                                                                            <action selector="phoneNumberFieldAction:" destination="nZZ-3T-4G6" eventType="primaryActionTriggered" id="Tgw-Uu-Tnf"/>
-                                                                            <action selector="textFieldEditingChanged:" destination="nZZ-3T-4G6" eventType="editingChanged" id="q3y-vE-ZBw"/>
-                                                                            <outlet property="delegate" destination="nZZ-3T-4G6" id="zCd-ex-6xK"/>
-                                                                        </connections>
-                                                                    </textField>
-                                                                </subviews>
                                                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                                                 <constraints>
-                                                                    <constraint firstAttribute="bottomMargin" secondItem="Jyl-7t-MHk" secondAttribute="bottom" id="1bS-h5-B8V"/>
-                                                                    <constraint firstAttribute="trailingMargin" secondItem="Jyl-7t-MHk" secondAttribute="trailing" id="3tk-mG-Dqb"/>
-                                                                    <constraint firstItem="Jyl-7t-MHk" firstAttribute="leading" secondItem="9zU-np-hAj" secondAttribute="leadingMargin" id="7p8-Q8-GyY"/>
                                                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="52" id="Xu0-ps-LpY"/>
-                                                                    <constraint firstItem="Jyl-7t-MHk" firstAttribute="top" secondItem="9zU-np-hAj" secondAttribute="topMargin" id="juQ-ma-Pg6"/>
                                                                 </constraints>
                                                             </view>
                                                         </subviews>
@@ -183,9 +167,9 @@ HalloApp</string>
                     <navigationItem key="navigationItem" id="43z-rv-cC9"/>
                     <connections>
                         <outlet property="buttonSignIn" destination="kGP-hU-J1E" id="MK8-mI-ZRs"/>
+                        <outlet property="phoneNumberTextFieldContainer" destination="9zU-np-hAj" id="odn-WO-RhO"/>
                         <outlet property="scrollView" destination="6Bd-O6-BXv" id="trJ-4m-c9E"/>
                         <outlet property="scrollViewBottomMargin" destination="Ipk-tD-KE9" id="3eO-xd-3KS"/>
-                        <outlet property="textFieldPhoneNumber" destination="Jyl-7t-MHk" id="Xm2-9h-lf1"/>
                         <outlet property="textFieldUserName" destination="2bM-7H-zU2" id="bxm-mn-p2q"/>
                         <outletCollection property="titleLabels" destination="d3Z-ji-wjm" collectionClass="NSMutableArray" id="LRK-KV-hOq"/>
                         <outletCollection property="textFieldBackgrounds" destination="ZjX-FT-ulD" collectionClass="NSMutableArray" id="aHs-b9-42r"/>

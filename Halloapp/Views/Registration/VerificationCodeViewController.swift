@@ -71,7 +71,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         labelTitle.font = .gothamFont(forTextStyle: .title3, weight: .medium)
         textFieldCode.font = .monospacedDigitSystemFont(ofSize: UIFontDescriptor.preferredFontDescriptor(withTextStyle: .title3).pointSize, weight: .regular)
 
-        labelChangePhone.text = "Not \(AppContext.shared.userData.formattedPhoneNumber)?"
+        labelChangePhone.text = "Not \(MainAppContext.shared.userData.formattedPhoneNumber)?"
 
         codeInputFieldBackground.backgroundColor = .textFieldBackgroundColor
         codeInputFieldBackground.layer.masksToBounds = true
@@ -141,7 +141,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     }
 
     @IBAction func changePhoneNumberAction(_ sender: Any) {
-        let userData = AppContext.shared.userData
+        let userData = MainAppContext.shared.userData
         userData.normalizedPhoneNumber = ""
         userData.save()
         self.navigationController?.popViewController(animated: true)
@@ -166,7 +166,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     func requestVerificationCode() {
         isCodeRequestInProgress = true
 
-        let userData = AppContext.shared.userData
+        let userData = MainAppContext.shared.userData
         let phoneNumber = userData.countryCode.appending(userData.phoneInput)
 
         var request = URLRequest(url: URL(string: "https://api.halloapp.net/api/registration/request_sms")!)
@@ -228,7 +228,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
             return
         }
 
-        let userData = AppContext.shared.userData
+        let userData = MainAppContext.shared.userData
         userData.normalizedPhoneNumber = normalizedPhoneNumber
         userData.save()
 
@@ -246,7 +246,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     private func validateCode() {
         isCodeValidationInProgress = true
 
-        let userData = AppContext.shared.userData
+        let userData = MainAppContext.shared.userData
         let json: [String : String] = [ "name": userData.name, "phone": userData.normalizedPhoneNumber, "code": verificationCode ]
         var request = URLRequest(url: URL(string: "https://api.halloapp.net/api/registration/register")!)
         request.httpMethod = "POST"
@@ -313,7 +313,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
 
         DDLogInfo("reg/validate-code/success")
 
-        let userData = AppContext.shared.userData
+        let userData = MainAppContext.shared.userData
         userData.userId = userId
         userData.password = password
         userData.save()

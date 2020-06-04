@@ -10,31 +10,7 @@ import Foundation
 import SwiftProtobuf
 import XMPPFramework
 
-// MARK: Feed Item Protocol
-
-enum FeedItemType {
-    case post
-    case comment
-}
-
-protocol FeedItemProtocol {
-
-    // MARK: Data Fields
-
-    static var itemType: FeedItemType { get }
-
-    var id: String { get }
-
-    var userId: String { get }
-
-    var timestamp: Date { get }
-
-    // MARK: Serialization
-
-    func protoMessage(withData: Bool) -> SwiftProtobuf.Message
-}
-
-extension FeedItemProtocol {
+public extension FeedItemProtocol {
 
     func xmppElement(withData: Bool) -> XMPPElement {
         let type: String = {
@@ -54,104 +30,7 @@ extension FeedItemProtocol {
             }())
         return item
     }
-
-    func protoContainer(withData: Bool) -> Proto_Container {
-        var container = Proto_Container()
-        switch Self.itemType {
-        case .post:
-            container.post = self.protoMessage(withData: withData) as! Proto_Post
-        case .comment:
-            container.comment = self.protoMessage(withData: withData) as! Proto_Comment
-        }
-        return container
-    }
 }
-
-// MARK: Feed Post Media
-
-protocol FeedMediaProtocol {
-
-    var url: URL { get }
-
-    var type: FeedMediaType { get }
-
-    var size: CGSize { get }
-
-    var key: String { get }
-
-    var sha256: String { get }
-}
-
-extension FeedMediaProtocol {
-
-    var protoMessage: Proto_Media {
-        get {
-            var media = Proto_Media()
-            media.type = {
-                switch type {
-                case .image: return .image
-                case .video: return .video
-                }
-            }()
-            media.width = Int32(size.width)
-            media.height = Int32(size.height)
-            media.encryptionKey = Data(base64Encoded: key)!
-            media.plaintextHash = Data(base64Encoded: sha256)!
-            media.downloadURL = url.absoluteString
-            return media
-        }
-    }
-}
-
-// MARK: Feed Post
-
-protocol FeedPostProtocol: FeedItemProtocol {
-
-    var text: String? { get }
-
-    var orderedMedia: [FeedMediaProtocol] { get }
-}
-
-extension FeedPostProtocol {
-
-    func protoMessage(withData: Bool) -> Message {
-        var post = Proto_Post()
-        if withData {
-            if text != nil {
-                post.text = text!
-            }
-            post.media = orderedMedia.compactMap{ $0.protoMessage }
-        }
-        return post
-    }
-}
-
-// MARK: Feed Comment
-
-protocol FeedCommentProtocol: FeedItemProtocol {
-
-    var text: String { get }
-
-    var feedPostId: String { get }
-
-    var parentId: String? { get }
-}
-
-extension FeedCommentProtocol {
-
-    func protoMessage(withData: Bool) -> Message {
-        var comment = Proto_Comment()
-        if withData {
-            comment.text = text
-        }
-        comment.feedPostID = feedPostId
-        if let parentId = parentId {
-            comment.parentCommentID = parentId
-        }
-        return comment
-    }
-}
-
 
 enum XMPPFeedMediaType: String {
     case image = "image"
@@ -178,21 +57,21 @@ extension Proto_Container {
 
 // MARK: Concrete classes
 
-struct XMPPFeedPost: FeedPostProtocol {
+public struct XMPPFeedPost: FeedPostProtocol {
 
     // MARK: FeedItem
-    static var itemType: FeedItemType { .post }
-    let id: FeedPostID
-    let userId: UserID
-    var timestamp: Date = Date()
+    public static var itemType: FeedItemType { .post }
+    public let id: FeedPostID
+    public let userId: UserID
+    public var timestamp: Date = Date()
 
     // MARK: FeedPost
-    let text: String?
-    var orderedMedia: [FeedMediaProtocol] {
+    public let text: String?
+    public var orderedMedia: [FeedMediaProtocol] {
         get { media }
     }
 
-    let media: [XMPPFeedMedia]
+    public let media: [XMPPFeedMedia]
 
     /**
      <item timestamp="1585853535" publisher="16504228573@s.halloapp.net/iphone" type="feedpost" id="4A0D1C4E-566A-4BED-93A3-0D6D995B3B9B">
@@ -207,7 +86,7 @@ struct XMPPFeedPost: FeedPostProtocol {
         </entry>
      </item>
      */
-    init?(itemElement item: XMLElement) {
+    public init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id") else { return nil }
         guard let userId = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
         guard let entry = item.element(forName: "entry") else { return nil }
@@ -225,20 +104,20 @@ struct XMPPFeedPost: FeedPostProtocol {
     }
 }
 
-struct XMPPFeedMedia: FeedMediaProtocol {
+public struct XMPPFeedMedia: FeedMediaProtocol {
 
-    let url: URL
-    let type: FeedMediaType
-    let size: CGSize
-    let key: String
-    let sha256: String
+    public let url: URL
+    public let type: FeedMediaType
+    public let size: CGSize
+    public let key: String
+    public let sha256: String
 
-    init(feedMedia: PendingMedia) {
-        self.url = feedMedia.url!
-        self.type = feedMedia.type
-        self.size = feedMedia.size!
-        self.key = feedMedia.key!
-        self.sha256 = feedMedia.sha256!
+    public init(url: URL, type: FeedMediaType, size: CGSize, key: String, sha256: String) {
+        self.url = url
+        self.type = type
+        self.size = size
+        self.key = key
+        self.sha256 = sha256
     }
 
     /**
@@ -285,18 +164,18 @@ struct XMPPFeedMedia: FeedMediaProtocol {
     }
 }
 
-struct XMPPComment: FeedCommentProtocol {
+public struct XMPPComment: FeedCommentProtocol {
 
     // MARK: FeedItem
-    static var itemType: FeedItemType { .comment }
-    let id: FeedPostCommentID
-    let userId: UserID
-    var timestamp: Date = Date()
+    public static var itemType: FeedItemType { .comment }
+    public let id: FeedPostCommentID
+    public let userId: UserID
+    public var timestamp: Date = Date()
 
     // MARK: FeedComment
-    let feedPostId: FeedPostID
-    let parentId: FeedPostCommentID?
-    let text: String
+    public let feedPostId: FeedPostID
+    public let parentId: FeedPostCommentID?
+    public let text: String
 
     /**
      <item timestamp="1585847898" publisher="16504228573@s.halloapp.net/iphone" type="comment" id="F198FE77-EEF7-487A-9D40-A36A74B24221">
@@ -309,7 +188,7 @@ struct XMPPComment: FeedCommentProtocol {
          </entry>
      </item>
      */
-    init?(itemElement item: XMLElement) {
+    public init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id") else { return nil }
         guard let userId = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
         guard let entry = item.element(forName: "entry") else { return nil }

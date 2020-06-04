@@ -86,7 +86,7 @@ class ChatMessageMedia: Identifiable, ObservableObject, Hashable {
         type = chatMedia.type
         size = chatMedia.size
         if let relativePath = chatMedia.relativeFilePath {
-            fileURL = AppContext.chatMediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
+            fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
         }
         if type == .video {
             isMediaAvailable = fileURL != nil
@@ -105,7 +105,7 @@ class ChatMessageMedia: Identifiable, ObservableObject, Hashable {
         guard chatMedia.outgoingStatus != self.outgoingStatus else { return }
         // Media was downloaded
         if self.fileURL == nil && chatMedia.relativeFilePath != nil {
-            self.fileURL = AppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath!, isDirectory: false)
+            self.fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath!, isDirectory: false)
         }
 
         // TODO: other kinds of updates possible?

@@ -59,7 +59,7 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
             phoneInputViewController.delegate = self
         }
 
-        if AppContext.shared.userData.normalizedPhoneNumber.isEmpty {
+        if MainAppContext.shared.userData.normalizedPhoneNumber.isEmpty {
             self.move(to: .phoneInput(VerificationPhoneInputContext()))
         } else {
             self.move(to: .verifyCode(VerificationVerifyCodeContext(fromUserAction: false)))
@@ -69,7 +69,7 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
     private func move(to nextState: State) {
         switch nextState {
         case .complete(_):
-            AppContext.shared.userData.tryLogIn()
+            MainAppContext.shared.userData.tryLogIn()
             break
 
         default:

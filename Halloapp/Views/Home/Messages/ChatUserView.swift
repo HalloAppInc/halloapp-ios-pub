@@ -249,7 +249,7 @@ class ChatUserView: UIView {
         
         if let quoted = chatMessage.quoted {
             if let userId = quoted.userId {
-                self.quotedNameLabel.text = AppContext.shared.contactStore.fullName(for: userId)
+                self.quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
             }
             self.quotedTextLabel.text = quoted.text ?? ""
 
@@ -257,7 +257,7 @@ class ChatUserView: UIView {
             if let media = quoted.media {
 
                 if let med = media.first(where: { $0.order == chatMessage.feedPostMediaIndex }) {
-                    let fileURL = AppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
+                    let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
 
                     if med.type == .image {
                         if let image = UIImage(contentsOfFile: fileURL.path) {

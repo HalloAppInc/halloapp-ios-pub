@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjack
+import Core
 import CoreData
 import UIKit
 import XMPPFramework
@@ -59,11 +60,11 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         super.viewDidLoad()
 
         guard self.feedPostId != nil else { return }
-        guard let feedPost = AppContext.shared.feedData.feedPost(with: self.feedPostId!) else { return }
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: self.feedPostId!) else { return }
 
         self.navigationItem.title = "Comments"
 
-        if feedPost.userId == AppContext.shared.userData.userId {
+        if feedPost.userId == MainAppContext.shared.userData.userId {
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .done, target: self, action: #selector(retractPost))
         }
 
@@ -82,7 +83,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         fetchRequest.predicate = NSPredicate(format: "post.id = %@", self.feedPostId!)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true) ]
         self.fetchedResultsController =
-            NSFetchedResultsController<FeedPostComment>(fetchRequest: fetchRequest, managedObjectContext: AppContext.shared.feedData.viewContext,
+            NSFetchedResultsController<FeedPostComment>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext,
                                                         sectionNameKeyPath: nil, cacheName: nil)
         self.fetchedResultsController?.delegate = self
         do {
@@ -102,7 +103,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         super.viewDidAppear(animated)
 
         if let itemId = self.feedPostId {
-            AppContext.shared.feedData.markCommentsAsRead(feedPostId: itemId)
+            MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: itemId)
         }
 
         self.commentsInputView.didAppear(in: self)
@@ -115,7 +116,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         super.viewWillDisappear(animated)
 
         if let itemId = self.feedPostId {
-            AppContext.shared.feedData.markCommentsAsRead(feedPostId: itemId)
+            MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: itemId)
         }
 
         self.commentsInputView.willDisappear(in: self)
@@ -147,13 +148,13 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     private func reallyRetractPost() {
-        guard let feedPost = AppContext.shared.feedData.feedPost(with: self.feedPostId!) else {
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: self.feedPostId!) else {
             self.navigationController?.popViewController(animated: true)
             return
         }
         // Stop processing data changes because all comments are about to be deleted.
         self.fetchedResultsController?.delegate = nil
-        AppContext.shared.feedData.retract(post: feedPost)
+        MainAppContext.shared.feedData.retract(post: feedPost)
         self.navigationController?.popViewController(animated: true)
     }
 
@@ -170,16 +171,16 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     private func reallyRetract(commentWithId commentId: FeedPostCommentID) {
-        guard let comment = AppContext.shared.feedData.feedComment(with: commentId) else { return }
-        AppContext.shared.feedData.retract(comment: comment)
+        guard let comment = MainAppContext.shared.feedData.feedComment(with: commentId) else { return }
+        MainAppContext.shared.feedData.retract(comment: comment)
     }
 
     private func confirmResending(commentWithId commentId: FeedPostCommentID) {
-        guard  let comment = AppContext.shared.feedData.feedComment(with: commentId) else { return }
+        guard  let comment = MainAppContext.shared.feedData.feedComment(with: commentId) else { return }
         guard comment.status == .sendError else { return }
         let actionSheet = UIAlertController(title: nil, message: "Resend comment?", preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: "Resend", style: .default, handler: { _ in
-            AppContext.shared.feedData.resend(commentWithId: commentId)
+            MainAppContext.shared.feedData.resend(commentWithId: commentId)
         }))
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         self.present(actionSheet, animated: true)
@@ -427,9 +428,9 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: String) {
-        guard let feedDataItem = AppContext.shared.feedData.feedDataItem(with: self.feedPostId!) else { return }
+        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: self.feedPostId!) else { return }
         self.scrollToBottomOnContentChange = true
-        AppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: self.replyContext?.parentCommentId)
+        MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: self.replyContext?.parentCommentId)
         self.commentsInputView.text = ""
         self.replyContext = nil
     }

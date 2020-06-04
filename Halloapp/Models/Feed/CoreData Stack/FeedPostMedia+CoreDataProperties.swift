@@ -7,8 +7,9 @@
 //
 //
 
-import Foundation
+import Core
 import CoreData
+import Foundation
 import UIKit
 
 extension FeedPostMedia {
@@ -27,7 +28,7 @@ extension FeedPostMedia {
         return NSFetchRequest<FeedPostMedia>(entityName: "FeedPostMedia")
     }
 
-    var `type`: FeedMediaType {
+    public var `type`: FeedMediaType {
         get {
             return FeedMediaType(rawValue: Int(self.typeValue))!
         }
@@ -37,7 +38,7 @@ extension FeedPostMedia {
     }
     @NSManaged var typeValue: Int16
     @NSManaged var relativeFilePath: String?
-    @NSManaged var url: URL
+    @NSManaged public var url: URL
     @NSManaged var post: FeedPost
     @NSManaged private var statusValue: Int16
     var status: Status {
@@ -51,7 +52,7 @@ extension FeedPostMedia {
 
     @NSManaged private var width: Float
     @NSManaged private var height: Float
-    var size: CGSize {
+    public var size: CGSize {
         get {
             return CGSize(width: CGFloat(self.width), height: CGFloat(self.height))
         }
@@ -61,8 +62,8 @@ extension FeedPostMedia {
         }
     }
 
-    @NSManaged var key: String
-    @NSManaged var sha256: String
+    @NSManaged public var key: String
+    @NSManaged public var sha256: String
     @NSManaged var order: Int16
 }
 

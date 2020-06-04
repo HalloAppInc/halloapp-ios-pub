@@ -6,6 +6,7 @@
 //
 
 import CocoaLumberjack
+import Core
 import CoreData
 import UIKit
 import YPImagePicker
@@ -82,7 +83,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 
             var isPreviousMsgSameSender = false
 
-            if chatMessage.fromUserId == AppContext.shared.userData.userId {
+            if chatMessage.fromUserId == MainAppContext.shared.userData.userId {
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.userCellReuseIdentifier, for: indexPath) as? ChatTableViewUserCell {
 
                     let previousRow = indexPath.row - 1
@@ -139,11 +140,11 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         }
 
         let fetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", self.fromUserId!, AppContext.shared.userData.userId, self.fromUserId!, AppContext.shared.userData.userId)
+        fetchRequest.predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", self.fromUserId!, MainAppContext.shared.userData.userId, self.fromUserId!, AppContext.shared.userData.userId)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true) ]
         
         self.fetchedResultsController =
-            NSFetchedResultsController<ChatMessage>(fetchRequest: fetchRequest, managedObjectContext: AppContext.shared.chatData.viewContext,
+            NSFetchedResultsController<ChatMessage>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext,
                                                         sectionNameKeyPath: nil, cacheName: nil)
         self.fetchedResultsController?.delegate = self
         do {
@@ -158,7 +159,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.view.addGestureRecognizer(tapGesture)
         
         if let feedPostId = self.feedPostId {
-            if let feedPost = AppContext.shared.feedData.feedPost(with: feedPostId) {
+            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
                     self.chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: mediaItem.type, mediaUrl: mediaItem.relativeFilePath)
                 } else {
@@ -168,7 +169,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         }
         
         self.cancellableSet.insert(
-            AppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in
+            MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in
                 DDLogInfo("ChatViewController/didGetCurrentChatPresence")
                 guard let self = self else { return }
                 guard let userId = self.fromUserId else { return }
@@ -193,17 +194,17 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let chatWithUserId = self.fromUserId {
-            AppContext.shared.chatData.markThreadAsRead(for: chatWithUserId)
-            AppContext.shared.chatData.updateUnreadMessageCount()
-            AppContext.shared.chatData.subscribeToPresence(to: chatWithUserId)
-            AppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
+            MainAppContext.shared.chatData.markThreadAsRead(for: chatWithUserId)
+            MainAppContext.shared.chatData.updateUnreadMessageCount()
+            MainAppContext.shared.chatData.subscribeToPresence(to: chatWithUserId)
+            MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
         }
         self.chatInputView.didAppear(in: self)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        AppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
+        MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
         self.chatInputView.willDisappear(in: self)
         
         self.cancellableSet.forEach {
@@ -256,7 +257,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
        
         if chatMessage.cellHeight != height {
             DDLogDebug("ChatViewController/updateCellHeight/\(chatMessage.id) \(height)")
-            AppContext.shared.chatData.updateChatMessageCellHeight(for: chatMessage.id, with: height)
+            MainAppContext.shared.chatData.updateChatMessageCellHeight(for: chatMessage.id, with: height)
         }
     }
     
@@ -401,7 +402,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 
     func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
         if let toUserId = self.fromUserId {
-            AppContext.shared.chatData.sendMessage(toUserId: toUserId, text: text, media: [], feedPostId: self.feedPostId ?? "", feedPostMediaIndex: self.feedPostMediaIndex)
+            MainAppContext.shared.chatData.sendMessage(toUserId: toUserId, text: text, media: [], feedPostId: self.feedPostId ?? "", feedPostMediaIndex: self.feedPostMediaIndex)
 //            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
 //                self.scrollToBottom(false)
 //            }
@@ -598,7 +599,7 @@ fileprivate class TitleView: UIView {
 
     func update(with fromUserId: String, status: ChatThread.Status, lastSeen: Date?) {
                 
-        self.nameLabel.text = AppContext.shared.contactStore.fullName(for: fromUserId)
+        self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: fromUserId)
         
         if status == .away {
             if let lastSeen = lastSeen {

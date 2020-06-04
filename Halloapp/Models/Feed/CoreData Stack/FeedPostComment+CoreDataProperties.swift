@@ -7,8 +7,9 @@
 //
 //
 
-import Foundation
+import Core
 import CoreData
+import Foundation
 
 extension FeedPostComment {
 
@@ -26,10 +27,10 @@ extension FeedPostComment {
         return NSFetchRequest<FeedPostComment>(entityName: "FeedPostComment")
     }
 
-    @NSManaged var id: FeedPostID
-    @NSManaged var text: String
-    @NSManaged var timestamp: Date
-    @NSManaged var userId: UserID
+    @NSManaged public var id: FeedPostID
+    @NSManaged public var text: String
+    @NSManaged public var timestamp: Date
+    @NSManaged public var userId: UserID
     @NSManaged var parent: FeedPostComment?
     @NSManaged var post: FeedPost
     @NSManaged var replies: Set<FeedPostComment>?
@@ -52,15 +53,15 @@ extension FeedPostComment {
 
 extension FeedPostComment: FeedCommentProtocol {
 
-    static var itemType: FeedItemType {
+    public static var itemType: FeedItemType {
         .comment
     }
 
-    var feedPostId: String {
+    public var feedPostId: String {
         get { post.id }
     }
 
-    var parentId: String? {
+    public var parentId: String? {
         get { parent?.id }
     }
 }

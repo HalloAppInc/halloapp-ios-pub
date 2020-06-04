@@ -8,6 +8,7 @@
 
 import CocoaLumberjack
 import Combine
+import Core
 import Foundation
 
 class SyncManager {
@@ -40,12 +41,12 @@ class SyncManager {
 
     private var cancellableSet: Set<AnyCancellable> = []
 
-    private let contactStore: ContactStore
-    private let xmppController: XMPPController
+    private let contactStore: ContactStoreMain
+    private let xmppController: XMPPControllerMain
 
     private static let UDDisabledAddressBookSynced = "isabledAddressBookSynced"
 
-    init(contactStore: ContactStore, xmppController: XMPPController, userData: UserData) {
+    init(contactStore: ContactStoreMain, xmppController: XMPPControllerMain, userData: UserData) {
         self.contactStore = contactStore
         self.xmppController = xmppController
 

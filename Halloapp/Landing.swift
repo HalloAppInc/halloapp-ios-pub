@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct Landing: View {
-    @ObservedObject var userData = AppContext.shared.userData
+    @ObservedObject var userData = MainAppContext.shared.userData
 
     var body: some View {
         ZStack {

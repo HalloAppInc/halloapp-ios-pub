@@ -18,16 +18,10 @@
 		761905A32459EB07008FC600 /* InputTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761905A22459EB07008FC600 /* InputTextView.swift */; };
 		761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3953241C38A300858251 /* XMPPCommonRequests.swift */; };
 		761B3957241D815800858251 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3956241D815800858251 /* SyncManager.swift */; };
-		761B395E241D91C000858251 /* ABContact+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B395C241D91C000858251 /* ABContact+CoreDataClass.swift */; };
-		761B395F241D91C000858251 /* ABContact+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B395D241D91C000858251 /* ABContact+CoreDataProperties.swift */; };
 		761B3962241D9C4D00858251 /* SyncSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3961241D9C4D00858251 /* SyncSession.swift */; };
 		761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */; };
 		761C6168242D89F90028AE19 /* TextLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6167242D89F90028AE19 /* TextLabel.swift */; };
-		761E9A9B2464CF9000864AE9 /* LogFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761E9A9A2464CF9000864AE9 /* LogFormatter.swift */; };
-		761E9A9D2464D14600864AE9 /* CrashHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761E9A9C2464D14600864AE9 /* CrashHandler.swift */; };
-		761E9AA42465C3B500864AE9 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AA32465C3B500864AE9 /* SwiftProtobuf */; };
 		761E9AA72465E79700864AE9 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AA62465E79700864AE9 /* Alamofire */; };
-		761E9AAA2465E7E300864AE9 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AA92465E7E300864AE9 /* CryptoSwift */; };
 		761E9AAD2465E83900864AE9 /* Zip in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AAC2465E83900864AE9 /* Zip */; };
 		762EDBCA244E2EB700986617 /* Gotham-BlackIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */; };
 		762EDBCB244E2EB700986617 /* Gotham-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBB244E2EB500986617 /* Gotham-Medium.otf */; };
@@ -53,7 +47,6 @@
 		76407DFC245CBAD40031F96A /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */; };
 		76407DFE245CBAE30031F96A /* Registration.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 76407DFD245CBAE30031F96A /* Registration.storyboard */; };
 		764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */; };
-		764A0E68244617D800E1BDCE /* schema.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E67244617D800E1BDCE /* schema.pb.swift */; };
 		764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
 		764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F7750246226120063645A /* FeedPostSeenByViewController.swift */; };
 		76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */; };
@@ -65,17 +58,23 @@
 		76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */; };
 		76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */; };
 		76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */; };
-		765FE0FC2469C2E600806CED /* PhoneNumberKit in Frameworks */ = {isa = PBXBuildFile; productRef = 765FE0FB2469C2E600806CED /* PhoneNumberKit */; };
 		765FE0FE2469C4E500806CED /* PhoneNumberMetadata.json in Resources */ = {isa = PBXBuildFile; fileRef = 765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */; };
-		766103A12460DBA200728870 /* XMPPReceipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A02460DBA200728870 /* XMPPReceipt.swift */; };
 		766103A42461E65300728870 /* Receipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A32461E65300728870 /* Receipt.swift */; };
 		766103A72461EE8200728870 /* receipts.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A62461EE8200728870 /* receipts.pb.swift */; };
 		766103AA2461F08A00728870 /* FeedPostInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A82461F08A00728870 /* FeedPostInfo+CoreDataClass.swift */; };
 		766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A92461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift */; };
-		766481FE246335D900639692 /* XMPPAck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766481FD246335D900639692 /* XMPPAck.swift */; };
 		766492232450DDB9009BC368 /* BadgedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492222450DDB9009BC368 /* BadgedButton.swift */; };
 		766492252450E04D009BC368 /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492242450E04D009BC368 /* BadgeView.swift */; };
 		76649227245119F2009BC368 /* FeedNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76649226245119F2009BC368 /* FeedNotifications.swift */; };
+		768123972485A240008C5216 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123962485A240008C5216 /* NotificationService.swift */; };
+		7681239B2485A240008C5216 /* Notification Service Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 768123942485A240008C5216 /* Notification Service Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		768123A42485C56E008C5216 /* MainAppContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123A32485C56E008C5216 /* MainAppContext.swift */; };
+		768123DE2485DFB1008C5216 /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
+		768123DF2485DFB1008C5216 /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		768123E02485DFB7008C5216 /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
+		768123E12485DFB7008C5216 /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		7681241924861C5D008C5216 /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681241824861C5D008C5216 /* XMPPController.swift */; };
+		7681242D2486EAC2008C5216 /* AppExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681242C2486EAC2008C5216 /* AppExtensionContext.swift */; };
 		76955DEA24746E4C0088BE8C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76A92444244E659600794859 /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92443244E659600794859 /* FeedViewController.swift */; };
 		76A92449244EBCB600794859 /* ShapeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92448244EBCB600794859 /* ShapeView.swift */; };
@@ -83,21 +82,15 @@
 		76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CD62429331D007435AC /* CommentsViewController.swift */; };
 		76B95CDE24295AB5007435AC /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CDD24295AB5007435AC /* CommentView.swift */; };
 		76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE3242A7A3F007435AC /* CommentInputView.swift */; };
-		76C69E432447A9A200338D4C /* XMPPFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E422447A9A200338D4C /* XMPPFeed.swift */; };
 		76C69E482447E3B100338D4C /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E472447E3B100338D4C /* Data.swift */; };
 		76C69E4D2447E6D500338D4C /* UIApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E4C2447E6D500338D4C /* UIApplication.swift */; };
 		76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */; };
-		76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEE2412A4E800F49CA4 /* Contacts.xcdatamodeld */; };
 		76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FF52412E6E700F49CA4 /* ContactStore.swift */; };
-		76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FF824132C1600F49CA4 /* AppContext.swift */; };
-		76DF9FFB2416ADF900F49CA4 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FFA2416ADF900F49CA4 /* String.swift */; };
-		76DFA0032419563500F49CA4 /* XMPPRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DFA0022419563500F49CA4 /* XMPPRequest.swift */; };
 		76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */; };
-		76DFA0072419BC1F00F49CA4 /* XMPPError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DFA0062419BC1F00F49CA4 /* XMPPError.swift */; };
+		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
 		EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostComposerView.swift */; };
 		EA0D20072363AC4D008B8289 /* Landing.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20062363AC4D008B8289 /* Landing.swift */; };
 		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
-		EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0E64CA234BF4BC006A22EB /* XMPPController.swift */; };
 		EA12006924209903008BFFAD /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA12006824209903008BFFAD /* VideoUtils.swift */; };
 		EA25178F246B693B00CE24C0 /* MediaPreviewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA25178E246B693B00CE24C0 /* MediaPreviewController.swift */; };
 		EA251791246C4EBF00CE24C0 /* ImageZoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA251790246C4EBF00CE24C0 /* ImageZoomView.swift */; };
@@ -110,7 +103,6 @@
 		EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* ProfileViewController.swift */; };
 		EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */; };
 		EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713223EB7DB3008C2E44 /* FeedMedia.swift */; };
-		EA45713723EB7DF5008C2E44 /* UserCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713623EB7DF5008C2E44 /* UserCore.swift */; };
 		EA45713923EB7EC8008C2E44 /* MediaCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713823EB7EC8008C2E44 /* MediaCell.swift */; };
 		EA45713B23EB7EDE008C2E44 /* PinchZoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713A23EB7EDE008C2E44 /* PinchZoomView.swift */; };
 		EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */; };
@@ -118,7 +110,6 @@
 		EA52EB18245A012700FB03F6 /* NewMessageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */; };
 		EA53556923CCF0CD001DF10F /* KeyboardResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA53556823CCF0CD001DF10F /* KeyboardResponder.swift */; };
 		EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */; };
-		EA72F2122335A0A3008B696F /* UserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA72F2112335A0A3008B696F /* UserData.swift */; };
 		EA796B9B2469DDF100BC795E /* ChatQuoted+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B972469DDF100BC795E /* ChatQuoted+CoreDataClass.swift */; };
 		EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B982469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift */; };
 		EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B992469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift */; };
@@ -144,7 +135,6 @@
 		EAD476F62458F03700EF8591 /* ChatMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD476F02458F03700EF8591 /* ChatMessage+CoreDataClass.swift */; };
 		EAD476F72458F03700EF8591 /* ChatMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD476F12458F03700EF8591 /* ChatMessage+CoreDataProperties.swift */; };
 		EAD476F92458F9FE00EF8591 /* ChatMessageMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD476F82458F9FE00EF8591 /* ChatMessageMedia.swift */; };
-		EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = EAE6152D23970FDC00BB4552 /* Halloapp.xcdatamodeld */; };
 		EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C22334191E00805FF9 /* AppDelegate.swift */; };
 		EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */; };
 		EAF3A1C92334192000805FF9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
@@ -156,6 +146,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		768123DC2485DFA1008C5216 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 768123D82485DFA1008C5216 /* Core.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 768123B82485D9C7008C5216;
+			remoteInfo = Core;
+		};
 		EAF3A1D62334192000805FF9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
@@ -172,10 +169,47 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		768123A02485A240008C5216 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				7681239B2485A240008C5216 /* Notification Service Extension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		768123CB2485D9F5008C5216 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				768123E12485DFB7008C5216 /* Core.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		768123CE2485DA0B008C5216 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				768123DF2485DFB1008C5216 /* Core.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.debug.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.debug.xcconfig"; sourceTree = "<group>"; };
 		146B93782405F40500768AC6 /* Font.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Font.swift; sourceTree = "<group>"; };
 		19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.release.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.release.xcconfig"; sourceTree = "<group>"; };
+		1C655B82B6A97A2F685569DF /* Pods-Notification Service Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		243CC625248005EC00B4794F /* ProfileEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditView.swift; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
 		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
@@ -187,13 +221,9 @@
 		761905A22459EB07008FC600 /* InputTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InputTextView.swift; path = HalloApp/Components/Views/InputTextView.swift; sourceTree = SOURCE_ROOT; };
 		761B3953241C38A300858251 /* XMPPCommonRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPCommonRequests.swift; sourceTree = "<group>"; };
 		761B3956241D815800858251 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
-		761B395C241D91C000858251 /* ABContact+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ABContact+CoreDataClass.swift"; sourceTree = "<group>"; };
-		761B395D241D91C000858251 /* ABContact+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ABContact+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		761B3961241D9C4D00858251 /* SyncSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncSession.swift; sourceTree = "<group>"; };
 		761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeveloperMenuView.swift; path = HalloApp/Views/Home/Profile/DeveloperMenuView.swift; sourceTree = SOURCE_ROOT; };
 		761C6167242D89F90028AE19 /* TextLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextLabel.swift; path = HalloApp/Components/Views/TextLabel.swift; sourceTree = SOURCE_ROOT; };
-		761E9A9A2464CF9000864AE9 /* LogFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LogFormatter.swift; path = HalloApp/Global/Logging/LogFormatter.swift; sourceTree = SOURCE_ROOT; };
-		761E9A9C2464D14600864AE9 /* CrashHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CrashHandler.swift; path = HalloApp/Global/Logging/CrashHandler.swift; sourceTree = SOURCE_ROOT; };
 		762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-BlackIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-BlackIta.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBBB244E2EB500986617 /* Gotham-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-Medium.otf"; path = "HalloApp/Resources/Fonts/Gotham-Medium.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBBC244E2EB600986617 /* Gotham-UltraIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-UltraIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-UltraIta.otf"; sourceTree = SOURCE_ROOT; };
@@ -218,7 +248,6 @@
 		76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhoneInputViewController.swift; path = HalloApp/Views/Registration/PhoneInputViewController.swift; sourceTree = SOURCE_ROOT; };
 		76407DFD245CBAE30031F96A /* Registration.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Registration.storyboard; path = HalloApp/Views/Registration/Registration.storyboard; sourceTree = SOURCE_ROOT; };
 		764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationsViewController.swift; sourceTree = "<group>"; };
-		764A0E67244617D800E1BDCE /* schema.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = schema.pb.swift; path = HalloApp/Proto/schema.pb.swift; sourceTree = SOURCE_ROOT; };
 		764F774D246224C30063645A /* ContactTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactTableViewCell.swift; path = HalloApp/Components/Views/ContactTableViewCell.swift; sourceTree = SOURCE_ROOT; };
 		764F7750246226120063645A /* FeedPostSeenByViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPostSeenByViewController.swift; path = "HalloApp/Views/Home/Feed/Seen By/FeedPostSeenByViewController.swift"; sourceTree = SOURCE_ROOT; };
 		76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPost+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPost+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -231,16 +260,22 @@
 		7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedDownloadManager.swift; path = HalloApp/Models/Feed/FeedDownloadManager.swift; sourceTree = SOURCE_ROOT; };
 		765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = PhoneNumberMetadata.json; path = HalloApp/Resources/PhoneNumberMetadata.json; sourceTree = SOURCE_ROOT; };
-		766103A02460DBA200728870 /* XMPPReceipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = XMPPReceipt.swift; path = HalloApp/Models/XMPP/XMPPReceipt.swift; sourceTree = SOURCE_ROOT; };
 		766103A32461E65300728870 /* Receipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Receipt.swift; path = HalloApp/Models/Receipts/Receipt.swift; sourceTree = SOURCE_ROOT; };
 		766103A52461E7BA00728870 /* receipts.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = receipts.proto; sourceTree = "<group>"; };
 		766103A62461EE8200728870 /* receipts.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = receipts.pb.swift; path = HalloApp/Models/Receipts/receipts.pb.swift; sourceTree = SOURCE_ROOT; };
 		766103A82461F08A00728870 /* FeedPostInfo+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FeedPostInfo+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostInfo+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		766103A92461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FeedPostInfo+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostInfo+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
-		766481FD246335D900639692 /* XMPPAck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = XMPPAck.swift; path = HalloApp/Models/XMPP/XMPPAck.swift; sourceTree = SOURCE_ROOT; };
 		766492222450DDB9009BC368 /* BadgedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgedButton.swift; path = HalloApp/Components/Views/BadgedButton.swift; sourceTree = SOURCE_ROOT; };
 		766492242450E04D009BC368 /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgeView.swift; path = HalloApp/Components/Views/BadgeView.swift; sourceTree = SOURCE_ROOT; };
 		76649226245119F2009BC368 /* FeedNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedNotifications.swift; path = HalloApp/Models/Feed/FeedNotifications.swift; sourceTree = SOURCE_ROOT; };
+		768123942485A240008C5216 /* Notification Service Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Notification Service Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		768123962485A240008C5216 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		768123982485A240008C5216 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		768123A32485C56E008C5216 /* MainAppContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MainAppContext.swift; path = HalloApp/Global/MainAppContext.swift; sourceTree = SOURCE_ROOT; };
+		768123AA2485D764008C5216 /* XMPPFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = XMPPFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		768123D82485DFA1008C5216 /* Core.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Core.xcodeproj; path = Core/Core.xcodeproj; sourceTree = "<group>"; };
+		7681241824861C5D008C5216 /* XMPPController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = XMPPController.swift; path = HalloApp/Models/XMPP/XMPPController.swift; sourceTree = SOURCE_ROOT; };
+		7681242C2486EAC2008C5216 /* AppExtensionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppExtensionContext.swift; sourceTree = "<group>"; };
 		76955DE924746E4C0088BE8C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = "GoogleService-Info.plist"; path = "HalloApp/GoogleService-Info.plist"; sourceTree = SOURCE_ROOT; };
 		76A92443244E659600794859 /* FeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedViewController.swift; path = HalloApp/Views/Home/Feed/FeedViewController.swift; sourceTree = SOURCE_ROOT; };
 		76A92448244EBCB600794859 /* ShapeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ShapeView.swift; path = HalloApp/Components/Views/ShapeView.swift; sourceTree = SOURCE_ROOT; };
@@ -248,24 +283,20 @@
 		76B95CD62429331D007435AC /* CommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsViewController.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsViewController.swift; sourceTree = SOURCE_ROOT; };
 		76B95CDD24295AB5007435AC /* CommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CE3242A7A3F007435AC /* CommentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentInputView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentInputView.swift; sourceTree = SOURCE_ROOT; };
-		76C69E422447A9A200338D4C /* XMPPFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = XMPPFeed.swift; path = HalloApp/Models/XMPP/XMPPFeed.swift; sourceTree = SOURCE_ROOT; };
 		76C69E472447E3B100338D4C /* Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Data.swift; path = HalloApp/Components/Extensions/Data.swift; sourceTree = SOURCE_ROOT; };
 		76C69E4C2447E6D500338D4C /* UIApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIApplication.swift; path = HalloApp/Components/Extensions/UIApplication.swift; sourceTree = SOURCE_ROOT; };
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
-		76DF9FEF2412A4E800F49CA4 /* Contacts.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Contacts.xcdatamodel; sourceTree = "<group>"; };
 		76DF9FF52412E6E700F49CA4 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
-		76DF9FF824132C1600F49CA4 /* AppContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContext.swift; sourceTree = "<group>"; };
-		76DF9FFA2416ADF900F49CA4 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
-		76DFA0022419563500F49CA4 /* XMPPRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPRequest.swift; sourceTree = "<group>"; };
 		76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPContactSyncRequest.swift; sourceTree = "<group>"; };
-		76DFA0062419BC1F00F49CA4 /* XMPPError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPError.swift; sourceTree = "<group>"; };
 		8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.debug.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.debug.xcconfig"; sourceTree = "<group>"; };
+		ABDAC4856BD6591F6BD9CDD9 /* Pods-Notification Service Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.debug.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.debug.xcconfig"; sourceTree = "<group>"; };
+		BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Notification_Service_Extension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HalloApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.internal beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.internal beta.xcconfig"; sourceTree = "<group>"; };
+		DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		EA0C315623EB97C800016EDB /* PostComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerView.swift; sourceTree = "<group>"; };
 		EA0D20062363AC4D008B8289 /* Landing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Landing.swift; sourceTree = "<group>"; };
 		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
-		EA0E64CA234BF4BC006A22EB /* XMPPController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPController.swift; sourceTree = "<group>"; };
 		EA12006824209903008BFFAD /* VideoUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		EA25178E246B693B00CE24C0 /* MediaPreviewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewController.swift; sourceTree = "<group>"; };
 		EA251790246C4EBF00CE24C0 /* ImageZoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageZoomView.swift; sourceTree = "<group>"; };
@@ -278,7 +309,6 @@
 		EA454B63234E769F002B960D /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataItem.swift; sourceTree = "<group>"; };
 		EA45713223EB7DB3008C2E44 /* FeedMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMedia.swift; sourceTree = "<group>"; };
-		EA45713623EB7DF5008C2E44 /* UserCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCore.swift; sourceTree = "<group>"; };
 		EA45713823EB7EC8008C2E44 /* MediaCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCell.swift; sourceTree = "<group>"; };
 		EA45713A23EB7EDE008C2E44 /* PinchZoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinchZoomView.swift; sourceTree = "<group>"; };
 		EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarouselView.swift; sourceTree = "<group>"; };
@@ -286,7 +316,6 @@
 		EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMessageViewController.swift; sourceTree = "<group>"; };
 		EA53556823CCF0CD001DF10F /* KeyboardResponder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardResponder.swift; sourceTree = "<group>"; };
 		EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPickerView.swift; sourceTree = "<group>"; };
-		EA72F2112335A0A3008B696F /* UserData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserData.swift; sourceTree = "<group>"; };
 		EA796B972469DDF100BC795E /* ChatQuoted+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuoted+CoreDataClass.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuoted+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		EA796B982469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuoted+CoreDataProperties.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuoted+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		EA796B992469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuotedMedia+CoreDataClass.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuotedMedia+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -313,7 +342,6 @@
 		EAD476F02458F03700EF8591 /* ChatMessage+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMessage+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAD476F12458F03700EF8591 /* ChatMessage+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatMessage+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAD476F82458F9FE00EF8591 /* ChatMessageMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageMedia.swift; sourceTree = "<group>"; };
-		EAE6152E23970FDC00BB4552 /* Halloapp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Halloapp.xcdatamodel; sourceTree = "<group>"; };
 		EAF3A1BF2334191E00805FF9 /* HalloApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HalloApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1C22334191E00805FF9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -331,15 +359,22 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		768123912485A240008C5216 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				768123DE2485DFB1008C5216 /* Core.framework in Frameworks */,
+				94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EAF3A1BC2334191E00805FF9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				768123E02485DFB7008C5216 /* Core.framework in Frameworks */,
 				761E9AA72465E79700864AE9 /* Alamofire in Frameworks */,
-				761E9AAA2465E7E300864AE9 /* CryptoSwift in Frameworks */,
 				49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */,
-				765FE0FC2469C2E600806CED /* PhoneNumberKit in Frameworks */,
-				761E9AA42465C3B500864AE9 /* SwiftProtobuf in Frameworks */,
 				761E9AAD2465E83900864AE9 /* Zip in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -403,6 +438,9 @@
 				19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */,
 				CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */,
 				68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */,
+				ABDAC4856BD6591F6BD9CDD9 /* Pods-Notification Service Extension.debug.xcconfig */,
+				1C655B82B6A97A2F685569DF /* Pods-Notification Service Extension.internal beta.xcconfig */,
+				DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -410,7 +448,6 @@
 		761B3950241AF01E00858251 /* Requests */ = {
 			isa = PBXGroup;
 			children = (
-				76DFA0022419563500F49CA4 /* XMPPRequest.swift */,
 				761B3953241C38A300858251 /* XMPPCommonRequests.swift */,
 				76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */,
 				EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */,
@@ -449,23 +486,6 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		761E9A992464CF8100864AE9 /* Logging */ = {
-			isa = PBXGroup;
-			children = (
-				761E9A9A2464CF9000864AE9 /* LogFormatter.swift */,
-				761E9A9C2464D14600864AE9 /* CrashHandler.swift */,
-			);
-			path = Logging;
-			sourceTree = "<group>";
-		};
-		764A0E662446167600E1BDCE /* Proto */ = {
-			isa = PBXGroup;
-			children = (
-				764A0E67244617D800E1BDCE /* schema.pb.swift */,
-			);
-			path = Proto;
-			sourceTree = "<group>";
-		};
 		764F774F246225E30063645A /* Seen By */ = {
 			isa = PBXGroup;
 			children = (
@@ -482,6 +502,24 @@
 				766103A32461E65300728870 /* Receipt.swift */,
 			);
 			path = Receipts;
+			sourceTree = "<group>";
+		};
+		768123952485A240008C5216 /* Notification Service Extension */ = {
+			isa = PBXGroup;
+			children = (
+				768123962485A240008C5216 /* NotificationService.swift */,
+				768123982485A240008C5216 /* Info.plist */,
+				7681242C2486EAC2008C5216 /* AppExtensionContext.swift */,
+			);
+			path = "Notification Service Extension";
+			sourceTree = "<group>";
+		};
+		768123D92485DFA1008C5216 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				768123DD2485DFA1008C5216 /* Core.framework */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		76B7E2F5243BB0560048A2FC /* Notifications */ = {
@@ -514,8 +552,7 @@
 		76DF9FF724132BDC00F49CA4 /* Global */ = {
 			isa = PBXGroup;
 			children = (
-				761E9A992464CF8100864AE9 /* Logging */,
-				76DF9FF824132C1600F49CA4 /* AppContext.swift */,
+				768123A32485C56E008C5216 /* MainAppContext.swift */,
 			);
 			path = Global;
 			sourceTree = "<group>";
@@ -524,10 +561,7 @@
 			isa = PBXGroup;
 			children = (
 				761B3950241AF01E00858251 /* Requests */,
-				766481FD246335D900639692 /* XMPPAck.swift */,
-				76DFA0062419BC1F00F49CA4 /* XMPPError.swift */,
-				76C69E422447A9A200338D4C /* XMPPFeed.swift */,
-				766103A02460DBA200728870 /* XMPPReceipt.swift */,
+				7681241824861C5D008C5216 /* XMPPController.swift */,
 			);
 			path = XMPP;
 			sourceTree = "<group>";
@@ -535,7 +569,9 @@
 		8295BD88471C9D5DC2D30C41 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				768123AA2485D764008C5216 /* XMPPFramework.framework */,
 				C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */,
+				BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -559,9 +595,6 @@
 				766103A22461E63200728870 /* Receipts */,
 				76DFA0012419560300F49CA4 /* XMPP */,
 				EA12006824209903008BFFAD /* VideoUtils.swift */,
-				EA72F2112335A0A3008B696F /* UserData.swift */,
-				EA45713623EB7DF5008C2E44 /* UserCore.swift */,
-				EA0E64CA234BF4BC006A22EB /* XMPPController.swift */,
 				EABF313023F229350039B5A6 /* MediaCrypter.swift */,
 			);
 			path = Models;
@@ -673,9 +706,6 @@
 			isa = PBXGroup;
 			children = (
 				761B3960241D9C1500858251 /* Sync */,
-				761B395C241D91C000858251 /* ABContact+CoreDataClass.swift */,
-				761B395D241D91C000858251 /* ABContact+CoreDataProperties.swift */,
-				76DF9FEE2412A4E800F49CA4 /* Contacts.xcdatamodeld */,
 				76DF9FF52412E6E700F49CA4 /* ContactStore.swift */,
 			);
 			path = Contacts;
@@ -741,7 +771,6 @@
 				763B42AD2435A74E00FF0E82 /* Date.swift */,
 				EABF312823EE1FC20039B5A6 /* Digest.swift */,
 				146B93782405F40500768AC6 /* Font.swift */,
-				76DF9FFA2416ADF900F49CA4 /* String.swift */,
 				76C69E4C2447E6D500338D4C /* UIApplication.swift */,
 				761442C2245CF4FC00DD9D1A /* UIColor.swift */,
 				761442C4245D32C200DD9D1A /* UIDevice.swift */,
@@ -791,9 +820,11 @@
 		EAF3A1B62334191E00805FF9 = {
 			isa = PBXGroup;
 			children = (
+				768123D82485DFA1008C5216 /* Core.xcodeproj */,
 				EAF3A1C12334191E00805FF9 /* Halloapp */,
 				EAF3A1D82334192000805FF9 /* HalloappTests */,
 				EAF3A1E32334192000805FF9 /* HalloappUITests */,
+				768123952485A240008C5216 /* Notification Service Extension */,
 				EAF3A1C02334191E00805FF9 /* Products */,
 				58B000E2ED3FD4F3ACBF0837 /* Pods */,
 				8295BD88471C9D5DC2D30C41 /* Frameworks */,
@@ -806,6 +837,7 @@
 				EAF3A1BF2334191E00805FF9 /* HalloApp.app */,
 				EAF3A1D52334192000805FF9 /* HalloAppTests.xctest */,
 				EAF3A1E02334192000805FF9 /* HalloAppUITests.xctest */,
+				768123942485A240008C5216 /* Notification Service Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -820,7 +852,6 @@
 				761C6165242D896E0028AE19 /* Components */,
 				EAC4AF21233E8D9700739B2B /* Network */,
 				EAF3A1CA2334192000805FF9 /* Preview Content */,
-				764A0E662446167600E1BDCE /* Proto */,
 				146B93702405F2F900768AC6 /* Resources */,
 				EAF3A1D02334192000805FF9 /* Info.plist */,
 				76955DE924746E4C0088BE8C /* GoogleService-Info.plist */,
@@ -828,7 +859,6 @@
 				EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */,
 				EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */,
 				EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */,
-				EAE6152D23970FDC00BB4552 /* Halloapp.xcdatamodeld */,
 			);
 			path = Halloapp;
 			sourceTree = "<group>";
@@ -862,6 +892,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		768123932485A240008C5216 /* Notification Service Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7681239C2485A240008C5216 /* Build configuration list for PBXNativeTarget "Notification Service Extension" */;
+			buildPhases = (
+				C32CDB92CB1F0AF723764AA8 /* [CP] Check Pods Manifest.lock */,
+				768123902485A240008C5216 /* Sources */,
+				768123912485A240008C5216 /* Frameworks */,
+				768123922485A240008C5216 /* Resources */,
+				768123CE2485DA0B008C5216 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Notification Service Extension";
+			productName = "Notification Service Extension";
+			productReference = 768123942485A240008C5216 /* Notification Service Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		EAF3A1BE2334191E00805FF9 /* HalloApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = EAF3A1E92334192000805FF9 /* Build configuration list for PBXNativeTarget "HalloApp" */;
@@ -872,6 +921,8 @@
 				EAF3A1BD2334191E00805FF9 /* Resources */,
 				D51A16EB7C89AD8DAF43C14C /* [CP] Embed Pods Frameworks */,
 				76955DEB2474762D0088BE8C /* ShellScript */,
+				768123A02485A240008C5216 /* Embed App Extensions */,
+				768123CB2485D9F5008C5216 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -879,11 +930,8 @@
 			);
 			name = HalloApp;
 			packageProductDependencies = (
-				761E9AA32465C3B500864AE9 /* SwiftProtobuf */,
 				761E9AA62465E79700864AE9 /* Alamofire */,
-				761E9AA92465E7E300864AE9 /* CryptoSwift */,
 				761E9AAC2465E83900864AE9 /* Zip */,
-				765FE0FB2469C2E600806CED /* PhoneNumberKit */,
 			);
 			productName = Halloapp;
 			productReference = EAF3A1BF2334191E00805FF9 /* HalloApp.app */;
@@ -931,10 +979,13 @@
 		EAF3A1B72334191E00805FF9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1100;
+				LastSwiftUpdateCheck = 1150;
 				LastUpgradeCheck = 1100;
 				ORGANIZATIONNAME = "Halloapp, Inc.";
 				TargetAttributes = {
+					768123932485A240008C5216 = {
+						CreatedOnToolsVersion = 11.5;
+					};
 					EAF3A1BE2334191E00805FF9 = {
 						CreatedOnToolsVersion = 11.0;
 					};
@@ -958,24 +1009,45 @@
 			);
 			mainGroup = EAF3A1B62334191E00805FF9;
 			packageReferences = (
-				761E9AA22465C3B500864AE9 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
 				761E9AA52465E79700864AE9 /* XCRemoteSwiftPackageReference "Alamofire" */,
-				761E9AA82465E7E300864AE9 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
 				761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */,
-				765FE0FA2469C2E600806CED /* XCRemoteSwiftPackageReference "PhoneNumberKit" */,
 			);
 			productRefGroup = EAF3A1C02334191E00805FF9 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 768123D92485DFA1008C5216 /* Products */;
+					ProjectRef = 768123D82485DFA1008C5216 /* Core.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				EAF3A1BE2334191E00805FF9 /* HalloApp */,
 				EAF3A1D42334192000805FF9 /* HalloAppTests */,
 				EAF3A1DF2334192000805FF9 /* HalloAppUITests */,
+				768123932485A240008C5216 /* Notification Service Extension */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXReferenceProxy section */
+		768123DD2485DFA1008C5216 /* Core.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Core.framework;
+			remoteRef = 768123DC2485DFA1008C5216 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
 /* Begin PBXResourcesBuildPhase section */
+		768123922485A240008C5216 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EAF3A1BD2334191E00805FF9 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1061,6 +1133,28 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		C32CDB92CB1F0AF723764AA8 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Notification Service Extension-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		D51A16EB7C89AD8DAF43C14C /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1081,23 +1175,25 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		768123902485A240008C5216 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				768123972485A240008C5216 /* NotificationService.swift in Sources */,
+				7681242D2486EAC2008C5216 /* AppExtensionContext.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EAF3A1BB2334191E00805FF9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				761E9A9D2464D14600864AE9 /* CrashHandler.swift in Sources */,
-				EA0E64CB234BF4BC006A22EB /* XMPPController.swift in Sources */,
 				761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
 				EA52EB18245A012700FB03F6 /* NewMessageViewController.swift in Sources */,
-				EAE6152F23970FDC00BB4552 /* Halloapp.xcdatamodeld in Sources */,
-				76DFA0072419BC1F00F49CA4 /* XMPPError.swift in Sources */,
-				76C69E432447A9A200338D4C /* XMPPFeed.swift in Sources */,
-				764A0E68244617D800E1BDCE /* schema.pb.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */,
 				EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */,
-				76DF9FF02412A4E800F49CA4 /* Contacts.xcdatamodeld in Sources */,
 				764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */,
 				766103A72461EE8200728870 /* receipts.pb.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
@@ -1106,8 +1202,6 @@
 				761442CB245DF6A600DD9D1A /* CharacterSet.swift in Sources */,
 				EABF313123F229350039B5A6 /* MediaCrypter.swift in Sources */,
 				EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */,
-				76DFA0032419563500F49CA4 /* XMPPRequest.swift in Sources */,
-				76DF9FFB2416ADF900F49CA4 /* String.swift in Sources */,
 				EAC7E8F92385A6B700F5E711 /* SettingsView.swift in Sources */,
 				EAB03B7B2400517500643EB6 /* MailView.swift in Sources */,
 				EAD476CD245513EF00EF8591 /* ChatListViewController.swift in Sources */,
@@ -1118,13 +1212,13 @@
 				EA53556923CCF0CD001DF10F /* KeyboardResponder.swift in Sources */,
 				76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */,
 				761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */,
+				768123A42485C56E008C5216 /* MainAppContext.swift in Sources */,
 				EAD476F62458F03700EF8591 /* ChatMessage+CoreDataClass.swift in Sources */,
 				761C6168242D89F90028AE19 /* TextLabel.swift in Sources */,
-				EA72F2122335A0A3008B696F /* UserData.swift in Sources */,
 				EA45713B23EB7EDE008C2E44 /* PinchZoomView.swift in Sources */,
 				EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */,
-				761B395E241D91C000858251 /* ABContact+CoreDataClass.swift in Sources */,
 				EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */,
+				7681241924861C5D008C5216 /* XMPPController.swift in Sources */,
 				761B3957241D815800858251 /* SyncManager.swift in Sources */,
 				EAA6DEC42383A4E800C6D9C8 /* TextView.swift in Sources */,
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
@@ -1143,7 +1237,6 @@
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
 				EAD476F92458F9FE00EF8591 /* ChatMessageMedia.swift in Sources */,
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
-				76DF9FF924132C1600F49CA4 /* AppContext.swift in Sources */,
 				764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */,
 				EA251791246C4EBF00CE24C0 /* ImageZoomView.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
@@ -1154,7 +1247,6 @@
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
-				EA45713723EB7DF5008C2E44 /* UserCore.swift in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
 				EAB03B7F2400519400643EB6 /* WAVPlayer.swift in Sources */,
 				EAF4F736237DEC2C006885F0 /* YPPicker.swift in Sources */,
@@ -1166,7 +1258,6 @@
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				EAD476D02457B09600EF8591 /* MessageComposerView.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
-				766481FE246335D900639692 /* XMPPAck.swift in Sources */,
 				EA45713923EB7EC8008C2E44 /* MediaCell.swift in Sources */,
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
@@ -1188,17 +1279,14 @@
 				EA35857C2450BE3300E6E8AB /* ChatView.swift in Sources */,
 				76649227245119F2009BC368 /* FeedNotifications.swift in Sources */,
 				EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */,
-				766103A12460DBA200728870 /* XMPPReceipt.swift in Sources */,
 				243CC626248005EC00B4794F /* ProfileEditView.swift in Sources */,
 				EA35857A2450BE3300E6E8AB /* ChatInputView.swift in Sources */,
 				76C69E482447E3B100338D4C /* Data.swift in Sources */,
 				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,
-				761B395F241D91C000858251 /* ABContact+CoreDataProperties.swift in Sources */,
 				76C69E4D2447E6D500338D4C /* UIApplication.swift in Sources */,
 				EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */,
 				EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */,
-				761E9A9B2464CF9000864AE9 /* LogFormatter.swift in Sources */,
 				764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */,
 				EAD476F72458F03700EF8591 /* ChatMessage+CoreDataProperties.swift in Sources */,
 			);
@@ -1364,6 +1452,165 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = Halloapp;
+			};
+			name = "External Beta";
+		};
+		7681239D2485A240008C5216 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = ABDAC4856BD6591F6BD9CDD9 /* Pods-Notification Service Extension.debug.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				INFOPLIST_FILE = "Notification Service Extension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7681239E2485A240008C5216 /* Internal Beta */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C655B82B6A97A2F685569DF /* Pods-Notification Service Extension.internal beta.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "Notification Service Extension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Internal Beta";
+		};
+		7681239F2485A240008C5216 /* External Beta */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "Notification Service Extension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Notification-Service-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = "External Beta";
 		};
@@ -1615,6 +1862,16 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		7681239C2485A240008C5216 /* Build configuration list for PBXNativeTarget "Notification Service Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7681239D2485A240008C5216 /* Debug */,
+				7681239E2485A240008C5216 /* Internal Beta */,
+				7681239F2485A240008C5216 /* External Beta */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "External Beta";
+		};
 		EAF3A1BA2334191E00805FF9 /* Build configuration list for PBXProject "HalloApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1658,28 +1915,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		761E9AA22465C3B500864AE9 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-protobuf.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.8.0;
-			};
-		};
 		761E9AA52465E79700864AE9 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 5.1.0;
-			};
-		};
-		761E9AA82465E7E300864AE9 /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/krzyzanowskim/CryptoSwift.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.3.1;
 			};
 		};
 		761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */ = {
@@ -1690,41 +1931,18 @@
 				minimumVersion = 2.0.0;
 			};
 		};
-		765FE0FA2469C2E600806CED /* XCRemoteSwiftPackageReference "PhoneNumberKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:marmelroy/PhoneNumberKit.git";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		761E9AA32465C3B500864AE9 /* SwiftProtobuf */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 761E9AA22465C3B500864AE9 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
-			productName = SwiftProtobuf;
-		};
 		761E9AA62465E79700864AE9 /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 761E9AA52465E79700864AE9 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
 		};
-		761E9AA92465E7E300864AE9 /* CryptoSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 761E9AA82465E7E300864AE9 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
-			productName = CryptoSwift;
-		};
 		761E9AAC2465E83900864AE9 /* Zip */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */;
 			productName = Zip;
-		};
-		765FE0FB2469C2E600806CED /* PhoneNumberKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 765FE0FA2469C2E600806CED /* XCRemoteSwiftPackageReference "PhoneNumberKit" */;
-			productName = PhoneNumberKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 
@@ -1739,16 +1957,6 @@
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};
-		76DF9FEE2412A4E800F49CA4 /* Contacts.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				76DF9FEF2412A4E800F49CA4 /* Contacts.xcdatamodel */,
-			);
-			currentVersion = 76DF9FEF2412A4E800F49CA4 /* Contacts.xcdatamodel */;
-			path = Contacts.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
 		EA35856C2450BE2900E6E8AB /* Chat.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
@@ -1756,16 +1964,6 @@
 			);
 			currentVersion = EA35856D2450BE2900E6E8AB /* Chat.xcdatamodel */;
 			path = Chat.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-		EAE6152D23970FDC00BB4552 /* Halloapp.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				EAE6152E23970FDC00BB4552 /* Halloapp.xcdatamodel */,
-			);
-			currentVersion = EAE6152E23970FDC00BB4552 /* Halloapp.xcdatamodel */;
-			path = Halloapp.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

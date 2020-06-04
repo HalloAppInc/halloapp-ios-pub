@@ -23,7 +23,8 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
 
     @IBOutlet var titleLabels: [UILabel]!
 
-    @IBOutlet weak var textFieldPhoneNumber: PhoneNumberTextField!
+    @IBOutlet weak var phoneNumberTextFieldContainer: UIView!
+    var textFieldPhoneNumber: PhoneNumberTextField!
     @IBOutlet weak var textFieldUserName: UITextField!
     @IBOutlet var textFieldBackgrounds: [UIView]!
 
@@ -46,10 +47,21 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
             textFieldBackground.layer.cornerRadius = 10
         }
 
+        // It is necessary to create phone number text field in code so that we can provide shared PhoneNumberKit instance.
+        textFieldPhoneNumber = PhoneNumberTextField(withPhoneNumberKit: MainAppContext.shared.phoneNumberFormatter)
         textFieldPhoneNumber.withFlag = true
         textFieldPhoneNumber.withPrefix = true
         textFieldPhoneNumber.withExamplePlaceholder = true
         textFieldPhoneNumber.withDefaultPickerUI = true
+        textFieldPhoneNumber.delegate = self
+        textFieldPhoneNumber.addTarget(self, action: #selector(textFieldEditingChanged), for: .editingChanged)
+        textFieldPhoneNumber.addTarget(self, action: #selector(phoneNumberFieldAction), for: .primaryActionTriggered)
+        textFieldPhoneNumber.translatesAutoresizingMaskIntoConstraints = false
+        phoneNumberTextFieldContainer.addSubview(textFieldPhoneNumber)
+        textFieldPhoneNumber.leadingAnchor.constraint(equalTo: phoneNumberTextFieldContainer.layoutMarginsGuide.leadingAnchor).isActive = true
+        textFieldPhoneNumber.topAnchor.constraint(equalTo: phoneNumberTextFieldContainer.layoutMarginsGuide.topAnchor).isActive = true
+        textFieldPhoneNumber.trailingAnchor.constraint(equalTo: phoneNumberTextFieldContainer.layoutMarginsGuide.trailingAnchor).isActive = true
+        textFieldPhoneNumber.bottomAnchor.constraint(equalTo: phoneNumberTextFieldContainer.layoutMarginsGuide.bottomAnchor).isActive = true
 
         reloadButtonBackground()
 
@@ -156,7 +168,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
 
         switch userInputStatus {
         case let .valid(phoneNumber, userName):
-            let userData = AppContext.shared.userData
+            let userData = MainAppContext.shared.userData
             userData.countryCode = String(phoneNumber.countryCode)
             userData.phoneInput = String(phoneNumber.nationalNumber)
             userData.name = userName

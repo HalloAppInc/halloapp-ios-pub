@@ -20,7 +20,7 @@ struct DismissingKeyboard: ViewModifier {
 
 
 struct PostComposerView: View {
-    private let userData = AppContext.shared.userData
+    private let userData = MainAppContext.shared.userData
     private let imageServer = ImageServer()
 
     var mediaItemsToPost: [PendingMedia]
@@ -111,7 +111,7 @@ struct PostComposerView: View {
 
                 if self.isReadyToPost {
                     self.isShareClicked = true
-                    AppContext.shared.feedData.post(text: self.msgToSend, media: self.mediaItemsToPost)
+                    MainAppContext.shared.feedData.post(text: self.msgToSend, media: self.mediaItemsToPost)
                     self.didFinish()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                         self.msgToSend = ""
