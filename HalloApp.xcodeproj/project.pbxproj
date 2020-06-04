@@ -153,6 +153,13 @@
 			remoteGlobalIDString = 768123B82485D9C7008C5216;
 			remoteInfo = Core;
 		};
+		76F43F1F2489979600D47920 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 768123932485A240008C5216;
+			remoteInfo = "Notification Service Extension";
+		};
 		EAF3A1D62334192000805FF9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
@@ -927,6 +934,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				76F43F202489979600D47920 /* PBXTargetDependency */,
 			);
 			name = HalloApp;
 			packageProductDependencies = (
@@ -1311,6 +1319,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		76F43F202489979600D47920 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 768123932485A240008C5216 /* Notification Service Extension */;
+			targetProxy = 76F43F1F2489979600D47920 /* PBXContainerItemProxy */;
+		};
 		EAF3A1D72334192000805FF9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = EAF3A1BE2334191E00805FF9 /* HalloApp */;
