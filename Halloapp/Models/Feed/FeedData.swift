@@ -583,7 +583,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let posts = self.process(posts: feedPosts, using: managedObjectContext)
+            self.process(posts: feedPosts, using: managedObjectContext)
             let comments = self.process(comments: comments, using: managedObjectContext)
             self.generateNotifications(for: comments, using: managedObjectContext)
 
@@ -593,18 +593,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
 
-//            self.presentLocalNotifications(forPosts: posts, comments: comments)
+            self.presentLocalNotifications(forComments: comments)
         }
     }
 
     // MARK: Notifications
 
-    static private func isCommentEligibleForNotification(_ comment: FeedPostComment) -> Bool {
-        return notificationEvent(for: comment) != nil
-    }
-
-    static private func notificationEvent(for comment: FeedPostComment) -> FeedNotification.Event? {
-        let selfId = AppContext.shared.userData.userId
+    private func notificationEvent(for comment: FeedPostComment) -> FeedNotification.Event? {
+        let selfId = userData.userId
 
         // This would be the person who posted comment.
         let authorId = comment.userId
@@ -626,7 +622,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         for comment in comments {
             // Step 1. Determine if comment is eligible for a notification.
-            guard let event = Self.notificationEvent(for: comment) else { continue }
+            guard let event = notificationEvent(for: comment) else { continue }
 
             // Step 2. Add notification entry to the database.
             let notification = NSEntityDescription.insertNewObject(forEntityName: FeedNotification.entity().name!, into: managedObjectContext) as! FeedNotification
@@ -697,29 +693,37 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Local Notifications
 
-    private func presentLocalNotifications(forPosts posts: [FeedPost], comments: [FeedPostComment]) {
-        let userIds = Set(posts.map{ $0.userId }).union(comments.map { $0.userId })
+    private func isCommentEligibleForLocalNotification(_ comment: FeedPostComment) -> Bool {
+        let selfId = userData.userId
+
+        // Do not notify about comments posted by user.
+        if comment.userId == selfId {
+            return false
+        }
+
+        // Server sends pushes for comments on your posts.
+        if comment.post.userId == selfId {
+            return false
+        }
+
+        // Notify when someone replies to your comment.
+        if comment.parent != nil && comment.parent?.userId == selfId {
+            return true
+        }
+
+        // Do not notify about all other comments.
+        return false
+    }
+
+    private func presentLocalNotifications(forComments comments: [FeedPostComment]) {
+        let userIds = Set(comments.map { $0.userId })
         let contactNames = contactStore.fullNames(forUserIds: userIds)
 
         var notifications: [UNMutableNotificationContent] = []
-
-        posts.forEach { (post) in
-            let notification = UNMutableNotificationContent()
-            notification.title = contactNames[post.userId] ?? "Unknown Contact"
-            notification.subtitle = "New post"
-            if let text = post.text {
-                notification.body = text
-            }
-            // TODO: category
-            // TODO: media
-            notifications.append(notification)
-        }
-
-        // TODO: skip comments that are not eligible for a notification.
-        comments.filter{ FeedData.isCommentEligibleForNotification($0) }.forEach { (comment) in
+        comments.filter{ isCommentEligibleForLocalNotification($0) }.forEach { (comment) in
             let notification = UNMutableNotificationContent()
             notification.title = contactNames[comment.userId] ?? "Unknown Contact"
-            notification.body = "Commented: \(comment.text)"
+            notification.body = "Replied to your comment: \(comment.text)"
             notifications.append(notification)
         }
 
