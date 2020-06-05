@@ -53,7 +53,7 @@ class ProfileViewController: FeedTableViewController {
     private func presentProfileEditScreen() {
         var profileEditView = ProfileEditView()
         profileEditView.dismiss = {
-            (self.tableView.tableHeaderView as! FeedTableHeaderView).updateNameLabelAndEditProfileIcon()
+            (self.tableView.tableHeaderView as! FeedTableHeaderView).updateProfile()
             self.dismiss(animated: true)
         }
         
@@ -122,33 +122,29 @@ fileprivate class FeedTableHeaderView: UIView {
         return imageView
     }()
     
-    private var iconHorizontalConstraint: NSLayoutConstraint?
+    private lazy var nameView: UIView = {
+        let view = UIView()
+        
+        view.addSubview(nameLabel)
+        view.addSubview(editProfileIconImageView)
+        
+        view.heightAnchor.constraint(equalTo: editProfileIconImageView.heightAnchor, multiplier: 1).isActive = true
+        nameLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor).isActive = true
+        nameLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        editProfileIconImageView.leadingAnchor.constraint(equalToSystemSpacingAfter: nameLabel.trailingAnchor, multiplier: 1).isActive = true
+        editProfileIconImageView.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor).isActive = true
+        
+        return view
+    }()
     
-    public func updateNameLabelAndEditProfileIcon() {
-        if (nameLabel.text! != MainAppContext.shared.userData.name) {
-            nameLabel.text = MainAppContext.shared.userData.name
-        }
-        
-        /*
-         nameLabel is wider than the text inside.
-         We need to get the actual width of the text and calculate the relative distance.
-         */
-        let iconDistanceToNameLabelCenterX = nameLabel.intrinsicContentSize.width / 2 + 8
-        
-        if let hConstraint = iconHorizontalConstraint {
-            hConstraint.constant = iconDistanceToNameLabelCenterX
-        } else {
-            iconHorizontalConstraint = NSLayoutConstraint(item: editProfileIconImageView, attribute: .leading, relatedBy: .equal, toItem: nameLabel, attribute: .centerX, multiplier: 1, constant: iconDistanceToNameLabelCenterX)
-            let iconVerticalConstraint = NSLayoutConstraint(item: editProfileIconImageView, attribute: .centerY, relatedBy: .equal, toItem: nameLabel, attribute: .centerY, multiplier: 1, constant: 0)
-            
-            self.addConstraints([iconHorizontalConstraint!, iconVerticalConstraint])
-        }
+    public func updateProfile() {
+        nameLabel.text = MainAppContext.shared.userData.name
     }
 
     private func setupView() {
         self.layoutMargins.top = 16
 
-        let vStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.nameLabel, self.textLabel ])
+        let vStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.nameView, self.textLabel ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.spacing = 8
         vStack.axis = .vertical
@@ -160,8 +156,5 @@ fileprivate class FeedTableHeaderView: UIView {
         vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
 
         contactImageView.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        
-        self.addSubview(editProfileIconImageView)
-        self.updateNameLabelAndEditProfileIcon()
     }
 }
