@@ -53,8 +53,8 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         
         let appearance = UITabBarAppearance()
         appearance.shadowColor = nil
-        appearance.stackedLayoutAppearance.normal.badgeBackgroundColor = UIColor.systemGreen
-        appearance.stackedLayoutAppearance.normal.badgePositionAdjustment = UIOffset(horizontal: 1, vertical: 7)
+        appearance.stackedLayoutAppearance.normal.badgeBackgroundColor = .lavaOrange
+        appearance.stackedLayoutAppearance.normal.badgePositionAdjustment = UIOffset(horizontal: 0, vertical: 10 + Self.tabBarItemImageInsets.top)
         self.tabBar.standardAppearance = appearance
         self.updateTabBarBackgroundEffect()
 
@@ -103,13 +103,12 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
     }
 
     static let tabBarItemImageInsets: UIEdgeInsets = {
-        let vInset: CGFloat = UIDevice.current.hasNotch ? 10 : 4
+        let vInset: CGFloat = UIDevice.current.hasNotch ? 2 : 0
         return UIEdgeInsets(top: vInset, left: 0, bottom: -vInset, right: 0)
     }()
 
     private func feedNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: FeedViewController(title: "Home"))
-        navigationController.tabBarItem.title = nil
         navigationController.tabBarItem.image = UIImage(named: "TabBarHome")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
@@ -117,7 +116,6 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
 
     private func chatNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: ChatListViewController(title: "Messages"))
-        navigationController.tabBarItem.title = nil
         navigationController.tabBarItem.image = UIImage(named: "TabBarMessages")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
@@ -125,7 +123,6 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
     
     private func profileNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: ProfileViewController(title: "Profile"))
-        navigationController.tabBarItem.title = nil
         navigationController.tabBarItem.image = UIImage(named: "TabBarProfile")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
