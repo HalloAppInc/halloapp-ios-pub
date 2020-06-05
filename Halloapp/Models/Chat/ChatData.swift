@@ -371,7 +371,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             self.unreadMessageCount += 1
         }
         
-        self.presentLocalNotifications(for: chatMessage)
+//        self.presentLocalNotifications(for: chatMessage)
 
         // download media
 //        let pendingChatMedia = self.pendingIncomingMessagesMedia(in: managedObjectContext)

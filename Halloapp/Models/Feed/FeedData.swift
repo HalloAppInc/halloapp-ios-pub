@@ -593,7 +593,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
 
-            self.presentLocalNotifications(forPosts: posts, comments: comments)
+//            self.presentLocalNotifications(forPosts: posts, comments: comments)
         }
     }
 
