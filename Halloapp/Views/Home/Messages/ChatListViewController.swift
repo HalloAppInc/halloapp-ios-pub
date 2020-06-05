@@ -318,7 +318,7 @@ fileprivate class ChatListViewCell: UITableViewCell {
         } else {
             self.unreadNumButton.isHidden = false
             self.unreadNumButton.setTitle(String(chatThread.unreadCount), for: .normal)
-            self.timeLabel.textColor = UIColor.systemGreen
+            self.timeLabel.textColor = .lavaOrange
         }
         if let timestamp = chatThread.lastMsgTimestamp {
             self.timeLabel.text = timestamp.chatTimestamp()
@@ -365,7 +365,7 @@ fileprivate class ChatListViewCell: UITableViewCell {
         let view = UIButton()
         view.isUserInteractionEnabled = false
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor.systemGreen
+        view.backgroundColor = .lavaOrange
         view.contentEdgeInsets = UIEdgeInsets(top: 1, left: 6, bottom: 1, right: 6)
         view.titleLabel?.font = UIFont.preferredFont(forTextStyle: .footnote)
         view.tintColor = UIColor.systemGray6
