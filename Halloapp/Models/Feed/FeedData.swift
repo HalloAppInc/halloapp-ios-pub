@@ -614,6 +614,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         else if comment.post.userId == selfId {
             return .comment
         }
+
+        // Someone commented on the post you've commented before.
+        if comment.post.comments?.contains(where: { $0.userId == selfId }) ?? false {
+            return .otherComment
+        }
+
         return nil
     }
 

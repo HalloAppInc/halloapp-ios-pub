@@ -18,6 +18,7 @@ extension FeedNotification {
         case reply = 1            // reply to your comment
         case retractedComment = 2 // comment was deleted
         case retractedPost = 3    // post was deleted
+        case otherComment = 4     // comment on the post your commented on
     }
 
     enum MediaType: Int16 {
@@ -89,6 +90,14 @@ extension FeedNotification {
 
             case .retractedPost:
                 eventText = "<$author$> deleted this post"
+
+            case .otherComment:
+                if self.text != nil {
+                    // TODO: truncate as necessary
+                    eventText = "<$author$> also commented: \(self.text!)"
+                } else {
+                    eventText =  "<$author$> also commented"
+                }
             }
 
             let parameterRange = (eventText as NSString).range(of: "<$author$>")
