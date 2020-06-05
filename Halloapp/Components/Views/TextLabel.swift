@@ -178,7 +178,9 @@ class TextLabel: UILabel {
         self.prepareTextStorageIfNeeded()
 
         if self.textContainer.size != size {
-            self.textContainer.size = size
+            performLayoutBlock { (textStorage, textContainer, layoutManager) in
+                self.textContainer.size = size
+            }
             self.truncateAndAppendReadMoreLinkIfNeeded()
             performLayoutBlock { (textStorage, textContainer, layoutManager) in
                 self.textRect = layoutManager.usedRect(for: textContainer)
