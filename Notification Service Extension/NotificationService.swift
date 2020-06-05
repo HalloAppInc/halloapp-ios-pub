@@ -6,6 +6,8 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Core
+import FirebaseCrashlytics
 import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension {
@@ -14,12 +16,54 @@ class NotificationService: UNNotificationServiceExtension {
     var bestAttemptContent: UNMutableNotificationContent?
 
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
-        self.contentHandler = contentHandler
-        bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
-        
-        if let bestAttemptContent = bestAttemptContent {
-            contentHandler(bestAttemptContent)
+        initAppContext(AppExtensionContext.self, xmppControllerClass: XMPPController.self, contactStoreClass: ContactStore.self)
+
+        guard let bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent) else {
+            contentHandler(request.content)
+            return
         }
+
+        self.bestAttemptContent = bestAttemptContent
+        self.contentHandler = contentHandler
+
+        guard let metadata = request.content.userInfo["metadata"] as? [String : String] else {
+            contentHandler(bestAttemptContent)
+            return
+        }
+
+        // Contact name goes as title.
+        if let userId: UserID = metadata["from-id"] {
+            let contactName = AppExtensionContext.shared.contactStore.fullName(for: userId)
+            bestAttemptContent.title = contactName
+        }
+
+        // Populate notification body.
+        var protoContainer: Proto_Container?
+        if let base64Data = metadata["data"] {
+            if let protobufData = Data(base64Encoded: base64Data) {
+                do {
+                    protoContainer = try Proto_Container(serializedData: protobufData)
+                }
+                catch {
+                    Crashlytics.crashlytics().log("notification-se/protobuf/error [\(error)]")
+                }
+            }
+        }
+        if (protoContainer != nil) {
+            if protoContainer!.hasPost {
+                bestAttemptContent.subtitle = "New Post"
+                bestAttemptContent.body = protoContainer!.post.text
+                if bestAttemptContent.body.isEmpty && protoContainer!.post.media.count > 0 {
+                    bestAttemptContent.body = "\(protoContainer!.post.media.count) media"
+                }
+            } else if protoContainer!.hasComment {
+                bestAttemptContent.body = "Commented: \(protoContainer!.comment.text)"
+            } else if protoContainer!.hasChatMessage {
+                bestAttemptContent.body = protoContainer!.chatMessage.text
+            }
+        }
+
+        contentHandler(bestAttemptContent)
     }
     
     override func serviceExtensionTimeWillExpire() {

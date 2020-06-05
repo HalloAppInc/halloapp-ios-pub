@@ -705,8 +705,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         posts.forEach { (post) in
             let notification = UNMutableNotificationContent()
-            notification.title = "New post"
-            notification.subtitle = contactNames[post.userId] ?? "Unknown contact"
+            notification.title = contactNames[post.userId] ?? "Unknown Contact"
+            notification.subtitle = "New post"
             if let text = post.text {
                 notification.body = text
             }
@@ -718,9 +718,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // TODO: skip comments that are not eligible for a notification.
         comments.filter{ FeedData.isCommentEligibleForNotification($0) }.forEach { (comment) in
             let notification = UNMutableNotificationContent()
-            notification.title = "New comment"
-            notification.subtitle = contactNames[comment.userId] ?? "Unknown contact"
-            notification.body = comment.text
+            notification.title = contactNames[comment.userId] ?? "Unknown Contact"
+            notification.body = "Commented: \(comment.text)"
             notifications.append(notification)
         }
 

@@ -378,21 +378,13 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     }
     
     private func presentLocalNotifications(for chatMessage: ChatMessage) {
-        let contactName = AppContext.shared.contactStore.fullName(for: chatMessage.fromUserId)
-        var notifications: [UNMutableNotificationContent] = []
         let notification = UNMutableNotificationContent()
-        notification.title = "New message"
-        notification.subtitle = contactName
+        notification.title = AppContext.shared.contactStore.fullName(for: chatMessage.fromUserId)
         if let text = chatMessage.text {
             notification.body = text
         }
-        notifications.append(notification)
-        guard !notifications.isEmpty else { return }
-        let notificationCenter = UNUserNotificationCenter.current()
-        notifications.forEach { (notificationContent) in
-            DDLogDebug("ChatData/new-msg/localNotification [\(chatMessage.id)]")
-            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
-        }
+        DDLogDebug("ChatData/new-msg/localNotification [\(chatMessage.id)]")
+        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: notification, trigger: nil))
     }
         
 //    func copyDownloadedMedia(fromUrl: URL, to quotedMedia: ChatQuotedMedia) throws {

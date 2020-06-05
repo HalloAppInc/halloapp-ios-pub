@@ -87,6 +87,7 @@
 		76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */; };
 		76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FF52412E6E700F49CA4 /* ContactStore.swift */; };
 		76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */; };
+		76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
 		EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostComposerView.swift */; };
 		EA0D20072363AC4D008B8289 /* Landing.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20062363AC4D008B8289 /* Landing.swift */; };
@@ -295,6 +296,7 @@
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
 		76DF9FF52412E6E700F49CA4 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
 		76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPContactSyncRequest.swift; sourceTree = "<group>"; };
+		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.debug.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.debug.xcconfig"; sourceTree = "<group>"; };
 		ABDAC4856BD6591F6BD9CDD9 /* Pods-Notification Service Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.debug.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.debug.xcconfig"; sourceTree = "<group>"; };
 		BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Notification_Service_Extension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -514,6 +516,7 @@
 		768123952485A240008C5216 /* Notification Service Extension */ = {
 			isa = PBXGroup;
 			children = (
+				76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */,
 				768123962485A240008C5216 /* NotificationService.swift */,
 				768123982485A240008C5216 /* Info.plist */,
 				7681242C2486EAC2008C5216 /* AppExtensionContext.swift */,
@@ -1053,6 +1056,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1434,6 +1438,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = HalloappTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1454,6 +1459,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = HalloappUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1472,6 +1478,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = ABDAC4856BD6591F6BD9CDD9 /* Pods-Notification Service Extension.debug.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
@@ -1524,6 +1531,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -1592,6 +1600,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -1798,6 +1807,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = HalloappTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1819,6 +1829,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = HalloappTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1839,6 +1850,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = HalloappUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1858,6 +1870,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = HalloappUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
