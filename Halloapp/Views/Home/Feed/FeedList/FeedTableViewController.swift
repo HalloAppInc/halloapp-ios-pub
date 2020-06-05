@@ -748,8 +748,8 @@ fileprivate class FeedItemFooterView: UIView {
 
         enum BadgeState {
             case hidden
-            case green
-            case gray
+            case unread
+            case read
         }
 
         override init(frame: CGRect) {
@@ -768,11 +768,11 @@ fileprivate class FeedItemFooterView: UIView {
                 case .hidden:
                     self.badgeView.isHidden = true
 
-                case .green:
+                case .unread:
                     self.badgeView.isHidden = false
-                    self.badgeView.fillColor = .systemGreen
+                    self.badgeView.fillColor = .lavaOrange
 
-                case .gray:
+                case .read:
                     self.badgeView.isHidden = false
                     self.badgeView.fillColor = .systemGray4
                 }
@@ -872,7 +872,7 @@ fileprivate class FeedItemFooterView: UIView {
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
-        self.commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .green : .gray)
+        self.commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .unread : .read)
         let usersOwnPost = post.userId == MainAppContext.shared.userData.userId
         self.messageButton.alpha = usersOwnPost ? 0 : 1
         self.seenByButton.isHidden = !usersOwnPost

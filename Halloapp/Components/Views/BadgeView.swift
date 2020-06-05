@@ -29,7 +29,7 @@ class BadgeView: CircleView {
 
     private func setupView() {
         self.layoutMargins = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
-        self.fillColor = .systemGreen
+        self.fillColor = .lavaOrange
 
         self.addSubview(self.innerCircle)
         self.innerCircle.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true

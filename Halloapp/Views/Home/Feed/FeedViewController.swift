@@ -35,8 +35,8 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
         }
 
         self.navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(customView: notificationButton),
-            UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(composePost)) ]
+            UIBarButtonItem(image: UIImage(named: "FeedCompose"), style: .plain, target: self, action: #selector(composePost)),
+            UIBarButtonItem(customView: notificationButton) ]
     }
 
     deinit {

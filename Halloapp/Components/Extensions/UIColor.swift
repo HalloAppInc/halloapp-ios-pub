@@ -17,4 +17,8 @@ extension UIColor {
     static var textFieldBackgroundColor: UIColor {
         get { UIColor(named: "TextFieldBackground")! }
     }
+
+    static var lavaOrange: UIColor {
+        get { UIColor(named: "LavaOrange")! }
+    }
 }
