@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Combine
 import Core
 import Foundation
 
@@ -18,6 +19,7 @@ class MainAppContext: AppContext {
     private(set) var feedData: FeedData!
     private(set) var chatData: ChatData!
     private(set) var syncManager: SyncManager!
+    let didTapNotification = PassthroughSubject<Bool, Never>()
 
     override var xmppController: XMPPControllerMain {
         get {

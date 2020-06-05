@@ -75,6 +75,19 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
                 self.updateChatNavigationControllerBadge(count)
             })
         MainAppContext.shared.chatData.updateUnreadMessageCount()
+        
+        // When the app was in the background
+        self.cancellableSet.insert(
+            MainAppContext.shared.didTapNotification.sink { [weak self] (status) in
+                if !status { return }
+                guard let self = self else { return }
+
+                self.onTapNotification()
+            }
+        )
+        
+        // When the app just started (had been force-quit before)
+        self.onTapNotification()
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -122,6 +135,15 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         DispatchQueue.main.async {
             if let controller = self.viewControllers?[1] {
                 controller.tabBarItem.badgeValue = count == 0 ? nil : String(count)
+            }
+        }
+    }
+    
+    private func onTapNotification() {
+        // If the user tapped on a notification, switch to feed or chat tab
+        if let metadata = UserDefaults.standard.object(forKey: NotificationKey.keys.userDefaults) as? [String: String] {
+            if (metadata[NotificationKey.keys.contentType] == NotificationKey.contentType.chat) {
+                self.selectedIndex = 1
             }
         }
     }

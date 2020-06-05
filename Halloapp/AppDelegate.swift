@@ -16,7 +16,7 @@ import UIKit
 fileprivate let BackgroundFeedRefreshTaskIdentifier = "com.halloapp.hallo.feed.refresh"
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         initAppContext(MainAppContext.self, xmppControllerClass: XMPPControllerMain.self, contactStoreClass: ContactStoreMain.self)
@@ -29,6 +29,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         // This is necessary otherwise application(_:didReceiveRemoteNotification:fetchCompletionHandler:) won't be called.
         UIApplication.shared.registerForRemoteNotifications()
+        
+        UNUserNotificationCenter.current().delegate = self
 
         return true
     }
@@ -124,6 +126,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 }
             }
         }
+    }
+    
+    // This function will be called right after user tap on the notification
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        DDLogInfo("appdelegate/tap-notifications/didReceive Response=\(response) UserInfo=\(response.notification.request.content.userInfo)")
+
+        if (response.actionIdentifier == UNNotificationDefaultActionIdentifier) {
+            if let metadata = response.notification.request.content.userInfo[NotificationKey.keys.metadata] as? [String: String] {
+                DDLogInfo("appdelegate/tap-notifications/didReceive MetaData=\(metadata)")
+
+                if (metadata[NotificationKey.keys.contentType] == NotificationKey.contentType.chat) {
+                    UserDefaults.standard.set(metadata, forKey: NotificationKey.keys.userDefaults)
+                    MainAppContext.shared.didTapNotification.send(true)
+                }
+            }
+        } else {
+            DDLogInfo("appdelegate/tap-notifications/didReceive DismissAction")
+        }
+
+        completionHandler()
     }
 
     // MARK: Privacy Access Requests

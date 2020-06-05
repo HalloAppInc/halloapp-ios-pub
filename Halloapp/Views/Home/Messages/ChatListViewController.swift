@@ -60,7 +60,19 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         self.tableView.backgroundColor = UIColor.systemGray6
 
         self.setupFetchedResultsController()
-                
+        
+        // When the user was on this view
+        self.cancellableSet.insert(
+            MainAppContext.shared.didTapNotification.sink { [weak self] (status) in
+                if !status { return }
+                guard let self = self else { return }
+
+                self.onTapNotification()
+            }
+        )
+
+        // When the user was not on this view, and HomeView sends user to here
+        self.onTapNotification()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -255,6 +267,25 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     
     func newMessageViewController(_ newMessageViewController: NewMessageViewController, chatWithUserId: String) {
         self.navigationController?.pushViewController(ChatViewController(for: chatWithUserId), animated: true)
+    }
+    
+    // MARK: Tap Notification
+    
+    private func onTapNotification() {
+        // If the user tapped on a notification, move to the chat view
+        if let metadata = UserDefaults.standard.object(forKey: NotificationKey.keys.userDefaults) as? [String: String] {
+            guard metadata[NotificationKey.keys.contentType] == NotificationKey.contentType.chat else { return }
+
+            if let senderId = metadata[NotificationKey.keys.fromId] {
+                DDLogInfo("appdelegate/tap-notifications/didDetect/changedToChatViewForUser \(senderId)")
+
+                self.navigationController?.popToRootViewController(animated: false)
+                self.navigationController?.pushViewController(ChatViewController(for: senderId, with: nil, at: 0, status: .none, lastSeen: nil), animated: true)
+            }
+
+            UserDefaults.standard.removeObject(forKey: NotificationKey.keys.userDefaults)
+            MainAppContext.shared.didTapNotification.send(false)
+        }
     }
 }
 
