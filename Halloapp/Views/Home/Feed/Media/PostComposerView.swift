@@ -111,7 +111,7 @@ struct PostComposerView: View {
 
                 if self.isReadyToPost {
                     self.isShareClicked = true
-                    MainAppContext.shared.feedData.post(text: self.msgToSend, media: self.mediaItemsToPost)
+                    MainAppContext.shared.feedData.post(text: self.msgToSend.trimmingCharacters(in: .whitespacesAndNewlines), media: self.mediaItemsToPost)
                     self.didFinish()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                         self.msgToSend = ""
