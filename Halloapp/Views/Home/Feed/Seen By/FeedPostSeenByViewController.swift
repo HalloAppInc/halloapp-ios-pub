@@ -58,7 +58,7 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         super.viewDidLoad()
 
         self.navigationItem.title = "Viewed by"
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(closeAction))
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
 
         self.tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
         self.tableView.allowsSelection = false

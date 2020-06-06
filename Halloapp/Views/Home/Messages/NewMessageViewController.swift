@@ -49,7 +49,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     override func viewDidLoad() {
         DDLogInfo("NewMessageViewController/viewDidLoad")
 
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(cancelAction))
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
         
         self.navigationItem.title = "New Message"
         

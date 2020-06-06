@@ -29,7 +29,7 @@ struct SettingsView: View {
                         self.dismiss!()
                     }
                 }) {
-                    Image(systemName: "xmark")
+                    Image("NavbarClose")
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(Color.primary)
                         .padding()

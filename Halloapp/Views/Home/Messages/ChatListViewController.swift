@@ -50,8 +50,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
         self.navigationItem.title = nil
 
-        self.navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(image: UIImage(systemName: "square.and.pencil"), style: .plain, target: self, action: #selector(showContacts)) ]
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "ChatNavbarCompose"), style: .plain, target: self, action: #selector(showContacts))
 
         self.tableView.backgroundColor = .clear
         self.tableView.separatorStyle = .none
