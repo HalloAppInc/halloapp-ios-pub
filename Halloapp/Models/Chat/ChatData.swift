@@ -80,7 +80,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                         }
                     }
                 } else {
-                    DDLogDebug("ChatData/onConnect/sendPresence")
+                    DDLogDebug("ChatData/onConnect/appNotActive")
                 }
                 
                 self.performSeriallyOnBackgroundContext { (managedObjectContext) in
