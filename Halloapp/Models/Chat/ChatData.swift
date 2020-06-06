@@ -24,6 +24,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var currentlyChattingWithUserId: String? = nil
+    private var isSubscribedToCurrentUser: Bool = false
     
     private var unreadMessageCount: Int = 0 {
         didSet {
@@ -72,6 +73,14 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 if (UIApplication.shared.applicationState == .active) {
                     DDLogInfo("ChatData/onConnect/sendPresence")
                     self.sendPresence(type: "available")
+                    
+                    if let currentUser = self.currentlyChattingWithUserId {
+                        if !self.isSubscribedToCurrentUser {
+                            self.subscribeToPresence(to: currentUser)
+                        }
+                    }
+                } else {
+                    DDLogDebug("ChatData/onConnect/sendPresence")
                 }
                 
                 self.performSeriallyOnBackgroundContext { (managedObjectContext) in
@@ -618,6 +627,9 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     }
     
     func subscribeToPresence(to chatWithUserId: String) {
+        guard AppContext.shared.xmppController.isConnected else { return }
+        guard !self.isSubscribedToCurrentUser else { return }
+        self.isSubscribedToCurrentUser = true
         DDLogDebug("ChatData/subscribeToPresence [\(chatWithUserId)]")
         let message = XMPPElement(name: "presence")
         message.addAttribute(withName: "to", stringValue: "\(chatWithUserId)@s.halloapp.net")
@@ -681,6 +693,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     
     func setCurrentlyChattingWithUserId(for chatWithUserId: String?) {
         self.currentlyChattingWithUserId = chatWithUserId
+        self.isSubscribedToCurrentUser = false
     }
 
     // MARK: Presence
