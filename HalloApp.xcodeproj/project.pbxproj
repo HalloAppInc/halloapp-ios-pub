@@ -139,7 +139,6 @@
 		EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C22334191E00805FF9 /* AppDelegate.swift */; };
 		EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */; };
 		EAF3A1C92334192000805FF9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
-		EAF3A1CC2334192000805FF9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1CB2334192000805FF9 /* Preview Assets.xcassets */; };
 		EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */; };
 		EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1D92334192000805FF9 /* HalloappTests.swift */; };
 		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
@@ -355,7 +354,6 @@
 		EAF3A1C22334191E00805FF9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		EAF3A1C82334192000805FF9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		EAF3A1CB2334192000805FF9 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		EAF3A1CE2334192000805FF9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		EAF3A1D02334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EAF3A1D52334192000805FF9 /* HalloAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HalloAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -861,7 +859,6 @@
 				EA0D20062363AC4D008B8289 /* Landing.swift */,
 				761C6165242D896E0028AE19 /* Components */,
 				EAC4AF21233E8D9700739B2B /* Network */,
-				EAF3A1CA2334192000805FF9 /* Preview Content */,
 				146B93702405F2F900768AC6 /* Resources */,
 				EAF3A1D02334192000805FF9 /* Info.plist */,
 				76955DE924746E4C0088BE8C /* GoogleService-Info.plist */,
@@ -871,14 +868,6 @@
 				EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */,
 			);
 			path = Halloapp;
-			sourceTree = "<group>";
-		};
-		EAF3A1CA2334192000805FF9 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				EAF3A1CB2334192000805FF9 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
 			sourceTree = "<group>";
 		};
 		EAF3A1D82334192000805FF9 /* HalloappTests */ = {
@@ -1075,7 +1064,6 @@
 				762EDBCC244E2EB700986617 /* Gotham-UltraIta.otf in Resources */,
 				762EDBD6244E2EB700986617 /* Gotham-MediumIta.otf in Resources */,
 				762EDBD9244E2EB700986617 /* Gotham-ThinIta.otf in Resources */,
-				EAF3A1CC2334192000805FF9 /* Preview Assets.xcassets in Resources */,
 				765FE0FE2469C4E500806CED /* PhoneNumberMetadata.json in Resources */,
 				762EDBD1244E2EB700986617 /* Gotham-Book.otf in Resources */,
 				762EDBD4244E2EB700986617 /* Gotham-Thin.otf in Resources */,
@@ -1415,7 +1403,6 @@
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 29;
-				DEVELOPMENT_ASSET_PATHS = "\"Halloapp/Preview Content\"";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -1759,7 +1746,6 @@
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 29;
-				DEVELOPMENT_ASSET_PATHS = "\"Halloapp/Preview Content\"";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -1784,7 +1770,6 @@
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 29;
-				DEVELOPMENT_ASSET_PATHS = "\"Halloapp/Preview Content\"";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
