@@ -21,12 +21,12 @@
 		76812405248614BA008C5216 /* XMPPFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76812403248614BA008C5216 /* XMPPFeed.swift */; };
 		76812406248614BA008C5216 /* XMPPReceipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76812404248614BA008C5216 /* XMPPReceipt.swift */; };
 		76812409248614F1008C5216 /* XMPPRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76812408248614F1008C5216 /* XMPPRequest.swift */; };
-		7681240D24861634008C5216 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 7681240C24861634008C5216 /* SwiftProtobuf */; };
+		7681240D24861634008C5216 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 7681240C24861634008C5216 /* SwiftPackageProductDependency */; };
 		768124132486193E008C5216 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768124122486193E008C5216 /* Feed.swift */; };
 		76812417248619BB008C5216 /* schema.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76812416248619BB008C5216 /* schema.pb.swift */; };
 		7681241F2486C178008C5216 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681241E2486C178008C5216 /* String.swift */; };
-		768124222486CF8E008C5216 /* PhoneNumberKit in Frameworks */ = {isa = PBXBuildFile; productRef = 768124212486CF8E008C5216 /* PhoneNumberKit */; };
-		7681242B2486D4E6008C5216 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 7681242A2486D4E6008C5216 /* CryptoSwift */; };
+		768124222486CF8E008C5216 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 768124212486CF8E008C5216 /* SwiftPackageProductDependency */; };
+		7681242B2486D4E6008C5216 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 7681242A2486D4E6008C5216 /* SwiftPackageProductDependency */; };
 		76925CFA24871506008333FA /* UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76925CF924871506008333FA /* UserDefaults.swift */; };
 		76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76925CFC24872E85008333FA /* UserData.xcdatamodeld */; };
 		ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3156278C2E59CE6580A649AA /* Pods_Core.framework */; };
@@ -57,6 +57,8 @@
 		7681241E2486C178008C5216 /* String.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		76925CF924871506008333FA /* UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaults.swift; sourceTree = "<group>"; };
 		76925CFD24872E85008333FA /* Halloapp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Halloapp.xcdatamodel; sourceTree = "<group>"; };
+		A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.external beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.external beta.xcconfig"; sourceTree = "<group>"; };
+		C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.internal beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.internal beta.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,10 +66,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				768124222486CF8E008C5216 /* PhoneNumberKit in Frameworks */,
-				7681242B2486D4E6008C5216 /* CryptoSwift in Frameworks */,
+				768124222486CF8E008C5216 /* BuildFile in Frameworks */,
+				7681242B2486D4E6008C5216 /* BuildFile in Frameworks */,
 				ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */,
-				7681240D24861634008C5216 /* SwiftProtobuf in Frameworks */,
+				7681240D24861634008C5216 /* BuildFile in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +81,8 @@
 			children = (
 				5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */,
 				4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */,
+				C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */,
+				A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */,
 			);
 			name = Pods;
 			path = ../Pods;
@@ -239,9 +243,9 @@
 			);
 			name = Core;
 			packageProductDependencies = (
-				7681240C24861634008C5216 /* SwiftProtobuf */,
-				768124212486CF8E008C5216 /* PhoneNumberKit */,
-				7681242A2486D4E6008C5216 /* CryptoSwift */,
+				7681240C24861634008C5216 /* SwiftPackageProductDependency */,
+				768124212486CF8E008C5216 /* SwiftPackageProductDependency */,
+				7681242A2486D4E6008C5216 /* SwiftPackageProductDependency */,
 			);
 			productName = Core;
 			productReference = 768123B82485D9C7008C5216 /* Core.framework */;
@@ -272,9 +276,9 @@
 			);
 			mainGroup = 768123AE2485D9C7008C5216;
 			packageReferences = (
-				7681240B24861634008C5216 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
-				768124202486CF8E008C5216 /* XCRemoteSwiftPackageReference "PhoneNumberKit" */,
-				768124292486D4E6008C5216 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
+				7681240B24861634008C5216 /* RemoteSwiftPackageReference */,
+				768124202486CF8E008C5216 /* RemoteSwiftPackageReference */,
+				768124292486D4E6008C5216 /* RemoteSwiftPackageReference */,
 			);
 			productRefGroup = 768123B92485D9C7008C5216 /* Products */;
 			projectDirPath = "";
@@ -504,7 +508,7 @@
 		};
 		768123C22485D9C7008C5216 /* Internal Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */;
+			baseConfigurationReference = C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
@@ -592,7 +596,7 @@
 		};
 		76F43F37248B20F700D47920 /* External Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */;
+			baseConfigurationReference = A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
@@ -645,7 +649,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		7681240B24861634008C5216 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+		7681240B24861634008C5216 /* RemoteSwiftPackageReference */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:apple/swift-protobuf.git";
 			requirement = {
@@ -653,7 +657,7 @@
 				minimumVersion = 1.9.0;
 			};
 		};
-		768124202486CF8E008C5216 /* XCRemoteSwiftPackageReference "PhoneNumberKit" */ = {
+		768124202486CF8E008C5216 /* RemoteSwiftPackageReference */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:marmelroy/PhoneNumberKit.git";
 			requirement = {
@@ -661,7 +665,7 @@
 				kind = branch;
 			};
 		};
-		768124292486D4E6008C5216 /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
+		768124292486D4E6008C5216 /* RemoteSwiftPackageReference */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:krzyzanowskim/CryptoSwift.git";
 			requirement = {
@@ -672,19 +676,19 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		7681240C24861634008C5216 /* SwiftProtobuf */ = {
+		7681240C24861634008C5216 /* SwiftPackageProductDependency */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 7681240B24861634008C5216 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			package = 7681240B24861634008C5216 /* RemoteSwiftPackageReference */;
 			productName = SwiftProtobuf;
 		};
-		768124212486CF8E008C5216 /* PhoneNumberKit */ = {
+		768124212486CF8E008C5216 /* SwiftPackageProductDependency */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 768124202486CF8E008C5216 /* XCRemoteSwiftPackageReference "PhoneNumberKit" */;
+			package = 768124202486CF8E008C5216 /* RemoteSwiftPackageReference */;
 			productName = PhoneNumberKit;
 		};
-		7681242A2486D4E6008C5216 /* CryptoSwift */ = {
+		7681242A2486D4E6008C5216 /* SwiftPackageProductDependency */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 768124292486D4E6008C5216 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
+			package = 768124292486D4E6008C5216 /* RemoteSwiftPackageReference */;
 			productName = CryptoSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
