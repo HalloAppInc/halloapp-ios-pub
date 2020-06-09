@@ -119,7 +119,6 @@
 		EA8D4721233C25B8006E2BA5 /* VerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationView.swift */; };
 		EAB03B7B2400517500643EB6 /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB03B7A2400517500643EB6 /* MailView.swift */; };
 		EAB03B7F2400519400643EB6 /* WAVPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB03B7E2400519400643EB6 /* WAVPlayer.swift */; };
-		EABF312623EE1F240039B5A6 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312523EE1F240039B5A6 /* Array.swift */; };
 		EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312823EE1FC20039B5A6 /* Digest.swift */; };
 		EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312A23EE20E10039B5A6 /* UIImage.swift */; };
 		EABF313123F229350039B5A6 /* MediaCrypter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF313023F229350039B5A6 /* MediaCrypter.swift */; };
@@ -333,7 +332,6 @@
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAB03B7A2400517500643EB6 /* MailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MailView.swift; sourceTree = "<group>"; };
 		EAB03B7E2400519400643EB6 /* WAVPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WAVPlayer.swift; sourceTree = "<group>"; };
-		EABF312523EE1F240039B5A6 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		EABF312823EE1FC20039B5A6 /* Digest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Digest.swift; sourceTree = "<group>"; };
 		EABF312A23EE20E10039B5A6 /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
 		EABF313023F229350039B5A6 /* MediaCrypter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCrypter.swift; sourceTree = "<group>"; };
@@ -773,7 +771,6 @@
 		EABF312423EE1EDF0039B5A6 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				EABF312523EE1F240039B5A6 /* Array.swift */,
 				761442CA245DF6A600DD9D1A /* CharacterSet.swift */,
 				76C69E472447E3B100338D4C /* Data.swift */,
 				763B42AD2435A74E00FF0E82 /* Date.swift */,
@@ -1277,7 +1274,6 @@
 				EA25178F246B693B00CE24C0 /* MediaPreviewController.swift in Sources */,
 				762EDBDD244E5A7800986617 /* HomeView.swift in Sources */,
 				EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */,
-				EABF312623EE1F240039B5A6 /* Array.swift in Sources */,
 				EA35857C2450BE3300E6E8AB /* ChatView.swift in Sources */,
 				76649227245119F2009BC368 /* FeedNotifications.swift in Sources */,
 				EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */,

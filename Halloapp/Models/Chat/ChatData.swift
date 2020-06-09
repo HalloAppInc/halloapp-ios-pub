@@ -14,6 +14,9 @@ typealias ChatMessageID = String
 
 class ChatData: ObservableObject, XMPPControllerChatDelegate {
     
+    public var currentPage: Int = 0
+    
+    let didChangeUnreadThreadCount = PassthroughSubject<Int, Never>()
     let didChangeUnreadCount = PassthroughSubject<Int, Never>()
     let didGetCurrentChatPresence = PassthroughSubject<(ChatThread.Status, Date?), Never>()
     
@@ -26,6 +29,12 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     private var currentlyChattingWithUserId: String? = nil
     private var isSubscribedToCurrentUser: Bool = false
     
+    private var unreadThreadCount: Int = 0 {
+        didSet {
+            self.didChangeUnreadThreadCount.send(unreadThreadCount)
+        }
+    }
+    
     private var unreadMessageCount: Int = 0 {
         didSet {
             self.didChangeUnreadCount.send(unreadMessageCount)
@@ -35,6 +44,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     private let downloadQueue = DispatchQueue(label: "com.halloapp.chat.download", qos: .userInitiated)
     private let maxNumDownloads: Int = 1
     private var currentlyDownloading: [URL] = []
+    private let maxTries: Int = 10
 
     public func updateChatMessageCellHeight(for chatUserId: String, with cellHeight: Int) {
         self.updateChatMessage(with: chatUserId) { (chatMessage) in
@@ -68,7 +78,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         self.cancellableSet.insert(
             self.xmppController.didConnect.sink {
-                DDLogInfo("ChatData/onConnect ")
+                DDLogInfo("ChatData/onConnect")
                 
                 if (UIApplication.shared.applicationState == .active) {
                     DDLogInfo("ChatData/onConnect/sendPresence")
@@ -104,7 +114,13 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                         self.sendSeenReceipt(for: $0)
                     }
                 }
+                
+                // TODO: Eventually should move to checking for internet connectivity with a reachability manager instead of xmpp connection
+                if (UIApplication.shared.applicationState == .active) {
+                    self.processPendingChatMedia()
+                }
             }
+    
         )
         
         self.cancellableSet.insert(
@@ -132,7 +148,6 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             }
         )
         
-        self.processPendingChatMedia()
     }
     
     func populateThreadsWithSymmetricContacts() {
@@ -158,14 +173,126 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                     chatThread.unreadCount = 0
                     self.save(managedObjectContext)
                 }
-                
             }
-            
         }
         // TODO: take care of deletes, ie. user removes contact from address book
     }
     
     func processPendingChatMedia() {
+
+        guard self.currentlyDownloading.count < self.maxNumDownloads else { return }
+        
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            
+            let pendingMessagesWithMedia = self.pendingIncomingMessagesMedia(in: managedObjectContext)
+            
+            for chatMessage in pendingMessagesWithMedia {
+                
+                guard let media = chatMessage.media else { continue }
+                
+                let sortedMedia = media.sorted(by: { $0.order < $1.order })
+                
+                for med in sortedMedia {
+                
+                    guard med.incomingStatus == ChatMedia.IncomingStatus.pending else { continue }
+                    guard med.numTries <= self.maxTries else { continue }
+                    guard !self.currentlyDownloading.contains(med.url) else { continue }
+
+                    let threadId = chatMessage.fromUserId
+                    let messageId = chatMessage.id
+                    let order = med.order
+                    let key = med.key
+                    let sha = med.sha256
+                    let type: FeedMediaType = med.type == ChatMessageMediaType.image ? FeedMediaType.image : FeedMediaType.video
+                
+                    // save attempts
+                    self.updateChatMessage(with: messageId) { (chatMessage) in
+                        if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ) {
+                            chatMessage.media?[index].numTries += 1
+                        }
+                    }
+                    
+                    _ = ChatMediaDownloader(url: med.url, completion: { (outputUrl) in
+
+                        var encryptedData: Data
+                        do {
+                            encryptedData = try Data(contentsOf: outputUrl)
+                        } catch {
+                            return
+                        }
+
+                        // Decrypt data
+                        guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
+                            return
+                        }
+                        
+
+                        var decryptedData: Data
+                        do {
+                            decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
+                        } catch {
+                            return
+                        }
+
+                        let fileExtension = type == .image ? "jpg" : "mp4"
+                        let filename = "\(messageId)-\(order).\(fileExtension)"
+                        
+                        let fileURL = MainAppContext.chatMediaDirectoryURL
+                            .appendingPathComponent(threadId, isDirectory: true)
+                            .appendingPathComponent(filename, isDirectory: false)
+                        
+                        // create intermediate directories
+                        if !FileManager.default.fileExists(atPath: fileURL.path) {
+                            do {
+                                try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
+                            } catch {
+                                print(error.localizedDescription)
+                            }
+                        }
+                        
+                        // delete the file it already exists, ie. previous attempts
+                        if FileManager.default.fileExists(atPath: fileURL.path) {
+                            try! FileManager.default.removeItem(atPath: fileURL.path)
+                        } else {
+                            print("File does not exist")
+                        }
+                        
+                        do {
+                            try decryptedData.write(to: fileURL, options: [])
+                        }
+                        catch {
+                            print("can't write error: \(error)")
+                            return
+                        }
+                        
+                        self.updateChatMessage(with: messageId) { (chatMessage) in
+     
+                            if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ) {
+                                
+                                let relativePath = self.relativePath(from: fileURL)
+                                
+                                chatMessage.media?[index].relativeFilePath = relativePath
+                                chatMessage.media?[index].incomingStatus = .downloaded
+                                
+                                // hack: force a change so frc can pick up the change
+                                let fromUserId = chatMessage.fromUserId
+                                chatMessage.fromUserId = fromUserId
+                            }
+                            
+                        }
+
+                        
+                        self.processPendingChatMedia()
+                        
+                    })
+
+
+                }
+                
+            }
+            
+        }
+    
     }
     
     private func sendPresence(type: String) {
@@ -378,12 +505,14 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             }
         } else {
             self.unreadMessageCount += 1
+            self.updateUnreadThreadCount()
         }
         
 //        self.presentLocalNotifications(for: chatMessage)
 
         // download media
-//        let pendingChatMedia = self.pendingIncomingMessagesMedia(in: managedObjectContext)
+        self.processPendingChatMedia()
+        
     }
     
     private func presentLocalNotifications(for chatMessage: ChatMessage) {
@@ -401,33 +530,47 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         DDLogDebug("ChatData/new-msg/localNotification [\(chatMessage.id)]")
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: notification, trigger: nil))
     }
+            
+    func copyPendingToChatMedia(fromUrl: URL?, to chatMedia: ChatMedia, chatMessage: ChatMessage) throws {
+        guard let fromUrl = fromUrl else {
+            return
+        }
+                
+        let threadId = chatMessage.toUserId
+        let messageId = chatMessage.id
+        let order = chatMedia.order
         
-//    func copyDownloadedMedia(fromUrl: URL, to quotedMedia: ChatQuotedMedia) throws {
-//        guard let fromRelativePath = fromPath else {
-//            return
-//        }
-//
-//        let fromURL = AppContext.mediaDirectoryURL.appendingPathComponent(fromRelativePath, isDirectory: false)
-//
-//        // append unique id to allow multiple quoted messages of the same feedpost so each message can be deleted independently in the future
-//
-//        var pathComponents = fromRelativePath.components(separatedBy: ".")
-//
-//        guard pathComponents.count > 1 else {
-//            return
-//        }
-//
-//        pathComponents[0] += "-\(UUID().uuidString)"
-//
-//        let newPath = "\(pathComponents[0]).\(pathComponents[1])"
-//
-//        let toURL = AppContext.chatMediaDirectoryURL.appendingPathComponent(newPath, isDirectory: false)
-//
-//        try FileManager.default.createDirectory(at: toURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
-//
-//        try FileManager.default.copyItem(at: fromURL, to: toURL)
-//        quotedMedia.relativeFilePath = newPath
-//    }
+        let fileExtension = chatMedia.type == .image ? "jpg" : "mp4"
+        let filename = "\(messageId)-\(order).\(fileExtension)"
+        
+        let toUrl = MainAppContext.chatMediaDirectoryURL
+            .appendingPathComponent(threadId, isDirectory: true)
+            .appendingPathComponent(filename, isDirectory: false)
+        
+        // create intermediate directories
+        if !FileManager.default.fileExists(atPath: toUrl.path) {
+            do {
+                try FileManager.default.createDirectory(at: toUrl.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+
+        try FileManager.default.copyItem(at: fromUrl, to: toUrl)
+        
+        let relativePath = self.relativePath(from: toUrl)
+        chatMedia.relativeFilePath = relativePath
+    }
+    
+    private func relativePath(from fileURL: URL) -> String? {
+        let fullPath = fileURL.path
+        let mediaDirectoryPath = MainAppContext.chatMediaDirectoryURL.path
+        if let range = fullPath.range(of: mediaDirectoryPath, options: [.anchored]) {
+            return String(fullPath.suffix(from: range.upperBound))
+        }
+        return nil
+    }
     
     func copyMediaToQuotedMedia(fromPath: String?, to quotedMedia: ChatQuotedMedia) throws {
         guard let fromRelativePath = fromPath else {
@@ -447,9 +590,11 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         pathComponents[0] += "-\(UUID().uuidString)"
         
         let newPath = "\(pathComponents[0]).\(pathComponents[1])"
+
+        // todo: the directory for quoted media should follow a similar structure as chat media, should do mini migration also
         
         let toURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(newPath, isDirectory: false)
-        
+
         try FileManager.default.createDirectory(at: toURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
 
         try FileManager.default.copyItem(at: fromURL, to: toURL)
@@ -457,11 +602,12 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     }
     
     func sendSeenReceipt(for chatMessage: ChatMessage) {
+        DDLogInfo("ChatData/sendSeenReceipts \(chatMessage.id)")
         self.xmppController.sendSeenReceipt(XMPPReceipt.seenReceipt(for: chatMessage), to: chatMessage.fromUserId)
     }
     
-    func sendMessage(toUserId: String, text: String, media: [PendingChatMessageMedia], feedPostId: String, feedPostMediaIndex: Int32) {
-        let xmppChatMessage = XMPPChatMessage(toUserId: toUserId, text: text, media: [], feedPostId: feedPostId, feedPostMediaIndex: feedPostMediaIndex)
+    func sendMessage(toUserId: String, text: String, media: [PendingMedia], feedPostId: String, feedPostMediaIndex: Int32) {
+        let xmppChatMessage = XMPPChatMessage(toUserId: toUserId, text: text, media: media, feedPostId: feedPostId, feedPostMediaIndex: feedPostMediaIndex)
         
         // Create and save new ChatMessage object.
         let managedObjectContext = self.persistentContainer.viewContext
@@ -480,7 +626,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("ChatData/new-msg/add-media [\(mediaItem.url!)]")
             let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
-            chatMedia.type = mediaItem.type
+            chatMedia.type = mediaItem.type == FeedMediaType.image ? ChatMessageMediaType.image : ChatMessageMediaType.video
             chatMedia.outgoingStatus = .uploaded // For now we're only posting when all uploads are completed.
             chatMedia.url = mediaItem.url!
             chatMedia.size = mediaItem.size!
@@ -489,7 +635,12 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             chatMedia.order = Int16(index)
             chatMedia.message = chatMessage
 
-            // TODO: save the media to file directory
+            do {
+                try self.copyPendingToChatMedia(fromUrl: mediaItem.fileURL, to: chatMedia, chatMessage: chatMessage)
+            }
+            catch {
+                DDLogError("ChatData/new-msg/media/copy-media/error [\(error)]")
+            }
         }
         
         // Create and save Quoted
@@ -540,7 +691,6 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             chatThread.lastMsgTimestamp = chatMessage.timestamp
             chatThread.unreadCount = 0
         }
-        
         self.save(managedObjectContext)
         MainAppContext.shared.xmppController.xmppStream.send(xmppChatMessage.xmppElement)
     }
@@ -617,6 +767,13 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     
     func chatThread(chatWithUserId id: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatThread? {
         return self.chatThreads(predicate: NSPredicate(format: "chatWithUserId == %@", id), in: managedObjectContext).first
+    }
+    
+    func updateUnreadThreadCount() {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let threads = self.chatThreads(predicate: NSPredicate(format: "unreadCount > 0"), in: managedObjectContext)
+            self.unreadThreadCount = Int(threads.count)
+        }
     }
     
     func updateUnreadMessageCount() {
@@ -778,7 +935,8 @@ struct XMPPChatMessage {
     let feedPostMediaIndex: Int32
     var timestamp: TimeInterval?
 
-    init(toUserId: String, text: String?, media: [PendingChatMessageMedia]?, feedPostId: String?, feedPostMediaIndex: Int32) {
+    // init outgoing message
+    init(toUserId: String, text: String?, media: [PendingMedia]?, feedPostId: String?, feedPostMediaIndex: Int32) {
         self.id = UUID().uuidString
         self.fromUserId = MainAppContext.shared.userData.userId
         self.toUserId = toUserId
@@ -804,6 +962,7 @@ struct XMPPChatMessage {
         self.media = []
     }
     
+    // init incoming message
     init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id") else { return nil }
         guard let toUserId = item.attributeStringValue(forName: "to")?.components(separatedBy: "@").first else { return nil }
@@ -815,6 +974,7 @@ struct XMPPChatMessage {
         if let protoContainer = Proto_Container.chatMessageContainer(from: chat) {
             if protoContainer.hasChatMessage {
                 text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
+                
                 media = protoContainer.chatMessage.media.compactMap { XMPPChatMedia(protoMedia: $0) }
                 
                 feedPostId = protoContainer.chatMessage.feedPostID.isEmpty ? nil : protoContainer.chatMessage.feedPostID
@@ -833,8 +993,6 @@ struct XMPPChatMessage {
         self.media = media
         
         self.timestamp = chat.attributeDoubleValue(forName: "timestamp")
-        
-
     }
 
     var xmppElement: XMPPElement {
@@ -846,7 +1004,7 @@ struct XMPPChatMessage {
                 let chat = XMPPElement(name: "chat")
                 chat.addAttribute(withName: "xmlns", stringValue: "halloapp:chat:messages")
 
-                if let protobufData = try? self.proto.serializedData() {
+                if let protobufData = try? self.protoContainer.serializedData() {
                     chat.addChild(XMPPElement(name: "s1", stringValue: protobufData.base64EncodedString()))
                 }
                     
@@ -856,21 +1014,41 @@ struct XMPPChatMessage {
         }
     }
     
-    fileprivate var proto: Proto_Container {
+    var protoContainer: Proto_Container {
         get {
-            var chatMessage = Proto_ChatMessage()
+            var protoChatMessage = Proto_ChatMessage()
             if self.text != nil {
-                chatMessage.text = self.text!
+                protoChatMessage.text = self.text!
             }
             
             if self.feedPostId != nil {
-                chatMessage.feedPostID = self.feedPostId!
-                chatMessage.feedPostMediaIndex = self.feedPostMediaIndex
+                protoChatMessage.feedPostID = self.feedPostId!
+                protoChatMessage.feedPostMediaIndex = self.feedPostMediaIndex
             }
             
-            var container = Proto_Container()
-            container.chatMessage = chatMessage
-            return container
+            if self.media.count > 0 {
+                protoChatMessage.media = self.media.compactMap { med in
+                    
+                    var protoMedia = Proto_Media()
+                    protoMedia.type = {
+                        switch med.type {
+                        case .image: return .image
+                        case .video: return .video
+                        }
+                    }()
+                    protoMedia.width = Int32(med.size.width)
+                    protoMedia.height = Int32(med.size.height)
+                    protoMedia.encryptionKey = Data(base64Encoded: med.key)!
+                    protoMedia.plaintextHash = Data(base64Encoded: med.sha256)!
+                    protoMedia.downloadURL = med.url.absoluteString
+                    return protoMedia
+                }
+            }
+            
+            var protoContainer = Proto_Container()
+            protoContainer.chatMessage = protoChatMessage
+            
+            return protoContainer
         }
     }
     
@@ -914,9 +1092,9 @@ struct XMPPChatMedia: ChatMediaProtocol {
     let key: String
     let sha256: String
 
-    init(chatMedia: PendingChatMessageMedia) {
+    init(chatMedia: PendingMedia) {
         self.url = chatMedia.url!
-        self.type = chatMedia.type
+        self.type = chatMedia.type == .image ? ChatMessageMediaType.image : ChatMessageMediaType.video
         self.size = chatMedia.size!
         self.key = chatMedia.key!
         self.sha256 = chatMedia.sha256!

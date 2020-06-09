@@ -70,11 +70,11 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         }
 
         self.cancellableSet.insert(
-            MainAppContext.shared.chatData.didChangeUnreadCount.sink { [weak self] (count) in
+            MainAppContext.shared.chatData.didChangeUnreadThreadCount.sink { [weak self] (count) in
                 guard let self = self else { return }
                 self.updateChatNavigationControllerBadge(count)
             })
-        MainAppContext.shared.chatData.updateUnreadMessageCount()
+        MainAppContext.shared.chatData.updateUnreadThreadCount()
         
         // When the app was in the background
         self.cancellableSet.insert(

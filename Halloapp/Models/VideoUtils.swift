@@ -127,4 +127,16 @@ class VideoUtils {
         return CGSize(width: abs(size.width), height: abs(size.height))
     }
     
+    func videoPreviewImage(url: URL) -> UIImage? {
+        let asset = AVURLAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        
+        if let cgImage = try? generator.copyCGImage(at: CMTime(seconds: 2, preferredTimescale: 60), actualTime: nil) {
+            return UIImage(cgImage: cgImage)
+        }
+        else {
+            return nil
+        }
+    }
 }

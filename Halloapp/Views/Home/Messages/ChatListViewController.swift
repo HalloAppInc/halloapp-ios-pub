@@ -9,8 +9,8 @@
 import CocoaLumberjack
 import Combine
 import CoreData
-import SwiftUI
 import UIKit
+import SwiftUI
 
 fileprivate enum ChatListViewSection {
     case main

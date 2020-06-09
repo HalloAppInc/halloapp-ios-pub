@@ -13,29 +13,6 @@ import SwiftUI
 
 extension UIImage {
     
-    func getNewSize(res: Int) -> UIImage? {
-        // TODO: check if this can be made faster
-        guard let imageData = self.pngData() else { return nil }
-
-        //    print("orig: \(imageData.count/1000)")
-
-        let options = [
-            kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceThumbnailMaxPixelSize: res] as CFDictionary
-
-        guard let source = CGImageSourceCreateWithData(imageData as CFData, nil) else { return nil }
-        guard let imageReference = CGImageSourceCreateThumbnailAtIndex(source, 0, options) else { return nil }
-
-        //    let temp = UIImage(cgImage: imageReference)
-        //    let temp2 = temp.pngData()
-        //    print("thumb: \(temp2!.count/1000)")
-        //    print("percent: \(Float(temp2!.count) / Float(imageData.count))")
-
-        return UIImage(cgImage: imageReference)
-
-    }
-
     func resized(to size: CGSize) -> UIImage? {
         guard let cgImage = self.cgImage else { return nil }
 
