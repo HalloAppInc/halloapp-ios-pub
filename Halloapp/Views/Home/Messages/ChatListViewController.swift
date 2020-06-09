@@ -38,25 +38,14 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     override func viewDidLoad() {
         DDLogInfo("ChatListViewController/viewDidLoad")
 
-        self.navigationItem.title = "Messages"
+        installLargeTitleUsingGothamFont()
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-
-        self.navigationItem.largeTitleDisplayMode = .automatic
-        self.navigationItem.standardAppearance = .noShadowAppearance
-        self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
-
-        let titleLabel = UILabel()
-        titleLabel.attributedText = self.largeTitleUsingGothamFont
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
-        self.navigationItem.title = nil
-
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "ChatNavbarCompose"), style: .plain, target: self, action: #selector(showContacts))
 
-        self.tableView.backgroundColor = .clear
+        self.tableView.backgroundColor = .feedBackgroundColor
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = true
         self.tableView.register(ChatListViewCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
-        self.tableView.backgroundColor = UIColor.systemGray6
 
         self.setupFetchedResultsController()
         
@@ -84,6 +73,12 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("ChatListViewController/viewDidAppear")
         super.viewDidAppear(animated)
+    }
+
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if scrollView == tableView {
+            updateNavigationBarStyleUsing(scrollView: scrollView)
+        }
     }
     
     private lazy var newMessageViewController: NewMessageViewController = {

@@ -33,8 +33,7 @@ class MediaPreviewController: UIViewController {
         
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
         self.navigationItem.title = ""
-        self.navigationItem.standardAppearance = .noShadowAppearance
-        self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
+        self.navigationItem.standardAppearance = .transparentAppearance
 
         self.view.backgroundColor = UIColor.systemGray6
         

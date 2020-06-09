@@ -47,16 +47,9 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         
         self.navigationItem.title = "New Message"
         
-        self.navigationItem.standardAppearance = .noShadowAppearance
+        self.navigationItem.standardAppearance = .transparentAppearance
         self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
 
-//        let titleLabel = UILabel()
-//        titleLabel.text = self.title
-//        titleLabel.font = .gothamFont(ofSize: 33, weight: .bold)
-//        titleLabel.textColor = UIColor.label.withAlphaComponent(0.1)
-//        self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
-//        self.navigationItem.title = nil
-        
         self.tableView.backgroundColor = .clear
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = true
