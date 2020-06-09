@@ -43,7 +43,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         
         DDLogInfo("FeedTableViewController/viewDidLoad")
 
-        self.navigationItem.standardAppearance = Self.noBorderNavigationBarAppearance
+        self.navigationItem.standardAppearance = .noShadowAppearance
 
         let titleLabel = UILabel()
         titleLabel.attributedText = self.largeTitleUsingGothamFont
@@ -69,15 +69,6 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             self.setupFetchedResultsController()
             self.tableView.reloadData()
         })
-    }
-
-    static var noBorderNavigationBarAppearance: UINavigationBarAppearance {
-        get {
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithDefaultBackground()
-            appearance.shadowColor = nil
-            return appearance
-        }
     }
 
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {

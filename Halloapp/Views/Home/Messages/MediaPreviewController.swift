@@ -33,7 +33,7 @@ class MediaPreviewController: UIViewController {
         
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
         self.navigationItem.title = ""
-        self.navigationItem.standardAppearance = Self.noBorderNavigationBarAppearance
+        self.navigationItem.standardAppearance = .noShadowAppearance
         self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
 
         self.view.backgroundColor = UIColor.systemGray6
@@ -84,15 +84,6 @@ class MediaPreviewController: UIViewController {
     }
     
     // MARK: Appearance
-
-    static var noBorderNavigationBarAppearance: UINavigationBarAppearance {
-        get {
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithDefaultBackground()
-            appearance.shadowColor = nil
-            return appearance
-        }
-    }
     
     private lazy var imageView: ImageZoomView = {
         let view = ImageZoomView()

@@ -53,7 +53,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         
         self.navigationItem.title = "New Message"
         
-        self.navigationItem.standardAppearance = Self.noBorderNavigationBarAppearance
+        self.navigationItem.standardAppearance = .noShadowAppearance
         self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
 
 //        let titleLabel = UILabel()
@@ -74,15 +74,6 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     // MARK: Appearance
-
-    static var noBorderNavigationBarAppearance: UINavigationBarAppearance {
-        get {
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithDefaultBackground()
-            appearance.shadowColor = nil
-            return appearance
-        }
-    }
     
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("NewMessageViewController/viewWillAppear")

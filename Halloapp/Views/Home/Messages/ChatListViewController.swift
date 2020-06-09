@@ -42,7 +42,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
         self.navigationItem.largeTitleDisplayMode = .automatic
-        self.navigationItem.standardAppearance = Self.noBorderNavigationBarAppearance
+        self.navigationItem.standardAppearance = .noShadowAppearance
         self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
 
         let titleLabel = UILabel()
@@ -98,18 +98,6 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         return controller
     }()
 
-
-    // MARK: Appearance
-
-    static var noBorderNavigationBarAppearance: UINavigationBarAppearance {
-        get {
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithDefaultBackground()
-            appearance.shadowColor = nil
-            return appearance
-        }
-    }
-    
     // MARK: Top Nav Button Actions
     
     @objc(showContacts)
