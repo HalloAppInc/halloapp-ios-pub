@@ -448,7 +448,12 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
     private func refreshCommentInputViewReplyPanel() {
         if let context = self.replyContext {
-            let contactName = AppContext.shared.contactStore.fullName(for: context.userId)
+            let contactName: String
+            if context.userId == MainAppContext.shared.userData.userId {
+                contactName = "myself"
+            } else {
+                contactName = AppContext.shared.contactStore.fullName(for: context.userId)
+            }
             self.commentsInputView.showReplyPanel(with: contactName)
         } else {
             self.commentsInputView.removeReplyPanel()

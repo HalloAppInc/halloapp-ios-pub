@@ -77,8 +77,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private lazy var vStack: UIStackView = {
         let vStack = UIStackView()
-        vStack.spacing = 8
         vStack.axis = .vertical
+        vStack.preservesSuperviewLayoutMargins = true
         vStack.translatesAutoresizingMaskIntoConstraints = false
         return vStack
     }()
@@ -92,6 +92,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         textView.autocorrectionType = .yes
         textView.enablesReturnKeyAutomatically = true
         textView.scrollsToTop = false
+        textView.textContainerInset.left = -5
         textView.translatesAutoresizingMaskIntoConstraints = false
         return textView
     }()
@@ -118,27 +119,37 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private lazy var contactNameLabel: UILabel = {
         let label = UILabel()
-        label.textColor = UIColor.secondaryLabel
         label.numberOfLines = 2
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
         return label
     }()
 
     private lazy var deleteReplyContextButton: UIButton = {
-        let button = UIButton(type: .custom)
+        let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "xmark"), for: .normal)
         button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
-        button.tintColor = UIColor.systemGray
+        button.tintColor = UIColor(white: 1, alpha: 0.8)
         button.addTarget(self, action: #selector(self.closeReplyPanel), for: .touchUpInside)
         button.setContentHuggingPriority(.required, for: .horizontal)
         return button
     }()
 
-    private lazy var replyContextPanel: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [ self.contactNameLabel, self.deleteReplyContextButton ])
-        stackView.axis = .horizontal
-        stackView.spacing = 8
-        return stackView
+    private lazy var replyContextPanel: UIView = {
+        let hStack = UIStackView(arrangedSubviews: [ self.contactNameLabel, self.deleteReplyContextButton ])
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        hStack.preservesSuperviewLayoutMargins = true
+        hStack.axis = .horizontal
+        hStack.spacing = 8
+
+        let panel = UIView()
+        panel.translatesAutoresizingMaskIntoConstraints = false
+        panel.preservesSuperviewLayoutMargins = true
+        panel.backgroundColor = .lavaOrange
+        panel.addSubview(hStack)
+        hStack.leadingAnchor.constraint(equalTo: panel.layoutMarginsGuide.leadingAnchor).isActive = true
+        hStack.topAnchor.constraint(equalTo: panel.layoutMarginsGuide.topAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: panel.layoutMarginsGuide.trailingAnchor).isActive = true
+        hStack.bottomAnchor.constraint(equalTo: panel.layoutMarginsGuide.bottomAnchor).isActive = true
+        return panel
     }()
 
     override init(frame: CGRect) {
@@ -167,16 +178,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.containerView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
         self.containerView.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
 
-        // Background view.
-        let backgroundView = UIView()
-        backgroundView.backgroundColor = .systemBackground
-        backgroundView.translatesAutoresizingMaskIntoConstraints = false
-        self.containerView.addSubview(backgroundView)
-        backgroundView.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor).isActive = true
-        backgroundView.topAnchor.constraint(equalTo: self.containerView.topAnchor).isActive = true
-        backgroundView.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor).isActive = true
-        backgroundView.bottomAnchor.constraint(equalTo: self.containerView.bottomAnchor).isActive = true
-
         // Content view - everything must go in there.
         self.containerView.addSubview(self.contentView)
         self.contentView.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor).isActive = true
@@ -184,9 +185,18 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.contentView.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor).isActive = true
         self.contentView.bottomAnchor.constraint(equalTo: self.containerView.safeAreaLayoutGuide.bottomAnchor).isActive = true
 
+        // Bottom Safe Area background
+        let bottomBackgroundView = UIView()
+        bottomBackgroundView.backgroundColor = .systemBackground
+        bottomBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+        self.containerView.addSubview(bottomBackgroundView)
+        bottomBackgroundView.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor).isActive = true
+        bottomBackgroundView.topAnchor.constraint(equalTo: self.contentView.bottomAnchor).isActive = true
+        bottomBackgroundView.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor).isActive = true
+        bottomBackgroundView.bottomAnchor.constraint(equalTo: self.containerView.bottomAnchor).isActive = true
+
         // Input field wrapper
         let textViewContainer = UIView()
-        textViewContainer.backgroundColor = .clear
         textViewContainer.translatesAutoresizingMaskIntoConstraints = false
         textViewContainer.addSubview(self.textView)
         self.textView.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
@@ -200,7 +210,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         textViewContainer.addSubview(self.placeholder)
         self.placeholder.text = "Add a comment"
         // Don't really understand why constants below but it works.
-        self.placeholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: textView.textContainerInset.left + 5).isActive = true
+        self.placeholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor).isActive = true
         self.placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
 
         // Horizontal stack view: [input field][post button]
@@ -208,16 +218,25 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.spacing = 0
+        let textFieldPanel = UIView()
+        textFieldPanel.backgroundColor = .systemBackground
+        textFieldPanel.translatesAutoresizingMaskIntoConstraints = false
+        textFieldPanel.preservesSuperviewLayoutMargins = true
+        textFieldPanel.addSubview(hStack)
+        hStack.leadingAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.leadingAnchor).isActive = true
+        hStack.topAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.topAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.trailingAnchor).isActive = true
+        hStack.bottomAnchor.constraint(equalTo: textFieldPanel.layoutMarginsGuide.bottomAnchor).isActive = true
 
         // Vertical stack view:
         // [Replying to]?
         // [Input Field]
         self.contentView.addSubview(self.vStack)
-        self.vStack.addArrangedSubview(hStack)
-        self.vStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        self.vStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
-        self.vStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-        self.vStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
+        self.vStack.addArrangedSubview(textFieldPanel)
+        self.vStack.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor).isActive = true
+        self.vStack.topAnchor.constraint(equalTo: self.contentView.topAnchor).isActive = true
+        self.vStack.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor).isActive = true
+        self.vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor).isActive = true
 
         self.recalculateSingleLineHeight()
 
@@ -266,10 +285,25 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     // MARK: Reply Context
 
     func showReplyPanel(with contactName: String) {
-        self.contactNameLabel.text = "Replying to \(contactName)"
+        let formatString = "Replying to <$author$>"
+        let parameterRange = (formatString as NSString).range(of: "<$author$>")
+
+        let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
+        let semiboldFont = UIFont.systemFont(ofSize: baseFont.pointSize, weight: .semibold)
+        let attributedText = NSMutableAttributedString(string: formatString, attributes: [ .font: baseFont ])
+        let author = NSAttributedString(string: contactName, attributes: [ .font: semiboldFont ])
+        attributedText.replaceCharacters(in: parameterRange, with: author)
+        attributedText.addAttribute(.foregroundColor, value: UIColor(white: 1, alpha: 0.8), range: NSRange(location: 0, length: attributedText.length))
+        self.contactNameLabel.attributedText = attributedText
         if self.vStack.arrangedSubviews.contains(self.replyContextPanel) {
             self.replyContextPanel.isHidden = false
         } else {
+            let panelSize = self.replyContextPanel.systemLayoutSizeFitting(CGSize(width: self.bounds.width, height: .greatestFiniteMagnitude),
+                                                                           withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+            self.replyContextPanel.bounds = CGRect(origin: .zero, size: panelSize)
+            self.replyContextPanel.center = CGPoint(x: self.vStack.bounds.midX, y: self.vStack.bounds.midY)
+            self.replyContextPanel.layoutIfNeeded()
+
             self.vStack.insertArrangedSubview(self.replyContextPanel, at: 0)
         }
         self.setNeedsUpdateHeight()
