@@ -14,6 +14,8 @@ extension UINavigationBarAppearance {
         get {
             let appearance = UINavigationBarAppearance()
             appearance.configureWithDefaultBackground()
+            //TODO: proper mask image.
+            appearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
             appearance.shadowColor = nil
             return appearance
         }
