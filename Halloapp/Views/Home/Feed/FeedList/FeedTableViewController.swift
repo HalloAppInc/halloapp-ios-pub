@@ -37,7 +37,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         
         DDLogInfo("FeedTableViewController/viewDidLoad")
 
-        self.navigationItem.standardAppearance = .noShadowAppearance
+        self.navigationItem.standardAppearance = self.navigationController?.navigationBar.standardAppearance
 
         let titleLabel = UILabel()
         titleLabel.attributedText = self.largeTitleUsingGothamFont

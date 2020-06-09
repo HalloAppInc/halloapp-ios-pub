@@ -64,6 +64,8 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         guard let feedPost = MainAppContext.shared.feedData.feedPost(with: self.feedPostId!) else { return }
 
         self.navigationItem.title = "Comments"
+        self.navigationItem.standardAppearance = self.navigationController?.navigationBar.standardAppearance
+        self.updateNavigationBarBackgroundEffect()
 
         if feedPost.userId == MainAppContext.shared.userData.userId {
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .done, target: self, action: #selector(retractPost))
@@ -134,6 +136,33 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
                 self.tableView.tableHeaderView = headerView
             }
         }
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let makeNavigationBarTransparent = self.tableView.contentOffset.y <= -self.tableView.adjustedContentInset.top
+        let isNavigationBarTransparent = self.navigationItem.standardAppearance?.backgroundEffect == nil
+        guard makeNavigationBarTransparent != isNavigationBarTransparent else { return }
+        if makeNavigationBarTransparent {
+            self.navigationItem.standardAppearance?.backgroundEffect = nil
+        } else {
+            self.updateNavigationBarBackgroundEffect()
+        }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if self.traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            if self.navigationItem.standardAppearance?.backgroundEffect != nil {
+                self.updateNavigationBarBackgroundEffect()
+            }
+        }
+    }
+
+    // MARK: Appearance
+
+    private func updateNavigationBarBackgroundEffect() {
+        let blurStyle: UIBlurEffect.Style = self.traitCollection.userInterfaceStyle == .light ? .systemUltraThinMaterial : .systemChromeMaterial
+        self.navigationItem.standardAppearance?.backgroundEffect = UIBlurEffect(style: blurStyle)
     }
 
     // MARK: UI Actions
