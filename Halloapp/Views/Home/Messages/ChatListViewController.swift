@@ -86,12 +86,6 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         super.viewDidAppear(animated)
     }
     
-    func dismantle() {
-        DDLogInfo("ChatListViewController/dismantle")
-        self.cancellableSet.forEach{ $0.cancel() }
-        self.cancellableSet.removeAll()
-    }
-    
     private lazy var newMessageViewController: NewMessageViewController = {
         let controller = NewMessageViewController()
         controller.delegate = self

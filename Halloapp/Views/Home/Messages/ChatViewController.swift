@@ -212,11 +212,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         }
     }
     
-    func dismantle() {
-        DDLogDebug("ChatViewController/dismantle/\(fromUserId ?? "")")
-        self.fetchedResultsController = nil
-    }
-
     // MARK:
     
     private func showPreviewView(for chatMessage: ChatMessage) {

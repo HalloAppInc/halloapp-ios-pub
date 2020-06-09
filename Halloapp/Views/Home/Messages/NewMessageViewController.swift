@@ -40,12 +40,6 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         super.init(coder: coder)
     }
 
-    func dismantle() {
-        DDLogInfo("NewMessageViewController/dismantle")
-        self.cancellableSet.forEach{ $0.cancel() }
-        self.cancellableSet.removeAll()
-    }
-
     override func viewDidLoad() {
         DDLogInfo("NewMessageViewController/viewDidLoad")
 

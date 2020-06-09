@@ -32,12 +32,6 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         super.init(coder: coder)
     }
 
-    func dismantle() {
-        DDLogInfo("FeedTableViewController/dismantle")
-        self.cancellableSet.forEach{ $0.cancel() }
-        self.cancellableSet.removeAll()
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
         
