@@ -85,22 +85,30 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private lazy var textView: InputTextView = {
         let textView = InputTextView(frame: .zero)
+        textView.tintColor = .lavaOrange
         textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
         textView.backgroundColor = .clear
         textView.autocapitalizationType = .sentences
         textView.autocorrectionType = .yes
         textView.enablesReturnKeyAutomatically = true
         textView.scrollsToTop = false
-        textView.textContainerInset.left = 8
-        textView.textContainerInset.right = 8
         textView.translatesAutoresizingMaskIntoConstraints = false
         return textView
+    }()
+
+    private lazy var placeholder: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .preferredFont(forTextStyle: .subheadline)
+        label.textColor = .placeholderText
+        return label
     }()
 
     private lazy var postButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Post", for: .normal)
         button.isEnabled = false
+        button.tintColor = .lavaOrange
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 0)
         button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
@@ -176,36 +184,10 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.contentView.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor).isActive = true
         self.contentView.bottomAnchor.constraint(equalTo: self.containerView.safeAreaLayoutGuide.bottomAnchor).isActive = true
 
-        let borderWidth = 1 / UIScreen.main.scale
-
-        // Top border.
-        let topBorder = UIView()
-        topBorder.backgroundColor = .separator
-        topBorder.translatesAutoresizingMaskIntoConstraints = false
-        self.contentView.addSubview(topBorder)
-        topBorder.heightAnchor.constraint(equalToConstant: borderWidth).isActive = true
-        topBorder.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor).isActive = true
-        topBorder.topAnchor.constraint(equalTo: self.contentView.topAnchor).isActive = true
-        topBorder.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor).isActive = true
-
         // Input field wrapper
         let textViewContainer = UIView()
         textViewContainer.backgroundColor = .clear
         textViewContainer.translatesAutoresizingMaskIntoConstraints = false
-
-        // Rounded rect box.
-        let textViewBox = UIView()
-        textViewBox.backgroundColor = .secondarySystemBackground
-        textViewBox.layer.cornerRadius = 12
-        textViewBox.layer.borderColor = UIColor.separator.cgColor
-        textViewBox.layer.borderWidth = borderWidth
-        textViewBox.translatesAutoresizingMaskIntoConstraints = false
-        textViewContainer.addSubview(textViewBox)
-        textViewBox.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
-        textViewBox.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
-        textViewBox.trailingAnchor.constraint(equalTo: textViewContainer.trailingAnchor).isActive = true
-        textViewBox.bottomAnchor.constraint(equalTo: textViewContainer.bottomAnchor).isActive = true
-
         textViewContainer.addSubview(self.textView)
         self.textView.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
         self.textView.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
@@ -213,6 +195,13 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.textView.bottomAnchor.constraint(equalTo: textViewContainer.bottomAnchor).isActive = true
         self.textView.inputTextViewDelegate = self
         self.textView.text = ""
+
+        // Placeholder
+        textViewContainer.addSubview(self.placeholder)
+        self.placeholder.text = "Add a comment"
+        // Don't really understand why constants below but it works.
+        self.placeholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: textView.textContainerInset.left + 5).isActive = true
+        self.placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true
 
         // Horizontal stack view: [input field][post button]
         let hStack = UIStackView(arrangedSubviews: [textViewContainer, self.postButton ])
@@ -328,6 +317,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     func inputTextViewDidChange(_ inputTextView: InputTextView) {
         let trimmedText = (inputTextView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         self.postButton.isEnabled = !trimmedText.isEmpty
+        self.placeholder.isHidden = !inputTextView.text.isEmpty
     }
 
     func maximumHeight(for inputTextView: InputTextView) -> CGFloat {

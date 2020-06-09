@@ -34,6 +34,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         tableView.allowsSelection = false
         tableView.dataSource = self
         tableView.delegate = self
+        tableView.backgroundColor = .feedBackgroundColor
         tableView.contentInsetAdjustmentBehavior = .scrollableAxes
         tableView.keyboardDismissMode = .interactive
         tableView.preservesSuperviewLayoutMargins = true
@@ -525,6 +526,7 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
 
     private func setupTableViewCell() {
         self.selectionStyle = .none
+        self.backgroundColor = .clear
         
         self.contentView.addSubview(self.commentView)
         self.commentView.translatesAutoresizingMaskIntoConstraints = false
