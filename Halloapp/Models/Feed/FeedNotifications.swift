@@ -10,6 +10,7 @@ import CocoaLumberjack
 import Combine
 import CoreData
 import Foundation
+import Core
 
 class FeedNotifications: NSObject, NSFetchedResultsControllerDelegate {
 
@@ -24,7 +25,7 @@ class FeedNotifications: NSObject, NSFetchedResultsControllerDelegate {
         do {
             try fetchedResultsController.performFetch()
         } catch {
-            DDLogError("FeedNotifications/fetch/error [\(error)]")
+            Log.e("FeedNotifications/fetch/error [\(error)]")
             fatalError("Failed to fetch feed notifications.")
         }
     }
@@ -46,7 +47,7 @@ class FeedNotifications: NSObject, NSFetchedResultsControllerDelegate {
             self.unreadCount = try managedObjectContext.count(for: fetchRequest)
         }
         catch {
-            DDLogError("FeedNotifications/fetch/error [\(error)]")
+            Log.e("FeedNotifications/fetch/error [\(error)]")
             fatalError("Failed to fetch feed notifications.")
         }
     }

@@ -10,6 +10,7 @@ import Accelerate
 import CocoaLumberjack
 import CoreGraphics
 import SwiftUI
+import Core
 
 extension UIImage {
     
@@ -41,7 +42,7 @@ extension UIImage {
 
         let originalSize = CGSize(width: self.size.width * self.scale, height: self.size.height * self.scale)
 
-        DDLogDebug("UIImage/resize/from [\(NSCoder.string(for: originalSize))] to [\(NSCoder.string(for: size))]")
+        Log.d("UIImage/resize/from [\(NSCoder.string(for: originalSize))] to [\(NSCoder.string(for: size))]")
         var resizedBufferWidth: vImagePixelCount, resizedBufferHeight: vImagePixelCount
         let widthCG = cgImage.width
         let heightCG = cgImage.height
@@ -65,13 +66,13 @@ extension UIImage {
         var inBuffer = vImage_Buffer()
         let inError = vImageBuffer_InitWithCGImage(&inBuffer, &format, nil, cgImage, vImage_Flags(kvImageNoFlags))
         guard inError == kvImageNoError else {
-            DDLogError("UIImage/resize/in/error: [\(inError)]")
+            Log.e("UIImage/resize/in/error: [\(inError)]")
             return nil
         }
         var outBuffer = vImage_Buffer()
         let outError = vImageBuffer_Init(&outBuffer, resizedBufferHeight, resizedBufferWidth, 32, vImage_Flags(kvImageNoFlags))
         guard outError == kvImageNoError else {
-            DDLogError("UIImage/resize/out/error: [\(outError)]")
+            Log.e("UIImage/resize/out/error: [\(outError)]")
             free(inBuffer.data)
             return nil
         }
@@ -86,7 +87,7 @@ extension UIImage {
             var rotatedBuffer = vImage_Buffer()
             let error = vImageBuffer_Init(&rotatedBuffer, resizedBufferWidth, resizedBufferHeight, 32, vImage_Flags(kvImageNoFlags))
             if error != kvImageNoError {
-                DDLogError("UIImage/resize/rotate-buffer/error: [\(error)]")
+                Log.e("UIImage/resize/rotate-buffer/error: [\(error)]")
             } else {
                 vImageRotate90_ARGB8888(&outBuffer, &rotatedBuffer, 3, &backColor, vImage_Flags(kvImageNoFlags))
             }
@@ -96,7 +97,7 @@ extension UIImage {
             var rotatedBuffer = vImage_Buffer()
             let error = vImageBuffer_Init(&rotatedBuffer, resizedBufferWidth, resizedBufferHeight, 32, vImage_Flags(kvImageNoFlags))
             if error != kvImageNoError {
-                DDLogError("UIImage/resize/rotate-buffer/error: [\(error)]")
+                Log.e("UIImage/resize/rotate-buffer/error: [\(error)]")
             } else {
                 vImageRotate90_ARGB8888(&outBuffer, &rotatedBuffer, 1, &backColor, vImage_Flags(kvImageNoFlags))
             }
@@ -106,7 +107,7 @@ extension UIImage {
             var rotatedBuffer = vImage_Buffer()
             let error = vImageBuffer_Init(&rotatedBuffer, resizedBufferHeight, resizedBufferWidth, 32, vImage_Flags(kvImageNoFlags))
             if error != kvImageNoError {
-                DDLogError("UIImage/resize/rotate-buffer/error: [\(error)]")
+                Log.e("UIImage/resize/rotate-buffer/error: [\(error)]")
             } else {
                 vImageRotate90_ARGB8888(&outBuffer, &rotatedBuffer, 2, &backColor, vImage_Flags(kvImageNoFlags))
             }
@@ -120,7 +121,7 @@ extension UIImage {
         var convertError: vImage_Error = 0
         let imageCG = vImageCreateCGImageFromBuffer(&outBuffer, &format, nil, nil, vImage_Flags(kvImageNoFlags), &convertError)
         if convertError != kvImageNoError {
-            DDLogError("UIImage/resize/cgimage/error: [\(convertError)]")
+            Log.e("UIImage/resize/cgimage/error: [\(convertError)]")
         }
         free(outBuffer.data)
         guard let cgImageResult = imageCG?.takeUnretainedValue() else { return nil }
@@ -207,7 +208,7 @@ extension UIImage {
         let newImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         if newImage == nil {
-            DDLogError("UIImage/resize/failed: size: \(NSCoder.string(for: self.size)), scale: \(self.scale), removeAlpha: \(removeAlpha)")
+            Log.e("UIImage/resize/failed: size: \(NSCoder.string(for: self.size)), scale: \(self.scale), removeAlpha: \(removeAlpha)")
         }
         return newImage
     }

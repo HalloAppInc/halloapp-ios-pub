@@ -96,7 +96,7 @@ class MediaCrypter {
         var bytes = [UInt8](repeating: 0, count: count)
         let result = SecRandomCopyBytes(kSecRandomDefault, count, &bytes)
         guard result == errSecSuccess else {
-            DDLogError("HAC/generateKey error=[\(result)]")
+            Log.e("HAC/generateKey error=[\(result)]")
             throw Error.keyGeneration(status: Int(result))
         }
         return Data(bytes: bytes, count: count)

@@ -13,6 +13,8 @@ import Photos
 import SwiftUI
 import UIKit
 import YPImagePicker
+import Core
+
 
 class FeedViewController: FeedTableViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, YPImagePickerDelegate {
 
@@ -94,7 +96,7 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
 
             if let videoSize = VideoUtils().resolutionForLocalVideo(url: videoURL) {
                 mediaToPost!.size = videoSize
-                DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
+                Log.i("Video size: [\(NSCoder.string(for: videoSize))]")
             }
         }
         self.dismiss(animated: mediaToPost == nil) {
@@ -169,7 +171,7 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
 
                     if let videoSize = VideoUtils().resolutionForLocalVideo(url: video.url) {
                         mediaItem.size = videoSize
-                        DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
+                        Log.i("Video size: [\(NSCoder.string(for: videoSize))]")
                     }
 
                     if let asset = video.asset {

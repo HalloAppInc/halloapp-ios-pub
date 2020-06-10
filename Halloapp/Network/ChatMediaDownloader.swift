@@ -8,6 +8,7 @@
 import CocoaLumberjack
 import Combine
 import Foundation
+import Core
 
 class ChatMediaDownloader {
     
@@ -47,7 +48,7 @@ class ChatMediaDownloader {
     }
 
     func tryDownload() {
-        DDLogInfo("ImageLoader/\(self.getUrl) Download attempt [\(self.retries)]")
+        Log.i("ImageLoader/\(self.getUrl) Download attempt [\(self.retries)]")
         
         if self.retries < self.maxRetries {
             let delay = (self.retries < 1) ? 0.0 : self.waitBetweenRetries
@@ -65,7 +66,7 @@ class ChatMediaDownloader {
         let task = URLSession.shared.downloadTask(with: urlRequest) { localUrl, response, error in
             if error == nil {
                 if let httpResponse = response as? HTTPURLResponse {
-                    DDLogInfo("ImageLoader/\(self.getUrl) Got response [\(httpResponse)]")
+                    Log.i("ImageLoader/\(self.getUrl) Got response [\(httpResponse)]")
                     if httpResponse.statusCode != 200 {
                         self.tryDownload()
                         return
@@ -80,7 +81,7 @@ class ChatMediaDownloader {
 //                }
 
             } else {
-                DDLogError("ImageLoader/\(self.getUrl) Error [\(error!)]")
+                Log.e("ImageLoader/\(self.getUrl) Error [\(error!)]")
                 self.tryDownload()
             }
         }

@@ -109,10 +109,10 @@ class FeedDownloadManager {
 
     @discardableResult private func addTask(_ task: Task) -> Bool {
         guard !self.tasks.contains(task) else {
-            DDLogError("FeedDownloadManager/\(task.id)/duplicate [\(task.downloadURL)]")
+            Log.e("FeedDownloadManager/\(task.id)/duplicate [\(task.downloadURL)]")
             return false
         }
-        DDLogDebug("FeedDownloadManager/\(task.id)/download/start [\(task.downloadURL)]")
+        Log.d("FeedDownloadManager/\(task.id)/download/start [\(task.downloadURL)]")
         let fileURL = FeedDownloadManager.self.fileURL(for: task.filename).appendingPathExtension("enc")
         let destination: DownloadRequest.Destination = { _, _ in
             return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
@@ -120,7 +120,7 @@ class FeedDownloadManager {
         // TODO: move reponse handler off the main thread.
         AF.download(task.downloadURL, to: destination).responseData { (afDownloadResponse) in
             if afDownloadResponse.error == nil, let httpURLResponse = afDownloadResponse.response {
-                DDLogDebug("FeedDownloadManager/\(task.id)/download/finished [\(afDownloadResponse.response!)]")
+                Log.d("FeedDownloadManager/\(task.id)/download/finished [\(afDownloadResponse.response!)]")
                 if httpURLResponse.statusCode == 200, let fileURL = afDownloadResponse.fileURL {
                     task.fileURL = fileURL
                     self.decryptionQueue.async {
@@ -131,7 +131,7 @@ class FeedDownloadManager {
                     self.taskFailed(task)
                 }
             } else {
-                DDLogDebug("FeedDownloadManager/\(task.id)/download/error [\(String(describing: afDownloadResponse.error))]")
+                Log.d("FeedDownloadManager/\(task.id)/download/error [\(String(describing: afDownloadResponse.error))]")
                 task.error = afDownloadResponse.error
                 self.taskFailed(task)
             }
@@ -150,47 +150,47 @@ class FeedDownloadManager {
 
         // Load data
         // TODO: decrypt without loading contents of the entire file into memory.
-        DDLogDebug("FeedDownloadManager/\(task.id)/load-data [\(task.fileURL!)]")
+        Log.d("FeedDownloadManager/\(task.id)/load-data [\(task.fileURL!)]")
         var encryptedData: Data
         do {
             encryptedData = try Data(contentsOf: task.fileURL!)
         } catch {
             task.error = error
-            DDLogError("FeedDownloadManager/\(task.id)/load/error [\(error)]")
+            Log.e("FeedDownloadManager/\(task.id)/load/error [\(error)]")
             self.taskFailed(task)
             return
         }
 
         // Decrypt data
         guard let mediaKey = Data(base64Encoded: task.key), let sha256Hash = Data(base64Encoded: task.sha256) else {
-            DDLogError("FeedDownloadManager/\(task.id)/load/error Invalid key or hash.")
+            Log.e("FeedDownloadManager/\(task.id)/load/error Invalid key or hash.")
             task.error = NSError(domain: "com.halloapp.downloadmanager", code: 1, userInfo: nil)
             self.taskFailed(task)
             return
         }
 
         let ts = Date()
-        DDLogDebug("FeedDownloadManager/\(task.id)/decrypt/begin size=[\(encryptedData.count)]")
+        Log.d("FeedDownloadManager/\(task.id)/decrypt/begin size=[\(encryptedData.count)]")
         let decryptedData: Data
         do {
             decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: task.mediaType)
         } catch {
-            DDLogError("FeedDownloadManager/\(task.id)/decrypt/error [\(error)]")
+            Log.e("FeedDownloadManager/\(task.id)/decrypt/error [\(error)]")
             task.error = error
             self.taskFailed(task)
             return
         }
-        DDLogInfo("FeedDownloadManager/\(task.id)/decrypt/finished size=[\(decryptedData.count)] duration: \(-ts.timeIntervalSinceNow) s")
+        Log.i("FeedDownloadManager/\(task.id)/decrypt/finished size=[\(decryptedData.count)] duration: \(-ts.timeIntervalSinceNow) s")
 
         // Write unencrypted data to file
         let fileURL = task.fileURL!.deletingPathExtension()
-        DDLogDebug("FeedDownloadManager/\(task.id)/save to [\(fileURL.absoluteString)]")
+        Log.d("FeedDownloadManager/\(task.id)/save to [\(fileURL.absoluteString)]")
         do {
             try decryptedData.write(to: fileURL)
         }
         catch {
             task.error = error
-            DDLogError("FeedDownloadManager/\(task.id)/save/failed [\(error)]")
+            Log.e("FeedDownloadManager/\(task.id)/save/failed [\(error)]")
             self.taskFailed(task)
             return
         }
@@ -200,7 +200,7 @@ class FeedDownloadManager {
             try FileManager.default.removeItem(at: task.fileURL!)
         }
         catch {
-            DDLogError("FeedDownloadManager/\(task.id)/delete-encrypted/error [\(error)]")
+            Log.e("FeedDownloadManager/\(task.id)/delete-encrypted/error [\(error)]")
         }
         task.fileURL = fileURL
 
@@ -220,7 +220,7 @@ class FeedDownloadManager {
                 try FileManager.default.removeItem(at: task.fileURL!)
             }
             catch {
-                DDLogDebug("FeedDownloadManager/\(task.id)/delete-encrypted/error [\(error)]")
+                Log.d("FeedDownloadManager/\(task.id)/delete-encrypted/error [\(error)]")
             }
             task.fileURL = nil
         }

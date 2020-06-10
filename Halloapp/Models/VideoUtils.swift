@@ -10,6 +10,7 @@ import CocoaLumberjack
 import Foundation
 import AVFoundation
 import SwiftUI
+import Core
 
 import UIKit
 import AVKit
@@ -47,12 +48,12 @@ class VideoUtils {
         var videoWidth = Int(abs(size.width))
         var videoHeight = Int(abs(size.height))
 
-        DDLogInfo("Original Video Resolution: \(videoWidth) x \(videoHeight)")
+        Log.i("Original Video Resolution: \(videoWidth) x \(videoHeight)")
 
         // portrait
         if videoHeight > videoWidth {
             if videoHeight > Int(desiredSize.width) {
-                DDLogInfo("Portrait taller than \(Int(desiredSize.width)), need to rescale")
+                Log.i("Portrait taller than \(Int(desiredSize.width)), need to rescale")
 
                 let ratio = Double(videoWidth)/Double(videoHeight)
                 let resizedWidth = ratio*854
@@ -60,12 +61,12 @@ class VideoUtils {
                 videoHeight = Int(desiredSize.width)
                 videoWidth = Int(resizedWidth)
 
-                DDLogInfo("New Video Resolution: \(videoWidth) x \(videoHeight)")
+                Log.i("New Video Resolution: \(videoWidth) x \(videoHeight)")
             }
         // landscape or square
         } else {
             if videoWidth > Int(desiredSize.width) {
-                DDLogInfo("Landscape wider than \(Int(desiredSize.width)), need to rescale")
+                Log.i("Landscape wider than \(Int(desiredSize.width)), need to rescale")
 
                 let ratio = Double(videoWidth)/Double(videoHeight)
                 let resizedHeight = Double(desiredSize.width)/ratio
@@ -73,7 +74,7 @@ class VideoUtils {
                 videoWidth = Int(desiredSize.width)
                 videoHeight = Int(resizedHeight)
 
-                DDLogInfo("New Video Resolution: \(videoWidth) x \(videoHeight)")
+                Log.i("New Video Resolution: \(videoWidth) x \(videoHeight)")
             }
         }
 

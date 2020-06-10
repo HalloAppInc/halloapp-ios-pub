@@ -9,6 +9,7 @@
 import CocoaLumberjack
 import Combine
 import Foundation
+import Core
 
 enum ChatMessageMediaType: Int {
     case image = 0
@@ -68,7 +69,7 @@ class ChatMessageMedia: Identifiable, ObservableObject, Hashable {
             return
         }
 
-        DDLogDebug("ChatMessageMedia/image/load [\(path)]")
+        Log.d("ChatMessageMedia/image/load [\(path)]")
         ChatMessageMedia.chatImageLoadingQueue.async {
             let image = UIImage(contentsOfFile: path)
             DispatchQueue.main.async {

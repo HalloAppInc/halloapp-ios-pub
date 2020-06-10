@@ -7,7 +7,6 @@
 //
 
 import CocoaLumberjack
-import FirebaseCrashlytics
 
 class LogFormatter: NSObject, DDLogFormatter {
 
@@ -40,7 +39,6 @@ class LogFormatter: NSObject, DDLogFormatter {
         let queueName = LogFormatter.queueLabel(for: logMessage)
         let logLevel = LogFormatter.logLevel(for: logMessage)
         let logMessageStr = logMessage.message.replacingOccurrences(of: "\n", with: "\n\(logLevel) ")
-        Crashlytics.crashlytics().log("\(queueName) \(logLevel) \(logMessageStr)")
         return "\(queueName) \(logLevel) \(logMessageStr)"
     }
 }

@@ -35,10 +35,10 @@ open class XMPPRequest {
 
     func send(using xmppController: XMPPController) {
         guard self.state == .ready else {
-            DDLogWarn("xmpprequest/\(self.requestId)/send: not ready [\(self.state)]")
+            Log.w("xmpprequest/\(self.requestId)/send: not ready [\(self.state)]")
             return
         }
-        DDLogInfo("xmpprequest/\(self.requestId)/sending")
+        Log.i("xmpprequest/\(self.requestId)/sending")
         self.state = .sending
         xmppController.xmppStream.send(self.iq)
     }
@@ -47,13 +47,13 @@ open class XMPPRequest {
         guard self.state == .sending || self.state == .ready else {
             return
         }
-        DDLogWarn("xmpprequest/\(self.requestId)/failed: not-connected")
+        Log.w("xmpprequest/\(self.requestId)/failed: not-connected")
         self.state = .cancelled
         self.didFail(with: xmppErrorNotConnected())
     }
 
     func cancelAndPrepareFor(retry willRetry: Bool) -> Bool {
-        DDLogError("xmpprequest/\(self.requestId)/failed/rr=\(self.retriesRemaining)")
+        Log.e("xmpprequest/\(self.requestId)/failed/rr=\(self.retriesRemaining)")
         switch (self.state) {
         case .finished, .cancelled:
                 return false
@@ -78,7 +78,7 @@ open class XMPPRequest {
         }
         self.state = .finished
         self.response = response
-        DDLogDebug("xmpprequest/\(self.requestId)/response \(response)")
+        Log.d("xmpprequest/\(self.requestId)/response \(response)")
         if response.isResultIQ {
             self.didFinish(with: response)
         } else if response.isErrorIQ {

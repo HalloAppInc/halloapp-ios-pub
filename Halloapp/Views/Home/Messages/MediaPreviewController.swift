@@ -12,13 +12,14 @@ import CoreData
 import SwiftUI
 import UIKit
 import AVKit
+import Core
 
 class MediaPreviewController: UIViewController {
     
     private var chatMessage: ChatMessage?
     
     init(for chatMessage: ChatMessage) {
-        DDLogDebug("ChatMediaPreview/init")
+        Log.d("ChatMediaPreview/init")
         self.chatMessage = chatMessage
         super.init(nibName: nil, bundle: nil)
     }
@@ -28,7 +29,7 @@ class MediaPreviewController: UIViewController {
     }
 
     override func viewDidLoad() {
-        DDLogInfo("MediaPreviewController/viewDidLoad")
+        Log.i("MediaPreviewController/viewDidLoad")
         super.viewDidLoad()  
         
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))

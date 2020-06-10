@@ -13,6 +13,7 @@ import Photos
 import SwiftUI
 import UIKit
 import YPImagePicker
+import Core
 
 struct PickerWrapper: UIViewControllerRepresentable {
 
@@ -90,7 +91,7 @@ struct PickerWrapper: UIViewControllerRepresentable {
 
                         if let videoSize = VideoUtils().resolutionForLocalVideo(url: video.url) {
                             mediaItem.size = videoSize
-                            DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
+                            Log.i("Video size: [\(NSCoder.string(for: videoSize))]")
                         }
                             
                         if let asset = video.asset {

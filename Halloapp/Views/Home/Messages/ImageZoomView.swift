@@ -8,6 +8,7 @@
 import CocoaLumberjack
 import Foundation
 import UIKit
+import Core
 
 class ImageZoomView: UIView, UIScrollViewDelegate {
     
@@ -22,7 +23,7 @@ class ImageZoomView: UIView, UIScrollViewDelegate {
     }
     
     func setup() {
-        DDLogDebug("Chat/imagezoomview/setup")
+        Log.d("Chat/imagezoomview/setup")
 
         self.addSubview(mainColumn)
         self.mainColumn.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true

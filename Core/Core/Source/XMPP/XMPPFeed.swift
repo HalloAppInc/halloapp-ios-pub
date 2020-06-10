@@ -49,7 +49,7 @@ extension Proto_Container {
             }
         }
         catch {
-            DDLogError("xmpp/post/invalid-protobuf")
+            Log.e("xmpp/post/invalid-protobuf")
         }
         return nil
     }

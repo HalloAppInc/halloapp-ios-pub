@@ -84,10 +84,10 @@ open class AppContext {
                 let toURL = userDataDatabaseLocationInAppGroup.appendingPathComponent("UserData").appendingPathExtension(fileExtension)
                 do {
                     try FileManager.default.moveItem(at: fromURL, to: toURL)
-                    DDLogInfo("Moved UserData from [\(fromURL)] to [\(toURL)]")
+                    Log.i("Moved UserData from [\(fromURL)] to [\(toURL)]")
                 }
                 catch {
-                    DDLogError("Failed to move UserData from [\(fromURL)] to [\(toURL)]")
+                    Log.e("Failed to move UserData from [\(fromURL)] to [\(toURL)]")
                 }
             }
         }

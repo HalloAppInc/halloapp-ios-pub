@@ -42,7 +42,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }()
 
     init(feedPostId: FeedPostID) {
-        DDLogDebug("CommentsViewController/init/\(feedPostId)")
+        Log.d("CommentsViewController/init/\(feedPostId)")
         self.feedPostId = feedPostId
         super.init(nibName: nil, bundle: nil)
         self.hidesBottomBarWhenPushed = true
@@ -53,7 +53,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     deinit {
-        DDLogDebug("CommentsViewController/deinit/\(feedPostId ?? "")")
+        Log.d("CommentsViewController/deinit/\(feedPostId ?? "")")
     }
 
     override func viewDidLoad() {
@@ -222,21 +222,21 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
             commentIndex = nextRootCommentIndex
         }
         self.sortedComments.insert(comment, at: commentIndex)
-        DDLogDebug("CommentsView/frc/insert Position: [\(commentIndex)] Comment: [\(comment)]")
+        Log.d("CommentsView/frc/insert Position: [\(commentIndex)] Comment: [\(comment)]")
         self.tableView.insertRows(at: [ IndexPath(row: commentIndex, section: CommentsViewController.sectionMain) ], with: .fade)
     }
 
     private func delete(comment: FeedPostComment) {
         guard let commentIndex = self.sortedComments.firstIndex(where: { $0 == comment }) else { return }
         self.sortedComments.remove(at: commentIndex)
-        DDLogDebug("CommentsView/frc/delete Position: [\(commentIndex)] Comment: [\(comment)]")
+        Log.d("CommentsView/frc/delete Position: [\(commentIndex)] Comment: [\(comment)]")
         self.tableView.deleteRows(at: [ IndexPath(row: commentIndex, section: CommentsViewController.sectionMain) ], with: .fade)
     }
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         reloadTableViewInDidChangeContent = false
         trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
-        DDLogDebug("CommentsView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+        Log.d("CommentsView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
@@ -261,7 +261,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let comment = anObject as? FeedPostComment else { break }
-            DDLogDebug("CommentsView/frc/move [\(comment)] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            Log.d("CommentsView/frc/move [\(comment)] from [\(fromIndexPath)] to [\(toIndexPath)]")
             trackPerRowFRCChanges = false
             reloadTableViewInDidChangeContent = true
 
@@ -269,7 +269,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
             guard let comment = anObject as? FeedPostComment else { return }
             let commentIndex = self.sortedComments.firstIndex(where: { $0 == comment })
             if trackPerRowFRCChanges && commentIndex != nil {
-                DDLogDebug("CommentsView/frc/update Position: [\(commentIndex!)]  Comment: [\(comment)] ")
+                Log.d("CommentsView/frc/update Position: [\(commentIndex!)]  Comment: [\(comment)] ")
                 // Update cell directly if there are animations attached to the UITableView.
                 // This is done to prevent multiple animation from overlapping and breaking
                 // smooth animation on new comment send.
@@ -291,7 +291,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("CommentsView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        Log.d("CommentsView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
         if !trackPerRowFRCChanges {
             self.reloadComments()
         }

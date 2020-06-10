@@ -70,7 +70,7 @@ class SyncManager {
         guard !self.isSyncEnabled else {
             return
         }
-        DDLogInfo("syncmanager/enabled")
+        Log.i("syncmanager/enabled")
         self.isSyncEnabled = true
 
         self.fullSyncTimer.schedule(wallDeadline: DispatchWallTime.now(), repeating: 60)
@@ -88,7 +88,7 @@ class SyncManager {
     }
 
     func disableSync() {
-        DDLogInfo("syncmanager/disabled")
+        Log.i("syncmanager/disabled")
 
         self.isSyncEnabled = false
         self.isSyncInProgress = false
@@ -111,19 +111,19 @@ class SyncManager {
     }
 
     func add(deleted userIds: Set<ABContact.NormalizedPhoneNumber>) {
-        DDLogDebug("syncmanager/add-deleted [\(userIds)]")
+        Log.d("syncmanager/add-deleted [\(userIds)]")
         self.pendingDeletes.formUnion(userIds)
     }
 
     // MARK: Scheduling
 
     func requestDeltaSync() {
-        DDLogInfo("syncmanager/request/delta")
+        Log.i("syncmanager/request/delta")
         self.requestSyncWith(mode: .delta)
     }
 
     func requestFullSync() {
-        DDLogInfo("syncmanager/request/full")
+        Log.i("syncmanager/request/full")
         self.requestSyncWith(mode: .full)
     }
 
@@ -134,7 +134,7 @@ class SyncManager {
 
             let failureReason = self.runSyncIfNecessary()
             if failureReason != .none {
-                DDLogError("syncmanager/sync/failed [\(failureReason)]")
+                Log.e("syncmanager/sync/failed [\(failureReason)]")
             }
         }
     }
@@ -142,7 +142,7 @@ class SyncManager {
     // MARK: Run sync
     private func runFullSyncIfNecessary() {
         let nextFullSyncDate = self.contactStore.databaseMetadata?[ContactStoreMetadataNextFullSyncDate] as? Date
-        DDLogInfo("syncmanager/scheduled-full/check d:[\(String(describing: nextFullSyncDate))]")
+        Log.i("syncmanager/scheduled-full/check d:[\(String(describing: nextFullSyncDate))]")
 
         var runFullSync = false
 
@@ -207,13 +207,13 @@ class SyncManager {
     }
 
     private func reallyPerformSync() {
-        DDLogInfo("syncmanager/sync/prepare/\(self.nextSyncMode)")
+        Log.i("syncmanager/sync/prepare/\(self.nextSyncMode)")
 
         let contactsToSync = ContactStore.contactsAccessAuthorized ? self.contactStore.contactsFor(fullSync: self.nextSyncMode == .full) : []
 
         // Do not run delta syncs with an empty set of users.
         guard self.nextSyncMode == .full || !contactsToSync.isEmpty || !self.pendingDeletes.isEmpty else {
-            DDLogInfo("syncmanager/delta/cancel-no-items")
+            Log.i("syncmanager/delta/cancel-no-items")
             return
         }
 
@@ -231,7 +231,7 @@ class SyncManager {
         self.isSyncInProgress = true
 
         let syncMode = self.nextSyncMode
-        DDLogInfo("syncmanager/sync/start/\(self.nextSyncMode) [\(xmppContacts.count)]")
+        Log.i("syncmanager/sync/start/\(self.nextSyncMode) [\(xmppContacts.count)]")
         let syncSession = SyncSession(mode: syncMode, contacts: xmppContacts) { results, error in
             self.queue.async {
                 self.processSyncResponse(mode: syncMode, contacts: results, error: error)
@@ -242,7 +242,7 @@ class SyncManager {
 
     private func processSyncResponse(mode: SyncMode, contacts: [XMPPContact]?, error: Error?) {
         guard error == nil else {
-            DDLogError("syncmanager/sync/\(mode)/response/error [\(error!)]")
+            Log.e("syncmanager/sync/\(mode)/response/error [\(error!)]")
             self.finishSync(with: mode, result: .fail, failureReason: .serverError)
             return
         }
@@ -275,7 +275,7 @@ class SyncManager {
     }
 
     func processNotification(contacts: [XMPPContact], completion: @escaping () -> Void) {
-        DDLogInfo("syncmanager/notification contacts=[\(contacts)]")
+        Log.i("syncmanager/notification contacts=[\(contacts)]")
         guard !contacts.isEmpty else {
             completion()
             return

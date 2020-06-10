@@ -34,7 +34,7 @@ open class XMPPController: NSObject {
     // MARK: Connection State
     public private(set) var connectionState: ConnectionState = .notConnected {
         didSet {
-            DDLogDebug("xmpp/connectionState/change [\(oldValue)] -> [\(connectionState)]")
+            Log.d("xmpp/connectionState/change [\(oldValue)] -> [\(connectionState)]")
             runCallbacksForCurrentConnectionState()
         }
     }
@@ -82,7 +82,7 @@ open class XMPPController: NSObject {
     public func connect() {
         guard xmppStream.myJID != nil else { return }
 
-        DDLogInfo("xmpp/connect [version \(xmppStream.clientVersion)]")
+        Log.i("xmpp/connect [version \(xmppStream.clientVersion)]")
 
         xmppStream.hostName = userData.hostName
 
@@ -95,14 +95,14 @@ open class XMPPController: NSObject {
     }
 
     public func disconnect() {
-        DDLogInfo("xmpp/disconnect")
+        Log.i("xmpp/disconnect")
 
         connectionState = .disconnecting
         xmppStream.disconnectAfterSending()
     }
 
     public func disconnectImmediately() {
-        DDLogInfo("xmpp/disconnectImmediately")
+        Log.i("xmpp/disconnectImmediately")
 
         connectionState = .notConnected
         xmppStream.disconnect()
@@ -138,7 +138,7 @@ open class XMPPController: NSObject {
 
     public func sendAck(for message: XMPPMessage) {
         if let ack = XMPPAck.ack(for: message) {
-            DDLogDebug("connection/send-ack id=[\(ack.id)] to=[\(ack.to)] from=[\(ack.from)]")
+            Log.d("connection/send-ack id=[\(ack.id)] to=[\(ack.to)] from=[\(ack.from)]")
             self.xmppStream.send(ack.xmlElement)
         }
     }
@@ -178,14 +178,14 @@ open class XMPPController: NSObject {
             return
         }
         guard self.xmppStream.isConnected else {
-            DDLogWarn("connection/requests/resend/skipped [\(self.requestsToSend.count)] [no connection]")
+            Log.w("connection/requests/resend/skipped [\(self.requestsToSend.count)] [no connection]")
             return
         }
 
         let allRequests = self.requestsToSend
         self.requestsToSend.removeAll()
 
-        DDLogInfo("connection/requests/resend [\(allRequests.count)]")
+        Log.i("connection/requests/resend [\(allRequests.count)]")
         for request in allRequests {
             request.send(using: self)
         }
@@ -193,7 +193,7 @@ open class XMPPController: NSObject {
     }
 
     func cancelAllRequests() {
-        DDLogInfo("connection/requests/cancel/all [\(self.requestsInFlight.count)]")
+        Log.i("connection/requests/cancel/all [\(self.requestsInFlight.count)]")
 
         let allRequests = self.requestsInFlight + self.requestsToSend
         self.requestsInFlight.removeAll()
@@ -235,10 +235,10 @@ open class XMPPController: NSObject {
             matchingRequests.append(contentsOf: removeRequest(with: requestId, outOf: &self.requestsInFlight))
             matchingRequests.append(contentsOf: removeRequest(with: requestId, outOf: &self.requestsToSend))
             if matchingRequests.count > 1 {
-                DDLogWarn("connection/response/\(requestId)/warning: found \(matchingRequests.count) requests")
+                Log.w("connection/response/\(requestId)/warning: found \(matchingRequests.count) requests")
             }
             for request in matchingRequests {
-                DDLogInfo("connection/response/\(type(of: request))/\(requestId)")
+                Log.i("connection/response/\(type(of: request))/\(requestId)")
                 request.process(response: iq)
             }
         }
@@ -256,38 +256,38 @@ open class XMPPController: NSObject {
 extension XMPPController: XMPPStreamDelegate {
 
     public func xmppStreamWillConnect(_ sender: XMPPStream) {
-        DDLogInfo("xmpp/stream/willConnect")
+        Log.i("xmpp/stream/willConnect")
 
         connectionState = .connecting
     }
 
     public func xmppStreamConnectDidTimeout(_ stream: XMPPStream) {
-        DDLogInfo("xmpp/stream/connectDidTimeout")
+        Log.i("xmpp/stream/connectDidTimeout")
     }
 
     public func xmppStreamDidDisconnect(_ sender: XMPPStream, withError error: Error?) {
-        DDLogInfo("xmpp/stream/didDisconnect [\(String(describing: error))]")
+        Log.i("xmpp/stream/didDisconnect [\(String(describing: error))]")
 
         connectionState = .notConnected
         cancelAllRequests()
     }
 
     public func xmppStream(_ sender: XMPPStream, socketDidConnect socket: GCDAsyncSocket) {
-        DDLogInfo("xmpp/stream/socketDidConnect")
+        Log.i("xmpp/stream/socketDidConnect")
     }
 
     public func xmppStreamDidStartNegotiation(_ sender: XMPPStream) {
-        DDLogInfo("xmpp/stream/didStartNegotiation")
+        Log.i("xmpp/stream/didStartNegotiation")
     }
 
     public func xmppStream(_ sender: XMPPStream, willSecureWithSettings settings: NSMutableDictionary) {
-        DDLogInfo("xmpp/stream/willSecureWithSettings [\(settings)]")
+        Log.i("xmpp/stream/willSecureWithSettings [\(settings)]")
 
         settings.setObject(true, forKey:GCDAsyncSocketManuallyEvaluateTrust as NSCopying)
     }
 
     public func xmppStream(_ sender: XMPPStream, didReceive trust: SecTrust, completionHandler: ((Bool) -> Void)) {
-        DDLogInfo("xmpp/stream/didReceiveTrust")
+        Log.i("xmpp/stream/didReceiveTrust")
 
         if SecTrustEvaluateWithError(trust, nil) {
             completionHandler(true)
@@ -298,24 +298,24 @@ extension XMPPController: XMPPStreamDelegate {
     }
 
     public func xmppStreamDidSecure(_ sender: XMPPStream) {
-        DDLogInfo("xmpp/stream/didSecure")
+        Log.i("xmpp/stream/didSecure")
     }
 
     public func xmppStreamDidConnect(_ stream: XMPPStream) {
-        DDLogInfo("xmpp/stream/didConnect")
+        Log.i("xmpp/stream/didConnect")
 
         try! stream.authenticate(withPassword: self.userData.password)
     }
 
     public func xmppStreamDidAuthenticate(_ sender: XMPPStream) {
-        DDLogInfo("xmpp/stream/didAuthenticate")
+        Log.i("xmpp/stream/didAuthenticate")
 
         connectionState = .connected
         performOnConnect()
     }
 
     public func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: DDXMLElement) {
-        DDLogInfo("xmpp/stream/didNotAuthenticate")
+        Log.i("xmpp/stream/didNotAuthenticate")
 
         self.userData.logout()
     }
@@ -326,25 +326,25 @@ extension XMPPController: XMPPStreamDelegate {
             return
         }
 
-        DDLogInfo("xmpp/stream/didReceiveMessage id=[\(message.elementID ?? "<empty>")]")
+        Log.i("xmpp/stream/didReceiveMessage id=[\(message.elementID ?? "<empty>")]")
 
         didReceive(message: message)
     }
 
     public func xmppStream(_ sender: XMPPStream, didReceive iq: XMPPIQ) -> Bool {
-        DDLogInfo("xmpp/stream/didReceiveIQ id=[\(iq.elementID ?? "<empty>")]")
+        Log.i("xmpp/stream/didReceiveIQ id=[\(iq.elementID ?? "<empty>")]")
 
         didReceive(IQ: iq)
         return false
     }
 
     public func xmppStream(_ sender: XMPPStream, didReceiveError error: DDXMLElement) {
-        DDLogInfo("xmpp/stream/didReceiveError [\(error)]")
+        Log.i("xmpp/stream/didReceiveError [\(error)]")
 
         if error.element(forName: "conflict") != nil {
             if let text = error.element(forName: "text")?.stringValue {
                 if text == "User removed" {
-                    DDLogInfo("Stream: Same user logged into another device, logging out of this one")
+                    Log.i("Stream: Same user logged into another device, logging out of this one")
                     self.userData.logout()
                 }
             }
@@ -352,19 +352,19 @@ extension XMPPController: XMPPStreamDelegate {
     }
 
     public func xmppStream(_ sender: XMPPStream, didReceive presence: XMPPPresence) {
-        DDLogInfo("xmpp/stream/didReceivePresence")
+        Log.i("xmpp/stream/didReceivePresence")
 
         didReceive(presence: presence)
     }
 
     public func xmppStream(_ sender: XMPPStream, didReceiveCustomElement element: DDXMLElement) {
-        DDLogInfo("xmpp/stream/didReceiveCustomElement [\(element)]")
+        Log.i("xmpp/stream/didReceiveCustomElement [\(element)]")
 
         if element.name == "ack" {
             if let ack = XMPPAck(itemElement: element) {
                 didReceive(ack: ack)
             } else {
-                DDLogError("xmpp/ack/invalid [\(element)]")
+                Log.e("xmpp/ack/invalid [\(element)]")
             }
         }
     }
@@ -373,7 +373,7 @@ extension XMPPController: XMPPStreamDelegate {
 extension XMPPController: XMPPReconnectDelegate {
 
     public func xmppReconnect(_ sender: XMPPReconnect, didDetectAccidentalDisconnect connectionFlags: SCNetworkConnectionFlags) {
-        DDLogInfo("xmpp/xmppReconnect/didDetectAccidentalDisconnect")
+        Log.i("xmpp/xmppReconnect/didDetectAccidentalDisconnect")
     }
 
     public func xmppReconnect(_ sender: XMPPReconnect, shouldAttemptAutoReconnect connectionFlags: SCNetworkConnectionFlags) -> Bool {
@@ -384,11 +384,11 @@ extension XMPPController: XMPPReconnectDelegate {
 extension XMPPController: XMPPPingDelegate {
 
     public func xmppPing(_ sender: XMPPPing!, didReceivePong pong: XMPPIQ!, withRTT rtt: TimeInterval) {
-        DDLogInfo("xmpp/ping/didReceivePong")
+        Log.i("xmpp/ping/didReceivePong")
     }
 
     public func xmppPing(_ sender: XMPPPing!, didNotReceivePong pingID: String!, dueToTimeout timeout: TimeInterval) {
-        DDLogInfo("xmpp/ping/didNotReceivePong")
+        Log.i("xmpp/ping/didNotReceivePong")
     }
 }
 

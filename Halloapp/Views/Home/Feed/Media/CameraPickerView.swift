@@ -8,6 +8,7 @@
 
 import CocoaLumberjack
 import SwiftUI
+import Core
 
 struct CameraPickerView: UIViewControllerRepresentable {
 
@@ -66,7 +67,7 @@ struct CameraPickerView: UIViewControllerRepresentable {
                 if let videoSize = VideoUtils().resolutionForLocalVideo(url: videoURL) {
                     mediaItem.size = videoSize
 
-                    DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
+                    Log.i("Video size: [\(NSCoder.string(for: videoSize))]")
                 }
                 
                 self.parent.capturedMedia = [mediaItem]

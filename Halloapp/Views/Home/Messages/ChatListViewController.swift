@@ -11,6 +11,7 @@ import Combine
 import CoreData
 import SwiftUI
 import UIKit
+import Core
 
 fileprivate enum ChatListViewSection {
     case main
@@ -36,7 +37,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     }
 
     override func viewDidLoad() {
-        DDLogInfo("ChatListViewController/viewDidLoad")
+        Log.i("ChatListViewController/viewDidLoad")
 
         self.navigationItem.title = "Messages"
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
@@ -75,19 +76,19 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        DDLogInfo("ChatListViewController/viewWillAppear")
+        Log.i("ChatListViewController/viewWillAppear")
         super.viewWillAppear(animated)
         self.tableView.reloadData()
         self.populateWithSymmetricContacts()
     }
 
     override func viewDidAppear(_ animated: Bool) {
-        DDLogInfo("ChatListViewController/viewDidAppear")
+        Log.i("ChatListViewController/viewDidAppear")
         super.viewDidAppear(animated)
     }
     
     func dismantle() {
-        DDLogInfo("ChatListViewController/dismantle")
+        Log.i("ChatListViewController/dismantle")
         self.cancellableSet.forEach{ $0.cancel() }
         self.cancellableSet.removeAll()
     }
@@ -156,7 +157,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         reloadTableViewInDidChangeContent = false
         trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
-        DDLogDebug("ChatListView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+        Log.d("ChatListView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
             self.tableView.beginUpdates()
         }
@@ -166,7 +167,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         switch type {
         case .insert:
             guard let indexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/insert [\(chatThread)] at [\(indexPath)]")
+            Log.d("ChatListView/frc/insert [\(chatThread)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.insertRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -175,7 +176,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
         case .delete:
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/delete [\(chatThread)] at [\(indexPath)]")
+            Log.d("ChatListView/frc/delete [\(chatThread)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -184,7 +185,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/move [\(chatThread)] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            Log.d("ChatListView/frc/move [\(chatThread)] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
                 reloadTableViewInDidChangeContent = true
@@ -194,7 +195,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
         case .update:
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { return }
-            DDLogDebug("ChatListView/frc/update [\(chatThread)] at [\(indexPath)]")
+            Log.d("ChatListView/frc/update [\(chatThread)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.reloadRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -207,7 +208,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("ChatListView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        Log.d("ChatListView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
         if trackPerRowFRCChanges {
             self.tableView.endUpdates()
         }
@@ -228,7 +229,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         }
 
         if isTimeToCheck {
-            DDLogDebug("ChatList/populateWithSymmetricContacts")
+            Log.d("ChatList/populateWithSymmetricContacts")
             MainAppContext.shared.chatData.populateThreadsWithSymmetricContacts()
             self.lastCheckedForNewContacts = Date()
         }
@@ -276,7 +277,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
             guard metadata[NotificationKey.keys.contentType] == NotificationKey.contentType.chat else { return }
 
             if let senderId = metadata[NotificationKey.keys.fromId] {
-                DDLogInfo("appdelegate/tap-notifications/didDetect/changedToChatViewForUser \(senderId)")
+                Log.i("appdelegate/tap-notifications/didDetect/changedToChatViewForUser \(senderId)")
 
                 self.navigationController?.popToRootViewController(animated: false)
                 self.navigationController?.pushViewController(ChatViewController(for: senderId, with: nil, at: 0, status: .none, lastSeen: nil), animated: true)

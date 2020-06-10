@@ -9,7 +9,6 @@ target 'Core' do
 end
 
 target 'HalloApp' do
-  pod 'Firebase/Crashlytics'
   pod 'NextLevelSessionExporter', '>= 0.4.5'
   pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
   pod 'YPImagePicker', :git => 'git@github.com:HalloAppInc/YPImagePicker.git', :tag => '4.2.6'

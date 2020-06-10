@@ -54,7 +54,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // when app resumes, xmpp reconnects, feed should try uploading any pending again
         self.cancellableSet.insert(
             self.xmppController.didConnect.sink {
-                DDLogInfo("Feed: Got event for didConnect")
+                Log.i("Feed: Got event for didConnect")
 
                 self.deleteExpiredPosts()
 
@@ -63,7 +63,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         
         self.cancellableSet.insert(
             self.userData.didLogOff.sink {
-                DDLogInfo("Unloading feed data. \(self.feedDataItems.count) posts")
+                Log.i("Unloading feed data. \(self.feedDataItems.count) posts")
 
                 self.destroyStore()
             })
@@ -81,7 +81,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func loadPersistentContainer() {
         let container = self.persistentContainer
-        DDLogDebug("FeedData/loadPersistentStore Loaded [\(container)]")
+        Log.d("FeedData/loadPersistentStore Loaded [\(container)]")
     }
 
     private lazy var persistentContainer: NSPersistentContainer = {
@@ -99,12 +99,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func loadPersistentStores(in persistentContainer: NSPersistentContainer) {
         persistentContainer.loadPersistentStores { (description, error) in
             if let error = error {
-                DDLogError("Failed to load persistent store: \(error)")
-                DDLogError("Deleting persistent store at [\(FeedData.persistentStoreURL.absoluteString)]")
+                Log.e("Failed to load persistent store: \(error)")
+                Log.e("Deleting persistent store at [\(FeedData.persistentStoreURL.absoluteString)]")
                 try! FileManager.default.removeItem(at: FeedData.persistentStoreURL)
                 fatalError("Unable to load persistent store: \(error)")
             } else {
-                DDLogInfo("FeedData/load-store/completed [\(description)]")
+                Log.i("FeedData/load-store/completed [\(description)]")
             }
         }
     }
@@ -124,17 +124,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func save(_ managedObjectContext: NSManagedObjectContext) {
-        DDLogVerbose("FeedData/will-save")
+        Log.v("FeedData/will-save")
         do {
             try managedObjectContext.save()
-            DDLogVerbose("FeedData/did-save")
+            Log.v("FeedData/did-save")
         } catch {
-            DDLogError("FeedData/save-error error=[\(error)]")
+            Log.e("FeedData/save-error error=[\(error)]")
         }
     }
 
     func destroyStore() {
-        DDLogInfo("FeedData/destroy/start")
+        Log.i("FeedData/destroy/start")
 
         // Tell subscribers that everything is going away forever.
         self.willDestroyStore.send()
@@ -153,28 +153,28 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             stores.forEach { (store) in
                 do {
                     try coordinator.remove(store)
-                    DDLogError("FeedData/destroy/remove-store/finised [\(store)]")
+                    Log.e("FeedData/destroy/remove-store/finised [\(store)]")
                 }
                 catch {
-                    DDLogError("FeedData/destroy/remove-store/error [\(error)]")
+                    Log.e("FeedData/destroy/remove-store/error [\(error)]")
                 }
             }
 
             try coordinator.destroyPersistentStore(at: FeedData.persistentStoreURL, ofType: NSSQLiteStoreType, options: nil)
-            DDLogInfo("FeedData/destroy/delete-store/complete")
+            Log.i("FeedData/destroy/delete-store/complete")
         }
         catch {
-            DDLogError("FeedData/destroy/delete-store/error [\(error)]")
+            Log.e("FeedData/destroy/delete-store/error [\(error)]")
             fatalError("Failed to destroy Feed store.")
         }
 
         // Delete saved Feed media.
         do {
             try FileManager.default.removeItem(at: MainAppContext.mediaDirectoryURL)
-            DDLogError("FeedData/destroy/delete-media/finished")
+            Log.e("FeedData/destroy/delete-media/finished")
         }
         catch {
-            DDLogError("FeedData/destroy/delete-media/error [\(error)]")
+            Log.e("FeedData/destroy/delete-media/error [\(error)]")
         }
 
         // Load an empty store.
@@ -187,7 +187,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Tell subscribers that store is ready to use again.
         self.didReloadStore.send()
 
-        DDLogInfo("FeedData/destroy/finished")
+        Log.i("FeedData/destroy/finished")
     }
 
     // MARK: Fetched Results Controller
@@ -222,11 +222,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             try self.fetchedResultsController.performFetch()
             if let feedPosts = self.fetchedResultsController.fetchedObjects {
                 self.reloadFeedDataItems(using: feedPosts)
-                DDLogInfo("FeedData/fetch/completed \(self.feedDataItems.count) posts")
+                Log.i("FeedData/fetch/completed \(self.feedDataItems.count) posts")
             }
         }
         catch {
-            DDLogError("FeedData/fetch/error [\(error)]")
+            Log.e("FeedData/fetch/error [\(error)]")
             fatalError("Failed to fetch feed items \(error)")
         }
 
@@ -247,7 +247,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private var trackPerRowChanges = false
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("FeedData/frc/will-change")
+        Log.d("FeedData/frc/will-change")
         self.trackPerRowChanges = !self.feedDataItems.isEmpty
     }
 
@@ -259,7 +259,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             guard let index = newIndexPath?.row, let feedPost = anObject as? FeedPost else {
                 return
             }
-            DDLogDebug("FeedData/frc/insert [\(feedPost)] at [\(index)]")
+            Log.d("FeedData/frc/insert [\(feedPost)] at [\(index)]")
             // For some reason FRC can report invalid indexes when downloading initial batch of posts.
             // When that happens, ignore further per-row updates and reload everything altogether in `didChange`.
             if index < self.feedDataItems.count {
@@ -272,7 +272,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             guard let index = indexPath?.row, let feedPost = anObject as? FeedPost else {
                 return
             }
-            DDLogDebug("FeedData/frc/delete [\(feedPost)] at [\(index)]")
+            Log.d("FeedData/frc/delete [\(feedPost)] at [\(index)]")
             if index < self.feedDataItems.count {
                 self.feedDataItems.remove(at: index)
             } else {
@@ -283,14 +283,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             guard let index = indexPath?.row, let feedPost = anObject as? FeedPost else {
                 return
             }
-            DDLogDebug("FeedData/frc/update [\(feedPost)] at [\(index)]")
+            Log.d("FeedData/frc/update [\(feedPost)] at [\(index)]")
             self.feedDataItems[index].reload(from: feedPost)
 
         case .move:
             guard let fromIndex = indexPath?.row, let toIndex = newIndexPath?.row, let feedPost = anObject as? FeedPost else {
                 return
             }
-            DDLogDebug("FeedData/frc/move [\(feedPost)] from [\(fromIndex)] to [\(toIndex)]")
+            Log.d("FeedData/frc/move [\(feedPost)] from [\(fromIndex)] to [\(toIndex)]")
             // TODO: move
 
         default:
@@ -299,11 +299,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("FeedData/frc/did-change")
+        Log.d("FeedData/frc/did-change")
         if !trackPerRowChanges {
             if let feedPosts = self.fetchedResultsController.fetchedObjects {
                 self.reloadFeedDataItems(using: feedPosts, fullReload: false)
-                DDLogInfo("FeedData/frc/reload \(self.feedDataItems.count) posts")
+                Log.i("FeedData/frc/reload \(self.feedDataItems.count) posts")
             }
         } else {
             self.isFeedEmpty = self.feedDataItems.isEmpty
@@ -327,7 +327,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return posts
         }
         catch {
-            DDLogError("FeedData/fetch-posts/error  [\(error)]")
+            Log.e("FeedData/fetch-posts/error  [\(error)]")
             fatalError("Failed to fetch feed posts.")
         }
     }
@@ -350,7 +350,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return comments.first
         }
         catch {
-            DDLogError("FeedData/fetch-comments/error  [\(error)]")
+            Log.e("FeedData/fetch-comments/error  [\(error)]")
             fatalError("Failed to fetch feed post comments.")
         }
     }
@@ -364,7 +364,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return comments
         }
         catch {
-            DDLogError("FeedData/fetch-comments/error  [\(error)]")
+            Log.e("FeedData/fetch-comments/error  [\(error)]")
             fatalError("Failed to fetch feed post comments.")
         }
     }
@@ -374,10 +374,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func updateFeedPost(with id: FeedPostID, block: @escaping (FeedPost) -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedPost = self.feedPost(with: id, in: managedObjectContext) else {
-                DDLogError("FeedData/update-post/missing-post [\(id)]")
+                Log.e("FeedData/update-post/missing-post [\(id)]")
                 return
             }
-            DDLogVerbose("FeedData/update-post [\(id)]")
+            Log.v("FeedData/update-post [\(id)]")
             block(feedPost)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -388,10 +388,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func updateFeedPostComment(with id: FeedPostCommentID, block: @escaping (FeedPostComment) -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let comment = self.feedComment(with: id, in: managedObjectContext) else {
-                DDLogError("FeedData/update-comment/missing-comment [\(id)]")
+                Log.e("FeedData/update-comment/missing-comment [\(id)]")
                 return
             }
-            DDLogVerbose("FeedData/update-comment [\(id)]")
+            Log.v("FeedData/update-comment [\(id)]")
             block(comment)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -418,12 +418,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         var newPosts: [FeedPost] = []
         for xmppPost in xmppPosts {
             guard existingPosts[xmppPost.id] == nil else {
-                DDLogError("FeedData/process-posts/duplicate [\(xmppPost.id)]")
+                Log.e("FeedData/process-posts/duplicate [\(xmppPost.id)]")
                 continue
             }
 
             // Add new FeedPost to database.
-            DDLogDebug("FeedData/process-posts/new [\(xmppPost.id)]")
+            Log.d("FeedData/process-posts/new [\(xmppPost.id)]")
             let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
             feedPost.id = xmppPost.id
             feedPost.userId = xmppPost.userId
@@ -433,7 +433,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             // Process post media
             for (index, xmppMedia) in xmppPost.media.enumerated() {
-                DDLogDebug("FeedData/process-posts/new/add-media [\(xmppMedia.url)]")
+                Log.d("FeedData/process-posts/new/add-media [\(xmppMedia.url)]")
                 let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
                 switch xmppMedia.type {
                 case .image:
@@ -452,7 +452,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             newPosts.append(feedPost)
         }
-        DDLogInfo("FeedData/process-posts/finished  \(newPosts.count) new items.  \(xmppPosts.count - newPosts.count) duplicates.")
+        Log.i("FeedData/process-posts/finished  \(newPosts.count) new items.  \(xmppPosts.count - newPosts.count) duplicates.")
         self.save(managedObjectContext)
 
         // Only initiate downloads for feed posts received in real-time.
@@ -488,20 +488,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Detect duplicate comments.
                 guard comments[xmppComment.id] == nil else {
                     duplicateCount += 1
-                    DDLogError("FeedData/process-comments/duplicate [\(xmppComment.id)]")
+                    Log.e("FeedData/process-comments/duplicate [\(xmppComment.id)]")
                     continue
                 }
 
                 // Find comment's post.
                 guard let feedPost = feedPosts[xmppComment.feedPostId] else {
-                    DDLogError("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]")
+                    Log.e("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]")
                     ignoredCommentIds.insert(xmppComment.id)
                     continue
                 }
 
                 // Check if post has been retracted.
                 guard !feedPost.isPostRetracted else {
-                    DDLogError("FeedData/process-comments/retracted-post [\(xmppComment.feedPostId)]")
+                    Log.e("FeedData/process-comments/retracted-post [\(xmppComment.feedPostId)]")
                     ignoredCommentIds.insert(xmppComment.id)
                     continue
                 }
@@ -511,20 +511,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 if xmppComment.parentId != nil {
                     parentComment = comments[xmppComment.parentId!]
                     if parentComment == nil {
-                        DDLogInfo("FeedData/process-comments/missing-parent/skip [\(xmppComment.id)]")
+                        Log.i("FeedData/process-comments/missing-parent/skip [\(xmppComment.id)]")
                         continue
                     }
                 }
 
                 // Check if parent comment has been retracted.
                 if parentComment?.isCommentRetracted ?? false {
-                    DDLogError("FeedData/process-comments/retracted-parent [\(parentComment!.id)]")
+                    Log.e("FeedData/process-comments/retracted-parent [\(parentComment!.id)]")
                     ignoredCommentIds.insert(xmppComment.id)
                     continue
                 }
 
                 // Add new FeedPostComment to database.
-                DDLogDebug("FeedData/process-comments/new [\(xmppComment.id)]")
+                Log.d("FeedData/process-comments/new [\(xmppComment.id)]")
                 let comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
                 comment.id = xmppComment.id
                 comment.userId = xmppComment.userId
@@ -547,7 +547,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Safeguard against infinite loop.
             numRuns += 1
         }
-        DDLogInfo("FeedData/process-comments/finished  \(newComments.count) new items.  \(duplicateCount) duplicates.  \(ignoredCommentIds.count) ignored.")
+        Log.i("FeedData/process-comments/finished  \(newComments.count) new items.  \(duplicateCount) duplicates.  \(ignoredCommentIds.count) ignored.")
         self.save(managedObjectContext)
         return newComments
     }
@@ -558,7 +558,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         var contactNames: [UserID:String] = [:]
         for item in items {
             guard let type = item.attribute(forName: "type")?.stringValue else {
-                DDLogError("Invalid item: [\(item)]")
+                Log.e("Invalid item: [\(item)]")
                 continue
             }
             if type == "feedpost" {
@@ -574,7 +574,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
             } else {
-                DDLogError("Invalid item type: [\(type)]")
+                Log.e("Invalid item type: [\(type)]")
             }
         }
 
@@ -648,7 +648,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             } else {
                 notification.mediaType = .none
             }
-            DDLogInfo("FeedData/generateNotifications  New notification [\(notification)]")
+            Log.i("FeedData/generateNotifications  New notification [\(notification)]")
 
             // Step 3. Generate media preview for the notification.
             self.generateMediaPreview(for: notification, feedPost: comment.post, using: managedObjectContext)
@@ -666,7 +666,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return results
         }
         catch {
-            DDLogError("FeedData/notifications/mark-read-all/error [\(error)]")
+            Log.e("FeedData/notifications/mark-read-all/error [\(error)]")
             fatalError("Failed to fetch notifications.")
         }
     }
@@ -691,7 +691,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             } else {
                 notifications = self.notifications(with: isNotReadPredicate, in: managedObjectContext)
             }
-            DDLogInfo("FeedData/notifications/mark-read-all Count: \(notifications.count)")
+            Log.i("FeedData/notifications/mark-read-all Count: \(notifications.count)")
             notifications.forEach { $0.read = true }
             self.save(managedObjectContext)
         }
@@ -746,16 +746,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func processRetract(forPostId postId: FeedPostID, completion: @escaping () -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else {
-                DDLogError("FeedData/retract-post/error Missing post. [\(postId)]")
+                Log.e("FeedData/retract-post/error Missing post. [\(postId)]")
                 completion()
                 return
             }
             guard feedPost.status != .retracted  else {
-                DDLogError("FeedData/retract-post/error Already retracted. [\(postId)]")
+                Log.e("FeedData/retract-post/error Already retracted. [\(postId)]")
                 completion()
                 return
             }
-            DDLogInfo("FeedData/retract-post [\(postId)]")
+            Log.i("FeedData/retract-post [\(postId)]")
 
             // 1. Delete media.
             self.deleteMedia(in: feedPost)
@@ -787,16 +787,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func processRetract(forCommentId commentId: FeedPostCommentID, completion: @escaping () -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedComment = self.feedComment(with: commentId, in: managedObjectContext) else {
-                DDLogError("FeedData/retract-comment/error Missing comment. [\(commentId)]")
+                Log.e("FeedData/retract-comment/error Missing comment. [\(commentId)]")
                 completion()
                 return
             }
             guard feedComment.status != .retracted else {
-                DDLogError("FeedData/retract-comment/error Already retracted. [\(commentId)]")
+                Log.e("FeedData/retract-comment/error Already retracted. [\(commentId)]")
                 completion()
                 return
             }
-            DDLogInfo("FeedData/retract-comment [\(commentId)]")
+            Log.i("FeedData/retract-comment [\(commentId)]")
 
             // 1. Reset comment text and mark comment as deleted.
             // TBD: should replies be deleted too?
@@ -826,11 +826,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let processingGroup = DispatchGroup()
         for item in items {
             guard let itemId = item.attributeStringValue(forName: "id") else {
-                DDLogError("FeedData/process-retract/error Missing item id. [\(item)]")
+                Log.e("FeedData/process-retract/error Missing item id. [\(item)]")
                 continue
             }
             guard let type = item.attribute(forName: "type")?.stringValue else {
-                DDLogError("FeedData/process-retract/error Missing item type. [\(item)]")
+                Log.e("FeedData/process-retract/error Missing item type. [\(item)]")
                 continue
             }
             if type == "feedpost" {
@@ -844,7 +844,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     processingGroup.leave()
                 }
             } else {
-                DDLogError("FeedData/process-retract/error Invalid item type. [\(item)]")
+                Log.e("FeedData/process-retract/error Invalid item type. [\(item)]")
             }
         }
         processingGroup.notify(queue: DispatchQueue.main) {
@@ -897,10 +897,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Read Receipts
 
     func xmppController(_ xmppController: XMPPController, didReceiveFeedReceipt xmppReceipt: XMPPReceipt, in xmppMessage: XMPPMessage?) {
-        DDLogInfo("FeedData/seen-receipt/incoming itemId=[\(xmppReceipt.itemId)]")
+        Log.i("FeedData/seen-receipt/incoming itemId=[\(xmppReceipt.itemId)]")
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedPost = self.feedPost(with: xmppReceipt.itemId, in: managedObjectContext) else {
-                DDLogError("FeedData/seen-receipt/missing-post [\(xmppReceipt.itemId)]")
+                Log.e("FeedData/seen-receipt/missing-post [\(xmppReceipt.itemId)]")
                 if let message = xmppMessage {
                     xmppController.sendAck(for: message)
                 }
@@ -915,7 +915,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 receipts[xmppReceipt.userId] = Receipt()
             }
             receipts[xmppReceipt.userId]!.seenDate = xmppReceipt.timestamp
-            DDLogInfo("FeedData/seen-receipt/update  userId=[\(xmppReceipt.userId)]  ts=[\(xmppReceipt.timestamp!)]  itemId=[\(xmppReceipt.itemId)]")
+            Log.i("FeedData/seen-receipt/update  userId=[\(xmppReceipt.userId)]  ts=[\(xmppReceipt.timestamp!)]  itemId=[\(xmppReceipt.itemId)]")
             feedPost.info!.receipts = receipts
             feedPost.didChangeValue(forKey: "info")
 
@@ -933,7 +933,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             let feedPosts = self.feedPosts(predicate: NSPredicate(format: "statusValue == %d", FeedPost.Status.seenSending.rawValue), in: managedObjectContext)
             guard !feedPosts.isEmpty else { return }
-            DDLogInfo("FeedData/seen-receipt/resend count=[\(feedPosts.count)]")
+            Log.i("FeedData/seen-receipt/resend count=[\(feedPosts.count)]")
             feedPosts.forEach { (feedPost) in
                 self.internalSendSeenReceipt(for: feedPost)
             }
@@ -1005,21 +1005,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             // Step 1: Update FeedPostMedia
             guard let feedPostMedia = try? managedObjectContext.existingObject(with: task.feedMediaObjectId) as? FeedPostMedia else {
-                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  objectId=[\(task.feedMediaObjectId)]")
+                Log.e("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  objectId=[\(task.feedMediaObjectId)]")
                 return
             }
 
             guard feedPostMedia.relativeFilePath == nil else {
-                DDLogError("FeedData/download-task/\(task.id)/error File already exists media=[\(feedPostMedia)]")
+                Log.e("FeedData/download-task/\(task.id)/error File already exists media=[\(feedPostMedia)]")
                 return
             }
 
             if task.error == nil {
-                DDLogInfo("FeedData/download-task/\(task.id)/complete [\(task.fileURL!)]")
+                Log.i("FeedData/download-task/\(task.id)/complete [\(task.fileURL!)]")
                 feedPostMedia.status = .downloaded
                 feedPostMedia.relativeFilePath = task.relativeFilePath
             } else {
-                DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
+                Log.e("FeedData/download-task/\(task.id)/error [\(task.error!)]")
                 feedPostMedia.status = .downloadError
             }
 
@@ -1058,7 +1058,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
         catch {
-            DDLogError("FeedData/fetch-notifications/error  [\(error)]")
+            Log.e("FeedData/fetch-notifications/error  [\(error)]")
             fatalError("Failed to fetch feed notifications.")
         }
     }
@@ -1073,15 +1073,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func updateMediaPreview(for notifications: [FeedNotification], usingImageAt url: URL) {
         guard let image = UIImage(contentsOfFile: url.path) else {
-            DDLogError("FeedData/notification/preview/error  Failed to load image at [\(url)]")
+            Log.e("FeedData/notification/preview/error  Failed to load image at [\(url)]")
             return
         }
         guard let preview = image.resized(to: CGSize(width: 128, height: 128), contentMode: .scaleAspectFill, downscaleOnly: false) else {
-            DDLogError("FeedData/notification/preview/error  Failed to generate preview for image at [\(url)]")
+            Log.e("FeedData/notification/preview/error  Failed to generate preview for image at [\(url)]")
             return
         }
         guard let imageData = preview.jpegData(compressionQuality: 0.5) else {
-            DDLogError("FeedData/notification/preview/error  Failed to generate PNG for image at [\(url)]")
+            Log.e("FeedData/notification/preview/error  Failed to generate PNG for image at [\(url)]")
             return
         }
         notifications.forEach { $0.mediaPreview = imageData }
@@ -1094,7 +1094,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Create and save new FeedPost object.
         let managedObjectContext = self.persistentContainer.viewContext
-        DDLogDebug("FeedData/new-post/create [\(postId)]")
+        Log.d("FeedData/new-post/create [\(postId)]")
         let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
         feedPost.id = postId
         feedPost.userId = AppContext.shared.userData.userId
@@ -1103,7 +1103,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         feedPost.timestamp = Date()
         // Add post media.
         for (index, mediaItem) in media.enumerated() {
-            DDLogDebug("FeedData/new-post/add-media [\(mediaItem.url!)]")
+            Log.d("FeedData/new-post/add-media [\(mediaItem.url!)]")
             let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
             feedMedia.type = mediaItem.type
             feedMedia.status = .uploaded // For now we're only posting when all uploads are completed.
@@ -1119,7 +1119,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 try downloadManager.copyMedia(from: mediaItem, to: feedMedia)
             }
             catch {
-                DDLogError("FeedData/new-post/copy-media/error [\(error)]")
+                Log.e("FeedData/new-post/copy-media/error [\(error)]")
             }
         }
         self.save(managedObjectContext)
@@ -1148,17 +1148,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Create and save FeedPostComment
         let managedObjectContext = self.persistentContainer.viewContext
         guard let feedPost = self.feedPost(with: feedItem.id, in: managedObjectContext) else {
-            DDLogError("FeedData/new-comment/error  Missing FeedPost with id [\(feedItem.id)]")
+            Log.e("FeedData/new-comment/error  Missing FeedPost with id [\(feedItem.id)]")
             fatalError("Unable to find FeedPost")
         }
         var parentComment: FeedPostComment?
         if parentCommentId != nil {
             parentComment = self.feedComment(with: parentCommentId!, in: managedObjectContext)
             if parentComment == nil {
-                DDLogError("FeedData/new-comment/error  Missing parent comment with id=[\(parentCommentId!)]")
+                Log.e("FeedData/new-comment/error  Missing parent comment with id=[\(parentCommentId!)]")
             }
         }
-        DDLogDebug("FeedData/new-comment/create id=[\(commentId)]  postId=[\(feedPost.id)]")
+        Log.d("FeedData/new-comment/create id=[\(commentId)]  postId=[\(feedPost.id)]")
         let comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
         comment.id = commentId
         comment.userId = AppContext.shared.userData.userId
@@ -1222,7 +1222,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     try FileManager.default.removeItem(at: fileURL)
                 }
                 catch {
-                    DDLogError("FeedData/delete-media/error [\(error)]")
+                    Log.e("FeedData/delete-media/error [\(error)]")
                 }
             }
             feedPost.managedObjectContext?.delete(media)
@@ -1232,24 +1232,24 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func deleteExpiredPosts() {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             let cutoffDate = Date(timeIntervalSinceNow: -Date.days(30))
-            DDLogInfo("FeedData/delete-expired  date=[\(cutoffDate)]")
+            Log.i("FeedData/delete-expired  date=[\(cutoffDate)]")
             let fetchRequest = NSFetchRequest<FeedPost>(entityName: FeedPost.entity().name!)
             fetchRequest.predicate = NSPredicate(format: "timestamp < %@", cutoffDate as NSDate)
             do {
                 let posts = try managedObjectContext.fetch(fetchRequest)
                 guard !posts.isEmpty else {
-                    DDLogInfo("FeedData/delete-expired/empty")
+                    Log.i("FeedData/delete-expired/empty")
                     return
                 }
-                DDLogInfo("FeedData/delete-expired/begin  count=[\(posts.count)]")
+                Log.i("FeedData/delete-expired/begin  count=[\(posts.count)]")
                 posts.forEach {
                     self.deleteMedia(in: $0)
                     managedObjectContext.delete($0)
                 }
-                DDLogInfo("FeedData/delete-expired/finished")
+                Log.i("FeedData/delete-expired/finished")
             }
             catch {
-                DDLogError("FeedData/delete-expired/error  [\(error)]")
+                Log.e("FeedData/delete-expired/error  [\(error)]")
                 return
             }
             self.save(managedObjectContext)

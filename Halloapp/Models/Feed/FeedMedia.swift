@@ -70,7 +70,7 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
             return
         }
 
-        DDLogDebug("FeedMedia/image/load [\(path)]")
+        Log.d("FeedMedia/image/load [\(path)]")
         FeedMedia.imageLoadingQueue.async {
             let image = UIImage(contentsOfFile: path)
             DispatchQueue.main.async {

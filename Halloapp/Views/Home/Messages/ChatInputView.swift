@@ -652,7 +652,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         let endFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
         var duration: TimeInterval = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as! TimeInterval
         var curve: UIView.AnimationCurve = UIView.AnimationCurve(rawValue: notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as! Int)!
-        DDLogDebug("keyboard/will-show: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
+        Log.d("keyboard/will-show: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
         self.updateBottomInset(from: endFrame)
         if duration == 0 && self.keyboardState == .shown {
             duration = CommentInputView.heightChangeAnimationDuration
@@ -673,7 +673,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         self.keyboardState = .shown
         let beginFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)!.cgRectValue
         let endFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
-        DDLogDebug("keyboard/did-show: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
+        Log.d("keyboard/did-show: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
     }
 
     @objc private func keyboardWillHide(notification: Notification) {
@@ -684,7 +684,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         let endFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
         var duration: TimeInterval = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as! TimeInterval
         var curve: UIView.AnimationCurve = UIView.AnimationCurve(rawValue: notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as! Int)!
-        DDLogDebug("keyboard/will-hide: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
+        Log.d("keyboard/will-hide: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
         self.updateBottomInset(from: endFrame)
         if duration == 0 {
             duration = CommentInputView.heightChangeAnimationDuration
@@ -700,7 +700,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         self.keyboardState = .hidden
         let beginFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)!.cgRectValue
         let endFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
-        DDLogDebug("keyboard/did-hide: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
+        Log.d("keyboard/did-hide: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
 
         // If the owning view controller disappears while the keyboard is still visible, we need to
         // manually notify the view controller to update its bottom inset. Otherwise, for certain

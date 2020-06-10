@@ -9,6 +9,7 @@
 import Alamofire
 import CocoaLumberjack
 import SwiftUI
+import Core
 
 class ImageServer {
     private let jpegCompressionQuality = CGFloat(MainAppContext.shared.userData.compressionQuality)
@@ -44,7 +45,7 @@ class ImageServer {
         AF.session.getTasksWithCompletionHandler { (dataTasks, uploadTasks, downloadTasks) in
             uploadTasks.forEach { (task) in
                 // Cancellation of a task will invoke task completion handler.
-                DDLogDebug("ImageServer/upload/cancel")
+                Log.d("ImageServer/upload/cancel")
                 task.cancel()
             }
         }
@@ -78,11 +79,11 @@ class ImageServer {
             switch (item.type) {
             case .image:
                 guard let image = item.image else {
-                    DDLogError("ImageServer/image/prepare/error  Empty image [\(item)]")
+                    Log.e("ImageServer/image/prepare/error  Empty image [\(item)]")
                     // TODO: assign error
                     break
                 }
-                DDLogInfo("ImageServer/image/prepare  Original image size: [\(NSCoder.string(for: item.size!))]")
+                Log.i("ImageServer/image/prepare  Original image size: [\(NSCoder.string(for: item.size!))]")
 
                 // TODO: move resize off the main thread
                 let imageSize = item.size!
@@ -94,11 +95,11 @@ class ImageServer {
 
                     let ts = Date()
                     guard let resized = image.resized(to: targetSize) else {
-                        DDLogError("ImageServer/image/prepare/error  Resize failed [\(item)]")
+                        Log.e("ImageServer/image/prepare/error  Resize failed [\(item)]")
                         // TODO: assign error
                         break
                     }
-                    DDLogDebug("ImageServer/image/prepare  Resized in \(-ts.timeIntervalSinceNow) s")
+                    Log.d("ImageServer/image/prepare  Resized in \(-ts.timeIntervalSinceNow) s")
 
                     self.mediaProcessingGroup.enter()
                     DispatchQueue.main.async {
@@ -107,31 +108,31 @@ class ImageServer {
                         self.mediaProcessingGroup.leave()
                     }
 
-                    DDLogInfo("ImageServer/image/prepare  Downscaled image size: [\(item.size!)]")
+                    Log.i("ImageServer/image/prepare  Downscaled image size: [\(item.size!)]")
                 }
 
                 guard let imgData = item.image!.jpegData(compressionQuality: self.jpegCompressionQuality) else {
-                    DDLogError("ImageServer/image/prepare/error  Failed to generate JPEG data. \(item)")
+                    Log.e("ImageServer/image/prepare/error  Failed to generate JPEG data. \(item)")
                     // TODO: assign error
                     break
                 }
-                DDLogInfo("ImageServer/image/prepare/ready  JPEG Quality: [\(self.jpegCompressionQuality)] Size: [\(imgData.count)]")
+                Log.i("ImageServer/image/prepare/ready  JPEG Quality: [\(self.jpegCompressionQuality)] Size: [\(imgData.count)]")
 
                 plaintextData = imgData
 
             case .video:
                 guard let videoUrl = item.videoURL else {
-                    DDLogError("ImageServer/video/prepare/error  Empty video URL. \(item)")
+                    Log.e("ImageServer/video/prepare/error  Empty video URL. \(item)")
                     // TODO: assign error
                     break
                 }
                 guard let fileAttrs = try? FileManager.default.attributesOfItem(atPath: videoUrl.path) else {
-                    DDLogError("ImageServer/video/prepare/error  Failed to get file attributes. \(item)")
+                    Log.e("ImageServer/video/prepare/error  Failed to get file attributes. \(item)")
                     // TODO: assign error
                     break
                 }
                 let fileSize = fileAttrs[FileAttributeKey.size] as! NSNumber
-                DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)]")
+                Log.i("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)]")
 
                 mediaResizeGroup.enter()
                 VideoUtils().resizeVideo(inputUrl: videoUrl) { (outputUrl, videoSize) in
@@ -141,7 +142,7 @@ class ImageServer {
                             item.size = videoSize
                             self.mediaProcessingGroup.leave()
                         }
-                        DDLogInfo("ImageServer/video/prepare/ready  New Video size: [\(resizedVideoData.count)]")
+                        Log.i("ImageServer/video/prepare/ready  New Video size: [\(resizedVideoData.count)]")
                         plaintextData = resizedVideoData
                     } else {
                         // TODO: assign error
@@ -160,13 +161,13 @@ class ImageServer {
                 // Save unencrypted data to disk - this will be copied to Feed media directory
                 // if user proceeds posting media.
                 let tempMediaURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(item.url!.lastPathComponent)
-                DDLogDebug("ImageServer/media/copy to [\(tempMediaURL)]")
+                Log.d("ImageServer/media/copy to [\(tempMediaURL)]")
                 do {
                     try plaintextData?.write(to: tempMediaURL, options: [ .atomic ])
                     item.fileURL = tempMediaURL
                 }
                 catch {
-                    DDLogError("ImageServer/media/copy/error [\(error)]")
+                    Log.e("ImageServer/media/copy/error [\(error)]")
                     // TODO: assign error
                     self.mediaProcessingGroup.leave()
                     return
@@ -174,16 +175,16 @@ class ImageServer {
 
                 let ts = Date()
                 let data: Data, key: Data, sha256Hash: Data
-                DDLogDebug("ImageServer/encrypt/begin")
+                Log.d("ImageServer/encrypt/begin")
                 do {
                     (data, key, sha256Hash) = try MediaCrypter.encrypt(data: plaintextData!, mediaType: item.type)
                 } catch {
-                    DDLogError("ImageServer/encrypt/error item=[\(item)] [\(error)]")
+                    Log.e("ImageServer/encrypt/error item=[\(item)] [\(error)]")
                     // TODO: assign error
                     self.mediaProcessingGroup.leave()
                     return
                 }
-                DDLogDebug("ImageServer/encrypt/finished  Duration: \(-ts.timeIntervalSinceNow) s")
+                Log.d("ImageServer/encrypt/finished  Duration: \(-ts.timeIntervalSinceNow) s")
 
                 self.mediaProcessingGroup.enter()
                 DispatchQueue.main.async {
@@ -198,14 +199,14 @@ class ImageServer {
                     item.sha256 = sha256Hash.base64EncodedString()
 
                     // Start upload.
-                    DDLogDebug("ImageServer/upload/begin url=[\(mediaURL.get)]")
+                    Log.d("ImageServer/upload/begin url=[\(mediaURL.get)]")
                     self.mediaProcessingGroup.enter()
                     AF.upload(data, to: mediaURL.put, method: .put, headers: [ "Content-Type": "application/octet-stream" ]).response { (response) in
                         if (response.error != nil) {
-                            DDLogError("ImageServer/upload/error url=[\(mediaURL.get)] [\(response.error!)]")
+                            Log.e("ImageServer/upload/error url=[\(mediaURL.get)] [\(response.error!)]")
                             item.error = response.error
                         } else {
-                            DDLogDebug("ImageServer/upload/success url=[\(mediaURL.get)]")
+                            Log.d("ImageServer/upload/success url=[\(mediaURL.get)]")
                         }
                         self.mediaProcessingGroup.leave()
                     }
