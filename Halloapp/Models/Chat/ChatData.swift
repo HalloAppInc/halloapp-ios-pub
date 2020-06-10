@@ -50,7 +50,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         self.cancellableSet.insert(
             xmppController.didGetAck.sink { [weak self] xmppAck in
-                Log.i("ChatData/gotAck \(xmppAck)")
+                DDLogInfo("ChatData/gotAck \(xmppAck)")
                 guard let self = self else { return }
                 self.processIncomingChatAck(xmppAck)
             }
@@ -59,7 +59,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         self.cancellableSet.insert(
             xmppController.didGetNewChatMessage.sink { [weak self] xmppMessage in
                 if xmppMessage.element(forName: "chat") != nil {
-                    Log.i("ChatData/newMsg \(xmppMessage)")
+                    DDLogInfo("ChatData/newMsg \(xmppMessage)")
                     guard let self = self else { return }
                     self.processIncomingChatMessage(xmppMessage)
                 }
@@ -68,10 +68,10 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         self.cancellableSet.insert(
             self.xmppController.didConnect.sink {
-                Log.i("ChatData/onConnect ")
+                DDLogInfo("ChatData/onConnect ")
                 
                 if (UIApplication.shared.applicationState == .active) {
-                    Log.i("ChatData/onConnect/sendPresence")
+                    DDLogInfo("ChatData/onConnect/sendPresence")
                     self.sendPresence(type: "available")
                     
                     if let currentUser = self.currentlyChattingWithUserId {
@@ -80,7 +80,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                         }
                     }
                 } else {
-                    Log.d("ChatData/onConnect/appNotActive")
+                    DDLogDebug("ChatData/onConnect/appNotActive")
                 }
                 
                 self.performSeriallyOnBackgroundContext { (managedObjectContext) in
@@ -90,7 +90,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                     // which causes display of messages to be in mixed order
                     var timeDelay = 0.0
                     pendingOutgoingChatMessages.forEach {
-                        Log.i("ChatData/onConnect/processPending/chatMessages \($0.id)")
+                        DDLogInfo("ChatData/onConnect/processPending/chatMessages \($0.id)")
                         let xmppChatMessage = XMPPChatMessage(chatMessage: $0).xmppElement
                         self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) {
                             MainAppContext.shared.xmppController.xmppStream.send(xmppChatMessage)
@@ -100,7 +100,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
 
                     let pendingOutgoingSeenReceipts = self.pendingOutgoingSeenReceipts(in: managedObjectContext)
                     pendingOutgoingSeenReceipts.forEach {
-                        Log.i("ChatData/onConnect/processPending/seenReceipts \($0.id)")
+                        DDLogInfo("ChatData/onConnect/processPending/seenReceipts \($0.id)")
                         self.sendSeenReceipt(for: $0)
                     }
                 }
@@ -109,7 +109,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         self.cancellableSet.insert(
             xmppController.didGetPresence.sink { [weak self] xmppPresence in
-                Log.i("ChatData/gotPresence \(xmppPresence)")
+                DDLogInfo("ChatData/gotPresence \(xmppPresence)")
                 guard let self = self else { return }
                 self.processIncomingPresence(xmppPresence)
             }
@@ -143,13 +143,13 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 if let chatThread = self.chatThread(chatWithUserId: userId) {
                     guard chatThread.lastMsgTimestamp == nil else { continue }
                     if chatThread.title != AppContext.shared.contactStore.fullName(for: userId) {
-                        Log.d("ChatData/populateThreads/contact/rename \(userId)")
+                        DDLogDebug("ChatData/populateThreads/contact/rename \(userId)")
                         self.updateChatThread(for: userId) { (chatThread) in
                             chatThread.title = AppContext.shared.contactStore.fullName(for: userId)
                         }
                     }
                 } else {
-                    Log.i("ChatData/populateThreads/contact/new \(userId)")
+                    DDLogInfo("ChatData/populateThreads/contact/new \(userId)")
                     let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
                     chatThread.title = AppContext.shared.contactStore.fullName(for: userId)
                     chatThread.chatWithUserId = userId
@@ -170,7 +170,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     
     private func sendPresence(type: String) {
         guard AppContext.shared.xmppController.isConnected else { return }
-        Log.i("ChatData/sendPresence \(type)")
+        DDLogInfo("ChatData/sendPresence \(type)")
         let xmppJID = XMPPJID(user: userData.userId, domain: "s.halloapp.net", resource: nil)
         let xmppPresence = XMPPPresence(type: type, to: xmppJID)
         MainAppContext.shared.xmppController.xmppStream.send(xmppPresence)
@@ -185,12 +185,12 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     private func loadPersistentStores(in persistentContainer: NSPersistentContainer) {
         persistentContainer.loadPersistentStores { (description, error) in
             if let error = error {
-                Log.e("Failed to load persistent store: \(error)")
-                Log.e("Deleting persistent store at [\(ChatData.persistentStoreURL.absoluteString)]")
+                DDLogError("Failed to load persistent store: \(error)")
+                DDLogError("Deleting persistent store at [\(ChatData.persistentStoreURL.absoluteString)]")
                 try! FileManager.default.removeItem(at: ChatData.persistentStoreURL)
                 fatalError("Unable to load persistent store: \(error)")
             } else {
-                Log.i("ChatData/load-store/completed [\(description)]")
+                DDLogInfo("ChatData/load-store/completed [\(description)]")
             }
         }
     }
@@ -209,7 +209,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     
     private func loadPersistentContainer() {
         let container = self.persistentContainer
-        Log.d("ChatData/loadPersistentStore Loaded [\(container)]")
+        DDLogDebug("ChatData/loadPersistentStore Loaded [\(container)]")
     }
     
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
@@ -227,18 +227,18 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     }
     
     private func save(_ managedObjectContext: NSManagedObjectContext) {
-        Log.v("ChatData/will-save")
+        DDLogVerbose("ChatData/will-save")
         do {
             try managedObjectContext.save()
-            Log.v("ChatData/did-save")
+            DDLogVerbose("ChatData/did-save")
         } catch {
-            Log.e("ChatData/save-error error=[\(error)]")
+            DDLogError("ChatData/save-error error=[\(error)]")
         }
     }
     
     private func processIncomingChatAck(_ xmppChatAck: XMPPAck) {
         self.updateChatMessage(with: xmppChatAck.id) { (chatMessage) in
-            Log.e("ChatData/processAck [\(xmppChatAck.id)]")
+            DDLogError("ChatData/processAck [\(xmppChatAck.id)]")
 
             // outgoing message
             if chatMessage.senderStatus != .none {
@@ -258,7 +258,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     
     private func processIncomingChatMessage(_ chatMessageEl: XMLElement) {
         guard let xmppChatMessage = XMPPChatMessage(itemElement: chatMessageEl) else {
-            Log.e("Invalid chatMessage: [\(chatMessageEl)]")
+            DDLogError("Invalid chatMessage: [\(chatMessageEl)]")
             return
         }
         
@@ -270,7 +270,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     private func process(xmppChatMessage: XMPPChatMessage, using managedObjectContext: NSManagedObjectContext) {
         
         guard self.chatMessage(with: xmppChatMessage.id, in: managedObjectContext) == nil else {
-            Log.e("ChatData/process/already-exists [\(xmppChatMessage.id)]")
+            DDLogError("ChatData/process/already-exists [\(xmppChatMessage.id)]")
             return
         }
 
@@ -283,7 +283,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         }
         
         // Add new ChatMessage to database.
-        Log.d("ChatData/process/new [\(xmppChatMessage.id)]")
+        DDLogDebug("ChatData/process/new [\(xmppChatMessage.id)]")
         let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
         chatMessage.id = xmppChatMessage.id
         chatMessage.toUserId = xmppChatMessage.toUserId
@@ -302,7 +302,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         // Process chat media
         for (index, xmppMedia) in xmppChatMessage.media.enumerated() {
-            Log.d("ChatData/process/new/add-media [\(xmppMedia.url)]")
+            DDLogDebug("ChatData/process/new/add-media [\(xmppMedia.url)]")
             let feedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
             switch xmppMedia.type {
             case .image:
@@ -345,7 +345,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                             try copyMediaToQuotedMedia(fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
                         }
                         catch {
-                            Log.e("ChatData/new-msg/quoted/copy-media/error [\(error)]")
+                            DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
                         }
                     }
                 }
@@ -398,7 +398,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 NotificationKey.keys.fromId: chatMessage.fromUserId
             ]
         ]
-        Log.d("ChatData/new-msg/localNotification [\(chatMessage.id)]")
+        DDLogDebug("ChatData/new-msg/localNotification [\(chatMessage.id)]")
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: notification, trigger: nil))
     }
         
@@ -465,7 +465,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         // Create and save new ChatMessage object.
         let managedObjectContext = self.persistentContainer.viewContext
-        Log.d("ChatData/new-msg/create")
+        DDLogDebug("ChatData/new-msg/create")
         let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
         chatMessage.id = xmppChatMessage.id
         chatMessage.toUserId = xmppChatMessage.toUserId
@@ -478,7 +478,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         chatMessage.timestamp = Date()
 
         for (index, mediaItem) in media.enumerated() {
-            Log.d("ChatData/new-msg/add-media [\(mediaItem.url!)]")
+            DDLogDebug("ChatData/new-msg/add-media [\(mediaItem.url!)]")
             let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
             chatMedia.type = mediaItem.type
             chatMedia.outgoingStatus = .uploaded // For now we're only posting when all uploads are completed.
@@ -518,7 +518,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                             try copyMediaToQuotedMedia(fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
                         }
                         catch {
-                            Log.e("ChatData/new-msg/quoted/copy-media/error [\(error)]")
+                            DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
                         }
                     }
                 }
@@ -527,12 +527,12 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         // Update Chat Thread
         if let chatThread = self.chatThread(chatWithUserId: chatMessage.toUserId, in: managedObjectContext) {
-            Log.d("ChatData/new-msg/update-thread")
+            DDLogDebug("ChatData/new-msg/update-thread")
             chatThread.lastMsgUserId = chatMessage.fromUserId
             chatThread.lastMsgText = chatMessage.text
             chatThread.lastMsgTimestamp = chatMessage.timestamp
         } else {
-            Log.d("ChatData/new-msg/new-thread")
+            DDLogDebug("ChatData/new-msg/new-thread")
             let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
             chatThread.chatWithUserId = chatMessage.toUserId
             chatThread.lastMsgUserId = chatMessage.fromUserId
@@ -559,7 +559,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             return chatMessages
         }
         catch {
-            Log.e("ChatData/fetch-messages/error  [\(error)]")
+            DDLogError("ChatData/fetch-messages/error  [\(error)]")
             fatalError("Failed to fetch chat messages")
         }
     }
@@ -610,7 +610,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             return chatThreads
         }
         catch {
-            Log.e("ChatThread/fetch/error  [\(error)]")
+            DDLogError("ChatThread/fetch/error  [\(error)]")
             fatalError("Failed to fetch chat threads")
         }
     }
@@ -630,7 +630,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         guard AppContext.shared.xmppController.isConnected else { return }
         guard !self.isSubscribedToCurrentUser else { return }
         self.isSubscribedToCurrentUser = true
-        Log.d("ChatData/subscribeToPresence [\(chatWithUserId)]")
+        DDLogDebug("ChatData/subscribeToPresence [\(chatWithUserId)]")
         let message = XMPPElement(name: "presence")
         message.addAttribute(withName: "to", stringValue: "\(chatWithUserId)@s.halloapp.net")
         message.addAttribute(withName: "type", stringValue: "subscribe")
@@ -642,10 +642,10 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     private func updateChatThread(for id: String, block: @escaping (ChatThread) -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let chatThread = self.chatThread(chatWithUserId: id, in: managedObjectContext) else {
-                Log.e("ChatData/update-chatThread/missing-post [\(id)]")
+                DDLogError("ChatData/update-chatThread/missing-post [\(id)]")
                 return
             }
-            Log.v("ChatData/update-chatThread [\(id)]")
+            DDLogVerbose("ChatData/update-chatThread [\(id)]")
             block(chatThread)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -680,10 +680,10 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     private func updateChatMessage(with chatMessageId: String, block: @escaping (ChatMessage) -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let chatMessage = self.chatMessage(with: chatMessageId, in: managedObjectContext) else {
-                Log.e("ChatData/update-message/missing [\(chatMessageId)]")
+                DDLogError("ChatData/update-message/missing [\(chatMessageId)]")
                 return
             }
-            Log.v("ChatData/update-message [\(chatMessageId)]")
+            DDLogVerbose("ChatData/update-message [\(chatMessageId)]")
             block(chatMessage)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -758,7 +758,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
 
     func xmppController(_ xmppController: XMPPController, didSendMessageReceipt receipt: XMPPReceipt) {
         self.updateChatMessage(with: receipt.itemId) { (chatMessage) in
-            Log.e("ChatData/processReceiptAck [\(receipt.itemId)]")
+            DDLogError("ChatData/processReceiptAck [\(receipt.itemId)]")
 
             if chatMessage.receiverStatus == .haveSeen {
                 chatMessage.receiverStatus = .sentSeenReceipt
@@ -975,7 +975,7 @@ extension Proto_Container {
             }
         }
         catch {
-            Log.e("xmpp/chatmessage/invalid-protobuf")
+            DDLogError("xmpp/chatmessage/invalid-protobuf")
         }
         return nil
     }

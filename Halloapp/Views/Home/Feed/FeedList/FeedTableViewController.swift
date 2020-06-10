@@ -33,7 +33,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     func dismantle() {
-        Log.i("FeedTableViewController/dismantle")
+        DDLogInfo("FeedTableViewController/dismantle")
         self.cancellableSet.forEach{ $0.cancel() }
         self.cancellableSet.removeAll()
     }
@@ -41,7 +41,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        Log.i("FeedTableViewController/viewDidLoad")
+        DDLogInfo("FeedTableViewController/viewDidLoad")
 
         self.navigationItem.standardAppearance = Self.noBorderNavigationBarAppearance
 
@@ -93,7 +93,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     override func viewDidAppear(_ animated: Bool) {
-        Log.i("FeedTableViewController/viewDidAppear")
+        DDLogInfo("FeedTableViewController/viewDidAppear")
         super.viewDidAppear(animated)
     }
 
@@ -157,7 +157,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         reloadTableViewInDidChangeContent = false
         trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
-        Log.d("FeedTableView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+        DDLogDebug("FeedTableView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
             self.tableView.beginUpdates()
         }
@@ -167,7 +167,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         switch type {
         case .insert:
             guard let indexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
-            Log.d("FeedTableView/frc/insert [\(feedPost)] at [\(indexPath)]")
+            DDLogDebug("FeedTableView/frc/insert [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.insertRows(at: [ indexPath ], with: .none)
             } else {
@@ -176,7 +176,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
         case .delete:
             guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { break }
-            Log.d("FeedTableView/frc/delete [\(feedPost)] at [\(indexPath)]")
+            DDLogDebug("FeedTableView/frc/delete [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.deleteRows(at: [ indexPath ], with: .none)
             } else {
@@ -185,7 +185,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
-            Log.d("FeedTableView/frc/move [\(feedPost)] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            DDLogDebug("FeedTableView/frc/move [\(feedPost)] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
             } else {
@@ -194,7 +194,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
         case .update:
             guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { return }
-            Log.d("FeedTableView/frc/update [\(feedPost)] at [\(indexPath)]")
+            DDLogDebug("FeedTableView/frc/update [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 if let cell = self.tableView.cellForRow(at: indexPath) as? FeedTableViewCell {
                     let contentWidth = tableView.frame.width - tableView.layoutMargins.left - tableView.layoutMargins.right
@@ -212,7 +212,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        Log.d("FeedTableView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        DDLogDebug("FeedTableView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
         if trackPerRowFRCChanges {
             self.tableView.endUpdates()
         } else if reloadTableViewInDidChangeContent {
@@ -455,7 +455,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     }
 
     public func configure(with post: FeedPost, contentWidth: CGFloat) {
-        Log.v("FeedTableViewCell/configure [\(post.id)]")
+        DDLogVerbose("FeedTableViewCell/configure [\(post.id)]")
 
         self.headerView.configure(with: post, contentWidth: contentWidth)
         self.itemContentView.configure(with: post, contentWidth: contentWidth)
@@ -616,7 +616,7 @@ fileprivate class FeedItemContentView: UIView {
         }
 
         if reuseMediaView {
-            Log.i("FeedTableViewCell/content-view/reuse-media post=[\(post.id)]")
+            DDLogInfo("FeedTableViewCell/content-view/reuse-media post=[\(post.id)]")
         }
 
         let postContainsMedia = !feedDataItem.media.isEmpty

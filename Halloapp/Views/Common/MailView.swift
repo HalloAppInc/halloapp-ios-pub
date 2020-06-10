@@ -72,11 +72,11 @@ struct MailView: UIViewControllerRepresentable {
             do {
                 try FileManager.default.removeItem(at: zipFilePath)
             } catch let error as NSError {
-                Log.e("Error: \(error.domain)")
+                DDLogError("Error: \(error.domain)")
             }
         }
         catch {
-          Log.e("can't zip log files: \(error)")
+          DDLogError("can't zip log files: \(error)")
         }
         
         vc.mailComposeDelegate = context.coordinator

@@ -35,7 +35,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     // MARK: Lifecycle
     
     init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0, status: ChatThread.Status = ChatThread.Status.none, lastSeen: Date? = nil) {
-        Log.d("ChatViewController/init/\(fromUserId)")
+        DDLogDebug("ChatViewController/init/\(fromUserId)")
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
@@ -170,7 +170,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         
         self.cancellableSet.insert(
             MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in
-                Log.i("ChatViewController/didGetCurrentChatPresence")
+                DDLogInfo("ChatViewController/didGetCurrentChatPresence")
                 guard let self = self else { return }
                 guard let userId = self.fromUserId else { return }
                 self.titleView.update(with: userId, status: status, lastSeen: ts)
@@ -213,7 +213,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }
     
     func dismantle() {
-        Log.d("ChatViewController/dismantle/\(fromUserId ?? "")")
+        DDLogDebug("ChatViewController/dismantle/\(fromUserId ?? "")")
         self.fetchedResultsController = nil
     }
 
@@ -256,7 +256,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         let height = Int(cell.bounds.height)
        
         if chatMessage.cellHeight != height {
-            Log.d("ChatViewController/updateCellHeight/\(chatMessage.id) \(height)")
+            DDLogDebug("ChatViewController/updateCellHeight/\(chatMessage.id) \(height)")
             MainAppContext.shared.chatData.updateChatMessageCellHeight(for: chatMessage.id, with: height)
         }
     }
@@ -280,7 +280,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 //            }
 //        }
 
-//        Log.d("ChatViewController/estimateCellHeight/\(chatMessage.id)")
+//        DDLogDebug("ChatViewController/estimateCellHeight/\(chatMessage.id)")
         return 50
     }
     
@@ -293,14 +293,14 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         
         switch type {
         case .update:
-            Log.d("ChatView/frc/update")
+            DDLogDebug("ChatView/frc/update")
         case .insert:
-            Log.d("ChatView/frc/insert")
+            DDLogDebug("ChatView/frc/insert")
             self.shouldScrollToBottom = true
         case .move:
-            Log.d("ChatView/frc/move")
+            DDLogDebug("ChatView/frc/move")
         case .delete:
-            Log.d("ChatView/frc/delete")
+            DDLogDebug("ChatView/frc/delete")
         default:
             break
         }
@@ -487,7 +487,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 
                     if let videoSize = VideoUtils().resolutionForLocalVideo(url: video.url) {
                         mediaItem.size = videoSize
-                        Log.i("Video size: [\(NSCoder.string(for: videoSize))]")
+                        DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
                     }
 
                     if let asset = video.asset {

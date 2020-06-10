@@ -150,7 +150,7 @@ fileprivate class UserCore {
             let result = try managedObjectContext.fetch(fetchRequest)
             return result.first
         } catch  {
-            Log.e("usercore/fetch/error [\(error)]")
+            DDLogError("usercore/fetch/error [\(error)]")
             fatalError()
         }
     }
@@ -170,7 +170,7 @@ fileprivate class UserCore {
         do {
             try managedObjectContext.save()
         } catch let error as NSError {
-            Log.e("usercore/save/error [\(error)]")
+            DDLogError("usercore/save/error [\(error)]")
             fatalError()
         }
     }

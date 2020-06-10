@@ -67,7 +67,7 @@ struct CameraPickerView: UIViewControllerRepresentable {
                 if let videoSize = VideoUtils().resolutionForLocalVideo(url: videoURL) {
                     mediaItem.size = videoSize
 
-                    Log.i("Video size: [\(NSCoder.string(for: videoSize))]")
+                    DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
                 }
                 
                 self.parent.capturedMedia = [mediaItem]

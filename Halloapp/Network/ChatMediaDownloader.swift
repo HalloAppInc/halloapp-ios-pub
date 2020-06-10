@@ -48,7 +48,7 @@ class ChatMediaDownloader {
     }
 
     func tryDownload() {
-        Log.i("ImageLoader/\(self.getUrl) Download attempt [\(self.retries)]")
+        DDLogInfo("ImageLoader/\(self.getUrl) Download attempt [\(self.retries)]")
         
         if self.retries < self.maxRetries {
             let delay = (self.retries < 1) ? 0.0 : self.waitBetweenRetries
@@ -66,7 +66,7 @@ class ChatMediaDownloader {
         let task = URLSession.shared.downloadTask(with: urlRequest) { localUrl, response, error in
             if error == nil {
                 if let httpResponse = response as? HTTPURLResponse {
-                    Log.i("ImageLoader/\(self.getUrl) Got response [\(httpResponse)]")
+                    DDLogInfo("ImageLoader/\(self.getUrl) Got response [\(httpResponse)]")
                     if httpResponse.statusCode != 200 {
                         self.tryDownload()
                         return
@@ -81,7 +81,7 @@ class ChatMediaDownloader {
 //                }
 
             } else {
-                Log.e("ImageLoader/\(self.getUrl) Error [\(error!)]")
+                DDLogError("ImageLoader/\(self.getUrl) Error [\(error!)]")
                 self.tryDownload()
             }
         }

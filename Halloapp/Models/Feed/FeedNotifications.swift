@@ -25,7 +25,7 @@ class FeedNotifications: NSObject, NSFetchedResultsControllerDelegate {
         do {
             try fetchedResultsController.performFetch()
         } catch {
-            Log.e("FeedNotifications/fetch/error [\(error)]")
+            DDLogError("FeedNotifications/fetch/error [\(error)]")
             fatalError("Failed to fetch feed notifications.")
         }
     }
@@ -47,7 +47,7 @@ class FeedNotifications: NSObject, NSFetchedResultsControllerDelegate {
             self.unreadCount = try managedObjectContext.count(for: fetchRequest)
         }
         catch {
-            Log.e("FeedNotifications/fetch/error [\(error)]")
+            DDLogError("FeedNotifications/fetch/error [\(error)]")
             fatalError("Failed to fetch feed notifications.")
         }
     }

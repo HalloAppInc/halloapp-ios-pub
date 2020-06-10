@@ -23,7 +23,7 @@ class ImageZoomView: UIView, UIScrollViewDelegate {
     }
     
     func setup() {
-        Log.d("Chat/imagezoomview/setup")
+        DDLogDebug("Chat/imagezoomview/setup")
 
         self.addSubview(mainColumn)
         self.mainColumn.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true

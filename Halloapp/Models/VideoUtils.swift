@@ -48,12 +48,12 @@ class VideoUtils {
         var videoWidth = Int(abs(size.width))
         var videoHeight = Int(abs(size.height))
 
-        Log.i("Original Video Resolution: \(videoWidth) x \(videoHeight)")
+        DDLogInfo("Original Video Resolution: \(videoWidth) x \(videoHeight)")
 
         // portrait
         if videoHeight > videoWidth {
             if videoHeight > Int(desiredSize.width) {
-                Log.i("Portrait taller than \(Int(desiredSize.width)), need to rescale")
+                DDLogInfo("Portrait taller than \(Int(desiredSize.width)), need to rescale")
 
                 let ratio = Double(videoWidth)/Double(videoHeight)
                 let resizedWidth = ratio*854
@@ -61,12 +61,12 @@ class VideoUtils {
                 videoHeight = Int(desiredSize.width)
                 videoWidth = Int(resizedWidth)
 
-                Log.i("New Video Resolution: \(videoWidth) x \(videoHeight)")
+                DDLogInfo("New Video Resolution: \(videoWidth) x \(videoHeight)")
             }
         // landscape or square
         } else {
             if videoWidth > Int(desiredSize.width) {
-                Log.i("Landscape wider than \(Int(desiredSize.width)), need to rescale")
+                DDLogInfo("Landscape wider than \(Int(desiredSize.width)), need to rescale")
 
                 let ratio = Double(videoWidth)/Double(videoHeight)
                 let resizedHeight = Double(desiredSize.width)/ratio
@@ -74,7 +74,7 @@ class VideoUtils {
                 videoWidth = Int(desiredSize.width)
                 videoHeight = Int(resizedHeight)
 
-                Log.i("New Video Resolution: \(videoWidth) x \(videoHeight)")
+                DDLogInfo("New Video Resolution: \(videoWidth) x \(videoHeight)")
             }
         }
 

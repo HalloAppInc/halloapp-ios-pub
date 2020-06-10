@@ -19,7 +19,7 @@ class MediaPreviewController: UIViewController {
     private var chatMessage: ChatMessage?
     
     init(for chatMessage: ChatMessage) {
-        Log.d("ChatMediaPreview/init")
+        DDLogDebug("ChatMediaPreview/init")
         self.chatMessage = chatMessage
         super.init(nibName: nil, bundle: nil)
     }
@@ -29,7 +29,7 @@ class MediaPreviewController: UIViewController {
     }
 
     override func viewDidLoad() {
-        Log.i("MediaPreviewController/viewDidLoad")
+        DDLogInfo("MediaPreviewController/viewDidLoad")
         super.viewDidLoad()  
         
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))

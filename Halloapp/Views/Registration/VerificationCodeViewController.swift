@@ -173,37 +173,37 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         var request = URLRequest(url: URL(string: "https://api.halloapp.net/api/registration/request_sms")!)
         request.httpMethod = "POST"
         request.httpBody = try! JSONSerialization.data(withJSONObject: ["phone": phoneNumber])
-        Log.i("reg/request-sms/begin url=[\(request.url!)]  phone=[\(phoneNumber)]")
+        DDLogInfo("reg/request-sms/begin url=[\(request.url!)]  phone=[\(phoneNumber)]")
         let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
             guard error == nil else {
-                Log.e("reg/request-sms/error [\(error!)]")
+                DDLogError("reg/request-sms/error [\(error!)]")
                 DispatchQueue.main.async {
                     self.verificationCodeRequestFailed()
                 }
                 return
             }
             guard let data = data else {
-                Log.e("reg/request-sms/error Data is empty.")
+                DDLogError("reg/request-sms/error Data is empty.")
                 DispatchQueue.main.async {
                     self.verificationCodeRequestFailed()
                 }
                 return
             }
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                Log.e("reg/request-sms/error Invalid response. [\(String(describing: urlResponse))]")
+                DDLogError("reg/request-sms/error Invalid response. [\(String(describing: urlResponse))]")
                 DispatchQueue.main.async {
                     self.verificationCodeRequestFailed()
                 }
                 return
             }
             guard let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                Log.e("reg/request-sms/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
+                DDLogError("reg/request-sms/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
                 DispatchQueue.main.async {
                     self.verificationCodeRequestFailed()
                 }
                 return
             }
-            Log.i("reg/request-sms/http-response  status=[\(httpResponse.statusCode)]  response=[\(response)]")
+            DDLogInfo("reg/request-sms/http-response  status=[\(httpResponse.statusCode)]  response=[\(response)]")
             DispatchQueue.main.async {
                 self.verificationCodeRequestFinished(with: response)
             }
@@ -252,37 +252,37 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         var request = URLRequest(url: URL(string: "https://api.halloapp.net/api/registration/register")!)
         request.httpMethod = "POST"
         request.httpBody = try! JSONSerialization.data(withJSONObject: json, options: [])
-        Log.i("reg/validate-code/begin url=[\(request.url!)]  data=[\(json)]")
+        DDLogInfo("reg/validate-code/begin url=[\(request.url!)]  data=[\(json)]")
         let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
             guard error == nil else {
-                Log.e("reg/validate-code/error [\(error!)]")
+                DDLogError("reg/validate-code/error [\(error!)]")
                 DispatchQueue.main.async {
                     self.codeValidationFailed()
                 }
                 return
             }
             guard let data = data else {
-                Log.e("reg/validate-code/error Data is empty.")
+                DDLogError("reg/validate-code/error Data is empty.")
                 DispatchQueue.main.async {
                     self.codeValidationFailed()
                 }
                 return
             }
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                Log.e("reg/validate-code/error Invalid response. [\(String(describing: urlResponse))]")
+                DDLogError("reg/validate-code/error Invalid response. [\(String(describing: urlResponse))]")
                 DispatchQueue.main.async {
                     self.codeValidationFailed()
                 }
                 return
             }
             guard let response = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-                Log.e("reg/validate-code/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
+                DDLogError("reg/validate-code/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
                 DispatchQueue.main.async {
                     self.codeValidationFailed()
                 }
                 return
             }
-            Log.i("reg/validate-code/finished  status=[\(httpResponse.statusCode)]  response=[\(response)]")
+            DDLogInfo("reg/validate-code/finished  status=[\(httpResponse.statusCode)]  response=[\(response)]")
             DispatchQueue.main.async {
                 self.codeValidationFinished(with: response)
             }
@@ -298,21 +298,21 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         isCodeValidationInProgress = false
 
         if let error = response["error"] as? String {
-            Log.i("reg/validate-code/invalid [\(error)]")
+            DDLogInfo("reg/validate-code/invalid [\(error)]")
             labelInvalidCode.alpha = 1
             textFieldCode.text = ""
             textFieldCode.becomeFirstResponder()
             return
         }
         guard let userId = response["uid"] as? String, let password = response["password"] as? String else {
-            Log.i("reg/validate-code/invalid Missing userId or password")
+            DDLogInfo("reg/validate-code/invalid Missing userId or password")
             labelInvalidCode.alpha = 1
             textFieldCode.text = ""
             textFieldCode.becomeFirstResponder()
             return
         }
 
-        Log.i("reg/validate-code/success")
+        DDLogInfo("reg/validate-code/success")
 
         let userData = MainAppContext.shared.userData
         userData.userId = userId

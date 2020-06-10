@@ -30,7 +30,6 @@
 		76925CFA24871506008333FA /* UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76925CF924871506008333FA /* UserDefaults.swift */; };
 		76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76925CFC24872E85008333FA /* UserData.xcdatamodeld */; };
 		ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3156278C2E59CE6580A649AA /* Pods_Core.framework */; };
-		E71CE016249126F700832F8B /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = E71CE015249126F700832F8B /* Logger.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -60,7 +59,6 @@
 		76925CFD24872E85008333FA /* Halloapp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Halloapp.xcdatamodel; sourceTree = "<group>"; };
 		A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.external beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.external beta.xcconfig"; sourceTree = "<group>"; };
 		C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.internal beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.internal beta.xcconfig"; sourceTree = "<group>"; };
-		E71CE015249126F700832F8B /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -136,7 +134,6 @@
 			isa = PBXGroup;
 			children = (
 				768123D12485DBE2008C5216 /* LogFormatter.swift */,
-				E71CE015249126F700832F8B /* Logger.swift */,
 			);
 			path = Logging;
 			sourceTree = "<group>";
@@ -332,7 +329,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E71CE016249126F700832F8B /* Logger.swift in Sources */,
 				768124132486193E008C5216 /* Feed.swift in Sources */,
 				768123D72485DC4F008C5216 /* AppContext.swift in Sources */,
 				76812409248614F1008C5216 /* XMPPRequest.swift in Sources */,

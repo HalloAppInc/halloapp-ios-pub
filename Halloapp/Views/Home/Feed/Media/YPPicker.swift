@@ -91,7 +91,7 @@ struct PickerWrapper: UIViewControllerRepresentable {
 
                         if let videoSize = VideoUtils().resolutionForLocalVideo(url: video.url) {
                             mediaItem.size = videoSize
-                            Log.i("Video size: [\(NSCoder.string(for: videoSize))]")
+                            DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
                         }
                             
                         if let asset = video.asset {

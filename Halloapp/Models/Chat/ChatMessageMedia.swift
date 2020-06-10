@@ -69,7 +69,7 @@ class ChatMessageMedia: Identifiable, ObservableObject, Hashable {
             return
         }
 
-        Log.d("ChatMessageMedia/image/load [\(path)]")
+        DDLogDebug("ChatMessageMedia/image/load [\(path)]")
         ChatMessageMedia.chatImageLoadingQueue.async {
             let image = UIImage(contentsOfFile: path)
             DispatchQueue.main.async {

@@ -48,18 +48,18 @@ class SyncSession {
     }
 
     deinit {
-        Log.d("sync-session/deinit")
+        DDLogDebug("sync-session/deinit")
     }
 
     func start() {
-        Log.i("sync-session/\(self.syncMode)/start contacts=[\(self.contacts.count)]")
+        DDLogInfo("sync-session/\(self.syncMode)/start contacts=[\(self.contacts.count)]")
         self.sendNextBatchIfNecessary()
     }
 
     func sendNextBatchIfNecessary() {
         /* client side error */
         guard self.error == nil else {
-            Log.e("sync-session/\(self.syncMode)/request/error/\(self.error!)")
+            DDLogError("sync-session/\(self.syncMode)/request/error/\(self.error!)")
             DispatchQueue.main.async {
                 self.completion(nil, self.error)
             }
@@ -80,7 +80,7 @@ class SyncSession {
             let batchIndex = self.batchIndex
             let request = XMPPContactSyncRequest(with: contactsToSend, type: requestType, syncID: self.syncID,
                                                  batchIndex: batchIndex, isLastBatch: isLastBatch) { (batchResults, error) in
-                Log.i("sync-session/\(self.syncMode)/request/end/batch/\(batchIndex)")
+                DDLogInfo("sync-session/\(self.syncMode)/request/end/batch/\(batchIndex)")
                 if error != nil {
                     self.error = error
                 } else {
@@ -88,7 +88,7 @@ class SyncSession {
                 }
                 self.sendNextBatchIfNecessary()
             }
-            Log.i("sync-session/\(self.syncMode)/request/begin/batch/\(batchIndex)")
+            DDLogInfo("sync-session/\(self.syncMode)/request/begin/batch/\(batchIndex)")
 
             self.contacts.removeSubrange(range)
             self.batchIndex += 1
@@ -98,7 +98,7 @@ class SyncSession {
             return
         }
 
-        Log.i("sync-session/\(self.syncMode)/finished results=[\(self.results.count)]")
+        DDLogInfo("sync-session/\(self.syncMode)/finished results=[\(self.results.count)]")
         DispatchQueue.main.async {
             self.completion(self.results, nil)
         }

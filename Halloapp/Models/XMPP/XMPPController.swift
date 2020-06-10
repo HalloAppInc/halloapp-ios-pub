@@ -56,13 +56,13 @@ class XMPPControllerMain: XMPPController {
 
         self.cancellableSet.insert(
             userData.didLogIn.sink {
-                Log.i("xmpp/userdata/didLogIn")
+                DDLogInfo("xmpp/userdata/didLogIn")
                 self.xmppStream.myJID = self.userData.userJID
                 self.connect()
             })
         self.cancellableSet.insert(
             userData.didLogOff.sink {
-                Log.i("xmpp/userdata/didLogOff")
+                DDLogInfo("xmpp/userdata/didLogOff")
                 self.xmppStream.disconnect() // this is only necessary when manually logging out from a developer menu.
                 self.xmppStream.myJID = nil
             })
@@ -114,9 +114,9 @@ class XMPPControllerMain: XMPPController {
     }
 
     private func sendCurrentAPNSToken() {
-        Log.i("xmpp/push-token/send")
+        DDLogInfo("xmpp/push-token/send")
         let request = XMPPPushTokenRequest(token: self.apnsToken!) { (error) in
-            Log.i("xmpp/push-token/sent")
+            DDLogInfo("xmpp/push-token/sent")
         }
         self.enqueue(request: request)
     }
@@ -151,7 +151,7 @@ class XMPPControllerMain: XMPPController {
 
     func sendSeenReceipt(_ receipt: XMPPReceipt, to userId: UserID) {
         guard !sentSeenReceipts.values.contains(where: { $0 == receipt }) else {
-            Log.w("xmpp/seen-receipt/duplicate receipt=[\(receipt)]")
+            DDLogWarn("xmpp/seen-receipt/duplicate receipt=[\(receipt)]")
             return
         }
         // TODO: check for duplicates
@@ -264,7 +264,7 @@ class XMPPControllerMain: XMPPController {
 extension XMPPControllerMain: XMPPPubSubDelegate {
 
     func xmppPubSub(_ sender: XMPPPubSub, didRetrieveItems iq: XMPPIQ, fromNode node: String) {
-        Log.i("xmpp/pubsub/didRetrieveItems")
+        DDLogInfo("xmpp/pubsub/didRetrieveItems")
 
         guard let delegate = self.feedDelegate else { return }
 
@@ -280,25 +280,25 @@ extension XMPPControllerMain: XMPPPubSubDelegate {
 
     func xmppPubSub(_ sender: XMPPPubSub, didReceive message: XMPPMessage) {
         guard let items = message.element(forName: "event")?.element(forName: "items") else {
-            Log.e("xmpp/pubsub/message/incoming/error/invalid-message")
+            DDLogError("xmpp/pubsub/message/incoming/error/invalid-message")
             self.sendAck(for: message)
             return
         }
 
         guard let nodeAttr = items.attributeStringValue(forName: "node") else {
-            Log.e("xmpp/pubsub/message/incoming/error/missing-node")
+            DDLogError("xmpp/pubsub/message/incoming/error/missing-node")
             self.sendAck(for: message)
             return
         }
 
         let nodeParts = nodeAttr.components(separatedBy: "-")
         guard nodeParts.count == 2 else {
-            Log.e("xmpp/pubsub/message/incoming/error/invalid-node [\(nodeParts)]")
+            DDLogError("xmpp/pubsub/message/incoming/error/invalid-node [\(nodeParts)]")
             self.sendAck(for: message)
             return
         }
 
-        Log.i("xmpp/pubsub/message/incoming node=[\(nodeAttr)] id=[\(message.elementID ?? "")]")
+        DDLogInfo("xmpp/pubsub/message/incoming node=[\(nodeAttr)] id=[\(message.elementID ?? "")]")
 
         switch nodeParts.first! {
         case "feed":
@@ -319,11 +319,11 @@ extension XMPPControllerMain: XMPPPubSubDelegate {
             }
 
         case "metadata":
-            Log.i("xmpp/pubsub/message/incoming/metadata Ack metadata message silently.")
+            DDLogInfo("xmpp/pubsub/message/incoming/metadata Ack metadata message silently.")
             self.sendAck(for: message)
 
         default:
-            Log.e("xmpp/pubsub/message/error/unknown-type")
+            DDLogError("xmpp/pubsub/message/error/unknown-type")
             self.sendAck(for: message)
         }
     }

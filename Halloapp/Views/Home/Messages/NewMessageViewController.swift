@@ -41,13 +41,13 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     func dismantle() {
-        Log.i("NewMessageViewController/dismantle")
+        DDLogInfo("NewMessageViewController/dismantle")
         self.cancellableSet.forEach{ $0.cancel() }
         self.cancellableSet.removeAll()
     }
 
     override func viewDidLoad() {
-        Log.i("NewMessageViewController/viewDidLoad")
+        DDLogInfo("NewMessageViewController/viewDidLoad")
 
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
         
@@ -85,13 +85,13 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        Log.i("NewMessageViewController/viewWillAppear")
+        DDLogInfo("NewMessageViewController/viewWillAppear")
         super.viewWillAppear(animated)
 //        self.tableView.reloadData()
     }
 
     override func viewDidAppear(_ animated: Bool) {
-        Log.i("NewMessageViewController/viewDidAppear")
+        DDLogInfo("NewMessageViewController/viewDidAppear")
         super.viewDidAppear(animated)
     }
 
@@ -141,7 +141,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         reloadTableViewInDidChangeContent = false
         trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
-        Log.d("NewMessageView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+        DDLogDebug("NewMessageView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
             self.tableView.beginUpdates()
         }
@@ -151,7 +151,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         switch type {
         case .insert:
             guard let indexPath = newIndexPath, let abContact = anObject as? ABContact else { break }
-            Log.d("NewMessageView/frc/insert [\(abContact)] at [\(indexPath)]")
+            DDLogDebug("NewMessageView/frc/insert [\(abContact)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.insertRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -160,7 +160,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
         case .delete:
             guard let indexPath = indexPath, let abContact = anObject as? ABContact else { break }
-            Log.d("NewMessageView/frc/delete [\(abContact)] at [\(indexPath)]")
+            DDLogDebug("NewMessageView/frc/delete [\(abContact)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -169,7 +169,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let abContact = anObject as? ABContact else { break }
-            Log.d("NewMessageView/frc/move [\(abContact)] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            DDLogDebug("NewMessageView/frc/move [\(abContact)] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
             } else {
@@ -178,7 +178,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
         case .update:
             guard let indexPath = indexPath, let abContact = anObject as? ABContact else { return }
-            Log.d("NewMessageView/frc/update [\(abContact)] at [\(indexPath)]")
+            DDLogDebug("NewMessageView/frc/update [\(abContact)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.reloadRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -191,7 +191,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        Log.d("NewMessageView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        DDLogDebug("NewMessageView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
         if trackPerRowFRCChanges {
             self.tableView.endUpdates()
         } else if reloadTableViewInDidChangeContent {

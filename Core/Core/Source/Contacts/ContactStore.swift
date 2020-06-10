@@ -99,7 +99,7 @@ open class ContactStore {
                     try result = NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: ContactStore.persistentStoreURL)
                 }
                 catch {
-                    Log.e("contacts/metadata/read error=[\(error)]")
+                    DDLogError("contacts/metadata/read error=[\(error)]")
                 }
             }
             return result
@@ -149,7 +149,7 @@ open class ContactStore {
         do {
             let results = try self.persistentContainer.viewContext.fetch(fetchRequest)
             let names = results.reduce(into: [:]) { $0[$1.userId!] = $1.name }
-            Log.d("contacts/push-name/fetched  count=[\(names.count)]")
+            DDLogDebug("contacts/push-name/fetched  count=[\(names.count)]")
             return names
         }
         catch {

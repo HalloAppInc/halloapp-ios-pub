@@ -96,7 +96,7 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
 
             if let videoSize = VideoUtils().resolutionForLocalVideo(url: videoURL) {
                 mediaToPost!.size = videoSize
-                Log.i("Video size: [\(NSCoder.string(for: videoSize))]")
+                DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
             }
         }
         self.dismiss(animated: mediaToPost == nil) {
@@ -171,7 +171,7 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
 
                     if let videoSize = VideoUtils().resolutionForLocalVideo(url: video.url) {
                         mediaItem.size = videoSize
-                        Log.i("Video size: [\(NSCoder.string(for: videoSize))]")
+                        DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
                     }
 
                     if let asset = video.asset {

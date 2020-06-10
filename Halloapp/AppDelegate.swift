@@ -21,7 +21,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         initAppContext(MainAppContext.self, xmppControllerClass: XMPPControllerMain.self, contactStoreClass: ContactStoreMain.self)
 
-        Log.i("application/didFinishLaunching")
+        DDLogInfo("application/didFinishLaunching")
 
         BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundFeedRefreshTaskIdentifier, using: DispatchQueue.main) { (task) in
             self.handleFeedRefresh(task: task as! BGAppRefreshTask)
@@ -36,7 +36,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
-        Log.i("application/willTermimate")
+        DDLogInfo("application/willTermimate")
     }
 
     // MARK: UISceneSession Lifecycle
@@ -63,9 +63,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         guard self.needsAPNSToken || !MainAppContext.shared.xmppController.hasValidAPNSPushToken else { return }
         guard UIApplication.shared.applicationState != .background else { return }
 
-        Log.i("appdelegate/notifications/authorization/request")
+        DDLogInfo("appdelegate/notifications/authorization/request")
         UNUserNotificationCenter.current().requestAuthorization(options: [.sound, .alert, .badge]) { (granted, error) in
-            Log.i("appdelegate/notifications/authorization granted=[\(granted)]")
+            DDLogInfo("appdelegate/notifications/authorization granted=[\(granted)]")
             DispatchQueue.main.async {
                 UIApplication.shared.registerForRemoteNotifications()
             }
@@ -74,7 +74,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let tokenString = deviceToken.hexString()
-        Log.i("appdelegate/notifications/push-token/success [\(tokenString)]")
+        DDLogInfo("appdelegate/notifications/push-token/success [\(tokenString)]")
 
         self.needsAPNSToken = false
         MainAppContext.shared.xmppController.apnsToken = tokenString
@@ -82,18 +82,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        Log.e("appdelegate/notifications/push-token/error [\(error)]")
+        DDLogError("appdelegate/notifications/push-token/error [\(error)]")
 
         self.needsAPNSToken = false
         MainAppContext.shared.xmppController.apnsToken = nil
     }
 
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        Log.i("appdelegate/background-push \(userInfo)")
+        DDLogInfo("appdelegate/background-push \(userInfo)")
 
         // Ignore notifications received when the app is in foreground.
         guard application.applicationState == .background else {
-            Log.w("appdelegate/background-push Application is not backgrounded")
+            DDLogWarn("appdelegate/background-push Application is not backgrounded")
             completionHandler(.noData)
             return
         }
@@ -103,24 +103,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
             // App was opened while connection attempt was in progress - end task and do nothing else.
             guard application.applicationState == .background else {
-                Log.w("application/background-push Connected while in foreground")
+                DDLogWarn("application/background-push Connected while in foreground")
                 completionHandler(.noData)
                 return
             }
 
-            Log.i("application/background-push/connected")
+            DDLogInfo("application/background-push/connected")
 
             // Disconnect gracefully after 3 seconds, which should be enough to finish processing.
             // TODO: disconnect immediately after receiving "offline marker".
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 // Make sure to check if the app is still backgrounded.
                 if application.applicationState == .background {
-                    Log.i("application/background-push/disconnect")
+                    DDLogInfo("application/background-push/disconnect")
                     xmppController.disconnect()
 
                     // Finish bg task once we're disconnected.
                     xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
-                        Log.i("application/background-push/complete")
+                        DDLogInfo("application/background-push/complete")
                         completionHandler(.newData)
                     }
                 }
@@ -130,11 +130,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     
     // This function will be called right after user tap on the notification
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        Log.i("appdelegate/tap-notifications/didReceive Response=\(response) UserInfo=\(response.notification.request.content.userInfo)")
+        DDLogInfo("appdelegate/tap-notifications/didReceive Response=\(response) UserInfo=\(response.notification.request.content.userInfo)")
 
         if (response.actionIdentifier == UNNotificationDefaultActionIdentifier) {
             if let metadata = response.notification.request.content.userInfo[NotificationKey.keys.metadata] as? [String: String] {
-                Log.i("appdelegate/tap-notifications/didReceive MetaData=\(metadata)")
+                DDLogInfo("appdelegate/tap-notifications/didReceive MetaData=\(metadata)")
 
                 if (metadata[NotificationKey.keys.contentType] == NotificationKey.contentType.chat) {
                     UserDefaults.standard.set(metadata, forKey: NotificationKey.keys.userDefaults)
@@ -142,7 +142,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                 }
             }
         } else {
-            Log.i("appdelegate/tap-notifications/didReceive DismissAction")
+            DDLogInfo("appdelegate/tap-notifications/didReceive DismissAction")
         }
 
         completionHandler()
@@ -160,10 +160,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         // Authorization status will be unknown on first launch or after privacy settings reset.
         // We need to excplicitly request access in this case.
         if ContactStore.contactsAccessRequestNecessary {
-            Log.i("appdelegate/contacts/access-request")
+            DDLogInfo("appdelegate/contacts/access-request")
             let contactStore = CNContactStore()
             contactStore.requestAccess(for: .contacts) { authorized, error in
-                Log.i("appdelegate/contacts/access-request granted=[\(authorized)]")
+                DDLogInfo("appdelegate/contacts/access-request granted=[\(authorized)]")
                 DispatchQueue.main.async {
                     completion(true, authorized)
                 }
@@ -175,11 +175,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
     func requestAccessToContactsAndNotifications() {
         guard !self.contactsAccessRequestInProgress else {
-            Log.w("appdelegate/contacts/access-request/in-progress")
+            DDLogWarn("appdelegate/contacts/access-request/in-progress")
             return
         }
         guard UIApplication.shared.applicationState != .background else {
-            Log.i("appdelegate/contacts/access-request/app-inactive")
+            DDLogInfo("appdelegate/contacts/access-request/app-inactive")
             return
         }
         self.contactsAccessRequestInProgress = true
@@ -201,24 +201,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         request.earliestBeginDate = Date(timeIntervalSinceNow: timeInterval)
         do {
             try BGTaskScheduler.shared.submit(request)
-            Log.i("application/bg-feed-refresh/scheduled after=[\(timeInterval)]")
+            DDLogInfo("application/bg-feed-refresh/scheduled after=[\(timeInterval)]")
         } catch {
-            Log.e("application/bg-feed-refresh  Could not schedule refresh: \(error)")
+            DDLogError("application/bg-feed-refresh  Could not schedule refresh: \(error)")
         }
     }
 
     private func handleFeedRefresh(task: BGAppRefreshTask) {
-        Log.i("application/bg-feed-refresh/begin")
+        DDLogInfo("application/bg-feed-refresh/begin")
 
         // Nothing to fetch if user isn't yet registered.
         guard MainAppContext.shared.userData.isLoggedIn else {
-            Log.w("application/bg-feed-refresh Not logged in")
+            DDLogWarn("application/bg-feed-refresh Not logged in")
             task.setTaskCompleted(success: true)
             return
         }
 
         task.expirationHandler = {
-            Log.e("application/bg-feed-refresh Expiration handler")
+            DDLogError("application/bg-feed-refresh Expiration handler")
         }
 
         let application = UIApplication.shared
@@ -227,24 +227,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
             // App was opened while connection attempt was in progress - end task and do nothing else.
             guard application.applicationState == .background else {
-                Log.w("application/bg-feed-refresh Connected while in foreground")
+                DDLogWarn("application/bg-feed-refresh Connected while in foreground")
                 task.setTaskCompleted(success: true)
                 return
             }
 
-            Log.i("application/bg-feed-refresh/connected")
+            DDLogInfo("application/bg-feed-refresh/connected")
 
             // Disconnect gracefully after 3 seconds, which should be enough to finish processing.
             // TODO: disconnect immediately after receiving "offline marker".
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 // Make sure to check if the app is still backgrounded.
                 if application.applicationState == .background {
-                    Log.i("application/bg-feed-refresh/disconnect")
+                    DDLogInfo("application/bg-feed-refresh/disconnect")
                     xmppController.disconnect()
 
                     // Finish bg task once we're disconnected.
                     xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
-                        Log.i("application/bg-feed-refresh/complete")
+                        DDLogInfo("application/bg-feed-refresh/complete")
                         task.setTaskCompleted(success: true)
                     }
                 } else {
