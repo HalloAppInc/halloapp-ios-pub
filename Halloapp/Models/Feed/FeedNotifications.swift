@@ -10,7 +10,6 @@ import CocoaLumberjack
 import Combine
 import CoreData
 import Foundation
-import Core
 
 class FeedNotifications: NSObject, NSFetchedResultsControllerDelegate {
 

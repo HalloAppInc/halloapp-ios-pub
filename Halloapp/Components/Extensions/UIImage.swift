@@ -10,7 +10,6 @@ import Accelerate
 import CocoaLumberjack
 import CoreGraphics
 import SwiftUI
-import Core
 
 extension UIImage {
     

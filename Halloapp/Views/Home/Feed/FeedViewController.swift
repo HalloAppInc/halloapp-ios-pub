@@ -13,8 +13,6 @@ import Photos
 import SwiftUI
 import UIKit
 import YPImagePicker
-import Core
-
 
 class FeedViewController: FeedTableViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, YPImagePickerDelegate {
 

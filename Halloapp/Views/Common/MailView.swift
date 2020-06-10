@@ -11,7 +11,6 @@ import MessageUI
 import SwiftUI
 import UIKit
 import Zip
-import Core
 
 struct MailView: UIViewControllerRepresentable {
 

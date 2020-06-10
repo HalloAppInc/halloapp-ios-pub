@@ -9,7 +9,6 @@
 import Alamofire
 import CocoaLumberjack
 import SwiftUI
-import Core
 
 class ImageServer {
     private let jpegCompressionQuality = CGFloat(MainAppContext.shared.userData.compressionQuality)

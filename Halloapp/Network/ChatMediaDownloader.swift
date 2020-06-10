@@ -8,7 +8,6 @@
 import CocoaLumberjack
 import Combine
 import Foundation
-import Core
 
 class ChatMediaDownloader {
     

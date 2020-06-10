@@ -11,7 +11,6 @@ import Combine
 import CoreData
 import SwiftUI
 import UIKit
-import Core
 
 fileprivate enum ChatListViewSection {
     case main

@@ -8,7 +8,6 @@
 
 import CocoaLumberjack
 import SwiftUI
-import Core
 
 struct CameraPickerView: UIViewControllerRepresentable {
 

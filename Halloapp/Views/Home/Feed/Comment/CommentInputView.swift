@@ -8,7 +8,6 @@
 
 import CocoaLumberjack
 import UIKit
-import Core
 
 fileprivate protocol ContainerViewDelegate: AnyObject {
     func containerView(_ containerView: CommentInputView.ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat

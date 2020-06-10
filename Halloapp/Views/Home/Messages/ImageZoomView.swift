@@ -8,7 +8,6 @@
 import CocoaLumberjack
 import Foundation
 import UIKit
-import Core
 
 class ImageZoomView: UIView, UIScrollViewDelegate {
     

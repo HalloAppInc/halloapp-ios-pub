@@ -9,7 +9,6 @@
 import CocoaLumberjack
 import Foundation
 import XMPPFramework
-import Core
 
 /**
  Defines what gets sent during sync session.

@@ -12,7 +12,6 @@ import CoreData
 import SwiftUI
 import UIKit
 import AVKit
-import Core
 
 class MediaPreviewController: UIViewController {
     

@@ -10,7 +10,6 @@ import CocoaLumberjack
 import Foundation
 import AVFoundation
 import SwiftUI
-import Core
 
 import UIKit
 import AVKit

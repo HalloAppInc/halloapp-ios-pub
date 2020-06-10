@@ -55,7 +55,6 @@ struct SettingsView: View {
             VStack(alignment: .center, spacing: 32) {
 
                 Button(action: {
-                    assert(false)
                     if MFMailComposeViewController.canSendMail() {
                         self.isShowingMailView = true
                     }

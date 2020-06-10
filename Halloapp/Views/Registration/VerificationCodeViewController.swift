@@ -8,7 +8,6 @@
 
 import CocoaLumberjack
 import UIKit
-import Core
 
 protocol VerificationCodeViewControllerDelegate: AnyObject {
     func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController)

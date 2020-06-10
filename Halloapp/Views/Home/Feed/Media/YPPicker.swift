@@ -13,7 +13,6 @@ import Photos
 import SwiftUI
 import UIKit
 import YPImagePicker
-import Core
 
 struct PickerWrapper: UIViewControllerRepresentable {
 

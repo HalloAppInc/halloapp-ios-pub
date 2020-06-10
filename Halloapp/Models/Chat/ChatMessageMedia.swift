@@ -9,7 +9,6 @@
 import CocoaLumberjack
 import Combine
 import Foundation
-import Core
 
 enum ChatMessageMediaType: Int {
     case image = 0

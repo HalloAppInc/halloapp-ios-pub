@@ -9,7 +9,6 @@
 import CocoaLumberjack
 import SwiftUI
 import UIKit
-import Core
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
