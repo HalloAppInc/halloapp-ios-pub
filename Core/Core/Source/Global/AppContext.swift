@@ -72,8 +72,12 @@ open class AppContext {
         let osLogger = DDOSLogger.sharedInstance
         osLogger.logFormatter = LogFormatter()
         DDLog.add(osLogger)
-
+        
         FirebaseApp.configure()
+        
+        let clLogger = CLLogger()
+        clLogger.logFormatter = LogFormatter()
+        DDLog.add(clLogger)
 
         // Migrate saved user data to app group container.
         let userDataDatabaseLocationInAppContainer = NSPersistentContainer.defaultDirectoryURL()
