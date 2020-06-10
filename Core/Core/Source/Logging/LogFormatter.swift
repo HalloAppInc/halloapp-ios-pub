@@ -39,6 +39,7 @@ class LogFormatter: NSObject, DDLogFormatter {
         let queueName = LogFormatter.queueLabel(for: logMessage)
         let logLevel = LogFormatter.logLevel(for: logMessage)
         let logMessageStr = logMessage.message.replacingOccurrences(of: "\n", with: "\n\(logLevel) ")
+
         return "\(queueName) \(logLevel) \(logMessageStr)"
     }
 }
