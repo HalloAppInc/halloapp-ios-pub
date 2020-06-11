@@ -22,6 +22,9 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     private var replyContext: ReplyContext? {
         didSet {
             self.refreshCommentInputViewReplyPanel()
+            if let indexPaths = self.tableView.indexPathsForVisibleRows {
+                self.tableView.reloadRows(at: indexPaths, with: .none)
+            }
         }
     }
     private var fetchedResultsController: NSFetchedResultsController<FeedPostComment>?
@@ -349,6 +352,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
             self.confirmResending(commentWithId: commentId)
         }
         cell.commentView.textLabel.delegate = self
+        cell.isCellHighlighted = self.replyContext?.parentCommentId == commentId
         return cell
     }
 
@@ -524,6 +528,12 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
     var replyAction: (() -> ()) = {}
 
     var accessoryViewAction: (() -> ()) = {}
+
+    var isCellHighlighted: Bool = false {
+        didSet {
+            self.backgroundColor = isCellHighlighted ? UIColor.lavaOrange.withAlphaComponent(0.1) : .clear
+        }
+    }
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
