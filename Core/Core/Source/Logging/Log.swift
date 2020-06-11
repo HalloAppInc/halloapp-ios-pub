@@ -13,16 +13,7 @@ import FirebaseCrashlytics
 public final class CLLogger: DDAbstractLogger {
 
     public override func log(message logMessage: DDLogMessage) {
-        #if DEBUG
-        #else
-        switch logMessage.flag {
-            case .error: break
-            case .warning: break
-            case .info: break
-            case .debug: break
-            default: return
-            }
-        #endif
+
         var message = logMessage.message
         
         let ivar = class_getInstanceVariable(object_getClass(self), "_logFormatter")
