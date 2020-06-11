@@ -25,30 +25,27 @@ class NotificationService: UNNotificationServiceExtension {
 
         self.bestAttemptContent = bestAttemptContent
         self.contentHandler = contentHandler
-
-        guard let metadata = request.content.userInfo["metadata"] as? [String : String] else {
+        
+        guard let metadata = NotificationUtility.Metadata(fromRequest: request) else {
             contentHandler(bestAttemptContent)
             return
         }
 
         // Contact name goes as title.
-        if let userId: UserID = metadata["from-id"] {
-            let contactName = AppExtensionContext.shared.contactStore.fullName(for: userId)
-            bestAttemptContent.title = contactName
-        }
+        let contactName = AppExtensionContext.shared.contactStore.fullName(for: metadata.fromId)
+        bestAttemptContent.title = contactName
 
         // Populate notification body.
         var protoContainer: Proto_Container?
-        if let base64Data = metadata["data"] {
-            if let protobufData = Data(base64Encoded: base64Data) {
-                do {
-                    protoContainer = try Proto_Container(serializedData: protobufData)
-                }
-                catch {
-                    Crashlytics.crashlytics().log("notification-se/protobuf/error [\(error)]")
-                }
+        if let protobufData = Data(base64Encoded: metadata.data) {
+            do {
+                protoContainer = try Proto_Container(serializedData: protobufData)
+            }
+            catch {
+                Crashlytics.crashlytics().log("notification-se/protobuf/error [\(error)]")
             }
         }
+        
         if (protoContainer != nil) {
             if protoContainer!.hasPost {
                 bestAttemptContent.subtitle = "New Post"

@@ -521,12 +521,9 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         if let text = chatMessage.text {
             notification.body = text
         }
-        notification.userInfo = [
-            NotificationKey.keys.metadata: [
-                NotificationKey.keys.contentType: NotificationKey.contentType.chat,
-                NotificationKey.keys.fromId: chatMessage.fromUserId
-            ]
-        ]
+        
+        // TODO: If we want to use this method in the future, we need to construct and save metadata to userinfo
+        
         DDLogDebug("ChatData/new-msg/localNotification [\(chatMessage.id)]")
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: notification, trigger: nil))
     }

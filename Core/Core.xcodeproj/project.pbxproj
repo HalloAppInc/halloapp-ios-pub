@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		246A8B71248FEC9400CE0429 /* NotificationUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B70248FEC9400CE0429 /* NotificationUtility.swift */; };
 		768123BD2485D9C7008C5216 /* Core.h in Headers */ = {isa = PBXBuildFile; fileRef = 768123BB2485D9C7008C5216 /* Core.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		768123D32485DBE2008C5216 /* LogFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123D12485DBE2008C5216 /* LogFormatter.swift */; };
 		768123D72485DC4F008C5216 /* AppContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123D62485DC4F008C5216 /* AppContext.swift */; };
@@ -34,6 +35,7 @@
 
 /* Begin PBXFileReference section */
 		0C5B0876A0FCF0D1F281CF7C /* Pods-Core.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.external beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.external beta.xcconfig"; sourceTree = "<group>"; };
+		246A8B70248FEC9400CE0429 /* NotificationUtility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationUtility.swift; sourceTree = "<group>"; };
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
 		5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.debug.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.debug.xcconfig"; sourceTree = "<group>"; };
@@ -144,6 +146,7 @@
 				768123D62485DC4F008C5216 /* AppContext.swift */,
 				76925CFC24872E85008333FA /* UserData.xcdatamodeld */,
 				768123F024860F67008C5216 /* UserData.swift */,
+				246A8B70248FEC9400CE0429 /* NotificationUtility.swift */,
 			);
 			path = Global;
 			sourceTree = "<group>";
@@ -335,6 +338,7 @@
 				768123FE248612E7008C5216 /* XMPPController.swift in Sources */,
 				7681240224861487008C5216 /* XMPPError.swift in Sources */,
 				768123F924861068008C5216 /* ABContact+CoreDataClass.swift in Sources */,
+				246A8B71248FEC9400CE0429 /* NotificationUtility.swift in Sources */,
 				768123F824861068008C5216 /* Contacts.xcdatamodeld in Sources */,
 				76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */,
 				768123F124860F67008C5216 /* UserData.swift in Sources */,

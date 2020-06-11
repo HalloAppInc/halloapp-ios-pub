@@ -8,6 +8,7 @@
 
 import SwiftUI
 import UIKit
+import Core
 import Combine
 
 struct HomeView: UIViewControllerRepresentable {
@@ -141,8 +142,8 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
     
     private func onTapNotification() {
         // If the user tapped on a notification, switch to feed or chat tab
-        if let metadata = UserDefaults.standard.object(forKey: NotificationKey.keys.userDefaults) as? [String: String] {
-            if (metadata[NotificationKey.keys.contentType] == NotificationKey.contentType.chat) {
+        if let metadata = NotificationUtility.Metadata.fromUserDefaults() {
+            if metadata.contentType == .chat {
                 self.selectedIndex = 1
             }
         }

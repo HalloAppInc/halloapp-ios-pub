@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		146B93792405F40500768AC6 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* Font.swift */; };
 		243CC626248005EC00B4794F /* ProfileEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243CC625248005EC00B4794F /* ProfileEditView.swift */; };
-		246A8B56248AC9E900CE0429 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B55248AC9E900CE0429 /* Notification.swift */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
 		761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
@@ -216,7 +215,6 @@
 		19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.release.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.release.xcconfig"; sourceTree = "<group>"; };
 		1C655B82B6A97A2F685569DF /* Pods-Notification Service Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		243CC625248005EC00B4794F /* ProfileEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditView.swift; sourceTree = "<group>"; };
-		246A8B55248AC9E900CE0429 /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
 		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
 		761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VerificationCodeViewController.swift; path = HalloApp/Views/Registration/VerificationCodeViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -559,7 +557,6 @@
 			isa = PBXGroup;
 			children = (
 				768123A32485C56E008C5216 /* MainAppContext.swift */,
-				246A8B55248AC9E900CE0429 /* Notification.swift */,
 			);
 			path = Global;
 			sourceTree = "<group>";
@@ -1221,7 +1218,6 @@
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				76A9244B244EC49000794859 /* UIView.swift in Sources */,
-				246A8B56248AC9E900CE0429 /* Notification.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
 				766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */,
 				EA796B9B2469DDF100BC795E /* ChatQuoted+CoreDataClass.swift in Sources */,

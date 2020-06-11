@@ -8,6 +8,7 @@
 
 import CocoaLumberjack
 import Combine
+import Core
 import CoreData
 import UIKit
 import SwiftUI
@@ -249,18 +250,16 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     
     private func onTapNotification() {
         // If the user tapped on a notification, move to the chat view
-        if let metadata = UserDefaults.standard.object(forKey: NotificationKey.keys.userDefaults) as? [String: String] {
-            guard metadata[NotificationKey.keys.contentType] == NotificationKey.contentType.chat else { return }
-
-            if let senderId = metadata[NotificationKey.keys.fromId] {
-                DDLogInfo("appdelegate/tap-notifications/didDetect/changedToChatViewForUser \(senderId)")
+        if let metadata = NotificationUtility.Metadata.fromUserDefaults() {
+            if metadata.contentType == .chat {
+                DDLogInfo("appdelegate/tap-notifications/didDetect/changedToChatViewForUser \(metadata.fromId)")
 
                 self.navigationController?.popToRootViewController(animated: false)
-                self.navigationController?.pushViewController(ChatViewController(for: senderId, with: nil, at: 0, status: .none, lastSeen: nil), animated: true)
+                self.navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0, status: .none, lastSeen: nil), animated: true)
+                
+                metadata.removeFromUserDefaults()
+                MainAppContext.shared.didTapNotification.send(false)
             }
-
-            UserDefaults.standard.removeObject(forKey: NotificationKey.keys.userDefaults)
-            MainAppContext.shared.didTapNotification.send(false)
         }
     }
 }
