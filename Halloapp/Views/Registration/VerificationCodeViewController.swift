@@ -204,6 +204,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
             }
             DDLogInfo("reg/request-sms/http-response  status=[\(httpResponse.statusCode)]  response=[\(response)]")
             DispatchQueue.main.async {
+                /// TODO: pass HTTP response code too?
                 self.verificationCodeRequestFinished(with: response)
             }
         }
@@ -214,13 +215,28 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         isCodeRequestInProgress = false
 
         labelTitle.isHidden = true
-        viewCodeRequestError.isHidden = false
         viewChangePhone.isHidden = false
+
+        if let message = message {
+            let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+            self.present(alert, animated: true)
+        } else {
+            viewCodeRequestError.isHidden = false
+        }
     }
 
     private func verificationCodeRequestFinished(with response: [String : Any]) {
         if let error = response["error"] as? String {
-            verificationCodeRequestFailed(with: error)
+            let message: String?
+            switch error {
+            case "no_friends":
+                message = "We are currently in beta and by invitation only. Please have one of your friends who is a HalloApp user invite you."
+            default:
+                message = nil
+                break
+            }
+            verificationCodeRequestFailed(with: message)
             return
         }
         guard let normalizedPhoneNumber = response["phone"] as? String else {
