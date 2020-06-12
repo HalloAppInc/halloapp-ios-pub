@@ -224,6 +224,7 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
         commonInit()
     }
 
+    private var placeholderImageView: UIImageView!
     private var imageView: ZoomableImageView!
     private var imageLoadingCancellable: AnyCancellable?
 
@@ -234,11 +235,17 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func commonInit() {
+        placeholderImageView = UIImageView(frame: self.contentView.bounds)
+        placeholderImageView.contentMode = .center
+        placeholderImageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+        placeholderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
+        placeholderImageView.image = UIImage(systemName: "video")
+        placeholderImageView.tintColor = .systemGray
+        self.contentView.addSubview(placeholderImageView)
+
         imageView = ZoomableImageView(frame: self.contentView.bounds)
-        imageView.contentMode = .scaleAspectFit
         imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
-        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
-        imageView.tintColor = .systemGray
+        imageView.contentMode = .scaleAspectFill
         self.contentView.addSubview(imageView)
     }
 
@@ -246,13 +253,15 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
         super.configure(with: media)
 
         if media.isMediaAvailable {
-            imageView.contentMode = .scaleAspectFit
+            placeholderImageView.isHidden = true
+            imageView.isHidden = false
             imageView.image = media.image!
         } else if imageLoadingCancellable == nil {
-            imageView.contentMode = .center
-            imageView.image = UIImage(systemName: "photo")
+            placeholderImageView.isHidden = false
+            imageView.isHidden = true
             imageLoadingCancellable = media.imageDidBecomeAvailable.sink { (image) in
-                self.imageView.contentMode = .scaleAspectFit
+                self.placeholderImageView.isHidden = true
+                self.imageView.isHidden = false
                 self.imageView.image = image
             }
         }
@@ -270,7 +279,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         commonInit()
     }
 
-    private var imageView: UIImageView! // placeholder
+    private var placeholderImageView: UIImageView!
     private var avPlayer: AVPlayer?
     private var avPlayerViewController: AVPlayerViewController!
     private var videoLoadingCancellable: AnyCancellable?
@@ -288,13 +297,13 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func commonInit() {
-        imageView = UIImageView(frame: self.contentView.bounds)
-        imageView.contentMode = .center
-        imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
-        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
-        imageView.image = UIImage(systemName: "video")
-        imageView.tintColor = .systemGray
-        self.contentView.addSubview(imageView)
+        placeholderImageView = UIImageView(frame: self.contentView.bounds)
+        placeholderImageView.contentMode = .center
+        placeholderImageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+        placeholderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
+        placeholderImageView.image = UIImage(systemName: "video")
+        placeholderImageView.tintColor = .systemGray
+        self.contentView.addSubview(placeholderImageView)
 
         avPlayerViewController = AVPlayerViewController()
         avPlayerViewController.view.frame = self.contentView.bounds
@@ -310,15 +319,15 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         if media.isMediaAvailable {
             avPlayerViewController.player = AVPlayer(url: media.fileURL!)
             avPlayerViewController.view.isHidden = false
-            imageView.isHidden = true
+            placeholderImageView.isHidden = true
         } else {
             if videoLoadingCancellable == nil {
                 avPlayerViewController.view.isHidden = true
-                imageView.isHidden = false
+                placeholderImageView.isHidden = false
                 videoLoadingCancellable = media.videoDidBecomeAvailable.sink { (videoURL) in
                     self.avPlayerViewController.player = AVPlayer(url: videoURL)
                     self.avPlayerViewController.view.isHidden = false
-                    self.imageView.isHidden = true
+                    self.placeholderImageView.isHidden = true
                 }
             }
         }
