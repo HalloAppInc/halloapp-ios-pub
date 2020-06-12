@@ -237,11 +237,11 @@ class FeedDownloadManager {
         for ch in mediaFilename.unicodeScalars {
             guard CharacterSet.alphanumerics.contains(ch) else { continue }
             if first == nil {
-                first = String(ch)
+                first = String(ch).uppercased()
                 continue
             }
             if second == nil {
-                second = String(ch)
+                second = String(ch).uppercased()
                 break
             }
         }
