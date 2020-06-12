@@ -692,7 +692,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 notifications = self.notifications(with: isNotReadPredicate, in: managedObjectContext)
             }
             DDLogInfo("FeedData/notifications/mark-read-all Count: \(notifications.count)")
-            notifications.forEach { $0.read = true }
+            notifications.forEach {
+                $0.read = true
+                
+                if let commentId = $0.commentId {
+                    NotificationUtility.removeDelivered(forType: .comment, withContentId: commentId)
+                }
+            }
             self.save(managedObjectContext)
         }
     }

@@ -115,9 +115,21 @@ public class NotificationUtility {
     }
     
     public static func removeDelivered(forType type: ContentType, withFromId fromId: String? = nil, withContentId contentId: String? = nil) {
-        DDLogInfo("Notification/removeDeliveredNotifications will remove for type=\(type) and fromId=\(String(describing: fromId)) and contentId=\(String(describing: contentId))")
-        
-        guard fromId != nil || contentId != nil else { return }
+        if type == .chat {
+            guard fromId != nil else {
+                DDLogError("Notification/removeDeliveredNotifications fromId should not be nil")
+                return
+            }
+            
+            DDLogInfo("Notification/removeDeliveredNotifications will remove for type=\(type) and fromId=\(fromId!)")
+        } else { // .feedpost, .comment
+            guard contentId != nil else {
+                DDLogError("Notification/removeDeliveredNotifications contentId should not be nil")
+                return
+            }
+            
+            DDLogInfo("Notification/removeDeliveredNotifications will remove for type=\(type) and contentId=\(contentId!)")
+        }
         
         UNUserNotificationCenter.current().getDeliveredNotifications { (notifications: [UNNotification]) in
             DDLogInfo("Notification/removeDeliveredNotifications found \(notifications.count) notifications")
@@ -128,17 +140,15 @@ public class NotificationUtility {
                 if let metadata = Metadata(fromRequest: notification.request) {
                     guard metadata.contentType == type else { continue }
                     
-                    switch type {
-                    case .chat:
+                    if type == .chat {
                         guard metadata.fromId == fromId! else { continue }
-                        
-                        DDLogInfo("Notification/removeDeliveredNotifications \(notification.request.identifier) will be removed")
-                        
-                        identifiersToRemove.append(notification.request.identifier)
-                        
-                    default:
-                        DDLogInfo("Notification/removeDeliveredNotifications unsuportted type \(type.rawValue)")
+                    } else { // .feedpost, .comment
+                        guard metadata.contentId == contentId! else { continue }
                     }
+                    
+                    DDLogInfo("Notification/removeDeliveredNotifications \(notification.request.identifier) will be removed")
+                    
+                    identifiersToRemove.append(notification.request.identifier)
                 }
             }
             

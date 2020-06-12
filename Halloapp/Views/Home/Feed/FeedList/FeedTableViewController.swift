@@ -219,6 +219,9 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
             // Send "seen" receipt.
             MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+            
+            // Remove delivered notification
+            NotificationUtility.removeDelivered(forType: .feedpost, withContentId: feedPost.id)
         }
     }
 
