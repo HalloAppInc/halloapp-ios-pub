@@ -11,8 +11,8 @@ import UIKit
 
 class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
 
-    private enum MediaSliderSection {
-        case main
+    private enum MediaSliderSection: Int {
+        case main = 0
     }
 
     private let feedDataItem: FeedDataItem?
@@ -23,6 +23,12 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         didSet {
             self.feedDataItem?.currentMediaIndex = currentIndex
             self.pageControl?.currentPage = currentIndex
+
+            if oldValue != currentIndex {
+                if let videoCell = collectionView.cellForItem(at: IndexPath(row: oldValue, section: MediaSliderSection.main.rawValue)) as? MediaCarouselVideoCollectionViewCell {
+                    videoCell.stopPlayback()
+                }
+            }
         }
     }
 
@@ -331,5 +337,9 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
                 }
             }
         }
+    }
+
+    func stopPlayback() {
+        avPlayerViewController.player?.pause()
     }
 }
