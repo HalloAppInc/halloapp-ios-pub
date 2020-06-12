@@ -31,6 +31,7 @@
 		76925CFA24871506008333FA /* UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76925CF924871506008333FA /* UserDefaults.swift */; };
 		76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76925CFC24872E85008333FA /* UserData.xcdatamodeld */; };
 		ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3156278C2E59CE6580A649AA /* Pods_Core.framework */; };
+		E706829C2491705E00D9232A /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = E706829B2491705E00D9232A /* Log.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,6 +62,9 @@
 		7681241E2486C178008C5216 /* String.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		76925CF924871506008333FA /* UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaults.swift; sourceTree = "<group>"; };
 		76925CFD24872E85008333FA /* Halloapp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Halloapp.xcdatamodel; sourceTree = "<group>"; };
+		A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.external beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.external beta.xcconfig"; sourceTree = "<group>"; };
+		C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.internal beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.internal beta.xcconfig"; sourceTree = "<group>"; };
+		E706829B2491705E00D9232A /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,8 +87,8 @@
 			children = (
 				5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */,
 				4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */,
-				6102D48B984703CAE953BE11 /* Pods-Core.internal beta.xcconfig */,
-				0C5B0876A0FCF0D1F281CF7C /* Pods-Core.external beta.xcconfig */,
+				C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */,
+				A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */,
 			);
 			name = Pods;
 			path = ../Pods;
@@ -136,6 +140,7 @@
 			isa = PBXGroup;
 			children = (
 				768123D12485DBE2008C5216 /* LogFormatter.swift */,
+				E706829B2491705E00D9232A /* Log.swift */,
 			);
 			path = Logging;
 			sourceTree = "<group>";
@@ -347,6 +352,7 @@
 				76812417248619BB008C5216 /* schema.pb.swift in Sources */,
 				768123D32485DBE2008C5216 /* LogFormatter.swift in Sources */,
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
+				E706829C2491705E00D9232A /* Log.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
 				7681241F2486C178008C5216 /* String.swift in Sources */,
 				76812405248614BA008C5216 /* XMPPFeed.swift in Sources */,
@@ -512,7 +518,7 @@
 		};
 		768123C22485D9C7008C5216 /* Internal Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6102D48B984703CAE953BE11 /* Pods-Core.internal beta.xcconfig */;
+			baseConfigurationReference = C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
@@ -600,7 +606,7 @@
 		};
 		76F43F37248B20F700D47920 /* External Beta */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0C5B0876A0FCF0D1F281CF7C /* Pods-Core.external beta.xcconfig */;
+			baseConfigurationReference = A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;

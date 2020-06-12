@@ -75,6 +75,10 @@ open class AppContext {
 
         FirebaseApp.configure()
 
+        let clLogger = CLLogger()
+        clLogger.logFormatter = LogFormatter()
+        DDLog.add(clLogger)
+
         // Migrate saved user data to app group container.
         let userDataDatabaseLocationInAppContainer = NSPersistentContainer.defaultDirectoryURL()
         if FileManager.default.fileExists(atPath: userDataDatabaseLocationInAppContainer.appendingPathComponent("Halloapp.sqlite").path) {
