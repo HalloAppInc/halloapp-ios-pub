@@ -69,7 +69,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         layout.sectionInset = UIEdgeInsets(top: 0, left: 0.5*MediaCarouselView.cellSpacing, bottom: 0, right: 0.5*MediaCarouselView.cellSpacing)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(MediaCarouselImageCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierImage)
-        collectionView.register(MediaCarouselfVideoCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierVideo)
+        collectionView.register(MediaCarouselVideoCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierVideo)
         collectionView.isPagingEnabled = true
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
@@ -259,7 +259,7 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
     }
 }
 
-fileprivate class MediaCarouselfVideoCollectionViewCell: MediaCarouselCollectionViewCell {
+fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()
