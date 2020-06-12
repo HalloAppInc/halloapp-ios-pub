@@ -25,17 +25,17 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     
     private var fetchedResultsController: NSFetchedResultsController<ChatMessage>?
     private var dataSource: UITableViewDiffableDataSource<Int, ChatMessage>?
-    
+
     static private let sectionMain = 0
     static private let otherUserCellReuseIdentifier = "OtherUserCell"
     static private let userCellReuseIdentifier = "UserCell"
-
+    
     private var cancellableSet: Set<AnyCancellable> = []
     
     // MARK: Lifecycle
     
     init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0, status: ChatThread.Status = ChatThread.Status.none, lastSeen: Date? = nil) {
-        DDLogDebug("ChatViewController/init/\(fromUserId)")
+        DDLogDebug("ChatViewController/init/\(fromUserId) [\(AppContext.shared.contactStore.fullName(for: fromUserId))]")
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
@@ -80,7 +80,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.tableView.tableFooterView = nil
         
         self.dataSource = UITableViewDiffableDataSource<Int, ChatMessage>(tableView: self.tableView) { tableView, indexPath, chatMessage in
-
+            
             var isPreviousMsgSameSender = false
 
             if chatMessage.fromUserId == MainAppContext.shared.userData.userId {
@@ -101,10 +101,10 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
                     cell.update(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
                     cell.backgroundColor = UIColor.systemGray6
                     
-                    if chatMessage.quoted != nil && chatMessage.quoted?.media != nil {
-                        cell.previewAction = { [weak self] in
+                    if (chatMessage.media != nil) || (chatMessage.quoted != nil && chatMessage.quoted?.media != nil) {
+                        cell.previewAction = { [weak self] previewType, mediaIndex in
                             guard let self = self else { return }
-                            self.showPreviewView(for: chatMessage)
+                            self.showPreviewView(for: chatMessage, previewType: previewType, mediaIndex: mediaIndex)
                         }
                     }
                     
@@ -125,14 +125,14 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
                     }
                 }
             }
-
+            
             cell.update(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
             cell.backgroundColor = UIColor.systemGray6
 
-            if chatMessage.quoted != nil && chatMessage.quoted?.media != nil {
-                cell.previewAction = { [weak self] in
+            if (chatMessage.media != nil) || (chatMessage.quoted != nil && chatMessage.quoted?.media != nil) {
+                cell.previewAction = { [weak self] previewType, mediaIndex in
                     guard let self = self else { return }
-                    self.showPreviewView(for: chatMessage)
+                    self.showPreviewView(for: chatMessage, previewType: previewType, mediaIndex: mediaIndex)
                 }
             }
             
@@ -195,11 +195,14 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         super.viewDidAppear(animated)
         if let chatWithUserId = self.fromUserId {
             MainAppContext.shared.chatData.markThreadAsRead(for: chatWithUserId)
+            MainAppContext.shared.chatData.updateUnreadThreadCount()
             MainAppContext.shared.chatData.updateUnreadMessageCount()
             MainAppContext.shared.chatData.subscribeToPresence(to: chatWithUserId)
             MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
         }
         self.chatInputView.didAppear(in: self)
+        
+        NotificationUtility.removeDelivered(forType: .chat, withFromId: self.fromUserId!)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -212,15 +215,10 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         }
     }
     
-    func dismantle() {
-        DDLogDebug("ChatViewController/dismantle/\(fromUserId ?? "")")
-        self.fetchedResultsController = nil
-    }
-
     // MARK:
     
-    private func showPreviewView(for chatMessage: ChatMessage) {
-        let detailVC = MediaPreviewController(for: chatMessage)
+    private func showPreviewView(for chatMessage: ChatMessage, previewType: MediaPreviewController.PreviewType, mediaIndex: Int) {
+        let detailVC = MediaPreviewController(for: chatMessage, previewType: previewType, mediaIndex: mediaIndex)
         let navigationController = UINavigationController(rootViewController: detailVC)
         navigationController.modalPresentationStyle = .overFullScreen
         navigationController.modalTransitionStyle = .crossDissolve
@@ -256,7 +254,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         let height = Int(cell.bounds.height)
        
         if chatMessage.cellHeight != height {
-            DDLogDebug("ChatViewController/updateCellHeight/\(chatMessage.id) \(height)")
+            DDLogDebug("ChatViewController/updateCellHeight/\(chatMessage.id) from \(chatMessage.cellHeight) to \(height)")
             MainAppContext.shared.chatData.updateChatMessageCellHeight(for: chatMessage.id, with: height)
         }
     }
@@ -269,7 +267,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
             return CGFloat(chatMessage.cellHeight)
         }
         
-//        var result:CGFloat = 50
+        let result:CGFloat = 50
 //        if chatMessage.quoted != nil {
 //            result += 100
 //        }
@@ -281,7 +279,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 //        }
 
 //        DDLogDebug("ChatViewController/estimateCellHeight/\(chatMessage.id)")
-        return 50
+        return result
     }
     
     // MARK: Data
@@ -310,7 +308,9 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.updateData(animatingDifferences: false)
         
         if self.shouldScrollToBottom {
-            self.scrollToBottom(true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.scrollToBottom(true)
+            }
             self.shouldScrollToBottom = false
         }
     }
@@ -403,16 +403,11 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
         if let toUserId = self.fromUserId {
             MainAppContext.shared.chatData.sendMessage(toUserId: toUserId, text: text, media: [], feedPostId: self.feedPostId ?? "", feedPostMediaIndex: self.feedPostMediaIndex)
-//            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-//                self.scrollToBottom(false)
-//            }
             
             self.feedPostId = nil
             self.feedPostMediaIndex = 0
             self.chatInputView.text = ""
-            
         }
-        
     }
     
     func chatInputView(_ inputView: ChatInputView) {
@@ -490,16 +485,23 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
                         DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
                     }
 
-                    if let asset = video.asset {
-                        PHCachingImageManager().requestAVAsset(forVideo: asset, options: nil) { (avAsset, _, _) in
-                            let asset = avAsset as! AVURLAsset
-                            mediaItem.videoURL = asset.url
-                            mediaToPost.append(mediaItem)
+                    if !video.fromCamera {
+                        if let asset = video.asset {
+                            PHCachingImageManager().requestAVAsset(forVideo: asset, options: nil) { (avAsset, _, _) in
+                                let asset = avAsset as! AVURLAsset
+                                mediaItem.videoURL = asset.url
+                                mediaToPost.append(mediaItem)
+                                mediaGroup.leave()
+                            }
+                        } else {
                             mediaGroup.leave()
                         }
                     } else {
+                        mediaItem.videoURL = video.url
+                        mediaToPost.append(mediaItem)
                         mediaGroup.leave()
                     }
+
                 }
             }
 
@@ -516,7 +518,8 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 
     
     private func presentMessageComposer(with media: [PendingMedia]) {
-        let vc = MessageComposerView(mediaItemsToPost: media)
+        guard let sendTo = self.fromUserId else { return }
+        let vc = MessageComposerView(sendTo: sendTo, mediaItemsToPost: media)
         vc.modalPresentationStyle = .fullScreen
         self.present(vc, animated: false, completion: nil)
     }
@@ -626,7 +629,7 @@ fileprivate class TitleView: UIView {
 
 class ChatTableViewCell: UITableViewCell, ChatViewDelegate {
 
-    var previewAction: (() -> ())?
+    var previewAction: ((_ previewType: MediaPreviewController.PreviewType, _ mediaIndex: Int) -> ())?
     var isSame: Bool = false
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -660,7 +663,7 @@ class ChatTableViewCell: UITableViewCell, ChatViewDelegate {
         self.chatView.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = false
         self.chatView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        self.chatView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.85).isActive = true
+        self.chatView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(UIScreen.main.bounds.width * 0.8).rounded()).isActive = true
     }
     
     private lazy var chatView: ChatView = {
@@ -669,22 +672,25 @@ class ChatTableViewCell: UITableViewCell, ChatViewDelegate {
         return view
     }()
     
+    var savedChatMessage: ChatMessage?
+    
     func update(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
+        self.savedChatMessage = chatMessage
         self.chatView.updateWith(chatMessage: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
     }
     
     // MARK: ChatViewDelegates
     
-    func chatView(_ chatView: ChatView) {
+    func chatView(_ chatView: ChatView, previewType: MediaPreviewController.PreviewType, mediaIndex: Int) {
         if self.previewAction != nil {
-            self.previewAction!()
+            self.previewAction!(previewType, mediaIndex)
         }
     }
 }
 
 class ChatTableViewUserCell: UITableViewCell, ChatUserViewDelegate {
 
-    var previewAction: (() -> ())?
+    var previewAction: ((_ previewType: MediaPreviewController.PreviewType, _ mediaIndex: Int) -> ())?
     var isSame: Bool = false
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -718,7 +724,7 @@ class ChatTableViewUserCell: UITableViewCell, ChatUserViewDelegate {
         self.chatUserView.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
         self.chatUserView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        self.chatUserView.widthAnchor.constraint(lessThanOrEqualTo: self.contentView.widthAnchor, multiplier: 0.85).isActive = true
+        self.chatUserView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(UIScreen.main.bounds.width * 0.8).rounded()).isActive = true
     }
 
     private lazy var chatUserView: ChatUserView = {
@@ -733,9 +739,9 @@ class ChatTableViewUserCell: UITableViewCell, ChatUserViewDelegate {
     
     // MARK: ChatUserViewDelegates
     
-    func chatUserView(_ chatView: ChatUserView) {
+    func chatUserView(_ chatView: ChatUserView, previewType: MediaPreviewController.PreviewType, mediaIndex: Int) {
         if self.previewAction != nil {
-            self.previewAction!()
+            self.previewAction!(previewType, mediaIndex)
         }
     }
     

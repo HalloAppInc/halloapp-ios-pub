@@ -5,12 +5,13 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import SwiftUI
+import AVKit
+import Combine
 import UIKit
 
 class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
 
-    enum MediaSliderSection {
+    private enum MediaSliderSection {
         case main
     }
 
@@ -54,7 +55,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     static private let cellSpacing: CGFloat = 20
 
-    static private let cellReuseIdentifier = "MediaCarouselCell"
+    static private let cellReuseIdentifierImage = "MediaCarouselCellImage"
+    static private let cellReuseIdentifierVideo = "MediaCarouselCellVideo"
 
     private let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -66,7 +68,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         layout.scrollDirection = .horizontal
         layout.sectionInset = UIEdgeInsets(top: 0, left: 0.5*MediaCarouselView.cellSpacing, bottom: 0, right: 0.5*MediaCarouselView.cellSpacing)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.register(MediaCarouselCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifier)
+        collectionView.register(MediaCarouselImageCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierImage)
+        collectionView.register(MediaCarouselfVideoCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierVideo)
         collectionView.isPagingEnabled = true
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
@@ -118,7 +121,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         if self.media.count > 1 {
             let pageControl = UIPageControl()
             pageControl.pageIndicatorTintColor = UIColor(named: "Tint")?.withAlphaComponent(0.2)
-            pageControl.currentPageIndicatorTintColor = UIColor(named: "Tint")
+            pageControl.currentPageIndicatorTintColor = UIColor(named: "LavaOrange")
             pageControl.translatesAutoresizingMaskIntoConstraints = false
             pageControl.numberOfPages = self.media.count
             pageControl.addTarget(self, action: #selector(pageControlAction), for: .valueChanged)
@@ -137,7 +140,13 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         self.collectionView.delegate = self
 
         let dataSource = UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>(collectionView: self.collectionView) { collectionView, indexPath, feedMedia in
-            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.cellReuseIdentifier, for: indexPath) as? MediaCarouselCollectionViewCell {
+            let reuseIdentifier: String = {
+                switch feedMedia.type {
+                case .image: return Self.cellReuseIdentifierImage
+                case .video: return Self.cellReuseIdentifierVideo
+                }
+            }()
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as? MediaCarouselCollectionViewCell {
                 cell.configure(with: feedMedia)
                 return cell
             }
@@ -200,16 +209,118 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
 fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     func configure(with media: FeedMedia) {
-        let controller = UIHostingController(rootView: MediaCell(media: media))
-        controller.view.frame = self.contentView.bounds
-        controller.view.backgroundColor = .clear
-        self.contentView.addSubview(controller.view)
+
+    }
+}
+
+fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionViewCell {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        commonInit()
     }
 
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        commonInit()
+    }
+
+    private var imageView: ZoomableImageView!
+    private var imageLoadingCancellable: AnyCancellable?
+
     override func prepareForReuse() {
-        let subviews = self.contentView.subviews
-        for view in subviews {
-            view.removeFromSuperview()
+        super.prepareForReuse()
+        imageLoadingCancellable?.cancel()
+        imageLoadingCancellable = nil
+    }
+
+    private func commonInit() {
+        imageView = ZoomableImageView(frame: self.contentView.bounds)
+        imageView.contentMode = .scaleAspectFit
+        imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
+        imageView.tintColor = .systemGray
+        self.contentView.addSubview(imageView)
+    }
+
+    override func configure(with media: FeedMedia) {
+        super.configure(with: media)
+
+        if media.isMediaAvailable {
+            imageView.contentMode = .scaleAspectFit
+            imageView.image = media.image!
+        } else if imageLoadingCancellable == nil {
+            imageView.contentMode = .center
+            imageView.image = UIImage(systemName: "photo")
+            imageLoadingCancellable = media.imageDidBecomeAvailable.sink { (image) in
+                self.imageView.contentMode = .scaleAspectFit
+                self.imageView.image = image
+            }
+        }
+    }
+}
+
+fileprivate class MediaCarouselfVideoCollectionViewCell: MediaCarouselCollectionViewCell {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        commonInit()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        commonInit()
+    }
+
+    private var imageView: UIImageView! // placeholder
+    private var avPlayer: AVPlayer?
+    private var avPlayerViewController: AVPlayerViewController!
+    private var videoLoadingCancellable: AnyCancellable?
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+
+        videoLoadingCancellable?.cancel()
+        videoLoadingCancellable = nil
+
+        if avPlayer != nil {
+            avPlayerViewController.player = nil
+            avPlayer = nil
+        }
+    }
+
+    private func commonInit() {
+        imageView = UIImageView(frame: self.contentView.bounds)
+        imageView.contentMode = .center
+        imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
+        imageView.image = UIImage(systemName: "video")
+        imageView.tintColor = .systemGray
+        self.contentView.addSubview(imageView)
+
+        avPlayerViewController = AVPlayerViewController()
+        avPlayerViewController.view.frame = self.contentView.bounds
+        avPlayerViewController.view.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+        avPlayerViewController.view.isHidden = true
+        avPlayerViewController.view.backgroundColor = .clear
+        self.contentView.addSubview(avPlayerViewController.view)
+    }
+
+    override func configure(with media: FeedMedia) {
+        super.configure(with: media)
+
+        if media.isMediaAvailable {
+            avPlayerViewController.player = AVPlayer(url: media.fileURL!)
+            avPlayerViewController.view.isHidden = false
+            imageView.isHidden = true
+        } else {
+            if videoLoadingCancellable == nil {
+                avPlayerViewController.view.isHidden = true
+                imageView.isHidden = false
+                videoLoadingCancellable = media.videoDidBecomeAvailable.sink { (videoURL) in
+                    self.avPlayerViewController.player = AVPlayer(url: videoURL)
+                    self.avPlayerViewController.view.isHidden = false
+                    self.imageView.isHidden = true
+                }
+            }
         }
     }
 }

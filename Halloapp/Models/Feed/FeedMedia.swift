@@ -11,28 +11,23 @@ import Combine
 import Core
 import Foundation
 
-class FeedMedia: Identifiable, ObservableObject, Hashable {
-    static let imageLoadingQueue = DispatchQueue(label: "com.halloapp.media-loading", qos: .userInitiated)
+class FeedMedia: Identifiable, Hashable {
+    private static let imageLoadingQueue = DispatchQueue(label: "com.halloapp.media-loading", qos: .userInitiated)
 
-    var id: String
-
-    var feedPostId: FeedPostID
-    var order: Int = 0
-    var type: FeedMediaType
-    var size: CGSize
+    let id: String
+    let feedPostId: FeedPostID
+    let order: Int
+    let type: FeedMediaType
+    let size: CGSize
     private var status: FeedPostMedia.Status
 
-    /**
-     This property exposes to SwiftUI whether media is ready to be displayed or not.
+    private(set) var isMediaAvailable: Bool = false
 
-     Media is available when:
-     Images: image was downloaded, saved to a file and then loaded from file.
-     Videos: video was dowbloaded and saved to a file.
-     */
-    @Published var isMediaAvailable: Bool = false
-
-    var image: UIImage?
+    private(set) var image: UIImage?
     private var isImageLoaded: Bool = false
+
+    let imageDidBecomeAvailable = PassthroughSubject<UIImage, Never>()
+    let videoDidBecomeAvailable = PassthroughSubject<URL, Never>()
 
     /**
      Setting this for images will trigger loading of an image on a background queue.
@@ -51,6 +46,9 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
                 }
             case .video:
                 isMediaAvailable = fileURL != nil
+                if fileURL != nil {
+                    videoDidBecomeAvailable.send(fileURL!)
+                }
             }
         }
     }
@@ -70,13 +68,16 @@ class FeedMedia: Identifiable, ObservableObject, Hashable {
             return
         }
 
-        DDLogDebug("FeedMedia/image/load [\(path)]")
+        DDLogVerbose("FeedMedia/image/load [\(path)]")
         FeedMedia.imageLoadingQueue.async {
             let image = UIImage(contentsOfFile: path)
             DispatchQueue.main.async {
                 self.image = image
                 self.isImageLoaded = true
                 self.isMediaAvailable = true
+                if image != nil {
+                    self.imageDidBecomeAvailable.send(image!)
+                }
             }
         }
     }

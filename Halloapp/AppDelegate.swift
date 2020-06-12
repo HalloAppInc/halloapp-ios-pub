@@ -132,12 +132,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         DDLogInfo("appdelegate/tap-notifications/didReceive Response=\(response) UserInfo=\(response.notification.request.content.userInfo)")
 
-        if (response.actionIdentifier == UNNotificationDefaultActionIdentifier) {
-            if let metadata = response.notification.request.content.userInfo[NotificationKey.keys.metadata] as? [String: String] {
+        if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
+            if let metadata = NotificationUtility.Metadata(fromResponse: response) {
                 DDLogInfo("appdelegate/tap-notifications/didReceive MetaData=\(metadata)")
-
-                if (metadata[NotificationKey.keys.contentType] == NotificationKey.contentType.chat) {
-                    UserDefaults.standard.set(metadata, forKey: NotificationKey.keys.userDefaults)
+                
+                if metadata.contentType == .chat {
+                    metadata.saveToUserDefaults()
                     MainAppContext.shared.didTapNotification.send(true)
                 }
             }

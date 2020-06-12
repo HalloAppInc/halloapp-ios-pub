@@ -210,6 +210,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }()
 
     private var textViewContainerHeightConstraint: NSLayoutConstraint?
+    private var postButtonsContainerWidthConstraint: NSLayoutConstraint?
     
     private lazy var textView: UITextView = {
         let view = UITextView()
@@ -237,10 +238,18 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         button.setImage(UIImage(systemName: "photo.fill"), for: .normal)
         button.addTarget(self, action: #selector(self.postMediaButtonClicked), for: .touchUpInside)
         button.isEnabled = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 20)
+        button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.tintColor = UIColor.systemGray
+        
+
+        
+        button.translatesAutoresizingMaskIntoConstraints = false
+//        let buttonSize: CGFloat = 30.0
+//
+//        NSLayoutConstraint(item: button, attribute: .width, relatedBy: .equal, toItem: button, attribute: .width, multiplier: 1, constant: buttonSize).isActive = true
+//        NSLayoutConstraint(item: button, attribute: .height, relatedBy: .equal, toItem: button, attribute: .width, multiplier: 1, constant: 0).isActive = true
+
         return button
     }()
     
@@ -249,7 +258,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         button.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
         button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
         button.isEnabled = false
-        button.translatesAutoresizingMaskIntoConstraints = false
+        
         // gotcha: keep insets at 6 or higher to have a bigger hit area,
         // rotating image by 45 degree is problematic so perhaps getting a pre-rotated custom icon is better
         button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
@@ -257,33 +266,37 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         button.tintColor = UIColor.link
         button.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi / 4))
         
-        
         button.layer.zPosition = -10
         
-        button.backgroundColor = UIColor.systemBackground
-//        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        button.backgroundColor = UIColor.clear
+        
+//        button.backgroundColor = UIColor.systemBlue
+        
+//        button.setContentHuggingPriority(.defaultLow, for: .horizontal)
 //        button.setContentHuggingPriority(.defaultHigh, for: .vertical)
 //        button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
 //        button.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
         
+        button.translatesAutoresizingMaskIntoConstraints = false
+        
+//        button.heightAnchor.constraint(equalToConstant: 30).isActive = true
 //        let buttonSize: CGFloat = 30.0
 //
 //        NSLayoutConstraint(item: button, attribute: .width, relatedBy: .equal, toItem: button, attribute: .width, multiplier: 1, constant: buttonSize).isActive = true
 //        NSLayoutConstraint(item: button, attribute: .height, relatedBy: .equal, toItem: button, attribute: .width, multiplier: 1, constant: 0).isActive = true
 
-        
         return button
     }()
     
     private lazy var postButtonsContainer: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [self.postMediaButton, self.postButton ])
+        let view = UIStackView(arrangedSubviews: [self.postMediaButton, self.postButton])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .horizontal
         return view
     }()
     
     private lazy var textInputRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [self.textViewContainer, self.postButtonsContainer ])
+        let view = UIStackView(arrangedSubviews: [self.textViewContainer, self.postButtonsContainer])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .horizontal
         
@@ -330,24 +343,19 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         
         self.textViewContainer.leadingAnchor.constraint(equalTo: self.textInputRow.leadingAnchor).isActive = true
         self.textViewContainer.topAnchor.constraint(equalTo: self.textInputRow.topAnchor).isActive = true
-        self.textViewContainer.trailingAnchor.constraint(equalTo: self.textInputRow.trailingAnchor, constant: -40).isActive = true
+        
+        self.textViewContainer.trailingAnchor.constraint(equalTo: self.postButtonsContainer.leadingAnchor).isActive = true
         self.textViewContainer.bottomAnchor.constraint(equalTo: self.textInputRow.bottomAnchor).isActive = true
         
         self.textViewContainerHeightConstraint = self.textViewContainer.heightAnchor.constraint(equalToConstant: 115)
         
         self.textInputRow.leadingAnchor.constraint(equalTo: self.vStack.leadingAnchor).isActive = true
-        
         self.textInputRow.trailingAnchor.constraint(equalTo: self.vStack.trailingAnchor).isActive = true
       
-
-//        self.postButtonsContainer.leadingAnchor.constraint(equalTo: textInputRow.leadingAnchor).isActive = false
-//        self.postButtonsContainer.topAnchor.constraint(equalTo: textInputRow.topAnchor).isActive = true
         self.postButtonsContainer.trailingAnchor.constraint(equalTo: textInputRow.trailingAnchor).isActive = true
-//        self.postButtonsContainer.bottomAnchor.constraint(equalTo: textInputRow.bottomAnchor).isActive = true
         
-
-//        let textViewHeight = round(2 * self.textView.font!.lineHeight)
-//        self.textView.addConstraint(NSLayoutConstraint(item: self.textView, attribute: .height, relatedBy: .greaterThanOrEqual, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: textViewHeight))
+        self.postButtonsContainerWidthConstraint = self.postButtonsContainer.widthAnchor.constraint(equalToConstant: 80)
+        self.postButtonsContainerWidthConstraint?.isActive = true
         
         self.contentView.addArrangedSubview(self.vStack)
         
@@ -355,9 +363,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         self.vStack.topAnchor.constraint(equalTo: self.contentView.topAnchor).isActive = true
         self.vStack.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor).isActive = true
         self.vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor).isActive = true
-        
-        self.postMediaButton.isHidden = true
-        
+                
         setPlaceholderText()
     }
     
@@ -547,13 +553,14 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         self.postButton.isEnabled = !self.text.isEmpty
         self.postMediaButton.isHidden = !self.text.isEmpty
 
+        self.postButtonsContainerWidthConstraint?.constant = self.text.isEmpty ? 80 : 40
+        self.postButtonsContainerWidthConstraint?.isActive = true
         
         if self.textView.contentSize.height >= 115 {
             self.textViewContainerHeightConstraint?.constant = 115
             self.textViewContainerHeightConstraint?.isActive = true
             self.textView.isScrollEnabled = true
         } else {
-
             if self.textView.isScrollEnabled {
                 self.textViewContainerHeightConstraint?.constant = self.textView.contentSize.height
                 self.textView.isScrollEnabled = false
@@ -561,7 +568,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
                 self.textViewContainerHeightConstraint?.isActive = false
             }
         }
-
         
     }
 
@@ -571,7 +577,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }
 
     @objc func postMediaButtonClicked() {
-        print("postMediaButton Clicked")
         self.delegate?.chatInputView(self)
     }
     
@@ -648,11 +653,11 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     @objc private func keyboardWillShow(notification: Notification) {
         guard !self.ignoreKeyboardNotifications else { return }
 
-        let beginFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)!.cgRectValue
+//        let beginFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)!.cgRectValue
         let endFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
         var duration: TimeInterval = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as! TimeInterval
         var curve: UIView.AnimationCurve = UIView.AnimationCurve(rawValue: notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as! Int)!
-        DDLogDebug("keyboard/will-show: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
+//        DDLogDebug("chatView/keyboard/will-show: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
         self.updateBottomInset(from: endFrame)
         if duration == 0 && self.keyboardState == .shown {
             duration = CommentInputView.heightChangeAnimationDuration
@@ -671,20 +676,20 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         guard !self.ignoreKeyboardNotifications else { return }
 
         self.keyboardState = .shown
-        let beginFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)!.cgRectValue
-        let endFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
-        DDLogDebug("keyboard/did-show: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
+//        let beginFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)!.cgRectValue
+//        let endFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
+//        DDLogDebug("chatView/keyboard/did-show: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
     }
 
     @objc private func keyboardWillHide(notification: Notification) {
         guard !self.ignoreKeyboardNotifications else { return }
 
         self.keyboardState = .hiding
-        let beginFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)!.cgRectValue
+//        let beginFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)!.cgRectValue
         let endFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
         var duration: TimeInterval = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as! TimeInterval
         var curve: UIView.AnimationCurve = UIView.AnimationCurve(rawValue: notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as! Int)!
-        DDLogDebug("keyboard/will-hide: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
+//        DDLogDebug("chatView/keyboard/will-hide: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
         self.updateBottomInset(from: endFrame)
         if duration == 0 {
             duration = CommentInputView.heightChangeAnimationDuration
@@ -698,9 +703,9 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         guard self.keyboardState == .hiding else { return }
 
         self.keyboardState = .hidden
-        let beginFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)!.cgRectValue
-        let endFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
-        DDLogDebug("keyboard/did-hide: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
+//        let beginFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)!.cgRectValue
+//        let endFrame: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
+//        DDLogDebug("chatView/keyboard/did-hide: \(NSCoder.string(for: beginFrame)) -> \(NSCoder.string(for: endFrame))")
 
         // If the owning view controller disappears while the keyboard is still visible, we need to
         // manually notify the view controller to update its bottom inset. Otherwise, for certain

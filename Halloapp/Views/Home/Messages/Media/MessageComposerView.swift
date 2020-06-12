@@ -12,10 +12,12 @@ import SwiftUI
 
 class MessageComposerView: UIViewController, UITextViewDelegate, MessageComposerBodyViewDelegate {
 
+    var sendTo: String?
     var mediaItemsToPost: [PendingMedia]?
     private let imageServer = ImageServer()
     
-    init(mediaItemsToPost: [PendingMedia]) {
+    init(sendTo: String, mediaItemsToPost: [PendingMedia]) {
+        self.sendTo = sendTo
         self.mediaItemsToPost = mediaItemsToPost
         super.init(nibName: nil, bundle: nil)
     }
@@ -23,20 +25,7 @@ class MessageComposerView: UIViewController, UITextViewDelegate, MessageComposer
     required init?(coder: NSCoder) {
         super.init(coder: coder)
     }
-    
-    private lazy var cancelButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.isEnabled = true
-//        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-//        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 10, bottom: 0, right: 0)
-//        button.addTarget(self, action: #selector(self.cancelButtonClicked), for: .touchUpInside)
-        button.setTitleColor(UIColor.systemGray, for: .normal)
-        button.setTitle("Cancdfdel", for: .normal)
-        button.tintColor = UIColor.systemGray
-        return button
-    }()
-    
+        
     private lazy var chatMediaSlider: ChatMediaSlider = {
         let chatMediaSlider = ChatMediaSlider()
         return chatMediaSlider
@@ -49,26 +38,6 @@ class MessageComposerView: UIViewController, UITextViewDelegate, MessageComposer
         return messageComposerBodyView
     }()
     
-    private lazy var nameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = .label
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Tony"
-        return label
-    }()
-    
-    private lazy var longLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = .label
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Long Lable"
-        return label
-    }()
-    
     override func viewDidLoad() {
         
         super.viewDidLoad()
@@ -78,14 +47,11 @@ class MessageComposerView: UIViewController, UITextViewDelegate, MessageComposer
         vSpacer.setContentHuggingPriority(.fittingSizeLevel, for: .vertical)
         vSpacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .vertical)
         
-   
-        self.addChild(chatMediaSlider)
-        chatMediaSlider.view.translatesAutoresizingMaskIntoConstraints = false
-    
-        let vStack = UIStackView(arrangedSubviews: [ self.chatMediaSlider.view, self.longLabel, self.cancelButton, self.nameLabel, vSpacer ])
-        
-        chatMediaSlider.didMove(toParent: self)
-        
+        let vStack = UIStackView(arrangedSubviews: [ self.messageComposerBodyView, vSpacer ])
+        if let media = self.mediaItemsToPost {
+            self.messageComposerBodyView.update(pendingMedia: media)
+        }
+
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         vStack.alignment = .fill
@@ -122,9 +88,13 @@ class MessageComposerView: UIViewController, UITextViewDelegate, MessageComposer
     }
     
     func messageComposerBodyView(_ view: MessageComposerBodyView, wantsToSend text: String) {
-        print("send message")
+        guard let sendTo = self.sendTo else { return }
+        guard let mediaToSend = self.mediaItemsToPost else { return }
+        
+        MainAppContext.shared.chatData.sendMessage(toUserId: sendTo, text: text, media: mediaToSend, feedPostId: "", feedPostMediaIndex: 0)
+
+        self.dismiss(animated: false)
     }
-    
     
 }
 
@@ -160,6 +130,11 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
         button.setTitle("Cancel", for: .normal)
         button.tintColor = UIColor.systemGray
         return button
+    }()
+    
+    private lazy var chatMediaSlider: ChatMediaSlider = {
+        let chatMediaSlider = ChatMediaSlider()
+        return chatMediaSlider
     }()
     
     private lazy var contactImageView: UIImageView = {
@@ -214,13 +189,10 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
         hStack.alignment = .leading
         hStack.spacing = 10
                 
-//        let chatMediaSliderSize: CGFloat = 200.0
-//        self.chatMediaSlider.view.widthAnchor.constraint(equalToConstant: chatMediaSliderSize).isActive = true
-//        self.chatMediaSlider.view.heightAnchor.constraint(equalTo: self.chatMediaSlider.view.widthAnchor).isActive = true
-//
-        let imageSize: CGFloat = 200.0
-        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
-        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
+
+//        let imageSize: CGFloat = 200.0
+//        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
+//        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
         
         let textViewContainer = UIView()
         textViewContainer.backgroundColor = UIColor.white
@@ -239,7 +211,7 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
         vSpacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .vertical)
         
         
-        let vStack = UIStackView(arrangedSubviews: [ hStack, self.contactImageView, textViewContainer, self.sendButton, vSpacer ])
+        let vStack = UIStackView(arrangedSubviews: [ hStack, self.chatMediaSlider, textViewContainer, self.sendButton, vSpacer ])
         
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
@@ -261,7 +233,43 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
         setPlaceholderText()
     }
 
-    func update(with fromUserId: String) {
+    func update(pendingMedia: [PendingMedia]) {
+
+        var sliderMediaArr: [SliderMedia] = []
+
+        for med in pendingMedia {
+            
+            let type = med.type == .image ? ChatMessageMediaType.image : ChatMessageMediaType.video
+            
+            if med.type == .image {
+                if let image = med.image {
+                    
+                    sliderMediaArr.append(SliderMedia(image: image, type: type))
+                }
+            } else if med.type == .video {
+
+                if let videoURL = med.videoURL {
+                    if let image = VideoUtils().videoPreviewImage(url: videoURL) {
+                        sliderMediaArr.append(SliderMedia(image: image, type: type))
+                    }
+                }
+          
+            }
+        }
+        
+        if !pendingMedia.isEmpty {
+            
+            let width: CGFloat = UIScreen.main.bounds.width * 0.8
+            let height: CGFloat = UIScreen.main.bounds.height * 0.2
+
+            self.chatMediaSlider.configure(with: sliderMediaArr, width: width, height: height, currentPage: 0)
+
+            NSLayoutConstraint(item: self.chatMediaSlider, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: width).isActive = true
+            NSLayoutConstraint(item: self.chatMediaSlider, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: height).isActive = true
+
+            self.chatMediaSlider.isHidden = false
+
+        }
 
     }
     
@@ -285,12 +293,15 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
     }
     
     @objc func cancelButtonClicked() {
-        print("cacl button")
         self.delegate?.messageComposerBodyView(self)
     }
     
     @objc func sendButtonClicked() {
-        self.delegate?.messageComposerBodyView(self, wantsToSend: self.text)
+        var textToSend = self.text
+        if self.textView.tag == 0 {
+            textToSend = ""
+        }
+        self.delegate?.messageComposerBodyView(self, wantsToSend: textToSend)
     }
     
     private func setPlaceholderText() {

@@ -22,6 +22,9 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     private var replyContext: ReplyContext? {
         didSet {
             self.refreshCommentInputViewReplyPanel()
+            if let indexPaths = self.tableView.indexPathsForVisibleRows {
+                self.tableView.reloadRows(at: indexPaths, with: .none)
+            }
         }
     }
     private var fetchedResultsController: NSFetchedResultsController<FeedPostComment>?
@@ -34,6 +37,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         tableView.allowsSelection = false
         tableView.dataSource = self
         tableView.delegate = self
+        tableView.backgroundColor = .feedBackgroundColor
         tableView.contentInsetAdjustmentBehavior = .scrollableAxes
         tableView.keyboardDismissMode = .interactive
         tableView.preservesSuperviewLayoutMargins = true
@@ -132,6 +136,12 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
                 headerView.frame.size.height = size.height
                 self.tableView.tableHeaderView = headerView
             }
+        }
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if scrollView == tableView {
+            updateNavigationBarStyleUsing(scrollView: scrollView)
         }
     }
 
@@ -342,6 +352,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
             self.confirmResending(commentWithId: commentId)
         }
         cell.commentView.textLabel.delegate = self
+        cell.isCellHighlighted = self.replyContext?.parentCommentId == commentId
         return cell
     }
 
@@ -441,7 +452,12 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
     private func refreshCommentInputViewReplyPanel() {
         if let context = self.replyContext {
-            let contactName = AppContext.shared.contactStore.fullName(for: context.userId)
+            let contactName: String
+            if context.userId == MainAppContext.shared.userData.userId {
+                contactName = "myself"
+            } else {
+                contactName = AppContext.shared.contactStore.fullName(for: context.userId)
+            }
             self.commentsInputView.showReplyPanel(with: contactName)
         } else {
             self.commentsInputView.removeReplyPanel()
@@ -513,6 +529,12 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
 
     var accessoryViewAction: (() -> ()) = {}
 
+    var isCellHighlighted: Bool = false {
+        didSet {
+            self.backgroundColor = isCellHighlighted ? UIColor.lavaOrange.withAlphaComponent(0.1) : .clear
+        }
+    }
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupTableViewCell()
@@ -525,6 +547,7 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
 
     private func setupTableViewCell() {
         self.selectionStyle = .none
+        self.backgroundColor = .clear
         
         self.contentView.addSubview(self.commentView)
         self.commentView.translatesAutoresizingMaskIntoConstraints = false

@@ -32,23 +32,11 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         super.init(coder: coder)
     }
 
-    func dismantle() {
-        DDLogInfo("FeedTableViewController/dismantle")
-        self.cancellableSet.forEach{ $0.cancel() }
-        self.cancellableSet.removeAll()
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
         
         DDLogInfo("FeedTableViewController/viewDidLoad")
-
-        self.navigationItem.standardAppearance = Self.noBorderNavigationBarAppearance
-
-        let titleLabel = UILabel()
-        titleLabel.attributedText = self.largeTitleUsingGothamFont
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
-        self.navigationItem.title = nil
+        installLargeTitleUsingGothamFont()
 
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = false
@@ -71,24 +59,9 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         })
     }
 
-    static var noBorderNavigationBarAppearance: UINavigationBarAppearance {
-        get {
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithDefaultBackground()
-            appearance.shadowColor = nil
-            return appearance
-        }
-    }
-
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        // Add additional scrolling treshold of 25pts - the amount of vertical padding on top of each feed post card.
-        let makeNavigationBarTransparent = self.tableView.contentOffset.y - 25 <= -self.tableView.adjustedContentInset.top
-        let isNavigationBarTransparent = self.navigationItem.standardAppearance?.backgroundEffect == nil
-        guard makeNavigationBarTransparent != isNavigationBarTransparent else { return }
-        if makeNavigationBarTransparent {
-            self.navigationItem.standardAppearance?.backgroundEffect = nil
-        } else {
-            self.updateNavigationBarBackgroundEffect()
+        if scrollView == tableView {
+            updateNavigationBarStyleUsing(scrollView: tableView)
         }
     }
 
@@ -97,28 +70,11 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         super.viewDidAppear(animated)
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        if self.traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-            if self.navigationItem.standardAppearance?.backgroundEffect != nil {
-                self.updateNavigationBarBackgroundEffect()
-            }
-        }
-    }
-
     func scrollToTop(animated: Bool) {
         guard let firstSection = self.fetchedResultsController?.sections?.first else { return }
         if firstSection.numberOfObjects > 0 {
             self.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
         }
-    }
-
-    // MARK: Appearance
-
-    private func updateNavigationBarBackgroundEffect() {
-        let blurStyle: UIBlurEffect.Style = self.traitCollection.userInterfaceStyle == .light ? .systemUltraThinMaterial : .systemChromeMaterial
-        self.navigationItem.standardAppearance?.backgroundEffect = UIBlurEffect(style: blurStyle)
-
     }
 
     // MARK: FeedTableViewController Customization

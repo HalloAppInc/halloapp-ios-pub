@@ -46,6 +46,7 @@ extension ChatMedia {
     @NSManaged var message: ChatMessage
     @NSManaged private var incomingStatusValue: Int16
     @NSManaged private var outgoingStatusValue: Int16
+    @NSManaged var numTries: Int16
     
     var incomingStatus: IncomingStatus {
         get {

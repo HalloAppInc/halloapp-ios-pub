@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		146B93792405F40500768AC6 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* Font.swift */; };
 		243CC626248005EC00B4794F /* ProfileEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243CC625248005EC00B4794F /* ProfileEditView.swift */; };
-		246A8B56248AC9E900CE0429 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B55248AC9E900CE0429 /* Notification.swift */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
 		761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
@@ -48,6 +47,7 @@
 		76407DFC245CBAD40031F96A /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */; };
 		76407DFE245CBAE30031F96A /* Registration.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 76407DFD245CBAE30031F96A /* Registration.storyboard */; };
 		764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */; };
+		764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */; };
 		764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
 		764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F7750246226120063645A /* FeedPostSeenByViewController.swift */; };
 		76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */; };
@@ -59,6 +59,7 @@
 		76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */; };
 		76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */; };
 		76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */; };
+		765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765D03D62492C971007A7D3B /* ZoomableImageView.swift */; };
 		765FE0FE2469C4E500806CED /* PhoneNumberMetadata.json in Resources */ = {isa = PBXBuildFile; fileRef = 765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */; };
 		766103A42461E65300728870 /* Receipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A32461E65300728870 /* Receipt.swift */; };
 		766103A72461EE8200728870 /* receipts.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A62461EE8200728870 /* receipts.pb.swift */; };
@@ -104,7 +105,6 @@
 		EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* ProfileViewController.swift */; };
 		EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */; };
 		EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713223EB7DB3008C2E44 /* FeedMedia.swift */; };
-		EA45713923EB7EC8008C2E44 /* MediaCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713823EB7EC8008C2E44 /* MediaCell.swift */; };
 		EA45713B23EB7EDE008C2E44 /* PinchZoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713A23EB7EDE008C2E44 /* PinchZoomView.swift */; };
 		EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */; };
 		EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */; };
@@ -117,8 +117,6 @@
 		EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B9A2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift */; };
 		EA8D4721233C25B8006E2BA5 /* VerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationView.swift */; };
 		EAB03B7B2400517500643EB6 /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB03B7A2400517500643EB6 /* MailView.swift */; };
-		EAB03B7F2400519400643EB6 /* WAVPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB03B7E2400519400643EB6 /* WAVPlayer.swift */; };
-		EABF312623EE1F240039B5A6 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312523EE1F240039B5A6 /* Array.swift */; };
 		EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312823EE1FC20039B5A6 /* Digest.swift */; };
 		EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312A23EE20E10039B5A6 /* UIImage.swift */; };
 		EABF313123F229350039B5A6 /* MediaCrypter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF313023F229350039B5A6 /* MediaCrypter.swift */; };
@@ -216,7 +214,6 @@
 		19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.release.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.release.xcconfig"; sourceTree = "<group>"; };
 		1C655B82B6A97A2F685569DF /* Pods-Notification Service Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		243CC625248005EC00B4794F /* ProfileEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditView.swift; sourceTree = "<group>"; };
-		246A8B55248AC9E900CE0429 /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
 		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
 		761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VerificationCodeViewController.swift; path = HalloApp/Views/Registration/VerificationCodeViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -254,6 +251,7 @@
 		76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhoneInputViewController.swift; path = HalloApp/Views/Registration/PhoneInputViewController.swift; sourceTree = SOURCE_ROOT; };
 		76407DFD245CBAE30031F96A /* Registration.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Registration.storyboard; path = HalloApp/Views/Registration/Registration.storyboard; sourceTree = SOURCE_ROOT; };
 		764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationsViewController.swift; sourceTree = "<group>"; };
+		764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UINavigationBar.swift; path = HalloApp/Components/Extensions/UINavigationBar.swift; sourceTree = SOURCE_ROOT; };
 		764F774D246224C30063645A /* ContactTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactTableViewCell.swift; path = HalloApp/Components/Views/ContactTableViewCell.swift; sourceTree = SOURCE_ROOT; };
 		764F7750246226120063645A /* FeedPostSeenByViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPostSeenByViewController.swift; path = "HalloApp/Views/Home/Feed/Seen By/FeedPostSeenByViewController.swift"; sourceTree = SOURCE_ROOT; };
 		76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPost+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPost+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -265,6 +263,7 @@
 		7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostComment+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostComment+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedDownloadManager.swift; path = HalloApp/Models/Feed/FeedDownloadManager.swift; sourceTree = SOURCE_ROOT; };
+		765D03D62492C971007A7D3B /* ZoomableImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ZoomableImageView.swift; path = HalloApp/Views/Home/Feed/MediaSlider/ZoomableImageView.swift; sourceTree = SOURCE_ROOT; };
 		765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = PhoneNumberMetadata.json; path = HalloApp/Resources/PhoneNumberMetadata.json; sourceTree = SOURCE_ROOT; };
 		766103A32461E65300728870 /* Receipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Receipt.swift; path = HalloApp/Models/Receipts/Receipt.swift; sourceTree = SOURCE_ROOT; };
 		766103A52461E7BA00728870 /* receipts.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = receipts.proto; sourceTree = "<group>"; };
@@ -316,7 +315,6 @@
 		EA454B63234E769F002B960D /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataItem.swift; sourceTree = "<group>"; };
 		EA45713223EB7DB3008C2E44 /* FeedMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMedia.swift; sourceTree = "<group>"; };
-		EA45713823EB7EC8008C2E44 /* MediaCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCell.swift; sourceTree = "<group>"; };
 		EA45713A23EB7EDE008C2E44 /* PinchZoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinchZoomView.swift; sourceTree = "<group>"; };
 		EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarouselView.swift; sourceTree = "<group>"; };
 		EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
@@ -330,8 +328,6 @@
 		EA8D4720233C25B8006E2BA5 /* VerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationView.swift; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAB03B7A2400517500643EB6 /* MailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MailView.swift; sourceTree = "<group>"; };
-		EAB03B7E2400519400643EB6 /* WAVPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WAVPlayer.swift; sourceTree = "<group>"; };
-		EABF312523EE1F240039B5A6 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 		EABF312823EE1FC20039B5A6 /* Digest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Digest.swift; sourceTree = "<group>"; };
 		EABF312A23EE20E10039B5A6 /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
 		EABF313023F229350039B5A6 /* MediaCrypter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCrypter.swift; sourceTree = "<group>"; };
@@ -559,7 +555,6 @@
 			isa = PBXGroup;
 			children = (
 				768123A32485C56E008C5216 /* MainAppContext.swift */,
-				246A8B55248AC9E900CE0429 /* Notification.swift */,
 			);
 			path = Global;
 			sourceTree = "<group>";
@@ -661,9 +656,8 @@
 		EA5414D523EE169E00390EF6 /* MediaSlider */ = {
 			isa = PBXGroup;
 			children = (
-				EAB03B7E2400519400643EB6 /* WAVPlayer.swift */,
 				EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */,
-				EA45713823EB7EC8008C2E44 /* MediaCell.swift */,
+				765D03D62492C971007A7D3B /* ZoomableImageView.swift */,
 			);
 			path = MediaSlider;
 			sourceTree = "<group>";
@@ -771,20 +765,20 @@
 		EABF312423EE1EDF0039B5A6 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				EABF312523EE1F240039B5A6 /* Array.swift */,
 				761442CA245DF6A600DD9D1A /* CharacterSet.swift */,
 				76C69E472447E3B100338D4C /* Data.swift */,
 				763B42AD2435A74E00FF0E82 /* Date.swift */,
 				EABF312823EE1FC20039B5A6 /* Digest.swift */,
 				146B93782405F40500768AC6 /* Font.swift */,
 				76C69E4C2447E6D500338D4C /* UIApplication.swift */,
+				761442C8245D4DE500DD9D1A /* UIButton.swift */,
 				761442C2245CF4FC00DD9D1A /* UIColor.swift */,
 				761442C4245D32C200DD9D1A /* UIDevice.swift */,
 				762EDBDA244E344300986617 /* UIFont.swift */,
 				EABF312A23EE20E10039B5A6 /* UIImage.swift */,
+				764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */,
 				76A9244A244EC49000794859 /* UIView.swift */,
 				76407DF7245CA3F00031F96A /* UIViewController.swift */,
-				761442C8245D4DE500DD9D1A /* UIButton.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -1221,7 +1215,6 @@
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				76A9244B244EC49000794859 /* UIView.swift in Sources */,
-				246A8B56248AC9E900CE0429 /* Notification.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
 				766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */,
 				EA796B9B2469DDF100BC795E /* ChatQuoted+CoreDataClass.swift in Sources */,
@@ -1237,6 +1230,7 @@
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */,
 				EA251791246C4EBF00CE24C0 /* ImageZoomView.swift in Sources */,
+				764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,
 				761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */,
@@ -1246,7 +1240,6 @@
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
-				EAB03B7F2400519400643EB6 /* WAVPlayer.swift in Sources */,
 				EAF4F736237DEC2C006885F0 /* YPPicker.swift in Sources */,
 				EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */,
 				EAD476F22458F03700EF8591 /* ChatMedia+CoreDataClass.swift in Sources */,
@@ -1256,7 +1249,7 @@
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				EAD476D02457B09600EF8591 /* MessageComposerView.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
-				EA45713923EB7EC8008C2E44 /* MediaCell.swift in Sources */,
+				765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */,
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */,
@@ -1273,7 +1266,6 @@
 				EA25178F246B693B00CE24C0 /* MediaPreviewController.swift in Sources */,
 				762EDBDD244E5A7800986617 /* HomeView.swift in Sources */,
 				EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */,
-				EABF312623EE1F240039B5A6 /* Array.swift in Sources */,
 				EA35857C2450BE3300E6E8AB /* ChatView.swift in Sources */,
 				76649227245119F2009BC368 /* FeedNotifications.swift in Sources */,
 				EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */,
@@ -1400,7 +1392,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 32;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -1465,7 +1457,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 32;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				INFOPLIST_FILE = "Notification Service Extension/Info.plist";
@@ -1521,7 +1513,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 32;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1592,7 +1584,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Notification Service Extension/Notification Service Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 32;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1749,7 +1741,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 32;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;
@@ -1773,7 +1765,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 31;
+				CURRENT_PROJECT_VERSION = 32;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Halloapp/Info.plist;

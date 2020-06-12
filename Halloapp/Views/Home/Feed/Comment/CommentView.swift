@@ -9,25 +9,36 @@
 import UIKit
 
 class CommentView: UIView {
-    private var leadingMargin: NSLayoutConstraint?
+
+    // MARK: Variable Constraints
+    private var leadingMargin: NSLayoutConstraint!
+    private var profilePictureWidth: NSLayoutConstraint!
+    private var profilePictureTrailingSpace: NSLayoutConstraint!
+
+    // MARK: Constraint Constants
+    static private let profilePictureSizeSmall: CGFloat = 20
+    static private let profilePictureSizeNormal: CGFloat = 30
+    static private let profilePictureTrailingSpaceSmall: CGFloat = 8
+    static private let profilePictureTrailingSpaceNormal: CGFloat = 10
+
     var isContentInset: Bool = false {
         didSet {
             if let margin = self.leadingMargin {
-                margin.constant = self.isContentInset ? 12 : 0
+                margin.constant = self.isContentInset ? 50 : 0
             }
         }
     }
 
     var isReplyButtonVisible: Bool = true {
         didSet {
-            self.replyButton.isHidden = !self.isReplyButtonVisible
+            self.replyButton.alpha = self.isReplyButtonVisible ? 1 : 0
         }
     }
 
     private lazy var contactImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
+        imageView.contentMode = .scaleAspectFill
         imageView.tintColor = UIColor.systemGray
         return imageView
     }()
@@ -42,7 +53,7 @@ class CommentView: UIView {
     private lazy var timestampLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.preferredFont(forTextStyle: .footnote)
-        label.textColor = UIColor.secondaryLabel
+        label.textColor = .secondaryLabel
         label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -51,9 +62,10 @@ class CommentView: UIView {
     private(set) lazy var replyButton: UIButton = {
         let button = UIButton(type: .custom)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitleColor(UIColor.systemGray, for: .normal)
+        button.setTitleColor(.secondaryLabel, for: .normal)
         button.setTitle("Reply", for: .normal)
-        button.titleLabel?.font = UIFont(descriptor: UIFontDescriptor.preferredFontDescriptor(withTextStyle: .footnote).withSymbolicTraits(.traitBold)!, size: 0)
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .footnote)
+        button.titleLabel?.font = .systemFont(ofSize: fontDescriptor.pointSize, weight: .medium)
         return button
     }()
 
@@ -82,7 +94,6 @@ class CommentView: UIView {
         let vStack = UIStackView()
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
-        vStack.spacing = 4
         return vStack
     }()
 
@@ -114,26 +125,26 @@ class CommentView: UIView {
         vStack.addArrangedSubview(hStack)
         self.addSubview(self.vStack)
 
-        let imageSize: CGFloat = 30.0
-        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
+        self.profilePictureWidth = self.contactImageView.widthAnchor.constraint(equalToConstant: Self.profilePictureSizeNormal)
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
+        self.profilePictureWidth.isActive = true
 
         self.leadingMargin = self.contactImageView.leadingAnchor.constraint(equalTo: self.leadingAnchor)
-        self.leadingMargin?.isActive = true
+        self.leadingMargin.isActive = true
         self.contactImageView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         self.contactImageView.bottomAnchor.constraint(lessThanOrEqualTo: self.bottomAnchor).isActive = true
 
-        self.vStack.leadingAnchor.constraint(equalTo: self.contactImageView.trailingAnchor, constant: 10).isActive = true
+        self.profilePictureTrailingSpace = self.vStack.leadingAnchor.constraint(equalTo: self.contactImageView.trailingAnchor, constant: Self.profilePictureTrailingSpaceNormal)
+        self.profilePictureTrailingSpace.isActive = true
         self.vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
         self.vStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         self.vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
     }
 
-    private func contentString(author: String, text: String) -> ( NSAttributedString, Range<String.Index>? ) {
-        let primaryFont = UIFont.preferredFont(forTextStyle: .subheadline)
-        let nameFont = UIFont(descriptor: primaryFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: primaryFont.pointSize)
+    private func contentString(author: String, text: String, font: UIFont) -> ( NSAttributedString, Range<String.Index>? ) {
+        let nameFont = UIFont(descriptor: font.fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
         let content = NSMutableAttributedString(string: author, attributes: [ NSAttributedString.Key.font: nameFont ])
-        content.append(NSAttributedString(string: " \(text)", attributes: [ NSAttributedString.Key.font: primaryFont ]))
+        content.append(NSAttributedString(string: " \(text)", attributes: [ NSAttributedString.Key.font: font ]))
         content.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: content.length))
         return (content, content.string.range(of: author))
     }
@@ -141,19 +152,24 @@ class CommentView: UIView {
     func updateWith(feedPost: FeedPost) {
         let contactName = MainAppContext.shared.contactStore.fullName(for: feedPost.userId)
         let comment = feedPost.text ?? ""
-        let content = self.contentString(author: contactName, text: comment)
+        let font = UIFont.preferredFont(forTextStyle: .subheadline)
+        let content = self.contentString(author: contactName, text: comment, font: UIFont(descriptor: font.fontDescriptor, size: font.pointSize - 1))
         self.textLabel.attributedText = content.0
         self.textLabel.hyperlinkDetectionIgnoreRange = content.1
         self.timestampLabel.text = feedPost.timestamp.commentTimestamp()
+        self.profilePictureWidth.constant = Self.profilePictureSizeSmall
+        self.profilePictureTrailingSpace.constant = Self.profilePictureTrailingSpaceSmall
     }
 
     func updateWith(comment: FeedPostComment) {
         let contactName = MainAppContext.shared.contactStore.fullName(for: comment.userId)
-        let content = self.contentString(author: contactName, text: comment.isCommentRetracted ? "" : comment.text)
+        let content = self.contentString(author: contactName, text: comment.isCommentRetracted ? "" : comment.text, font: UIFont.preferredFont(forTextStyle: .subheadline))
         self.textLabel.attributedText = content.0
         self.textLabel.hyperlinkDetectionIgnoreRange = content.1
         self.timestampLabel.text = comment.timestamp.commentTimestamp()
         self.isReplyButtonVisible = !comment.isCommentRetracted
+        self.profilePictureWidth.constant = comment.parent == nil ? Self.profilePictureSizeNormal : Self.profilePictureSizeSmall
+        self.profilePictureTrailingSpace.constant = comment.parent == nil ? Self.profilePictureTrailingSpaceNormal : Self.profilePictureTrailingSpaceSmall
 
         if comment.isCommentRetracted {
             self.deletedCommentView.isHidden = false

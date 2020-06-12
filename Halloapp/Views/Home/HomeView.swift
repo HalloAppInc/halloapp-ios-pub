@@ -8,6 +8,7 @@
 
 import SwiftUI
 import UIKit
+import Core
 import Combine
 
 struct HomeView: UIViewControllerRepresentable {
@@ -70,11 +71,11 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         }
 
         self.cancellableSet.insert(
-            MainAppContext.shared.chatData.didChangeUnreadCount.sink { [weak self] (count) in
+            MainAppContext.shared.chatData.didChangeUnreadThreadCount.sink { [weak self] (count) in
                 guard let self = self else { return }
                 self.updateChatNavigationControllerBadge(count)
             })
-        MainAppContext.shared.chatData.updateUnreadMessageCount()
+        MainAppContext.shared.chatData.updateUnreadThreadCount()
         
         // When the app was in the background
         self.cancellableSet.insert(
@@ -109,6 +110,7 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
 
     private func feedNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: FeedViewController(title: "Home"))
+        navigationController.navigationBar.standardAppearance = .transparentAppearance
         navigationController.tabBarItem.image = UIImage(named: "TabBarHome")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
@@ -116,6 +118,7 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
 
     private func chatNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: ChatListViewController(title: "Messages"))
+        navigationController.navigationBar.standardAppearance = .transparentAppearance
         navigationController.tabBarItem.image = UIImage(named: "TabBarMessages")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
@@ -123,6 +126,7 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
     
     private func profileNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: ProfileViewController(title: "Profile"))
+        navigationController.navigationBar.standardAppearance = .transparentAppearance
         navigationController.tabBarItem.image = UIImage(named: "TabBarProfile")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
@@ -138,8 +142,8 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
     
     private func onTapNotification() {
         // If the user tapped on a notification, switch to feed or chat tab
-        if let metadata = UserDefaults.standard.object(forKey: NotificationKey.keys.userDefaults) as? [String: String] {
-            if (metadata[NotificationKey.keys.contentType] == NotificationKey.contentType.chat) {
+        if let metadata = NotificationUtility.Metadata.fromUserDefaults() {
+            if metadata.contentType == .chat {
                 self.selectedIndex = 1
             }
         }

@@ -65,7 +65,7 @@ class ChatMediaDownloader {
         let task = URLSession.shared.downloadTask(with: urlRequest) { localUrl, response, error in
             if error == nil {
                 if let httpResponse = response as? HTTPURLResponse {
-                    DDLogInfo("ImageLoader/\(self.getUrl) Got response [\(httpResponse)]")
+                    DDLogInfo("MediaDownloader/\(self.getUrl) Got response [\(httpResponse.statusCode)]")
                     if httpResponse.statusCode != 200 {
                         self.tryDownload()
                         return

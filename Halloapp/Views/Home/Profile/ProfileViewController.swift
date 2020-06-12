@@ -23,7 +23,6 @@ class ProfileViewController: FeedTableViewController {
         #endif
 
         self.navigationItem.rightBarButtonItems = rightBarButtonItems
-        self.navigationItem.largeTitleDisplayMode = .automatic
 
         let tableWidth = self.view.frame.size.width
         let headerView = FeedTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))

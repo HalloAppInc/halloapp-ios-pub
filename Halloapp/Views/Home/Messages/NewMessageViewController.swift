@@ -40,12 +40,6 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         super.init(coder: coder)
     }
 
-    func dismantle() {
-        DDLogInfo("NewMessageViewController/dismantle")
-        self.cancellableSet.forEach{ $0.cancel() }
-        self.cancellableSet.removeAll()
-    }
-
     override func viewDidLoad() {
         DDLogInfo("NewMessageViewController/viewDidLoad")
 
@@ -53,16 +47,9 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         
         self.navigationItem.title = "New Message"
         
-        self.navigationItem.standardAppearance = Self.noBorderNavigationBarAppearance
+        self.navigationItem.standardAppearance = .transparentAppearance
         self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
 
-//        let titleLabel = UILabel()
-//        titleLabel.text = self.title
-//        titleLabel.font = .gothamFont(ofSize: 33, weight: .bold)
-//        titleLabel.textColor = UIColor.label.withAlphaComponent(0.1)
-//        self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
-//        self.navigationItem.title = nil
-        
         self.tableView.backgroundColor = .clear
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = true
@@ -74,15 +61,6 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     // MARK: Appearance
-
-    static var noBorderNavigationBarAppearance: UINavigationBarAppearance {
-        get {
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithDefaultBackground()
-            appearance.shadowColor = nil
-            return appearance
-        }
-    }
     
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("NewMessageViewController/viewWillAppear")
