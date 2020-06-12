@@ -59,6 +59,7 @@
 		76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */; };
 		76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */; };
 		76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */; };
+		765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765D03D62492C971007A7D3B /* ZoomableImageView.swift */; };
 		765FE0FE2469C4E500806CED /* PhoneNumberMetadata.json in Resources */ = {isa = PBXBuildFile; fileRef = 765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */; };
 		766103A42461E65300728870 /* Receipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A32461E65300728870 /* Receipt.swift */; };
 		766103A72461EE8200728870 /* receipts.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A62461EE8200728870 /* receipts.pb.swift */; };
@@ -104,7 +105,6 @@
 		EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* ProfileViewController.swift */; };
 		EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */; };
 		EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713223EB7DB3008C2E44 /* FeedMedia.swift */; };
-		EA45713923EB7EC8008C2E44 /* MediaCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713823EB7EC8008C2E44 /* MediaCell.swift */; };
 		EA45713B23EB7EDE008C2E44 /* PinchZoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713A23EB7EDE008C2E44 /* PinchZoomView.swift */; };
 		EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */; };
 		EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */; };
@@ -117,7 +117,6 @@
 		EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B9A2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift */; };
 		EA8D4721233C25B8006E2BA5 /* VerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationView.swift */; };
 		EAB03B7B2400517500643EB6 /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB03B7A2400517500643EB6 /* MailView.swift */; };
-		EAB03B7F2400519400643EB6 /* WAVPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB03B7E2400519400643EB6 /* WAVPlayer.swift */; };
 		EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312823EE1FC20039B5A6 /* Digest.swift */; };
 		EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312A23EE20E10039B5A6 /* UIImage.swift */; };
 		EABF313123F229350039B5A6 /* MediaCrypter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF313023F229350039B5A6 /* MediaCrypter.swift */; };
@@ -264,6 +263,7 @@
 		7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostComment+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostComment+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedDownloadManager.swift; path = HalloApp/Models/Feed/FeedDownloadManager.swift; sourceTree = SOURCE_ROOT; };
+		765D03D62492C971007A7D3B /* ZoomableImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ZoomableImageView.swift; path = HalloApp/Views/Home/Feed/MediaSlider/ZoomableImageView.swift; sourceTree = SOURCE_ROOT; };
 		765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = PhoneNumberMetadata.json; path = HalloApp/Resources/PhoneNumberMetadata.json; sourceTree = SOURCE_ROOT; };
 		766103A32461E65300728870 /* Receipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Receipt.swift; path = HalloApp/Models/Receipts/Receipt.swift; sourceTree = SOURCE_ROOT; };
 		766103A52461E7BA00728870 /* receipts.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = receipts.proto; sourceTree = "<group>"; };
@@ -315,7 +315,6 @@
 		EA454B63234E769F002B960D /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataItem.swift; sourceTree = "<group>"; };
 		EA45713223EB7DB3008C2E44 /* FeedMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMedia.swift; sourceTree = "<group>"; };
-		EA45713823EB7EC8008C2E44 /* MediaCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCell.swift; sourceTree = "<group>"; };
 		EA45713A23EB7EDE008C2E44 /* PinchZoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinchZoomView.swift; sourceTree = "<group>"; };
 		EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarouselView.swift; sourceTree = "<group>"; };
 		EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
@@ -329,7 +328,6 @@
 		EA8D4720233C25B8006E2BA5 /* VerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationView.swift; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAB03B7A2400517500643EB6 /* MailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MailView.swift; sourceTree = "<group>"; };
-		EAB03B7E2400519400643EB6 /* WAVPlayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WAVPlayer.swift; sourceTree = "<group>"; };
 		EABF312823EE1FC20039B5A6 /* Digest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Digest.swift; sourceTree = "<group>"; };
 		EABF312A23EE20E10039B5A6 /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
 		EABF313023F229350039B5A6 /* MediaCrypter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCrypter.swift; sourceTree = "<group>"; };
@@ -658,9 +656,8 @@
 		EA5414D523EE169E00390EF6 /* MediaSlider */ = {
 			isa = PBXGroup;
 			children = (
-				EAB03B7E2400519400643EB6 /* WAVPlayer.swift */,
 				EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */,
-				EA45713823EB7EC8008C2E44 /* MediaCell.swift */,
+				765D03D62492C971007A7D3B /* ZoomableImageView.swift */,
 			);
 			path = MediaSlider;
 			sourceTree = "<group>";
@@ -1243,7 +1240,6 @@
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
-				EAB03B7F2400519400643EB6 /* WAVPlayer.swift in Sources */,
 				EAF4F736237DEC2C006885F0 /* YPPicker.swift in Sources */,
 				EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */,
 				EAD476F22458F03700EF8591 /* ChatMedia+CoreDataClass.swift in Sources */,
@@ -1253,7 +1249,7 @@
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				EAD476D02457B09600EF8591 /* MessageComposerView.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
-				EA45713923EB7EC8008C2E44 /* MediaCell.swift in Sources */,
+				765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */,
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */,
