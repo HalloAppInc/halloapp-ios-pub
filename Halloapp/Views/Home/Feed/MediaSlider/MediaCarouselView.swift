@@ -190,6 +190,14 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
     }
 
+    func stopPlayback() {
+        for cell in collectionView.visibleCells {
+            if let videoCell = cell as? MediaCarouselVideoCollectionViewCell {
+                videoCell.stopPlayback()
+            }
+        }
+    }
+
     // MARK: UICollectionViewDelegate
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -286,19 +294,29 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private var placeholderImageView: UIImageView!
-    private var avPlayer: AVPlayer?
+    private var videoURL: URL?
     private var avPlayerViewController: AVPlayerViewController!
+    private var avPlayerContext = 0
+
     private var videoLoadingCancellable: AnyCancellable?
+    private var videoPlaybackCancellable: AnyCancellable?
+
+    private static let videoDidStartPlaying = PassthroughSubject<URL, Never>()
 
     override func prepareForReuse() {
         super.prepareForReuse()
 
+        videoURL = nil
+
         videoLoadingCancellable?.cancel()
         videoLoadingCancellable = nil
 
-        if avPlayer != nil {
+        videoPlaybackCancellable?.cancel()
+        videoPlaybackCancellable = nil
+
+        if avPlayerViewController.player != nil {
+            avPlayerViewController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.rate))
             avPlayerViewController.player = nil
-            avPlayer = nil
         }
     }
 
@@ -323,23 +341,61 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         super.configure(with: media)
 
         if media.isMediaAvailable {
-            avPlayerViewController.player = AVPlayer(url: media.fileURL!)
-            avPlayerViewController.view.isHidden = false
-            placeholderImageView.isHidden = true
+            showPlayer(forVideoURL: media.fileURL!)
         } else {
             if videoLoadingCancellable == nil {
-                avPlayerViewController.view.isHidden = true
-                placeholderImageView.isHidden = false
+                showPlaceholderImage()
                 videoLoadingCancellable = media.videoDidBecomeAvailable.sink { (videoURL) in
-                    self.avPlayerViewController.player = AVPlayer(url: videoURL)
-                    self.avPlayerViewController.view.isHidden = false
-                    self.placeholderImageView.isHidden = true
+                    self.showPlayer(forVideoURL: videoURL)
                 }
             }
         }
     }
 
+    private func showPlayer(forVideoURL videoURL: URL) {
+        assert(avPlayerViewController.player == nil)
+        assert(videoPlaybackCancellable == nil)
+
+        self.videoURL = videoURL
+
+        let avPlayer = AVPlayer(url: videoURL)
+        avPlayerViewController.player = avPlayer
+        avPlayerViewController.view.isHidden = false
+        placeholderImageView.isHidden = true
+
+        // Monitor when this cell's video starts playing and send out broadcast when it does.
+        avPlayerViewController.player?.addObserver(self, forKeyPath: #keyPath(AVPlayer.rate), options: [ .new ], context: &avPlayerContext)
+
+        // Cancel playback when other video starts playing.
+        videoPlaybackCancellable = Self.videoDidStartPlaying.sink { (videoURL) in
+            if self.videoURL != videoURL {
+                self.stopPlayback()
+            }
+        }
+    }
+
+    private func showPlaceholderImage() {
+        avPlayerViewController.view.isHidden = true
+        placeholderImageView.isHidden = false
+    }
+
     func stopPlayback() {
         avPlayerViewController.player?.pause()
     }
+
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        guard context == &avPlayerContext else {
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+            return
+        }
+
+        if keyPath == #keyPath(AVPlayer.rate) {
+            if let rate = change?[.newKey] as? NSNumber {
+                if rate.doubleValue == 1 {
+                    Self.videoDidStartPlaying.send(videoURL!)
+                }
+            }
+        }
+    }
+
 }

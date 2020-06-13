@@ -57,6 +57,11 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             self.setupFetchedResultsController()
             self.tableView.reloadData()
         })
+
+        self.cancellableSet.insert(
+            NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { (_) in
+                self.stopAllVideoPlayback()
+        })
     }
 
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -68,6 +73,11 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("FeedTableViewController/viewDidAppear")
         super.viewDidAppear(animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        stopAllVideoPlayback()
     }
 
     func scrollToTop(animated: Bool) {
@@ -225,6 +235,12 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         }
     }
 
+    override func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if let feedCell = cell as? FeedTableViewCell {
+            feedCell.stopPlayback()
+        }
+    }
+
     // MARK: FeedTableViewCellDelegate
 
     fileprivate func feedTableViewCell(_ cell: FeedTableViewCell, didRequestOpen url: URL) {
@@ -254,6 +270,16 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     private func showSeenByView(for postId: FeedPostID) {
         let seenByViewController = FeedPostSeenByViewController(feedPostId: postId)
         self.present(UINavigationController(rootViewController: seenByViewController), animated: true)
+    }
+
+    // MARK: Misc
+
+    private func stopAllVideoPlayback() {
+        for cell in tableView.visibleCells {
+            if let feedTableViewCell = cell as? FeedTableViewCell {
+                feedTableViewCell.stopPlayback()
+            }
+        }
     }
 }
 
@@ -461,6 +487,10 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         }
     }
 
+    func stopPlayback() {
+        itemContentView.stopPlayback()
+    }
+
     // MARK: Button actions
 
     @objc(showComments)
@@ -546,7 +576,7 @@ fileprivate class FeedItemContentView: UIView {
         return label
     }()
 
-    private var mediaView: UIView?
+    private var mediaView: MediaCarouselView?
 
     private var feedPostId: FeedPostID? = nil
 
@@ -625,6 +655,12 @@ fileprivate class FeedItemContentView: UIView {
         // Use tags so as to not trigger lazy initialization of the view.
         if let deletedPostView = self.vStack.arrangedSubviews.first(where: { $0.tag == FeedItemContentView.deletedPostViewTag }) {
             deletedPostView.isHidden = true
+        }
+    }
+
+    func stopPlayback() {
+        if let mediaView = self.mediaView {
+            mediaView.stopPlayback()
         }
     }
 }
