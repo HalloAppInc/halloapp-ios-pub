@@ -62,6 +62,11 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { (_) in
                 self.stopAllVideoPlayback()
         })
+
+        self.cancellableSet.insert(
+            NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification).sink { (_) in
+                self.refreshTimestamps()
+        })
     }
 
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -281,6 +286,16 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             }
         }
     }
+
+    private func refreshTimestamps() {
+        guard let indexPaths = tableView.indexPathsForVisibleRows else { return }
+        for indexPath in indexPaths {
+            if let feedTableViewCell = tableView.cellForRow(at: indexPath) as? FeedTableViewCell,
+                let feedPost = fetchedResultsController?.object(at: indexPath) {
+                feedTableViewCell.refreshTimestamp(using: feedPost)
+            }
+        }
+    }
 }
 
 
@@ -442,7 +457,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     public func configure(with post: FeedPost, contentWidth: CGFloat) {
         DDLogVerbose("FeedTableViewCell/configure [\(post.id)]")
 
-        self.headerView.configure(with: post, contentWidth: contentWidth)
+        self.headerView.configure(with: post)
         self.itemContentView.configure(with: post, contentWidth: contentWidth)
         if post.isPostRetracted {
             self.footerView.isHidden = true
@@ -489,6 +504,10 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
 
     func stopPlayback() {
         itemContentView.stopPlayback()
+    }
+
+    func refreshTimestamp(using feedPost: FeedPost) {
+        self.headerView.configure(with: feedPost)
     }
 
     // MARK: Button actions
@@ -726,7 +745,7 @@ fileprivate class FeedItemHeaderView: UIView {
         hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat) {
+    func configure(with post: FeedPost) {
         self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
         self.timestampLabel.text = post.timestamp.postTimestamp()
     }
