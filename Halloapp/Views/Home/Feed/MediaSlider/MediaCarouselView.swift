@@ -11,6 +11,10 @@ import UIKit
 
 class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
 
+    // MARK: Public Config
+    var alwaysScaleToFitContent: Bool = false
+    var isZoomEnabled: Bool = true
+
     private enum MediaSliderSection: Int {
         case main = 0
     }
@@ -153,6 +157,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 }
             }()
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as? MediaCarouselCollectionViewCell {
+                cell.scaleContentToFit = self.alwaysScaleToFitContent
+                cell.isZoomEnabled = self.isZoomEnabled
                 cell.configure(with: feedMedia)
                 return cell
             }
@@ -222,6 +228,9 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 }
 
 fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
+    var scaleContentToFit: Bool = false
+    var isZoomEnabled: Bool = true
+
     func configure(with media: FeedMedia) {
 
     }
@@ -244,6 +253,7 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
 
     override func prepareForReuse() {
         super.prepareForReuse()
+
         imageLoadingCancellable?.cancel()
         imageLoadingCancellable = nil
     }
@@ -253,32 +263,39 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
         placeholderImageView.contentMode = .center
         placeholderImageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         placeholderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
-        placeholderImageView.image = UIImage(systemName: "video")
+        placeholderImageView.image = UIImage(systemName: "photo")
         placeholderImageView.tintColor = .systemGray
         self.contentView.addSubview(placeholderImageView)
 
         imageView = ZoomableImageView(frame: self.contentView.bounds)
         imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
-        imageView.contentMode = .scaleAspectFill
         self.contentView.addSubview(imageView)
     }
 
     override func configure(with media: FeedMedia) {
         super.configure(with: media)
 
+        imageView.isZoomEnabled = isZoomEnabled
         if media.isMediaAvailable {
-            placeholderImageView.isHidden = true
-            imageView.isHidden = false
-            imageView.image = media.image!
+            show(image: media.image!)
         } else if imageLoadingCancellable == nil {
-            placeholderImageView.isHidden = false
-            imageView.isHidden = true
+            showPlaceholderImage()
             imageLoadingCancellable = media.imageDidBecomeAvailable.sink { (image) in
-                self.placeholderImageView.isHidden = true
-                self.imageView.isHidden = false
-                self.imageView.image = image
+                self.show(image: image)
             }
         }
+    }
+
+    private func showPlaceholderImage() {
+        placeholderImageView.isHidden = false
+        imageView.isHidden = true
+    }
+
+    private func show(image: UIImage) {
+        placeholderImageView.isHidden = true
+        imageView.isHidden = false
+        imageView.image = image
+        imageView.contentMode = image.size.width > image.size.height || scaleContentToFit ? .scaleAspectFit : .scaleAspectFill
     }
 }
 

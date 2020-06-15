@@ -22,6 +22,10 @@ class ZoomableImageView: UIImageView {
     var isZooming: Bool {
         get { zoomHandler.isZooming }
     }
+    var isZoomEnabled: Bool {
+        get { zoomHandler.isEnabled }
+        set { zoomHandler.isEnabled = newValue }
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -35,6 +39,7 @@ class ZoomableImageView: UIImageView {
 
     private func commonInit() {
         self.isUserInteractionEnabled = true
+        self.clipsToBounds = true
 
         zoomHandler = ZoomGestureHandler(self)
     }
@@ -56,6 +61,7 @@ fileprivate class ZoomGestureHandler {
     // MARK: Configurable
     var minimumZoomScale: CGFloat = 1.0
     var maximumZoomScale: CGFloat = 5.0
+    var isEnabled: Bool = true
 
     init(_ imageView: UIImageView) {
         self.imageView = imageView
@@ -75,11 +81,23 @@ fileprivate class ZoomGestureHandler {
     @objc private func handlePinch(gesture: UIPinchGestureRecognizer) {
         guard let originalImageView = imageView else { return }
 
+        func cancelHandling(gesture: UIGestureRecognizer) {
+            gesture.isEnabled = false
+            gesture.isEnabled = true
+        }
+
         switch gesture.state {
         case .began:
 
-            guard let imageViewOrigin = originalImageView.superview?.convert(originalImageView.frame.origin, to: nil) else { return }
-            guard let window = Self.appWindow() else { return }
+            guard isEnabled else {
+                cancelHandling(gesture: gesture)
+                return
+            }
+            guard let imageViewOrigin = originalImageView.superview?.convert(originalImageView.frame.origin, to: nil),
+                  let window = Self.appWindow() else {
+                cancelHandling(gesture: gesture)
+                return
+            }
 
             dimmerView.frame = window.bounds
             dimmerView.alpha = 0.0
@@ -139,6 +157,8 @@ fileprivate class ZoomGestureHandler {
     }
 
     private func reset() {
+        guard zoomingImageView != nil else { return }
+        
         UIView.animate(withDuration: 0.35, animations: {
             self.zoomingImageView.frame = self.initialRect
             self.dimmerView.alpha = 0.0

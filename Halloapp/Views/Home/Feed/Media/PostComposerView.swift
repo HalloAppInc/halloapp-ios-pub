@@ -28,6 +28,7 @@ struct PostComposerView: View {
 
                 if self.mediaItemsToPost.count > 0 {
                     MediaPreviewSlider(self.mediaItemsToPost.map { FeedMedia($0, feedPostId: "") })
+                        .padding(.horizontal)
                         .frame(height: 200, alignment: .center)
 
                     if self.numberOfFailedUploads > 1 {
@@ -160,6 +161,8 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MediaCarouselView {
         let carouselView = MediaCarouselView(media: context.coordinator.parent.media)
+        carouselView.alwaysScaleToFitContent = true
+        carouselView.isZoomEnabled = false
         return carouselView
     }
 
