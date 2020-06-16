@@ -152,7 +152,6 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
             let mediaGroup = DispatchGroup()
             var orderCounter: Int = 1
             for item in items {
-                mediaGroup.enter()
                 switch item {
                 case .photo(let photo):
                     let mediaItem = PendingMedia(type: .image)
@@ -161,7 +160,6 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
                     mediaItem.size = photo.image.size
                     orderCounter += 1
                     mediaToPost.append(mediaItem)
-                    mediaGroup.leave()
                 case .video(let video):
                     let mediaItem = PendingMedia(type: .video)
                     mediaItem.order = orderCounter
@@ -173,23 +171,23 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
                     }
 
                     if let asset = video.asset {
+                        mediaGroup.enter()
                         PHCachingImageManager().requestAVAsset(forVideo: asset, options: nil) { (avAsset, _, _) in
                             let asset = avAsset as! AVURLAsset
                             mediaItem.videoURL = asset.url
                             mediaToPost.append(mediaItem)
                             mediaGroup.leave()
                         }
-                    } else {
-                        mediaGroup.leave()
                     }
                 }
             }
 
             mediaGroup.notify(queue: .main) {
                 mediaToPost.sort { $0.order < $1.order }
-                picker.dismiss(animated: false) {
-                    self.presentPostComposer(with: mediaToPost)
+                let postComposerViewController = PostComposerViewController(mediaToPost: mediaToPost, showCancelButton: false) {
+                    self.dismiss(animated: true)
                 }
+                picker.pushViewController(postComposerViewController, animated: true)
             }
         }
         self.present(picker, animated: true)
@@ -200,11 +198,10 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
     // MARK: Post Composer
 
     private func presentPostComposer(with media: [PendingMedia]) {
-        let postComposer = PostComposerView(mediaItemsToPost: media) {
+        let postComposerViewController = PostComposerViewController(mediaToPost: media, showCancelButton: true) {
             self.dismiss(animated: true)
         }
-        let postComposerViewController = UIHostingController(rootView: postComposer)
-        self.present(postComposerViewController, animated: true)
+        self.present(UINavigationController(rootViewController: postComposerViewController), animated: true)
     }
 
 }

@@ -3,16 +3,65 @@ import CocoaLumberjack
 import SwiftUI
 import UIKit
 
+class PostComposerViewController: UIViewController {
+
+    private let showCancelButton: Bool
+    private let media: [PendingMedia]
+    private var postComposerView: PostComposerView!
+    private let didFinish: (() -> Void)
+
+    init(mediaToPost media: [PendingMedia], showCancelButton: Bool, didFinish: @escaping () -> Void ) {
+        self.media = media
+        self.showCancelButton = showCancelButton
+        self.didFinish = didFinish
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("Use init(mediaToPost:standalonePicker:)")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        if showCancelButton {
+            self.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
+        }
+
+        postComposerView = PostComposerView(mediaItemsToPost: media) {
+            self.finish()
+        }
+        let postComposerViewController = UIHostingController(rootView: postComposerView)
+        self.addChild(postComposerViewController)
+        self.view.addSubview(postComposerViewController.view)
+        postComposerViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        postComposerViewController.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+        postComposerViewController.view.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+        postComposerViewController.view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+        postComposerViewController.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+        postComposerViewController.didMove(toParent: self)
+    }
+
+    private func finish() {
+        didFinish()
+    }
+
+    @objc private func cancelAction() {
+        postComposerView.imageServer.cancel()
+        finish()
+    }
+
+}
+
 struct PostComposerView: View {
 
-    private let imageServer = ImageServer()
+    fileprivate let imageServer = ImageServer()
     private let mediaItemsToPost: [PendingMedia]
     private let didFinish: () -> Void
 
-    @State var isJustText: Bool = false
-    @State var msgToSend = ""
-    @State var isShareClicked: Bool = false
-    @State var isReadyToPost: Bool = false
+    @State var isTextOnlyPost: Bool = false
+    @State var textToPost = ""
+    @State var isMediaReady: Bool = false
     @State var numberOfFailedUploads: Int = 0
 
     init(mediaItemsToPost: [PendingMedia], didFinish: @escaping () -> Void) {
@@ -21,89 +70,59 @@ struct PostComposerView: View {
     }
     
     var body: some View {
-        return NavigationView {
-            VStack {
-                Spacer()
-                    .frame(height: 16)
+        return VStack {
+            Spacer()
+                .frame(height: 16)
 
-                if self.mediaItemsToPost.count > 0 {
-                    MediaPreviewSlider(self.mediaItemsToPost.map { FeedMedia($0, feedPostId: "") })
-                        .padding(.horizontal)
-                        .frame(height: 200, alignment: .center)
+            if self.mediaItemsToPost.count > 0 {
+                MediaPreviewSlider(self.mediaItemsToPost.map { FeedMedia($0, feedPostId: "") })
+                    .padding(.horizontal)
+                    .frame(height: 200, alignment: .center)
 
-                    if self.numberOfFailedUploads > 1 {
-                        Text("Failed to upload \(self.numberOfFailedUploads) media items. Please try again.")
-                            .foregroundColor(.red)
-                    } else if self.numberOfFailedUploads > 0 {
-                        Text("Failed to upload media. Please try again.")
-                            .foregroundColor(.red)
-                    }
-
-                    Spacer()
-                        .frame(height: 16)
+                if self.numberOfFailedUploads > 1 {
+                    Text("Failed to upload \(self.numberOfFailedUploads) media items. Please try again.")
+                        .foregroundColor(.red)
+                } else if self.numberOfFailedUploads > 0 {
+                    Text("Failed to upload media. Please try again.")
+                        .foregroundColor(.red)
                 }
-
-                HStack {
-                    TextView(text: self.$msgToSend)
-                        .cornerRadius(10)
-                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: isJustText ? 100 : 70)
-                }
-                .padding(.horizontal)
 
                 Spacer()
                     .frame(height: 16)
-
-                Button(action: {
-                    if self.isShareClicked {
-                        return
-                    }
-
-                    if self.isJustText && self.msgToSend == "" {
-                        return
-                    }
-
-                    if self.numberOfFailedUploads > 0 {
-                        return
-                    }
-
-                    if self.isReadyToPost {
-                        self.isShareClicked = true
-                        MainAppContext.shared.feedData.post(text: self.msgToSend.trimmingCharacters(in: .whitespacesAndNewlines), media: self.mediaItemsToPost)
-                        self.didFinish()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                            self.msgToSend = ""
-                            self.isShareClicked = false
-                        }
-                    }
-                }) {
-                    Text("SHARE")
-                        .padding(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
-                        .background((self.isJustText && self.msgToSend != "") || (!self.isJustText && self.isReadyToPost && self.numberOfFailedUploads == 0) ? Color.blue : Color.gray)
-                        .foregroundColor(.white)
-                        .cornerRadius(20)
-                        .shadow(radius: 2)
-                }
-
-                Spacer()
             }
-            .navigationBarTitle("", displayMode: .inline)
-            .navigationBarItems(leading:
-                HStack {
-                    Button(action: {
-                        self.imageServer.cancel()
-                        self.didFinish()
-                    }) {
-                        Text("Cancel")
-                    }
-            })
-            .background(Color(UIColor.feedBackgroundColor))
+
+            HStack {
+                TextView(text: self.$textToPost)
+                    .cornerRadius(10)
+                    .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: isTextOnlyPost ? 100 : 70)
+            }
+            .padding(.horizontal)
+
+            Spacer()
+                .frame(height: 16)
+
+            Button(action: {
+                MainAppContext.shared.feedData.post(text: self.textToPost.trimmingCharacters(in: .whitespacesAndNewlines), media: self.mediaItemsToPost)
+                self.didFinish()
+            }) {
+                Text("SHARE")
+                    .padding(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
+                    .background((self.isTextOnlyPost && self.textToPost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || !self.isMediaReady || self.numberOfFailedUploads != 0 ? Color.gray : Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(20)
+                    .shadow(radius: 2)
+            }
+            .disabled((self.isTextOnlyPost && self.textToPost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || !self.isMediaReady || self.numberOfFailedUploads != 0)
+
+            Spacer()
         }
+        .background(Color(UIColor.feedBackgroundColor))
         .onAppear {
             if self.mediaItemsToPost.isEmpty {
-                self.isJustText = true
-                self.isReadyToPost = true
+                self.isTextOnlyPost = true
+                self.isMediaReady = true
             } else {
-                self.imageServer.upload(self.mediaItemsToPost, isReady: self.$isReadyToPost, numberOfFailedUploads: self.$numberOfFailedUploads)
+                self.imageServer.upload(self.mediaItemsToPost, isReady: self.$isMediaReady, numberOfFailedUploads: self.$numberOfFailedUploads)
             }
         }
         .edgesIgnoringSafeArea(.bottom)
