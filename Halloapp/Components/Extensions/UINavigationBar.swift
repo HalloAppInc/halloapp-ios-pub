@@ -10,6 +10,18 @@ import UIKit
 
 extension UINavigationBarAppearance {
 
+    class var opaqueAppearance: UINavigationBarAppearance {
+        get {
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            //TODO: proper mask image.
+            appearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
+            appearance.backgroundColor = .feedBackgroundColor
+            appearance.shadowColor = nil
+            return appearance
+        }
+    }
+
     class var translucentAppearance: UINavigationBarAppearance {
         get {
             let appearance = UINavigationBarAppearance()

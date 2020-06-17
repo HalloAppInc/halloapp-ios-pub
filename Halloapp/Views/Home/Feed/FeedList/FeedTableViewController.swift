@@ -75,14 +75,26 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         }
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewWillAppear()
+    }
+
     override func viewDidAppear(_ animated: Bool) {
-        DDLogInfo("FeedTableViewController/viewDidAppear")
         super.viewDidAppear(animated)
+        viewDidAppear()
+        updateNavigationBarStyleUsing(scrollView: tableView)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        viewWillDisappear()
         stopAllVideoPlayback()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        viewDidDisappear()
     }
 
     func scrollToTop(animated: Bool) {

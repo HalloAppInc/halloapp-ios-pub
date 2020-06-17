@@ -100,11 +100,13 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        viewWillAppear()
         self.commentsInputView.willAppear(in: self)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        viewDidAppear()
 
         if let itemId = self.feedPostId {
             MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: itemId)
@@ -118,12 +120,18 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        viewWillDisappear()
 
         if let itemId = self.feedPostId {
             MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: itemId)
         }
 
         self.commentsInputView.willDisappear(in: self)
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        viewDidDisappear()
     }
 
     override func viewDidLayoutSubviews() {

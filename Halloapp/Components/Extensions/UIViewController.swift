@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import UIKit
 
 extension UIViewController {
@@ -33,4 +34,24 @@ extension UIViewController {
             self.navigationItem.standardAppearance = .translucentAppearance
         }
     }
+
+    func viewWillAppear() {
+        DDLogInfo("\(type(of: self))/willAppear")
+        if self.transitionCoordinator?.initiallyInteractive ?? false {
+            navigationItem.standardAppearance = .opaqueAppearance
+        }
+    }
+
+    func viewDidAppear() {
+        DDLogInfo("\(type(of: self))/didAppear")
+    }
+
+    func viewWillDisappear() {
+        DDLogInfo("\(type(of: self))/willDisappear")
+    }
+
+    func viewDidDisappear() {
+        DDLogInfo("\(type(of: self))/didDisappear")
+    }
+
 }
