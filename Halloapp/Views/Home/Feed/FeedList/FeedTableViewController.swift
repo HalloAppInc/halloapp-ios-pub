@@ -244,11 +244,13 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             // Initiate download for images that were not yet downloaded.
             MainAppContext.shared.feedData.downloadMedia(in: [ feedPost ])
 
-            // Send "seen" receipt.
-            MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
-            
-            // Remove delivered notification
-            NotificationUtility.removeDelivered(forType: .feedpost, withContentId: feedPost.id)
+            // If app is in foreground and is currently active:
+            // • send "seen" receipt for the post
+            // • remove notifications for the post
+            if UIApplication.shared.applicationState == .active {
+                MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+                NotificationUtility.removeDelivered(forType: .feedpost, withContentId: feedPost.id)
+            }
         }
     }
 
