@@ -5,13 +5,13 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Foundation
+import AVKit
 import CocoaLumberjack
 import Combine
 import CoreData
-import SwiftUI
+import Foundation
 import UIKit
-import AVKit
+import SwiftUI
 
 class MediaPreviewController: UIViewController {
     
@@ -56,7 +56,7 @@ class MediaPreviewController: UIViewController {
                         let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
                         
                         if let image = UIImage(contentsOfFile: fileURL.path) {
-                            self.imageView.update(with: image)
+                            self.imageView.image = image
                         } else if med.type == .video {
                             
                             let avPlayer = AVPlayer(url: fileURL)
@@ -91,8 +91,7 @@ class MediaPreviewController: UIViewController {
                     
                     if med.type == .image {
                         if let image = UIImage(contentsOfFile: fileURL.path) {
-                            
-                            self.imageView.update(with: image)
+                            self.imageView.image = image
                             self.view.addSubview(self.imageView)
 
                         }
@@ -131,10 +130,11 @@ class MediaPreviewController: UIViewController {
     
     // MARK: Appearance
     
-    private lazy var imageView: ImageZoomView = {
-        let view = ImageZoomView()
+    private lazy var imageView: ZoomableImageView = {
+        let view = ZoomableImageView(frame: self.view.bounds)
+        view.contentMode = .scaleAspectFit
         self.view.addSubview(view)
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
         view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
         view.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true

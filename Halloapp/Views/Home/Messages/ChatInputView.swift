@@ -5,10 +5,10 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import AVKit
 import Core
 import CocoaLumberjack
 import UIKit
-import AVKit
 
 fileprivate protocol ContainerViewDelegate: AnyObject {
     func containerView(_ containerView: ChatInputView.ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat
@@ -221,6 +221,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         view.textContainerInset.left = 8
         view.textContainerInset.right = 8
         view.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        view.tintColor = .lavaOrange
 
         return view
     }()
@@ -242,13 +243,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.tintColor = UIColor.systemGray
         
-
-        
         button.translatesAutoresizingMaskIntoConstraints = false
-//        let buttonSize: CGFloat = 30.0
-//
-//        NSLayoutConstraint(item: button, attribute: .width, relatedBy: .equal, toItem: button, attribute: .width, multiplier: 1, constant: buttonSize).isActive = true
-//        NSLayoutConstraint(item: button, attribute: .height, relatedBy: .equal, toItem: button, attribute: .width, multiplier: 1, constant: 0).isActive = true
 
         return button
     }()
@@ -263,28 +258,15 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         // rotating image by 45 degree is problematic so perhaps getting a pre-rotated custom icon is better
         button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-        button.tintColor = UIColor.link
+        button.tintColor = .lavaOrange
         button.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi / 4))
         
         button.layer.zPosition = -10
         
         button.backgroundColor = UIColor.clear
         
-//        button.backgroundColor = UIColor.systemBlue
-        
-//        button.setContentHuggingPriority(.defaultLow, for: .horizontal)
-//        button.setContentHuggingPriority(.defaultHigh, for: .vertical)
-//        button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-//        button.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
-        
         button.translatesAutoresizingMaskIntoConstraints = false
         
-//        button.heightAnchor.constraint(equalToConstant: 30).isActive = true
-//        let buttonSize: CGFloat = 30.0
-//
-//        NSLayoutConstraint(item: button, attribute: .width, relatedBy: .equal, toItem: button, attribute: .width, multiplier: 1, constant: buttonSize).isActive = true
-//        NSLayoutConstraint(item: button, attribute: .height, relatedBy: .equal, toItem: button, attribute: .width, multiplier: 1, constant: 0).isActive = true
-
         return button
     }()
     
@@ -299,6 +281,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         let view = UIStackView(arrangedSubviews: [self.textViewContainer, self.postButtonsContainer])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .horizontal
+        view.alignment = .trailing
         
         view.spacing = 0
         return view
@@ -528,13 +511,12 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
             self.textView.becomeFirstResponder()
         }
       
-//        self.setNeedsUpdateHeight()
     }
 
-    @objc private func closeQuoteFeedPanel() {
+
+    @objc func closeQuoteFeedPanel() {
         self.quoteFeedPanel.isHidden = true
         self.delegate?.chatInputViewCloseQuotePanel(self)
-//        self.setNeedsUpdateHeight()
     }
     
     // MARK: Text view

@@ -6,13 +6,14 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Foundation
 import CocoaLumberjack
 import Combine
 import Core
 import CoreData
-import SwiftUI
+import Foundation
 import UIKit
+import SwiftUI
+
 
 fileprivate enum NewMessageViewSection {
     case main
@@ -73,6 +74,10 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         super.viewDidAppear(animated)
     }
 
+    deinit {
+        DDLogDebug("NewMessageViewController/deinit ")
+    }
+    
     // MARK: Top Nav Button Actions
     
     @objc(cancelAction)

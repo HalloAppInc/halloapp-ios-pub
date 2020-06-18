@@ -20,8 +20,10 @@
         <attribute name="feedPostMediaIndex" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="fromUserId" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
+        <attribute name="incomingStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="outgoingStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="receiverStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="senderStatusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="senderStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="toUserId" attributeType="String"/>
@@ -45,19 +47,20 @@
     </entity>
     <entity name="ChatThread" representedClassName="ChatThread" syncable="YES">
         <attribute name="chatWithUserId" optional="YES" attributeType="String"/>
+        <attribute name="lastMsgId" optional="YES" attributeType="String"/>
+        <attribute name="lastMsgMediaTypeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lastMsgStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="lastMsgText" optional="YES" attributeType="String"/>
         <attribute name="lastMsgTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="lastMsgUserId" optional="YES" attributeType="String"/>
-        <attribute name="lastSeenTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="statusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="unreadCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <elements>
         <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="223"/>
-        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="223"/>
+        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="253"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="118"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="133"/>
-        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="163"/>
+        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="178"/>
     </elements>
 </model>

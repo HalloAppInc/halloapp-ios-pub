@@ -8,27 +8,6 @@
 
 import Foundation
 
-extension DateFormatter {
-    /**
-     Example: 24 December
-     */
-    static let dateTimeFormatterLongStyleNoYearNoTime: DateFormatter = {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = DateFormatter.dateFormat(fromTemplate: "MMMMd", options: 0, locale: NSLocale.current)
-        return dateFormatter
-    }()
-
-    /**
-     Example: 24 December, 2019
-     */
-    static let dateTimeFormatterLongStyleNoTime: DateFormatter = {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .long
-        dateFormatter.timeStyle = .none
-        return dateFormatter
-    }()
-}
-
 extension Date {
     static func seconds(_ seconds: Int) -> TimeInterval { return TimeInterval(seconds) }
     static func minutes(_ minutes: Int) -> TimeInterval { return TimeInterval(minutes * 60) }
@@ -110,27 +89,43 @@ extension Date {
         }
     }
     
-    /**
-     - returns: Localized timstamp to be used in Chat.
-
-     Timestamp formatting rules are:
-     - under 1 minute: now
-     - under 1 hour: 45m
-     - under 1 day: 6h
-     - otherwise: 5d
-     */
-    func chatTimestamp() -> String {
+    func chatListTimestamp() -> String {
         let seconds = -self.timeIntervalSinceNow
-
-        // TODO: Localize
+        
         if seconds < Date.minutes(1) {
             return "now"
-        } else if seconds < Date.hours(1) {
-            return "\(Date.toMinutes(seconds, rounded: true))m"
-        } else if seconds < Date.days(1) {
-            return "\(Date.toHours(seconds, rounded: true))h"
+        } else if Calendar.current.isDateInToday(self) {
+            let dateFormatter = DateFormatter.dateTimeFormatterCompactTime
+            return dateFormatter.string(from: self)
+        } else if seconds < Date.weeks(1) {
+            let dateFormatter = DateFormatter.dateTimeFormatterDayOfWeek
+            return dateFormatter.string(from: self)
+        } else if seconds < Date.weeks(52) {
+            let dateFormatter = DateFormatter.dateTimeFormatterMonthDay
+            return dateFormatter.string(from: self)
         } else {
-            return "\(Date.toDays(seconds, rounded: true))d"
+            let dateFormatter = DateFormatter.dateTimeFormatterMonthYear
+            return dateFormatter.string(from: self)
+        }
+    }
+    
+    func chatTimestamp() -> String {
+        let seconds = -self.timeIntervalSinceNow
+        
+        if seconds < Date.minutes(1) {
+            return "now"
+        } else if Calendar.current.isDateInToday(self) {
+            let dateFormatter = DateFormatter.dateTimeFormatterCompactTime
+            return dateFormatter.string(from: self)
+        } else if seconds < Date.weeks(1) {
+            let dateFormatter = DateFormatter.dateTimeFormatterDayOfWeekCompactTime
+            return dateFormatter.string(from: self)
+        } else if seconds < Date.weeks(52) {
+            let dateFormatter = DateFormatter.dateTimeFormatterMonthDayCompactTime
+            return dateFormatter.string(from: self)
+        } else {
+            let dateFormatter = DateFormatter.dateTimeFormatterMonthDayYearCompactTime
+            return dateFormatter.string(from: self)
         }
     }
     
@@ -143,14 +138,20 @@ extension Date {
             let unitTime = Date.toMinutes(seconds, rounded: true)
             let plural = unitTime == 1 ? "" : "s"
             return "Last seen \(unitTime) minute\(plural) ago"
-        } else if seconds < Date.days(1) {
-            let unitTime = Date.toHours(seconds, rounded: true)
-            let plural = unitTime == 1 ? "" : "s"
-            return "Last seen \(Date.toHours(seconds, rounded: true)) hour\(plural) ago"
+        } else if Calendar.current.isDateInToday(self) {
+            let dateFormatter = DateFormatter.dateTimeFormatterTime
+            return "Last seen today at \(dateFormatter.string(from: self))"
+        } else if Calendar.current.isDateInYesterday(self) {
+            let dateFormatter = DateFormatter.dateTimeFormatterTime
+            return "Last seen yesterday at \(dateFormatter.string(from: self))"
+        } else if seconds < Date.weeks(1) {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "EEE 'at' h:mm a"
+            return "Last seen \(dateFormatter.string(from: self))"
         } else {
-            let unitTime = Date.toDays(seconds, rounded: true)
-            let plural = unitTime == 1 ? "" : "s"
-            return "Last seen \(Date.toDays(seconds, rounded: true)) day\(plural) ago"
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "M/d/yy 'at' h:mm a"
+            return "Last seen \(dateFormatter.string(from: self))"
         }
     }
 }

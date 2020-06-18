@@ -13,14 +13,14 @@ import CoreData
 
 extension ChatMessage {
 
-    enum ReceiverStatus: Int16 {
+    enum IncomingStatus: Int16 {
         case none = 0
         case haveSeen = 1
         case sentSeenReceipt = 2
         case error = 3
     }
     
-    enum SenderStatus: Int16 {
+    enum OutgoingStatus: Int16 {
         case none = 0
         case pending = 1        // initial state, only recorded in the database
         case sentOut = 2        // got ACK from server, timestamp is from server
@@ -44,28 +44,31 @@ extension ChatMessage {
     
     @NSManaged var quoted: ChatQuoted?
     
+    @NSManaged var incomingStatusValue: Int16
+    @NSManaged var outgoingStatusValue: Int16
+
     @NSManaged var receiverStatusValue: Int16
     @NSManaged var senderStatusValue: Int16
-
+    
     @NSManaged var timestamp: Date?
     
     @NSManaged var cellHeight: Int16
     
-    var receiverStatus: ReceiverStatus {
+    var incomingStatus: IncomingStatus {
         get {
-            return ReceiverStatus(rawValue: self.receiverStatusValue)!
+            return IncomingStatus(rawValue: self.incomingStatusValue)!
         }
         set {
-            self.receiverStatusValue = newValue.rawValue
+            self.incomingStatusValue = newValue.rawValue
         }
     }
     
-    var senderStatus: SenderStatus {
+    var outgoingStatus: OutgoingStatus {
         get {
-            return SenderStatus(rawValue: self.senderStatusValue)!
+            return OutgoingStatus(rawValue: self.outgoingStatusValue)!
         }
         set {
-            self.senderStatusValue = newValue.rawValue
+            self.outgoingStatusValue = newValue.rawValue
         }
     }
 

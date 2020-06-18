@@ -127,15 +127,22 @@ class VideoUtils {
         return CGSize(width: abs(size.width), height: abs(size.height))
     }
     
-    func videoPreviewImage(url: URL) -> UIImage? {
+    static func videoPreviewImage(url: URL, size: CGSize?) -> UIImage? {
         let asset = AVURLAsset(url: url)
+        guard asset.duration.value > 0 else { return nil }
+
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
-        
-        if let cgImage = try? generator.copyCGImage(at: CMTime(seconds: 2, preferredTimescale: 60), actualTime: nil) {
-            return UIImage(cgImage: cgImage)
+        if let preferredSize = size {
+            generator.maximumSize = preferredSize
         }
-        else {
+        let time = CMTimeMakeWithSeconds(2.0, preferredTimescale: 600)
+        do {
+            let img = try generator.copyCGImage(at: time, actualTime: nil)
+            let thumbnail = UIImage(cgImage: img)
+            return thumbnail
+        } catch {
+            DDLogDebug("VideoUtils/videoPreviewImage/error \(error.localizedDescription) - [\(url)]")
             return nil
         }
     }

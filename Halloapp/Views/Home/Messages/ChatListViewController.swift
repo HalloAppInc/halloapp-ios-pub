@@ -20,9 +20,7 @@ fileprivate enum ChatListViewSection {
 class ChatListViewController: UITableViewController, NSFetchedResultsControllerDelegate, NewMessageViewControllerDelegate {
 
     private static let cellReuseIdentifier = "ChatListViewCell"
-
     private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
-
     private var cancellableSet: Set<AnyCancellable> = []
     
     // MARK: Lifecycle
@@ -41,8 +39,15 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
         installLargeTitleUsingGothamFont()
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "ChatNavbarCompose"), style: .plain, target: self, action: #selector(showContacts))
-
+        
+        let rightButton = UIButton(type: .system)
+        rightButton.tintColor = .lavaOrange
+        rightButton.setImage(UIImage(named: "ChatNavbarCompose"), for: .normal)
+        rightButton.addTarget(self, action: #selector(showContacts), for: .touchUpInside)
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: rightButton)
+        
+        self.navigationItem.standardAppearance = .transparentAppearance
+        
         self.tableView.backgroundColor = .feedBackgroundColor
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = true
@@ -82,17 +87,13 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         }
     }
     
-    private lazy var newMessageViewController: NewMessageViewController = {
-        let controller = NewMessageViewController()
-        controller.delegate = self
-        return controller
-    }()
-
     // MARK: Top Nav Button Actions
     
     @objc(showContacts)
     private func showContacts() {
-        self.present(UINavigationController(rootViewController: self.newMessageViewController), animated: true)
+        let controller = NewMessageViewController()
+        controller.delegate = self
+        self.present(UINavigationController(rootViewController: controller), animated: true)
     }
     
     // MARK: Fetched Results Controller
@@ -155,7 +156,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { break }
             DDLogDebug("ChatListView/frc/delete [\(chatThread)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
+                self.tableView.deleteRows(at: [ indexPath ], with: .left)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -212,7 +213,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         }
     }
     
-    // MARK: UITableView
+    // MARK: UITableView Delegates
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         return self.fetchedResultsController?.sections?.count ?? 0
@@ -234,12 +235,28 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let chatThread = fetchedResultsController?.object(at: indexPath) {
-            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId, with: nil, at: 0, status: chatThread.status, lastSeen: nil), animated: true)
-//            let lastSeen = chatThread.lastSeenTimestamp
-//            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId, with: nil, at: 0, status: chatThread.status, lastSeen: lastSeen), animated: true)
+            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId, with: nil, at: 0), animated: true)
         }
     }
     
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if (editingStyle == .delete) {
+            let uiAlert = UIAlertController(title: "Delete", message: "Are you sure you want to delete this chat?", preferredStyle: UIAlertController.Style.alert)
+            self.present(uiAlert, animated: true, completion: nil)
+
+            uiAlert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { action in
+
+                if let chatThread = self.fetchedResultsController?.object(at: indexPath) {
+                    MainAppContext.shared.chatData.deleteChat(chatThreadId: chatThread.chatWithUserId)
+                }
+                
+                
+            }))
+
+            uiAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        }
+    }
+
     // MARK: New Message Delegates
     
     func newMessageViewController(_ newMessageViewController: NewMessageViewController, chatWithUserId: String) {
@@ -255,7 +272,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
                 DDLogInfo("appdelegate/tap-notifications/didDetect/changedToChatViewForUser \(metadata.fromId)")
 
                 self.navigationController?.popToRootViewController(animated: false)
-                self.navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0, status: .none, lastSeen: nil), animated: true)
+                self.navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
                 
                 metadata.removeFromUserDefaults()
                 MainAppContext.shared.didTapNotification.send(false)
@@ -279,34 +296,89 @@ fileprivate class ChatListViewCell: UITableViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.lastMessageLabel.text = nil
+        self.nameLabel.text = nil
+        
+        self.sentTickView.isHidden = true
+        self.deliveredTicksView.isHidden = true
+        
+        self.lastMsgMediaPhotoIcon.isHidden = true
+        self.lastMsgMediaVideoIcon.isHidden = true
+
+        self.lastMsgLabel.text = nil
+        
         self.timeLabel.text = nil
         self.unreadNumButton.isHidden = true
     }
 
     public func configure(with chatThread: ChatThread) {
         self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId)
-        self.lastMessageLabel.text = chatThread.lastMsgText
+
+        switch chatThread.lastMsgStatus {
+        case .seen:
+            self.sentTickView.isHidden = true
+            self.sentTickView.tintColor = UIColor.systemBlue
+            self.deliveredTicksView.isHidden = false
+            self.deliveredTicksView.tintColor = UIColor.systemBlue
+        case .delivered:
+            self.sentTickView.isHidden = true
+            self.sentTickView.tintColor = UIColor.systemGray3
+            self.deliveredTicksView.isHidden = false
+            self.deliveredTicksView.tintColor = UIColor.systemGray3
+        case .sentOut:
+            self.sentTickView.isHidden = false
+            self.sentTickView.tintColor = UIColor.systemGray3
+            self.deliveredTicksView.isHidden = true
+            self.deliveredTicksView.tintColor = UIColor.systemGray3
+        default:
+            self.sentTickView.isHidden = true
+            self.sentTickView.tintColor = UIColor.systemGray3
+            self.deliveredTicksView.isHidden = true
+            self.deliveredTicksView.tintColor = UIColor.systemGray3
+        }
+        
+        if chatThread.lastMsgMediaType == .image {
+            self.lastMsgMediaPhotoIcon.isHidden = false
+            self.lastMsgMediaVideoIcon.isHidden = true
+            self.lastMsgLabel.text = "Photo"
+        } else if chatThread.lastMsgMediaType == .video {
+            self.lastMsgMediaPhotoIcon.isHidden = true
+            self.lastMsgMediaVideoIcon.isHidden = false
+            self.lastMsgLabel.text = "Video"
+        } else {
+            self.lastMsgMediaPhotoIcon.isHidden = true
+            self.lastMsgMediaVideoIcon.isHidden = true
+            self.lastMsgLabel.text = nil
+        }
+        
+        if chatThread.lastMsgText != nil && chatThread.lastMsgText != "" {
+            self.lastMsgLabel.text = chatThread.lastMsgText
+        }
+        
         if chatThread.unreadCount == 0 {
             self.unreadNumButton.isHidden = true
-            self.timeLabel.textColor = UIColor.secondaryLabel
+            self.timeLabel.textColor = .secondaryLabel
         } else {
             self.unreadNumButton.isHidden = false
             self.unreadNumButton.setTitle(String(chatThread.unreadCount), for: .normal)
-            self.timeLabel.textColor = .lavaOrange
+            self.timeLabel.textColor = .systemBlue
         }
+        
         if let timestamp = chatThread.lastMsgTimestamp {
-            self.timeLabel.text = timestamp.chatTimestamp()
+            self.timeLabel.text = timestamp.chatListTimestamp()
         }
     }
     
-    private lazy var contactImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFill
-        imageView.tintColor = UIColor.systemGray
-        return imageView
+    // MARK: Avatar Column
+    
+    private lazy var avatarColumn: UIImageView = {
+        let view = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.contentMode = .scaleAspectFill
+        view.tintColor = UIColor.systemGray
+        return view
     }()
+    
+    // MARK: Text Column
     
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
@@ -319,20 +391,74 @@ fileprivate class ChatListViewCell: UITableViewCell {
     
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 1
+        
         label.font = UIFont.preferredFont(forTextStyle: .subheadline)
         label.textColor = .secondaryLabel
-        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         return label
     }()
     
-    private lazy var lastMessageLabel: UILabel = {
+    private lazy var sentTickView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(named: "CheckmarkSingle")?.withRenderingMode(.alwaysTemplate))
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = UIColor.systemGray3
+        
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        imageView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        imageView.isHidden = true
+        return imageView
+    }()
+    
+    private lazy var deliveredTicksView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(named: "CheckmarkDouble")?.withRenderingMode(.alwaysTemplate))
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = UIColor.systemGray3
+        
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        imageView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        imageView.isHidden = true
+        return imageView
+    }()
+    
+    private lazy var lastMsgMediaPhotoIcon: UIImageView = {
+        let view = UIImageView(image: UIImage(systemName: "photo"))
+        view.tintColor = UIColor.systemGray
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        view.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        
+        view.isHidden = true
+        return view
+    }()
+        
+    private lazy var lastMsgMediaVideoIcon: UIImageView = {
+        let view = UIImageView(image: UIImage(systemName: "video.fill"))
+        view.tintColor = UIColor.systemGray
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        view.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        
+        view.isHidden = true
+        return view
+    }()
+    
+    private lazy var lastMsgLabel: UILabel = {
         let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 1
         label.font = UIFont.preferredFont(forTextStyle: .subheadline)
         label.textColor = .secondaryLabel
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         return label
     }()
     
@@ -340,12 +466,12 @@ fileprivate class ChatListViewCell: UITableViewCell {
         let view = UIButton()
         view.isUserInteractionEnabled = false
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .lavaOrange
+        view.backgroundColor = .systemBlue
         view.contentEdgeInsets = UIEdgeInsets(top: 1, left: 6, bottom: 1, right: 6)
-        view.titleLabel?.font = UIFont.preferredFont(forTextStyle: .footnote)
+        view.titleLabel?.font = UIFont.preferredFont(forTextStyle: .subheadline)
         view.tintColor = UIColor.systemGray6
         view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        view.layer.cornerRadius = 9
+        view.layer.cornerRadius = 10
         view.clipsToBounds = true
         view.isHidden = true
         
@@ -354,15 +480,53 @@ fileprivate class ChatListViewCell: UITableViewCell {
     }()
     
     private lazy var lastMsgRow: UIStackView = {
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
-        spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-        
-        let view = UIStackView(arrangedSubviews: [self.lastMessageLabel, spacer, self.unreadNumButton])
-        view.translatesAutoresizingMaskIntoConstraints = false
+        let view = UIStackView(arrangedSubviews: [
+            self.sentTickView,
+            self.deliveredTicksView,
+            self.lastMsgMediaPhotoIcon,
+            self.lastMsgMediaVideoIcon,
+            self.lastMsgLabel,
+            self.unreadNumButton])
         view.axis = .horizontal
+        view.alignment = .center
+        view.spacing = 10
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        self.lastMsgMediaPhotoIcon.heightAnchor.constraint(equalTo: self.lastMsgLabel.heightAnchor).isActive = true
+        self.lastMsgMediaVideoIcon.heightAnchor.constraint(equalTo: self.lastMsgLabel.heightAnchor).isActive = true
+        
+        self.sentTickView.heightAnchor.constraint(equalTo: self.lastMsgLabel.heightAnchor).isActive = true
+        self.deliveredTicksView.heightAnchor.constraint(equalTo: self.lastMsgLabel.heightAnchor).isActive = true
+        
+        return view
+    }()
+    
+    private lazy var nameRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [self.nameLabel, self.timeLabel])
+        view.axis = .horizontal
+        view.alignment = .leading
         view.spacing = 5
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+        
+    private lazy var textColumn: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [self.nameRow, self.lastMsgRow])
+        view.axis = .vertical
+        view.spacing = 2
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var mainRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [self.avatarColumn, self.textColumn])
+        view.axis = .horizontal
+        view.alignment = .center
+        view.spacing = 10
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
 
@@ -370,31 +534,13 @@ fileprivate class ChatListViewCell: UITableViewCell {
         self.backgroundColor = .clear
         
         let imageSize: CGFloat = 40.0
-        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
-        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
+        self.avatarColumn.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
+        self.avatarColumn.heightAnchor.constraint(equalTo: self.avatarColumn.widthAnchor).isActive = true
         
-        let hStackName = UIStackView(arrangedSubviews: [self.nameLabel, self.timeLabel])
-        hStackName.translatesAutoresizingMaskIntoConstraints = false
-        hStackName.axis = .horizontal
-        hStackName.alignment = .leading
-        hStackName.spacing = 5
-        
-        let vStack = UIStackView(arrangedSubviews: [hStackName, self.lastMsgRow])
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        vStack.spacing = 2
-        
-        let hStack = UIStackView(arrangedSubviews: [self.contactImageView, vStack])
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.axis = .horizontal
-        hStack.alignment = .leading
-        hStack.spacing = 10
-
-        self.contentView.addSubview(hStack)
-        hStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        self.contentView.addSubview(mainRow)
+        mainRow.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        mainRow.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
+        mainRow.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
+        mainRow.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
     }
-    
 }

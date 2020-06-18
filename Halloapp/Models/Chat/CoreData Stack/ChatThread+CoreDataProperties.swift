@@ -10,13 +10,21 @@
 import Foundation
 import CoreData
 
-
 extension ChatThread {
 
-    enum Status: Int16 {
+    enum LastMsgStatus: Int16 {
         case none = 0
-        case available = 1
-        case away = 2
+        case pending = 1
+        case sentOut = 2
+        case delivered = 3
+        case seen = 4
+        case error = 5
+    }
+    
+    enum LastMsgMediaType: Int16 {
+        case none = 0
+        case image = 1
+        case video = 2
     }
     
     @nonobjc class func fetchRequest() -> NSFetchRequest<ChatThread> {
@@ -28,20 +36,29 @@ extension ChatThread {
     @NSManaged var chatWithUserId: String
     @NSManaged var unreadCount: Int32
     
-    @NSManaged var statusValue: Int16
-    @NSManaged var lastSeenTimestamp: Date?
-    
+    @NSManaged var lastMsgId: String?
     @NSManaged var lastMsgUserId: String?
-    @NSManaged var lastMsgTimestamp: Date?
+    @NSManaged private var lastMsgStatusValue: Int16
     @NSManaged var lastMsgText: String?
+    @NSManaged private var lastMsgMediaTypeValue: Int16
+    @NSManaged var lastMsgTimestamp: Date?
     
-    var status: Status {
+    var lastMsgStatus: LastMsgStatus {
         get {
-            return Status(rawValue: self.statusValue)!
+            return LastMsgStatus(rawValue: self.lastMsgStatusValue)!
         }
         set {
-            self.statusValue = newValue.rawValue
+            self.lastMsgStatusValue = newValue.rawValue
         }
     }
-
+    
+    var lastMsgMediaType: LastMsgMediaType {
+        get {
+            return LastMsgMediaType(rawValue: self.lastMsgMediaTypeValue)!
+        }
+        set {
+            self.lastMsgMediaTypeValue = newValue.rawValue
+        }
+    }
+    
 }

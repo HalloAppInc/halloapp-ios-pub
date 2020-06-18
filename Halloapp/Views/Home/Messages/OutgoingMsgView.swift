@@ -1,35 +1,34 @@
 //
-//  ChatUserView.swift
 //  HalloApp
 //
 //  Created by Tony Jiang on 4/21/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import UIKit
 import AVKit
+import UIKit
 
-protocol ChatUserViewDelegate: AnyObject {
-    func chatUserView(_ chatUserView: ChatUserView, previewType: MediaPreviewController.PreviewType, mediaIndex: Int)
+protocol OutgoingMsgViewDelegate: AnyObject {
+    func outgoingMsgView(_ outgoingMsgView: OutgoingMsgView, previewType: MediaPreviewController.PreviewType, mediaIndex: Int)
 }
 
-class ChatUserView: UIView {
+class OutgoingMsgView: UIView {
     
-    weak var delegate: ChatUserViewDelegate?
+    weak var delegate: OutgoingMsgViewDelegate?
     
     // MARK: Lifecycle
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupView()
+        setup()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setupView()
+        setup()
     }
     
-    private func setupView() {
+    private func setup() {
         self.backgroundColor = .clear
         self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
         self.addSubview(self.mainView)
@@ -219,7 +218,7 @@ class ChatUserView: UIView {
         return view
     }()
     
-    private lazy var mainView: UIStackView = {
+    private lazy var bubbleRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ self.quotedRow, self.textRow ])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .vertical
@@ -236,17 +235,54 @@ class ChatUserView: UIView {
         return view
     }()
     
+    private lazy var timeLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        
+        label.font = UIFont.systemFont(ofSize: 12)
+        label.textColor = .secondaryLabel
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        return label
+    }()
+    
+    private lazy var timeRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.timeLabel ])
+        view.axis = .vertical
+        view.spacing = 0
+        view.layoutMargins = UIEdgeInsets(top: 1, left: 0, bottom: 0, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var mainView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.bubbleRow, self.timeRow ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .vertical
+        view.alignment = .trailing
+        view.spacing = 0
+        
+        return view
+    }()
+    
     // MARK: Update
     
     func updateWith(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
         if isPreviousMsgSameSender {
-            self.layoutMargins = UIEdgeInsets(top: 3, left: 0, bottom: 0, right: 0)
-        } else {
             self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        } else {
+            self.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 0, right: 0)
         }
         
+        var isQuotedMessage = false
         
+        // quoted
         if let quoted = chatMessage.quoted {
+            isQuotedMessage = true
             if let userId = quoted.userId {
                 self.quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
             }
@@ -263,7 +299,7 @@ class ChatUserView: UIView {
                             self.quotedImageView.image = image
                         }
                     } else if med.type == .video {
-                        if let image = self.videoPreviewImage(url: fileURL) {
+                        if let image = VideoUtils.videoPreviewImage(url: fileURL, size: nil) {
                             self.quotedImageView.image = image
                         }
                     }
@@ -282,6 +318,7 @@ class ChatUserView: UIView {
             self.quotedRow.isHidden = false
         }
         
+        // media
         if let media = chatMessage.media {
             
             self.mediaImageView.reset()
@@ -299,35 +336,46 @@ class ChatUserView: UIView {
                 
                 if med.type == .image {
                     if let image = UIImage(contentsOfFile: fileURL.path) {
-                        sliderMediaArr.append(SliderMedia(image: image, type: med.type))
+                        sliderMediaArr.append(SliderMedia(image: image, type: med.type, order: Int(med.order)))
                     } else {
-                        sliderMediaArr.append(SliderMedia(image: nil, type: med.type))
+                        sliderMediaArr.append(SliderMedia(image: nil, type: med.type, order: Int(med.order)))
                     }
                 } else if med.type == .video {
-                    if let image = self.videoPreviewImage(url: fileURL) {
-                        sliderMediaArr.append(SliderMedia(image: image, type: med.type))
+                    if let image = VideoUtils.videoPreviewImage(url: fileURL, size: preferredSize) {
+                        sliderMediaArr.append(SliderMedia(image: image, type: med.type, order: Int(med.order)))
                     } else {
-                        sliderMediaArr.append(SliderMedia(image: nil, type: med.type))
+                        sliderMediaArr.append(SliderMedia(image: nil, type: med.type, order: Int(med.order)))
                     }
                 }
             }
             
             if !media.isEmpty {
        
-                self.mediaImageView.configure(with: sliderMediaArr, width: preferredSize.width, height: preferredSize.height, currentPage: 0)
+                self.mediaImageView.configure(with: sliderMediaArr, size: preferredSize)
                 
                 NSLayoutConstraint(item: self.mediaImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: preferredSize.width).isActive = true
                 NSLayoutConstraint(item: self.mediaImageView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: preferredSize.height).isActive = true
 
                 self.mediaImageView.isHidden = false
                 
+                if (isQuotedMessage) {
+                    self.mediaRow.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 0, right: 10)
+                }
                 self.mediaRow.isHidden = false
                 
-                self.mainView.insertArrangedSubview(self.mediaRow, at: 1)
+                self.bubbleRow.insertArrangedSubview(self.mediaRow, at: 1)
             }
         }
         
-        switch chatMessage.senderStatus {
+        // text
+        let text = chatMessage.text ?? ""
+        if text.count <= 3 && text.containsOnlyEmoji {
+            self.textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+        }
+        self.textView.text = text
+        
+        // ticks
+        switch chatMessage.outgoingStatus {
         case .seen:
             self.sentTickImageView.isHidden = true
             self.sentTickImageView.tintColor = UIColor.systemBlue
@@ -350,12 +398,10 @@ class ChatUserView: UIView {
             self.deliveredTickImageView.tintColor = UIColor.systemGray3
         }
 
-        let text = chatMessage.text ?? ""
-        if text.count <= 3 && text.containsOnlyEmoji {
-            self.textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+        // time
+        if let timestamp = chatMessage.timestamp {
+            self.timeLabel.text = timestamp.chatTimestamp()
         }
-        self.textView.text = text
-
     }
 
     // MARK: Reuse
@@ -372,6 +418,7 @@ class ChatUserView: UIView {
         self.mediaImageView.reset()
         self.mediaImageView.removeConstraints(mediaImageView.constraints)
         self.mediaRow.isHidden = true
+        self.mediaRow.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         self.mediaImageView.isHidden = true
         
         self.textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
@@ -380,64 +427,32 @@ class ChatUserView: UIView {
         self.sentTickImageView.tintColor = UIColor.systemGray3
         self.deliveredTickImageView.isHidden = true
         self.deliveredTickImageView.tintColor = UIColor.systemGray3
-    }
-    
-    func videoPreviewImage(url: URL) -> UIImage? {
-        let asset = AVURLAsset(url: url)
-        let generator = AVAssetImageGenerator(asset: asset)
-        generator.appliesPreferredTrackTransform = true
         
-        if let cgImage = try? generator.copyCGImage(at: CMTime(seconds: 2, preferredTimescale: 60), actualTime: nil) {
-            return UIImage(cgImage: cgImage)
-        }
-        else {
-            return nil
-        }
+        self.timeLabel.text = nil
     }
     
     func preferredSize(for media: [ChatMedia]) -> CGSize {
         guard !media.isEmpty else { return CGSize(width: 0, height: 0) }
         
         var width = CGFloat(UIScreen.main.bounds.width * 0.8).rounded()
-        
         let tallestItem = media.max { return $0.size.height < $1.size.height }
-        
         let tallestItemAspectRatio = tallestItem!.size.height / tallestItem!.size.width
-        
         let maxAllowedAspectRatio: CGFloat = 5/4
-        
         let preferredRatio = min(maxAllowedAspectRatio, tallestItemAspectRatio)
         
         let height = (width * preferredRatio).rounded()
-
         if media.count == 1 {
             width = height/tallestItemAspectRatio
         }
-        
-        
         return CGSize(width: width, height: height)
-
     }
     
     @objc func gotoQuotedPreview(_ sender: UIView) {
-        self.delegate?.chatUserView(self, previewType: .quoted, mediaIndex: 0)
+        self.delegate?.outgoingMsgView(self, previewType: .quoted, mediaIndex: 0)
     }
     
     @objc func gotoMediaPreview(_ sender: UIView) {
-        self.delegate?.chatUserView(self, previewType: .media, mediaIndex: self.mediaImageView.currentPage)
+        self.delegate?.outgoingMsgView(self, previewType: .media, mediaIndex: self.mediaImageView.currentPage)
     }
-    
 }
 
-fileprivate extension Character {
-    var isSimpleEmoji: Bool {
-        guard let firstScalar = unicodeScalars.first else { return false }
-        return firstScalar.properties.isEmoji && firstScalar.value > 0x238C
-    }
-    var isCombinedIntoEmoji: Bool { unicodeScalars.count > 1 && unicodeScalars.first?.properties.isEmoji ?? false }
-    var isEmoji: Bool { isSimpleEmoji || isCombinedIntoEmoji }
-}
-
-fileprivate extension String {
-    var containsOnlyEmoji: Bool { !isEmpty && !contains { !$0.isEmoji } }
-}
