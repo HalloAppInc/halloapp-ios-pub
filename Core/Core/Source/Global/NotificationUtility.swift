@@ -17,12 +17,13 @@ public class NotificationUtility {
     }
     
     public class Metadata {
+        public static let userInfoKey = "metadata"
+        
         private struct Keys {
             static let contentId = "content-id"
             static let contentType = "content-type"
             static let data = "data"
             static let fromId = "from-id"
-            static let metadata = "metadata"
             public static let userDefaults = "tap-notification-metadata"
         }
         
@@ -36,7 +37,15 @@ public class NotificationUtility {
         public let contentType: ContentType
         public let data: String
         public let fromId: UserID
-        private let rawData: [String: String]
+        
+        public var rawData: [String:String] {
+            return [
+                Keys.contentId: contentId,
+                Keys.contentType: contentType.rawValue,
+                Keys.data: data,
+                Keys.fromId: fromId
+            ]
+        }
         
         private init?(fromDict metadata: Any?) {
             DDLogInfo("NotificationMetadata/init with metadata=\(String(describing: metadata))")
@@ -73,20 +82,25 @@ public class NotificationUtility {
                 DDLogInfo("NotificationMetadata/error Missing Data")
                 return nil
             }
-            
-            self.rawData = metadata
+        }
+        
+        public init(contentId: String, contentType: ContentType, data: String, fromId: UserID) {
+            self.contentId = contentId
+            self.contentType = contentType
+            self.data = data
+            self.fromId = fromId
         }
         
         public convenience init?(fromRequest request: UNNotificationRequest) {
             DDLogInfo("NotificationMetadata/init with request=\(request)")
             
-            self.init(fromDict: request.content.userInfo[Keys.metadata])
+            self.init(fromDict: request.content.userInfo[Metadata.userInfoKey])
         }
         
         public convenience init?(fromResponse response: UNNotificationResponse) {
             DDLogInfo("NotificationMetadata/init with response=\(response)")
             
-            self.init(fromDict: response.notification.request.content.userInfo[Keys.metadata])
+            self.init(fromDict: response.notification.request.content.userInfo[Metadata.userInfoKey])
         }
         
         public static func fromUserDefaults() -> Metadata? {
