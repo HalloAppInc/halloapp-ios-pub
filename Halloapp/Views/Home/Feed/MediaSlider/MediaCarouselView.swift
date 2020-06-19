@@ -382,6 +382,8 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     override func configure(with media: FeedMedia) {
         super.configure(with: media)
 
+        avPlayerViewController.videoGravity = media.size.width > media.size.height || scaleContentToFit ? .resizeAspect : .resizeAspectFill
+
         if media.isMediaAvailable {
             showPlayer(forVideoURL: media.fileURL!)
         } else {
