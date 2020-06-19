@@ -26,6 +26,33 @@ class ZoomableImageView: UIImageView {
         get { zoomHandler.isEnabled }
         set { zoomHandler.isEnabled = newValue }
     }
+    var cornerRadius: CGFloat = 0 {
+        didSet { applyCornerRadius() }
+    }
+    override var image: UIImage? {
+        didSet { applyCornerRadius() }
+    }
+    override var frame: CGRect {
+        didSet {
+            if oldValue.size != frame.size {
+                applyCornerRadius()
+            }
+        }
+    }
+    override var bounds: CGRect {
+        didSet {
+            if oldValue.size != bounds.size {
+                applyCornerRadius()
+            }
+        }
+    }
+    override var contentMode: UIView.ContentMode {
+        didSet {
+            if oldValue != contentMode {
+                applyCornerRadius()
+            }
+        }
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -42,6 +69,32 @@ class ZoomableImageView: UIImageView {
         self.clipsToBounds = true
 
         zoomHandler = ZoomGestureHandler(self)
+    }
+
+    private func applyCornerRadius() {
+        if cornerRadius == 0 {
+            self.layer.mask = nil
+            return
+        }
+        if let image = self.image {
+            let frameAspectRatio = self.bounds.width / self.bounds.height
+            let imageAspectRatio = image.size.width / image.size.height
+
+            var rect = self.bounds
+            // Add calculations for other content modes when it is needed.
+            if self.contentMode == .scaleAspectFit {
+                if frameAspectRatio > imageAspectRatio {
+                    rect.size.width = ceil(rect.height * imageAspectRatio)
+                    rect.origin.x = (self.bounds.width - rect.width) / 2
+                } else {
+                    rect.size.height = ceil(rect.width / imageAspectRatio)
+                    rect.origin.y = (self.bounds.height - rect.height) / 2
+                }
+            }
+            let maskLayer = CAShapeLayer()
+            maskLayer.path = UIBezierPath(roundedRect: rect, cornerRadius: cornerRadius).cgPath
+            self.layer.mask = maskLayer
+        }
     }
 }
 

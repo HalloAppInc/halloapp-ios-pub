@@ -284,6 +284,7 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
 
         imageView = ZoomableImageView(frame: self.contentView.bounds)
         imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+        imageView.cornerRadius = 10
         self.contentView.addSubview(imageView)
     }
 
