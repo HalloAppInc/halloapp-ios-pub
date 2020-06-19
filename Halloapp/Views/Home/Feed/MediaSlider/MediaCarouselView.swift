@@ -339,6 +339,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     private var videoURL: URL?
     private var avPlayerViewController: AVPlayerViewController!
     private var avPlayerContext = 0
+    private var avPlayerVCContext = 0
 
     private var videoLoadingCancellable: AnyCancellable?
     private var videoPlaybackCancellable: AnyCancellable?
@@ -360,6 +361,9 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
             avPlayerViewController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.rate), context: &avPlayerContext)
             avPlayerViewController.player = nil
         }
+
+        avPlayerViewController.view.frame = self.bounds
+        avPlayerViewController.view.layer.mask = nil
     }
 
     private func commonInit() {
@@ -377,6 +381,8 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.view.isHidden = true
         avPlayerViewController.view.backgroundColor = .clear
         self.contentView.addSubview(avPlayerViewController.view)
+
+        avPlayerViewController.addObserver(self, forKeyPath: #keyPath(AVPlayerViewController.videoBounds), options: [ ], context:&avPlayerVCContext)
     }
 
     override func configure(with media: FeedMedia) {
@@ -406,6 +412,8 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         if let avPlayer = avPlayerViewController.player {
             avPlayer.removeObserver(self, forKeyPath: #keyPath(AVPlayer.rate), context: &avPlayerContext)
         }
+
+        avPlayerViewController.removeObserver(self, forKeyPath: #keyPath(AVPlayerViewController.videoBounds), context: &avPlayerVCContext)
     }
 
     private func showPlayer(forVideoURL videoURL: URL) {
@@ -417,6 +425,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         let avPlayer = AVPlayer(url: videoURL)
         avPlayerViewController.player = avPlayer
         avPlayerViewController.view.isHidden = false
+
         placeholderImageView.isHidden = true
 
         // Monitor when this cell's video starts playing and send out broadcast when it does.
@@ -443,8 +452,43 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.player?.pause()
     }
 
+    private func updatePlayerViewFrame() {
+        // Video takes entire cell content.
+        if avPlayerViewController.videoBounds.size == .zero || avPlayerViewController.videoGravity == .resizeAspectFill {
+            setPlayerView(frame: self.contentView.bounds)
+            return
+        }
+
+        let videoSize = avPlayerViewController.videoBounds.integral.size
+        let cellAspectRatio = self.contentView.bounds.width /  self.contentView.bounds.height
+        let videoAspectRatio = videoSize.width / videoSize.height
+
+        // Stop updating frame if desired size was reached.
+        guard abs(cellAspectRatio - videoAspectRatio) > 0.01 else {
+            return
+        }
+
+        var rect = self.contentView.bounds
+        if cellAspectRatio > videoAspectRatio {
+            rect.size.width = ceil(rect.height * videoAspectRatio)
+            rect.origin.x = (self.contentView.bounds.width - rect.width) / 2
+        } else {
+            rect.size.height = ceil(rect.width / videoAspectRatio)
+            rect.origin.y = (self.contentView.bounds.height - rect.height) / 2
+        }
+        setPlayerView(frame: rect)
+    }
+
+    private func setPlayerView(frame: CGRect) {
+        avPlayerViewController.view.frame = frame
+
+        let maskLayer = CAShapeLayer()
+        maskLayer.path = UIBezierPath(roundedRect: avPlayerViewController.view.bounds, cornerRadius: 10).cgPath
+        avPlayerViewController.view.layer.mask = maskLayer
+    }
+
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        guard context == &avPlayerContext else {
+        guard context == &avPlayerContext || context == &avPlayerVCContext else {
             super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
             return
         }
@@ -455,6 +499,10 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
                     Self.videoDidStartPlaying.send(videoURL!)
                 }
             }
+        }
+
+        if keyPath == #keyPath(AVPlayerViewController.videoBounds) {
+            updatePlayerViewFrame()
         }
     }
 
