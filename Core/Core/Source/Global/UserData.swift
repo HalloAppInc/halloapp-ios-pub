@@ -37,6 +37,7 @@ public final class UserData: ObservableObject {
     public var countryCode = "1"
     public var phoneInput = ""
     public var name = ""
+    public var avatar: UserAvatar?
 
     // Provided by the server.
     public var normalizedPhoneNumber: String = ""
@@ -82,6 +83,8 @@ public final class UserData: ObservableObject {
         if !self.userId.isEmpty && !self.password.isEmpty {
             self.isLoggedIn = true
         }
+        
+        reloadAvatar()
     }
     
     public func tryLogIn() {
@@ -103,6 +106,12 @@ public final class UserData: ObservableObject {
         self.save()
 
         self.isLoggedIn = false
+    }
+    
+    public func reloadAvatar() {
+        if !self.userId.isEmpty {
+            self.avatar = AvatarStore.shared.userAvatar(forUserId: userId)
+        }
     }
         
     public func save() {

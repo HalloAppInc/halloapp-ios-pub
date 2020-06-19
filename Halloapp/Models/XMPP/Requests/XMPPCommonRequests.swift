@@ -63,3 +63,38 @@ class XMPPSendNameRequest: XMPPRequest {
         self.completion(error)
     }
 }
+
+class XMPPUploadAvatarRequest: XMPPRequest {
+    typealias XMPPUploadAvatarRequestCompletion = (Error?, String?) -> Void
+    
+    var completion: XMPPUploadAvatarRequestCompletion
+    
+    init(data: Data, completion: @escaping XMPPUploadAvatarRequestCompletion) {
+        self.completion = completion
+        
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
+        
+        iq.addChild({
+            let avatarElement = XMLElement(name: "avatar", xmlns: "halloapp:user:avatar")
+            
+            avatarElement.addAttribute(withName: "bytes", intValue: Int32(data.count))
+            avatarElement.addAttribute(withName: "width", intValue: Int32(AvatarStore.avatarSize))
+            avatarElement.addAttribute(withName: "height", intValue: Int32(AvatarStore.avatarSize))
+            
+            avatarElement.stringValue = data.base64EncodedString()
+            
+            return avatarElement
+        }())
+        
+        super.init(iq: iq)
+    }
+    
+    override func didFinish(with response: XMPPIQ) {
+        let avatarId = response.element(forName: "avatar")?.attributeStringValue(forName: "id")
+        self.completion(nil, avatarId)
+    }
+
+    override func didFail(with error: Error) {
+        self.completion(error, nil)
+    }
+}

@@ -26,8 +26,9 @@ protocol XMPPControllerChatDelegate: AnyObject {
 }
 
 
-fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
+fileprivate let userDefaultsKeyForAvatarSync = "xmpp.avatar-sent"
+fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 
 class XMPPControllerMain: XMPPController {
 
@@ -123,7 +124,7 @@ class XMPPControllerMain: XMPPController {
 
     // MARK: User Name
 
-    fileprivate func resendNameIfNecessary() {
+    private func resendNameIfNecessary() {
         guard !UserDefaults.standard.bool(forKey: userDefaultsKeyForNameSync) else { return }
         guard !self.userData.name.isEmpty else { return }
 
@@ -142,6 +143,41 @@ class XMPPControllerMain: XMPPController {
             resendNameIfNecessary()
         }
     }
+    
+    // MARK: Avatar
+    
+    private func resendAvatarIfNecessary() {
+        guard !UserDefaults.standard.bool(forKey: userDefaultsKeyForAvatarSync) else { return }
+        
+        guard let avatarData = self.userData.avatar?.data else {
+            DDLogError("XMPPController/resendAvatarIfNecessary/error avatar does not exist")
+            UserDefaults.standard.set(true, forKey: userDefaultsKeyForAvatarSync)
+            return
+        }
+        
+        let request = XMPPUploadAvatarRequest(data: avatarData) { (error, avatarId) in
+            if error == nil {
+                UserDefaults.standard.set(true, forKey: userDefaultsKeyForAvatarSync)
+                
+                if let avatarId = avatarId {
+                    AvatarStore.shared.update(avatarId: avatarId, forUserId: self.userData.userId)
+                }
+            } else {
+                DDLogError("XMPPController/resendAvatarIfNecessary/error while uploading avatar got \(error!)")
+            }
+        }
+
+        self.enqueue(request: request)
+    }
+
+    func sendCurrentAvatarIfPossible() {
+        UserDefaults.standard.set(false, forKey: userDefaultsKeyForAvatarSync)
+
+        if isConnected {
+            resendAvatarIfNecessary()
+        }
+    }
+    
 
     // MARK: Receipts
 
@@ -178,6 +214,7 @@ class XMPPControllerMain: XMPPController {
         }
 
         resendNameIfNecessary()
+        resendAvatarIfNecessary()
         resendAllPendingReceipts()
     }
 

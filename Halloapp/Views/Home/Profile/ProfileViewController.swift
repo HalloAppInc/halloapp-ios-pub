@@ -51,6 +51,7 @@ class ProfileViewController: FeedTableViewController {
     @objc(presentProfileEditScreen)
     private func presentProfileEditScreen() {
         var profileEditView = ProfileEditView()
+        
         profileEditView.dismiss = {
             (self.tableView.tableHeaderView as! FeedTableHeaderView).updateProfile()
             self.dismiss(animated: true)
@@ -84,11 +85,18 @@ fileprivate class FeedTableHeaderView: UIView {
     }
 
     private lazy var contactImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = UIColor.systemGray
-        return imageView
+        var imageView: UIImageView?
+        
+        if let avatar = MainAppContext.shared.userData.avatar?.image {
+            imageView = UIImageView(image: avatar)
+            imageView!.layer.masksToBounds = true
+        } else {
+            imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
+            imageView!.tintColor = UIColor.systemGray
+        }
+        imageView!.translatesAutoresizingMaskIntoConstraints = false
+        imageView!.contentMode = .scaleAspectFit
+        return imageView!
     }()
 
     private lazy var nameLabel: UILabel = {
@@ -137,6 +145,12 @@ fileprivate class FeedTableHeaderView: UIView {
     }()
     
     public func updateProfile() {
+        if let avatar = MainAppContext.shared.userData.avatar?.image {
+            contactImageView.image = avatar
+            contactImageView.layer.masksToBounds = true
+            contactImageView.tintColor = nil
+        }
+        
         nameLabel.text = MainAppContext.shared.userData.name
     }
 
@@ -147,6 +161,7 @@ fileprivate class FeedTableHeaderView: UIView {
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.spacing = 8
         vStack.axis = .vertical
+        vStack.alignment = .center
         self.addSubview(vStack)
 
         vStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
@@ -155,5 +170,7 @@ fileprivate class FeedTableHeaderView: UIView {
         vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
 
         contactImageView.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        contactImageView.widthAnchor.constraint(equalToConstant: 50).isActive = true
+        contactImageView.layer.cornerRadius = 25
     }
 }
