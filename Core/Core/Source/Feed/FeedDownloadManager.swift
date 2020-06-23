@@ -31,6 +31,7 @@ public class FeedDownloadManager {
         let sha256: String
 
         // Output parameters.
+        public fileprivate(set) var completed = false
         public var error: Error?
         fileprivate var encryptedFilePath: String?
         public var decryptedFilePath: String?
@@ -188,6 +189,7 @@ public class FeedDownloadManager {
     }
 
     private func taskFinished(_ task: Task) {
+        task.completed = true
         DispatchQueue.main.async {
             self.tasks.remove(task)
             self.delegate?.feedDownloadManager(self, didFinishTask: task)
@@ -196,6 +198,7 @@ public class FeedDownloadManager {
 
     private func taskFailed(_ task: Task) {
         assert(task.decryptedFilePath == nil, "Failing task that has completed download.")
+        task.completed = true
         if task.encryptedFilePath != nil {
             do {
                 try FileManager.default.removeItem(at: fileURL(forRelativeFilePath: task.encryptedFilePath!))

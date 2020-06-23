@@ -50,9 +50,9 @@ class NotificationService: UNNotificationServiceExtension {
                 let protoContainer = try Proto_Container(serializedData: protobufData)
                 populate(notification: bestAttemptContent, withDataFrom: protoContainer)
                 if protoContainer.hasPost && !protoContainer.post.media.isEmpty {
-                    invokeHandler = !startDownloadingMedia(in: protoContainer.post.media.first!)
+                    invokeHandler = !startDownloading(media: protoContainer.post.media)
                 } else if protoContainer.hasChatMessage && !protoContainer.chatMessage.media.isEmpty {
-                    invokeHandler = !startDownloadingMedia(in: protoContainer.chatMessage.media.first!)
+                    invokeHandler = !startDownloading(media: protoContainer.chatMessage.media)
                 }
             }
             catch {
@@ -65,15 +65,40 @@ class NotificationService: UNNotificationServiceExtension {
         }
     }
 
-    static func notificationText(forProtoMedia protoMedia: Proto_Media) -> (String, String) {
+    static func notificationTextIcon(forMedia protoMedia: Proto_Media) -> String {
         switch protoMedia.type {
             case .image:
-                return ("📷", "photo")
+                return "📷"
             case .video:
-                return ("📹", "video")
+                return "📹"
             default:
-                return ("", "")
+                return ""
         }
+    }
+
+    static func notificationText(forMedia media: [Proto_Media]) -> String {
+        let numPhotos = media.filter { $0.type == .image }.count
+        let numVideos = media.filter { $0.type == .video }.count
+        var strings = [String]()
+        if numPhotos > 1 {
+            strings.append("📷 \(numPhotos) photos")
+        } else if numPhotos > 0 {
+            if numVideos > 0 {
+                strings.append("📷 1 photo")
+            } else {
+                strings.append("📷 photo")
+            }
+        }
+        if numVideos > 1 {
+            strings.append("📹 \(numVideos) videos")
+        } else if numVideos > 0 {
+            if numPhotos > 0 {
+                strings.append("📹 1 video")
+            } else {
+                strings.append("📹 video")
+            }
+        }
+        return strings.joined(separator: ", ")
     }
 
     private func populate(notification: UNMutableNotificationContent, withDataFrom protoContainer: Proto_Container) {
@@ -81,38 +106,82 @@ class NotificationService: UNNotificationServiceExtension {
             notification.subtitle = "New Post"
             notification.body = protoContainer.post.text
             if !protoContainer.post.media.isEmpty {
-                let (mediaIcon, mediaType) = Self.notificationText(forProtoMedia: protoContainer.post.media.first!)
-                // Use "photo" / "video" if there's no caption.
+                // Display how many photos and videos post contains if there's no caption.
                 if notification.body.isEmpty {
-                    notification.body = mediaType
+                    notification.body = Self.notificationText(forMedia: protoContainer.post.media)
+                } else {
+                    let mediaIcon = Self.notificationTextIcon(forMedia: protoContainer.post.media.first!)
+                    notification.body = "\(mediaIcon) \(notification.body)"
                 }
-                notification.body = "\(mediaIcon) \(notification.body)"
             }
         } else if protoContainer.hasComment {
             notification.body = "Commented: \(protoContainer.comment.text)"
         } else if protoContainer.hasChatMessage {
             notification.body = protoContainer.chatMessage.text
             if !protoContainer.chatMessage.media.isEmpty {
-                let (mediaIcon, mediaType) = Self.notificationText(forProtoMedia: protoContainer.chatMessage.media.first!)
-                // Use "photo" / "video" if there's no caption.
+                // Display how many photos and videos message contains if there's no caption.
                 if notification.body.isEmpty {
-                    notification.body = mediaType
+                    notification.body = Self.notificationText(forMedia: protoContainer.chatMessage.media)
+                } else {
+                    let mediaIcon = Self.notificationTextIcon(forMedia: protoContainer.chatMessage.media.first!)
+                    notification.body = "\(mediaIcon) \(notification.body)"
                 }
-                notification.body = "\(mediaIcon) \(notification.body)"
             }
         }
     }
 
-    private func startDownloadingMedia(in protoMedia: Proto_Media) -> Bool {
-        guard let xmppMedia = XMPPFeedMedia(protoMedia: protoMedia) else { return false }
-        let (taskAdded, _) = downloadManager.downloadMedia(for: xmppMedia)
-        return taskAdded
+    private var downloadTasks = [ FeedDownloadManager.Task ]()
+    /**
+     - returns:
+     True if at least one download has been started.
+     */
+    private func startDownloading(media: [ Proto_Media ]) -> Bool {
+        let xmppMediaObjects = media.compactMap { XMPPFeedMedia(protoMedia: $0) }
+        guard !xmppMediaObjects.isEmpty else { return false }
+        for xmppMedia in xmppMediaObjects {
+            let (taskAdded, task) = downloadManager.downloadMedia(for: xmppMedia)
+            if taskAdded {
+                downloadTasks.append(task)
+
+                // iOS doesn't show more than one attachment and therefore for now
+                // only download the first media from the post.
+                // Later, when we add support for using data downloaded by Notification Service Extension
+                // in the main app we might start downloading all attachments.
+                break
+            }
+        }
+        return !downloadTasks.isEmpty
+    }
+
+    private func addNotificationAttachments() {
+        guard let bestAttemptContent = bestAttemptContent else { return }
+        var attachments = [UNNotificationAttachment]()
+        for task in downloadTasks {
+            guard task.completed else { continue }
+
+            // Populate
+            if task.error == nil {
+                do {
+                    let fileURL = downloadManager.fileURL(forRelativeFilePath: task.decryptedFilePath!)
+                    let attachment = try UNNotificationAttachment(identifier: task.id, url: fileURL, options: nil)
+                    attachments.append(attachment)
+                }
+                catch {
+                    // TODO: Log
+                }
+            } else {
+                // TODO: Log
+            }
+        }
+        bestAttemptContent.attachments = attachments
     }
 
     override func serviceExtensionTimeWillExpire() {
         // Called just before the extension will be terminated by the system.
         // Use this as an opportunity to deliver your "best attempt" at modified content, otherwise the original push payload will be used.
         if let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent {
+            // Use whatever finished downloading.
+            addNotificationAttachments()
             contentHandler(bestAttemptContent)
         }
     }
@@ -126,20 +195,10 @@ extension NotificationService: FeedDownloadManagerDelegate {
             return
         }
 
-        // Populate
-        if task.error == nil {
-            do {
-                let fileURL = manager.fileURL(forRelativeFilePath: task.decryptedFilePath!)
-                let attachment = try UNNotificationAttachment(identifier: task.id, url: fileURL, options: nil)
-                bestAttemptContent.attachments = [ attachment ]
-            }
-            catch {
-                // TODO: Log
-            }
-        } else {
-            // TODO: Log
+        // Present notification when all downloads have finished.
+        if downloadTasks.filter({ !$0.completed }).isEmpty {
+            addNotificationAttachments()
+            contentHandler(bestAttemptContent)
         }
-
-        contentHandler(bestAttemptContent)
     }
 }
