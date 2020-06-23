@@ -65,26 +65,40 @@ class NotificationService: UNNotificationServiceExtension {
         }
     }
 
+    static func notificationText(forProtoMedia protoMedia: Proto_Media) -> (String, String) {
+        switch protoMedia.type {
+            case .image:
+                return ("📷", "photo")
+            case .video:
+                return ("📹", "video")
+            default:
+                return ("", "")
+        }
+    }
+
     private func populate(notification: UNMutableNotificationContent, withDataFrom protoContainer: Proto_Container) {
         if protoContainer.hasPost {
             notification.subtitle = "New Post"
             notification.body = protoContainer.post.text
-            if notification.body.isEmpty && protoContainer.post.media.count > 0 {
-                notification.body = "\(protoContainer.post.media.count) media"
+            if !protoContainer.post.media.isEmpty {
+                let (mediaIcon, mediaType) = Self.notificationText(forProtoMedia: protoContainer.post.media.first!)
+                // Use "photo" / "video" if there's no caption.
+                if notification.body.isEmpty {
+                    notification.body = mediaType
+                }
+                notification.body = "\(mediaIcon) \(notification.body)"
             }
         } else if protoContainer.hasComment {
             notification.body = "Commented: \(protoContainer.comment.text)"
         } else if protoContainer.hasChatMessage {
             notification.body = protoContainer.chatMessage.text
-            if notification.body.isEmpty, let protoMedia = protoContainer.chatMessage.media.first {
-                let notificationSubtitle: String = {
-                    switch protoMedia.type {
-                    case .image: return "Sent you a photo"
-                    case .video: return "Sent you a video"
-                    default: return ""
-                    }
-                }()
-                notification.subtitle = notificationSubtitle
+            if !protoContainer.chatMessage.media.isEmpty {
+                let (mediaIcon, mediaType) = Self.notificationText(forProtoMedia: protoContainer.chatMessage.media.first!)
+                // Use "photo" / "video" if there's no caption.
+                if notification.body.isEmpty {
+                    notification.body = mediaType
+                }
+                notification.body = "\(mediaIcon) \(notification.body)"
             }
         }
     }
