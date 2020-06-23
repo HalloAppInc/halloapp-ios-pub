@@ -145,7 +145,7 @@ public struct XMPPFeedMedia: FeedMediaProtocol {
         self.sha256 = sha256
     }
 
-    init?(protoMedia: Proto_Media) {
+    public init?(protoMedia: Proto_Media) {
         guard let type: FeedMediaType = {
             switch protoMedia.type {
             case .image: return .image

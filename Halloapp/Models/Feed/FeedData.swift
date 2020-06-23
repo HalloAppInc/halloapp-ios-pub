@@ -30,9 +30,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.feed")
     private lazy var downloadManager: FeedDownloadManager = {
-        let manager = FeedDownloadManager()
-        manager.delegate = self
-        return manager
+        let downloadManager = FeedDownloadManager(mediaDirectoryURL: MainAppContext.mediaDirectoryURL)
+        downloadManager.delegate = self
+        return downloadManager
     }()
 
     init(xmppController: XMPPControllerMain, contactStore: ContactStoreMain, userData: UserData) {
@@ -992,7 +992,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Status could be "downloading" if download has previously started
                 // but the app was terminated before the download has finished.
                 if feedPostMedia.status == .none || feedPostMedia.status == .downloading || feedPostMedia.status == .downloadError {
-                    if downloadManager.downloadMedia(for: feedPostMedia) {
+                    let (taskAdded, task) = downloadManager.downloadMedia(for: feedPostMedia)
+                    if taskAdded {
+                        task.feedMediaObjectId = feedPostMedia.objectID
                         feedPostMedia.status = .downloading
                         downloadStarted = true
                     }
@@ -1014,8 +1016,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             // Step 1: Update FeedPostMedia
-            guard let feedPostMedia = try? managedObjectContext.existingObject(with: task.feedMediaObjectId) as? FeedPostMedia else {
-                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  objectId=[\(task.feedMediaObjectId)]")
+            guard let feedPostMedia = try? managedObjectContext.existingObject(with: task.feedMediaObjectId!) as? FeedPostMedia else {
+                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  objectId=[\(task.feedMediaObjectId!)]")
                 return
             }
 
@@ -1025,9 +1027,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             if task.error == nil {
-                DDLogInfo("FeedData/download-task/\(task.id)/complete [\(task.fileURL!)]")
+                DDLogInfo("FeedData/download-task/\(task.id)/complete [\(task.decryptedFilePath!)]")
                 feedPostMedia.status = .downloaded
-                feedPostMedia.relativeFilePath = task.relativeFilePath
+                feedPostMedia.relativeFilePath = task.decryptedFilePath
             } else {
                 DDLogError("FeedData/download-task/\(task.id)/error [\(task.error!)]")
                 feedPostMedia.status = .downloadError

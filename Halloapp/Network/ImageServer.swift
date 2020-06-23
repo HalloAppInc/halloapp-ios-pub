@@ -8,6 +8,7 @@
 
 import Alamofire
 import CocoaLumberjack
+import Core
 import SwiftUI
 
 class ImageServer {

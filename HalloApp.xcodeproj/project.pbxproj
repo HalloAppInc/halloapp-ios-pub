@@ -21,7 +21,6 @@
 		761B3962241D9C4D00858251 /* SyncSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3961241D9C4D00858251 /* SyncSession.swift */; };
 		761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */; };
 		761C6168242D89F90028AE19 /* TextLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6167242D89F90028AE19 /* TextLabel.swift */; };
-		761E9AA72465E79700864AE9 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AA62465E79700864AE9 /* Alamofire */; };
 		761E9AAD2465E83900864AE9 /* Zip in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AAC2465E83900864AE9 /* Zip */; };
 		762EDBCA244E2EB700986617 /* Gotham-BlackIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */; };
 		762EDBCB244E2EB700986617 /* Gotham-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBB244E2EB500986617 /* Gotham-Medium.otf */; };
@@ -119,9 +118,7 @@
 		EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B9A2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift */; };
 		EA8D4721233C25B8006E2BA5 /* VerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationView.swift */; };
 		EAB03B7B2400517500643EB6 /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB03B7A2400517500643EB6 /* MailView.swift */; };
-		EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312823EE1FC20039B5A6 /* Digest.swift */; };
 		EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312A23EE20E10039B5A6 /* UIImage.swift */; };
-		EABF313123F229350039B5A6 /* MediaCrypter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF313023F229350039B5A6 /* MediaCrypter.swift */; };
 		EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */; };
 		EAC7E8F92385A6B700F5E711 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC7E8F82385A6B700F5E711 /* SettingsView.swift */; };
 		EAC84CEA2422E05700A5AAEF /* XMPPFeedRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */; };
@@ -332,9 +329,7 @@
 		EA8D4720233C25B8006E2BA5 /* VerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationView.swift; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAB03B7A2400517500643EB6 /* MailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MailView.swift; sourceTree = "<group>"; };
-		EABF312823EE1FC20039B5A6 /* Digest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Digest.swift; sourceTree = "<group>"; };
 		EABF312A23EE20E10039B5A6 /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
-		EABF313023F229350039B5A6 /* MediaCrypter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCrypter.swift; sourceTree = "<group>"; };
 		EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMediaDownloader.swift; sourceTree = "<group>"; };
 		EAC7E8F82385A6B700F5E711 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPFeedRequests.swift; sourceTree = "<group>"; };
@@ -378,7 +373,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				768123E02485DFB7008C5216 /* Core.framework in Frameworks */,
-				761E9AA72465E79700864AE9 /* Alamofire in Frameworks */,
 				49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */,
 				761E9AAD2465E83900864AE9 /* Zip in Frameworks */,
 			);
@@ -601,7 +595,6 @@
 				766103A22461E63200728870 /* Receipts */,
 				76DFA0012419560300F49CA4 /* XMPP */,
 				EA12006824209903008BFFAD /* VideoUtils.swift */,
-				EABF313023F229350039B5A6 /* MediaCrypter.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -773,7 +766,6 @@
 				76C69E472447E3B100338D4C /* Data.swift */,
 				763B42AD2435A74E00FF0E82 /* Date.swift */,
 				EA0B991A249C228700B05094 /* DateFormatter.swift */,
-				EABF312823EE1FC20039B5A6 /* Digest.swift */,
 				146B93782405F40500768AC6 /* Font.swift */,
 				EA0B9918249C205E00B05094 /* String.swift */,
 				76C69E4C2447E6D500338D4C /* UIApplication.swift */,
@@ -928,7 +920,6 @@
 			);
 			name = HalloApp;
 			packageProductDependencies = (
-				761E9AA62465E79700864AE9 /* Alamofire */,
 				761E9AAC2465E83900864AE9 /* Zip */,
 			);
 			productName = Halloapp;
@@ -1007,8 +998,8 @@
 			);
 			mainGroup = EAF3A1B62334191E00805FF9;
 			packageReferences = (
-				761E9AA52465E79700864AE9 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */,
+				76E5153124A1770A003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			productRefGroup = EAF3A1C02334191E00805FF9 /* Products */;
 			projectDirPath = "";
@@ -1195,10 +1186,8 @@
 				764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */,
 				766103A72461EE8200728870 /* receipts.pb.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
-				EABF312923EE1FC20039B5A6 /* Digest.swift in Sources */,
 				76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */,
 				761442CB245DF6A600DD9D1A /* CharacterSet.swift in Sources */,
-				EABF313123F229350039B5A6 /* MediaCrypter.swift in Sources */,
 				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,
 				EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */,
 				EAC7E8F92385A6B700F5E711 /* SettingsView.swift in Sources */,
@@ -1930,14 +1919,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		761E9AA52465E79700864AE9 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.1.0;
-			};
-		};
 		761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/marmelroy/Zip.git";
@@ -1946,14 +1927,17 @@
 				minimumVersion = 2.0.0;
 			};
 		};
+		76E5153124A1770A003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.2.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		761E9AA62465E79700864AE9 /* Alamofire */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 761E9AA52465E79700864AE9 /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = Alamofire;
-		};
 		761E9AAC2465E83900864AE9 /* Zip */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */;

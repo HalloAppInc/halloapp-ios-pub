@@ -8,7 +8,6 @@
 
 import CocoaLumberjack
 import CommonCrypto
-import Core
 import CryptoKit
 import CryptoSwift
 import Foundation
@@ -81,7 +80,7 @@ extension AES256Crypter: Crypter {
 
 }
 
-class MediaCrypter {
+public class MediaCrypter {
 
     private static let attachedKeyLength = 32
     private static let expandedKeyLength = 80
@@ -111,7 +110,7 @@ class MediaCrypter {
         return Data(bytes: expandedKeyBytes, count: expandedKeyBytes.count)
     }
     
-    class func encrypt(data: Data, mediaType: FeedMediaType) throws -> (Data, Data, Data) {
+    public class func encrypt(data: Data, mediaType: FeedMediaType) throws -> (Data, Data, Data) {
         let mediaKey = try MediaCrypter.randomKey(MediaCrypter.attachedKeyLength)
         let expandedKey = try MediaCrypter.expandedKey(from: mediaKey, mediaType: mediaType)
 
@@ -126,7 +125,7 @@ class MediaCrypter {
         return (encryptedData, mediaKey, sha256Hash)
     }
     
-    class func decrypt(data: Data, mediaKey: Data, sha256hash: Data, mediaType: FeedMediaType) throws -> Data {
+    public class func decrypt(data: Data, mediaKey: Data, sha256hash: Data, mediaType: FeedMediaType) throws -> Data {
         let expandedKey = try MediaCrypter.expandedKey(from: mediaKey, mediaType: mediaType)
 
         let IV = expandedKey[0...15]
