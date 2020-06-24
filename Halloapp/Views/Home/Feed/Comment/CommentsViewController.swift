@@ -79,8 +79,8 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
 
         let headerView = CommentsTableHeaderView(frame: CGRect(x: 0, y: 0, width: self.tableView.bounds.size.width, height: 200))
-        headerView.commentView.updateWith(feedPost: feedPost)
-        headerView.commentView.textLabel.delegate = self
+        headerView.configure(withPost: feedPost)
+        headerView.textLabel.delegate = self
         self.tableView.tableHeaderView = headerView
 
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
@@ -489,45 +489,6 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 }
 
-
-fileprivate class CommentsTableHeaderView: UIView {
-    lazy var commentView: CommentView = {
-        let commentView = CommentView()
-        commentView.isReplyButtonVisible = false
-        return commentView
-    }()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupView()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupView()
-    }
-
-    private func setupView() {
-        self.preservesSuperviewLayoutMargins = true
-
-        self.commentView.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(self.commentView)
-
-        let separatorView = UIView()
-        separatorView.translatesAutoresizingMaskIntoConstraints = false
-        separatorView.backgroundColor = UIColor.separator
-        self.addSubview(separatorView)
-
-        let views = [ "content": self.commentView, "separator": separatorView]
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|-[content]-|", options: .directionLeadingToTrailing, metrics: nil, views: views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "|[separator]|", options: .directionLeadingToTrailing, metrics: nil, views: views))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-8-[content]-[separator]|", options: [], metrics: nil, views: views))
-        let separatorHeight = 1.0 / UIScreen.main.scale
-        self.addConstraint(NSLayoutConstraint(item: separatorView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1.0, constant: separatorHeight))
-    }
-}
-
-
 fileprivate class CommentsTableViewCell: UITableViewCell {
     private(set) lazy var commentView: CommentView = {
         CommentView()
@@ -582,7 +543,6 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
 
     func update(with comment: FeedPostComment) {
         self.commentView.updateWith(comment: comment)
-        self.commentView.isContentInset = comment.parent != nil
         if comment.status == .sendError {
             self.accessoryView = {
                 let button = UIButton(type: .system)

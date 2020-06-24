@@ -8,26 +8,22 @@
 
 import UIKit
 
+// MARK: Constraint Constants
+fileprivate struct LayoutConstants {
+    static let profilePictureSizeSmall: CGFloat = 20
+    static let profilePictureSizeNormal: CGFloat = 30
+    static let profilePictureLeadingMarginNormal: CGFloat = 0
+    static let profilePictureLeadingMarginReply: CGFloat = 50
+    static let profilePictureTrailingSpaceSmall: CGFloat = 8
+    static let profilePictureTrailingSpaceNormal: CGFloat = 10
+}
+
 class CommentView: UIView {
 
     // MARK: Variable Constraints
     private var leadingMargin: NSLayoutConstraint!
     private var profilePictureWidth: NSLayoutConstraint!
     private var profilePictureTrailingSpace: NSLayoutConstraint!
-
-    // MARK: Constraint Constants
-    static private let profilePictureSizeSmall: CGFloat = 20
-    static private let profilePictureSizeNormal: CGFloat = 30
-    static private let profilePictureTrailingSpaceSmall: CGFloat = 8
-    static private let profilePictureTrailingSpaceNormal: CGFloat = 10
-
-    var isContentInset: Bool = false {
-        didSet {
-            if let margin = self.leadingMargin {
-                margin.constant = self.isContentInset ? 50 : 0
-            }
-        }
-    }
 
     var isReplyButtonVisible: Bool = true {
         didSet {
@@ -99,15 +95,15 @@ class CommentView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupView()
+        commonInit()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setupView()
+        commonInit()
     }
 
-    private func setupView() {
+    private func commonInit() {
         self.preservesSuperviewLayoutMargins = true
 
         self.addSubview(self.contactImageView)
@@ -125,51 +121,40 @@ class CommentView: UIView {
         vStack.addArrangedSubview(hStack)
         self.addSubview(self.vStack)
 
-        self.profilePictureWidth = self.contactImageView.widthAnchor.constraint(equalToConstant: Self.profilePictureSizeNormal)
+        self.profilePictureWidth = self.contactImageView.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeNormal)
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
         self.profilePictureWidth.isActive = true
 
-        self.leadingMargin = self.contactImageView.leadingAnchor.constraint(equalTo: self.leadingAnchor)
+        self.leadingMargin = self.contactImageView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: LayoutConstants.profilePictureLeadingMarginNormal)
         self.leadingMargin.isActive = true
         self.contactImageView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         self.contactImageView.bottomAnchor.constraint(lessThanOrEqualTo: self.bottomAnchor).isActive = true
 
-        self.profilePictureTrailingSpace = self.vStack.leadingAnchor.constraint(equalTo: self.contactImageView.trailingAnchor, constant: Self.profilePictureTrailingSpaceNormal)
+        self.profilePictureTrailingSpace = self.vStack.leadingAnchor.constraint(equalTo: self.contactImageView.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceNormal)
         self.profilePictureTrailingSpace.isActive = true
         self.vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
         self.vStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         self.vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
     }
 
-    private func contentString(author: String, text: String, font: UIFont) -> ( NSAttributedString, Range<String.Index>? ) {
-        let nameFont = UIFont(descriptor: font.fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
-        let content = NSMutableAttributedString(string: author, attributes: [ NSAttributedString.Key.font: nameFont ])
-        content.append(NSAttributedString(string: " \(text)", attributes: [ NSAttributedString.Key.font: font ]))
-        content.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: content.length))
-        return (content, content.string.range(of: author))
-    }
-
-    func updateWith(feedPost: FeedPost) {
-        let contactName = MainAppContext.shared.contactStore.fullName(for: feedPost.userId)
-        let comment = feedPost.text ?? ""
-        let font = UIFont.preferredFont(forTextStyle: .subheadline)
-        let content = self.contentString(author: contactName, text: comment, font: UIFont(descriptor: font.fontDescriptor, size: font.pointSize - 1))
-        self.textLabel.attributedText = content.0
-        self.textLabel.hyperlinkDetectionIgnoreRange = content.1
-        self.timestampLabel.text = feedPost.timestamp.commentTimestamp()
-        self.profilePictureWidth.constant = Self.profilePictureSizeSmall
-        self.profilePictureTrailingSpace.constant = Self.profilePictureTrailingSpaceSmall
-    }
-
     func updateWith(comment: FeedPostComment) {
         let contactName = MainAppContext.shared.contactStore.fullName(for: comment.userId)
-        let content = self.contentString(author: contactName, text: comment.isCommentRetracted ? "" : comment.text, font: UIFont.preferredFont(forTextStyle: .subheadline))
-        self.textLabel.attributedText = content.0
-        self.textLabel.hyperlinkDetectionIgnoreRange = content.1
+        let commentText = comment.isCommentRetracted ? "" : comment.text
+        let baseFont =  UIFont.preferredFont(forTextStyle: .subheadline)
+        let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
+        let attributedText = NSMutableAttributedString(string: contactName, attributes: [ NSAttributedString.Key.font: nameFont ])
+        attributedText.append(NSAttributedString(string: " \(commentText)", attributes: [ NSAttributedString.Key.font: baseFont ]))
+        attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
+
+        self.textLabel.attributedText = attributedText
+        self.textLabel.hyperlinkDetectionIgnoreRange = attributedText.string.range(of: contactName)
         self.timestampLabel.text = comment.timestamp.commentTimestamp()
         self.isReplyButtonVisible = !comment.isCommentRetracted
-        self.profilePictureWidth.constant = comment.parent == nil ? Self.profilePictureSizeNormal : Self.profilePictureSizeSmall
-        self.profilePictureTrailingSpace.constant = comment.parent == nil ? Self.profilePictureTrailingSpaceNormal : Self.profilePictureTrailingSpaceSmall
+
+        let isRootComment = comment.parent == nil
+        self.profilePictureWidth.constant = isRootComment ? LayoutConstants.profilePictureSizeNormal : LayoutConstants.profilePictureSizeSmall
+        self.profilePictureTrailingSpace.constant = isRootComment ? LayoutConstants.profilePictureTrailingSpaceNormal : LayoutConstants.profilePictureTrailingSpaceSmall
+        self.leadingMargin.constant = isRootComment ? LayoutConstants.profilePictureLeadingMarginNormal : LayoutConstants.profilePictureLeadingMarginReply
 
         if comment.isCommentRetracted {
             self.deletedCommentView.isHidden = false
@@ -183,5 +168,103 @@ class CommentView: UIView {
                 deletedCommentView.isHidden = true
             }
         }
+    }
+}
+
+
+class CommentsTableHeaderView: UIView {
+
+    private let contactImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFill
+        imageView.tintColor = UIColor.systemGray
+        return imageView
+    }()
+
+    private let contactNameLabel: UILabel = {
+        let label = UILabel()
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+        label.font = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: fontDescriptor.pointSize - 1)
+        label.textColor = .label
+        return label
+    }()
+
+    let textLabel: TextLabel = {
+        let label = TextLabel()
+        label.numberOfLines = 0
+        label.textColor = .label
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+        label.font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
+        return label
+    }()
+
+    private let timestampLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .natural
+        return label
+    }()
+
+    private let vStack: UIStackView = {
+        let vStack = UIStackView()
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.axis = .vertical
+        vStack.spacing = 4
+        return vStack
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        commonInit()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        commonInit()
+    }
+
+    private func commonInit() {
+        self.preservesSuperviewLayoutMargins = true
+
+        self.addSubview(contactImageView)
+
+        vStack.addArrangedSubview(contactNameLabel)
+        vStack.addArrangedSubview(textLabel)
+        vStack.addArrangedSubview(timestampLabel)
+        self.addSubview(vStack)
+
+        contactImageView.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeSmall).isActive = true
+        contactImageView.heightAnchor.constraint(equalTo: contactImageView.widthAnchor).isActive = true
+        contactImageView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
+        contactImageView.topAnchor.constraint(equalTo: self.topAnchor, constant: 8).isActive = true // using layout margins yields incorrect layout
+        contactImageView.bottomAnchor.constraint(lessThanOrEqualTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
+
+        vStack.leadingAnchor.constraint(equalTo: contactImageView.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceSmall).isActive = true
+        vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
+        vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 8).isActive = true // using layout margins yields incorrect layout
+        vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
+
+        let separatorView = UIView()
+        separatorView.translatesAutoresizingMaskIntoConstraints = false
+        separatorView.backgroundColor = .separator
+        self.addSubview(separatorView)
+        separatorView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
+        separatorView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        separatorView.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        separatorView.heightAnchor.constraint(equalToConstant: 1.0 / UIScreen.main.scale).isActive = true
+    }
+
+    func configure(withPost feedPost: FeedPost) {
+        contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId)
+        if let feedPostText = feedPost.text, !feedPostText.isEmpty {
+            textLabel.isHidden = false
+            textLabel.text = feedPostText
+        } else {
+            textLabel.isHidden = true
+            textLabel.text = ""
+        }
+        timestampLabel.text = feedPost.timestamp.commentTimestamp()
     }
 }
