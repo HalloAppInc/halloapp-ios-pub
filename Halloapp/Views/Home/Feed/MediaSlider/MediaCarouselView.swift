@@ -199,15 +199,6 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         self.dataSource = dataSource
     }
 
-    func dismantle() {
-        let indexPaths = collectionView.indexPathsForVisibleItems
-        for indexPath in indexPaths {
-            if let mediaCell = collectionView.cellForItem(at: indexPath) as? MediaCarouselCollectionViewCell {
-                mediaCell.dismantle()
-            }
-        }
-    }
-
     @objc(pageControlAction)
     private func pageControlAction() {
         self.setCurrentIndex(self.pageControl?.currentPage ?? 0, animated: true)
@@ -282,10 +273,6 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     func configure(with media: FeedMedia) {
 
     }
-
-    func dismantle() {
-
-    }
 }
 
 fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionViewCell {
@@ -341,15 +328,11 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
             show(image: media.image!)
         } else if imageLoadingCancellable == nil {
             showPlaceholderImage()
-            imageLoadingCancellable = media.imageDidBecomeAvailable.sink { (image) in
+            imageLoadingCancellable = media.imageDidBecomeAvailable.sink { [weak self] (image) in
+                guard let self = self else { return }
                 self.show(image: image)
             }
         }
-    }
-
-    override func dismantle() {
-        imageLoadingCancellable?.cancel()
-        imageLoadingCancellable = nil
     }
 
     private func showPlaceholderImage() {
@@ -440,25 +423,12 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         } else {
             if videoLoadingCancellable == nil {
                 showPlaceholderImage()
-                videoLoadingCancellable = media.videoDidBecomeAvailable.sink { (videoURL) in
+                videoLoadingCancellable = media.videoDidBecomeAvailable.sink { [weak self] (videoURL) in
+                    guard let self = self else { return }
                     self.showPlayer(forVideoURL: videoURL)
                 }
             }
         }
-    }
-
-    override func dismantle() {
-        videoLoadingCancellable?.cancel()
-        videoLoadingCancellable = nil
-
-        videoPlaybackCancellable?.cancel()
-        videoPlaybackCancellable = nil
-
-        if let avPlayer = avPlayerViewController.player {
-            avPlayer.removeObserver(self, forKeyPath: #keyPath(AVPlayer.rate), context: &avPlayerContext)
-        }
-
-        avPlayerViewController.removeObserver(self, forKeyPath: #keyPath(AVPlayerViewController.videoBounds), context: &avPlayerVCContext)
     }
 
     private func showPlayer(forVideoURL videoURL: URL) {
@@ -477,7 +447,8 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.rate), options: [ .new ], context: &avPlayerContext)
 
         // Cancel playback when other video starts playing.
-        videoPlaybackCancellable = Self.videoDidStartPlaying.sink { (videoURL) in
+        videoPlaybackCancellable = Self.videoDidStartPlaying.sink { [weak self] (videoURL) in
+            guard let self = self else { return }
             if self.videoURL != videoURL {
                 self.stopPlayback()
             }

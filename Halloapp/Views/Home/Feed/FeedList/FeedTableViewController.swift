@@ -633,7 +633,6 @@ fileprivate class FeedItemContentView: UIView {
             if !reuseMediaView {
                 self.vStack.removeArrangedSubview(mediaView)
                 mediaView.removeFromSuperview()
-                mediaView.dismantle()
                 self.mediaView = nil
             }
         }
