@@ -12,6 +12,7 @@ import UIKit
 struct MediaCarouselViewConfiguration {
     var isPagingEnabled = true
     var isZoomEnabled = true
+    var showVideoPlaybackControls = true
     var alwaysScaleToFitContent = false
     var cellSpacing: CGFloat = 20
     var cornerRadius: CGFloat = 10
@@ -21,7 +22,7 @@ struct MediaCarouselViewConfiguration {
     }
 
     static var minimal: MediaCarouselViewConfiguration {
-        get { MediaCarouselViewConfiguration(isPagingEnabled: false, isZoomEnabled: false, cellSpacing: 10, cornerRadius: 5) }
+        get { MediaCarouselViewConfiguration(isPagingEnabled: false, isZoomEnabled: false, showVideoPlaybackControls: false, cellSpacing: 10, cornerRadius: 5) }
     }
 }
 
@@ -187,6 +188,9 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 cell.scaleContentToFit = self.configuration.alwaysScaleToFitContent
                 cell.isZoomEnabled = self.configuration.isZoomEnabled
                 cell.cornerRadius = self.configuration.cornerRadius
+                if let videoCell = cell as? MediaCarouselVideoCollectionViewCell {
+                    videoCell.showsVideoPlaybackControls = self.configuration.showVideoPlaybackControls
+                }
                 cell.configure(with: feedMedia)
                 return cell
             }
@@ -270,6 +274,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 }
 
 fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
+
     var scaleContentToFit: Bool = false
     var isZoomEnabled: Bool = true
     var cornerRadius: CGFloat = 10
@@ -280,6 +285,7 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
 }
 
 fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionViewCell {
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()
@@ -357,6 +363,7 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
 }
 
 fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionViewCell {
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()
@@ -383,6 +390,17 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
 
     private var videoLoadingCancellable: AnyCancellable?
     private var videoPlaybackCancellable: AnyCancellable?
+
+    var showsVideoPlaybackControls: Bool {
+        get { avPlayerViewController.showsPlaybackControls }
+
+        set {
+            if newValue != showsVideoPlaybackControls && avPlayerViewController.player != nil {
+                assert(false, "Cannot change visibility of video playback controls after video was loaded.")
+            }
+            avPlayerViewController.showsPlaybackControls = newValue
+        }
+    }
 
     private static let videoDidStartPlaying = PassthroughSubject<URL, Never>()
 
