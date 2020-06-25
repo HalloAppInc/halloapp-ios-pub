@@ -231,7 +231,6 @@ class CommentsTableHeaderView: UIView {
         self.addSubview(contactImageView)
 
         vStack.addArrangedSubview(contactNameLabel)
-        vStack.addArrangedSubview(textLabel)
         vStack.addArrangedSubview(timestampLabel)
         self.addSubview(vStack)
 
@@ -257,14 +256,32 @@ class CommentsTableHeaderView: UIView {
     }
 
     func configure(withPost feedPost: FeedPost) {
+        // Contact name
         contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId)
-        if let feedPostText = feedPost.text, !feedPostText.isEmpty {
-            textLabel.isHidden = false
-            textLabel.text = feedPostText
-        } else {
-            textLabel.isHidden = true
-            textLabel.text = ""
+
+        // Media
+        if !feedPost.orderedMedia.isEmpty, let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id) {
+            let mediaView = MediaCarouselView(feedDataItem: feedDataItem, configuration: MediaCarouselViewConfiguration.minimal)
+            mediaView.layoutMargins.top = 4
+            mediaView.layoutMargins.bottom = 4
+            mediaView.addConstraint({
+                let constraint = NSLayoutConstraint.init(item: mediaView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 55)
+                constraint.priority = .defaultHigh
+                return constraint
+            }())
+            vStack.insertArrangedSubview(mediaView, at: vStack.arrangedSubviews.count - 1)
         }
+
+        // Text
+        if let feedPostText = feedPost.text, !feedPostText.isEmpty {
+            textLabel.text = feedPostText
+            vStack.insertArrangedSubview(textLabel, at: vStack.arrangedSubviews.count - 1)
+        } else {
+            vStack.removeArrangedSubview(textLabel)
+            textLabel.removeFromSuperview()
+        }
+
+        // Timestamp
         timestampLabel.text = feedPost.timestamp.commentTimestamp()
     }
 }

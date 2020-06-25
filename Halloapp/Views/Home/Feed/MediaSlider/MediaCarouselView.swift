@@ -19,6 +19,10 @@ struct MediaCarouselViewConfiguration {
     static var `default`: MediaCarouselViewConfiguration {
         get { MediaCarouselViewConfiguration() }
     }
+
+    static var minimal: MediaCarouselViewConfiguration {
+        get { MediaCarouselViewConfiguration(isPagingEnabled: false, isZoomEnabled: false, cellSpacing: 10, cornerRadius: 5) }
+    }
 }
 
 fileprivate struct LayoutConstants {
