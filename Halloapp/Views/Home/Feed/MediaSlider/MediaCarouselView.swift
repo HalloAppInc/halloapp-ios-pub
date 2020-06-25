@@ -367,6 +367,14 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         commonInit()
     }
 
+    deinit {
+        if avPlayerViewController.player != nil {
+            avPlayerViewController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.rate), context: &avPlayerContext)
+            avPlayerViewController.player = nil
+        }
+        avPlayerViewController.removeObserver(self, forKeyPath: #keyPath(AVPlayerViewController.videoBounds), context:&avPlayerVCContext)
+    }
+
     private var placeholderImageView: UIImageView!
     private var videoURL: URL?
     private var avPlayerViewController: AVPlayerViewController!
