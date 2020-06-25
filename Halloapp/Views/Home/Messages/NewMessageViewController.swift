@@ -31,7 +31,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
     private var fetchedResultsController: NSFetchedResultsController<ABContact>?
 
-    private var cancellableSet: Set<AnyCancellable> = []
+    private var trackedContacts: [String:TrackedContact] = [:]
     
     init() {
         super.init(style: .plain)
@@ -58,7 +58,6 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         self.tableView.backgroundColor = UIColor.systemGray6
         
         self.setupFetchedResultsController()
-        
     }
 
     // MARK: Appearance
@@ -182,7 +181,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         }
     }
 
-    // MARK: UITableView
+    // MARK: UITableView Delegates
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         return self.fetchedResultsController?.sections?.count ?? 0
@@ -198,25 +197,61 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         let cell = tableView.dequeueReusableCell(withIdentifier: NewMessageViewController.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
         
         if let abContact = fetchedResultsController?.object(at: indexPath) {
-            let contentWidth = tableView.frame.size.width - tableView.layoutMargins.left - tableView.layoutMargins.right
-            cell.configure(with: abContact, contentWidth: contentWidth)
+            cell.configure(with: abContact, hide: self.isDuplicate(abContact))
         }
+        
         return cell
     }
-
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        var result:CGFloat = 60
+        guard let abContact = self.fetchedResultsController?.object(at: indexPath) else { return result }
+        if self.isDuplicate(abContact) {
+            result = 0
+        }
+        return result
+    }
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let abContact = fetchedResultsController?.object(at: indexPath) {
             if let userId = abContact.userId {
-                
                 self.dismiss(animated: false) // gotcha: don't animate or else chatInput will not be shown
                 self.delegate?.newMessageViewController(self, chatWithUserId: userId)
-                
             }
         }
+    }
+    
+    func isDuplicate(_ abContact: ABContact) -> Bool {
+        var result = false
+        guard let identifier = abContact.identifier else { return result }
+        guard let normalizedPhoneNumber = abContact.normalizedPhoneNumber else { return result }
+        if self.trackedContacts[identifier] == nil {
+            var trackedContact = TrackedContact(with: abContact)
+            for (_, con) in self.trackedContacts {
+                if con.normalizedPhone == normalizedPhoneNumber {
+                    trackedContact.isDuplicate = true
+                    break
+                }
+            }
+            self.trackedContacts[identifier] = trackedContact
+        }
+        guard let isDuplicate = self.trackedContacts[identifier]?.isDuplicate else { return result }
+        result = isDuplicate
+        return result
     }
 
 }
 
+fileprivate struct TrackedContact {
+    let id: String?
+    let normalizedPhone: String?
+    var isDuplicate: Bool = false
+
+    init(with abContact: ABContact) {
+        self.id = abContact.identifier
+        self.normalizedPhone = abContact.normalizedPhoneNumber
+    }
+}
 
 fileprivate class NewMessageViewCell: UITableViewCell {
 
@@ -228,6 +263,17 @@ fileprivate class NewMessageViewCell: UITableViewCell {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setup()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        self.isHidden = false
+    }
+    
+    public func configure(with abContact: ABContact, hide: Bool) {
+        self.nameLabel.text = abContact.fullName
+        self.lastMessageLabel.text = abContact.phoneNumber
+        self.isHidden = hide ? true : false
     }
     
     private lazy var contactImageView: UIImageView = {
@@ -257,7 +303,6 @@ fileprivate class NewMessageViewCell: UITableViewCell {
     }()
     
     private func setup() {
-
         let vStack = UIStackView(arrangedSubviews: [self.nameLabel, self.lastMessageLabel])
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
@@ -285,20 +330,5 @@ fileprivate class NewMessageViewCell: UITableViewCell {
         hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
     
         self.backgroundColor = .clear
-        
     }
-
-
-    
-
-
-    public func configure(with abContact: ABContact, contentWidth: CGFloat) {
-        self.nameLabel.text = abContact.fullName
-        self.lastMessageLabel.text = abContact.phoneNumber
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-    }
-
 }
