@@ -179,9 +179,10 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> MediaCarouselView {
-        let carouselView = MediaCarouselView(media: context.coordinator.parent.media)
-        carouselView.alwaysScaleToFitContent = true
-        carouselView.isZoomEnabled = false
+        var configuration = MediaCarouselViewConfiguration.default
+        configuration.isZoomEnabled = false
+        configuration.alwaysScaleToFitContent = true
+        let carouselView = MediaCarouselView(media: context.coordinator.parent.media, configuration: configuration)
         return carouselView
     }
 

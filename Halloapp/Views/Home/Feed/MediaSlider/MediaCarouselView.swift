@@ -9,11 +9,26 @@ import AVKit
 import Combine
 import UIKit
 
+struct MediaCarouselViewConfiguration {
+    var isPagingEnabled = true
+    var isZoomEnabled = true
+    var alwaysScaleToFitContent = false
+    var cellSpacing: CGFloat = 20
+    var cornerRadius: CGFloat = 10
+
+    static var `default`: MediaCarouselViewConfiguration {
+        get { MediaCarouselViewConfiguration() }
+    }
+}
+
+fileprivate struct LayoutConstants {
+    static let pageControlSpacingTop: CGFloat = -4
+    static let pageControlSpacingBottom: CGFloat = -12
+}
+
 class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
 
-    // MARK: Public Config
-    var alwaysScaleToFitContent: Bool = false
-    var isZoomEnabled: Bool = true
+    private let configuration: MediaCarouselViewConfiguration
 
     private enum MediaSliderSection: Int {
         case main = 0
@@ -63,24 +78,26 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         return height
     }
 
-    static private let cellSpacing: CGFloat = 20
-
     static private let cellReuseIdentifierImage = "MediaCarouselCellImage"
     static private let cellReuseIdentifierVideo = "MediaCarouselCellVideo"
 
-    private let collectionView: UICollectionView = {
+    private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
         layout.itemSize = UICollectionViewFlowLayout.automaticSize
         layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = MediaCarouselView.cellSpacing
-        layout.minimumInteritemSpacing = MediaCarouselView.cellSpacing // This is actually necessary for the collection view to have correct content size.
+        layout.minimumLineSpacing = configuration.cellSpacing
+        layout.minimumInteritemSpacing = configuration.cellSpacing // This is actually necessary for the collection view to have correct content size.
         layout.scrollDirection = .horizontal
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 0.5*MediaCarouselView.cellSpacing, bottom: 0, right: 0.5*MediaCarouselView.cellSpacing)
+        if configuration.isPagingEnabled {
+            layout.sectionInset = UIEdgeInsets(top: 0, left: 0.5*configuration.cellSpacing, bottom: 0, right: 0.5*configuration.cellSpacing)
+        } else {
+            layout.sectionInset = .zero
+        }
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(MediaCarouselImageCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierImage)
         collectionView.register(MediaCarouselVideoCollectionViewCell.self, forCellWithReuseIdentifier: MediaCarouselView.cellReuseIdentifierVideo)
-        collectionView.isPagingEnabled = true
+        collectionView.isPagingEnabled = configuration.isPagingEnabled
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -88,28 +105,27 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     }()
 
     private lazy var pageControl: UIPageControl? = nil
-    private static let pageControlSpacingTop: CGFloat = -4
-    private static let pageControlSpacingBottom: CGFloat = -12
     private static let pageControlAreaHeight: CGFloat = {
         let pageControl = UIPageControl()
         pageControl.numberOfPages = 2
         pageControl.sizeToFit()
-        return MediaCarouselView.pageControlSpacingTop + pageControl.frame.height + MediaCarouselView.pageControlSpacingBottom
+        return LayoutConstants.pageControlSpacingTop + pageControl.frame.height + LayoutConstants.pageControlSpacingBottom
     }()
 
     private var dataSource: UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>?
 
-    convenience init(feedDataItem: FeedDataItem) {
-        self.init(media: feedDataItem.media, feedDataItem: feedDataItem)
+    convenience init(feedDataItem: FeedDataItem, configuration: MediaCarouselViewConfiguration = MediaCarouselViewConfiguration.default) {
+        self.init(media: feedDataItem.media, feedDataItem: feedDataItem, configuration: configuration)
     }
 
-    convenience init(media: [FeedMedia]) {
-        self.init(media: media, feedDataItem: nil)
+    convenience init(media: [FeedMedia], configuration: MediaCarouselViewConfiguration = MediaCarouselViewConfiguration.default) {
+        self.init(media: media, feedDataItem: nil, configuration: configuration)
     }
 
-    required init(media: [FeedMedia], feedDataItem: FeedDataItem?) {
+    required init(media: [FeedMedia], feedDataItem: FeedDataItem?, configuration: MediaCarouselViewConfiguration) {
         self.media = media
         self.feedDataItem = feedDataItem
+        self.configuration = configuration
         super.init(frame: .zero)
         commonInit()
     }
@@ -121,14 +137,20 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     private func commonInit() {
         self.clipsToBounds = true
         self.isUserInteractionEnabled = true
+        self.layoutMargins = .zero
 
         self.addSubview(self.collectionView)
 
-        self.collectionView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: -0.5*Self.cellSpacing).isActive = true
-        self.collectionView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        self.collectionView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: 0.5*Self.cellSpacing).isActive = true
+        if configuration.isPagingEnabled {
+            self.collectionView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: -0.5*configuration.cellSpacing).isActive = true
+            self.collectionView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: 0.5*configuration.cellSpacing).isActive = true
+        } else {
+            self.collectionView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
+            self.collectionView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
+        }
+        self.collectionView.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
 
-        if self.media.count > 1 {
+        if self.media.count > 1 && configuration.isPagingEnabled {
             let pageControl = UIPageControl()
             pageControl.pageIndicatorTintColor = UIColor(named: "Tint")?.withAlphaComponent(0.2)
             pageControl.currentPageIndicatorTintColor = UIColor(named: "LavaOrange")
@@ -138,15 +160,14 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             pageControl.sizeToFit()
             addSubview(pageControl)
 
-            pageControl.topAnchor.constraint(equalTo: self.collectionView.bottomAnchor, constant: Self.pageControlSpacingTop).isActive = true
-            pageControl.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -Self.pageControlSpacingBottom).isActive = true
+            pageControl.topAnchor.constraint(equalTo: self.collectionView.bottomAnchor, constant: LayoutConstants.pageControlSpacingTop).isActive = true
+            pageControl.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor, constant: -LayoutConstants.pageControlSpacingBottom).isActive = true
             pageControl.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
 
             self.pageControl = pageControl
         } else {
-            self.collectionView.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+            self.collectionView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
         }
-
         self.collectionView.delegate = self
 
         let dataSource = UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>(collectionView: self.collectionView) { [weak self] collectionView, indexPath, feedMedia in
@@ -159,8 +180,9 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 }
             }()
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as? MediaCarouselCollectionViewCell {
-                cell.scaleContentToFit = self.alwaysScaleToFitContent
-                cell.isZoomEnabled = self.isZoomEnabled
+                cell.scaleContentToFit = self.configuration.alwaysScaleToFitContent
+                cell.isZoomEnabled = self.configuration.isZoomEnabled
+                cell.cornerRadius = self.configuration.cornerRadius
                 cell.configure(with: feedMedia)
                 return cell
             }
@@ -218,14 +240,28 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     // MARK: UICollectionViewDelegate
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        var size = self.bounds.size
-        if self.pageControl != nil && size.height > Self.pageControlAreaHeight {
-            size.height -= Self.pageControlAreaHeight
+        if configuration.isPagingEnabled {
+            var size = self.bounds.size
+            if self.pageControl != nil && size.height > Self.pageControlAreaHeight {
+                size.height -= Self.pageControlAreaHeight
+            }
+            return size
+        } else {
+            guard let mediaItem = dataSource?.itemIdentifier(for: indexPath),
+                  let collectionViewFlowLayout = collectionViewLayout as? UICollectionViewFlowLayout else {
+                return .zero
+            }
+            var cellHeight = collectionView.frame.height - collectionView.contentInset.top - collectionView.contentInset.bottom
+            cellHeight -= (collectionViewFlowLayout.sectionInset.top + collectionViewFlowLayout.sectionInset.bottom)
+
+            let cellWidth = ceil(cellHeight * (mediaItem.size.width / mediaItem.size.height))
+            return CGSize(width: cellWidth, height: cellHeight)
         }
-        return size
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard configuration.isPagingEnabled else { return }
+
         let pageWidth = scrollView.frame.width
         let viewCenterXInScrollViewCoordinates = scrollView.convert(self.center, from: self).x
         let pageIndex = Int(viewCenterXInScrollViewCoordinates / pageWidth)
@@ -241,6 +277,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     var scaleContentToFit: Bool = false
     var isZoomEnabled: Bool = true
+    var cornerRadius: CGFloat = 10
 
     func configure(with media: FeedMedia) {
 
@@ -266,6 +303,14 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
     private var imageView: ZoomableImageView!
     private var imageLoadingCancellable: AnyCancellable?
 
+    override var cornerRadius: CGFloat {
+        didSet {
+            if oldValue != cornerRadius {
+                imageView.cornerRadius = cornerRadius
+            }
+        }
+    }
+
     override func prepareForReuse() {
         super.prepareForReuse()
 
@@ -284,7 +329,7 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
 
         imageView = ZoomableImageView(frame: self.contentView.bounds)
         imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
-        imageView.cornerRadius = 10
+        imageView.cornerRadius = self.cornerRadius
         self.contentView.addSubview(imageView)
     }
 
@@ -483,7 +528,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.view.frame = frame
 
         let maskLayer = CAShapeLayer()
-        maskLayer.path = UIBezierPath(roundedRect: avPlayerViewController.view.bounds, cornerRadius: 10).cgPath
+        maskLayer.path = UIBezierPath(roundedRect: avPlayerViewController.view.bounds, cornerRadius: self.cornerRadius).cgPath
         avPlayerViewController.view.layer.mask = maskLayer
     }
 
