@@ -953,8 +953,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func internalSendSeenReceipt(for feedPost: FeedPost) {
+        // Make sure the post is still in a valid state and wasn't retracted just now.
+        guard feedPost.status == .incoming else {
+            DDLogWarn("FeedData/seen-receipt/ignore Incorrect post status: \(feedPost.status)")
+            return
+        }
         feedPost.status = .seenSending
-
         self.xmppController.sendSeenReceipt(XMPPReceipt.seenReceipt(for: feedPost), to: feedPost.userId)
     }
 
