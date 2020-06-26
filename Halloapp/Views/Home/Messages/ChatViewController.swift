@@ -148,7 +148,10 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 
         let fetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", self.fromUserId!, MainAppContext.shared.userData.userId, self.fromUserId!, AppContext.shared.userData.userId)
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true) ]
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true),
+            NSSortDescriptor(keyPath: \ChatMessage.id, ascending: true) // if timestamps are the same, break tie
+        ]
         
         self.fetchedResultsController =
             NSFetchedResultsController<ChatMessage>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext,
