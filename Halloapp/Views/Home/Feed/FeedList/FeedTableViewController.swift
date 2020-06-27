@@ -38,6 +38,8 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         DDLogInfo("FeedTableViewController/viewDidLoad")
         installLargeTitleUsingGothamFont()
 
+        navigationItem.standardAppearance = .transparentAppearance
+
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = false
         self.tableView.showsVerticalScrollIndicator = false
