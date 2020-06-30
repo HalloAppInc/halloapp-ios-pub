@@ -42,18 +42,26 @@ class PrivacyListViewController: UITableViewController {
 
         let selectedContactIds = Set(privacyList.items.map({ $0.userId }))
 
-        // Load all device contacts
-        contacts = MainAppContext.shared.contactStore.allRegisteredContacts(sorted: true).map({ PrivacyListEntry(userId: $0.userId!, name: $0.fullName, phoneNumber: $0.phoneNumber) })
-        let allContactIds = Set(contacts.map({ $0.userId }))
-        // Remove self
+        // Load all device contacts, making them unique and removing self.
         let selfUserId = MainAppContext.shared.userData.userId
-        contacts.removeAll(where: { $0.userId == selfUserId })
+        var uniqueUserIds = Set<UserID>()
+        var contacts = [PrivacyListEntry]()
+        for contact in MainAppContext.shared.contactStore.allRegisteredContacts(sorted: true) {
+            guard let userId = contact.userId else { continue }
+            guard !uniqueUserIds.contains(userId) else { continue }
+            guard userId != selfUserId else { continue }
+
+            contacts.append(PrivacyListEntry(userId: contact.userId!, name: contact.fullName, phoneNumber: contact.phoneNumber))
+            
+            uniqueUserIds.insert(contact.userId!)
+        }
         // Load selection
         for entry in contacts {
             entry.isSelected = selectedContactIds.contains(entry.userId)
         }
         // Append contacts that aren't in user's address book (if any).
-        contacts.append(contentsOf: selectedContactIds.subtracting(allContactIds).map({ PrivacyListEntry(userId: $0, isSelected: true) }))
+        contacts.append(contentsOf: selectedContactIds.subtracting(uniqueUserIds).map({ PrivacyListEntry(userId: $0, isSelected: true) }))
+        self.contacts = contacts
     }
 
     required init?(coder: NSCoder) {
