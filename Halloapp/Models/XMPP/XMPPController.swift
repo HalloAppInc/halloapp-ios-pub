@@ -46,6 +46,9 @@ class XMPPControllerMain: XMPPController {
     let didGetAck = PassthroughSubject<XMPPAck, Never>()
     let didGetPresence = PassthroughSubject<XMPPPresence, Never>()
 
+    // TODO: Find a better place for this
+    private(set) var privacySettings = PrivacySettings()
+
     private var cancellableSet: Set<AnyCancellable> = []
 
     required init(userData: UserData) {
@@ -177,7 +180,6 @@ class XMPPControllerMain: XMPPController {
             resendAvatarIfNecessary()
         }
     }
-    
 
     // MARK: Receipts
 
@@ -216,6 +218,8 @@ class XMPPControllerMain: XMPPController {
         resendNameIfNecessary()
         resendAvatarIfNecessary()
         resendAllPendingReceipts()
+
+        privacySettings.syncListsIfNecessary()
     }
 
     override func didReceive(message: XMPPMessage) {

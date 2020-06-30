@@ -46,8 +46,12 @@
 		76407DFC245CBAD40031F96A /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */; };
 		76407DFE245CBAE30031F96A /* Registration.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 76407DFD245CBAE30031F96A /* Registration.storyboard */; };
 		764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */; };
+		764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41724A67A5C00D4E354 /* Privacy.swift */; };
+		764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41924A6A48400D4E354 /* PrivacyRequests.swift */; };
 		764AB41D24A6BF2800D4E354 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41C24A6BF2800D4E354 /* SettingsView.swift */; };
 		764AB41F24A6C5F300D4E354 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41E24A6C5F300D4E354 /* Color.swift */; };
+		764AB42124A7188600D4E354 /* FeedPrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB42024A7188600D4E354 /* FeedPrivacyView.swift */; };
+		764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB42324A71D6900D4E354 /* PrivacyListView.swift */; };
 		764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */; };
 		764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
 		764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F7750246226120063645A /* FeedPostSeenByViewController.swift */; };
@@ -84,6 +88,7 @@
 		76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CD62429331D007435AC /* CommentsViewController.swift */; };
 		76B95CDE24295AB5007435AC /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CDD24295AB5007435AC /* CommentView.swift */; };
 		76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE3242A7A3F007435AC /* CommentInputView.swift */; };
+		76C2D1F924AA6B9700930320 /* PrivacyListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */; };
 		76C69E482447E3B100338D4C /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E472447E3B100338D4C /* Data.swift */; };
 		76C69E4D2447E6D500338D4C /* UIApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E4C2447E6D500338D4C /* UIApplication.swift */; };
 		76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */; };
@@ -249,8 +254,12 @@
 		76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhoneInputViewController.swift; path = HalloApp/Views/Registration/PhoneInputViewController.swift; sourceTree = SOURCE_ROOT; };
 		76407DFD245CBAE30031F96A /* Registration.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Registration.storyboard; path = HalloApp/Views/Registration/Registration.storyboard; sourceTree = SOURCE_ROOT; };
 		764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationsViewController.swift; sourceTree = "<group>"; };
+		764AB41724A67A5C00D4E354 /* Privacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Privacy.swift; path = HalloApp/Models/Privacy/Privacy.swift; sourceTree = SOURCE_ROOT; };
+		764AB41924A6A48400D4E354 /* PrivacyRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyRequests.swift; path = HalloApp/Models/Privacy/PrivacyRequests.swift; sourceTree = SOURCE_ROOT; };
 		764AB41C24A6BF2800D4E354 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = HalloApp/Views/Settings/SettingsView.swift; sourceTree = SOURCE_ROOT; };
 		764AB41E24A6C5F300D4E354 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Color.swift; path = HalloApp/Components/Extensions/Color.swift; sourceTree = SOURCE_ROOT; };
+		764AB42024A7188600D4E354 /* FeedPrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPrivacyView.swift; path = Halloapp/Views/Settings/Privacy/FeedPrivacyView.swift; sourceTree = SOURCE_ROOT; };
+		764AB42324A71D6900D4E354 /* PrivacyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyListView.swift; path = HalloApp/Views/Settings/Privacy/PrivacyListView.swift; sourceTree = SOURCE_ROOT; };
 		764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UINavigationBar.swift; path = HalloApp/Components/Extensions/UINavigationBar.swift; sourceTree = SOURCE_ROOT; };
 		764F774D246224C30063645A /* ContactTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactTableViewCell.swift; path = HalloApp/Components/Views/ContactTableViewCell.swift; sourceTree = SOURCE_ROOT; };
 		764F7750246226120063645A /* FeedPostSeenByViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPostSeenByViewController.swift; path = "HalloApp/Views/Home/Feed/Seen By/FeedPostSeenByViewController.swift"; sourceTree = SOURCE_ROOT; };
@@ -288,6 +297,7 @@
 		76B95CD62429331D007435AC /* CommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsViewController.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsViewController.swift; sourceTree = SOURCE_ROOT; };
 		76B95CDD24295AB5007435AC /* CommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CE3242A7A3F007435AC /* CommentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentInputView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentInputView.swift; sourceTree = SOURCE_ROOT; };
+		76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyListViewController.swift; path = HalloApp/Views/Settings/Privacy/PrivacyListViewController.swift; sourceTree = SOURCE_ROOT; };
 		76C69E472447E3B100338D4C /* Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Data.swift; path = HalloApp/Components/Extensions/Data.swift; sourceTree = SOURCE_ROOT; };
 		76C69E4C2447E6D500338D4C /* UIApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIApplication.swift; path = HalloApp/Components/Extensions/UIApplication.swift; sourceTree = SOURCE_ROOT; };
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
@@ -483,13 +493,33 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		764AB41624A67A3C00D4E354 /* Privacy */ = {
+			isa = PBXGroup;
+			children = (
+				764AB41724A67A5C00D4E354 /* Privacy.swift */,
+				764AB41924A6A48400D4E354 /* PrivacyRequests.swift */,
+			);
+			path = Privacy;
+			sourceTree = "<group>";
+		};
 		764AB41B24A6BE1900D4E354 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				764AB42224A71D3D00D4E354 /* Privacy */,
 				EAB03B7A2400517500643EB6 /* MailView.swift */,
 				764AB41C24A6BF2800D4E354 /* SettingsView.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		764AB42224A71D3D00D4E354 /* Privacy */ = {
+			isa = PBXGroup;
+			children = (
+				764AB42024A7188600D4E354 /* FeedPrivacyView.swift */,
+				764AB42324A71D6900D4E354 /* PrivacyListView.swift */,
+				76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */,
+			);
+			path = Privacy;
 			sourceTree = "<group>";
 		};
 		764F774F246225E30063645A /* Seen By */ = {
@@ -596,12 +626,13 @@
 		EA3861EB23342C3800705943 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				EA35856A2450BE2900E6E8AB /* Chat */,
 				EA5414DA23EE1D6900390EF6 /* Contacts */,
 				EA5414D923EE1D2B00390EF6 /* Feed */,
-				EA35856A2450BE2900E6E8AB /* Chat */,
+				764AB41624A67A3C00D4E354 /* Privacy */,
 				766103A22461E63200728870 /* Receipts */,
-				76DFA0012419560300F49CA4 /* XMPP */,
 				EA12006824209903008BFFAD /* VideoUtils.swift */,
+				76DFA0012419560300F49CA4 /* XMPP */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1210,6 +1241,7 @@
 				EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */,
 				763B42AC243274F400FF0E82 /* FeedTableViewController.swift in Sources */,
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
+				764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */,
 				EAD476F92458F9FE00EF8591 /* ChatMessageMedia.swift in Sources */,
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */,
@@ -1244,18 +1276,22 @@
 				766492252450E04D009BC368 /* BadgeView.swift in Sources */,
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
 				76538093243D4B33000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */,
+				76C2D1F924AA6B9700930320 /* PrivacyListViewController.swift in Sources */,
 				76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */,
 				76A92444244E659600794859 /* FeedViewController.swift in Sources */,
 				EA25178F246B693B00CE24C0 /* MediaPreviewController.swift in Sources */,
 				762EDBDD244E5A7800986617 /* HomeView.swift in Sources */,
+				764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */,
 				764AB41F24A6C5F300D4E354 /* Color.swift in Sources */,
 				EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */,
 				EA35857C2450BE3300E6E8AB /* IncomingMsgView.swift in Sources */,
+				764AB42124A7188600D4E354 /* FeedPrivacyView.swift in Sources */,
 				76649227245119F2009BC368 /* FeedNotifications.swift in Sources */,
 				EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */,
 				243CC626248005EC00B4794F /* ProfileEditView.swift in Sources */,
 				EA35857A2450BE3300E6E8AB /* ChatInputView.swift in Sources */,
 				EA0B9917249C1FFB00B05094 /* Character.swift in Sources */,
+				764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */,
 				76C69E482447E3B100338D4C /* Data.swift in Sources */,
 				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,

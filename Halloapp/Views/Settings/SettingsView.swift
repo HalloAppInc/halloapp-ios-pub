@@ -10,11 +10,59 @@ import MessageUI
 import SwiftUI
 
 struct SettingsView: View {
+    @ObservedObject private var privacySettings = MainAppContext.shared.xmppController.privacySettings
+
     @State private var isShowingMailView = false
     @State private var mailViewResult: Result<MFMailComposeResult, Error>? = nil
 
+    @State private var isMutedListPresented = false
+    @State private var isBlockedListPresented = false
+
     var body: some View {
-        Form {
+        UITableView.appearance().backgroundColor = nil
+
+        return Form {
+            Section(header: Text("PRIVACY")) {
+                // Feed
+                NavigationLink(destination: FeedPrivacyView().environmentObject(self.privacySettings)) {
+                    HStack {
+                        Text("Feed")
+                        Spacer()
+                        Text(self.privacySettings.shortFeedSetting).foregroundColor(.secondary)
+                    }
+                }
+                .disabled(!self.privacySettings.isLoaded)
+
+                // Muted Contacts
+                Button(action: { self.isMutedListPresented = true }) {
+                    HStack {
+                        Text(PrivacyList.name(forPrivacyListType: .muted))
+                        Spacer()
+                        Text(self.privacySettings.mutedSetting).foregroundColor(.secondary)
+                    }
+                }
+                .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
+                .sheet(isPresented: self.$isMutedListPresented) {
+                    PrivacyListView(self.privacySettings.muted!, dismissAction: { self.isMutedListPresented = false })
+                        .environmentObject(self.privacySettings)
+                        .edgesIgnoringSafeArea(.bottom)
+                }
+
+                // Blocked Contacts
+                Button(action: { self.isBlockedListPresented = true }) {
+                    HStack {
+                        Text(PrivacyList.name(forPrivacyListType: .blocked))
+                        Spacer()
+                        Text(self.privacySettings.blockedSetting).foregroundColor(.secondary)
+                    }
+                }
+                .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
+                .sheet(isPresented: self.$isBlockedListPresented) {
+                    PrivacyListView(self.privacySettings.blocked!, dismissAction: { self.isBlockedListPresented = false })
+                        .environmentObject(self.privacySettings)
+                        .edgesIgnoringSafeArea(.bottom)
+                }
+            }
 
             Section(header: Text("ABOUT")) {
                 HStack {
@@ -38,6 +86,8 @@ struct SettingsView: View {
             }
         }
         .navigationBarTitle("Settings", displayMode: .inline)
+        .background(Color.feedBackground)
+        .edgesIgnoringSafeArea(.bottom)
     }
 }
 

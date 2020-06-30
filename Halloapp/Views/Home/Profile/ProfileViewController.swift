@@ -43,7 +43,9 @@ class ProfileViewController: FeedTableViewController {
 
     @objc(presentSettingsScreen)
     private func presentSettingsScreen() {
-        self.navigationController?.pushViewController(UIHostingController(rootView: SettingsView()), animated: true)
+        let viewController = UIHostingController(rootView: SettingsView())
+        viewController.hidesBottomBarWhenPushed = true
+        self.navigationController?.pushViewController(viewController, animated: true)
     }
     
     @objc(presentProfileEditScreen)

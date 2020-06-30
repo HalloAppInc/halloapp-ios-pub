@@ -9,6 +9,10 @@
 import SwiftUI
 
 extension Color {
+    static var feedBackground: Color {
+        get { Color("FeedBackground") }
+    }
+
     static var lavaOrange: Color {
         get { Color("LavaOrange") }
     }
