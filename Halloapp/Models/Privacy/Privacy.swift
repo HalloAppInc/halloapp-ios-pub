@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Combine
 import Core
 import Foundation
 import XMPPFramework
@@ -245,9 +246,21 @@ class PrivacySettings: ObservableObject {
 
     @Published private(set) var mutedSetting: String = settingLoading
 
+    let mutedContactsChanged = PassthroughSubject<Void, Never>()
+
+    var mutedContactIds: [UserID] {
+        get {
+            guard let muted = muted else {
+                return []
+            }
+            return muted.items.filter({ $0.state != .deleted }).map({ $0.userId })
+        }
+    }
+
     private(set) var muted: PrivacyList? = nil {
         didSet {
             reloadMuteSettingValue()
+            mutedContactsChanged.send()
         }
     }
 
@@ -401,8 +414,9 @@ class PrivacySettings: ObservableObject {
 
         // 'Muted' list needs to be saved locally and then uploaded (as a backup).
         if privacyList.type == .muted && privacyList.hasChanges {
-            writeMutedList()
             mutedListState = .needsUpload
+            writeMutedList()
+            mutedContactsChanged.send()
         }
 
         if privacyList.hasChanges || privacyList.canBeSetAsActiveList {

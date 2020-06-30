@@ -110,17 +110,23 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     public var fetchRequest: NSFetchRequest<FeedPost> {
         get {
-            let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
-            return fetchRequest
+            fatalError("Must be implemented in a subclass.")
         }
     }
-
     // MARK: Fetched Results Controller
 
     private var trackPerRowFRCChanges = false
 
     private var reloadTableViewInDidChangeContent = false
+
+    func reloadTableView() {
+        guard self.fetchedResultsController != nil else { return }
+        self.fetchedResultsController?.delegate = nil
+        setupFetchedResultsController()
+        if self.isViewLoaded {
+            self.tableView.reloadData()
+        }
+    }
 
     private func setupFetchedResultsController() {
         self.fetchedResultsController = self.newFetchedResultsController()
