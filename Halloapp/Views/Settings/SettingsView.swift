@@ -85,6 +85,7 @@ struct SettingsView: View {
                 }
             }
         }
+        .onAppear(perform: { self.privacySettings.downloadListsIfNecessary() })
         .navigationBarTitle("Settings", displayMode: .inline)
         .background(Color.feedBackground)
         .edgesIgnoringSafeArea(.bottom)

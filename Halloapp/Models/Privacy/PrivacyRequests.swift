@@ -48,10 +48,32 @@ class XMPPGetPrivacyListsRequest: XMPPRequest {
 
     var completion: XMPPGetPrivacyListsRequestCompletion
 
-    init(completion: @escaping XMPPGetPrivacyListsRequestCompletion) {
+    init(includeMuted: Bool, completion: @escaping XMPPGetPrivacyListsRequestCompletion) {
         self.completion = completion
         let iq = XMPPIQ(iqType: .get, to: XMPPJID(string: XMPPIQDefaultTo))
-        iq.addChild(XMPPElement(name: XMPPConstants.listsElement, xmlns: XMPPConstants.xmlns))
+        iq.addChild({
+            let listsElement = XMPPElement(name: XMPPConstants.listsElement, xmlns: XMPPConstants.xmlns)
+            // Omitting list of lists to request results in all lists being returned.
+            // To exclude one list from request we must explicitly list all others.
+            if !includeMuted {
+                listsElement.addChild({
+                    let listElement = XMPPElement(name: XMPPConstants.listElement, xmlns: XMPPConstants.xmlns)
+                    listElement.addAttribute(withName: XMPPConstants.typeAttribute, stringValue: PrivacyListType.blacklist.rawValue)
+                    return listElement
+                    }())
+                listsElement.addChild({
+                    let listElement = XMPPElement(name: XMPPConstants.listElement, xmlns: XMPPConstants.xmlns)
+                    listElement.addAttribute(withName: XMPPConstants.typeAttribute, stringValue: PrivacyListType.whitelist.rawValue)
+                    return listElement
+                    }())
+                listsElement.addChild({
+                    let listElement = XMPPElement(name: XMPPConstants.listElement, xmlns: XMPPConstants.xmlns)
+                    listElement.addAttribute(withName: XMPPConstants.typeAttribute, stringValue: PrivacyListType.blocked.rawValue)
+                    return listElement
+                    }())
+            }
+            return listsElement
+        }())
         super.init(iq: iq)
     }
 
