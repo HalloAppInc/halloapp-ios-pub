@@ -44,8 +44,14 @@ struct DeveloperMenuView: View {
             Spacer()
 
             VStack(alignment: .center, spacing: 24) {
-                Text("Server: \(self.userData.hostName)")
-                    .frame(maxWidth: .infinity)
+
+                VStack(spacing: 4) {
+                    Text("Server: \(self.userData.hostName)")
+                        .frame(maxWidth: .infinity)
+
+                    Text("User ID: \(self.userData.userId)")
+                        .frame(maxWidth: .infinity)
+                }
 
                 Button(action: {
                     MainAppContext.shared.syncManager.requestFullSync()
