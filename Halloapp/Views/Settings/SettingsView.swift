@@ -21,71 +21,88 @@ struct SettingsView: View {
     var body: some View {
         UITableView.appearance().backgroundColor = nil
 
-        return Form {
-            Section(header: Text("PRIVACY")) {
-                // Feed
-                NavigationLink(destination: FeedPrivacyView().environmentObject(self.privacySettings)) {
-                    HStack {
-                        Text("Feed")
-                        Spacer()
-                        Text(self.privacySettings.shortFeedSetting).foregroundColor(.secondary)
-                    }
-                }
-                .disabled(!self.privacySettings.isLoaded)
-
-                // Muted Contacts
-                Button(action: { self.isMutedListPresented = true }) {
-                    HStack {
-                        Text(PrivacyList.name(forPrivacyListType: .muted))
-                        Spacer()
-                        Text(self.privacySettings.mutedSetting).foregroundColor(.secondary)
-                    }
-                }
-                .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
-                .sheet(isPresented: self.$isMutedListPresented) {
-                    PrivacyListView(self.privacySettings.muted!, dismissAction: { self.isMutedListPresented = false })
-                        .environmentObject(self.privacySettings)
-                        .edgesIgnoringSafeArea(.bottom)
-                }
-
-                // Blocked Contacts
-                Button(action: { self.isBlockedListPresented = true }) {
-                    HStack {
-                        Text(PrivacyList.name(forPrivacyListType: .blocked))
-                        Spacer()
-                        Text(self.privacySettings.blockedSetting).foregroundColor(.secondary)
-                    }
-                }
-                .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
-                .sheet(isPresented: self.$isBlockedListPresented) {
-                    PrivacyListView(self.privacySettings.blocked!, dismissAction: { self.isBlockedListPresented = false })
-                        .environmentObject(self.privacySettings)
-                        .edgesIgnoringSafeArea(.bottom)
-                }
-            }
-
-            Section(header: Text("ABOUT")) {
+        return VStack {
+            if self.privacySettings.privacyListSyncError != nil {
                 HStack {
-                    Text("Version")
-                    Spacer()
-                    Text("\(UIApplication.shared.version)")
+                    Text(self.privacySettings.privacyListSyncError!)
+                        .foregroundColor(.white)
+                        .padding(.all)
+                        .frame(maxWidth: .infinity)
                 }
+                .background(Color.lavaOrange)
             }
 
-            Section {
-                Button(action: {
-                    if MFMailComposeViewController.canSendMail() {
-                        self.isShowingMailView = true
+            Form {
+                Section(header: Text("PRIVACY")) {
+                    // Feed
+                    NavigationLink(destination: FeedPrivacyView().environmentObject(self.privacySettings)) {
+                        HStack {
+                            Text("Feed")
+                            Spacer()
+                            Text(self.privacySettings.shortFeedSetting).foregroundColor(.secondary)
+                        }
                     }
-                }) {
-                    Text("Send Logs").foregroundColor(.lavaOrange)
+                    .disabled(!self.privacySettings.isLoaded)
+
+                    // Muted Contacts
+                    Button(action: { self.isMutedListPresented = true }) {
+                        HStack {
+                            Text(PrivacyList.name(forPrivacyListType: .muted))
+                            Spacer()
+                            Text(self.privacySettings.mutedSetting).foregroundColor(.secondary)
+                        }
+                    }
+                    .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
+                    .sheet(isPresented: self.$isMutedListPresented) {
+                        PrivacyListView(self.privacySettings.muted!, dismissAction: { self.isMutedListPresented = false })
+                            .environmentObject(self.privacySettings)
+                            .edgesIgnoringSafeArea(.bottom)
+                    }
+
+                    // Blocked Contacts
+                    Button(action: { self.isBlockedListPresented = true }) {
+                        HStack {
+                            Text(PrivacyList.name(forPrivacyListType: .blocked))
+                            Spacer()
+                            Text(self.privacySettings.blockedSetting).foregroundColor(.secondary)
+                        }
+                    }
+                    .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
+                    .sheet(isPresented: self.$isBlockedListPresented) {
+                        PrivacyListView(self.privacySettings.blocked!, dismissAction: { self.isBlockedListPresented = false })
+                            .environmentObject(self.privacySettings)
+                            .edgesIgnoringSafeArea(.bottom)
+                    }
                 }
-                .sheet(isPresented: self.$isShowingMailView) {
-                    MailView(result: self.$mailViewResult)
+
+                Section(header: Text("ABOUT")) {
+                    HStack {
+                        Text("Version")
+                        Spacer()
+                        Text("\(UIApplication.shared.version)")
+                    }
+                }
+
+                Section {
+                    Button(action: {
+                        if MFMailComposeViewController.canSendMail() {
+                            self.isShowingMailView = true
+                        }
+                    }) {
+                        Text("Send Logs").foregroundColor(.lavaOrange)
+                    }
+                    .sheet(isPresented: self.$isShowingMailView) {
+                        MailView(result: self.$mailViewResult)
+                    }
                 }
             }
         }
-        .onAppear(perform: { self.privacySettings.downloadListsIfNecessary() })
+        .onAppear(perform: {
+            self.privacySettings.downloadListsIfNecessary()
+        })
+        .onDisappear(perform: {
+            self.privacySettings.resetSyncError()
+        })
         .navigationBarTitle("Settings", displayMode: .inline)
         .background(Color.feedBackground)
         .edgesIgnoringSafeArea(.bottom)

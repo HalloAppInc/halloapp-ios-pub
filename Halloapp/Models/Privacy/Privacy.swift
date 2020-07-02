@@ -164,6 +164,12 @@ class PrivacySettings: ObservableObject {
      */
     @Published private(set) var isSyncing: Bool = false
 
+    @Published private(set) var privacyListSyncError: String? = nil
+
+    func resetSyncError() {
+        privacyListSyncError = nil
+    }
+
     // MARK: Feed
 
     @Published private(set) var shortFeedSetting: String = settingLoading
@@ -329,14 +335,18 @@ class PrivacySettings: ObservableObject {
 
         DDLogInfo("privacy/download-lists")
 
+        privacyListSyncError = nil
+
         let requestMutedList = mutedListState == .unknown
         let request = XMPPGetPrivacyListsRequest(includeMuted: requestMutedList) { (lists, activeType, error) in
-            if lists != nil {
-                DDLogInfo("privacy/download-lists/complete \(lists!.count) lists")
-                self.process(lists: lists!, activeType: activeType!)
-            } else {
+            if error != nil {
                 DDLogError("privacy/download-lists/error \(String(describing: error))")
                 self.reset()
+
+                self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
+            } else {
+                DDLogInfo("privacy/download-lists/complete \(lists!.count) lists")
+                self.process(lists: lists!, activeType: activeType!)
             }
         }
         xmppController.enqueue(request: request)
@@ -344,6 +354,7 @@ class PrivacySettings: ObservableObject {
 
     private func upload(privacyList: PrivacyList) {
         isSyncing = true
+        privacyListSyncError = nil
 
         DDLogInfo("privacy/upload-list/\(privacyList.type)")
 
@@ -376,6 +387,8 @@ class PrivacySettings: ObservableObject {
                 }
 
                 self.updateSettingValue(forPrivacyList: privacyList)
+
+                self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
             }
             self.isSyncing = false
         }
