@@ -6,6 +6,8 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Core
+import Combine
 import UIKit
 
 // MARK: Constraint Constants
@@ -24,19 +26,15 @@ class CommentView: UIView {
     private var leadingMargin: NSLayoutConstraint!
     private var profilePictureWidth: NSLayoutConstraint!
     private var profilePictureTrailingSpace: NSLayoutConstraint!
-
+  
     var isReplyButtonVisible: Bool = true {
         didSet {
             self.replyButton.alpha = self.isReplyButtonVisible ? 1 : 0
         }
     }
 
-    private lazy var contactImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFill
-        imageView.tintColor = UIColor.systemGray
-        return imageView
+    private lazy var contactImageView: AvatarView = {
+        return AvatarView()
     }()
 
     private(set) lazy var textLabel: TextLabel = {
@@ -120,7 +118,7 @@ class CommentView: UIView {
         vStack.addArrangedSubview(self.textLabel)
         vStack.addArrangedSubview(hStack)
         self.addSubview(self.vStack)
-
+        
         self.profilePictureWidth = self.contactImageView.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeNormal)
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
         self.profilePictureWidth.isActive = true
@@ -168,18 +166,15 @@ class CommentView: UIView {
                 deletedCommentView.isHidden = true
             }
         }
+        
+        contactImageView.configure(with: comment.userId, using: MainAppContext.shared.avatarStore)
     }
 }
 
 
 class CommentsTableHeaderView: UIView {
-
-    private let contactImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFill
-        imageView.tintColor = UIColor.systemGray
-        return imageView
+    private let contactImageView: AvatarView = {
+        return AvatarView()
     }()
 
     private let contactNameLabel: UILabel = {
@@ -285,5 +280,8 @@ class CommentsTableHeaderView: UIView {
 
         // Timestamp
         timestampLabel.text = feedPost.timestamp.commentTimestamp()
+        
+        // Avatar
+        contactImageView.configure(with: feedPost.userId, using: MainAppContext.shared.avatarStore)
     }
 }

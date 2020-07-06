@@ -11,8 +11,14 @@ import Combine
 import Foundation
 import XMPPFramework
 
+public protocol XMPPControllerAvatarDelegate: AnyObject {
+    func xmppController(_ xmppController: XMPPController, didReceiveAvatar item: XMLElement)
+}
+
 
 open class XMPPController: NSObject {
+    // MARK: Avatar
+    public weak var avatarDelegate: XMPPControllerAvatarDelegate?
 
     public enum ConnectionState {
         case notConnected

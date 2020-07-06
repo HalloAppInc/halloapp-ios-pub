@@ -16,6 +16,7 @@ class MainAppContext: AppContext {
     private static let chatDatabaseFilename = "chat.sqlite"
 
     // MARK: Global objects
+    private(set) var avatarStore: AvatarStore!
     private(set) var feedData: FeedData!
     private(set) var chatData: ChatData!
     private(set) var syncManager: SyncManager!
@@ -75,5 +76,7 @@ class MainAppContext: AppContext {
         feedData = FeedData(xmppController: xmppController, contactStore: contactStore, userData: userData)
         chatData = ChatData(xmppController: xmppController, userData: userData)
         syncManager = SyncManager(contactStore: contactStore, xmppController: xmppController, userData: userData)
+        avatarStore = AvatarStore()
+        xmppController.avatarDelegate = avatarStore
     }
 }

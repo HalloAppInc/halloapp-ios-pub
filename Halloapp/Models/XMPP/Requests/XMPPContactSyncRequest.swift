@@ -14,6 +14,7 @@ struct XMPPContact {
     private(set) var userid: String?
     private(set) var normalized: String?
     private(set) var registered: Bool = false
+    private(set) var avatarid: AvatarID?
     var raw: String?
     var isDeletedContact: Bool = false
 
@@ -45,6 +46,9 @@ struct XMPPContact {
                 }
                 if name == "raw" {
                     self.raw = value
+                }
+                if name == "avatarid" {
+                    self.avatarid = value
                 }
             }
         }

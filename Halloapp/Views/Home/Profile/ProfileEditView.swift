@@ -16,7 +16,7 @@ struct ProfileEditView: View {
     
     @ObservedObject private var name = TextWithLengthLimit(limit: 25, text: MainAppContext.shared.userData.name)
     
-    @State private var profileImage: UIImage? = MainAppContext.shared.userData.avatar?.image
+    @State private var profileImage: UIImage? = MainAppContext.shared.avatarStore.userAvatar(forUserId: MainAppContext.shared.userData.userId).image
     @State private var profileImageInput: UIImage?
     @State private var showingImagePicker = false
     
@@ -113,9 +113,7 @@ struct ProfileEditView: View {
         
         DDLogInfo("ProfileEditView/Done will change user avatar")
         
-        AvatarStore.shared.save(image:resizedImage, forUserId: MainAppContext.shared.userData.userId, avatarId: "self")
-        
-        MainAppContext.shared.userData.reloadAvatar()
+        MainAppContext.shared.avatarStore.save(image:resizedImage, forUserId: MainAppContext.shared.userData.userId, avatarId: "self")
         
         MainAppContext.shared.xmppController.sendCurrentAvatarIfPossible()
     }

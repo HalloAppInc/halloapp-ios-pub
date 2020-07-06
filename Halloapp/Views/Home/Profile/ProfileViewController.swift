@@ -6,6 +6,8 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import Combine
+import Core
 import CoreData
 import SwiftUI
 import UIKit
@@ -73,7 +75,7 @@ class ProfileViewController: FeedTableViewController {
 }
 
 
-fileprivate class FeedTableHeaderView: UIView {
+fileprivate class FeedTableHeaderView: UIView {    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
@@ -84,19 +86,8 @@ fileprivate class FeedTableHeaderView: UIView {
         setupView()
     }
 
-    private lazy var contactImageView: UIImageView = {
-        var imageView: UIImageView?
-        
-        if let avatar = MainAppContext.shared.userData.avatar?.image {
-            imageView = UIImageView(image: avatar)
-            imageView!.layer.masksToBounds = true
-        } else {
-            imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
-            imageView!.tintColor = UIColor.systemGray
-        }
-        imageView!.translatesAutoresizingMaskIntoConstraints = false
-        imageView!.contentMode = .scaleAspectFit
-        return imageView!
+    private lazy var contactImageView: AvatarView = {
+        return AvatarView()
     }()
 
     private lazy var nameLabel: UILabel = {
@@ -145,12 +136,6 @@ fileprivate class FeedTableHeaderView: UIView {
     }()
     
     public func updateProfile() {
-        if let avatar = MainAppContext.shared.userData.avatar?.image {
-            contactImageView.image = avatar
-            contactImageView.layer.masksToBounds = true
-            contactImageView.tintColor = nil
-        }
-        
         nameLabel.text = MainAppContext.shared.userData.name
     }
 
@@ -168,9 +153,10 @@ fileprivate class FeedTableHeaderView: UIView {
         vStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
         vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
         vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
-
+        
         contactImageView.heightAnchor.constraint(equalToConstant: 50).isActive = true
         contactImageView.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        contactImageView.layer.cornerRadius = 25
+        
+        contactImageView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
     }
 }

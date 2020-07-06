@@ -154,7 +154,7 @@ class XMPPControllerMain: XMPPController {
     private func resendAvatarIfNecessary() {
         guard !UserDefaults.standard.bool(forKey: userDefaultsKeyForAvatarSync) else { return }
         
-        guard let avatarData = self.userData.avatar?.data else {
+        guard let avatarData = MainAppContext.shared.avatarStore.userAvatar(forUserId: self.userData.userId).data else {
             DDLogError("XMPPController/resendAvatarIfNecessary/error avatar does not exist")
             UserDefaults.standard.set(true, forKey: userDefaultsKeyForAvatarSync)
             return
@@ -165,7 +165,7 @@ class XMPPControllerMain: XMPPController {
                 UserDefaults.standard.set(true, forKey: userDefaultsKeyForAvatarSync)
                 
                 if let avatarId = avatarId {
-                    AvatarStore.shared.update(avatarId: avatarId, forUserId: self.userData.userId)
+                    MainAppContext.shared.avatarStore.update(avatarId: avatarId, forUserId: self.userData.userId)
                 }
             } else {
                 DDLogError("XMPPController/resendAvatarIfNecessary/error while uploading avatar got \(error!)")
@@ -268,7 +268,19 @@ class XMPPControllerMain: XMPPController {
 
         if message.element(forName: "chat") != nil {
             self.didGetNewChatMessage.send(message)
+            self.sendAck(for: message)
+            return
         }
+        
+        if let avatarElement = message.element(forName: "avatar") {
+            if let delegate = self.avatarDelegate {
+                delegate.xmppController(self, didReceiveAvatar: avatarElement)
+            }
+            self.sendAck(for: message)
+            return
+        }
+        
+        DDLogError("XMPPControllerMain/didReceiveMessage/error can't handle message=\(message)")
 
         self.sendAck(for: message)
     }

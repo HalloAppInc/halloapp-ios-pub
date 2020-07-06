@@ -12,6 +12,7 @@
 		246A8B8224902BA600CE0429 /* Avatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B8024902BA600CE0429 /* Avatar+CoreDataProperties.swift */; };
 		246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B8124902BA600CE0429 /* Avatar+CoreDataClass.swift */; };
 		246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B842490357B00CE0429 /* AvatarStore.swift */; };
+		24D743C724AEA821001111BF /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D743C624AEA821001111BF /* AvatarView.swift */; };
 		768123BD2485D9C7008C5216 /* Core.h in Headers */ = {isa = PBXBuildFile; fileRef = 768123BB2485D9C7008C5216 /* Core.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		768123D32485DBE2008C5216 /* LogFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123D12485DBE2008C5216 /* LogFormatter.swift */; };
 		768123D72485DC4F008C5216 /* AppContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123D62485DC4F008C5216 /* AppContext.swift */; };
@@ -48,6 +49,7 @@
 		246A8B8024902BA600CE0429 /* Avatar+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Avatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		246A8B8124902BA600CE0429 /* Avatar+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Avatar+CoreDataClass.swift"; sourceTree = "<group>"; };
 		246A8B842490357B00CE0429 /* AvatarStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarStore.swift; sourceTree = "<group>"; };
+		24D743C624AEA821001111BF /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
 		5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.debug.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.debug.xcconfig"; sourceTree = "<group>"; };
@@ -104,6 +106,7 @@
 				246A8B8124902BA600CE0429 /* Avatar+CoreDataClass.swift */,
 				246A8B8024902BA600CE0429 /* Avatar+CoreDataProperties.swift */,
 				246A8B842490357B00CE0429 /* AvatarStore.swift */,
+				24D743C624AEA821001111BF /* AvatarView.swift */,
 			);
 			path = Avatars;
 			sourceTree = "<group>";
@@ -379,6 +382,7 @@
 				7681240224861487008C5216 /* XMPPError.swift in Sources */,
 				768123F924861068008C5216 /* ABContact+CoreDataClass.swift in Sources */,
 				246A8B71248FEC9400CE0429 /* NotificationUtility.swift in Sources */,
+				24D743C724AEA821001111BF /* AvatarView.swift in Sources */,
 				768123F824861068008C5216 /* Contacts.xcdatamodeld in Sources */,
 				76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */,
 				768123F124860F67008C5216 /* UserData.swift in Sources */,

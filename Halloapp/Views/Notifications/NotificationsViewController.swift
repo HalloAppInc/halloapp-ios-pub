@@ -6,6 +6,8 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import Combine
+import Core
 import CoreData
 import UIKit
 
@@ -92,7 +94,6 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
 }
 
 fileprivate class NotificationTableViewCell: UITableViewCell {
-
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.setupView()
@@ -103,9 +104,8 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         self.setupView()
     }
 
-    private lazy var contactImage: UIImageView = {
-        let imageView = UIImageView(image: UIImage(systemName: "person.crop.circle"))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
+    private lazy var contactImage: AvatarView = {
+        let imageView = AvatarView()
         imageView.heightAnchor.constraint(equalToConstant: 44).isActive = true
         imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor).isActive = true
         return imageView
@@ -158,5 +158,13 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         self.backgroundColor = notification.read ? .systemBackground : .systemGray5
         self.notificationTextLabel.attributedText = notification.formattedText
         self.mediaPreview.image = notification.image
+        
+        contactImage.configure(with: notification.userId, using: MainAppContext.shared.avatarStore)
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        contactImage.prepareForReuse()
     }
 }

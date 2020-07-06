@@ -718,12 +718,8 @@ fileprivate class FeedItemHeaderView: UIView {
         setupView()
     }
 
-    private lazy var contactImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = UIColor.systemGray
-        return imageView
+    private lazy var contactImageView: AvatarView = {
+        return AvatarView()
     }()
 
     // Gotham Medium, 15 pt (Subhead)
@@ -752,7 +748,7 @@ fileprivate class FeedItemHeaderView: UIView {
 
     private func setupView() {
         self.isUserInteractionEnabled = true
-
+        
         self.contactImageView.heightAnchor.constraint(equalToConstant: 30).isActive = true
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
 
@@ -770,10 +766,11 @@ fileprivate class FeedItemHeaderView: UIView {
     func configure(with post: FeedPost) {
         self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
         self.timestampLabel.text = post.timestamp.postTimestamp()
+        self.contactImageView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
     }
 
     func prepareForReuse() {
-        
+        contactImageView.prepareForReuse()
     }
 }
 

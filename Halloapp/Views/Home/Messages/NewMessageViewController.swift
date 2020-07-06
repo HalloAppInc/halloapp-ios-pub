@@ -24,15 +24,15 @@ protocol NewMessageViewControllerDelegate: AnyObject {
 }
 
 class NewMessageViewController: UITableViewController, NSFetchedResultsControllerDelegate {
-    
+
     weak var delegate: NewMessageViewControllerDelegate?
-    
+
     private static let cellReuseIdentifier = "NewMessageViewCell"
 
     private var fetchedResultsController: NSFetchedResultsController<ABContact>?
 
     private var trackedContacts: [String:TrackedContact] = [:]
-    
+
     init() {
         super.init(style: .plain)
     }
@@ -45,9 +45,9 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         DDLogInfo("NewMessageViewController/viewDidLoad")
 
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
-        
+
         self.navigationItem.title = "New Message"
-        
+
         self.navigationItem.standardAppearance = .transparentAppearance
         self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
 
@@ -56,12 +56,12 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         self.tableView.allowsSelection = true
         self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: NewMessageViewController.cellReuseIdentifier)
         self.tableView.backgroundColor = UIColor.systemGray6
-        
+
         self.setupFetchedResultsController()
     }
 
     // MARK: Appearance
-    
+
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("NewMessageViewController/viewWillAppear")
         super.viewWillAppear(animated)
@@ -76,14 +76,14 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     deinit {
         DDLogDebug("NewMessageViewController/deinit ")
     }
-    
+
     // MARK: Top Nav Button Actions
-    
+
     @objc(cancelAction)
     private func cancelAction() {
         self.dismiss(animated: true)
     }
-    
+
     // MARK: Customization
 
     public var fetchRequest: NSFetchRequest<ABContact> {
@@ -193,16 +193,16 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
+
         let cell = tableView.dequeueReusableCell(withIdentifier: NewMessageViewController.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
-        
+
         if let abContact = fetchedResultsController?.object(at: indexPath) {
             cell.configure(with: abContact, hide: self.isDuplicate(abContact))
         }
-        
+
         return cell
     }
-    
+
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         var result:CGFloat = 60
         guard let abContact = self.fetchedResultsController?.object(at: indexPath) else { return result }
@@ -211,7 +211,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         }
         return result
     }
-    
+
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let abContact = fetchedResultsController?.object(at: indexPath) {
             if let userId = abContact.userId {
@@ -220,7 +220,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
             }
         }
     }
-    
+
     func isDuplicate(_ abContact: ABContact) -> Bool {
         var result = false
         guard let identifier = abContact.identifier else { return result }
@@ -254,7 +254,6 @@ fileprivate struct TrackedContact {
 }
 
 fileprivate class NewMessageViewCell: UITableViewCell {
-
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
@@ -264,26 +263,28 @@ fileprivate class NewMessageViewCell: UITableViewCell {
         super.init(coder: coder)
         setup()
     }
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
         self.isHidden = false
+
+        contactImageView.prepareForReuse()
     }
-    
+
     public func configure(with abContact: ABContact, hide: Bool) {
         self.nameLabel.text = abContact.fullName
         self.lastMessageLabel.text = abContact.phoneNumber
         self.isHidden = hide ? true : false
+
+        if let userId = abContact.userId {
+            contactImageView.configure(with: userId, using: MainAppContext.shared.avatarStore)
+        }
     }
-    
-    private lazy var contactImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFill
-        imageView.tintColor = UIColor.systemGray
-        return imageView
+
+    private lazy var contactImageView: AvatarView = {
+        return AvatarView()
     }()
-    
+
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
@@ -292,7 +293,7 @@ fileprivate class NewMessageViewCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
+
     private lazy var lastMessageLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
@@ -301,22 +302,22 @@ fileprivate class NewMessageViewCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
+
     private func setup() {
         let vStack = UIStackView(arrangedSubviews: [self.nameLabel, self.lastMessageLabel])
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         vStack.spacing = 2
-        
+
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
         spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-
+        
         let imageSize: CGFloat = 40.0
         self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
-        
+
         let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, vStack, spacer ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
@@ -328,7 +329,7 @@ fileprivate class NewMessageViewCell: UITableViewCell {
         hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-    
+
         self.backgroundColor = .clear
     }
 }

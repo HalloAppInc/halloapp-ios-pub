@@ -97,6 +97,7 @@ open class AppContext {
         }
 
         userData = UserData()
+        
         xmppControllerImpl = xmppControllerClass.init(userData: userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
     }

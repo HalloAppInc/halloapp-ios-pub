@@ -283,7 +283,6 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
 
 fileprivate class ChatListViewCell: UITableViewCell {
-
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
@@ -308,6 +307,8 @@ fileprivate class ChatListViewCell: UITableViewCell {
         
         self.timeLabel.text = nil
         self.unreadNumButton.isHidden = true
+        
+        avatarColumn.prepareForReuse()
     }
 
     public func configure(with chatThread: ChatThread) {
@@ -366,16 +367,14 @@ fileprivate class ChatListViewCell: UITableViewCell {
         if let timestamp = chatThread.lastMsgTimestamp {
             self.timeLabel.text = timestamp.chatListTimestamp()
         }
+        
+        avatarColumn.configure(with: chatThread.chatWithUserId, using: MainAppContext.shared.avatarStore)
     }
     
     // MARK: Avatar Column
     
-    private lazy var avatarColumn: UIImageView = {
-        let view = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.contentMode = .scaleAspectFill
-        view.tintColor = UIColor.systemGray
-        return view
+    private lazy var avatarColumn: AvatarView = {
+        return AvatarView()
     }()
     
     // MARK: Text Column

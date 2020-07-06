@@ -270,6 +270,13 @@ class SyncManager {
             self.contactStore.performOnBackgroundContextAndWait{ managedObjectContext in
                 self.contactStore.processSync(results: contacts!, isFullSync: mode == .full, using: managedObjectContext)
             }
+            
+            let contactsWithAvatars = contacts!.filter { $0.avatarid != nil }
+            let avatarDict = contactsWithAvatars.reduce(into: [UserID: AvatarID]()) { (dict, contact) in
+                dict[contact.userid!] = contact.avatarid!
+            }
+            
+            MainAppContext.shared.avatarStore.processContactSync(avatarDict)
         }
         self.finishSync(with: mode, result: .success, failureReason: .none)
     }

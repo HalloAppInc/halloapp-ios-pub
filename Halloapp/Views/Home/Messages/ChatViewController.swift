@@ -648,7 +648,6 @@ fileprivate struct TrackedChatMessage {
 }
 
 fileprivate class TitleView: UIView {
-    
     override init(frame: CGRect){
         super.init(frame: frame)
         setup()
@@ -659,12 +658,8 @@ fileprivate class TitleView: UIView {
         setup()
     }
 
-    private lazy var contactImageView: UIImageView = {
-        let view = UIImageView(image: UIImage.init(systemName: "person.crop.circle"))
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.contentMode = .scaleAspectFill
-        view.tintColor = UIColor.systemGray
-        return view
+    private lazy var contactImageView: AvatarView = {
+        return AvatarView()
     }()
     
     private lazy var nameLabel: UILabel = {
@@ -733,6 +728,8 @@ fileprivate class TitleView: UIView {
             self.lastSeenLabel.isHidden = true
             self.lastSeenLabel.text = ""
         }
+        
+        contactImageView.configure(with: fromUserId, using: MainAppContext.shared.avatarStore)
     }
     
 }
