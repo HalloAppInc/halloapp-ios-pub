@@ -62,6 +62,7 @@ class InviteManager: ObservableObject {
     func redeemInviteForSelectedContact(presentErrorAlert: Binding<Bool>, presentMessageComposer: Binding<Bool>) {
         guard let contact = contactToInvite else {
             assert(false, "Contact not selected.")
+            return
         }
 
         DDLogInfo("invite-manager/redeem-request/start")
