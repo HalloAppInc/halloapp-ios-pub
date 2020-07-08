@@ -103,6 +103,8 @@ public final class UserData: ObservableObject {
         self.save()
 
         self.isLoggedIn = false
+        
+        UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsDownload)
     }
         
     public func save() {

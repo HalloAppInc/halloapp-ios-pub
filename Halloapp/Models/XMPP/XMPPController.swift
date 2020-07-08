@@ -27,7 +27,6 @@ protocol XMPPControllerChatDelegate: AnyObject {
 
 
 fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
-fileprivate let userDefaultsKeyForAvatarSync = "xmpp.avatar-sent"
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 
 class XMPPControllerMain: XMPPController {
@@ -152,17 +151,17 @@ class XMPPControllerMain: XMPPController {
     // MARK: Avatar
     
     private func resendAvatarIfNecessary() {
-        guard !UserDefaults.standard.bool(forKey: userDefaultsKeyForAvatarSync) else { return }
+        guard !UserDefaults.standard.bool(forKey: AvatarStore.Keys.userDefaultsUpload) else { return }
         
         guard let avatarData = MainAppContext.shared.avatarStore.userAvatar(forUserId: self.userData.userId).data else {
             DDLogError("XMPPController/resendAvatarIfNecessary/error avatar does not exist")
-            UserDefaults.standard.set(true, forKey: userDefaultsKeyForAvatarSync)
+            UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsUpload)
             return
         }
         
-        let request = XMPPUploadAvatarRequest(data: avatarData) { (error, avatarId) in
+        let request = XMPPUploadAvatarRequest(data: avatarData) { (avatarId, error) in
             if error == nil {
-                UserDefaults.standard.set(true, forKey: userDefaultsKeyForAvatarSync)
+                UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsUpload)
                 
                 if let avatarId = avatarId {
                     MainAppContext.shared.avatarStore.update(avatarId: avatarId, forUserId: self.userData.userId)
@@ -176,11 +175,37 @@ class XMPPControllerMain: XMPPController {
     }
 
     func sendCurrentAvatarIfPossible() {
-        UserDefaults.standard.set(false, forKey: userDefaultsKeyForAvatarSync)
+        UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsUpload)
 
         if isConnected {
             resendAvatarIfNecessary()
         }
+    }
+    
+    private func queryAvatarForCurrentUserIfNecessary() {
+        guard !UserDefaults.standard.bool(forKey: AvatarStore.Keys.userDefaultsDownload) else { return }
+        
+        DDLogInfo("XMPPController/queryAvatarForCurrentUserIfNecessary start")
+        
+        let request = XMPPQueryAvatarRequest(userId: userData.userId) { (avatarId, error) in
+            guard error == nil else {
+                DDLogError("XMPPController/queryAvatarForCurrentUserIfNecessary/error while query avatar: \(error!)")
+                return
+            }
+            
+            UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsDownload)
+            
+            guard let avatarId = avatarId else {
+                DDLogInfo("XMPPController/queryAvatarForCurrentUserIfNecessary avatarId is nil")
+                return
+            }
+            
+            MainAppContext.shared.avatarStore.save(avatarId: avatarId, forUserId: self.userData.userId)
+            
+            DDLogInfo("XMPPController/queryAvatarForCurrentUserIfNecessary/success avatarId=\(avatarId)")
+        }
+        
+        self.enqueue(request: request)
     }
 
     // MARK: Receipts
@@ -220,6 +245,7 @@ class XMPPControllerMain: XMPPController {
         resendNameIfNecessary()
         resendAvatarIfNecessary()
         resendAllPendingReceipts()
+        queryAvatarForCurrentUserIfNecessary()
     }
 
     override func didReceive(message: XMPPMessage) {

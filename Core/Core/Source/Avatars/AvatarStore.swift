@@ -20,6 +20,11 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
     public static let avatarSize = 256
     public static let avatarCDNUrl = "https://avatar-cdn.halloapp.net/"
     
+    public struct Keys {
+        public static let userDefaultsUpload = "xmpp.avatar-sent"
+        public static let userDefaultsDownload = "xmpp.avatar-query"
+    }
+    
     private let userAvatars = NSCache<NSString, UserAvatar>()
     
     private class var persistentStoreURL: URL {
@@ -109,6 +114,12 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
         userAvatars.setObject(userAvatar!, forKey: userId as NSString)
         
         return userAvatar!
+    }
+    
+    public func save(avatarId: AvatarID, forUserId userId: UserID) {
+        let managedObjectContext = self.persistentContainer.viewContext
+        
+        self.save(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
     }
     
     @discardableResult private func save(avatarId: AvatarID, forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext) -> Avatar {
@@ -330,7 +341,7 @@ public class UserAvatar {
     }
     
     public func loadImage(using avatarStore: AvatarStore) {
-        guard image == nil && !imageIsLoading && avatarId != nil else {
+        guard image == nil && !imageIsLoading && avatarId != "" && avatarId != nil else {
             return
         }
         

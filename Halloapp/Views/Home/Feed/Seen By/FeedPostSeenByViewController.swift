@@ -10,7 +10,7 @@ import Core
 import CoreData
 import UIKit
 
-fileprivate enum PostStatus: Int {
+enum PostStatus: Int {
     case seen = 0
     case delivered = 1
 }
@@ -66,21 +66,9 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
 
         dataSource = UITableViewDiffableDataSource<PostStatus, TableRow>(tableView: self.tableView) { (tableView, indexPath, tableRow) in
             let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-            cell.textLabel?.font = .preferredFont(forTextStyle: .body)
-            cell.textLabel?.text = tableRow.contactName
-            if cell.imageView?.image == nil {
-                cell.imageView?.image = UIImage(systemName: "person.circle")
-                cell.imageView?.tintColor = .systemGray
-            }
-            let showDoubleBlueCheck = tableRow.postStatus == .seen
-            let checkmarkImage = UIImage(named: showDoubleBlueCheck ? "CheckmarkDouble" : "CheckmarkSingle")?.withRenderingMode(.alwaysTemplate)
-            if let imageView = cell.accessoryView as? UIImageView {
-                imageView.image = checkmarkImage
-                imageView.sizeToFit()
-            } else {
-                cell.accessoryView = UIImageView(image: checkmarkImage)
-            }
-            cell.accessoryView?.tintColor = showDoubleBlueCheck ? .systemBlue : .systemGray
+            
+            cell.configureForSeenBy(with: tableRow.userId, name: tableRow.contactName!, status: tableRow.postStatus)
+
             return cell
         }
 
