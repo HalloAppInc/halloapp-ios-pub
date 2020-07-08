@@ -75,6 +75,14 @@ struct SettingsView: View {
                     }
                 }
 
+                Section {
+                    // Invite Contacts
+                    NavigationLink(destination: InvitePeopleView()) {
+                        Text("Invite Friends")
+                            .foregroundColor(.lavaOrange)
+                    }
+                }
+
                 Section(header: Text("ABOUT")) {
                     HStack {
                         Text("Version")

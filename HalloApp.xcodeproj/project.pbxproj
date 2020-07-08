@@ -19,9 +19,14 @@
 		761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3953241C38A300858251 /* XMPPCommonRequests.swift */; };
 		761B3957241D815800858251 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3956241D815800858251 /* SyncManager.swift */; };
 		761B3962241D9C4D00858251 /* SyncSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3961241D9C4D00858251 /* SyncSession.swift */; };
+		761BD0FA24B3C6B800B567F6 /* InviteRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761BD0F924B3C6B800B567F6 /* InviteRequests.swift */; };
+		761BD0FC24B3D75800B567F6 /* InviteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761BD0FB24B3D75800B567F6 /* InviteManager.swift */; };
+		761BD0FE24B3EE0A00B567F6 /* InvitePeopleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761BD0FD24B3EE0A00B567F6 /* InvitePeopleView.swift */; };
+		761BD10024B4291200B567F6 /* InvitePeopleTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761BD0FF24B4291200B567F6 /* InvitePeopleTableViewController.swift */; };
 		761C6161242D2AE50028AE19 /* DeveloperMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */; };
 		761C6168242D89F90028AE19 /* TextLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761C6167242D89F90028AE19 /* TextLabel.swift */; };
 		761E9AAD2465E83900864AE9 /* Zip in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AAC2465E83900864AE9 /* Zip */; };
+		761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761EE21D24B5135400B30632 /* MFMessageComposeView.swift */; };
 		762EDBCA244E2EB700986617 /* Gotham-BlackIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */; };
 		762EDBCB244E2EB700986617 /* Gotham-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBB244E2EB500986617 /* Gotham-Medium.otf */; };
 		762EDBCC244E2EB700986617 /* Gotham-UltraIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBC244E2EB600986617 /* Gotham-UltraIta.otf */; };
@@ -228,8 +233,13 @@
 		761B3953241C38A300858251 /* XMPPCommonRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPCommonRequests.swift; sourceTree = "<group>"; };
 		761B3956241D815800858251 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
 		761B3961241D9C4D00858251 /* SyncSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncSession.swift; sourceTree = "<group>"; };
+		761BD0F924B3C6B800B567F6 /* InviteRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InviteRequests.swift; path = HalloApp/Models/Invites/InviteRequests.swift; sourceTree = SOURCE_ROOT; };
+		761BD0FB24B3D75800B567F6 /* InviteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InviteManager.swift; path = HalloApp/Models/Invites/InviteManager.swift; sourceTree = SOURCE_ROOT; };
+		761BD0FD24B3EE0A00B567F6 /* InvitePeopleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InvitePeopleView.swift; path = HalloApp/Models/Invites/InvitePeopleView.swift; sourceTree = SOURCE_ROOT; };
+		761BD0FF24B4291200B567F6 /* InvitePeopleTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InvitePeopleTableViewController.swift; path = HalloApp/Models/Invites/InvitePeopleTableViewController.swift; sourceTree = SOURCE_ROOT; };
 		761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeveloperMenuView.swift; path = HalloApp/Views/Home/Profile/DeveloperMenuView.swift; sourceTree = SOURCE_ROOT; };
 		761C6167242D89F90028AE19 /* TextLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextLabel.swift; path = HalloApp/Components/Views/TextLabel.swift; sourceTree = SOURCE_ROOT; };
+		761EE21D24B5135400B30632 /* MFMessageComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MFMessageComposeView.swift; path = HalloApp/Components/Views/MFMessageComposeView.swift; sourceTree = SOURCE_ROOT; };
 		762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-BlackIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-BlackIta.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBBB244E2EB500986617 /* Gotham-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-Medium.otf"; path = "HalloApp/Resources/Fonts/Gotham-Medium.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBBC244E2EB600986617 /* Gotham-UltraIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-UltraIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-UltraIta.otf"; sourceTree = SOURCE_ROOT; };
@@ -471,6 +481,17 @@
 			path = Sync;
 			sourceTree = "<group>";
 		};
+		761BD0F824B3C68300B567F6 /* Invites */ = {
+			isa = PBXGroup;
+			children = (
+				761BD0FB24B3D75800B567F6 /* InviteManager.swift */,
+				761BD0FF24B4291200B567F6 /* InvitePeopleTableViewController.swift */,
+				761BD0FD24B3EE0A00B567F6 /* InvitePeopleView.swift */,
+				761BD0F924B3C6B800B567F6 /* InviteRequests.swift */,
+			);
+			path = Invites;
+			sourceTree = "<group>";
+		};
 		761C6165242D896E0028AE19 /* Components */ = {
 			isa = PBXGroup;
 			children = (
@@ -489,6 +510,7 @@
 				766492242450E04D009BC368 /* BadgeView.swift */,
 				761905A22459EB07008FC600 /* InputTextView.swift */,
 				764F774D246224C30063645A /* ContactTableViewCell.swift */,
+				761EE21D24B5135400B30632 /* MFMessageComposeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -629,6 +651,7 @@
 				EA35856A2450BE2900E6E8AB /* Chat */,
 				EA5414DA23EE1D6900390EF6 /* Contacts */,
 				EA5414D923EE1D2B00390EF6 /* Feed */,
+				761BD0F824B3C68300B567F6 /* Invites */,
 				764AB41624A67A3C00D4E354 /* Privacy */,
 				766103A22461E63200728870 /* Receipts */,
 				EA12006824209903008BFFAD /* VideoUtils.swift */,
@@ -1202,6 +1225,7 @@
 				EA52EB18245A012700FB03F6 /* NewMessageViewController.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */,
+				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */,
 				764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */,
 				766103A72461EE8200728870 /* receipts.pb.swift in Sources */,
@@ -1229,6 +1253,7 @@
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				76A9244B244EC49000794859 /* UIView.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
+				761BD10024B4291200B567F6 /* InvitePeopleTableViewController.swift in Sources */,
 				766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */,
 				EA796B9B2469DDF100BC795E /* ChatQuoted+CoreDataClass.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* VerificationView.swift in Sources */,
@@ -1256,14 +1281,17 @@
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
 				EAF4F736237DEC2C006885F0 /* YPPicker.swift in Sources */,
+				761BD0FA24B3C6B800B567F6 /* InviteRequests.swift in Sources */,
 				EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */,
 				EAD476F22458F03700EF8591 /* ChatMedia+CoreDataClass.swift in Sources */,
 				EA0D20072363AC4D008B8289 /* Landing.swift in Sources */,
 				766103A42461E65300728870 /* Receipt.swift in Sources */,
 				EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */,
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
+				761BD0FE24B3EE0A00B567F6 /* InvitePeopleView.swift in Sources */,
 				EAD476D02457B09600EF8591 /* MessageComposerView.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
+				761BD0FC24B3D75800B567F6 /* InviteManager.swift in Sources */,
 				765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */,
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
