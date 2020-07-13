@@ -13,6 +13,7 @@
 		246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B8124902BA600CE0429 /* Avatar+CoreDataClass.swift */; };
 		246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B842490357B00CE0429 /* AvatarStore.swift */; };
 		24D743C724AEA821001111BF /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D743C624AEA821001111BF /* AvatarView.swift */; };
+		7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7656F93124BCE66500F00AF7 /* LogFileManager.swift */; };
 		768123BD2485D9C7008C5216 /* Core.h in Headers */ = {isa = PBXBuildFile; fileRef = 768123BB2485D9C7008C5216 /* Core.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		768123D32485DBE2008C5216 /* LogFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123D12485DBE2008C5216 /* LogFormatter.swift */; };
 		768123D72485DC4F008C5216 /* AppContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123D62485DC4F008C5216 /* AppContext.swift */; };
@@ -53,6 +54,7 @@
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
 		5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.debug.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.debug.xcconfig"; sourceTree = "<group>"; };
+		7656F93124BCE66500F00AF7 /* LogFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileManager.swift; sourceTree = "<group>"; };
 		768123B82485D9C7008C5216 /* Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		768123BB2485D9C7008C5216 /* Core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Core.h; sourceTree = "<group>"; };
 		768123BC2485D9C7008C5216 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -169,8 +171,9 @@
 		768123D02485DB8D008C5216 /* Logging */ = {
 			isa = PBXGroup;
 			children = (
-				768123D12485DBE2008C5216 /* LogFormatter.swift */,
 				E706829B2491705E00D9232A /* Log.swift */,
+				768123D12485DBE2008C5216 /* LogFormatter.swift */,
+				7656F93124BCE66500F00AF7 /* LogFileManager.swift */,
 			);
 			path = Logging;
 			sourceTree = "<group>";
@@ -400,6 +403,7 @@
 				7681241F2486C178008C5216 /* String.swift in Sources */,
 				76812405248614BA008C5216 /* XMPPFeed.swift in Sources */,
 				76C7429C24A1597000C7D945 /* MediaCrypter.swift in Sources */,
+				7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */,
 				768123F724861068008C5216 /* ABContact+CoreDataProperties.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

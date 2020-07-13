@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Core
 import Foundation
 
@@ -15,6 +16,11 @@ class AppExtensionContext: AppContext {
         get {
             return super.shared as! AppExtensionContext
         }
+    }
+
+    required init(xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
+        asyncLoggingEnabled = false
+        super.init(xmppControllerClass: xmppControllerClass, contactStoreClass: contactStoreClass)
     }
 
 }

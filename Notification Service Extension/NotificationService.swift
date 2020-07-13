@@ -7,6 +7,7 @@
 //
 
 import Alamofire
+import CocoaLumberjack
 import Core
 import FirebaseCrashlytics
 import UserNotifications
@@ -26,6 +27,8 @@ class NotificationService: UNNotificationServiceExtension {
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         initAppContext(AppExtensionContext.self, xmppControllerClass: XMPPController.self, contactStoreClass: ContactStore.self)
 
+        DDLogInfo("didReceiveRequest/begin \(request)")
+
         guard let bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent) else {
             contentHandler(request.content)
             return
@@ -35,6 +38,7 @@ class NotificationService: UNNotificationServiceExtension {
         self.contentHandler = contentHandler
         
         guard let metadata = NotificationUtility.Metadata(fromRequest: request) else {
+            DDLogError("didReceiveRequest/error Invalid metadata. \(request.content.userInfo)")
             contentHandler(bestAttemptContent)
             return
         }
@@ -42,6 +46,7 @@ class NotificationService: UNNotificationServiceExtension {
         // Contact name goes as title.
         let contactName = AppExtensionContext.shared.contactStore.fullName(for: metadata.fromId)
         bestAttemptContent.title = contactName
+        DDLogVerbose("didReceiveRequest/ Got contact name: \(contactName)")
 
         // Populate notification body.
         var invokeHandler = true
@@ -56,11 +61,13 @@ class NotificationService: UNNotificationServiceExtension {
                 }
             }
             catch {
+                DDLogError("didReceiveRequest/error Invalid protobuf. \(error)")
                 Crashlytics.crashlytics().log("notification-se/protobuf/error [\(error)]")
             }
         }
 
         if invokeHandler {
+            DDLogInfo("Invoking completion handler now")
             contentHandler(bestAttemptContent)
         }
     }
@@ -137,10 +144,16 @@ class NotificationService: UNNotificationServiceExtension {
      */
     private func startDownloading(media: [ Proto_Media ]) -> Bool {
         let xmppMediaObjects = media.compactMap { XMPPFeedMedia(protoMedia: $0) }
-        guard !xmppMediaObjects.isEmpty else { return false }
+        guard !xmppMediaObjects.isEmpty else {
+            DDLogInfo("media/empty")
+            return false
+        }
+        DDLogInfo("media/ \(xmppMediaObjects.count) objects")
         for xmppMedia in xmppMediaObjects {
             let (taskAdded, task) = downloadManager.downloadMedia(for: xmppMedia)
             if taskAdded {
+                DDLogInfo("media/download/start \(task.id)")
+
                 downloadTasks.append(task)
 
                 // iOS doesn't show more than one attachment and therefore for now
@@ -180,6 +193,8 @@ class NotificationService: UNNotificationServiceExtension {
         // Called just before the extension will be terminated by the system.
         // Use this as an opportunity to deliver your "best attempt" at modified content, otherwise the original push payload will be used.
         if let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent {
+            DDLogWarn("timeWillExpire")
+            DDLogInfo("Invoking completion handler now")
             // Use whatever finished downloading.
             addNotificationAttachments()
             contentHandler(bestAttemptContent)
@@ -195,8 +210,11 @@ extension NotificationService: FeedDownloadManagerDelegate {
             return
         }
 
+        DDLogInfo("media/download/finished \(task.id)")
+
         // Present notification when all downloads have finished.
         if downloadTasks.filter({ !$0.completed }).isEmpty {
+            DDLogInfo("Invoking completion handler now")
             addNotificationAttachments()
             contentHandler(bestAttemptContent)
         }

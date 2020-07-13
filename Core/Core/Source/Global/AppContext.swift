@@ -61,10 +61,14 @@ open class AppContext {
     }
 
     required public init(xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
-        let fileLogger = DDFileLogger()
+        let appGroupLogsDirectory = Self.sharedDirectoryURL
+            .appendingPathComponent("Library", isDirectory: true)
+            .appendingPathComponent("Caches", isDirectory: true)
+            .appendingPathComponent("Logs", isDirectory: true)
+        let fileLogger = DDFileLogger(logFileManager: LogFileManager(logsDirectory: appGroupLogsDirectory.path))
         fileLogger.rollingFrequency = TimeInterval(60*60*24)
         fileLogger.doNotReuseLogFiles = true
-        fileLogger.logFileManager.maximumNumberOfLogFiles = 48
+        fileLogger.logFileManager.maximumNumberOfLogFiles = 96
         fileLogger.logFormatter = FileLogFormatter()
         DDLog.add(fileLogger)
         self.fileLogger = fileLogger
