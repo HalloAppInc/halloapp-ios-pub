@@ -108,7 +108,7 @@ class InviteManager: ObservableObject {
     private func loadFromUserDefaults() {
         numberOfInvitesAvailable = UserDefaults.standard.integer(forKey: UserDefaultsKeys.numberOfInvites)
         nextRefreshDate = UserDefaults.standard.object(forKey: UserDefaultsKeys.refreshDate) as? Date
-        DDLogInfo("invite-manager/loaded  Count: [\(dataAvailable)]  Refresh Date: [\(String(describing: nextRefreshDate))]")
+        DDLogInfo("invite-manager/loaded  Available: [\(numberOfInvitesAvailable)]  Refresh Date: [\(String(describing: nextRefreshDate))]")
     }
 
     private func saveToUserDefaults() {
