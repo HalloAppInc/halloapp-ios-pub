@@ -251,10 +251,23 @@ class XMPPControllerMain: XMPPController {
     override func didReceive(message: XMPPMessage) {
         // Notification about new contact on the app
         if let contactList = message.element(forName: "contact_list") {
-            let contacts = contactList.elements(forName: "contact").compactMap{ XMPPContact($0) }
-            MainAppContext.shared.syncManager.processNotification(contacts: contacts) {
-                self.sendAck(for: message)
+            let contacts = contactList.elements(forName: "contact").compactMap({ XMPPContact($0) })
+            if !contacts.isEmpty {
+                MainAppContext.shared.syncManager.processNotification(contacts: contacts) {
+                    self.sendAck(for: message)
+                }
+                return
             }
+
+            let contactHashes = contactList.elements(forName: "contact_hash").compactMap{ $0.stringValue }.compactMap({ Data(base64Encoded: $0) })
+            if !contactHashes.isEmpty {
+                MainAppContext.shared.syncManager.processNotification(contactHashes: contactHashes) {
+                    self.sendAck(for: message)
+                }
+                return
+            }
+
+            self.sendAck(for: message)
             return
         }
 

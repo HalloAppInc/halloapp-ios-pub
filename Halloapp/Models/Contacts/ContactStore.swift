@@ -674,7 +674,7 @@ class ContactStoreMain: ContactStore {
 
             // Update userId
             if xmppContact.userid != abContact.userId {
-                DDLogInfo("contacts/sync/process-results/userid-update [\(abContact.fullName ?? "<<NO NAME>>")]: [\(abContact.userId ?? "")] -> [\(xmppContact.userid ?? "")]")
+                DDLogInfo("contacts/sync/process-results/userid-update [\(abContact.fullName ?? "<<NO NAME>>")|\(xmppContact.normalized ?? "<missing phone number>")]: [\(abContact.userId ?? "")] -> [\(xmppContact.userid ?? "")]")
                 abContact.userId = xmppContact.userid
             }
         }
@@ -711,7 +711,7 @@ class ContactStoreMain: ContactStore {
     }
 
     func processNotification(contacts xmppContacts: [XMPPContact], using managedObjectContext: NSManagedObjectContext) {
-        DDLogInfo("contacts/notification/process")
+        DDLogInfo("contacts/notification/process userIds=[\(xmppContacts.map({ $0.userid ?? "<no userId>" }))]")
         let selfPhoneNumber = self.userData.normalizedPhoneNumber
         // Server can send a "new friend" notification for user's own phone number too (on first sync) - filter that one out.
         let allNormalizedPhoneNumbers = xmppContacts.map{ $0.normalized! }.filter{ $0 != selfPhoneNumber }
@@ -733,6 +733,44 @@ class ContactStoreMain: ContactStore {
             DDLogError("contacts/snotification/process/save-error error=[\(error)]")
         }
     }
+
+    func processNotification(contactHashes: [Data], using managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("contacts/notification/process hashes=[\(contactHashes.map({ $0.toHexString() }))]")
+
+        var matchingContacts = Set<ABContact>()
+
+        for hash in contactHashes.map({ $0.toHexString() }) {
+            let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "phoneNumberHash BEGINSWITH %@", hash)
+            fetchRequest.returnsObjectsAsFaults = false
+            do {
+                let contacts = try managedObjectContext.fetch(fetchRequest)
+                matchingContacts.formUnion(contacts)
+            }
+            catch {
+                fatalError()
+            }
+        }
+
+        guard !matchingContacts.isEmpty else {
+            DDLogWarn("contacts/notification/ No matching contacts")
+            return
+        }
+
+        for contact in matchingContacts {
+            DDLogDebug("contacts/notification/reset-status phone=[\(contact.normalizedPhoneNumber ?? "<invalid>")]")
+            contact.status = .unknown
+        }
+
+        DDLogInfo("contacts/notification/process/will-save")
+        do {
+            try managedObjectContext.save()
+            DDLogInfo("contacts/notification/process/did-save")
+        } catch {
+            DDLogError("contacts/snotification/process/save-error error=[\(error)]")
+        }
+    }
+
 
     private func resetStatusForAllContacts() {
         DDLogWarn("contacts/reset-status")

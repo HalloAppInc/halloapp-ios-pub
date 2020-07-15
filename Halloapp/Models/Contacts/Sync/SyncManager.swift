@@ -295,6 +295,21 @@ class SyncManager {
         }
     }
 
+    func processNotification(contactHashes: [Data], completion: @escaping () -> Void) {
+        DDLogInfo("syncmanager/notification hashes=[\(contactHashes.map({ $0.toHexString() }))]")
+        guard !contactHashes.isEmpty else {
+            completion()
+            return
+        }
+        self.queue.async {
+            self.contactStore.performOnBackgroundContextAndWait{ managedObjectContext in
+                self.contactStore.processNotification(contactHashes: contactHashes, using: managedObjectContext)
+            }
+            self.requestDeltaSync()
+            completion()
+        }
+    }
+
     private func finishSync(with mode: SyncMode, result: SyncResult, failureReason: FailureReason) {
         guard self.isSyncInProgress else {
             return
