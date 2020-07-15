@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19E287" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19F101" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="ABContact" representedClassName="ABContact" syncable="YES">
         <attribute name="fullName" optional="YES" attributeType="String"/>
         <attribute name="givenName" optional="YES" attributeType="String"/>
         <attribute name="identifier" attributeType="String"/>
         <attribute name="normalizedPhoneNumber" optional="YES" attributeType="String"/>
         <attribute name="phoneNumber" optional="YES" attributeType="String"/>
+        <attribute name="phoneNumberHash" optional="YES" attributeType="String"/>
         <attribute name="searchTokenList" optional="YES" attributeType="String"/>
         <attribute name="sort" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -16,7 +17,7 @@
         <attribute name="userId" attributeType="String"/>
     </entity>
     <elements>
-        <element name="ABContact" positionX="-54" positionY="-9" width="128" height="178"/>
+        <element name="ABContact" positionX="-54" positionY="-9" width="128" height="193"/>
         <element name="PushName" positionX="-54" positionY="63" width="128" height="73"/>
     </elements>
 </model>

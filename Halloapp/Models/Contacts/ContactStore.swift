@@ -661,6 +661,17 @@ class ContactStoreMain: ContactStore {
                 abContact.normalizedPhoneNumber = xmppContact.normalized
             }
 
+            // Save/update hash
+            if let normalizedPhoneNumber = xmppContact.normalized {
+                if abContact.phoneNumberHash == nil {
+                    let hashData: Data? = normalizedPhoneNumber.sha256()
+                    abContact.phoneNumberHash = hashData?.prefix(8).toHexString()
+                    DDLogInfo("contacts/sync/process-results/hash-update [\(xmppContact.normalized!)]:[\(abContact.phoneNumberHash!)]")
+                }
+            } else if abContact.phoneNumberHash != nil {
+                abContact.phoneNumberHash = nil
+            }
+
             // Update userId
             if xmppContact.userid != abContact.userId {
                 DDLogInfo("contacts/sync/process-results/userid-update [\(abContact.fullName ?? "<<NO NAME>>")]: [\(abContact.userId ?? "")] -> [\(xmppContact.userid ?? "")]")
