@@ -137,6 +137,7 @@ fileprivate class FeedTableHeaderView: UIView {
     
     public func updateProfile() {
         nameLabel.text = MainAppContext.shared.userData.name
+        contactImageView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
     }
 
     private func setupView() {

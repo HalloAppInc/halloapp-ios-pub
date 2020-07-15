@@ -25,6 +25,7 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
         public static let userDefaultsDownload = "xmpp.avatar-query"
     }
     
+    // Please notice that when app moves to the background, `userAvatars` may be evicted.
     private let userAvatars = NSCache<NSString, UserAvatar>()
     
     private class var persistentStoreURL: URL {
@@ -331,6 +332,8 @@ public class UserAvatar {
         } else {
             fileUrl = nil
         }
+        
+        DDLogInfo("UserAvatar/init for user=\(userId)")
     }
     
     // Create a dummy object for a user that's not in the database
