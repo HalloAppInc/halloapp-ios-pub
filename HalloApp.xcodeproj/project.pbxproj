@@ -94,7 +94,6 @@
 		76B95CDE24295AB5007435AC /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CDD24295AB5007435AC /* CommentView.swift */; };
 		76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE3242A7A3F007435AC /* CommentInputView.swift */; };
 		76C2D1F924AA6B9700930320 /* PrivacyListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */; };
-		76C69E482447E3B100338D4C /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E472447E3B100338D4C /* Data.swift */; };
 		76C69E4D2447E6D500338D4C /* UIApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E4C2447E6D500338D4C /* UIApplication.swift */; };
 		76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */; };
 		76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FF52412E6E700F49CA4 /* ContactStore.swift */; };
@@ -308,7 +307,6 @@
 		76B95CDD24295AB5007435AC /* CommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CE3242A7A3F007435AC /* CommentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentInputView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentInputView.swift; sourceTree = SOURCE_ROOT; };
 		76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyListViewController.swift; path = HalloApp/Views/Settings/Privacy/PrivacyListViewController.swift; sourceTree = SOURCE_ROOT; };
-		76C69E472447E3B100338D4C /* Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Data.swift; path = HalloApp/Components/Extensions/Data.swift; sourceTree = SOURCE_ROOT; };
 		76C69E4C2447E6D500338D4C /* UIApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIApplication.swift; path = HalloApp/Components/Extensions/UIApplication.swift; sourceTree = SOURCE_ROOT; };
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
 		76DF9FF52412E6E700F49CA4 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
@@ -815,7 +813,6 @@
 				EA0B9916249C1FFB00B05094 /* Character.swift */,
 				761442CA245DF6A600DD9D1A /* CharacterSet.swift */,
 				764AB41E24A6C5F300D4E354 /* Color.swift */,
-				76C69E472447E3B100338D4C /* Data.swift */,
 				763B42AD2435A74E00FF0E82 /* Date.swift */,
 				EA0B991A249C228700B05094 /* DateFormatter.swift */,
 				146B93782405F40500768AC6 /* Font.swift */,
@@ -1320,7 +1317,6 @@
 				EA35857A2450BE3300E6E8AB /* ChatInputView.swift in Sources */,
 				EA0B9917249C1FFB00B05094 /* Character.swift in Sources */,
 				764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */,
-				76C69E482447E3B100338D4C /* Data.swift in Sources */,
 				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,
 				76C69E4D2447E6D500338D4C /* UIApplication.swift in Sources */,

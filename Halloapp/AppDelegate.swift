@@ -76,7 +76,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        let tokenString = deviceToken.hexString()
+        let tokenString = deviceToken.toHexString()
         DDLogInfo("appdelegate/notifications/push-token/success [\(tokenString)]")
 
         self.needsAPNSToken = false
