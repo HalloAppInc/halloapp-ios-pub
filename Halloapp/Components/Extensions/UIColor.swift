@@ -21,4 +21,8 @@ extension UIColor {
     class var lavaOrange: UIColor {
         get { UIColor(named: "LavaOrange")! }
     }
+
+    class var separator: UIColor {
+        get { UIColor(named: "Separator")! }
+    }
 }

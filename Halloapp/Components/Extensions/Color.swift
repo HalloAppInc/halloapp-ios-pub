@@ -16,4 +16,8 @@ extension Color {
     static var lavaOrange: Color {
         get { Color("LavaOrange") }
     }
+
+    static var separator: Color {
+        get { Color("Separator") }
+    }
 }
