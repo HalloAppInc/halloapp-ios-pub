@@ -15,7 +15,7 @@ struct MediaCarouselViewConfiguration {
     var showVideoPlaybackControls = true
     var alwaysScaleToFitContent = false
     var cellSpacing: CGFloat = 20
-    var cornerRadius: CGFloat = 10
+    var cornerRadius: CGFloat = 15
 
     static var `default`: MediaCarouselViewConfiguration {
         get { MediaCarouselViewConfiguration() }
