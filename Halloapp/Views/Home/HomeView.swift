@@ -104,7 +104,7 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
     }
 
     static let tabBarItemImageInsets: UIEdgeInsets = {
-        let vInset: CGFloat = UIDevice.current.hasNotch ? 2 : 0
+        let vInset: CGFloat = UIDevice.current.hasNotch ? 4 : 2
         return UIEdgeInsets(top: vInset, left: 0, bottom: -vInset, right: 0)
     }()
 
