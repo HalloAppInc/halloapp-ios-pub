@@ -370,19 +370,21 @@ fileprivate class FeedTableViewCellBackgroundPanelView: UIView {
 
 
 fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
-    static let backgroundCornerRadius: CGFloat = 15
-    /**
-     Content view (vertical stack takes standard table view content width: tableView.width - tableView.layoutMargins.left - tableView.layoutMargins.right
-     Width of the background "card" is defined as: leftOutset + contentWidth + rightOutset. Margins around background "card" vary: 10 pt for plus screen devices, 8 pt for all others.
-     */
-    static let backgroundPanelViewOutsetH: CGFloat = 8
-    static let backgroundPanelViewOutsetV: CGFloat = 8
-    /**
-     In contrast with horizontal margins, vertical margins are defined relative to cell's top and bottom edges.
-     Background "card" has 25 pt margins on top and bottom (so that space between cards is 50 pt).
-     Content is further inset 8 points relative to the card's top and bottom edges.
-     */
-    static let backgroundPanelVMargin: CGFloat = 25
+
+    private struct LayoutConstants {
+        static let backgroundCornerRadius: CGFloat = 15
+        /**
+         Content view (vertical stack takes standard table view content width: tableView.width - tableView.layoutMargins.left - tableView.layoutMargins.right
+         Background "card" horizontal insets are 1/2 of the layout margin.
+         */
+        static let backgroundPanelViewOutsetV: CGFloat = 8
+        /**
+         In contrast with horizontal margins, vertical margins are defined relative to cell's top and bottom edges.
+         Background "card" has 25 pt margins on top and bottom (so that space between cards is 50 pt).
+         Content is further inset 8 points relative to the card's top and bottom edges.
+         */
+        static let backgroundPanelVMargin: CGFloat = 25
+    }
 
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
@@ -402,8 +404,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
 
     private lazy var backgroundPanelView: FeedTableViewCellBackgroundPanelView = {
         let panel = FeedTableViewCellBackgroundPanelView()
-        panel.translatesAutoresizingMaskIntoConstraints = false
-        panel.cornerRadius = FeedTableViewCell.backgroundCornerRadius
+        panel.cornerRadius = LayoutConstants.backgroundCornerRadius
         return panel
     }()
 
@@ -435,28 +436,8 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
 
         // Background
         let backgroundView = UIView()
-        backgroundView.addSubview(self.backgroundPanelView)
         backgroundView.preservesSuperviewLayoutMargins = true
-        backgroundView.addConstraint({
-            let constraint = self.backgroundPanelView.leadingAnchor.constraint(equalTo: backgroundView.layoutMarginsGuide.leadingAnchor, constant: -FeedTableViewCell.backgroundPanelViewOutsetH)
-            constraint.priority = .defaultHigh
-            return constraint
-            }())
-        backgroundView.addConstraint({
-            let constraint = self.backgroundPanelView.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: FeedTableViewCell.backgroundPanelVMargin)
-            constraint.priority = .defaultHigh
-            return constraint
-            }())
-        backgroundView.addConstraint({
-            let constraint = self.backgroundPanelView.trailingAnchor.constraint(equalTo: backgroundView.layoutMarginsGuide.trailingAnchor, constant: FeedTableViewCell.backgroundPanelViewOutsetH)
-            constraint.priority = .defaultHigh
-            return constraint
-            }())
-        backgroundView.addConstraint({
-            let constraint = self.backgroundPanelView.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor, constant: -FeedTableViewCell.backgroundPanelVMargin)
-            constraint.priority = .defaultHigh
-            return constraint
-            }())
+        backgroundView.addSubview(backgroundPanelView)
         self.backgroundView = backgroundView
         self.updateBackgroundPanelShadow()
 
@@ -466,14 +447,28 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         vStack.translatesAutoresizingMaskIntoConstraints = false
         self.contentView.addSubview(vStack)
         vStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: FeedTableViewCell.backgroundPanelVMargin + FeedTableViewCell.backgroundPanelViewOutsetV).isActive = true
+        vStack.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: LayoutConstants.backgroundPanelVMargin + LayoutConstants.backgroundPanelViewOutsetV).isActive = true
         vStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -(FeedTableViewCell.backgroundPanelVMargin + FeedTableViewCell.backgroundPanelViewOutsetV)).isActive = true
+        vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -(LayoutConstants.backgroundPanelVMargin + LayoutConstants.backgroundPanelViewOutsetV)).isActive = true
+
+        // Separator in the footer view needs to be extended past view bounds to be the same width as background "card".
+        footerView.separator.leadingAnchor.constraint(equalTo: backgroundPanelView.leadingAnchor).isActive = true
+        footerView.separator.trailingAnchor.constraint(equalTo: backgroundPanelView.trailingAnchor).isActive = true
 
         // Connect actions of footer view buttons
-        self.footerView.commentButton.addTarget(self, action: #selector(showComments), for: .touchUpInside)
-        self.footerView.messageButton.addTarget(self, action: #selector(messageContact), for: .touchUpInside)
-        self.footerView.seenByButton.addTarget(self, action: #selector(showSeenBy), for: .touchUpInside)
+        footerView.commentButton.addTarget(self, action: #selector(showComments), for: .touchUpInside)
+        footerView.messageButton.addTarget(self, action: #selector(messageContact), for: .touchUpInside)
+        footerView.seenByButton.addTarget(self, action: #selector(showSeenBy), for: .touchUpInside)
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        if let backgroundView = self.backgroundView {
+            let panelInsets = UIEdgeInsets(top: LayoutConstants.backgroundPanelVMargin, left: 0.5*backgroundView.layoutMargins.left,
+                                           bottom: LayoutConstants.backgroundPanelVMargin, right: 0.5*backgroundView.layoutMargins.right)
+            backgroundPanelView.frame = backgroundView.bounds.inset(by: panelInsets)
+        }
     }
 
     public func configure(with post: FeedPost, contentWidth: CGFloat) {
@@ -877,17 +872,20 @@ fileprivate class FeedItemFooterView: UIView {
         return button
     }()
 
-    private func setupView() {
-        self.isUserInteractionEnabled = true
-
+    lazy var separator: UIView = {
         let separator = UIView()
         separator.backgroundColor = .separator
         separator.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(separator)
-        separator.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: -FeedTableViewCell.backgroundPanelViewOutsetH).isActive = true
-        separator.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: FeedTableViewCell.backgroundPanelViewOutsetH).isActive = true
-        separator.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         separator.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
+        return separator
+    }()
+
+    private func setupView() {
+        self.isUserInteractionEnabled = true
+
+        self.addSubview(separator)
+        separator.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        // Horizontal size / position constraints will be installed by the cell.
 
         let hStack = UIStackView(arrangedSubviews: [ self.commentButton, self.messageButton ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
