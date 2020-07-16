@@ -44,7 +44,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         self.tableView.allowsSelection = false
         self.tableView.showsVerticalScrollIndicator = false
         self.tableView.register(FeedTableViewCell.self, forCellReuseIdentifier: FeedTableViewController.cellReuseIdentifier)
-        self.tableView.backgroundColor = .feedBackgroundColor
+        self.tableView.backgroundColor = .feedBackground
 
         self.setupFetchedResultsController()
 

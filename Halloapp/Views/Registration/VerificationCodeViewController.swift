@@ -66,14 +66,14 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .feedBackgroundColor
+        view.backgroundColor = .feedBackground
 
         labelTitle.font = .gothamFont(forTextStyle: .title3, weight: .medium)
         textFieldCode.font = .monospacedDigitSystemFont(ofSize: UIFontDescriptor.preferredFontDescriptor(withTextStyle: .title3).pointSize, weight: .regular)
 
         labelChangePhone.text = "Not \(MainAppContext.shared.userData.formattedPhoneNumber)?"
 
-        codeInputFieldBackground.backgroundColor = .textFieldBackgroundColor
+        codeInputFieldBackground.backgroundColor = .textFieldBackground
         codeInputFieldBackground.layer.masksToBounds = true
         codeInputFieldBackground.layer.cornerRadius = 10
 

@@ -36,13 +36,13 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .feedBackgroundColor
+        view.backgroundColor = .feedBackground
 
         titleLabels.forEach { $0.font = .gothamFont(forTextStyle: .largeTitle, weight: .bold) }
         buttonSignIn.layer.masksToBounds = true
         buttonSignIn.titleLabel?.font = .gothamFont(forTextStyle: .title3, weight: .bold)
         textFieldBackgrounds.forEach { (textFieldBackground) in
-            textFieldBackground.backgroundColor = .textFieldBackgroundColor
+            textFieldBackground.backgroundColor = .textFieldBackground
             textFieldBackground.layer.masksToBounds = true
             textFieldBackground.layer.cornerRadius = 10
         }

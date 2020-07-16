@@ -37,7 +37,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         tableView.allowsSelection = false
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.backgroundColor = .feedBackgroundColor
+        tableView.backgroundColor = .feedBackground
         tableView.contentInsetAdjustmentBehavior = .scrollableAxes
         tableView.keyboardDismissMode = .interactive
         tableView.preservesSuperviewLayoutMargins = true

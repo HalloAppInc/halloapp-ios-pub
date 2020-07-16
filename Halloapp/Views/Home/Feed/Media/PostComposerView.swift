@@ -116,7 +116,7 @@ struct PostComposerView: View {
 
             Spacer()
         }
-        .background(Color(UIColor.feedBackgroundColor))
+        .background(Color.feedBackground)
         .onAppear {
             if self.mediaItemsToPost.isEmpty {
                 self.isTextOnlyPost = true
@@ -143,7 +143,7 @@ fileprivate struct TextView: UIViewRepresentable {
         myTextView.isScrollEnabled = true
         myTextView.isEditable = true
         myTextView.isUserInteractionEnabled = true
-        myTextView.backgroundColor = UIColor.textFieldBackgroundColor
+        myTextView.backgroundColor = .textFieldBackground
         myTextView.textContainerInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         return myTextView
     }

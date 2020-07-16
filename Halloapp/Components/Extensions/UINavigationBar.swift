@@ -16,7 +16,7 @@ extension UINavigationBarAppearance {
             appearance.configureWithOpaqueBackground()
             //TODO: proper mask image.
             appearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
-            appearance.backgroundColor = .feedBackgroundColor
+            appearance.backgroundColor = .feedBackground
             appearance.shadowColor = nil
             return appearance
         }

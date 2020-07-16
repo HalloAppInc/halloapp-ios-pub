@@ -10,15 +10,15 @@ import UIKit
 
 extension UIColor {
 
-    static var feedBackgroundColor: UIColor {
+    class var feedBackground: UIColor {
         get { UIColor(named: "FeedBackground")! }
     }
 
-    static var textFieldBackgroundColor: UIColor {
+    class var textFieldBackground: UIColor {
         get { UIColor(named: "TextFieldBackground")! }
     }
 
-    static var lavaOrange: UIColor {
+    class var lavaOrange: UIColor {
         get { UIColor(named: "LavaOrange")! }
     }
 }

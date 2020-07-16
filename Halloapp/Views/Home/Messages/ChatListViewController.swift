@@ -48,7 +48,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         
         self.navigationItem.standardAppearance = .transparentAppearance
         
-        self.tableView.backgroundColor = .feedBackgroundColor
+        self.tableView.backgroundColor = .feedBackground
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = true
         self.tableView.register(ChatListViewCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
