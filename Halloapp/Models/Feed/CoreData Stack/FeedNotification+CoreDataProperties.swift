@@ -61,7 +61,7 @@ extension FeedNotification {
 
     var formattedTimestamp: String {
         get {
-            return self.timestamp.commentTimestamp()
+            return self.timestamp.feedTimestamp()
         }
     }
 

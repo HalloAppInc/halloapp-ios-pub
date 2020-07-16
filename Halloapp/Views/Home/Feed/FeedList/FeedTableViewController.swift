@@ -760,7 +760,7 @@ fileprivate class FeedItemHeaderView: UIView {
 
     func configure(with post: FeedPost) {
         self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
-        self.timestampLabel.text = post.timestamp.postTimestamp()
+        self.timestampLabel.text = post.timestamp.feedTimestamp()
         self.contactImageView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
     }
 

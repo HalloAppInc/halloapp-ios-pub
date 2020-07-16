@@ -42,53 +42,29 @@ extension Date {
     }
 
     /**
-     - returns: Localized timstamp to be used in Feed.
+     - returns: Localized timstamp to be used in Feed and comments.
 
      Timestamp formatting rules are:
-     - under 1 minute: 15s
-     - under 1 hour: 45m
-     - under 1 day: 6h
+     - under 1 minute: "Now"
+     - same day or under 6 hours: 12:05 pm
+     - under 1 week: Tue 12:05 pm
      - otherwise: 5d
      */
-    func postTimestamp() -> String {
+    func feedTimestamp() -> String {
         let seconds = -self.timeIntervalSinceNow
 
         // TODO: Localize
         if seconds < Date.minutes(1) {
-            return "\(Date.toSeconds(seconds))s"
-        } else if seconds < Date.hours(1) {
-            return "\(Date.toMinutes(seconds))m"
-        } else if seconds < Date.days(1) {
-            return "\(Date.toHours(seconds))h"
+            return "Now"
+        } else if seconds < Date.hours(6) || Calendar.current.isDateInToday(self) {
+            return DateFormatter.dateTimeFormatterCompactTime.string(from: self)
+        } else if seconds < Date.weeks(1) {
+            return DateFormatter.dateTimeFormatterDayOfWeekCompactTime.string(from: self)
         } else {
             return "\(Date.toDays(seconds))d"
         }
     }
 
-    /**
-     - returns: Localized timstamp to be used in Comments.
-
-     Timestamp formatting rules are:
-     - under 1 minute: 15s
-     - under 1 hour: 45m
-     - under 1 day: 6h
-     - otherwise: 5d
-     */
-    func commentTimestamp() -> String {
-        let seconds = -self.timeIntervalSinceNow
-
-        // TODO: Localize
-        if seconds < Date.minutes(1) {
-            return "\(Date.toSeconds(seconds))s"
-        } else if seconds < Date.hours(1) {
-            return "\(Date.toMinutes(seconds, rounded: true))m"
-        } else if seconds < Date.days(1) {
-            return "\(Date.toHours(seconds, rounded: true))h"
-        } else {
-            return "\(Date.toDays(seconds, rounded: true))d"
-        }
-    }
-    
     func chatListTimestamp() -> String {
         let seconds = -self.timeIntervalSinceNow
         

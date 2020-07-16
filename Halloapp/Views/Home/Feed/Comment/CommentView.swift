@@ -146,7 +146,7 @@ class CommentView: UIView {
 
         self.textLabel.attributedText = attributedText
         self.textLabel.hyperlinkDetectionIgnoreRange = attributedText.string.range(of: contactName)
-        self.timestampLabel.text = comment.timestamp.commentTimestamp()
+        self.timestampLabel.text = comment.timestamp.feedTimestamp()
         self.isReplyButtonVisible = !comment.isCommentRetracted
 
         let isRootComment = comment.parent == nil
@@ -279,7 +279,7 @@ class CommentsTableHeaderView: UIView {
         }
 
         // Timestamp
-        timestampLabel.text = feedPost.timestamp.commentTimestamp()
+        timestampLabel.text = feedPost.timestamp.feedTimestamp()
         
         // Avatar
         contactImageView.configure(with: feedPost.userId, using: MainAppContext.shared.avatarStore)
