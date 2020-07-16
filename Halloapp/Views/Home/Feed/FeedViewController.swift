@@ -26,7 +26,7 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
 
         let notificationButton = BadgedButton(type: .system)
         notificationButton.setImage(UIImage(named: "FeedNavbarNotifications"), for: .normal)
-        notificationButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
+        notificationButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
         notificationButton.addTarget(self, action: #selector(presentNotificationsView), for: .touchUpInside)
         if let feedNotifications = MainAppContext.shared.feedData.feedNotifications {
             notificationButton.isBadgeHidden = feedNotifications.unreadCount == 0
@@ -35,8 +35,14 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
             })
         }
 
+        let composeButton = UIButton(type: .system)
+        composeButton.setImage(UIImage(named: "FeedCompose"), for: .normal)
+        composeButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
+        composeButton.tintColor = .lavaOrange
+        composeButton.addTarget(self, action: #selector(composePost), for: .touchUpInside)
+
         self.navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(image: UIImage(named: "FeedCompose"), style: .plain, target: self, action: #selector(composePost)),
+            UIBarButtonItem(customView: composeButton),
             UIBarButtonItem(customView: notificationButton) ]
 
         let privacySettings = MainAppContext.shared.xmppController.privacySettings!

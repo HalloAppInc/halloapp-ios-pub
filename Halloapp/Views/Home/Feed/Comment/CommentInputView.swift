@@ -85,7 +85,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private lazy var textView: InputTextView = {
         let textView = InputTextView(frame: .zero)
-        textView.tintColor = .lavaOrange
+        textView.tintColor = .systemBlue
         textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
         textView.backgroundColor = .clear
         textView.autocapitalizationType = .sentences
@@ -109,7 +109,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         let button = UIButton(type: .system)
         button.setTitle("Post", for: .normal)
         button.isEnabled = false
-        button.tintColor = .lavaOrange
+        button.tintColor = .systemBlue
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 0)
         button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
@@ -125,7 +125,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private lazy var deleteReplyContextButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "xmark"), for: .normal)
+        button.setImage(UIImage(named: "ReplyPanelClose"), for: .normal)
         button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
         button.tintColor = UIColor(white: 1, alpha: 0.8)
         button.addTarget(self, action: #selector(self.closeReplyPanel), for: .touchUpInside)
@@ -143,7 +143,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         let panel = UIView()
         panel.translatesAutoresizingMaskIntoConstraints = false
         panel.preservesSuperviewLayoutMargins = true
-        panel.backgroundColor = .lavaOrange
+        panel.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.7)
         panel.addSubview(hStack)
         hStack.leadingAnchor.constraint(equalTo: panel.layoutMarginsGuide.leadingAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: panel.layoutMarginsGuide.topAnchor).isActive = true

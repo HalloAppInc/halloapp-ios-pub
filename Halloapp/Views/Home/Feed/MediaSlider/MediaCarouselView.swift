@@ -157,8 +157,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
         if self.media.count > 1 && configuration.isPagingEnabled {
             let pageControl = UIPageControl()
-            pageControl.pageIndicatorTintColor = UIColor(named: "Tint")?.withAlphaComponent(0.2)
-            pageControl.currentPageIndicatorTintColor = UIColor(named: "LavaOrange")
+            pageControl.pageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.2)
+            pageControl.currentPageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.7)
             pageControl.translatesAutoresizingMaskIntoConstraints = false
             pageControl.numberOfPages = self.media.count
             pageControl.addTarget(self, action: #selector(pageControlAction), for: .valueChanged)

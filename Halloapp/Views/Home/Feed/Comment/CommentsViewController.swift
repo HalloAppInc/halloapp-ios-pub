@@ -500,7 +500,7 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
 
     var isCellHighlighted: Bool = false {
         didSet {
-            self.backgroundColor = isCellHighlighted ? UIColor.lavaOrange.withAlphaComponent(0.1) : .clear
+            self.backgroundColor = isCellHighlighted ? UIColor.systemBlue.withAlphaComponent(0.1) : .clear
         }
     }
 

@@ -798,11 +798,13 @@ fileprivate class FeedItemFooterView: UIView {
 
                 case .unread:
                     self.badgeView.isHidden = false
-                    self.badgeView.fillColor = .lavaOrange
+                    self.badgeView.fillColor = .systemBlue
+                    self.badgeView.alpha = 0.7
 
                 case .read:
                     self.badgeView.isHidden = false
                     self.badgeView.fillColor = .systemGray4
+                    self.badgeView.alpha = 1.0
                 }
             }
         }
@@ -884,6 +886,7 @@ fileprivate class FeedItemFooterView: UIView {
         self.isUserInteractionEnabled = true
 
         self.addSubview(separator)
+
         separator.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         // Horizontal size / position constraints will be installed by the cell.
 

@@ -70,6 +70,8 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
             UIView.appearance().tintColor = tintColor
         }
 
+        self.tabBar.tintColor = .systemBlue
+
         self.cancellableSet.insert(
             MainAppContext.shared.chatData.didChangeUnreadThreadCount.sink { [weak self] (count) in
                 guard let self = self else { return }
