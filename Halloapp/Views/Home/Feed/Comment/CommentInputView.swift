@@ -134,21 +134,31 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }()
 
     private lazy var replyContextPanel: UIView = {
+        let panel = UIView()
+        panel.translatesAutoresizingMaskIntoConstraints = false
+        panel.preservesSuperviewLayoutMargins = true
+        panel.backgroundColor = .systemBackground
+
+        let backgroundView = UIView()
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        backgroundView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.7)
+        panel.addSubview(backgroundView)
+        backgroundView.leadingAnchor.constraint(equalTo: panel.leadingAnchor).isActive = true
+        backgroundView.topAnchor.constraint(equalTo: panel.topAnchor).isActive = true
+        backgroundView.trailingAnchor.constraint(equalTo: panel.trailingAnchor).isActive = true
+        backgroundView.bottomAnchor.constraint(equalTo: panel.bottomAnchor).isActive = true
+
         let hStack = UIStackView(arrangedSubviews: [ self.contactNameLabel, self.deleteReplyContextButton ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.preservesSuperviewLayoutMargins = true
         hStack.axis = .horizontal
         hStack.spacing = 8
-
-        let panel = UIView()
-        panel.translatesAutoresizingMaskIntoConstraints = false
-        panel.preservesSuperviewLayoutMargins = true
-        panel.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.7)
         panel.addSubview(hStack)
         hStack.leadingAnchor.constraint(equalTo: panel.layoutMarginsGuide.leadingAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: panel.layoutMarginsGuide.topAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: panel.layoutMarginsGuide.trailingAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: panel.layoutMarginsGuide.bottomAnchor).isActive = true
+
         return panel
     }()
 
