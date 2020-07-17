@@ -71,8 +71,12 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
     // MARK: Table View
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let notification = self.fetchedResultsController?.object(at: indexPath) else { return }
-        self.navigationController?.pushViewController(CommentsViewController(feedPostId: notification.postId), animated: true)
+        guard let notification = self.fetchedResultsController?.object(at: indexPath),
+              let feedPost = MainAppContext.shared.feedData.feedPost(with: notification.postId) else {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
+        }
+        self.navigationController?.pushViewController(CommentsViewController(feedPostId: feedPost.id), animated: true)
     }
 
     // MARK: UI Actions
