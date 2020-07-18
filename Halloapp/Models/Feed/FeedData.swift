@@ -737,7 +737,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             notification.title = contactNames[comment.userId] ?? "Unknown Contact"
             notification.body = "Replied to your comment: \(comment.text)"
             
-            let metadata = NotificationUtility.Metadata(contentId: comment.id, contentType: .comment, data: "", fromId: comment.userId)
+            let metadata = NotificationUtility.Metadata(contentId: comment.id, contentType: .comment, data: nil, fromId: comment.userId)
             notification.userInfo[NotificationUtility.Metadata.userInfoKey] = metadata.rawData
             
             notifications.append(notification)

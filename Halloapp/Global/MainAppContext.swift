@@ -20,7 +20,8 @@ class MainAppContext: AppContext {
     private(set) var feedData: FeedData!
     private(set) var chatData: ChatData!
     private(set) var syncManager: SyncManager!
-    let didTapNotification = PassthroughSubject<Bool, Never>()
+    
+    let didTapNotification = PassthroughSubject<NotificationUtility.Metadata, Never>()
 
     override var xmppController: XMPPControllerMain {
         get {

@@ -50,20 +50,15 @@ class NotificationService: UNNotificationServiceExtension {
 
         // Populate notification body.
         var invokeHandler = true
-        if let protobufData = Data(base64Encoded: metadata.data) {
-            do {
-                let protoContainer = try Proto_Container(serializedData: protobufData)
-                populate(notification: bestAttemptContent, withDataFrom: protoContainer)
-                if protoContainer.hasPost && !protoContainer.post.media.isEmpty {
-                    invokeHandler = !startDownloading(media: protoContainer.post.media)
-                } else if protoContainer.hasChatMessage && !protoContainer.chatMessage.media.isEmpty {
-                    invokeHandler = !startDownloading(media: protoContainer.chatMessage.media)
-                }
+        if let protoContainer = metadata.protoContainer {
+            populate(notification: bestAttemptContent, withDataFrom: protoContainer)
+            if protoContainer.hasPost && !protoContainer.post.media.isEmpty {
+                invokeHandler = !startDownloading(media: protoContainer.post.media)
+            } else if protoContainer.hasChatMessage && !protoContainer.chatMessage.media.isEmpty {
+                invokeHandler = !startDownloading(media: protoContainer.chatMessage.media)
             }
-            catch {
-                DDLogError("didReceiveRequest/error Invalid protobuf. \(error)")
-                Crashlytics.crashlytics().log("notification-se/protobuf/error [\(error)]")
-            }
+        } else {
+            DDLogError("didReceiveRequest/error Invalid protobuf.")
         }
 
         if invokeHandler {

@@ -18,13 +18,13 @@ public class NotificationUtility {
     
     public class Metadata {
         public static let userInfoKey = "metadata"
+        public static let userDefaultsKey = "tap-notification-metadata"
         
         private struct Keys {
             static let contentId = "content-id"
             static let contentType = "content-type"
             static let data = "data"
             static let fromId = "from-id"
-            public static let userDefaults = "tap-notification-metadata"
         }
         
         /*
@@ -35,35 +35,46 @@ public class NotificationUtility {
          */
         public let contentId: String
         public let contentType: ContentType
-        public let data: String
+        public let data: Data?
         public let fromId: UserID
         
         public var rawData: [String:String] {
             return [
                 Keys.contentId: contentId,
                 Keys.contentType: contentType.rawValue,
-                Keys.data: data,
+                Keys.data: data?.base64EncodedString() ?? "",
                 Keys.fromId: fromId
             ]
         }
+
+        public var protoContainer: Proto_Container? {
+            get {
+                guard let protobufData = data else { return nil }
+                do {
+                    return try Proto_Container(serializedData: protobufData)
+                }
+                catch {
+                    DDLogError("NotificationMetadata/protobuf/error Invalid protobuf. \(error)")
+                }
+                return nil
+            }
+        }
         
-        private init?(fromDict metadata: Any?) {
-            DDLogInfo("NotificationMetadata/init with metadata=\(String(describing: metadata))")
-            
-            guard let metadata = metadata as? [String: String] else {
-                DDLogInfo("NotificationMetadata/error Can't convert metadata to [String: String]")
+        private init?(fromRawMetadata rawMetadata: Any) {
+            guard let metadata = rawMetadata as? [String: String] else {
+                DDLogError("NotificationMetadata/init/error Can't convert metadata to [String: String]. Metadata: [\(rawMetadata)]")
                 return nil
             }
             
             if let contentId = metadata[Keys.contentId] {
                 self.contentId = contentId
             } else {
-                DDLogInfo("NotificationMetadata/error Missing ContentId")
+                DDLogError("NotificationMetadata/init/error Missing ContentId")
                 return nil
             }
             
             guard let contentType = ContentType(rawValue: metadata[Keys.contentType] ?? "") else {
-                DDLogInfo("NotificationMetadata/error Unsupported ContentType \(String(describing: metadata[Keys.contentType]))")
+                DDLogError("NotificationMetadata/init/error Unsupported ContentType \(String(describing: metadata[Keys.contentType]))")
                 return nil
             }
             
@@ -72,19 +83,19 @@ public class NotificationUtility {
             if let fromId = metadata[Keys.fromId] {
                 self.fromId = fromId
             } else {
-                DDLogInfo("NotificationMetadata/error Missing FromId")
+                DDLogError("NotificationMetadata/init/error Missing fromId")
                 return nil
             }
             
-            if let data = metadata[Keys.data] {
-                self.data = data
+            if let base64Data = metadata[Keys.data] {
+                self.data = Data(base64Encoded: base64Data)
             } else {
-                DDLogInfo("NotificationMetadata/error Missing Data")
+                DDLogError("NotificationMetadata/init/error Missing Data")
                 return nil
             }
         }
         
-        public init(contentId: String, contentType: ContentType, data: String, fromId: UserID) {
+        public init(contentId: String, contentType: ContentType, data: Data?, fromId: UserID) {
             self.contentId = contentId
             self.contentType = contentType
             self.data = data
@@ -92,81 +103,70 @@ public class NotificationUtility {
         }
         
         public convenience init?(fromRequest request: UNNotificationRequest) {
-            DDLogInfo("NotificationMetadata/init with request=\(request)")
-            
-            self.init(fromDict: request.content.userInfo[Metadata.userInfoKey])
+            DDLogDebug("NotificationMetadata/init request=\(request)")
+            guard let metadata = request.content.userInfo[Metadata.userInfoKey] else { return nil }
+            self.init(fromRawMetadata: metadata)
         }
         
         public convenience init?(fromResponse response: UNNotificationResponse) {
-            DDLogInfo("NotificationMetadata/init with response=\(response)")
-            
-            self.init(fromDict: response.notification.request.content.userInfo[Metadata.userInfoKey])
+            DDLogDebug("NotificationMetadata/init response=\(response)")
+            guard let metadata = response.notification.request.content.userInfo[Metadata.userInfoKey] else { return nil }
+            self.init(fromRawMetadata: metadata)
         }
         
         public static func fromUserDefaults() -> Metadata? {
-            DDLogInfo("NotificationMetadata/fromUserDefaults start")
-            
-            if let rawData = UserDefaults.standard.object(forKey: Keys.userDefaults) as? [String: String] {
-                return Metadata(fromDict: rawData)
-            }
-            
-            DDLogInfo("NotificationMetadata/fromUserDefaults error: Can't load from UserDefaults")
-            
-            return nil
+            guard let metadata = UserDefaults.standard.object(forKey: Metadata.userDefaultsKey) else { return nil }
+            return Metadata(fromRawMetadata: metadata)
         }
         
         public func saveToUserDefaults() {
-            DDLogInfo("NotificationMetadata/saveToUserDefaults saved")
-            
-            UserDefaults.standard.set(self.rawData, forKey: Keys.userDefaults)
+            DDLogDebug("NotificationMetadata/saveToUserDefaults")
+            UserDefaults.standard.set(self.rawData, forKey: Metadata.userDefaultsKey)
         }
         
         public func removeFromUserDefaults() {
-            DDLogInfo("NotificationMetadata/removeFromUserDefaults removed")
-            
-            UserDefaults.standard.removeObject(forKey: Keys.userDefaults)
+            DDLogDebug("NotificationMetadata/removeFromUserDefaults")
+            UserDefaults.standard.removeObject(forKey: Metadata.userDefaultsKey)
         }
     }
     
     public static func removeDelivered(forType type: ContentType, withFromId fromId: String? = nil, withContentId contentId: String? = nil) {
         if type == .chat {
             guard fromId != nil else {
-                DDLogError("Notification/removeDeliveredNotifications fromId should not be nil")
+                DDLogError("Notification/removeDelivered fromId should not be nil")
                 return
             }
-            
-            DDLogInfo("Notification/removeDeliveredNotifications will remove for type=\(type) and fromId=\(fromId!)")
+
+            DDLogDebug("Notification/removeDelivered/\(type) fromId=\(fromId!)")
         } else { // .feedpost, .comment
             guard contentId != nil else {
-                DDLogError("Notification/removeDeliveredNotifications contentId should not be nil")
+                DDLogError("Notification/removeDelivered contentId should not be nil")
                 return
             }
             
-            DDLogInfo("Notification/removeDeliveredNotifications will remove for type=\(type) and contentId=\(contentId!)")
+            DDLogDebug("Notification/removeDelivered/\(type) contentId=\(contentId!)")
         }
         
-        UNUserNotificationCenter.current().getDeliveredNotifications { (notifications: [UNNotification]) in
-            DDLogInfo("Notification/removeDeliveredNotifications found \(notifications.count) notifications")
-            
+        UNUserNotificationCenter.current().getDeliveredNotifications { (notifications) in
+            guard !notifications.isEmpty else { return }
+
             var identifiersToRemove = [String]()
-            
             for notification in notifications {
-                if let metadata = Metadata(fromRequest: notification.request) {
-                    guard metadata.contentType == type else { continue }
-                    
-                    if type == .chat {
-                        guard metadata.fromId == fromId! else { continue }
-                    } else { // .feedpost, .comment
-                        guard metadata.contentId == contentId! else { continue }
-                    }
-                    
-                    DDLogInfo("Notification/removeDeliveredNotifications \(notification.request.identifier) will be removed")
-                    
-                    identifiersToRemove.append(notification.request.identifier)
+                guard let metadata = Metadata(fromRequest: notification.request), metadata.contentType == type else { continue }
+
+                if type == .chat {
+                    guard metadata.fromId == fromId! else { continue }
+                } else { // .feedpost, .comment
+                    guard metadata.contentId == contentId! else { continue }
                 }
+
+                DDLogDebug("Notification/removeDelivered \(notification.request.identifier) will be removed")
+
+                identifiersToRemove.append(notification.request.identifier)
             }
             
-            if identifiersToRemove.count > 0 {
+            if !identifiersToRemove.isEmpty {
+                DDLogInfo("Notification/removeDelivered/\(identifiersToRemove.count)")
                 UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: identifiersToRemove)
             }
         }

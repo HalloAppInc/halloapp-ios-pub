@@ -16,7 +16,7 @@ import UIKit
 fileprivate let BackgroundFeedRefreshTaskIdentifier = "com.halloapp.hallo.feed.refresh"
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         initAppContext(MainAppContext.self, xmppControllerClass: XMPPControllerMain.self, contactStoreClass: ContactStoreMain.self)
@@ -129,26 +129,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                 }
             }
         }
-    }
-    
-    // This function will be called right after user tap on the notification
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        DDLogInfo("appdelegate/tap-notifications/didReceive Response=\(response) UserInfo=\(response.notification.request.content.userInfo)")
-
-        if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
-            if let metadata = NotificationUtility.Metadata(fromResponse: response) {
-                DDLogInfo("appdelegate/tap-notifications/didReceive MetaData=\(metadata)")
-                
-                if metadata.contentType == .chat {
-                    metadata.saveToUserDefaults()
-                    MainAppContext.shared.didTapNotification.send(true)
-                }
-            }
-        } else {
-            DDLogInfo("appdelegate/tap-notifications/didReceive DismissAction")
-        }
-
-        completionHandler()
     }
 
     // MARK: Privacy Access Requests
@@ -277,5 +257,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         UserDefaults.standard.set(true, forKey: "force-refresh-avatar")
         MainAppContext.shared.syncManager.requestFullSync()
         DDLogInfo("AppDelegate/forceRefreshAvatar Done")
+    }
+}
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        DDLogInfo("appdelegate/notifications/user-response/\(response.actionIdentifier) UserInfo=\(response.notification.request.content.userInfo)")
+
+        if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
+            if let metadata = NotificationUtility.Metadata(fromResponse: response) {
+                DDLogInfo("appdelegate/notifications/user-response MetaData=\(metadata)")
+                metadata.saveToUserDefaults()
+                MainAppContext.shared.didTapNotification.send(metadata)
+            }
+        }
+
+        completionHandler()
     }
 }

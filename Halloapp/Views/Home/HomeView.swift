@@ -81,16 +81,16 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         
         // When the app was in the background
         self.cancellableSet.insert(
-            MainAppContext.shared.didTapNotification.sink { [weak self] (status) in
-                if !status { return }
+            MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
                 guard let self = self else { return }
-
-                self.onTapNotification()
+                self.processNotification(metadata: metadata)
             }
         )
         
         // When the app just started (had been force-quit before)
-        self.onTapNotification()
+        if let metadata = NotificationUtility.Metadata.fromUserDefaults() {
+            self.processNotification(metadata: metadata)
+        }
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -142,12 +142,13 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         }
     }
     
-    private func onTapNotification() {
+    private func processNotification(metadata: NotificationUtility.Metadata) {
         // If the user tapped on a notification, switch to feed or chat tab
-        if let metadata = NotificationUtility.Metadata.fromUserDefaults() {
-            if metadata.contentType == .chat {
-                self.selectedIndex = 1
-            }
+        switch metadata.contentType {
+        case .chat:
+            self.selectedIndex = 1
+        case .feedpost, .comment:
+            self.selectedIndex = 0
         }
     }
     

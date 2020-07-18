@@ -284,7 +284,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     // MARK: Post Actions
 
-    private func showCommentsView(for postId: FeedPostID) {
+    func showCommentsView(for postId: FeedPostID) {
         self.navigationController?.pushViewController(CommentsViewController(feedPostId: postId), animated: true)
     }
 

@@ -57,16 +57,17 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         
         // When the user was on this view
         self.cancellableSet.insert(
-            MainAppContext.shared.didTapNotification.sink { [weak self] (status) in
-                if !status { return }
+            MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
+                guard metadata.contentType == .chat else { return }
                 guard let self = self else { return }
-
-                self.onTapNotification()
+                self.processNotification(metadata: metadata)
             }
         )
 
         // When the user was not on this view, and HomeView sends user to here
-        self.onTapNotification()
+        if let metadata = NotificationUtility.Metadata.fromUserDefaults(), metadata.contentType == .chat {
+            self.processNotification(metadata: metadata)
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -265,19 +266,14 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     
     // MARK: Tap Notification
     
-    private func onTapNotification() {
+    private func processNotification(metadata: NotificationUtility.Metadata) {
         // If the user tapped on a notification, move to the chat view
-        if let metadata = NotificationUtility.Metadata.fromUserDefaults() {
-            if metadata.contentType == .chat {
-                DDLogInfo("appdelegate/tap-notifications/didDetect/changedToChatViewForUser \(metadata.fromId)")
+        DDLogInfo("ChatListViewController/notification/open-chat \(metadata.fromId)")
 
-                self.navigationController?.popToRootViewController(animated: false)
-                self.navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
-                
-                metadata.removeFromUserDefaults()
-                MainAppContext.shared.didTapNotification.send(false)
-            }
-        }
+        self.navigationController?.popToRootViewController(animated: false)
+        self.navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
+
+        metadata.removeFromUserDefaults()
     }
 }
 

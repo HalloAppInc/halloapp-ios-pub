@@ -9,6 +9,7 @@
 import AVFoundation
 import CocoaLumberjack
 import Combine
+import Core
 import CoreData
 import Photos
 import SwiftUI
@@ -50,6 +51,19 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
             guard let self = self else { return }
             self.reloadTableView()
             })
+
+        cancellables.insert(
+            MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
+                guard metadata.contentType == .comment else { return }
+                guard let self = self else { return }
+                self.processNotification(metadata: metadata)
+            }
+        )
+
+        // When the user was not on this view, and HomeView sends user to here
+        if let metadata = NotificationUtility.Metadata.fromUserDefaults(), metadata.contentType == .comment {
+            self.processNotification(metadata: metadata)
+        }
     }
 
     deinit {
@@ -230,5 +244,27 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
         }
         self.present(UINavigationController(rootViewController: postComposerViewController), animated: true)
     }
+
+    // MARK: Notification Handling
+
+    private func processNotification(metadata: NotificationUtility.Metadata) {
+        metadata.removeFromUserDefaults()
+
+        DDLogInfo("FeedViewController/notification/process contentId=\(metadata.contentId)")
+
+        guard let protoContainer = metadata.protoContainer, protoContainer.hasComment else {
+            DDLogError("FeedViewController/notification/process/error Invalid protobuf")
+            return
+        }
+
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: protoContainer.comment.feedPostID) else {
+            DDLogError("FeedViewController/notification/process/error Missing post with id=[\(protoContainer.comment.feedPostID)]")
+            return
+        }
+
+        self.navigationController?.popToRootViewController(animated: false)
+        self.showCommentsView(for: feedPost.id)
+    }
+
 
 }
