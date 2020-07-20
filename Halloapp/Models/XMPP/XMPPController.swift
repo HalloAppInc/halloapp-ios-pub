@@ -151,31 +151,48 @@ class XMPPControllerMain: XMPPController {
     // MARK: Avatar
     
     private func resendAvatarIfNecessary() {
-        guard !UserDefaults.standard.bool(forKey: AvatarStore.Keys.userDefaultsUpload) else { return }
+        guard UserDefaults.standard.bool(forKey: AvatarStore.Keys.userDefaultsUpload) else { return }
         
-        guard let avatarData = MainAppContext.shared.avatarStore.userAvatar(forUserId: self.userData.userId).data else {
-            DDLogError("XMPPController/resendAvatarIfNecessary/error avatar does not exist")
-            UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsUpload)
-            return
-        }
+        let userAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: self.userData.userId)
         
-        let request = XMPPUploadAvatarRequest(data: avatarData) { (avatarId, error) in
-            if error == nil {
-                UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsUpload)
-                
-                if let avatarId = avatarId {
-                    MainAppContext.shared.avatarStore.update(avatarId: avatarId, forUserId: self.userData.userId)
+        var request: XMPPRequest?
+        
+        if userAvatar.isEmpty { // remove old avatar
+            DDLogInfo("XMPPController/resendAvatarIfNecessary/remove avatar will be removed")
+            request = XMPPRemoveAvatarRequest { (error) in
+                if error == nil {
+                    DDLogInfo("XMPPController/resendAvatarIfNecessary/remove avatar has been removed")
+                    UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsUpload)
+                } else {
+                    DDLogError("XMPPController/resendAvatarIfNecessary/remove/error while removing avatar got \(error!)")
                 }
-            } else {
-                DDLogError("XMPPController/resendAvatarIfNecessary/error while uploading avatar got \(error!)")
+            }
+        } else { // upload new avatar
+            DDLogInfo("XMPPController/resendAvatarIfNecessary/remove avatar will be uploaded")
+            guard let avatarData = userAvatar.data else {
+                DDLogError("XMPPController/resendAvatarIfNecessary/upload/error avatar data is not ready")
+                return
+            }
+            
+            request = XMPPUploadAvatarRequest(data: avatarData) { (avatarId, error) in
+                if error == nil {
+                    UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsUpload)
+                    
+                    if let avatarId = avatarId {
+                        MainAppContext.shared.avatarStore.update(avatarId: avatarId, forUserId: self.userData.userId)
+                        DDLogInfo("XMPPController/resendAvatarIfNecessary/upload avatar has been uploaded")
+                    }
+                } else {
+                    DDLogError("XMPPController/resendAvatarIfNecessary/upload/error while uploading avatar got \(error!)")
+                }
             }
         }
 
-        self.enqueue(request: request)
+        self.enqueue(request: request!)
     }
 
     func sendCurrentAvatarIfPossible() {
-        UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsUpload)
+        UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsUpload)
 
         if isConnected {
             resendAvatarIfNecessary()

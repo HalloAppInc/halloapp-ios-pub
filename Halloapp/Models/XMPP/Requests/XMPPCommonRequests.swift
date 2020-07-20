@@ -73,16 +73,12 @@ class XMPPUploadAvatarRequest: XMPPRequest {
         self.completion = completion
         
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
-        
         iq.addChild({
             let avatarElement = XMLElement(name: "avatar", xmlns: "halloapp:user:avatar")
-            
             avatarElement.addAttribute(withName: "bytes", intValue: Int32(data.count))
             avatarElement.addAttribute(withName: "width", intValue: Int32(AvatarStore.avatarSize))
             avatarElement.addAttribute(withName: "height", intValue: Int32(AvatarStore.avatarSize))
-            
             avatarElement.stringValue = data.base64EncodedString()
-            
             return avatarElement
         }())
         
@@ -96,6 +92,31 @@ class XMPPUploadAvatarRequest: XMPPRequest {
 
     override func didFail(with error: Error) {
         self.completion(nil, error)
+    }
+}
+
+class XMPPRemoveAvatarRequest: XMPPRequest {
+    var completion: XMPPRequestCompletion
+    
+    init(completion: @escaping XMPPRequestCompletion) {
+        self.completion = completion
+        
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
+        iq.addChild({
+            let avatarElement = XMLElement(name: "avatar", xmlns: "halloapp:user:avatar")
+            avatarElement.addAttribute(withName: "id", stringValue: "")
+            return avatarElement
+        }())
+        
+        super.init(iq: iq)
+    }
+    
+    override func didFinish(with response: XMPPIQ) {
+        self.completion(nil)
+    }
+
+    override func didFail(with error: Error) {
+        self.completion(error)
     }
 }
 

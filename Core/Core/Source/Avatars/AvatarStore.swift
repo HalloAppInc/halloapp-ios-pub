@@ -168,7 +168,7 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
             
             userAvatar.avatarId = avatarId
             
-            if avatarId != "self" {
+            if avatarId != "self" && avatarId != "" {
                 userAvatar.loadImage(using: self)
             }
         }
@@ -300,32 +300,43 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
 }
 
 public class UserAvatar {
+    public var data: Data?
     public var image: UIImage? {
         didSet {
-            if let image = image {
-                DispatchQueue.main.async {
-                    self.imageDidChange.send(image)
-                }
+            DispatchQueue.main.async {
+                self.imageDidChange.send(self.image)
             }
-            
-            // TODO: How to handle removed avatar image?
         }
     }
-    public var data: Data?
+    public var isEmpty = true
     
-    fileprivate var avatarId: AvatarID?
+    fileprivate var avatarId: AvatarID? {
+        didSet {
+            if avatarId != nil && !avatarId!.isEmpty {
+                isEmpty = false
+            } else {
+                isEmpty = true
+            }
+        }
+    }
     fileprivate var fileUrl: URL?
     
     private let userId: UserID
     private var imageIsLoading = false
     
-    public let imageDidChange = PassthroughSubject<UIImage, Never>()
+    public let imageDidChange = PassthroughSubject<UIImage?, Never>()
     
     private static let avatarLoadingQueue = DispatchQueue(label: "com.halloapp.avatar-loading", qos: .userInitiated)
     
     init(_ avatar: Avatar) {
         avatarId = avatar.avatarId
         userId = avatar.userId
+        
+        if avatarId != nil && !avatarId!.isEmpty {
+            isEmpty = false
+        } else {
+            isEmpty = true
+        }
         
         if let relativeFilePath = avatar.relativeFilePath {
             fileUrl = AvatarStore.fileURL(forRelativeFilePath: relativeFilePath)
@@ -344,7 +355,7 @@ public class UserAvatar {
     }
     
     public func loadImage(using avatarStore: AvatarStore) {
-        guard image == nil && !imageIsLoading && avatarId != "" && avatarId != nil else {
+        guard image == nil && !imageIsLoading && !isEmpty else {
             return
         }
         

@@ -50,12 +50,19 @@ public class AvatarView: UIImageView {
             self.image = AvatarView.defaultImage
             self.tintColor = UIColor.systemGray
             
-            userAvatar.loadImage(using: avatarStore)
+            if !userAvatar.isEmpty {
+                userAvatar.loadImage(using: avatarStore)
+            }
         }
         
         avatarUpdatingCancellable = userAvatar.imageDidChange.sink { (image) in
-            self.image = image
-            self.tintColor = nil
+            if let image = image {
+                self.image = image
+                self.tintColor = nil
+            } else {
+                self.image = AvatarView.defaultImage
+                self.tintColor = UIColor.systemGray
+            }
         }
     }
     

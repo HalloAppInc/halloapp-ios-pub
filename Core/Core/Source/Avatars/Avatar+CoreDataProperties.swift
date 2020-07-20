@@ -17,6 +17,10 @@ extension Avatar {
     }
 
     @NSManaged public var userId: UserID
-    @NSManaged public var avatarId: String? // If avatar id is nil, it means the user removed their avatar
+    /*
+     If avatarId is nil, it means the user does not have an avatar
+     If avatarId is "", it means the user has one before but choose to remove it later
+     */
+    @NSManaged public var avatarId: String?
     @NSManaged public var relativeFilePath: String?
 }

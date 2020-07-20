@@ -18,15 +18,23 @@ struct ProfileEditView: View {
     
     @State private var profileImage: UIImage? = MainAppContext.shared.avatarStore.userAvatar(forUserId: MainAppContext.shared.userData.userId).image
     @State private var profileImageInput: UIImage?
+    @State private var showingImageMenu = false
     @State private var showingImagePicker = false
+    @State private var showingImageDeleteConfirm = false
     
     var body: some View {
-        NavigationView {
+        UITableView.appearance().backgroundColor = nil
+        
+        return NavigationView {
             VStack {
                 List {
                     Section(header: Text("Your Photo")) {
                         Button(action: {
-                            self.showingImagePicker = true
+                            if self.profileImage == nil {
+                                self.showingImagePicker = true
+                            } else {
+                                self.showingImageMenu = true
+                            }
                         }, label: {
                             if self.profileImage != nil {
                                 Image(uiImage: profileImage!)
@@ -42,7 +50,17 @@ struct ProfileEditView: View {
                                     .frame(width: 70, height: 70)
                                     .foregroundColor(.gray)
                             }
-                        }).sheet(isPresented: self.$showingImagePicker, onDismiss: uploadImage) {
+                        }).actionSheet(isPresented: self.$showingImageMenu) {
+                            ActionSheet(title: Text("Edit Your Photo"), message: nil, buttons: [
+                                .default(Text("Take or Choose Photo"), action: {
+                                    self.showingImagePicker = true
+                                }),
+                                .destructive(Text("Delete Photo"), action: {
+                                    self.showingImageDeleteConfirm = true
+                                }),
+                                .cancel()
+                            ])
+                        }.sheet(isPresented: self.$showingImagePicker, onDismiss: uploadImage) {
                             ImagePicker(image: self.$profileImageInput)
                         }
                     }
@@ -63,7 +81,24 @@ struct ProfileEditView: View {
                         }
                     }
                 }.listStyle(GroupedListStyle())
+                .actionSheet(isPresented: self.$showingImageDeleteConfirm) {
+                    ActionSheet(title: Text("Delete Your Photo"), message: nil, buttons: [
+                        .destructive(Text("Confirm"), action: {
+                            DDLogInfo("ProfileEditView/Done will remove user avatar")
+                            
+                            self.profileImage = nil
+                            
+                            MainAppContext.shared.avatarStore.save(avatarId: "", forUserId: MainAppContext.shared.userData.userId)
+                            
+                            MainAppContext.shared.xmppController.sendCurrentAvatarIfPossible()
+                        }),
+                        .cancel({
+                            self.showingImageMenu = true
+                        })
+                    ])
+                }
             }.navigationBarTitle("Edit Profile", displayMode: .inline)
+            .background(Color.feedBackground)
             .navigationBarItems(leading:
                 HStack {
                     Button(action: {
@@ -94,7 +129,6 @@ struct ProfileEditView: View {
                             .fontWeight(.medium)
                             .foregroundColor(name.text == "" ? .gray : Color("Tint"))
                     }.disabled(name.text == "")
-                    
                 }
             )
         }
