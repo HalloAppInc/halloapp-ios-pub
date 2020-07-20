@@ -35,12 +35,6 @@ class VideoUtils {
             .appendingPathExtension("mp4")
         exporter.outputURL = tmpURL
 
-        let compressionDict: [String: Any] = [
-            AVVideoAverageBitRateKey: NSNumber(integerLiteral: Constants.videoBitrate),
-//            AVVideoProfileLevelKey: AVVideoProfileLevelH264BaselineAutoLevel as String
-            AVVideoProfileLevelKey: kVTProfileLevel_HEVC_Main_AutoLevel as String
-        ]
-
         let track = avAsset.tracks(withMediaType: AVMediaType.video).first
         let videoResolution: CGSize = {
             let size = track!.naturalSize.applying(track!.preferredTransform)
@@ -71,11 +65,14 @@ class VideoUtils {
         DDLogInfo("video-processing/ New Video Resolution: \(targetVideoSize)")
 
         exporter.videoOutputConfiguration = [
-            AVVideoCodecKey: AVVideoCodecType.hevc,
+            AVVideoCodecKey: AVVideoCodecType.h264,
             AVVideoWidthKey: NSNumber(integerLiteral: Int(targetVideoSize.width)),
             AVVideoHeightKey: NSNumber(integerLiteral: Int(targetVideoSize.height)),
             AVVideoScalingModeKey: AVVideoScalingModeResizeAspectFill,
-            AVVideoCompressionPropertiesKey: compressionDict
+            AVVideoCompressionPropertiesKey: [
+                AVVideoAverageBitRateKey: NSNumber(integerLiteral: Constants.videoBitrate),
+                AVVideoProfileLevelKey: AVVideoProfileLevelH264BaselineAutoLevel
+            ]
         ]
         exporter.audioOutputConfiguration = [
             AVFormatIDKey: kAudioFormatMPEG4AAC,
