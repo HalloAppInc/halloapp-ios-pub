@@ -6,24 +6,24 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import AVFoundation
+import AVKit
 import CocoaLumberjack
 import Foundation
-import AVFoundation
-import SwiftUI
-
-import UIKit
-import AVKit
-
-import VideoToolbox
 import NextLevelSessionExporter
+import SwiftUI
+import UIKit
+import VideoToolbox
 
 class VideoUtils {
 
-    var desiredSize = CGSize(width: 854, height: 480)
-    var desiredVideoBitrate = 2000000
-    var desiredAudioBitrate = 96000
-    
-    func resizeVideo(inputUrl: URL, completion: @escaping (_ outputUrl: URL, _ videoSize: CGSize?) -> Void) {
+    private struct Constants {
+        static let maximumVideoSize: CGFloat = 854 // either width or height
+        static let videoBitrate = 2000000
+        static let audioBitrate = 96000
+    }
+
+    static func resizeVideo(inputUrl: URL, completion: @escaping (Swift.Result<(URL, CGSize), Error>) -> Void) {
 
         let avAsset = AVURLAsset(url: inputUrl, options: nil)
         
@@ -36,92 +36,79 @@ class VideoUtils {
         exporter.outputURL = tmpURL
 
         let compressionDict: [String: Any] = [
-            AVVideoAverageBitRateKey: NSNumber(integerLiteral: desiredVideoBitrate),
+            AVVideoAverageBitRateKey: NSNumber(integerLiteral: Constants.videoBitrate),
 //            AVVideoProfileLevelKey: AVVideoProfileLevelH264BaselineAutoLevel as String
             AVVideoProfileLevelKey: kVTProfileLevel_HEVC_Main_AutoLevel as String
         ]
 
         let track = avAsset.tracks(withMediaType: AVMediaType.video).first
-        let size = track!.naturalSize.applying(track!.preferredTransform)
+        let videoResolution: CGSize = {
+            let size = track!.naturalSize.applying(track!.preferredTransform)
+            return CGSize(width: abs(size.width), height: abs(size.height))
+        }()
+        let videoAspectRatio = videoResolution.width / videoResolution.height
+        var targetVideoSize = videoResolution
 
-        var videoWidth = Int(abs(size.width))
-        var videoHeight = Int(abs(size.height))
-
-        DDLogInfo("Original Video Resolution: \(videoWidth) x \(videoHeight)")
+        DDLogInfo("video-processing/ Original Video Resolution: \(videoResolution)")
 
         // portrait
-        if videoHeight > videoWidth {
-            if videoHeight > Int(desiredSize.width) {
-                DDLogInfo("Portrait taller than \(Int(desiredSize.width)), need to rescale")
+        if videoResolution.height > videoResolution.width {
+            if videoResolution.height > Constants.maximumVideoSize {
+                DDLogInfo("video-processing/ Portrait taller than \(Constants.maximumVideoSize), need to rescale")
 
-                let ratio = Double(videoWidth)/Double(videoHeight)
-                let resizedWidth = ratio*854
-
-                videoHeight = Int(desiredSize.width)
-                videoWidth = Int(resizedWidth)
-
-                DDLogInfo("New Video Resolution: \(videoWidth) x \(videoHeight)")
+                targetVideoSize.height = Constants.maximumVideoSize
+                targetVideoSize.width = round(videoAspectRatio * targetVideoSize.height)
             }
         // landscape or square
         } else {
-            if videoWidth > Int(desiredSize.width) {
-                DDLogInfo("Landscape wider than \(Int(desiredSize.width)), need to rescale")
+            if videoResolution.width > Constants.maximumVideoSize {
+                DDLogInfo("video-processing/ Landscape wider than \(Constants.maximumVideoSize), need to rescale")
 
-                let ratio = Double(videoWidth)/Double(videoHeight)
-                let resizedHeight = Double(desiredSize.width)/ratio
-
-                videoWidth = Int(desiredSize.width)
-                videoHeight = Int(resizedHeight)
-
-                DDLogInfo("New Video Resolution: \(videoWidth) x \(videoHeight)")
+                targetVideoSize.width = Constants.maximumVideoSize
+                targetVideoSize.height = round(targetVideoSize.width / videoAspectRatio)
             }
         }
+        DDLogInfo("video-processing/ New Video Resolution: \(targetVideoSize)")
 
         exporter.videoOutputConfiguration = [
             AVVideoCodecKey: AVVideoCodecType.hevc,
-//            AVVideoCodecKey: AVVideoCodecType.h264,
-            AVVideoWidthKey: NSNumber(integerLiteral: videoWidth),
-            AVVideoHeightKey: NSNumber(integerLiteral: videoHeight),
+            AVVideoWidthKey: NSNumber(integerLiteral: Int(targetVideoSize.width)),
+            AVVideoHeightKey: NSNumber(integerLiteral: Int(targetVideoSize.height)),
             AVVideoScalingModeKey: AVVideoScalingModeResizeAspectFill,
             AVVideoCompressionPropertiesKey: compressionDict
         ]
         exporter.audioOutputConfiguration = [
             AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVEncoderBitRateKey: NSNumber(integerLiteral: desiredAudioBitrate),
+            AVEncoderBitRateKey: NSNumber(integerLiteral: Constants.audioBitrate),
             AVNumberOfChannelsKey: NSNumber(integerLiteral: 2),
             AVSampleRateKey: NSNumber(value: Float(44100))
         ]
 
+        DDLogInfo("video-processing/export/start")
         exporter.export(progressHandler: { (progress) in
-//            print(progress)
-        }, completionHandler: { result in
+            DDLogInfo("video-processing/export/progress [\(progress)]")
+        }) { (result) in
             switch result {
             case .success(let status):
                 switch status {
                 case .completed:
-                    print("NextLevelSessionExporter, export completed, \(exporter.outputURL?.description ?? "")")
+                    DDLogInfo("video-processing/export/completed url=[\(exporter.outputURL?.description ?? "")]")
+                    completion(.success((exporter.outputURL!, targetVideoSize)))
 
-                    if let outputUrl = exporter.outputURL {
-                        completion(outputUrl, CGSize(width: abs(videoWidth), height: abs(videoHeight)))
-                    }
-                        
-                    break
                 default:
-                    print("NextLevelSessionExporter, did not complete")
+                    DDLogWarn("video-processing/export/finished status=[\(status)] url=[\(exporter.outputURL?.description ?? "")]")
                     //todo: take care of error case
-                    break
                 }
                 break
-            case .failure(let error):
-                print("NextLevelSessionExporter, failed to export \(error)")
-                //todo: take care of error case
-                break
-            }
-        })
 
+            case .failure(let error):
+                DDLogError("video-processing/export/failed error=[\(error)]")
+                completion(.failure(error))
+            }
+        }
     }
     
-    func resolutionForLocalVideo(url: URL) -> CGSize? {
+    static func resolutionForLocalVideo(url: URL) -> CGSize? {
         guard let track = AVURLAsset(url: url).tracks(withMediaType: AVMediaType.video).first else { return nil }
         let size = track.naturalSize.applying(track.preferredTransform)
         return CGSize(width: abs(size.width), height: abs(size.height))

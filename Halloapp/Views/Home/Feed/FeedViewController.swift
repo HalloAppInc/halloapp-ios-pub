@@ -133,7 +133,7 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
             mediaToPost = PendingMedia(type: .video)
             mediaToPost!.videoURL = videoURL
 
-            if let videoSize = VideoUtils().resolutionForLocalVideo(url: videoURL) {
+            if let videoSize = VideoUtils.resolutionForLocalVideo(url: videoURL) {
                 mediaToPost!.size = videoSize
                 DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
             }
@@ -206,7 +206,7 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
                     mediaItem.order = orderCounter
                     orderCounter += 1
 
-                    if let videoSize = VideoUtils().resolutionForLocalVideo(url: video.url) {
+                    if let videoSize = VideoUtils.resolutionForLocalVideo(url: video.url) {
                         mediaItem.size = videoSize
                         DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
                     }

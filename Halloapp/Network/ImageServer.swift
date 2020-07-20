@@ -11,6 +11,17 @@ import CocoaLumberjack
 import Core
 import SwiftUI
 
+enum ImageProcessingError: Error {
+    case invalidImage
+    case resizeFailure
+    case jpegConversionFailure
+}
+
+enum VideoProcessingError: Error {
+    case emptyURL
+    case fileInaccessible
+}
+
 class ImageServer {
     private let jpegCompressionQuality = CGFloat(MainAppContext.shared.userData.compressionQuality)
     private let maxImageSize: CGFloat = 1600
@@ -80,7 +91,7 @@ class ImageServer {
             case .image:
                 guard let image = item.image else {
                     DDLogError("ImageServer/image/prepare/error  Empty image [\(item)]")
-                    // TODO: assign error
+                    item.error = ImageProcessingError.invalidImage
                     break
                 }
                 DDLogInfo("ImageServer/image/prepare  Original image size: [\(NSCoder.string(for: item.size!))]")
@@ -96,7 +107,7 @@ class ImageServer {
                     let ts = Date()
                     guard let resized = image.resized(to: targetSize) else {
                         DDLogError("ImageServer/image/prepare/error  Resize failed [\(item)]")
-                        // TODO: assign error
+                        item.error = ImageProcessingError.resizeFailure
                         break
                     }
                     DDLogDebug("ImageServer/image/prepare  Resized in \(-ts.timeIntervalSinceNow) s")
@@ -113,7 +124,7 @@ class ImageServer {
 
                 guard let imgData = item.image!.jpegData(compressionQuality: self.jpegCompressionQuality) else {
                     DDLogError("ImageServer/image/prepare/error  Failed to generate JPEG data. \(item)")
-                    // TODO: assign error
+                    item.error = ImageProcessingError.jpegConversionFailure
                     break
                 }
                 DDLogInfo("ImageServer/image/prepare/ready  JPEG Quality: [\(self.jpegCompressionQuality)] Size: [\(imgData.count)]")
@@ -123,29 +134,37 @@ class ImageServer {
             case .video:
                 guard let videoUrl = item.videoURL else {
                     DDLogError("ImageServer/video/prepare/error  Empty video URL. \(item)")
-                    // TODO: assign error
+                    item.error = VideoProcessingError.emptyURL
                     break
                 }
                 guard let fileAttrs = try? FileManager.default.attributesOfItem(atPath: videoUrl.path) else {
                     DDLogError("ImageServer/video/prepare/error  Failed to get file attributes. \(item)")
-                    // TODO: assign error
+                    item.error = VideoProcessingError.fileInaccessible
                     break
                 }
                 let fileSize = fileAttrs[FileAttributeKey.size] as! NSNumber
                 DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)]")
 
                 mediaResizeGroup.enter()
-                VideoUtils().resizeVideo(inputUrl: videoUrl) { (outputUrl, videoSize) in
-                    if let resizedVideoData = try? Data(contentsOf: outputUrl) {
-                        self.mediaProcessingGroup.enter()
-                        DispatchQueue.main.async {
-                            item.size = videoSize
-                            self.mediaProcessingGroup.leave()
+                VideoUtils.resizeVideo(inputUrl: videoUrl) { (result) in
+                    switch result {
+                    case .success(let (videoURL, videoResolution)):
+                        if let resizedVideoData = try? Data(contentsOf: videoURL) {
+                            DDLogInfo("ImageServer/video/prepare/ready  New Video file size: [\(resizedVideoData.count)]")
+                            self.mediaProcessingGroup.enter()
+                            DispatchQueue.main.async {
+                                item.size = videoResolution
+                                self.mediaProcessingGroup.leave()
+                            }
+                            plaintextData = resizedVideoData
+                        } else {
+                            DDLogError("ImageServer/video/prepare/error  File not accessible")
+                            item.error = VideoProcessingError.fileInaccessible
                         }
-                        DDLogInfo("ImageServer/video/prepare/ready  New Video size: [\(resizedVideoData.count)]")
-                        plaintextData = resizedVideoData
-                    } else {
-                        // TODO: assign error
+
+                    case .failure(let error):
+                        DDLogError("ImageServer/video/prepare/error [\(error)]")
+                        item.error = error
                     }
                     mediaResizeGroup.leave()
                 }
