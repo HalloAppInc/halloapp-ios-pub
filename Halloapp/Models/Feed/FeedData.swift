@@ -48,7 +48,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         do {
            try AVAudioSession.sharedInstance().setCategory(.playback)
         } catch(let error) {
-            print(error.localizedDescription)
+            DDLogError("FeedData/  Failed to set AVAudioSession category to \"Playback\" error=[\(error.localizedDescription)]")
         }
 
         // when app resumes, xmpp reconnects, feed should try uploading any pending again

@@ -255,7 +255,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                             do {
                                 try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
                             } catch {
-                                print(error.localizedDescription)
+                                DDLogError(error.localizedDescription)
                             }
                         }
                         
@@ -263,14 +263,14 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                         if FileManager.default.fileExists(atPath: fileURL.path) {
                             try! FileManager.default.removeItem(atPath: fileURL.path)
                         } else {
-                            print("File does not exist")
+                            DDLogError("File does not exist")
                         }
                         
                         do {
                             try decryptedData.write(to: fileURL, options: [])
                         }
                         catch {
-                            print("can't write error: \(error)")
+                            DDLogError("can't write error: \(error)")
                             return
                         }
                         
@@ -575,7 +575,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 try FileManager.default.createDirectory(at: toUrl.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
 
             } catch {
-                print(error.localizedDescription)
+                DDLogError(error.localizedDescription)
             }
         }
 
