@@ -755,6 +755,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func processRetract(forPostId postId: FeedPostID, completion: @escaping () -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
             guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else {
                 DDLogError("FeedData/retract-post/error Missing post. [\(postId)]")
                 completion()
