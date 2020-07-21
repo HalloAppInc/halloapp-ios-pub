@@ -9,7 +9,6 @@
 import Alamofire
 import CocoaLumberjack
 import Core
-import FirebaseCrashlytics
 import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension {

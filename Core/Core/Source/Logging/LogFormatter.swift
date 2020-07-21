@@ -8,7 +8,7 @@
 
 import CocoaLumberjack
 
-class LogFormatter: NSObject, DDLogFormatter {
+public class LogFormatter: NSObject, DDLogFormatter {
 
     static private func logLevel(for logMessage: DDLogMessage) -> String {
         switch logMessage.flag {
@@ -35,7 +35,7 @@ class LogFormatter: NSObject, DDLogFormatter {
         return shortName
     }
 
-    func format(message logMessage: DDLogMessage) -> String? {
+    public func format(message logMessage: DDLogMessage) -> String? {
         let queueName = LogFormatter.queueLabel(for: logMessage)
         let logLevel = LogFormatter.logLevel(for: logMessage)
         let logMessageStr = logMessage.message.replacingOccurrences(of: "\n", with: "\n\(logLevel) ")

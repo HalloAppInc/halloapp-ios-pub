@@ -6,8 +6,10 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Combine
 import Core
+import Firebase
 import Foundation
 
 class MainAppContext: AppContext {
@@ -69,6 +71,12 @@ class MainAppContext: AppContext {
     }
 
     required init(xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
+        FirebaseApp.configure()
+
+        let clLogger = CLLogger()
+        clLogger.logFormatter = LogFormatter()
+        DDLog.add(clLogger)
+
         super.init(xmppControllerClass: xmppControllerClass, contactStoreClass: contactStoreClass)
 
         // This is needed to encode/decode protobuf in FeedPostInfo.
