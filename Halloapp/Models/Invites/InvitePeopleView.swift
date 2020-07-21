@@ -101,9 +101,6 @@ struct InvitePeopleView: View {
                                  recipients: ["+\(self.inviteManager.contactToInvite!.normalizedPhoneNumber!)"],
                                  messageText: "Check out this new cool app called HalloApp. Download here: http://halloapp.net/dl")
         }
-        .onAppear {
-            self.inviteManager.requestInvitesIfNecessary()
-        }
         .onDisappear {
             self.inviteManager.contactToInvite = nil
         }

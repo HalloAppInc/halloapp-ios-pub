@@ -25,113 +25,102 @@ struct ProfileEditView: View {
     var body: some View {
         UITableView.appearance().backgroundColor = nil
         
-        return NavigationView {
-            VStack {
-                List {
-                    Section(header: Text("Your Photo")) {
-                        Button(action: {
-                            if self.profileImage == nil {
-                                self.showingImagePicker = true
-                            } else {
-                                self.showingImageMenu = true
-                            }
-                        }, label: {
-                            if self.profileImage != nil {
-                                Image(uiImage: profileImage!)
-                                    .renderingMode(.original)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 70, height: 70)
-                                    .cornerRadius(35)
-                            } else {
-                                Image(systemName: "person.crop.circle")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 70, height: 70)
-                                    .foregroundColor(.gray)
-                            }
-                        }).actionSheet(isPresented: self.$showingImageMenu) {
-                            ActionSheet(title: Text("Edit Your Photo"), message: nil, buttons: [
-                                .default(Text("Take or Choose Photo"), action: {
-                                    self.showingImagePicker = true
-                                }),
-                                .destructive(Text("Delete Photo"), action: {
-                                    self.showingImageDeleteConfirm = true
-                                }),
-                                .cancel()
-                            ])
-                        }.sheet(isPresented: self.$showingImagePicker, onDismiss: uploadImage) {
-                            ImagePicker(image: self.$profileImageInput)
-                        }
-                    }
-                    
-                    Section(header: Text("Your Name")) {
-                        HStack {
-                            TextField("Enter your name", text: $name.text)
-                            
-                            Text("\(name.text.count)/25")
-                                .foregroundColor(.gray)
-                        }
-                    }
-                    
-                    Section(header: Text("Your Phone Number")) {
-                        HStack {
-                            Text(MainAppContext.shared.userData.formattedPhoneNumber)
-                                .foregroundColor(.gray)
-                        }
-                    }
-                }.listStyle(GroupedListStyle())
-                .actionSheet(isPresented: self.$showingImageDeleteConfirm) {
-                    ActionSheet(title: Text("Delete Your Photo"), message: nil, buttons: [
-                        .destructive(Text("Confirm"), action: {
-                            DDLogInfo("ProfileEditView/Done will remove user avatar")
-                            
-                            self.profileImage = nil
-                            
-                            MainAppContext.shared.avatarStore.save(avatarId: "", forUserId: MainAppContext.shared.userData.userId)
-                            
-                            MainAppContext.shared.xmppController.sendCurrentAvatarIfPossible()
-                        }),
-                        .cancel({
+        return VStack {
+            List {
+                Section(header: Text("Your Photo")) {
+                    Button(action: {
+                        if self.profileImage == nil {
+                            self.showingImagePicker = true
+                        } else {
                             self.showingImageMenu = true
-                        })
-                    ])
-                }
-            }.navigationBarTitle("Edit Profile", displayMode: .inline)
-            .background(Color.feedBackground)
-            .navigationBarItems(leading:
-                HStack {
-                    Button(action: {
-                        if self.dismiss != nil {
-                            self.dismiss!()
                         }
                     }) {
-                        Text("Cancel")
-                            .foregroundColor(Color("Tint"))
+                        if self.profileImage != nil {
+                            Image(uiImage: profileImage!)
+                                .renderingMode(.original)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 70, height: 70)
+                                .cornerRadius(35)
+                        } else {
+                            Image(systemName: "person.crop.circle")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 70, height: 70)
+                                .foregroundColor(.gray)
+                        }
                     }
-                }, trailing:
-                HStack {
-                    Button(action: {
-                        if (self.name.text != MainAppContext.shared.userData.name) {
-                            DDLogInfo("ProfileEditView/Done will change user name")
-                            
-                            MainAppContext.shared.userData.name = self.name.text
-                            MainAppContext.shared.userData.save()
-                            
-                            MainAppContext.shared.xmppController.sendCurrentUserNameIfPossible()
-                        }
-                        
-                        if self.dismiss != nil {
-                            self.dismiss!()
-                        }
-                    }) {
-                        Text("Done")
-                            .fontWeight(.medium)
-                            .foregroundColor(name.text == "" ? .gray : Color("Tint"))
-                    }.disabled(name.text == "")
+                    .actionSheet(isPresented: self.$showingImageMenu) {
+                        ActionSheet(title: Text("Edit Your Photo"), message: nil, buttons: [
+                            .default(Text("Take or Choose Photo"), action: {
+                                self.showingImagePicker = true
+                            }),
+                            .destructive(Text("Delete Photo"), action: {
+                                self.showingImageDeleteConfirm = true
+                            }),
+                            .cancel()
+                        ])
+                    }
+                    .sheet(isPresented: self.$showingImagePicker, onDismiss: uploadImage) {
+                        ImagePicker(image: self.$profileImageInput)
+                    }
                 }
-            )
+
+                Section(header: Text("Your Name")) {
+                    HStack {
+                        TextField("Enter your name", text: $name.text)
+
+                        Text("\(name.text.count)/25")
+                            .foregroundColor(.gray)
+                    }
+                }
+
+                Section(header: Text("Your Phone Number")) {
+                    HStack {
+                        Text(MainAppContext.shared.userData.formattedPhoneNumber)
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+            .listStyle(GroupedListStyle())
+            .actionSheet(isPresented: self.$showingImageDeleteConfirm) {
+                ActionSheet(title: Text("Delete Your Photo"), message: nil, buttons: [
+                    .destructive(Text("Confirm"), action: {
+                        DDLogInfo("ProfileEditView/Done will remove user avatar")
+
+                        self.profileImage = nil
+
+                        MainAppContext.shared.avatarStore.save(avatarId: "", forUserId: MainAppContext.shared.userData.userId)
+
+                        MainAppContext.shared.xmppController.sendCurrentAvatarIfPossible()
+                    }),
+                    .cancel({
+                        self.showingImageMenu = true
+                    })
+                ])
+            }
         }
+        .navigationBarTitle("Edit Profile", displayMode: .inline)
+        .background(Color.feedBackground)
+        .navigationBarItems(trailing:
+            Button(action: {
+                if (self.name.text != MainAppContext.shared.userData.name) {
+                    DDLogInfo("ProfileEditView/Done will change user name")
+
+                    MainAppContext.shared.userData.name = self.name.text
+                    MainAppContext.shared.userData.save()
+
+                    MainAppContext.shared.xmppController.sendCurrentUserNameIfPossible()
+                }
+                if self.dismiss != nil {
+                    self.dismiss!()
+                }
+            }) {
+                Text("Done")
+                    .fontWeight(.medium)
+            }
+            .disabled(name.text.isEmpty)
+        )
     }
     
     func uploadImage() {

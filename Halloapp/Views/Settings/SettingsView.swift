@@ -6,16 +6,38 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Core
 import MessageUI
 import SwiftUI
 
+fileprivate struct ProfilePictureView: UIViewRepresentable {
+
+    typealias UIViewType = AvatarView
+
+    private let userId: UserID
+
+    init(userId: UserID) {
+        self.userId = userId
+    }
+
+    func makeUIView(context: Context) -> AvatarView {
+        let avatarView = AvatarView()
+        avatarView.configure(with: self.userId, using: MainAppContext.shared.avatarStore)
+        return avatarView
+    }
+
+    func updateUIView(_ uiView: AvatarView, context: Context) { }
+}
+
 struct SettingsView: View {
     @ObservedObject private var privacySettings = MainAppContext.shared.xmppController.privacySettings
+    @ObservedObject private var userData = MainAppContext.shared.userData
+    @ObservedObject private var inviteManager = InviteManager.shared
 
     @State private var isShowingMailView = false
     @State private var mailViewResult: Result<MFMailComposeResult, Error>? = nil
 
-    @State private var isMutedListPresented = false
+    @State private var isEditingProfile = false
     @State private var isBlockedListPresented = false
 
     var body: some View {
@@ -33,7 +55,36 @@ struct SettingsView: View {
             }
 
             Form {
-                Section(header: Text("PRIVACY")) {
+                // Profile
+                Section {
+                    NavigationLink(destination: ProfileEditView(dismiss: { self.isEditingProfile = false }), isActive: self.$isEditingProfile) {
+                        HStack(spacing: 15) {
+                            ProfilePictureView(userId: userData.userId)
+                                .frame(width: 60, height: 60)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(userData.name)
+                                    .font(Font(UIFont.preferredFont(forTextStyle: .title3))).fontWeight(.medium)
+
+                                Text(userData.formattedPhoneNumber)
+                                    .font(.footnote)
+                            }
+                        }
+                        .padding(.vertical, 2) // default padding is 6pt - add 2 pt to make standard 8
+                    }
+                }
+
+                // Notifications
+                Section(header: Text("Notifications".uppercased())) {
+                    Toggle("Posts", isOn: .constant(true))
+                        .disabled(true)
+
+                    Toggle("Comments", isOn: .constant(true))
+                        .disabled(true)
+                }
+
+                // Privacy
+                Section(header: Text("Privacy".uppercased())) {
                     // Feed
                     NavigationLink(destination: FeedPrivacyView().environmentObject(self.privacySettings)) {
                         HStack {
@@ -43,21 +94,6 @@ struct SettingsView: View {
                         }
                     }
                     .disabled(!self.privacySettings.isLoaded)
-
-                    // Muted Contacts
-                    Button(action: { self.isMutedListPresented = true }) {
-                        HStack {
-                            Text(PrivacyList.name(forPrivacyListType: .muted))
-                            Spacer()
-                            Text(self.privacySettings.mutedSetting).foregroundColor(.secondary)
-                        }
-                    }
-                    .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
-                    .sheet(isPresented: self.$isMutedListPresented) {
-                        PrivacyListView(self.privacySettings.muted!, dismissAction: { self.isMutedListPresented = false })
-                            .environmentObject(self.privacySettings)
-                            .edgesIgnoringSafeArea(.bottom)
-                    }
 
                     // Blocked Contacts
                     Button(action: { self.isBlockedListPresented = true }) {
@@ -73,40 +109,54 @@ struct SettingsView: View {
                             .environmentObject(self.privacySettings)
                             .edgesIgnoringSafeArea(.bottom)
                     }
-                }
 
-                Section {
-                    // Invite Contacts
-                    NavigationLink(destination: InvitePeopleView()) {
-                        Text("Invite Friends")
-                            .foregroundColor(.lavaOrange)
+                    // Privacy Policy
+                    NavigationLink(destination: Text("Coming Soon")) {
+                        Text("Terms and Privacy Policy")
                     }
                 }
 
-                Section(header: Text("ABOUT")) {
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text("\(UIApplication.shared.version)")
-                    }
-                }
-
-                Section {
-                    Button(action: {
-                        if MFMailComposeViewController.canSendMail() {
-                            self.isShowingMailView = true
+                // Help / About
+                Section(header: Text("About".uppercased()),
+                        footer: VStack {
+                            Text("HalloApp")
+                            Text("Version \(UIApplication.shared.version)")
                         }
-                    }) {
-                        Text("Send Logs").foregroundColor(.lavaOrange)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                ) {
+                    // FAQ
+                    NavigationLink(destination: Text("Coming Soon")) {
+                        Text("FAQ")
                     }
-                    .sheet(isPresented: self.$isShowingMailView) {
-                        MailView(result: self.$mailViewResult)
+
+                    // Send Logs
+                    if MFMailComposeViewController.canSendMail() {
+                        Button(action: { self.isShowingMailView = true }) {
+                            Text("Send Logs")
+                        }
+                        .sheet(isPresented: self.$isShowingMailView) {
+                            MailView(result: self.$mailViewResult)
+                        }
+                    }
+
+                    // Invite Friends
+                    NavigationLink(destination: InvitePeopleView()) {
+                        HStack {
+                            Text("Invite Friends")
+
+                            Spacer()
+
+                            Text(self.inviteManager.dataAvailable ? "\(self.inviteManager.numberOfInvitesAvailable) Invites" : "...")
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
             }
         }
         .onAppear(perform: {
             self.privacySettings.downloadListsIfNecessary()
+            self.inviteManager.requestInvitesIfNecessary()
         })
         .onDisappear(perform: {
             self.privacySettings.resetSyncError()

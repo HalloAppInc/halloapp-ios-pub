@@ -35,6 +35,14 @@ class ProfileViewController: FeedTableViewController {
         headerView.addGestureRecognizer(headerTapGesture)
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        if let tableHeaderView = self.tableView.tableHeaderView as? FeedTableHeaderView {
+            tableHeaderView.updateProfile()
+        }
+    }
+
     // MARK: UI Actions
 
     @objc(presentDeveloperMenu)
@@ -53,13 +61,8 @@ class ProfileViewController: FeedTableViewController {
     @objc(presentProfileEditScreen)
     private func presentProfileEditScreen() {
         var profileEditView = ProfileEditView()
-        
-        profileEditView.dismiss = {
-            (self.tableView.tableHeaderView as! FeedTableHeaderView).updateProfile()
-            self.dismiss(animated: true)
-        }
-        
-        self.present(UIHostingController(rootView: profileEditView), animated: true)
+        profileEditView.dismiss = { self.navigationController?.popViewController(animated: true) }
+        self.navigationController?.pushViewController(UIHostingController(rootView: profileEditView), animated: true)
     }
 
     // MARK: FeedTableViewController
