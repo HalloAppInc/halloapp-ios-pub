@@ -81,4 +81,8 @@ public class AvatarView: UIImageView {
         
         self.layer.mask = maskLayer
     }
+
+    public override var intrinsicContentSize: CGSize {
+        get { CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric) }
+    }
 }
