@@ -73,9 +73,9 @@ class MainAppContext: AppContext {
     required init(xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
         FirebaseApp.configure()
 
-        let clLogger = CLLogger()
-        clLogger.logFormatter = LogFormatter()
-        DDLog.add(clLogger)
+        let logger = CrashlyticsLogger()
+        logger.logFormatter = LogFormatter()
+        DDLog.add(logger)
 
         super.init(xmppControllerClass: xmppControllerClass, contactStoreClass: contactStoreClass)
 

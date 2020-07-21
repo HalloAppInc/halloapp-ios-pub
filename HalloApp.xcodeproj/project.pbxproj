@@ -28,6 +28,7 @@
 		761E9AAD2465E83900864AE9 /* Zip in Frameworks */ = {isa = PBXBuildFile; productRef = 761E9AAC2465E83900864AE9 /* Zip */; };
 		761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761EE21D24B5135400B30632 /* MFMessageComposeView.swift */; };
 		7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */; };
+		7626CCDE24C738F50023FC2E /* CrashlyticsLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7626CCDD24C738F50023FC2E /* CrashlyticsLogger.swift */; };
 		762EDBCA244E2EB700986617 /* Gotham-BlackIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */; };
 		762EDBCB244E2EB700986617 /* Gotham-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBB244E2EB500986617 /* Gotham-Medium.otf */; };
 		762EDBCC244E2EB700986617 /* Gotham-UltraIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBC244E2EB600986617 /* Gotham-UltraIta.otf */; };
@@ -241,6 +242,7 @@
 		761C6167242D89F90028AE19 /* TextLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextLabel.swift; path = HalloApp/Components/Views/TextLabel.swift; sourceTree = SOURCE_ROOT; };
 		761EE21D24B5135400B30632 /* MFMessageComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MFMessageComposeView.swift; path = HalloApp/Components/Views/MFMessageComposeView.swift; sourceTree = SOURCE_ROOT; };
 		7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CircularProgressView.swift; path = HalloApp/Components/Views/CircularProgressView.swift; sourceTree = SOURCE_ROOT; };
+		7626CCDD24C738F50023FC2E /* CrashlyticsLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CrashlyticsLogger.swift; path = HalloApp/Logging/CrashlyticsLogger.swift; sourceTree = SOURCE_ROOT; };
 		762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-BlackIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-BlackIta.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBBB244E2EB500986617 /* Gotham-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-Medium.otf"; path = "HalloApp/Resources/Fonts/Gotham-Medium.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBBC244E2EB600986617 /* Gotham-UltraIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-UltraIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-UltraIta.otf"; sourceTree = SOURCE_ROOT; };
@@ -514,6 +516,14 @@
 				7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		7626CCD924C738840023FC2E /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				7626CCDD24C738F50023FC2E /* CrashlyticsLogger.swift */,
+			);
+			path = Logging;
 			sourceTree = "<group>";
 		};
 		764AB41624A67A3C00D4E354 /* Privacy */ = {
@@ -886,19 +896,20 @@
 		EAF3A1C12334191E00805FF9 /* Halloapp */ = {
 			isa = PBXGroup;
 			children = (
-				76DF9FF724132BDC00F49CA4 /* Global */,
-				EA3861EB23342C3800705943 /* Models */,
-				EA5AD43C23342B8C00429643 /* Views */,
-				EA0D20062363AC4D008B8289 /* Landing.swift */,
+				EAF3A1C22334191E00805FF9 /* AppDelegate.swift */,
 				761C6165242D896E0028AE19 /* Components */,
+				76DF9FF724132BDC00F49CA4 /* Global */,
+				76955DE924746E4C0088BE8C /* GoogleService-Info.plist */,
+				EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */,
+				EAF3A1D02334192000805FF9 /* Info.plist */,
+				EA0D20062363AC4D008B8289 /* Landing.swift */,
+				EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */,
+				7626CCD924C738840023FC2E /* Logging */,
+				EA3861EB23342C3800705943 /* Models */,
 				EAC4AF21233E8D9700739B2B /* Network */,
 				146B93702405F2F900768AC6 /* Resources */,
-				EAF3A1D02334192000805FF9 /* Info.plist */,
-				76955DE924746E4C0088BE8C /* GoogleService-Info.plist */,
-				EAF3A1C22334191E00805FF9 /* AppDelegate.swift */,
 				EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */,
-				EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */,
-				EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */,
+				EA5AD43C23342B8C00429643 /* Views */,
 			);
 			path = Halloapp;
 			sourceTree = "<group>";
@@ -1277,6 +1288,7 @@
 				EAD476F32458F03700EF8591 /* ChatMedia+CoreDataProperties.swift in Sources */,
 				EAC84CEA2422E05700A5AAEF /* XMPPFeedRequests.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
+				7626CCDE24C738F50023FC2E /* CrashlyticsLogger.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,

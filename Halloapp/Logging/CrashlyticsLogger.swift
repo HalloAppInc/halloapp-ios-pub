@@ -1,5 +1,5 @@
 //
-//  Log.swift
+//  CrashlyticsLogger.swift
 //  Core
 //
 //  Created by Ethan Rosenthal on 6/10/20.
@@ -10,7 +10,7 @@ import Foundation
 import CocoaLumberjack
 import FirebaseCrashlytics
 
-public final class CLLogger: DDAbstractLogger {
+public final class CrashlyticsLogger: DDAbstractLogger {
 
     public override func log(message logMessage: DDLogMessage) {
 

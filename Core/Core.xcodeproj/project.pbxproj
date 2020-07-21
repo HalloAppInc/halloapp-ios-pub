@@ -41,7 +41,6 @@
 		76E5152F24A1761E003F1273 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 76E5152E24A1761E003F1273 /* Alamofire */; };
 		76E5153824A18171003F1273 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E5153724A18171003F1273 /* Digest.swift */; };
 		ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3156278C2E59CE6580A649AA /* Pods_Core.framework */; };
-		E706829C2491705E00D9232A /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = E706829B2491705E00D9232A /* Log.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -82,7 +81,6 @@
 		76E5153724A18171003F1273 /* Digest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Digest.swift; sourceTree = "<group>"; };
 		A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.external beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.external beta.xcconfig"; sourceTree = "<group>"; };
 		C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.internal beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.internal beta.xcconfig"; sourceTree = "<group>"; };
-		E706829B2491705E00D9232A /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -171,7 +169,6 @@
 		768123D02485DB8D008C5216 /* Logging */ = {
 			isa = PBXGroup;
 			children = (
-				E706829B2491705E00D9232A /* Log.swift */,
 				768123D12485DBE2008C5216 /* LogFormatter.swift */,
 				7656F93124BCE66500F00AF7 /* LogFileManager.swift */,
 			);
@@ -396,7 +393,6 @@
 				768123D32485DBE2008C5216 /* LogFormatter.swift in Sources */,
 				76E5153824A18171003F1273 /* Digest.swift in Sources */,
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
-				E706829C2491705E00D9232A /* Log.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
 				246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */,
 				76C7429624A155E900C7D945 /* FeedDownloadManager.swift in Sources */,
