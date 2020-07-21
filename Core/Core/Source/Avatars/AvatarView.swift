@@ -55,7 +55,9 @@ public class AvatarView: UIImageView {
             }
         }
         
-        avatarUpdatingCancellable = userAvatar.imageDidChange.sink { (image) in
+        avatarUpdatingCancellable = userAvatar.imageDidChange.sink { [weak self] image in
+            guard let self = self else { return }
+            
             if let image = image {
                 self.image = image
                 self.tintColor = nil
