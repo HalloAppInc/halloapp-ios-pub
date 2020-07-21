@@ -6,7 +6,9 @@
 //
 
 import AVKit
+import CocoaLumberjack
 import Combine
+import Core
 import UIKit
 
 struct MediaCarouselViewConfiguration {
@@ -278,9 +280,76 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     var scaleContentToFit: Bool = false
     var isZoomEnabled: Bool = true
     var cornerRadius: CGFloat = 10
+    var downloadProgressCancellable: AnyCancellable?
+
+    private lazy var progressView: CircularProgressView = {
+        let progressView = CircularProgressView()
+        progressView.barWidth = 2
+        progressView.trackTintColor = .systemGray3 // Same color as the placeholder
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        progressView.heightAnchor.constraint(equalTo: progressView.widthAnchor, multiplier: 1).isActive = true
+        return progressView
+    }()
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        if let progressView = progressViewIfExists() {
+            progressView.isHidden = true
+        }
+        downloadProgressCancellable?.cancel()
+        downloadProgressCancellable = nil
+    }
 
     func configure(with media: FeedMedia) {
+        guard media.isDownloadRequired else {
+            hideProgressView()
+            downloadProgressCancellable?.cancel()
+            downloadProgressCancellable = nil
+            return
+        }
+        showProgressView()
+        startObservingDownloadProgressIfNecessary(media)
+    }
 
+    func startObservingDownloadProgressIfNecessary(_ media: FeedMedia) {
+        guard downloadProgressCancellable == nil else { return }
+
+        if let downloadTask = MainAppContext.shared.feedData.downloadTask(for: media) {
+            downloadProgressCancellable = downloadTask.downloadProgress.sink(receiveCompletion: { [weak self] (_) in
+                guard let self = self else { return }
+                self.progressView.setProgress(1, withAnimationDuration: 0.1) {
+                    self.hideProgressView()
+                }
+            }) { [weak self] (progress) in
+                guard let self = self else { return }
+                self.progressView.setProgress(progress, animated: true)
+            }
+        } else {
+            // Download task might not be set up yet if feed post has been received and made visible immediately.
+            progressView.setProgress(0, animated: false)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                self.startObservingDownloadProgressIfNecessary(media)
+            }
+        }
+    }
+
+    private func progressViewIfExists() -> CircularProgressView? {
+        return self.contentView.subviews.first(where: { $0.isKind(of: CircularProgressView.self) }) as? CircularProgressView
+    }
+
+    private func showProgressView() {
+        if progressView.superview == nil {
+            self.contentView.addSubview(progressView)
+            progressView.centerXAnchor.constraint(equalTo: self.contentView.centerXAnchor).isActive = true
+            progressView.centerYAnchor.constraint(equalTo: self.contentView.centerYAnchor).isActive = true
+        }
+        self.contentView.bringSubviewToFront(progressView)
+        progressView.isHidden = false
+    }
+
+    private func hideProgressView() {
+        progressViewIfExists()?.isHidden = true
     }
 }
 
@@ -321,7 +390,7 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
         placeholderImageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         placeholderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
         placeholderImageView.image = UIImage(systemName: "photo")
-        placeholderImageView.tintColor = .systemGray
+        placeholderImageView.tintColor = .systemGray3
         self.contentView.addSubview(placeholderImageView)
 
         imageView = ZoomableImageView(frame: self.contentView.bounds)
@@ -430,7 +499,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         placeholderImageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         placeholderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
         placeholderImageView.image = UIImage(systemName: "video")
-        placeholderImageView.tintColor = .systemGray
+        placeholderImageView.tintColor = .systemGray3
         self.contentView.addSubview(placeholderImageView)
 
         avPlayerViewController = AVPlayerViewController()

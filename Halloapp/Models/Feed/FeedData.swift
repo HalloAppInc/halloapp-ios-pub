@@ -983,6 +983,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Feed Media
 
+    func downloadTask(for mediaItem: FeedMedia) -> FeedDownloadManager.Task? {
+        guard let feedPost = feedPost(with: mediaItem.feedPostId) else { return nil }
+        guard let feedPostMedia = feedPost.media?.first(where: { $0.order == mediaItem.order }) else { return nil }
+        return downloadManager.currentTask(for: feedPostMedia)
+    }
+
     /**
      This method must be run on the main queue to avoid race condition.
      */

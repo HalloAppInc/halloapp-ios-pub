@@ -8,6 +8,7 @@
 
 import Alamofire
 import CocoaLumberjack
+import Combine
 import CoreData
 import Foundation
 
@@ -31,6 +32,7 @@ public class FeedDownloadManager {
         let sha256: String
 
         // Output parameters.
+        public let downloadProgress = CurrentValueSubject<Float, Never>(0)
         public fileprivate(set) var completed = false
         public var error: Error?
         fileprivate var encryptedFilePath: String?
@@ -102,23 +104,30 @@ public class FeedDownloadManager {
             return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
         }
         // TODO: move reponse handler off the main thread.
-        AF.download(task.downloadURL, to: destination).responseData { (afDownloadResponse) in
-            if afDownloadResponse.error == nil, let httpURLResponse = afDownloadResponse.response {
-                DDLogDebug("FeedDownloadManager/\(task.id)/download/finished [\(afDownloadResponse.response!)]")
-                if httpURLResponse.statusCode == 200, let fileURL = afDownloadResponse.fileURL {
-                    task.encryptedFilePath = self.relativePath(from: fileURL)
-                    self.decryptionQueue.async {
-                        self.decryptData(for: task)
+        AF.download(task.downloadURL, to: destination)
+            .downloadProgress { (progress) in
+                DDLogDebug("FeedDownloadManager/\(task.id)/download/progress [\(progress.fractionCompleted)]")
+                task.downloadProgress.send(Float(progress.fractionCompleted))
+            }
+            .responseData { (afDownloadResponse) in
+                task.downloadProgress.send(completion: .finished)
+
+                if afDownloadResponse.error == nil, let httpURLResponse = afDownloadResponse.response {
+                    DDLogDebug("FeedDownloadManager/\(task.id)/download/finished [\(afDownloadResponse.response!)]")
+                    if httpURLResponse.statusCode == 200, let fileURL = afDownloadResponse.fileURL {
+                        task.encryptedFilePath = self.relativePath(from: fileURL)
+                        self.decryptionQueue.async {
+                            self.decryptData(for: task)
+                        }
+                    } else {
+                        task.error = NSError(domain: "com.halloapp.downloadmanager", code: httpURLResponse.statusCode, userInfo: nil)
+                        self.taskFailed(task)
                     }
                 } else {
-                    task.error = NSError(domain: "com.halloapp.downloadmanager", code: httpURLResponse.statusCode, userInfo: nil)
+                    DDLogDebug("FeedDownloadManager/\(task.id)/download/error [\(String(describing: afDownloadResponse.error))]")
+                    task.error = afDownloadResponse.error
                     self.taskFailed(task)
                 }
-            } else {
-                DDLogDebug("FeedDownloadManager/\(task.id)/download/error [\(String(describing: afDownloadResponse.error))]")
-                task.error = afDownloadResponse.error
-                self.taskFailed(task)
-            }
         }
         self.tasks.insert(task)
         return true

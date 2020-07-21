@@ -22,6 +22,9 @@ class FeedMedia: Identifiable, Hashable {
     private var status: FeedPostMedia.Status
 
     private(set) var isMediaAvailable: Bool = false
+    var isDownloadRequired: Bool {
+        get { status == .downloading || status == .none }
+    }
 
     private(set) var image: UIImage?
     private var isImageLoaded: Bool = false
