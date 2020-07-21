@@ -151,10 +151,3 @@ class PendingMedia {
         self.type = type
     }
 }
-
-extension XMPPFeedMedia {
-
-    init(feedMedia: PendingMedia) {
-        self.init(url: feedMedia.url!, type: feedMedia.type, size: feedMedia.size!, key: feedMedia.key!, sha256: feedMedia.sha256!)
-    }
-}

@@ -65,6 +65,8 @@ extension FeedItemProtocol {
 
 public protocol FeedMediaProtocol {
 
+    var id: String { get }
+
     var url: URL { get }
 
     var type: FeedMediaType { get }

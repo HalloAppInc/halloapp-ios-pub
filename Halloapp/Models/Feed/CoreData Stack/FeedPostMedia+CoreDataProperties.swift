@@ -68,5 +68,9 @@ extension FeedPostMedia {
 }
 
 extension FeedPostMedia: FeedMediaProtocol {
-    
+    public var id: String {
+        get {
+            return "\(post.id)-\(order)"
+        }
+    }
 }

@@ -1023,7 +1023,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             // Step 1: Update FeedPostMedia
             guard let feedPostMedia = try? managedObjectContext.existingObject(with: task.feedMediaObjectId!) as? FeedPostMedia else {
-                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  objectId=[\(task.feedMediaObjectId!)]")
+                DDLogError("FeedData/download-task/\(task.id)/error  Missing FeedPostMedia  taskId=[\(task.id)]  objectId=[\(task.feedMediaObjectId!)]")
                 return
             }
 

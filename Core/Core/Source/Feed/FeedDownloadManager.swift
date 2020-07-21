@@ -42,16 +42,12 @@ public class FeedDownloadManager {
             }
         }
 
-        public init(id: String, downloadURL: URL, mediaType: FeedMediaType, key: String, sha256: String) {
-            self.id = id
-            self.downloadURL = downloadURL
-            self.mediaType = mediaType
-            self.key = key
-            self.sha256 = sha256
-        }
-
-        public convenience init(media: FeedMediaProtocol) {
-            self.init(id: UUID().uuidString, downloadURL: media.url, mediaType: media.type, key: media.key, sha256: media.sha256)
+        public init(media: FeedMediaProtocol) {
+            self.id = media.id
+            self.downloadURL = media.url
+            self.mediaType = media.type
+            self.key = media.key
+            self.sha256 = media.sha256
         }
 
         public static func == (lhs: Task, rhs: Task) -> Bool {

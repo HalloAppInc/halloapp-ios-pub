@@ -53,9 +53,9 @@ class NotificationService: UNNotificationServiceExtension {
         if let protoContainer = metadata.protoContainer {
             populate(notification: bestAttemptContent, withDataFrom: protoContainer)
             if protoContainer.hasPost && !protoContainer.post.media.isEmpty {
-                invokeHandler = !startDownloading(media: protoContainer.post.media)
+                invokeHandler = !startDownloading(media: protoContainer.post.media, containerId: metadata.contentId)
             } else if protoContainer.hasChatMessage && !protoContainer.chatMessage.media.isEmpty {
-                invokeHandler = !startDownloading(media: protoContainer.chatMessage.media)
+                invokeHandler = !startDownloading(media: protoContainer.chatMessage.media, containerId: metadata.contentId)
             }
         } else {
             DDLogError("didReceiveRequest/error Invalid protobuf.")
@@ -137,8 +137,8 @@ class NotificationService: UNNotificationServiceExtension {
      - returns:
      True if at least one download has been started.
      */
-    private func startDownloading(media: [ Proto_Media ]) -> Bool {
-        let xmppMediaObjects = media.compactMap { XMPPFeedMedia(protoMedia: $0) }
+    private func startDownloading(media: [ Proto_Media ], containerId: String) -> Bool {
+        let xmppMediaObjects = media.enumerated().compactMap { XMPPFeedMedia(id: "\(containerId)-\($0)", protoMedia: $1) }
         guard !xmppMediaObjects.isEmpty else {
             DDLogInfo("media/empty")
             return false

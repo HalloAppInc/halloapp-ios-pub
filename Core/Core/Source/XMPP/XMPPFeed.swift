@@ -96,7 +96,7 @@ public struct XMPPFeedPost: FeedPostProtocol {
         self.id = id
         self.userId = userId
         self.text = protoContainer.post.text.isEmpty ? nil : protoContainer.post.text
-        self.media = protoContainer.post.media.compactMap { XMPPFeedMedia(protoMedia: $0) }
+        self.media = protoContainer.post.media.enumerated().compactMap { XMPPFeedMedia(id: "\(id)-\($0)", protoMedia: $1) }
         let ts = item.attributeDoubleValue(forName: "timestamp")
         if ts > 0 {
             self.timestamp = Date(timeIntervalSince1970: ts)
@@ -106,46 +106,14 @@ public struct XMPPFeedPost: FeedPostProtocol {
 
 public struct XMPPFeedMedia: FeedMediaProtocol {
 
+    public let id: String
     public let url: URL
     public let type: FeedMediaType
     public let size: CGSize
     public let key: String
     public let sha256: String
 
-    public init(url: URL, type: FeedMediaType, size: CGSize, key: String, sha256: String) {
-        self.url = url
-        self.type = type
-        self.size = size
-        self.key = key
-        self.sha256 = sha256
-    }
-
-    /**
-    <url type="image" width="1200" height="1600" key="wn58/JZ4nsZgxOBHw6usvdHfSIBRltZWzqb7u4kSyxc=" sha256hash="FA0cGbpNOfG9oFXezNIdsGVy3GSL2OXGxZ5sX8uXZls=">https://cdn.halloapp.net/CumlsHUTEeqobwpeZJbt6A</url>
-     */
-    init?(urlElement: XMLElement) {
-        guard let typeStr = urlElement.attributeStringValue(forName: "type") else { return nil }
-        guard let type: FeedMediaType = {
-            switch typeStr {
-            case "image": return .image
-            case "video": return .video
-            default: return nil
-            }}() else { return nil }
-        guard let urlString = urlElement.stringValue else { return nil }
-        guard let url = URL(string: urlString) else { return nil }
-        let width = urlElement.attributeIntegerValue(forName: "width"), height = urlElement.attributeIntegerValue(forName: "height")
-        guard width > 0 && height > 0 else { return nil }
-        guard let key = urlElement.attributeStringValue(forName: "key") else { return nil }
-        guard let sha256 = urlElement.attributeStringValue(forName: "sha256hash") else { return nil }
-
-        self.url = url
-        self.type = type
-        self.size = CGSize(width: width, height: height)
-        self.key = key
-        self.sha256 = sha256
-    }
-
-    public init?(protoMedia: Proto_Media) {
+    public init?(id: String, protoMedia: Proto_Media) {
         guard let type: FeedMediaType = {
             switch protoMedia.type {
             case .image: return .image
@@ -156,6 +124,7 @@ public struct XMPPFeedMedia: FeedMediaProtocol {
         let width = CGFloat(protoMedia.width), height = CGFloat(protoMedia.height)
         guard width > 0 && height > 0 else { return nil }
 
+        self.id = id
         self.url = url
         self.type = type
         self.size = CGSize(width: width, height: height)
