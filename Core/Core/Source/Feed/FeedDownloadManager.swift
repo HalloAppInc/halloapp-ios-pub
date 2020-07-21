@@ -43,7 +43,7 @@ public class FeedDownloadManager {
         }
 
         public init(media: FeedMediaProtocol) {
-            self.id = media.id
+            self.id = Self.taskId(for: media)
             self.downloadURL = media.url
             self.mediaType = media.type
             self.key = media.key
@@ -56,6 +56,10 @@ public class FeedDownloadManager {
 
         public func hash(into hasher: inout Hasher) {
             hasher.combine(self.id)
+        }
+
+        public class func taskId(for media: FeedMediaProtocol) -> String {
+            return media.id
         }
     }
 
@@ -78,6 +82,10 @@ public class FeedDownloadManager {
      */
     public func downloadMedia(for feedPostMedia: FeedMediaProtocol) -> (Bool, Task) {
         assert(delegate != nil, "Must set delegate before starting any task.")
+        if let existingTask = currentTask(for: feedPostMedia) {
+            DDLogWarn("FeedDownloadManager/\(existingTask.id)/warning Already downloading")
+            return (false, existingTask)
+        }
         let task = Task(media: feedPostMedia)
         let taskAdded = self.addTask(task)
         return (taskAdded, task)
@@ -114,6 +122,11 @@ public class FeedDownloadManager {
         }
         self.tasks.insert(task)
         return true
+    }
+
+    public func currentTask(for media: FeedMediaProtocol) -> Task? {
+        let taskId = Task.taskId(for: media)
+        return self.tasks.first(where: { $0.id == taskId })
     }
 
     // MARK: Decryption
