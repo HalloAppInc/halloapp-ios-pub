@@ -280,6 +280,10 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         self.tableView.beginUpdates()
         animationBlock()
         self.tableView.endUpdates()
+
+        if let postId = cell.postId, let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) {
+            feedDataItem.textExpanded = true
+        }
     }
 
     // MARK: Post Actions
@@ -386,6 +390,8 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         static let backgroundPanelVMargin: CGFloat = 25
     }
 
+    var postId: FeedPostID? = nil
+
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
     var showSeenByAction: (() -> ())?
@@ -474,6 +480,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     public func configure(with post: FeedPost, contentWidth: CGFloat) {
         DDLogVerbose("FeedTableViewCell/configure [\(post.id)]")
 
+        self.postId = post.id
         self.headerView.configure(with: post)
         self.itemContentView.configure(with: post, contentWidth: contentWidth)
         if post.isPostRetracted {
@@ -676,7 +683,7 @@ fileprivate class FeedItemContentView: UIView {
                 let fontSizeDiff: CGFloat = postContainsMedia || (self.textLabel.text ?? "").count > 180 ? -1 : 3
                 return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
             }()
-            self.textLabel.numberOfLines = postContainsMedia ? 3 : 10
+            self.textLabel.numberOfLines = feedDataItem.textExpanded ? 0 : postContainsMedia ? 3 : 10
             // Adjust vertical margins around text.
             self.textContentView.layoutMargins.top = postContainsMedia ? 11 : 9
         } else {

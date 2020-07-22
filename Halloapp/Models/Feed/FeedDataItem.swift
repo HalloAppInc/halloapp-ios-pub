@@ -17,6 +17,7 @@ class FeedDataItem: Identifiable, ObservableObject, Equatable, Hashable {
     var userId: UserID
     var media: [FeedMedia]
     var currentMediaIndex: Int? = nil
+    var textExpanded: Bool = false
 
     var commentsDidChange = PassthroughSubject<(Int, Bool), Never>()
     var hasUnreadComments: Bool {
