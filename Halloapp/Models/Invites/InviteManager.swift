@@ -9,7 +9,6 @@
 import Core
 import CocoaLumberjack
 import Foundation
-import MessageUI
 import SwiftUI
 
 class InviteManager: ObservableObject {
@@ -59,7 +58,7 @@ class InviteManager: ObservableObject {
         MainAppContext.shared.xmppController.enqueue(request: request)
     }
 
-    func redeemInviteForSelectedContact(presentErrorAlert: Binding<Bool>, presentMessageComposer: Binding<Bool>) {
+    func redeemInviteForSelectedContact(presentErrorAlert: Binding<Bool>, presentShareSheet: Binding<Bool>) {
         guard let contact = contactToInvite else {
             assert(false, "Contact not selected.")
             return
@@ -83,11 +82,9 @@ class InviteManager: ObservableObject {
                 self.saveToUserDefaults()
 
                 if case .success = result {
-                    if MFMessageComposeViewController.canSendText() {
-                        presentMessageComposer.wrappedValue = true
-                    } else {
-                        ///TODO: present generic sheet
-                    }
+                    presentShareSheet.wrappedValue = true
+                } else if case .failure(let reason) = result, reason == .existingUser {
+                    presentShareSheet.wrappedValue = true
                 } else {
                     presentErrorAlert.wrappedValue = true
                 }

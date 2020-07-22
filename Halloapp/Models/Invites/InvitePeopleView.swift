@@ -7,10 +7,9 @@
 //
 
 import Core
-import MessageUI
 import SwiftUI
 
-struct InvitePeopleTableView: UIViewControllerRepresentable {
+fileprivate struct InvitePeopleTableView: UIViewControllerRepresentable {
 
     typealias UIViewControllerType = InvitePeopleTableViewController
 
@@ -24,13 +23,32 @@ struct InvitePeopleTableView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }
 }
 
+fileprivate struct ActivityView: UIViewControllerRepresentable {
+
+    typealias UIViewControllerType = UIActivityViewController
+
+    private let activityItems: [Any]
+
+    init(activityItems: [Any]) {
+        self.activityItems = activityItems
+    }
+
+    func makeUIViewController(context: Context) -> UIViewControllerType {
+        let viewController = UIActivityViewController(activityItems: self.activityItems, applicationActivities: nil)
+        return viewController
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }
+
+}
+
 
 struct InvitePeopleView: View {
     @ObservedObject private var inviteManager = InviteManager.shared
 
     @State private var isActionSheetPresented = false
     @State private var isRedeemErrorAlertPresented = false
-    @State private var isMessageComposerPresented = false
+    @State private var isShareSheetPresented = false
 
     private let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -84,7 +102,7 @@ struct InvitePeopleView: View {
                         buttons: [
                 .default(Text("Redeem")) {
                     self.inviteManager.redeemInviteForSelectedContact(presentErrorAlert: self.$isRedeemErrorAlertPresented,
-                                                                      presentMessageComposer: self.$isMessageComposerPresented)
+                                                                      presentShareSheet: self.$isShareSheetPresented)
                 },
                 .cancel() {
                     self.inviteManager.contactToInvite = nil
@@ -94,12 +112,10 @@ struct InvitePeopleView: View {
         .alert(isPresented: self.$isRedeemErrorAlertPresented) {
             Alert(title: Text("Could not invite"), message: Text("Something went wrong. Please try again later."), dismissButton: .cancel(Text("OK")))
         }
-        .sheet(isPresented: self.$isMessageComposerPresented, onDismiss: {
+        .sheet(isPresented: self.$isShareSheetPresented, onDismiss: {
             self.inviteManager.contactToInvite = nil
         }) {
-            MFMessageComposeView(isPresented: self.$isMessageComposerPresented,
-                                 recipients: ["+\(self.inviteManager.contactToInvite!.normalizedPhoneNumber!)"],
-                                 messageText: "Check out this new cool app called HalloApp. Download here: http://halloapp.net/dl")
+            ActivityView(activityItems: [ "Check out this new cool app called HalloApp. Download it from: http://halloapp.net/dl" ])
         }
         .onDisappear {
             self.inviteManager.contactToInvite = nil
