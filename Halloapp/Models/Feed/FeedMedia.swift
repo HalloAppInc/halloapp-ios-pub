@@ -118,7 +118,7 @@ class FeedMedia: Identifiable, Hashable {
 
     init(_ media: PendingMedia, feedPostId: FeedPostID) {
         self.id = "\(feedPostId)-\(media.order)"
-        self.status = .none
+        self.status = .uploading
         self.feedPostId = feedPostId
         self.order = media.order
         self.type = media.type
