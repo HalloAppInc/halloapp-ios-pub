@@ -113,6 +113,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             fatalError("Must be implemented in a subclass.")
         }
     }
+
     // MARK: Fetched Results Controller
 
     private var trackPerRowFRCChanges = false

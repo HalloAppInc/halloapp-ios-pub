@@ -104,7 +104,7 @@ class FeedViewController: FeedTableViewController, UIImagePickerControllerDelega
 
     @objc(showNotifications)
     private func presentNotificationsView() {
-        self.present(UINavigationController(rootViewController: NotificationsViewController()), animated: true)
+        self.present(UINavigationController(rootViewController: NotificationsViewController(style: .plain)), animated: true)
     }
 
     // MARK: Camera View

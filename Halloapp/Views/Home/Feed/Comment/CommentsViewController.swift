@@ -18,6 +18,8 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
     typealias ReplyContext = (parentCommentId: String, userId: String)
 
+    var highlightedCommentId: FeedPostCommentID?
+
     private var feedPostId: FeedPostID?
     private var replyContext: ReplyContext? {
         didSet {
@@ -116,6 +118,15 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         if self.sortedComments.isEmpty {
             self.commentsInputView.showKeyboard(from: self)
         }
+
+        // It is possible that comment isn't received yet - when opening Comments from an iOS notification.
+        // We'll wait until the comment arrives and then flash its cell.
+        if let highlightedCommentId = highlightedCommentId, indexPath(forCommentId: highlightedCommentId) != nil {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.unhighlightComment(withId: highlightedCommentId)
+            }
+            self.highlightedCommentId = nil
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -145,11 +156,31 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
                 self.tableView.tableHeaderView = headerView
             }
         }
+
+        scrollToHighlightedCommentIfNeeded()
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView == tableView {
             updateNavigationBarStyleUsing(scrollView: scrollView)
+        }
+    }
+
+    // MARK: Scrolling / highlighting
+
+    private func scrollToHighlightedCommentIfNeeded() {
+        guard let highlightedCommentId = highlightedCommentId,
+              let indexPath = indexPath(forCommentId: highlightedCommentId) else { return }
+        tableView.scrollToRow(at: indexPath, at: .middle, animated: false)
+    }
+
+    private func unhighlightComment(withId commentId: FeedPostCommentID) {
+        guard let indexPath = indexPath(forCommentId: commentId),
+              let cell = tableView.cellForRow(at: indexPath) as? CommentsTableViewCell else { return }
+        if cell.isCellHighlighted {
+            UIView.animate(withDuration: 0.15) {
+                cell.isCellHighlighted = false
+            }
         }
     }
 
@@ -230,25 +261,9 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         self.sortedComments = sorted
     }
 
-    private func insert(comment: FeedPostComment) {
-        var parent = comment
-        while parent.parent != nil {
-            parent = parent.parent!
-        }
-        var commentIndex = self.sortedComments.endIndex
-        if let nextRootCommentIndex = self.sortedComments.firstIndex(where: { $0.parent == nil && $0.timestamp > parent.timestamp }) {
-            commentIndex = nextRootCommentIndex
-        }
-        self.sortedComments.insert(comment, at: commentIndex)
-        DDLogDebug("CommentsView/frc/insert Position: [\(commentIndex)] Comment: [\(comment)]")
-        self.tableView.insertRows(at: [ IndexPath(row: commentIndex, section: CommentsViewController.sectionMain) ], with: .fade)
-    }
-
-    private func delete(comment: FeedPostComment) {
-        guard let commentIndex = self.sortedComments.firstIndex(where: { $0 == comment }) else { return }
-        self.sortedComments.remove(at: commentIndex)
-        DDLogDebug("CommentsView/frc/delete Position: [\(commentIndex)] Comment: [\(comment)]")
-        self.tableView.deleteRows(at: [ IndexPath(row: commentIndex, section: CommentsViewController.sectionMain) ], with: .fade)
+    private func indexPath(forCommentId commentId: FeedPostCommentID) -> IndexPath? {
+        guard let commentIndex = sortedComments.firstIndex(where: { $0.id == commentId }) else { return nil }
+        return IndexPath(row: commentIndex, section: Self.sectionMain)
     }
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
@@ -258,28 +273,31 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        func insert(comment: FeedPostComment) {
+            let currentRoot = comment.parent ?? comment
+            var commentIndex = self.sortedComments.endIndex
+            if let nextRootCommentIndex = self.sortedComments.firstIndex(where: { $0.parent == nil && $0.timestamp > currentRoot.timestamp }) {
+                commentIndex = nextRootCommentIndex
+            }
+            self.sortedComments.insert(comment, at: commentIndex)
+            DDLogDebug("CommentsView/frc/insert Position: [\(commentIndex)] Comment: [\(comment)]")
+            self.tableView.insertRows(at: [ IndexPath(row: commentIndex, section: CommentsViewController.sectionMain) ], with: .fade)
+        }
+
         switch type {
         case .insert:
             if trackPerRowFRCChanges {
                 if let comment = anObject as? FeedPostComment {
-                    self.insert(comment: comment)
+                    insert(comment: comment)
                 }
             } else {
                 reloadTableViewInDidChangeContent = true
             }
 
-        case .delete:
-            if trackPerRowFRCChanges {
-                if let comment = anObject as? FeedPostComment {
-                    self.delete(comment: comment)
-                }
-            } else {
-                reloadTableViewInDidChangeContent = true
-            }
-
-        case .move:
-            guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let comment = anObject as? FeedPostComment else { break }
-            DDLogDebug("CommentsView/frc/move [\(comment)] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            // Delete and Move should not happen at this time.
+        case .delete, .move:
+            guard let comment = anObject as? FeedPostComment else { break }
+            DDLogWarn("CommentsView/frc/\(type) [\(comment)]")
             trackPerRowFRCChanges = false
             reloadTableViewInDidChangeContent = true
 
@@ -360,7 +378,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
             self.confirmResending(commentWithId: commentId)
         }
         cell.commentView.textLabel.delegate = self
-        cell.isCellHighlighted = self.replyContext?.parentCommentId == commentId
+        cell.isCellHighlighted = self.replyContext?.parentCommentId == commentId || self.highlightedCommentId == commentId
         return cell
     }
 
@@ -494,8 +512,8 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
         CommentView()
     }()
 
+    var commentId: FeedPostCommentID?
     var replyAction: (() -> ()) = {}
-
     var accessoryViewAction: (() -> ()) = {}
 
     var isCellHighlighted: Bool = false {
@@ -531,6 +549,7 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         self.replyAction = {}
+        commentId = nil
     }
 
     @objc private func replyButtonAction() {
@@ -542,6 +561,7 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
     }
 
     func update(with comment: FeedPostComment) {
+        commentId = comment.id
         self.commentView.updateWith(comment: comment)
         if comment.status == .sendError {
             self.accessoryView = {

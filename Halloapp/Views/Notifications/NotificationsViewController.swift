@@ -76,7 +76,9 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
-        self.navigationController?.pushViewController(CommentsViewController(feedPostId: feedPost.id), animated: true)
+        let commentsViewController = CommentsViewController(feedPostId: feedPost.id)
+        commentsViewController.highlightedCommentId = notification.commentId
+        self.navigationController?.pushViewController(commentsViewController, animated: true)
     }
 
     // MARK: UI Actions
