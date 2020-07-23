@@ -3,17 +3,35 @@ import CocoaLumberjack
 import SwiftUI
 import UIKit
 
+class ObservableString: ObservableObject {
+    @Published var value = ""
+
+    func set(_ newValue: String) {
+        value = newValue
+    }
+}
+
 class PostComposerViewController: UIViewController {
 
     private let showCancelButton: Bool
     private let media: [PendingMedia]
-    private var postComposerView: PostComposerView!
+    private var textToPost = ObservableString()
+    private var postComposerView: PostComposerView?
     private let didFinish: (() -> Void)
+    private let willDismissWithText: ((String) -> Void)?
 
-    init(mediaToPost media: [PendingMedia], showCancelButton: Bool, didFinish: @escaping () -> Void ) {
+    init(
+        mediaToPost media: [PendingMedia],
+        initialText: String,
+        showCancelButton: Bool,
+        willDismissWithText: ((String) -> Void)? = nil,
+        didFinish: @escaping () -> Void)
+    {
         self.media = media
         self.showCancelButton = showCancelButton
+        self.willDismissWithText = willDismissWithText
         self.didFinish = didFinish
+        self.textToPost.set(initialText)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -28,9 +46,11 @@ class PostComposerViewController: UIViewController {
             self.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
         }
 
-        postComposerView = PostComposerView(mediaItemsToPost: media) {
-            self.finish()
-        }
+        postComposerView = PostComposerView(
+            mediaItemsToPost: media,
+            textToPost: textToPost,
+            didFinish: { [weak self] in self?.finish() })
+
         let postComposerViewController = UIHostingController(rootView: postComposerView)
         self.addChild(postComposerViewController)
         self.view.addSubview(postComposerViewController.view)
@@ -42,12 +62,17 @@ class PostComposerViewController: UIViewController {
         postComposerViewController.didMove(toParent: self)
     }
 
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        willDismissWithText?(textToPost.value)
+    }
+
     private func finish() {
         didFinish()
     }
 
     @objc private func cancelAction() {
-        postComposerView.imageServer.cancel()
+        postComposerView?.imageServer.cancel()
         finish()
     }
 
@@ -60,13 +85,14 @@ struct PostComposerView: View {
     private let didFinish: () -> Void
 
     @State var isTextOnlyPost: Bool = false
-    @State var textToPost = ""
+    @ObservedObject var textToPost: ObservableString
     @State var isMediaReady: Bool = false
     @State var numberOfFailedUploads: Int = 0
 
-    init(mediaItemsToPost: [PendingMedia], didFinish: @escaping () -> Void) {
+    init(mediaItemsToPost: [PendingMedia], textToPost: ObservableString, didFinish: @escaping () -> Void) {
         self.mediaItemsToPost = mediaItemsToPost
         self.didFinish = didFinish
+        self.textToPost = textToPost
     }
     
     var body: some View {
@@ -92,7 +118,7 @@ struct PostComposerView: View {
             }
 
             HStack {
-                TextView(text: self.$textToPost)
+                TextView(text: self.textToPost)
                     .cornerRadius(10)
                     .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: isTextOnlyPost ? 100 : 70)
             }
@@ -102,17 +128,17 @@ struct PostComposerView: View {
                 .frame(height: 16)
 
             Button(action: {
-                MainAppContext.shared.feedData.post(text: self.textToPost.trimmingCharacters(in: .whitespacesAndNewlines), media: self.mediaItemsToPost)
+                MainAppContext.shared.feedData.post(text: self.textToPost.value.trimmingCharacters(in: .whitespacesAndNewlines), media: self.mediaItemsToPost)
                 self.didFinish()
             }) {
                 Text("SHARE")
                     .padding(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
-                    .background((self.isTextOnlyPost && self.textToPost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || !self.isMediaReady || self.numberOfFailedUploads != 0 ? Color.gray : Color.blue)
+                    .background((self.isTextOnlyPost && self.textToPost.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || !self.isMediaReady || self.numberOfFailedUploads != 0 ? Color.gray : Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(20)
                     .shadow(radius: 2)
             }
-            .disabled((self.isTextOnlyPost && self.textToPost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || !self.isMediaReady || self.numberOfFailedUploads != 0)
+            .disabled((self.isTextOnlyPost && self.textToPost.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) || !self.isMediaReady || self.numberOfFailedUploads != 0)
 
             Spacer()
         }
@@ -130,7 +156,7 @@ struct PostComposerView: View {
 }
 
 fileprivate struct TextView: UIViewRepresentable {
-    @Binding var text: String
+    @ObservedObject var text: ObservableString
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -149,7 +175,7 @@ fileprivate struct TextView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UITextView, context: Context) {
-        uiView.text = text
+        uiView.text = text.value
     }
 
     class Coordinator : NSObject, UITextViewDelegate {
@@ -165,7 +191,7 @@ fileprivate struct TextView: UIViewRepresentable {
         }
 
         func textViewDidChange(_ textView: UITextView) {
-            self.parent.text = textView.text
+            self.parent.text.set(textView.text ?? "")
         }
     }
 }
