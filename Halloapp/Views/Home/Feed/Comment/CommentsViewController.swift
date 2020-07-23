@@ -119,14 +119,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
             self.commentsInputView.showKeyboard(from: self)
         }
 
-        // It is possible that comment isn't received yet - when opening Comments from an iOS notification.
-        // We'll wait until the comment arrives and then flash its cell.
-        if let highlightedCommentId = highlightedCommentId, indexPath(forCommentId: highlightedCommentId) != nil {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self.unhighlightComment(withId: highlightedCommentId)
-            }
-            self.highlightedCommentId = nil
-        }
+        resetCommentHighlightingIfNeeded()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -174,13 +167,24 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         tableView.scrollToRow(at: indexPath, at: .middle, animated: false)
     }
 
-    private func unhighlightComment(withId commentId: FeedPostCommentID) {
-        guard let indexPath = indexPath(forCommentId: commentId),
-              let cell = tableView.cellForRow(at: indexPath) as? CommentsTableViewCell else { return }
-        if cell.isCellHighlighted {
-            UIView.animate(withDuration: 0.15) {
-                cell.isCellHighlighted = false
+    private func resetCommentHighlightingIfNeeded() {
+        func unhighlightComment(withId commentId: FeedPostCommentID) {
+            guard let indexPath = indexPath(forCommentId: commentId),
+                  let cell = tableView.cellForRow(at: indexPath) as? CommentsTableViewCell else { return }
+            if cell.isCellHighlighted {
+                UIView.animate(withDuration: 0.15) {
+                    cell.isCellHighlighted = false
+                }
             }
+        }
+
+        // It is possible that comment isn't received yet - when opening Comments from an iOS notification.
+        // We'll wait until the comment arrives and then flash its cell.
+        if let highlightedCommentId = highlightedCommentId, indexPath(forCommentId: highlightedCommentId) != nil {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                unhighlightComment(withId: highlightedCommentId)
+            }
+            self.highlightedCommentId = nil
         }
     }
 
@@ -341,6 +345,9 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
             }
             self.scrollToBottomOnContentChange = false
         }
+
+        scrollToHighlightedCommentIfNeeded()
+        resetCommentHighlightingIfNeeded()
     }
 
     private func scrollToBottom(_ animated: Bool = true) {

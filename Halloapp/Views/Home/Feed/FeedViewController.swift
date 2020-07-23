@@ -132,8 +132,7 @@ class FeedViewController: FeedTableViewController {
         }
 
         self.navigationController?.popToRootViewController(animated: false)
-        self.showCommentsView(for: feedPost.id)
+        self.showCommentsView(for: feedPost.id, highlighting: metadata.contentId)
     }
-
 
 }
