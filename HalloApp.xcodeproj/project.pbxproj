@@ -896,20 +896,20 @@
 		EAF3A1C12334191E00805FF9 /* Halloapp */ = {
 			isa = PBXGroup;
 			children = (
-				EAF3A1C22334191E00805FF9 /* AppDelegate.swift */,
 				761C6165242D896E0028AE19 /* Components */,
 				76DF9FF724132BDC00F49CA4 /* Global */,
+				7626CCD924C738840023FC2E /* Logging */,
+				EA3861EB23342C3800705943 /* Models */,
+				EAC4AF21233E8D9700739B2B /* Network */,
+				146B93702405F2F900768AC6 /* Resources */,
+				EA5AD43C23342B8C00429643 /* Views */,
+				EAF3A1C22334191E00805FF9 /* AppDelegate.swift */,
+				EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */,
 				76955DE924746E4C0088BE8C /* GoogleService-Info.plist */,
 				EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */,
 				EAF3A1D02334192000805FF9 /* Info.plist */,
 				EA0D20062363AC4D008B8289 /* Landing.swift */,
 				EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */,
-				7626CCD924C738840023FC2E /* Logging */,
-				EA3861EB23342C3800705943 /* Models */,
-				EAC4AF21233E8D9700739B2B /* Network */,
-				146B93702405F2F900768AC6 /* Resources */,
-				EAF3A1C42334191E00805FF9 /* SceneDelegate.swift */,
-				EA5AD43C23342B8C00429643 /* Views */,
 			);
 			path = Halloapp;
 			sourceTree = "<group>";
