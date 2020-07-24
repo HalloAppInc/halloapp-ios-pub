@@ -368,6 +368,11 @@ class XMPPControllerMain: XMPPController {
         self.didGetPresence.send(presence)
     }
 
+    // MARK: XMPPReconnectDelegate
+
+    override func xmppReconnect(_ sender: XMPPReconnect, shouldAttemptAutoReconnect connectionFlags: SCNetworkConnectionFlags) -> Bool {
+        return UIApplication.shared.applicationState != .background
+    }
 }
 
 extension XMPPControllerMain: XMPPPubSubDelegate {

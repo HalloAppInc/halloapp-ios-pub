@@ -378,11 +378,11 @@ extension XMPPController: XMPPStreamDelegate {
 
 extension XMPPController: XMPPReconnectDelegate {
 
-    public func xmppReconnect(_ sender: XMPPReconnect, didDetectAccidentalDisconnect connectionFlags: SCNetworkConnectionFlags) {
+    open func xmppReconnect(_ sender: XMPPReconnect, didDetectAccidentalDisconnect connectionFlags: SCNetworkConnectionFlags) {
         DDLogInfo("xmpp/xmppReconnect/didDetectAccidentalDisconnect")
     }
 
-    public func xmppReconnect(_ sender: XMPPReconnect, shouldAttemptAutoReconnect connectionFlags: SCNetworkConnectionFlags) -> Bool {
+    open func xmppReconnect(_ sender: XMPPReconnect, shouldAttemptAutoReconnect connectionFlags: SCNetworkConnectionFlags) -> Bool {
         return true
     }
 }
