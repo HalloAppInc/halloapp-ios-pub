@@ -59,12 +59,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneWillEnterForeground(_ scene: UIScene) {
         DDLogInfo("application/willEnterForeground")
 
-        // Called as the scene transitions from the background to the foreground.
-        // Use this method to undo the changes made on entering the background.
-        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
-            DispatchQueue.main.async {
-                appDelegate.checkNotificationsAuthorizationStatus()
-            }
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+
+        appDelegate.endBackgroundConnectionTask()
+
+        DispatchQueue.main.async {
+            appDelegate.checkNotificationsAuthorizationStatus()
         }
 
         // Need to tell XMPPStream to start connecting every time app is foregrounded
@@ -75,15 +75,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func sceneDidEnterBackground(_ scene: UIScene) {
         DDLogInfo("application/didEnterBackground")
-        
-        // Called as the scene transitions from the foreground to the background.
-        // Use this method to save data, release shared resources, and store enough scene-specific state information
-        // to restore the scene back to its current state.
 
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+
+        appDelegate.beginBackgroundConnectionTask()
+
+        // Schedule periodic data refresh in the background.
         if MainAppContext.shared.userData.isLoggedIn {
-            if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
-                appDelegate.scheduleFeedRefresh(after: Date.minutes(5))
-            }
+            appDelegate.scheduleFeedRefresh(after: Date.minutes(5))
         }
     }
 }

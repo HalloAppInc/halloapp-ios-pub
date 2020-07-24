@@ -258,6 +258,86 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         MainAppContext.shared.syncManager.requestFullSync()
         DDLogInfo("AppDelegate/forceRefreshAvatar Done")
     }
+
+    // MARK: Background Connection Task
+
+    private var backgroundTaskIdentifier: UIBackgroundTaskIdentifier = .invalid
+    private var disconnectTimer: DispatchSourceTimer?
+    private func createDisconnectTimer() -> DispatchSourceTimer {
+        let timer = DispatchSource.makeTimerSource(flags: [], queue: .main)
+        timer.setEventHandler(handler: { [weak self] in
+            guard let self = self else { return }
+            self.disconnectAndEndBackgroundTask()
+        })
+        timer.schedule(deadline: .now() + 10)
+        timer.resume()
+        return timer
+    }
+
+    /**
+     Stay connected in the background for 10 seconds, then gracefully disconnect and let iOS suspend the app.
+     */
+    func beginBackgroundConnectionTask() {
+        guard backgroundTaskIdentifier == .invalid else {
+            DDLogError("appdelegate/bg-task Identifier is not set")
+            fatalError("Background task identifier is not set")
+        }
+        guard disconnectTimer == nil else {
+            DDLogError("appdelegate/bg-task Timer is not nil")
+            fatalError("Disconnect timer is not nil")
+        }
+
+        let xmppController = AppContext.shared.xmppController
+        guard !xmppController.isDisconnected else {
+            DDLogWarn("appdelegate/bg-task Skipped - not connected to the server")
+            return
+        }
+
+        backgroundTaskIdentifier = UIApplication.shared.beginBackgroundTask(withName: "close-connection") {
+            DDLogWarn("appdelegate/bg-task Expiration handler. Connection state: [\(xmppController.connectionState)]")
+            if self.disconnectTimer != nil {
+                self.disconnectTimer?.cancel()
+                self.disconnectTimer = nil
+            }
+            xmppController.disconnectImmediately()
+            self.backgroundTaskIdentifier = .invalid
+        }
+        guard backgroundTaskIdentifier != .invalid else {
+            DDLogError("appdelegate/bg-task Could not start background task")
+            return
+        }
+        DDLogDebug("appdelegate/bg-task Created with identifier:[\(backgroundTaskIdentifier)]")
+
+        disconnectTimer = createDisconnectTimer()
+        xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
+            self.endBackgroundConnectionTask()
+        }
+    }
+
+    private func disconnectAndEndBackgroundTask() {
+        let xmppController = MainAppContext.shared.xmppController
+
+        DDLogInfo("appdelegate/bg-task Disconnect timer fired. Connection state: [\(xmppController.connectionState)]")
+
+        disconnectTimer = nil
+        AppContext.shared.xmppController.disconnect()
+    }
+
+    func endBackgroundConnectionTask() {
+        guard backgroundTaskIdentifier != .invalid else {
+            DDLogWarn("appdelegate/bg-task No background task to end")
+            return
+        }
+        DDLogDebug("appdelegate/bg-task Finished")
+
+        if disconnectTimer != nil {
+            disconnectTimer?.cancel()
+            disconnectTimer = nil
+        }
+
+        UIApplication.shared.endBackgroundTask(backgroundTaskIdentifier)
+        backgroundTaskIdentifier = .invalid
+    }
 }
 
 extension AppDelegate: UNUserNotificationCenterDelegate {
