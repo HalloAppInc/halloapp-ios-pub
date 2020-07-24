@@ -128,7 +128,7 @@ class ComposeViewController: SLComposeServiceViewController {
                 super.didSelectPost()
             }
             
-        case .contact(let userId, _):
+        case .contact(_, _):
             // TODO
             return
         }
