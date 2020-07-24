@@ -1279,4 +1279,76 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             self.save(managedObjectContext)
         }
     }
+    
+    func mergeSharedData(using sharedDataStore: SharedDataStore, completion: @escaping (() -> Void)) {
+        let posts = sharedDataStore.posts()
+        
+        guard !posts.isEmpty else {
+            completion()
+            return
+        }
+        
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let postIds = Set(posts.map{ $0.id })
+            let existingPosts = self.feedPosts(with: postIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+            
+            for post in posts {
+                guard existingPosts[post.id] == nil else {
+                    DDLogError("FeedData/mergeSharedData/duplicate [\(post.id)]")
+                    continue
+                }
+                
+                DDLogDebug("FeedData/mergeSharedData/new [\(post.id)]")
+                let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
+                
+                feedPost.id = post.id
+                feedPost.userId = post.userId
+                feedPost.text = post.text
+                feedPost.status = .sent
+                feedPost.timestamp = post.timestamp
+                
+                if let postMedia = post.media {
+                    for (index, media) in postMedia.enumerated() {
+                        DDLogDebug("FeedData/mergeSharedData/new/add-media [\(media.url)]")
+                        
+                        let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                        
+                        switch media.type {
+                        case .image:
+                            feedMedia.type = .image
+                        case .video:
+                            feedMedia.type = .video
+                        }
+                        feedMedia.status = .uploaded
+                        feedMedia.url = media.url
+                        feedMedia.size = media.size
+                        feedMedia.key = media.key
+                        feedMedia.order = Int16(index)
+                        feedMedia.sha256 = media.sha256
+                        feedMedia.post = feedPost
+                        
+                        let pendingMedia = PendingMedia(type: feedMedia.type)
+                        pendingMedia.fileURL = SharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath)
+                        
+                        do {
+                            try self.downloadManager.copyMedia(from: pendingMedia, to: feedMedia)
+                        }
+                        catch {
+                            DDLogError("FeedData/mergeSharedData/copy-media/error [\(error)]")
+                        }
+                    }
+                }
+            }
+            
+            DispatchQueue.main.async {
+                // Save will trigger a UI refresh
+                self.save(managedObjectContext)
+            }
+            DDLogInfo("FeedData/mergeSharedData/finished")
+            
+            sharedDataStore.delete(posts) {
+                completion()
+            }
+        }
+    }
 }

@@ -7,8 +7,8 @@
 //
 
 import CoreGraphics
-import Foundation
 import SwiftProtobuf
+import UIKit
 
 // MARK: Types
 
@@ -96,6 +96,23 @@ extension FeedMediaProtocol {
             media.downloadURL = url.absoluteString
             return media
         }
+    }
+}
+
+public class PendingMedia {
+    public var order: Int = 0
+    public var type: FeedMediaType
+    public var url: URL?
+    public var size: CGSize?
+    public var key: String?
+    public var sha256: String?
+    public var image: UIImage?
+    public var videoURL: URL?
+    public var fileURL: URL?
+    public var error: Error?
+
+    public init(type: FeedMediaType) {
+        self.type = type
     }
 }
 

@@ -88,4 +88,28 @@ class MainAppContext: AppContext {
         avatarStore = AvatarStore()
         xmppController.avatarDelegate = avatarStore
     }
+    
+    private var mergingSharedData = false
+    
+    func mergeSharedData() {
+        guard !mergingSharedData else { return }
+        mergingSharedData = true
+        
+        DDLogInfo("MainAppContext/mergeSharedData/start")
+        
+        let mergeGroup = DispatchGroup()
+        let sharedDataStore = SharedDataStore()
+        
+        mergeGroup.enter()
+        feedData.mergeSharedData(using: sharedDataStore) {
+            mergeGroup.leave()
+        }
+        
+        // TODO: Merge Chats Here
+        
+        mergeGroup.notify(queue: .main) {
+            DDLogInfo("MainAppContext/mergeSharedData/end")
+            self.mergingSharedData = false
+        }
+    }
 }

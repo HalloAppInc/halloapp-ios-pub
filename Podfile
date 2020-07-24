@@ -17,3 +17,9 @@ end
 target 'Notification Service Extension' do
   pod 'Firebase/Crashlytics'
 end
+
+target 'Share Extension' do
+  pod 'NextLevelSessionExporter', '>= 0.4.5'
+  pod 'Firebase/Crashlytics'
+  pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
+end

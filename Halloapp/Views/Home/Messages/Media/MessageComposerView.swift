@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjack
+import Core
 import UIKit
 import SwiftUI
 

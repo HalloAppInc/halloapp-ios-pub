@@ -8,7 +8,24 @@
 
 /* Begin PBXBuildFile section */
 		146B93792405F40500768AC6 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146B93782405F40500768AC6 /* Font.swift */; };
+		1574C89268C6C26E2539B753 /* Pods_Share_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0069D57E244BE25C44408E11 /* Pods_Share_Extension.framework */; };
+		24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */; };
+		24009E8E24B667FA00155DE2 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
+		24009E9124B66E6800155DE2 /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24009E9024B66E6800155DE2 /* XMPPController.swift */; };
+		24009EB824BE399F00155DE2 /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24009EB724BE399F00155DE2 /* ComposeView.swift */; };
+		24009EBA24BE3FA200155DE2 /* DestinationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24009EB924BE3FA200155DE2 /* DestinationView.swift */; };
 		243CC626248005EC00B4794F /* ProfileEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243CC625248005EC00B4794F /* ProfileEditView.swift */; };
+		2446D66924C7E48E005BAD3C /* ExtensionPreprocessing.js in Resources */ = {isa = PBXBuildFile; fileRef = 2446D66824C7E48E005BAD3C /* ExtensionPreprocessing.js */; };
+		2446D67C24CB54F8005BAD3C /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D67B24CB54F8005BAD3C /* VideoUtils.swift */; };
+		2446D67E24CB558F005BAD3C /* ImageServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D67D24CB558F005BAD3C /* ImageServer.swift */; };
+		2446D67F24CB5810005BAD3C /* ImageServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D67D24CB558F005BAD3C /* ImageServer.swift */; };
+		2446D68024CB5840005BAD3C /* XMPPFeedRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */; };
+		2446D68124CB5867005BAD3C /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D67B24CB54F8005BAD3C /* VideoUtils.swift */; };
+		2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681242C2486EAC2008C5216 /* AppExtensionContext.swift */; };
+		2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
+		2490288124C527E50019C4D5 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490288024C527E50019C4D5 /* UIImage.swift */; };
+		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		24D743E824B3D504001111BF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		681E0DAA24C8E0190073A03E /* NewPostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 681E0DA924C8E0190073A03E /* NewPostViewController.swift */; };
 		761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
@@ -97,7 +114,6 @@
 		76B95CDE24295AB5007435AC /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CDD24295AB5007435AC /* CommentView.swift */; };
 		76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE3242A7A3F007435AC /* CommentInputView.swift */; };
 		76C2D1F924AA6B9700930320 /* PrivacyListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */; };
-		76C69E4D2447E6D500338D4C /* UIApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69E4C2447E6D500338D4C /* UIApplication.swift */; };
 		76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */; };
 		76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FF52412E6E700F49CA4 /* ContactStore.swift */; };
 		76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */; };
@@ -109,7 +125,6 @@
 		EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostComposerView.swift */; };
 		EA0D20072363AC4D008B8289 /* Landing.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20062363AC4D008B8289 /* Landing.swift */; };
 		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
-		EA12006924209903008BFFAD /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA12006824209903008BFFAD /* VideoUtils.swift */; };
 		EA25178F246B693B00CE24C0 /* MediaPreviewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA25178E246B693B00CE24C0 /* MediaPreviewController.swift */; };
 		EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = EA35856C2450BE2900E6E8AB /* Chat.xcdatamodeld */; };
 		EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA35856F2450BE2900E6E8AB /* ChatData.swift */; };
@@ -121,7 +136,6 @@
 		EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */; };
 		EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713223EB7DB3008C2E44 /* FeedMedia.swift */; };
 		EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */; };
-		EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */; };
 		EA52EB18245A012700FB03F6 /* NewMessageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */; };
 		EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */; };
 		EA796B9B2469DDF100BC795E /* ChatQuoted+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B972469DDF100BC795E /* ChatQuoted+CoreDataClass.swift */; };
@@ -130,7 +144,6 @@
 		EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B9A2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift */; };
 		EA8D4721233C25B8006E2BA5 /* VerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationView.swift */; };
 		EAB03B7B2400517500643EB6 /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB03B7A2400517500643EB6 /* MailView.swift */; };
-		EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABF312A23EE20E10039B5A6 /* UIImage.swift */; };
 		EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */; };
 		EAC84CEA2422E05700A5AAEF /* XMPPFeedRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */; };
 		EAD476CD245513EF00EF8591 /* ChatListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD476CC245513EF00EF8591 /* ChatListViewController.swift */; };
@@ -152,6 +165,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		24D743DE24B3D199001111BF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EAF3A1B72334191E00805FF9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 24D743D524B3D199001111BF;
+			remoteInfo = "Shared Extension";
+		};
 		768123DC2485DFA1008C5216 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 768123D82485DFA1008C5216 /* Core.xcodeproj */;
@@ -189,6 +209,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */,
 				7681239B2485A240008C5216 /* Notification Service Extension.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
@@ -218,14 +239,29 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0069D57E244BE25C44408E11 /* Pods_Share_Extension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Share_Extension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A10ECAA6E6D27E8228BF638 /* Pods-Halloapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.debug.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.debug.xcconfig"; sourceTree = "<group>"; };
 		146B93782405F40500768AC6 /* Font.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Font.swift; sourceTree = "<group>"; };
 		19EEB8C1053B72CEAD800A0C /* Pods-HalloApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.release.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.release.xcconfig"; sourceTree = "<group>"; };
 		1C655B82B6A97A2F685569DF /* Pods-Notification Service Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
+		24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionContext.swift; sourceTree = "<group>"; };
+		24009E8F24B6690E00155DE2 /* Share Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Share Extension.entitlements"; sourceTree = "<group>"; };
+		24009E9024B66E6800155DE2 /* XMPPController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPController.swift; sourceTree = "<group>"; };
+		24009EB724BE399F00155DE2 /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
+		24009EB924BE3FA200155DE2 /* DestinationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DestinationView.swift; sourceTree = "<group>"; };
 		243CC625248005EC00B4794F /* ProfileEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditView.swift; sourceTree = "<group>"; };
+		2446D66824C7E48E005BAD3C /* ExtensionPreprocessing.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = ExtensionPreprocessing.js; sourceTree = "<group>"; };
+		2446D67B24CB54F8005BAD3C /* VideoUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
+		2446D67D24CB558F005BAD3C /* ImageServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
+		2490288024C527E50019C4D5 /* UIImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
+		24D743D624B3D199001111BF /* Share Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Share Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
+		3B784BE84F86CCDF62B0AAA2 /* Pods-Share Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.debug.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.debug.xcconfig"; sourceTree = "<group>"; };
+		477D47B0022D866E02A122DB /* Pods-Share Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		681E0DA924C8E0190073A03E /* NewPostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPostViewController.swift; sourceTree = "<group>"; };
 		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
+		74296216C820A50656388247 /* Pods-Share Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VerificationCodeViewController.swift; path = HalloApp/Views/Registration/VerificationCodeViewController.swift; sourceTree = SOURCE_ROOT; };
 		761442C2245CF4FC00DD9D1A /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIColor.swift; path = HalloApp/Components/Extensions/UIColor.swift; sourceTree = SOURCE_ROOT; };
 		761442C4245D32C200DD9D1A /* UIDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIDevice.swift; path = HalloApp/Components/Extensions/UIDevice.swift; sourceTree = SOURCE_ROOT; };
@@ -312,16 +348,18 @@
 		76B95CDD24295AB5007435AC /* CommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CE3242A7A3F007435AC /* CommentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentInputView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentInputView.swift; sourceTree = SOURCE_ROOT; };
 		76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyListViewController.swift; path = HalloApp/Views/Settings/Privacy/PrivacyListViewController.swift; sourceTree = SOURCE_ROOT; };
-		76C69E4C2447E6D500338D4C /* UIApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIApplication.swift; path = HalloApp/Components/Extensions/UIApplication.swift; sourceTree = SOURCE_ROOT; };
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
 		76DF9FF52412E6E700F49CA4 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
 		76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPContactSyncRequest.swift; sourceTree = "<group>"; };
 		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.debug.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.debug.xcconfig"; sourceTree = "<group>"; };
+		A55A3CED55D1C1A5A07E9733 /* Pods-Shared Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		ABDAC4856BD6591F6BD9CDD9 /* Pods-Notification Service Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.debug.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.debug.xcconfig"; sourceTree = "<group>"; };
+		BA363FAE3CFCA6033B3815EB /* Pods-Shared Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.debug.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.debug.xcconfig"; sourceTree = "<group>"; };
 		BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Notification_Service_Extension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HalloApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.internal beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.internal beta.xcconfig"; sourceTree = "<group>"; };
+		D0A0ED7F66A2EB2A804CC6EC /* Pods-Shared Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Notification Service Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Notification Service Extension/Pods-Notification Service Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		EA0B9916249C1FFB00B05094 /* Character.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Character.swift; sourceTree = "<group>"; };
 		EA0B9918249C205E00B05094 /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
@@ -329,7 +367,6 @@
 		EA0C315623EB97C800016EDB /* PostComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerView.swift; sourceTree = "<group>"; };
 		EA0D20062363AC4D008B8289 /* Landing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Landing.swift; sourceTree = "<group>"; };
 		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
-		EA12006824209903008BFFAD /* VideoUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		EA25178E246B693B00CE24C0 /* MediaPreviewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewController.swift; sourceTree = "<group>"; };
 		EA35856D2450BE2900E6E8AB /* Chat.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Chat.xcdatamodel; sourceTree = "<group>"; };
 		EA35856F2450BE2900E6E8AB /* ChatData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatData.swift; sourceTree = "<group>"; };
@@ -341,7 +378,6 @@
 		EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataItem.swift; sourceTree = "<group>"; };
 		EA45713223EB7DB3008C2E44 /* FeedMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMedia.swift; sourceTree = "<group>"; };
 		EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarouselView.swift; sourceTree = "<group>"; };
-		EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
 		EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMessageViewController.swift; sourceTree = "<group>"; };
 		EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPickerView.swift; sourceTree = "<group>"; };
 		EA796B972469DDF100BC795E /* ChatQuoted+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuoted+CoreDataClass.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuoted+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -351,7 +387,6 @@
 		EA8D4720233C25B8006E2BA5 /* VerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationView.swift; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAB03B7A2400517500643EB6 /* MailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MailView.swift; sourceTree = "<group>"; };
-		EABF312A23EE20E10039B5A6 /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
 		EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMediaDownloader.swift; sourceTree = "<group>"; };
 		EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPFeedRequests.swift; sourceTree = "<group>"; };
 		EAD476CC245513EF00EF8591 /* ChatListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListViewController.swift; sourceTree = "<group>"; };
@@ -379,6 +414,15 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		24D743D324B3D199001111BF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24D743E824B3D504001111BF /* Core.framework in Frameworks */,
+				1574C89268C6C26E2539B753 /* Pods_Share_Extension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		768123912485A240008C5216 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -448,6 +492,28 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
+		2490288D24C544700019C4D5 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		24D743D724B3D199001111BF /* Share Extension */ = {
+			isa = PBXGroup;
+			children = (
+				2490288D24C544700019C4D5 /* Model */,
+				24009E8F24B6690E00155DE2 /* Share Extension.entitlements */,
+				24009EB724BE399F00155DE2 /* ComposeView.swift */,
+				24009EB924BE3FA200155DE2 /* DestinationView.swift */,
+				2446D66824C7E48E005BAD3C /* ExtensionPreprocessing.js */,
+				24D743DD24B3D199001111BF /* Info.plist */,
+				24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */,
+				24009E9024B66E6800155DE2 /* XMPPController.swift */,
+			);
+			path = "Share Extension";
+			sourceTree = "<group>";
+		};
 		58B000E2ED3FD4F3ACBF0837 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -460,6 +526,12 @@
 				ABDAC4856BD6591F6BD9CDD9 /* Pods-Notification Service Extension.debug.xcconfig */,
 				1C655B82B6A97A2F685569DF /* Pods-Notification Service Extension.internal beta.xcconfig */,
 				DE551213175D32A4D30C4139 /* Pods-Notification Service Extension.external beta.xcconfig */,
+				BA363FAE3CFCA6033B3815EB /* Pods-Shared Extension.debug.xcconfig */,
+				D0A0ED7F66A2EB2A804CC6EC /* Pods-Shared Extension.internal beta.xcconfig */,
+				A55A3CED55D1C1A5A07E9733 /* Pods-Shared Extension.external beta.xcconfig */,
+				3B784BE84F86CCDF62B0AAA2 /* Pods-Share Extension.debug.xcconfig */,
+				477D47B0022D866E02A122DB /* Pods-Share Extension.internal beta.xcconfig */,
+				74296216C820A50656388247 /* Pods-Share Extension.external beta.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -642,6 +714,7 @@
 				768123AA2485D764008C5216 /* XMPPFramework.framework */,
 				C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */,
 				BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */,
+				0069D57E244BE25C44408E11 /* Pods_Share_Extension.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -665,8 +738,8 @@
 				761BD0F824B3C68300B567F6 /* Invites */,
 				764AB41624A67A3C00D4E354 /* Privacy */,
 				766103A22461E63200728870 /* Receipts */,
-				EA12006824209903008BFFAD /* VideoUtils.swift */,
 				76DFA0012419560300F49CA4 /* XMPP */,
+				2446D67B24CB54F8005BAD3C /* VideoUtils.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -830,12 +903,11 @@
 				EA0B991A249C228700B05094 /* DateFormatter.swift */,
 				146B93782405F40500768AC6 /* Font.swift */,
 				EA0B9918249C205E00B05094 /* String.swift */,
-				76C69E4C2447E6D500338D4C /* UIApplication.swift */,
 				761442C8245D4DE500DD9D1A /* UIButton.swift */,
 				761442C2245CF4FC00DD9D1A /* UIColor.swift */,
 				761442C4245D32C200DD9D1A /* UIDevice.swift */,
 				762EDBDA244E344300986617 /* UIFont.swift */,
-				EABF312A23EE20E10039B5A6 /* UIImage.swift */,
+				2490288024C527E50019C4D5 /* UIImage.swift */,
 				764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */,
 				76A9244A244EC49000794859 /* UIView.swift */,
 				76407DF7245CA3F00031F96A /* UIViewController.swift */,
@@ -847,7 +919,7 @@
 			isa = PBXGroup;
 			children = (
 				EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */,
-				EA4AAE9F23C7B77000D7EB15 /* ImageServer.swift */,
+				2446D67D24CB558F005BAD3C /* ImageServer.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -876,6 +948,7 @@
 				EAF3A1D82334192000805FF9 /* HalloappTests */,
 				EAF3A1E32334192000805FF9 /* HalloappUITests */,
 				768123952485A240008C5216 /* Notification Service Extension */,
+				24D743D724B3D199001111BF /* Share Extension */,
 				EAF3A1C02334191E00805FF9 /* Products */,
 				58B000E2ED3FD4F3ACBF0837 /* Pods */,
 				8295BD88471C9D5DC2D30C41 /* Frameworks */,
@@ -889,6 +962,7 @@
 				EAF3A1D52334192000805FF9 /* HalloAppTests.xctest */,
 				EAF3A1E02334192000805FF9 /* HalloAppUITests.xctest */,
 				768123942485A240008C5216 /* Notification Service Extension.appex */,
+				24D743D624B3D199001111BF /* Share Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -935,6 +1009,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		24D743D524B3D199001111BF /* Share Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 24D743E524B3D199001111BF /* Build configuration list for PBXNativeTarget "Share Extension" */;
+			buildPhases = (
+				4A631761CEA91087620E8C28 /* [CP] Check Pods Manifest.lock */,
+				24D743D224B3D199001111BF /* Sources */,
+				24D743D324B3D199001111BF /* Frameworks */,
+				24D743D424B3D199001111BF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Share Extension";
+			productName = "Shared Extension";
+			productReference = 24D743D624B3D199001111BF /* Share Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		768123932485A240008C5216 /* Notification Service Extension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7681239C2485A240008C5216 /* Build configuration list for PBXNativeTarget "Notification Service Extension" */;
@@ -971,6 +1063,7 @@
 			);
 			dependencies = (
 				76F43F202489979600D47920 /* PBXTargetDependency */,
+				24D743DF24B3D199001111BF /* PBXTargetDependency */,
 			);
 			name = HalloApp;
 			packageProductDependencies = (
@@ -1026,6 +1119,9 @@
 				LastUpgradeCheck = 1100;
 				ORGANIZATIONNAME = "Halloapp, Inc.";
 				TargetAttributes = {
+					24D743D524B3D199001111BF = {
+						CreatedOnToolsVersion = 11.5;
+					};
 					768123932485A240008C5216 = {
 						CreatedOnToolsVersion = 11.5;
 					};
@@ -1069,6 +1165,7 @@
 				EAF3A1D42334192000805FF9 /* HalloAppTests */,
 				EAF3A1DF2334192000805FF9 /* HalloAppUITests */,
 				768123932485A240008C5216 /* Notification Service Extension */,
+				24D743D524B3D199001111BF /* Share Extension */,
 			);
 		};
 /* End PBXProject section */
@@ -1084,6 +1181,15 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
+		24D743D424B3D199001111BF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24009E8E24B667FA00155DE2 /* GoogleService-Info.plist in Resources */,
+				2446D66924C7E48E005BAD3C /* ExtensionPreprocessing.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		768123922485A240008C5216 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1137,6 +1243,28 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		4A631761CEA91087620E8C28 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Share Extension-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		76955DEB2474762D0088BE8C /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1218,6 +1346,22 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		24D743D224B3D199001111BF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2446D67F24CB5810005BAD3C /* ImageServer.swift in Sources */,
+				2446D68124CB5867005BAD3C /* VideoUtils.swift in Sources */,
+				24009EB824BE399F00155DE2 /* ComposeView.swift in Sources */,
+				2446D68024CB5840005BAD3C /* XMPPFeedRequests.swift in Sources */,
+				24009EBA24BE3FA200155DE2 /* DestinationView.swift in Sources */,
+				24009E9124B66E6800155DE2 /* XMPPController.swift in Sources */,
+				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
+				24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */,
+				2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		768123902485A240008C5216 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1232,9 +1376,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */,
+				2490288124C527E50019C4D5 /* UIImage.swift in Sources */,
+				2446D67E24CB558F005BAD3C /* ImageServer.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
 				EA52EB18245A012700FB03F6 /* NewMessageViewController.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
+				2446D67C24CB54F8005BAD3C /* VideoUtils.swift in Sources */,
 				761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */,
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */,
@@ -1274,7 +1421,6 @@
 				761905A32459EB07008FC600 /* InputTextView.swift in Sources */,
 				EA0B9919249C205E00B05094 /* String.swift in Sources */,
 				76407DFC245CBAD40031F96A /* PhoneInputViewController.swift in Sources */,
-				EA4AAEA023C7B77000D7EB15 /* ImageServer.swift in Sources */,
 				763B42AC243274F400FF0E82 /* FeedTableViewController.swift in Sources */,
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
 				764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */,
@@ -1307,10 +1453,8 @@
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */,
-				EA12006924209903008BFFAD /* VideoUtils.swift in Sources */,
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
 				EA35857D2450BE3300E6E8AB /* OutgoingMsgView.swift in Sources */,
-				EABF312B23EE20E10039B5A6 /* UIImage.swift in Sources */,
 				76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */,
 				766492252450E04D009BC368 /* BadgeView.swift in Sources */,
 				7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */,
@@ -1335,7 +1479,6 @@
 				764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */,
 				76A92449244EBCB600794859 /* ShapeView.swift in Sources */,
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,
-				76C69E4D2447E6D500338D4C /* UIApplication.swift in Sources */,
 				EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */,
 				EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */,
 				764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */,
@@ -1362,6 +1505,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		24D743DF24B3D199001111BF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 24D743D524B3D199001111BF /* Share Extension */;
+			targetProxy = 24D743DE24B3D199001111BF /* PBXContainerItemProxy */;
+		};
 		76F43F202489979600D47920 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 768123932485A240008C5216 /* Notification Service Extension */;
@@ -1391,6 +1539,186 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		24D743E124B3D199001111BF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3B784BE84F86CCDF62B0AAA2 /* Pods-Share Extension.debug.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 42;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/CocoaLumberjack\"",
+				);
+				INFOPLIST_FILE = "Share Extension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.2;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		24D743E224B3D199001111BF /* Internal Beta */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 477D47B0022D866E02A122DB /* Pods-Share Extension.internal beta.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 42;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/CocoaLumberjack\"",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "Share Extension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Internal Beta";
+		};
+		24D743E324B3D199001111BF /* External Beta */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 74296216C820A50656388247 /* Pods-Share Extension.external beta.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = "Share Extension/Share Extension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 42;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5M78D698HF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_CONFIGURATION_BUILD_DIR}/CocoaLumberjack\"",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = "Share Extension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.halloapp.hallo.Share-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "External Beta";
+		};
 		761E9A9E246524E900864AE9 /* External Beta */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1450,6 +1778,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -1811,6 +2140,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -1835,6 +2165,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CD26B1DB0D71EF2BBE67ADE9 /* Pods-HalloApp.internal beta.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Halloapp/Halloapp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -1942,6 +2273,16 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		24D743E524B3D199001111BF /* Build configuration list for PBXNativeTarget "Share Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24D743E124B3D199001111BF /* Debug */,
+				24D743E224B3D199001111BF /* Internal Beta */,
+				24D743E324B3D199001111BF /* External Beta */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "External Beta";
+		};
 		7681239C2485A240008C5216 /* Build configuration list for PBXNativeTarget "Notification Service Extension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

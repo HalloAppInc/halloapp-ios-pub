@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="SharedFeedPost" representedClassName="SharedFeedPost" syncable="YES">
+        <attribute name="id" attributeType="String"/>
+        <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userId" attributeType="String"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SharedMedia" inverseName="post" inverseEntity="SharedMedia"/>
+    </entity>
+    <entity name="SharedMedia" representedClassName="SharedMedia" syncable="YES">
+        <attribute name="height" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="key" attributeType="String"/>
+        <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="relativeFilePath" attributeType="String"/>
+        <attribute name="sha256" attributeType="String"/>
+        <attribute name="typeValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="url" attributeType="URI"/>
+        <attribute name="width" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedPost" inverseName="media" inverseEntity="SharedFeedPost"/>
+    </entity>
+    <elements>
+        <element name="SharedFeedPost" positionX="-63" positionY="-18" width="128" height="133"/>
+        <element name="SharedMedia" positionX="-45" positionY="27" width="128" height="178"/>
+    </elements>
+</model>

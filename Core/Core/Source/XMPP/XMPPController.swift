@@ -77,9 +77,12 @@ open class XMPPController: NSObject, ObservableObject {
         xmppStream.startTLSPolicy = XMPPStreamStartTLSPolicy.preferred
         xmppStream.registerCustomElementNames(["ack"])
         xmppStream.myJID = userData.userJID
+        
+        let clientVersion = NSString(string: AppContext.appVersion)
+        xmppStream.clientVersion = clientVersion
     }
 
-    public func startConnectingIfNecessary() {
+    open func startConnectingIfNecessary() {
         if xmppStream.myJID != nil && xmppStream.isDisconnected {
             connect()
         }
@@ -88,7 +91,7 @@ open class XMPPController: NSObject, ObservableObject {
     public func connect() {
         guard xmppStream.myJID != nil else { return }
 
-        DDLogInfo("xmpp/connect [version \(xmppStream.clientVersion)]")
+        DDLogInfo("xmpp/connect [version: \(xmppStream.clientVersion), passiveMode: \(xmppStream.passiveMode)]")
 
         xmppStream.hostName = userData.hostName
 

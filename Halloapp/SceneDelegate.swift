@@ -66,6 +66,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         DispatchQueue.main.async {
             appDelegate.checkNotificationsAuthorizationStatus()
         }
+        
+        MainAppContext.shared.mergeSharedData()
 
         // Need to tell XMPPStream to start connecting every time app is foregrounded
         // because XMPPReconnect won't keep the connection alive unless stream has authenticated

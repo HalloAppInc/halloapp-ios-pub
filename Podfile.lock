@@ -106,7 +106,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   XMPPFramework:
-    :commit: ee292b2f75942cf72e36de90c96d7596f3fbad52
+    :commit: d1f86ba9c3163ce6501ba84f00d42f26ffc89d63
     :git: "git@github.com:HalloAppInc/XMPPFramework.git"
   YPImagePicker:
     :git: "git@github.com:HalloAppInc/YPImagePicker.git"
@@ -133,6 +133,6 @@ SPEC CHECKSUMS:
   XMPPFramework: 759900cc7eb3c22036d622da72f66a05ae7b6948
   YPImagePicker: bf0f1f30d4d7542b4c7b1ff6a5eabf7eec228da0
 
-PODFILE CHECKSUM: 308ccc69bdb9e971aa768bdf5c1239880e6c4ce3
+PODFILE CHECKSUM: e7e293f6897a292125d604895042b3f3568d5e7f
 
 COCOAPODS: 1.9.3

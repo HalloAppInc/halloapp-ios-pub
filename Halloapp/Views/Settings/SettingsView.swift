@@ -120,7 +120,7 @@ struct SettingsView: View {
                 Section(header: Text("About".uppercased()),
                         footer: VStack {
                             Text("HalloApp")
-                            Text("Version \(UIApplication.shared.version)")
+                            Text("Version \(MainAppContext.appVersion)")
                         }
                         .frame(maxWidth: .infinity)
                         .padding()

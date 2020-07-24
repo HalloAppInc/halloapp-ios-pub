@@ -23,7 +23,7 @@ enum VideoProcessingError: Error {
 }
 
 class ImageServer {
-    private let jpegCompressionQuality = CGFloat(MainAppContext.shared.userData.compressionQuality)
+    private let jpegCompressionQuality = CGFloat(UserData.compressionQuality)
     private let maxImageSize: CGFloat = 1600
     private let mediaProcessingQueue = DispatchQueue(label: "ImageServer.MediaProcessing")
     private let mediaProcessingGroup = DispatchGroup()
@@ -76,7 +76,7 @@ class ImageServer {
             }
             self.mediaProcessingGroup.leave()
         })
-        MainAppContext.shared.xmppController.enqueue(request: request)
+        AppContext.shared.xmppController.enqueue(request: request)
     }
 
     private func processAndUpload(_ item: PendingMedia, to mediaURL: MediaURL) {

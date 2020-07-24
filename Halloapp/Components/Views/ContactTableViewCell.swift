@@ -9,7 +9,22 @@
 import Core
 import UIKit
 
+enum PostStatus: Int {
+    case seen = 0
+    case delivered = 1
+}
+
 class ContactTableViewCell: UITableViewCell {
+    override var isUserInteractionEnabled: Bool {
+        didSet {
+            if isUserInteractionEnabled {
+                nameLabel.textColor = .label
+            } else {
+                nameLabel.textColor = .systemGray
+            }
+        }
+    }
+    
     private lazy var contactImage: AvatarView = {
         return AvatarView()
     }()
@@ -34,7 +49,7 @@ class ContactTableViewCell: UITableViewCell {
     }
 
     private func commonInit() {
-        let hStack = UIStackView(arrangedSubviews: [self.contactImage, self.nameLabel])
+        let hStack = UIStackView(arrangedSubviews: [contactImage, nameLabel])
         hStack.axis = .horizontal
         hStack.spacing = 8
         hStack.translatesAutoresizingMaskIntoConstraints = false
@@ -46,14 +61,14 @@ class ContactTableViewCell: UITableViewCell {
         hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
         
-        self.contactImage.heightAnchor.constraint(equalToConstant: 25).isActive = true
-        self.contactImage.heightAnchor.constraint(equalTo: self.contactImage.widthAnchor).isActive = true
+        contactImage.heightAnchor.constraint(equalToConstant: 25).isActive = true
+        contactImage.heightAnchor.constraint(equalTo: contactImage.widthAnchor).isActive = true
     }
     
-    public func configureForSeenBy(with userId: UserID, name: String, status: PostStatus) {
-        contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
+    public func configureForSeenBy(with userId: UserID, name: String, status: PostStatus, using avatarStore: AvatarStore) {
+        contactImage.configure(with: userId, using: avatarStore)
         
-        self.nameLabel.text = name
+        nameLabel.text = name
         
         let showDoubleBlueCheck = status == .seen
         let checkmarkImage = UIImage(named: showDoubleBlueCheck ? "CheckmarkDouble" : "CheckmarkSingle")?.withRenderingMode(.alwaysTemplate)
@@ -66,8 +81,14 @@ class ContactTableViewCell: UITableViewCell {
         
         self.accessoryView?.tintColor = showDoubleBlueCheck ? .systemBlue : .systemGray
     }
+    
+    public func configure(with userId: UserID, name: String, using avatarStore: AvatarStore) {
+        contactImage.configure(with: userId, using: avatarStore)
+        nameLabel.text = name
+    }
 
     override func prepareForReuse() {
-        self.contactImage.prepareForReuse()
+        contactImage.prepareForReuse()
+        nameLabel.text = ""
     }
 }

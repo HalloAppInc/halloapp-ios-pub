@@ -127,30 +127,12 @@ class FeedMedia: Identifiable, Hashable {
         self.fileURL = media.fileURL ?? media.videoURL
         self.isMediaAvailable = true
     }
-    
+
     static func == (lhs: FeedMedia, rhs: FeedMedia) -> Bool {
         return lhs.id == rhs.id
     }
-    
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(self.id)
-    }
-}
-
-
-class PendingMedia {
-    var order: Int = 0
-    var type: FeedMediaType
-    var url: URL?
-    var size: CGSize?
-    var key: String?
-    var sha256: String?
-    var image: UIImage?
-    var videoURL: URL?
-    var fileURL: URL?
-    var error: Error?
-
-    init(type: FeedMediaType) {
-        self.type = type
     }
 }

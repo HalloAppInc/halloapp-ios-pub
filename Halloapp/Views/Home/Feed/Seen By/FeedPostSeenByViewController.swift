@@ -10,11 +10,6 @@ import Core
 import CoreData
 import UIKit
 
-enum PostStatus: Int {
-    case seen = 0
-    case delivered = 1
-}
-
 fileprivate struct TableRow {
     let userId: UserID
     let postStatus: PostStatus
@@ -67,7 +62,7 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         dataSource = UITableViewDiffableDataSource<PostStatus, TableRow>(tableView: self.tableView) { (tableView, indexPath, tableRow) in
             let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
             
-            cell.configureForSeenBy(with: tableRow.userId, name: tableRow.contactName!, status: tableRow.postStatus)
+            cell.configureForSeenBy(with: tableRow.userId, name: tableRow.contactName!, status: tableRow.postStatus, using: MainAppContext.shared.avatarStore)
 
             return cell
         }

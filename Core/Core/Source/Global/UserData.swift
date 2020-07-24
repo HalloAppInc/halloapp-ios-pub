@@ -31,7 +31,7 @@ public final class UserData: ObservableObject {
         }
     }
     
-    public var compressionQuality: Float = 0.4
+    public static var compressionQuality: Float = 0.4
 
     // Entered by user.
     public var countryCode = "1"

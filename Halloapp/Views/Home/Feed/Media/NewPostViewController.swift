@@ -8,6 +8,7 @@
 
 import AVFoundation
 import CocoaLumberjack
+import Core
 import Photos
 import UIKit
 import YPImagePicker

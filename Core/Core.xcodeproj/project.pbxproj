@@ -12,6 +12,14 @@
 		246A8B8224902BA600CE0429 /* Avatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B8024902BA600CE0429 /* Avatar+CoreDataProperties.swift */; };
 		246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B8124902BA600CE0429 /* Avatar+CoreDataClass.swift */; };
 		246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B842490357B00CE0429 /* AvatarStore.swift */; };
+		2490287524C524250019C4D5 /* XMPPCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490287424C524250019C4D5 /* XMPPCommonRequests.swift */; };
+		2490287924C525030019C4D5 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490287824C525030019C4D5 /* UIImage.swift */; };
+		249028A024C5DFDE0019C4D5 /* Media+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490289C24C5DFDE0019C4D5 /* Media+CoreDataClass.swift */; };
+		249028A124C5DFDE0019C4D5 /* FeedPost+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490289D24C5DFDE0019C4D5 /* FeedPost+CoreDataClass.swift */; };
+		249028A224C5DFDE0019C4D5 /* Media+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490289E24C5DFDE0019C4D5 /* Media+CoreDataProperties.swift */; };
+		249028A324C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490289F24C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift */; };
+		249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 249028A724C5E01B0019C4D5 /* SharedData.xcdatamodeld */; };
+		249028AB24C5E0600019C4D5 /* SharedDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249028AA24C5E05F0019C4D5 /* SharedDataStore.swift */; };
 		24D743C724AEA821001111BF /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D743C624AEA821001111BF /* AvatarView.swift */; };
 		7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7656F93124BCE66500F00AF7 /* LogFileManager.swift */; };
 		768123BD2485D9C7008C5216 /* Core.h in Headers */ = {isa = PBXBuildFile; fileRef = 768123BB2485D9C7008C5216 /* Core.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -49,6 +57,14 @@
 		246A8B8024902BA600CE0429 /* Avatar+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Avatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		246A8B8124902BA600CE0429 /* Avatar+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Avatar+CoreDataClass.swift"; sourceTree = "<group>"; };
 		246A8B842490357B00CE0429 /* AvatarStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarStore.swift; sourceTree = "<group>"; };
+		2490287424C524250019C4D5 /* XMPPCommonRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPCommonRequests.swift; sourceTree = "<group>"; };
+		2490287824C525030019C4D5 /* UIImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
+		2490289C24C5DFDE0019C4D5 /* Media+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Media+CoreDataClass.swift"; sourceTree = "<group>"; };
+		2490289D24C5DFDE0019C4D5 /* FeedPost+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FeedPost+CoreDataClass.swift"; sourceTree = "<group>"; };
+		2490289E24C5DFDE0019C4D5 /* Media+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Media+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		2490289F24C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FeedPost+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		249028A824C5E01B0019C4D5 /* SharedDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SharedDataModel.xcdatamodel; sourceTree = "<group>"; };
+		249028AA24C5E05F0019C4D5 /* SharedDataStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharedDataStore.swift; sourceTree = "<group>"; };
 		24D743C624AEA821001111BF /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
@@ -111,6 +127,27 @@
 			path = Avatars;
 			sourceTree = "<group>";
 		};
+		2490289924C5DDBD0019C4D5 /* ShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				2490289A24C5DF7D0019C4D5 /* Model */,
+				249028AA24C5E05F0019C4D5 /* SharedDataStore.swift */,
+			);
+			path = ShareExtension;
+			sourceTree = "<group>";
+		};
+		2490289A24C5DF7D0019C4D5 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				2490289D24C5DFDE0019C4D5 /* FeedPost+CoreDataClass.swift */,
+				2490289F24C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift */,
+				2490289C24C5DFDE0019C4D5 /* Media+CoreDataClass.swift */,
+				2490289E24C5DFDE0019C4D5 /* Media+CoreDataProperties.swift */,
+				249028A724C5E01B0019C4D5 /* SharedData.xcdatamodeld */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		65D497413B5EACBECD8FBCC7 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -161,6 +198,7 @@
 				768123D52485DC0B008C5216 /* Global */,
 				768123D02485DB8D008C5216 /* Logging */,
 				76812415248619BB008C5216 /* Proto */,
+				2490289924C5DDBD0019C4D5 /* ShareExtension */,
 				768123FC248612A9008C5216 /* XMPP */,
 			);
 			path = Source;
@@ -215,6 +253,7 @@
 			isa = PBXGroup;
 			children = (
 				76812408248614F1008C5216 /* XMPPRequest.swift */,
+				2490287424C524250019C4D5 /* XMPPCommonRequests.swift */,
 			);
 			path = Requests;
 			sourceTree = "<group>";
@@ -241,6 +280,7 @@
 			children = (
 				76E5153724A18171003F1273 /* Digest.swift */,
 				7681241E2486C178008C5216 /* String.swift */,
+				2490287824C525030019C4D5 /* UIImage.swift */,
 				76925CF924871506008333FA /* UserDefaults.swift */,
 			);
 			path = Extensions;
@@ -374,16 +414,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				768124132486193E008C5216 /* Feed.swift in Sources */,
+				249028A124C5DFDE0019C4D5 /* FeedPost+CoreDataClass.swift in Sources */,
 				246A8B7B24902A3E00CE0429 /* Avatars.xcdatamodeld in Sources */,
 				768123D72485DC4F008C5216 /* AppContext.swift in Sources */,
+				2490287524C524250019C4D5 /* XMPPCommonRequests.swift in Sources */,
 				246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */,
 				76812409248614F1008C5216 /* XMPPRequest.swift in Sources */,
 				768123FE248612E7008C5216 /* XMPPController.swift in Sources */,
+				249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */,
 				7681240224861487008C5216 /* XMPPError.swift in Sources */,
 				768123F924861068008C5216 /* ABContact+CoreDataClass.swift in Sources */,
+				2490287924C525030019C4D5 /* UIImage.swift in Sources */,
 				246A8B71248FEC9400CE0429 /* NotificationUtility.swift in Sources */,
 				24D743C724AEA821001111BF /* AvatarView.swift in Sources */,
 				768123F824861068008C5216 /* Contacts.xcdatamodeld in Sources */,
+				249028A324C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift in Sources */,
 				76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */,
 				768123F124860F67008C5216 /* UserData.swift in Sources */,
 				246A8B8224902BA600CE0429 /* Avatar+CoreDataProperties.swift in Sources */,
@@ -396,11 +441,14 @@
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
 				246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */,
 				76C7429624A155E900C7D945 /* FeedDownloadManager.swift in Sources */,
+				249028A024C5DFDE0019C4D5 /* Media+CoreDataClass.swift in Sources */,
 				7681241F2486C178008C5216 /* String.swift in Sources */,
 				76812405248614BA008C5216 /* XMPPFeed.swift in Sources */,
 				76C7429C24A1597000C7D945 /* MediaCrypter.swift in Sources */,
 				7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */,
 				768123F724861068008C5216 /* ABContact+CoreDataProperties.swift in Sources */,
+				249028AB24C5E0600019C4D5 /* SharedDataStore.swift in Sources */,
+				249028A224C5DFDE0019C4D5 /* Media+CoreDataProperties.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -768,6 +816,16 @@
 			);
 			currentVersion = 246A8B7A24902A3E00CE0429 /* Avatars.xcdatamodel */;
 			path = Avatars.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+		249028A724C5E01B0019C4D5 /* SharedData.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				249028A824C5E01B0019C4D5 /* SharedDataModel.xcdatamodel */,
+			);
+			currentVersion = 249028A824C5E01B0019C4D5 /* SharedDataModel.xcdatamodel */;
+			path = SharedData.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

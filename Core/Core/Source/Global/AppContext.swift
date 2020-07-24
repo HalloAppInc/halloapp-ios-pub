@@ -22,6 +22,16 @@ open class AppContext {
     // MARK: Constants
     private static let appGroupName = "group.com.halloapp.shared"
     private static let contactsDatabaseFilename = "contacts.sqlite"
+    
+    public static let appVersion: String = {
+        guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
+            return ""
+        }
+        guard let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String else {
+            return "\(version)"
+        }
+        return "\(version) (\(buildNumber))"
+    }()
 
     // MARK: Global objects
     public let userData: UserData
@@ -44,7 +54,7 @@ open class AppContext {
     }
 
     // MARK: Paths
-    static let sharedDirectoryURL: URL! = {
+    public static let sharedDirectoryURL: URL! = {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppContext.appGroupName)
     }()
 

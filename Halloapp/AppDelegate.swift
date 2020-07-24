@@ -100,6 +100,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             completionHandler(.noData)
             return
         }
+        
+        MainAppContext.shared.mergeSharedData()
 
         let xmppController = MainAppContext.shared.xmppController
         xmppController.startConnectingIfNecessary()
@@ -203,6 +205,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         task.expirationHandler = {
             DDLogError("application/bg-feed-refresh Expiration handler")
         }
+        
+        MainAppContext.shared.mergeSharedData()
 
         let application = UIApplication.shared
         let xmppController = MainAppContext.shared.xmppController

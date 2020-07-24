@@ -73,12 +73,6 @@ class XMPPControllerMain: XMPPController {
         privacySettings = PrivacySettings(xmppController: self)
     }
 
-    override func configure(xmppStream: XMPPStream) {
-        super.configure(xmppStream: xmppStream)
-        let clientVersion = NSString(string: UIApplication.shared.version)
-        xmppStream.clientVersion = clientVersion
-    }
-
     // MARK: Feed
 
     func retrieveFeedData<T: Collection>(for userIds: T) where T.Element == UserID {

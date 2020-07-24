@@ -181,7 +181,7 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
         
         let currentAvatar = save(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
         
-        let data = image.jpegData(compressionQuality: CGFloat(AppContext.shared.userData.compressionQuality))!
+        let data = image.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
         
         let fileURL = AvatarStore.fileURL(forRelativeFilePath: "\(avatarId).jpeg")
         
