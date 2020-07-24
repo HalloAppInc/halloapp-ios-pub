@@ -16,7 +16,7 @@ public protocol XMPPControllerAvatarDelegate: AnyObject {
 }
 
 
-open class XMPPController: NSObject {
+open class XMPPController: NSObject, ObservableObject {
     // MARK: Avatar
     public weak var avatarDelegate: XMPPControllerAvatarDelegate?
 
@@ -38,7 +38,7 @@ open class XMPPController: NSObject {
     }
 
     // MARK: Connection State
-    public private(set) var connectionState: ConnectionState = .notConnected {
+    @Published public private(set) var connectionState: ConnectionState = .notConnected {
         didSet {
             DDLogDebug("xmpp/connectionState/change [\(oldValue)] -> [\(connectionState)]")
             runCallbacksForCurrentConnectionState()
