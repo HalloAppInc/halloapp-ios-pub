@@ -126,7 +126,7 @@ struct ProfileEditView: View {
     func uploadImage() {
         guard let profileImageInput = profileImageInput else { return }
         
-        guard let resizedImage = profileImageInput.resized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
+        guard let resizedImage = profileImageInput.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
             DDLogError("ProfileEditView/resizeImage error resize failed")
             
             return
