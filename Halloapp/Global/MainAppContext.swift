@@ -37,6 +37,10 @@ class MainAppContext: AppContext {
         }
     }
 
+    override var isAppExtension: Bool {
+        get { false }
+    }
+
     // MARK: Paths
     static let documentsDirectoryURL = {
         URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!)

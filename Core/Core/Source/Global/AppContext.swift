@@ -33,6 +33,10 @@ open class AppContext {
         return "\(version) (\(buildNumber))"
     }()
 
+    open var isAppExtension: Bool {
+        get { true }
+    }
+
     // MARK: Global objects
     public let userData: UserData
     public let userDefaults: UserDefaults! = UserDefaults(suiteName: AppContext.appGroupName)
