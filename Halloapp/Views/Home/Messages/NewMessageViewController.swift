@@ -14,22 +14,55 @@ import Foundation
 import UIKit
 import SwiftUI
 
-
-fileprivate enum NewMessageViewSection {
-    case main
+fileprivate struct Constants {
+    static let cellReuseIdentifier = "NewMessageViewCell"
 }
 
 protocol NewMessageViewControllerDelegate: AnyObject {
     func newMessageViewController(_ newMessageViewController: NewMessageViewController, chatWithUserId: String)
 }
 
+fileprivate class ContactsSearchResultsController: UITableViewController {
+
+    var contacts: [ABContact] = [] {
+        didSet {
+            if self.isViewLoaded {
+                self.tableView.reloadData()
+            }
+        }
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        self.tableView.separatorStyle = .none
+        self.tableView.backgroundColor = UIColor.systemGray6
+        self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+    }
+
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return contacts.count
+    }
+
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
+        cell.configure(with: contacts[indexPath.row], hide: false)
+        return cell
+    }
+}
+
 class NewMessageViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
     weak var delegate: NewMessageViewControllerDelegate?
 
-    private static let cellReuseIdentifier = "NewMessageViewCell"
-
     private var fetchedResultsController: NSFetchedResultsController<ABContact>?
+
+    private var searchController: UISearchController!
+    private var searchResultsController: ContactsSearchResultsController!
 
     private var trackedContacts: [String:TrackedContact] = [:]
 
@@ -51,11 +84,16 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         self.navigationItem.standardAppearance = .transparentAppearance
         self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
 
-        self.tableView.backgroundColor = .clear
         self.tableView.separatorStyle = .none
-        self.tableView.allowsSelection = true
-        self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: NewMessageViewController.cellReuseIdentifier)
         self.tableView.backgroundColor = UIColor.systemGray6
+        self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+
+        searchResultsController = ContactsSearchResultsController(style: .plain)
+        searchController = UISearchController(searchResultsController: searchResultsController)
+        searchController.delegate = self
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.autocapitalizationType = .none
+        self.navigationItem.searchController = searchController
 
         self.setupFetchedResultsController()
     }
@@ -193,13 +231,10 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
-        let cell = tableView.dequeueReusableCell(withIdentifier: NewMessageViewController.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
-
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
         if let abContact = fetchedResultsController?.object(at: indexPath) {
             cell.configure(with: abContact, hide: self.isDuplicate(abContact))
         }
-
         return cell
     }
 
@@ -213,11 +248,29 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if let abContact = fetchedResultsController?.object(at: indexPath) {
-            if let userId = abContact.userId {
-                self.dismiss(animated: false) // gotcha: don't animate or else chatInput will not be shown
-                self.delegate?.newMessageViewController(self, chatWithUserId: userId)
+        guard let delegate = delegate else {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
+        }
+
+        var userId: UserID?
+        if tableView == self.tableView {
+            userId = fetchedResultsController?.object(at: indexPath).userId
+        } else {
+            userId = searchResultsController.contacts[indexPath.row].userId
+        }
+
+        if let userId = userId {
+            if searchController.isActive {
+                searchController.dismiss(animated: false) {
+                    delegate.newMessageViewController(self, chatWithUserId: userId)
+                }
+            } else {
+                delegate.newMessageViewController(self, chatWithUserId: userId)
+
             }
+        } else {
+            tableView.deselectRow(at: indexPath, animated: true)
         }
     }
 
@@ -240,6 +293,37 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         return result
     }
 
+}
+
+extension NewMessageViewController: UISearchControllerDelegate {
+
+    func willPresentSearchController(_ searchController: UISearchController) {
+        if let resultsController = searchController.searchResultsController as? UITableViewController {
+            resultsController.tableView.delegate = self
+        }
+    }
+}
+
+extension NewMessageViewController: UISearchResultsUpdating {
+
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let resultsController = searchController.searchResultsController as? ContactsSearchResultsController else { return }
+        guard let allContacts = fetchedResultsController?.fetchedObjects else { return }
+
+        let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
+        let searchItems = strippedString.components(separatedBy: " ")
+
+        let andPredicates: [NSPredicate] = searchItems.map { (searchString) in
+            NSComparisonPredicate(leftExpression: NSExpression(forKeyPath: "searchTokens"),
+                                  rightExpression: NSExpression(forConstantValue: searchString),
+                                  modifier: .any,
+                                  type: .contains,
+                                  options: [.caseInsensitive, .diacriticInsensitive])
+        }
+
+        let finalCompoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: andPredicates)
+        resultsController.contacts = allContacts.filter { finalCompoundPredicate.evaluate(with: $0) }
+    }
 }
 
 fileprivate struct TrackedContact {
