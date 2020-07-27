@@ -9,97 +9,46 @@
 import Core
 import UIKit
 
-fileprivate class PrivacyListEntry {
+class PrivacyListEntry: NSObject {
     let userId: UserID
     let name: String?
     let phoneNumber: String?
     var isSelected: Bool = false
+    @objc let searchTokens: [String]
 
-    init(userId: UserID, name: String? = nil, phoneNumber: String? = nil, isSelected: Bool = false) {
+    init(userId: UserID, name: String? = nil, phoneNumber: String? = nil, searchTokens: [String] = [], isSelected: Bool = false) {
         self.userId = userId
         self.name = name
         self.phoneNumber = phoneNumber
+        self.searchTokens = searchTokens
         self.isSelected = isSelected
+    }
+
+    convenience init(contact: ABContact) {
+        let searchTokens = contact.searchTokenList?.components(separatedBy: " ") ?? []
+        self.init(userId: contact.userId!, name: contact.fullName, phoneNumber: contact.phoneNumber, searchTokens: searchTokens)
     }
 }
 
-class PrivacyListViewController: UITableViewController {
-
+class PrivacyListTableViewController: UITableViewController {
     static private let cellReuseIdentifier = "ContactCell"
 
-    var dismissAction: (() -> ())?
+    var contacts: [PrivacyListEntry]
 
-    private let privacyList: PrivacyList
-    private let privacySettings: PrivacySettings
-
-    private var contacts: [PrivacyListEntry]!
-
-    init(privacyList: PrivacyList, settings: PrivacySettings) {
-        self.privacyList = privacyList
-        self.privacySettings = settings
-
-        super.init(style: .plain)
-
-        let selectedContactIds = Set(privacyList.items.map({ $0.userId }))
-
-        // Load all device contacts, making them unique and removing self.
-        let selfUserId = MainAppContext.shared.userData.userId
-        var uniqueUserIds = Set<UserID>()
-        var contacts = [PrivacyListEntry]()
-        for contact in MainAppContext.shared.contactStore.allRegisteredContacts(sorted: true) {
-            guard let userId = contact.userId else { continue }
-            guard !uniqueUserIds.contains(userId) else { continue }
-            guard userId != selfUserId else { continue }
-
-            contacts.append(PrivacyListEntry(userId: contact.userId!, name: contact.fullName, phoneNumber: contact.phoneNumber))
-            
-            uniqueUserIds.insert(contact.userId!)
-        }
-        // Load selection
-        for entry in contacts {
-            entry.isSelected = selectedContactIds.contains(entry.userId)
-        }
-        // Append contacts that aren't in user's address book (if any).
-        contacts.append(contentsOf: selectedContactIds.subtracting(uniqueUserIds).map({ PrivacyListEntry(userId: $0, isSelected: true) }))
+    init(contacts: [PrivacyListEntry]) {
         self.contacts = contacts
+        super.init(style: .plain)
     }
 
     required init?(coder: NSCoder) {
-        fatalError("Use init(privacyList:settings:)")
+        fatalError("Use init(contacts:)")
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.navigationItem.title = PrivacyList.name(forPrivacyListType: privacyList.type)
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneAction))
-
+        self.tableView.backgroundColor = .systemBackground
         self.tableView.register(PrivacyListTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
-    }
-
-    /**
-     Discard changes and dismiss picker.
-     */
-    @objc
-    private func cancelAction() {
-        if let dismissAction = dismissAction {
-           dismissAction()
-        }
-    }
-
-    /**
-     Save changes and close picker.
-     */
-    @objc
-    private func doneAction() {
-        let selectedContactIds = contacts.filter({ $0.isSelected }).map({ $0.userId })
-        privacySettings.update(privacyList: privacyList, with: selectedContactIds)
-
-        if let dismissAction = dismissAction {
-           dismissAction()
-        }
-
     }
 
     // MARK: - Table view data source
@@ -126,6 +75,127 @@ class PrivacyListViewController: UITableViewController {
         listEntry.isSelected = !listEntry.isSelected
         cell.setContact(selected: listEntry.isSelected, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+
+}
+
+class PrivacyListSearchResultsViewController: PrivacyListTableViewController {
+
+    override var contacts: [PrivacyListEntry] {
+        didSet {
+            if self.isViewLoaded {
+                self.tableView.reloadData()
+            }
+        }
+    }
+}
+
+class PrivacyListViewController: PrivacyListTableViewController {
+
+    var dismissAction: (() -> ())?
+
+    private let privacyList: PrivacyList
+    private let privacySettings: PrivacySettings
+
+    init(privacyList: PrivacyList, settings: PrivacySettings) {
+        self.privacyList = privacyList
+        self.privacySettings = settings
+
+        let selectedContactIds = Set(privacyList.items.map({ $0.userId }))
+
+        // Load all device contacts, making them unique and removing self.
+        let selfUserId = MainAppContext.shared.userData.userId
+        var uniqueUserIds = Set<UserID>()
+        var contacts = [PrivacyListEntry]()
+        for contact in MainAppContext.shared.contactStore.allRegisteredContacts(sorted: true) {
+            guard let userId = contact.userId else { continue }
+            guard !uniqueUserIds.contains(userId) else { continue }
+            guard userId != selfUserId else { continue }
+
+            contacts.append(PrivacyListEntry(contact: contact))
+            
+            uniqueUserIds.insert(contact.userId!)
+        }
+        // Load selection
+        for entry in contacts {
+            entry.isSelected = selectedContactIds.contains(entry.userId)
+        }
+        // Append contacts that aren't in user's address book (if any).
+        contacts.append(contentsOf: selectedContactIds.subtracting(uniqueUserIds).map({ PrivacyListEntry(userId: $0, isSelected: true) }))
+        super.init(contacts: contacts)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        self.navigationItem.title = PrivacyList.name(forPrivacyListType: privacyList.type)
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneAction))
+
+        // Search
+        let searchResultsController = PrivacyListSearchResultsViewController(contacts: [])
+        let searchController = UISearchController(searchResultsController: searchResultsController)
+        searchController.delegate = self
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.autocapitalizationType = .none
+        self.navigationItem.searchController = searchController
+
+        self.definesPresentationContext = true
+    }
+
+    /**
+     Discard changes and dismiss picker.
+     */
+    @objc
+    private func cancelAction() {
+        if let dismissAction = dismissAction {
+           dismissAction()
+        }
+    }
+
+    /**
+     Save changes and close picker.
+     */
+    @objc
+    private func doneAction() {
+        let selectedContactIds = contacts.filter({ $0.isSelected }).map({ $0.userId })
+        privacySettings.update(privacyList: privacyList, with: selectedContactIds)
+
+        if let dismissAction = dismissAction {
+           dismissAction()
+        }
+    }
+}
+
+extension PrivacyListViewController: UISearchControllerDelegate {
+
+    func willDismissSearchController(_ searchController: UISearchController) {
+        self.tableView.reloadData()
+    }
+}
+
+extension PrivacyListViewController: UISearchResultsUpdating {
+
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let resultsController = searchController.searchResultsController as? PrivacyListSearchResultsViewController else { return }
+
+        let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
+        let searchItems = strippedString.components(separatedBy: " ")
+
+        let andPredicates: [NSPredicate] = searchItems.map { (searchString) in
+            NSComparisonPredicate(leftExpression: NSExpression(forKeyPath: "searchTokens"),
+                                  rightExpression: NSExpression(forConstantValue: searchString),
+                                  modifier: .any,
+                                  type: .contains,
+                                  options: [.caseInsensitive, .diacriticInsensitive])
+        }
+
+        let finalCompoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: andPredicates)
+        resultsController.contacts = contacts.filter { finalCompoundPredicate.evaluate(with: $0) }
     }
 }
 
