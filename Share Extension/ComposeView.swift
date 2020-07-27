@@ -131,11 +131,25 @@ class ComposeViewController: SLComposeServiceViewController {
         switch destination {
         case .post:
             ShareExtensionContext.shared.sharedDataStore.post(text: contentText, media: mediaToSend, using: ShareExtensionContext.shared.xmppController) { result in
-                // TODO: Handle failed request
-                ShareExtensionContext.shared.shareExtensionIsActive = false
-                ShareExtensionContext.shared.xmppController.disconnect()
-                
-                super.didSelectPost()
+                switch result {
+                case .success(_):
+                    ShareExtensionContext.shared.shareExtensionIsActive = false
+                    ShareExtensionContext.shared.xmppController.disconnect()
+                    super.didSelectPost()
+                    
+                case .failure(let error):
+                    let message = "We encountered an error when posting: \(error.localizedDescription)"
+                    let alert = UIAlertController(title: "Failed to Post", message: message, preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default) { _ in
+                        // This is rare
+                        // The ComposeView already disappeared, we cannot go back
+                        ShareExtensionContext.shared.shareExtensionIsActive = false
+                        ShareExtensionContext.shared.xmppController.disconnect()
+                        super.didSelectPost()
+                    }
+                    alert.addAction(okAction)
+                    self.present(alert, animated: true, completion: nil)
+                }
             }
             
         case .contact(_, _):

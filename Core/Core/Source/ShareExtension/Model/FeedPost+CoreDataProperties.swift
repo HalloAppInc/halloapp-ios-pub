@@ -16,6 +16,7 @@ extension SharedFeedPost {
         case none = 0
         case sent = 1
         case received = 2
+        case sendError = 3
     }
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<SharedFeedPost> {

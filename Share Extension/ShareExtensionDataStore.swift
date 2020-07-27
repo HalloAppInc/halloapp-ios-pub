@@ -55,6 +55,10 @@ class ShareExtensionDataStore: SharedDataStore {
         let request = XMPPPostItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (timestamp, error) in
             if error != nil {
                 DDLogError("SharedDataStore/post/send/error: \(String(describing: error))")
+                
+                feedPost.status = .sendError
+                self.save(managedObjectContext)
+                
                 completion(.failure(error!))
             } else {
                 if let timestamp = timestamp {
@@ -71,6 +75,4 @@ class ShareExtensionDataStore: SharedDataStore {
         
         xmppController.enqueue(request: request)
     }
-    
-    
 }
