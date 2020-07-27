@@ -16,7 +16,7 @@ public enum MediaType: Int {
     case video = 1
 }
 
-public class SharedDataStore {
+open class SharedDataStore {
     public typealias ShareExtenstionFeedPostRequestCompletion = (Result<FeedPostID, Error>) -> Void
     
     private class var persistentStoreURL: URL {
@@ -25,7 +25,7 @@ public class SharedDataStore {
         }
     }
     
-    private class var dataDirectoryURL: URL {
+    public class var dataDirectoryURL: URL {
         get {
             return AppContext.sharedDirectoryURL.appendingPathComponent("ShareExtension")
         }
@@ -33,7 +33,7 @@ public class SharedDataStore {
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.share-extension")
     
-    private let persistentContainer: NSPersistentContainer = {
+    public let persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: SharedDataStore.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
@@ -55,7 +55,7 @@ public class SharedDataStore {
         return Self.dataDirectoryURL.appendingPathComponent(relativePath)
     }
     
-    private static func fileURL(forFileName fileName: String, withFileType fileType: FeedMediaType) -> URL {
+    public static func fileURL(forFileName fileName: String, withFileType fileType: FeedMediaType) -> URL {
         switch fileType {
         case .image:
             return Self.dataDirectoryURL.appendingPathComponent(fileName).appendingPathExtension("jpeg")
@@ -66,7 +66,7 @@ public class SharedDataStore {
     
     public init() {}
     
-    private func save(_ managedObjectContext: NSManagedObjectContext) {
+    public func save(_ managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("SharedDataStore/will-save")
         do {
             try managedObjectContext.save()
@@ -81,65 +81,6 @@ public class SharedDataStore {
             let managedObjectContext = self.persistentContainer.newBackgroundContext()
             managedObjectContext.performAndWait { block(managedObjectContext) }
         }
-    }
-    
-    public func post(text: String, media: [PendingMedia], using xmppController: XMPPController, completion: @escaping ShareExtenstionFeedPostRequestCompletion) {
-        let postId: FeedPostID = UUID().uuidString
-        DDLogInfo("SharedDataStore/post/create new feedpost with [\(postId)]")
-        
-        let managedObjectContext = persistentContainer.viewContext
-        
-        let feedPost = NSEntityDescription.insertNewObject(forEntityName: SharedFeedPost.entity().name!, into: managedObjectContext) as! SharedFeedPost
-        feedPost.id = postId
-        feedPost.text = text
-        feedPost.timestamp = Date()
-        feedPost.userId = AppContext.shared.userData.userId
-        feedPost.status = .none
-        
-        for (index, item) in media.enumerated() {
-            DDLogInfo("SharedDataStore/post/add new media with [\(item.url!)]")
-            
-            let feedMedia = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
-            feedMedia.type = item.type
-            feedMedia.url = item.url!
-            feedMedia.size = item.size!
-            feedMedia.key = item.key!
-            feedMedia.sha256 = item.sha256!
-            feedMedia.order = Int16(index)
-            feedMedia.post = feedPost
-            
-            let mediaFilename = UUID().uuidString
-            let destinationFileURL = Self.fileURL(forFileName: mediaFilename, withFileType: feedMedia.type)
-            feedMedia.relativeFilePath = destinationFileURL.lastPathComponent
-            
-            do {
-                try FileManager.default.createDirectory(at: Self.dataDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-                try FileManager.default.copyItem(at: item.fileURL!, to: destinationFileURL)
-            } catch {
-                DDLogError("SharedDataStore/post/copy-media/error [\(error)]")
-            }
-        }
-        
-        save(managedObjectContext)
-        
-        let request = XMPPPostItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (timestamp, error) in
-            if error != nil {
-                DDLogError("SharedDataStore/post/send/error: \(String(describing: error))")
-                completion(.failure(error!))
-            } else {
-                if let timestamp = timestamp {
-                    feedPost.timestamp = timestamp
-                    feedPost.status = .sent
-                    self.save(managedObjectContext)
-                } else {
-                    DDLogError("SharedDataStore/post/send/error timestamp is nil")
-                }
-                
-                completion(.success(feedPost.id))
-            }
-        }
-        
-        xmppController.enqueue(request: request)
     }
     
     public func posts() -> [SharedFeedPost] {

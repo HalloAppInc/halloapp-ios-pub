@@ -48,7 +48,7 @@ extension SharedMedia {
     @NSManaged public var url: URL
     @NSManaged public var width: Float
     
-    @NSManaged var post: SharedFeedPost?
+    @NSManaged public var post: SharedFeedPost?
 
 }
 

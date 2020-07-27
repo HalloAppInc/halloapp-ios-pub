@@ -23,6 +23,7 @@
 		2446D68124CB5867005BAD3C /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D67B24CB54F8005BAD3C /* VideoUtils.swift */; };
 		2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681242C2486EAC2008C5216 /* AppExtensionContext.swift */; };
 		2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
+		2446D68B24CF732B005BAD3C /* ShareExtensionDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D68A24CF732B005BAD3C /* ShareExtensionDataStore.swift */; };
 		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		24D743E824B3D504001111BF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
@@ -252,6 +253,7 @@
 		2446D66824C7E48E005BAD3C /* ExtensionPreprocessing.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = ExtensionPreprocessing.js; sourceTree = "<group>"; };
 		2446D67B24CB54F8005BAD3C /* VideoUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		2446D67D24CB558F005BAD3C /* ImageServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
+		2446D68A24CF732B005BAD3C /* ShareExtensionDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionDataStore.swift; sourceTree = "<group>"; };
 		24D743D624B3D199001111BF /* Share Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Share Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
@@ -499,6 +501,7 @@
 				2446D66824C7E48E005BAD3C /* ExtensionPreprocessing.js */,
 				24D743DD24B3D199001111BF /* Info.plist */,
 				24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */,
+				2446D68A24CF732B005BAD3C /* ShareExtensionDataStore.swift */,
 				24009E9024B66E6800155DE2 /* XMPPController.swift */,
 			);
 			path = "Share Extension";
@@ -1346,6 +1349,7 @@
 				24009EBA24BE3FA200155DE2 /* DestinationView.swift in Sources */,
 				24009E9124B66E6800155DE2 /* XMPPController.swift in Sources */,
 				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
+				2446D68B24CF732B005BAD3C /* ShareExtensionDataStore.swift in Sources */,
 				24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */,
 				2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */,
 			);
