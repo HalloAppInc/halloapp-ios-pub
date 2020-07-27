@@ -270,7 +270,15 @@ class XMPPControllerMain: XMPPController {
                 return
             }
 
-            let contactHashes = contactList.elements(forName: "contact_hash").compactMap{ $0.stringValue }.compactMap({ Data(base64Encoded: $0) })
+            let contactHashStrings = contactList.elements(forName: "contact_hash").compactMap{ $0.stringValue }
+            // Special case: empty hash should trigger a full sync.
+            if let hashString = contactHashStrings.first, hashString.isEmpty {
+                MainAppContext.shared.syncManager.requestFullSync()
+                self.sendAck(for: message)
+                return
+            }
+
+            let contactHashes = contactHashStrings.compactMap({ Data(base64Encoded: $0) }).filter({ !$0.isEmpty })
             if !contactHashes.isEmpty {
                 MainAppContext.shared.syncManager.processNotification(contactHashes: contactHashes) {
                     self.sendAck(for: message)
