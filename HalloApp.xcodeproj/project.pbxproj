@@ -490,17 +490,9 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
-		2490288D24C544700019C4D5 /* Model */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Model;
-			sourceTree = "<group>";
-		};
 		24D743D724B3D199001111BF /* Share Extension */ = {
 			isa = PBXGroup;
 			children = (
-				2490288D24C544700019C4D5 /* Model */,
 				24009E8F24B6690E00155DE2 /* Share Extension.entitlements */,
 				24009EB724BE399F00155DE2 /* ComposeView.swift */,
 				24009EB924BE3FA200155DE2 /* DestinationView.swift */,
