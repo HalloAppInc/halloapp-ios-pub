@@ -204,7 +204,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        var result:CGFloat = 60
+        var result = UITableView.automaticDimension
         guard let abContact = self.fetchedResultsController?.object(at: indexPath) else { return result }
         if self.isDuplicate(abContact) {
             result = 0
