@@ -12,20 +12,16 @@ import Core
 import Foundation
 
 class SyncManager {
-    enum SyncResult {
-        case success
-        case fail
-        case cancel
-    }
 
-    enum FailureReason {
-        case none
+    enum SyncFailureReason: Error {
         case empty
         case notAllowed
         case notEnabled
-        case serverError
+        case serverError(Error)
         case alreadyRunning
     }
+
+    typealias SyncResult = Result<Void, SyncFailureReason>
 
     // Later to be replaced with userId.
     private var pendingDeletes: Set<ABContact.NormalizedPhoneNumber> = []
@@ -132,8 +128,7 @@ class SyncManager {
             self.nextSyncDate = Date()
             self.nextSyncMode = mode
 
-            let failureReason = self.runSyncIfNecessary()
-            if failureReason != .none {
+            if case .failure(let failureReason) = self.runSyncIfNecessary() {
                 DDLogError("syncmanager/sync/failed [\(failureReason)]")
             }
         }
@@ -170,31 +165,31 @@ class SyncManager {
         }
     }
 
-    @discardableResult private func runSyncIfNecessary() -> FailureReason {
+    @discardableResult private func runSyncIfNecessary() -> SyncResult {
         guard !self.isSyncInProgress else {
-            return .alreadyRunning
+            return .failure(.alreadyRunning)
         }
 
         guard self.isSyncEnabled else {
-            return .notEnabled
+            return .failure(.notEnabled)
         }
 
         // Sync mode must be set.
         guard self.nextSyncMode != .none else {
-            return .empty
+            return .failure(.empty)
         }
 
         // Next sync date should be set.
         guard self.nextSyncDate != nil else {
-            return .empty
+            return .failure(.empty)
         }
         guard self.nextSyncDate!.timeIntervalSinceNow < 0 else {
-            return.empty
+            return .failure(.empty)
         }
 
         // Must be connected.
         guard self.xmppController.isConnected else {
-            return .notAllowed
+            return .failure(.notAllowed)
         }
 
         self.reallyPerformSync()
@@ -203,7 +198,7 @@ class SyncManager {
         self.nextSyncDate = nil
         self.nextSyncMode = .none
 
-        return self.isSyncInProgress ? .none : .empty
+        return self.isSyncInProgress ? .success(()) : .failure(.empty)
     }
 
     private func reallyPerformSync() {
@@ -243,7 +238,7 @@ class SyncManager {
     private func processSyncResponse(mode: SyncMode, contacts: [XMPPContact]?, error: Error?) {
         guard error == nil else {
             DDLogError("syncmanager/sync/\(mode)/response/error [\(error!)]")
-            self.finishSync(with: mode, result: .fail, failureReason: .serverError)
+            self.finishSync(withMode: mode, result: .failure(.serverError(error!)))
             return
         }
 
@@ -278,7 +273,7 @@ class SyncManager {
             
             MainAppContext.shared.avatarStore.processContactSync(avatarDict)
         }
-        self.finishSync(with: mode, result: .success, failureReason: .none)
+        self.finishSync(withMode: mode, result: .success(()))
     }
 
     func processNotification(contacts: [XMPPContact], completion: @escaping () -> Void) {
@@ -310,7 +305,7 @@ class SyncManager {
         }
     }
 
-    private func finishSync(with mode: SyncMode, result: SyncResult, failureReason: FailureReason) {
+    private func finishSync(withMode mode: SyncMode, result: SyncResult) {
         guard self.isSyncInProgress else {
             return
         }
