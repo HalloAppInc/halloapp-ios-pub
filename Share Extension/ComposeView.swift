@@ -46,11 +46,21 @@ class ComposeViewController: SLComposeServiceViewController {
          since we need to disconnet XMPP before the user left
          */
         self.isModalInPresentation = true
+        
+        initAppContext(ShareExtensionContext.self, xmppControllerClass: XMPPControllerShareExtension.self, contactStoreClass: ContactStore.self)
+        
+        /*
+         If the user switches from the host app (the app that starts the share extension request)
+         to HalloApp while the compose view is still active,
+         the connection in HalloApp will override the connection here,
+         when the user comes back, we need to reconnect.
+         */
+        NotificationCenter.default.addObserver(forName: .NSExtensionHostWillEnterForeground, object: nil, queue: nil) { _ in
+            ShareExtensionContext.shared.xmppController.startConnectingIfNecessary()
+        }
     }
     
     override func presentationAnimationDidFinish() {
-        initAppContext(ShareExtensionContext.self, xmppControllerClass: XMPPControllerShareExtension.self, contactStoreClass: ContactStore.self)
-        
         guard ShareExtensionContext.shared.userData.isLoggedIn else {
             DDLogError("ComposeViewController/presentationAnimationDidFinish/error user has not logged in")
             
