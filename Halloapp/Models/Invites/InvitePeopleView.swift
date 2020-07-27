@@ -60,28 +60,17 @@ struct InvitePeopleView: View {
     var body: some View {
         Group {
             if inviteManager.dataAvailable && inviteManager.numberOfInvitesAvailable > 0 {
-                ZStack {
-                    VStack(spacing: .zero) {
-                        Text("You have \(inviteManager.numberOfInvitesAvailable) invites available")
-                            .font(.headline)
-                            .padding()
-
-                        Divider()
-
-                        InvitePeopleTableView { (contact) in
-                            self.inviteManager.contactToInvite = contact
-                            self.isActionSheetPresented = true
-                        }
-                    }
-                    .disabled(self.inviteManager.redeemInProgress)
-                    .blur(radius: self.inviteManager.redeemInProgress ? 4 : 0)
-
-                    Text("Please wait")
-                        .font(.title)
-                        .foregroundColor(.primary)
-                        .padding()
-                        .opacity(self.inviteManager.redeemInProgress ? 1 : 0)
+                InvitePeopleTableView { (contact) in
+                    self.inviteManager.contactToInvite = contact
+                    self.isActionSheetPresented = true
                 }
+                .disabled(self.inviteManager.redeemInProgress)
+                .blur(radius: self.inviteManager.redeemInProgress ? 4 : 0)
+                .overlay(Text("Please wait")
+                    .font(.title)
+                    .foregroundColor(.secondary)
+                    .padding()
+                    .opacity(self.inviteManager.redeemInProgress ? 1 : 0))
             } else if inviteManager.dataAvailable {
                 Text("You're out of invites. Please check back after \(self.dateFormatter.string(from: inviteManager.nextRefreshDate!))")
                     .multilineTextAlignment(.center)
@@ -95,6 +84,7 @@ struct InvitePeopleView: View {
                     .padding()
             }
         }
+        .edgesIgnoringSafeArea(.all)
         .navigationBarTitle("Invite Friends", displayMode: .inline)
         .actionSheet(isPresented: $isActionSheetPresented) {
             ActionSheet(title: Text("You are about to redeem one invite for \(self.inviteManager.contactToInvite!.fullName!)"),

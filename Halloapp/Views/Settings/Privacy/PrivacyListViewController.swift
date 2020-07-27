@@ -25,8 +25,7 @@ class PrivacyListEntry: NSObject {
     }
 
     convenience init(contact: ABContact) {
-        let searchTokens = contact.searchTokenList?.components(separatedBy: " ") ?? []
-        self.init(userId: contact.userId!, name: contact.fullName, phoneNumber: contact.phoneNumber, searchTokens: searchTokens)
+        self.init(userId: contact.userId!, name: contact.fullName, phoneNumber: contact.phoneNumber, searchTokens: contact.searchTokens)
     }
 }
 
