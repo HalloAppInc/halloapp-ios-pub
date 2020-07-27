@@ -14,6 +14,18 @@ fileprivate struct Constants {
     static let cellReuseIdentifier = "inviteContactCell"
 }
 
+fileprivate extension UITableViewCell {
+
+    func configure(withContact contact: ABContact) {
+        self.textLabel?.text = contact.fullName
+        self.textLabel?.textColor = .label
+        self.textLabel?.font = .preferredFont(forTextStyle: .headline)
+        self.detailTextLabel?.text = contact.phoneNumber
+        self.detailTextLabel?.textColor = .secondaryLabel
+        self.detailTextLabel?.font = .preferredFont(forTextStyle: .subheadline)
+    }
+}
+
 fileprivate class InvitePeopleResultsController: UITableViewController {
     var contacts: [ABContact] = [] {
         didSet {
@@ -35,7 +47,6 @@ fileprivate class InvitePeopleResultsController: UITableViewController {
         super.viewDidLoad()
 
         self.tableView.backgroundColor = .systemBackground
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -48,9 +59,11 @@ fileprivate class InvitePeopleResultsController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let contact = contacts[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath)
-        cell.textLabel?.text = contact.fullName
-        cell.detailTextLabel?.text = contact.phoneNumber
+        var cell: UITableViewCell! = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier)
+        if cell == nil {
+            cell = UITableViewCell(style: .subtitle, reuseIdentifier: Constants.cellReuseIdentifier)
+        }
+        cell.configure(withContact: contact)
         return cell
     }
 }
@@ -84,12 +97,11 @@ class InvitePeopleTableViewController: UITableViewController {
         self.tableView.backgroundColor = .systemBackground
 
         self.dataSource = UITableViewDiffableDataSource<TableSection, ABContact>(tableView: self.tableView) { (tableView, indexPath, contact) in
-            var cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier)
+            var cell: UITableViewCell! = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier)
             if cell == nil {
                 cell = UITableViewCell(style: .subtitle, reuseIdentifier: Constants.cellReuseIdentifier)
             }
-            cell?.textLabel?.text = contact.fullName
-            cell?.detailTextLabel?.text = contact.phoneNumber
+            cell.configure(withContact: contact)
             return cell
         }
 
