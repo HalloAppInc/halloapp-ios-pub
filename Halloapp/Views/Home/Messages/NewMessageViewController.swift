@@ -50,7 +50,7 @@ fileprivate class ContactsSearchResultsController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
-        cell.configure(with: contacts[indexPath.row], hide: false)
+        cell.configure(with: contacts[indexPath.row])
         return cell
     }
 }
@@ -233,18 +233,34 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
         if let abContact = fetchedResultsController?.object(at: indexPath) {
-            cell.configure(with: abContact, hide: self.isDuplicate(abContact))
+            cell.configure(with: abContact)
         }
         return cell
     }
 
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        var result = UITableView.automaticDimension
-        guard let abContact = self.fetchedResultsController?.object(at: indexPath) else { return result }
-        if self.isDuplicate(abContact) {
-            result = 0
+        var contact: ABContact?
+        if tableView == self.tableView {
+            contact = self.fetchedResultsController?.object(at: indexPath)
+        } else {
+            contact = searchResultsController.contacts[indexPath.row]
         }
-        return result
+        if let contact = contact, self.isDuplicate(contact) {
+            return 0
+        }
+        return UITableView.automaticDimension
+    }
+
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        var contact: ABContact?
+        if tableView == self.tableView {
+            contact = self.fetchedResultsController?.object(at: indexPath)
+        } else {
+            contact = searchResultsController.contacts[indexPath.row]
+        }
+        if let contact = contact, self.isDuplicate(contact) {
+            cell.isHidden = true
+        }
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -355,10 +371,9 @@ fileprivate class NewMessageViewCell: UITableViewCell {
         contactImageView.prepareForReuse()
     }
 
-    public func configure(with abContact: ABContact, hide: Bool) {
+    public func configure(with abContact: ABContact) {
         self.nameLabel.text = abContact.fullName
         self.lastMessageLabel.text = abContact.phoneNumber
-        self.isHidden = hide ? true : false
 
         if let userId = abContact.userId {
             contactImageView.configure(with: userId, using: MainAppContext.shared.avatarStore)
@@ -393,24 +408,23 @@ fileprivate class NewMessageViewCell: UITableViewCell {
         vStack.axis = .vertical
         vStack.spacing = 2
 
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
-        spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-        
         let imageSize: CGFloat = 40.0
         self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
 
-        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, vStack, spacer ])
+        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, vStack ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
-        hStack.alignment = .leading
         hStack.spacing = 10
 
         self.contentView.addSubview(hStack)
+        // Priority is lower than "required" because cell's height might be 0 (duplicate contacts).
+        self.contentView.addConstraint({
+            let constraint = hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor)
+            constraint.priority = .defaultHigh
+            return constraint
+            }())
         hStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
 
