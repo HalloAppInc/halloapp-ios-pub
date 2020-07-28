@@ -122,11 +122,9 @@ public class SharedDataStore {
         
         save(managedObjectContext)
         
-        let request = XMPPPostItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (timestamp, error) in
-            if error != nil {
-                DDLogError("SharedDataStore/post/send/error: \(String(describing: error))")
-                completion(.failure(error!))
-            } else {
+        let request = XMPPPostItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (result) in
+            switch result {
+            case .success(let timestamp):
                 if let timestamp = timestamp {
                     feedPost.timestamp = timestamp
                     feedPost.status = .sent
@@ -134,8 +132,12 @@ public class SharedDataStore {
                 } else {
                     DDLogError("SharedDataStore/post/send/error timestamp is nil")
                 }
-                
+
                 completion(.success(feedPost.id))
+
+            case .failure(let error):
+                DDLogError("SharedDataStore/post/send/error: \(error)")
+                completion(.failure(error))
             }
         }
         

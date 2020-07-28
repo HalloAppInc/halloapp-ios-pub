@@ -874,10 +874,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(self.viewContext)
 
         // Request to retract.
-        let request = XMPPRetractItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (error) in
-            if error == nil {
+        let request = XMPPRetractItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (result) in
+            switch result {
+            case .success:
                 self.processRetract(forPostId: postId) {}
-            } else {
+
+            case .failure(_):
                 self.updateFeedPost(with: postId) { (post) in
                     post.status = .sent
                 }
@@ -894,10 +896,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(self.viewContext)
 
         // Request to retract.
-        let request = XMPPRetractItemRequest(feedItem: comment, feedOwnerId: comment.post.userId) { (error) in
-            if error == nil {
+        let request = XMPPRetractItemRequest(feedItem: comment, feedOwnerId: comment.post.userId) { (result) in
+            switch result {
+            case .success:
                 self.processRetract(forCommentId: commentId) {}
-            } else {
+
+            case .failure(_):
                 self.updateFeedPostComment(with: commentId) { (comment) in
                     comment.status = .sent
                 }
@@ -1149,17 +1153,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(managedObjectContext)
 
         // Now send data over the wire.
-        let request = XMPPPostItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (timestamp, error) in
-            if error != nil {
-                self.updateFeedPost(with: postId) { (feedPost) in
-                    feedPost.status = .sendError
-                }
-            } else {
+        let request = XMPPPostItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (result) in
+            switch result {
+            case .success(let timestamp):
                 self.updateFeedPost(with: postId) { (feedPost) in
                     if timestamp != nil {
                         feedPost.timestamp = timestamp!
                     }
                     feedPost.status = .sent
+                }
+
+            case .failure(_):
+                self.updateFeedPost(with: postId) { (feedPost) in
+                    feedPost.status = .sendError
                 }
             }
         }
@@ -1212,19 +1218,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func send(comment: FeedPostComment) {
         let commentId = comment.id
-        let request = XMPPPostItemRequest(feedItem: comment, feedOwnerId: comment.post.userId) { (timestamp, error) in
-            if error != nil {
-                 self.updateFeedPostComment(with: commentId) { (feedComment) in
-                     feedComment.status = .sendError
-                 }
-             } else {
-                 self.updateFeedPostComment(with: commentId) { (feedComment) in
-                     if timestamp != nil {
-                         feedComment.timestamp = timestamp!
-                     }
-                     feedComment.status = .sent
-                 }
-             }
+        let request = XMPPPostItemRequest(feedItem: comment, feedOwnerId: comment.post.userId) { (result) in
+            switch result {
+            case .success(let timestamp):
+                self.updateFeedPostComment(with: commentId) { (feedComment) in
+                    if timestamp != nil {
+                        feedComment.timestamp = timestamp!
+                    }
+                    feedComment.status = .sent
+                }
+
+            case .failure(_):
+                self.updateFeedPostComment(with: commentId) { (feedComment) in
+                    feedComment.status = .sendError
+                }
+            }
         }
         AppContext.shared.xmppController.enqueue(request: request)
     }

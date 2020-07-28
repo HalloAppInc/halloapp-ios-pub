@@ -78,12 +78,14 @@ class SyncSession {
             let requestType: XMPPContactSyncRequest.RequestType = self.syncMode == .full ? .full : .delta
             let batchIndex = self.batchIndex
             let request = XMPPContactSyncRequest(with: contactsToSend, type: requestType, syncID: self.syncID,
-                                                 batchIndex: batchIndex, isLastBatch: isLastBatch) { (batchResults, error) in
+                                                 batchIndex: batchIndex, isLastBatch: isLastBatch) { (result) in
                 DDLogInfo("sync-session/\(self.syncMode)/request/end/batch/\(batchIndex)")
-                if error != nil {
+                switch result {
+                case .success(let batchResults):
+                    self.results.append(contentsOf: batchResults)
+                    
+                case .failure(let error):
                     self.error = error
-                } else {
-                    self.results.append(contentsOf: batchResults!)
                 }
                 self.sendNextBatchIfNecessary()
             }

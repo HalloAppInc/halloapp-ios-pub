@@ -126,8 +126,8 @@ class XMPPControllerMain: XMPPController {
         guard !UserDefaults.standard.bool(forKey: userDefaultsKeyForNameSync) else { return }
         guard !self.userData.name.isEmpty else { return }
 
-        let request = XMPPSendNameRequest(name: self.userData.name) { (error) in
-            if error == nil {
+        let request = XMPPSendNameRequest(name: self.userData.name) { (result) in
+            if case .success = result {
                 UserDefaults.standard.set(true, forKey: userDefaultsKeyForNameSync)
             }
         }
@@ -153,12 +153,14 @@ class XMPPControllerMain: XMPPController {
         
         if userAvatar.isEmpty { // remove old avatar
             DDLogInfo("XMPPController/resendAvatarIfNecessary/remove avatar will be removed")
-            request = XMPPRemoveAvatarRequest { (error) in
-                if error == nil {
+            request = XMPPRemoveAvatarRequest { (result) in
+                switch result {
+                case .success:
                     DDLogInfo("XMPPController/resendAvatarIfNecessary/remove avatar has been removed")
                     UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsUpload)
-                } else {
-                    DDLogError("XMPPController/resendAvatarIfNecessary/remove/error while removing avatar got \(error!)")
+                    
+                case .failure(let error):
+                    DDLogError("XMPPController/resendAvatarIfNecessary/remove/error while removing avatar got \(error)")
                 }
             }
         } else { // upload new avatar
@@ -168,16 +170,18 @@ class XMPPControllerMain: XMPPController {
                 return
             }
             
-            request = XMPPUploadAvatarRequest(data: avatarData) { (avatarId, error) in
-                if error == nil {
+            request = XMPPUploadAvatarRequest(data: avatarData) { (result) in
+                switch result {
+                case .success(let avatarId):
                     UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsUpload)
-                    
+
                     if let avatarId = avatarId {
                         MainAppContext.shared.avatarStore.update(avatarId: avatarId, forUserId: self.userData.userId)
                         DDLogInfo("XMPPController/resendAvatarIfNecessary/upload avatar has been uploaded")
                     }
-                } else {
-                    DDLogError("XMPPController/resendAvatarIfNecessary/upload/error while uploading avatar got \(error!)")
+
+                case .failure(let error):
+                    DDLogError("XMPPController/resendAvatarIfNecessary/upload/error while uploading avatar got \(error)")
                 }
             }
         }
@@ -198,22 +202,22 @@ class XMPPControllerMain: XMPPController {
         
         DDLogInfo("XMPPController/queryAvatarForCurrentUserIfNecessary start")
         
-        let request = XMPPQueryAvatarRequest(userId: userData.userId) { (avatarId, error) in
-            guard error == nil else {
-                DDLogError("XMPPController/queryAvatarForCurrentUserIfNecessary/error while query avatar: \(error!)")
-                return
+        let request = XMPPQueryAvatarRequest(userId: userData.userId) { (result) in
+            switch (result) {
+            case .success(let avatarId):
+                UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsDownload)
+
+                guard let avatarId = avatarId else {
+                    DDLogInfo("XMPPController/queryAvatarForCurrentUserIfNecessary avatarId is nil")
+                    return
+                }
+
+                MainAppContext.shared.avatarStore.save(avatarId: avatarId, forUserId: self.userData.userId)
+                DDLogInfo("XMPPController/queryAvatarForCurrentUserIfNecessary/success avatarId=\(avatarId)")
+
+            case .failure(let error):
+                DDLogError("XMPPController/queryAvatarForCurrentUserIfNecessary/error while query avatar: \(error)")
             }
-            
-            UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsDownload)
-            
-            guard let avatarId = avatarId else {
-                DDLogInfo("XMPPController/queryAvatarForCurrentUserIfNecessary avatarId is nil")
-                return
-            }
-            
-            MainAppContext.shared.avatarStore.save(avatarId: avatarId, forUserId: self.userData.userId)
-            
-            DDLogInfo("XMPPController/queryAvatarForCurrentUserIfNecessary/success avatarId=\(avatarId)")
         }
         
         self.enqueue(request: request)

@@ -11,7 +11,7 @@ import Foundation
 import XMPPFramework
 
 class XMPPPushTokenRequest: XMPPRequest {
-    var completion: XMPPRequestCompletion
+    private let completion: XMPPRequestCompletion
 
     init(token: String, completion: @escaping XMPPRequestCompletion) {
         self.completion = completion
@@ -33,16 +33,16 @@ class XMPPPushTokenRequest: XMPPRequest {
     }
 
     override func didFinish(with response: XMPPIQ) {
-        self.completion(nil)
+        self.completion(.success(()))
     }
 
     override func didFail(with error: Error) {
-        self.completion(error)
+        self.completion(.failure(error))
     }
 }
 
 class XMPPSendNameRequest: XMPPRequest {
-    var completion: XMPPRequestCompletion
+    private let completion: XMPPRequestCompletion
 
     init(name: String, completion: @escaping XMPPRequestCompletion) {
         self.completion = completion
@@ -56,18 +56,18 @@ class XMPPSendNameRequest: XMPPRequest {
     }
 
     override func didFinish(with response: XMPPIQ) {
-        self.completion(nil)
+        self.completion(.success(()))
     }
 
     override func didFail(with error: Error) {
-        self.completion(error)
+        self.completion(.failure(error))
     }
 }
 
 class XMPPUploadAvatarRequest: XMPPRequest {
-    typealias XMPPUploadAvatarRequestCompletion = (String?, Error?) -> Void
+    typealias XMPPUploadAvatarRequestCompletion = (Result<String?, Error>) -> Void
     
-    var completion: XMPPUploadAvatarRequestCompletion
+    private let completion: XMPPUploadAvatarRequestCompletion
     
     init(data: Data, completion: @escaping XMPPUploadAvatarRequestCompletion) {
         self.completion = completion
@@ -87,16 +87,16 @@ class XMPPUploadAvatarRequest: XMPPRequest {
     
     override func didFinish(with response: XMPPIQ) {
         let avatarId = response.element(forName: "avatar")?.attributeStringValue(forName: "id")
-        self.completion(avatarId, nil)
+        self.completion(.success(avatarId))
     }
 
     override func didFail(with error: Error) {
-        self.completion(nil, error)
+        self.completion(.failure(error))
     }
 }
 
 class XMPPRemoveAvatarRequest: XMPPRequest {
-    var completion: XMPPRequestCompletion
+    private let completion: XMPPRequestCompletion
     
     init(completion: @escaping XMPPRequestCompletion) {
         self.completion = completion
@@ -112,18 +112,18 @@ class XMPPRemoveAvatarRequest: XMPPRequest {
     }
     
     override func didFinish(with response: XMPPIQ) {
-        self.completion(nil)
+        self.completion(.success(()))
     }
 
     override func didFail(with error: Error) {
-        self.completion(error)
+        self.completion(.failure(error))
     }
 }
 
 class XMPPQueryAvatarRequest: XMPPRequest {
-    typealias XMPPQueryAvatarRequestCompletion = (String?, Error?) -> Void
+    typealias XMPPQueryAvatarRequestCompletion = (Result<String?, Error>) -> Void
     
-    var completion: XMPPQueryAvatarRequestCompletion
+    private let completion: XMPPQueryAvatarRequestCompletion
     
     init(userId: UserID, completion: @escaping XMPPQueryAvatarRequestCompletion) {
         self.completion = completion
@@ -142,11 +142,11 @@ class XMPPQueryAvatarRequest: XMPPRequest {
     }
     
     override func didFail(with error: Error) {
-        self.completion(nil, error)
+        self.completion(.failure(error))
     }
     
     override func didFinish(with response: XMPPIQ) {
         let avatarId = response.element(forName: "avatar")?.attributeStringValue(forName: "id")
-        self.completion(avatarId, nil)
+        self.completion(.success(avatarId))
     }
 }

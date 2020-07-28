@@ -338,15 +338,16 @@ class PrivacySettings: ObservableObject {
         privacyListSyncError = nil
 
         let requestMutedList = mutedListState == .unknown
-        let request = XMPPGetPrivacyListsRequest(includeMuted: requestMutedList) { (lists, activeType, error) in
-            if error != nil {
+        let request = XMPPGetPrivacyListsRequest(includeMuted: requestMutedList) { (result) in
+            switch result {
+            case .success(let (lists, activeType)):
+                DDLogInfo("privacy/download-lists/complete \(lists.count) lists")
+                self.process(lists: lists, activeType: activeType)
+
+            case .failure(let error):
                 DDLogError("privacy/download-lists/error \(String(describing: error))")
                 self.reset()
-
                 self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
-            } else {
-                DDLogInfo("privacy/download-lists/complete \(lists!.count) lists")
-                self.process(lists: lists!, activeType: activeType!)
             }
         }
         xmppController.enqueue(request: request)
@@ -355,12 +356,13 @@ class PrivacySettings: ObservableObject {
     private func upload(privacyList: PrivacyList) {
         isSyncing = true
         privacyListSyncError = nil
-
+        
         DDLogInfo("privacy/upload-list/\(privacyList.type)")
 
         let previousFeedSetting = activeType!
-        let request = XMPPSendPrivacyListRequest(privacyList: privacyList) { (error) in
-            if error == nil {
+        let request = XMPPSendPrivacyListRequest(privacyList: privacyList) { (result) in
+            switch result {
+            case .success:
                 DDLogInfo("privacy/upload-list/\(privacyList.type)/complete")
 
                 privacyList.commitChanges()
@@ -373,8 +375,9 @@ class PrivacySettings: ObservableObject {
                 if privacyList.canBeSetAsActiveList {
                     self.activeType = privacyList.type
                 }
-            } else {
-                DDLogError("privacy/upload-list/\(privacyList.type)/error \(error!)")
+
+            case .failure(let error):
+                DDLogError("privacy/upload-list/\(privacyList.type)/error \(error)")
 
                 if privacyList.type == .muted {
                     // 'Muted' list uses server as a backup - just try re-uploading next time.
