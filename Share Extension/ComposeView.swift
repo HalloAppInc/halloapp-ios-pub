@@ -56,7 +56,12 @@ class ComposeViewController: SLComposeServiceViewController {
          when the user comes back, we need to reconnect.
          */
         NotificationCenter.default.addObserver(forName: .NSExtensionHostWillEnterForeground, object: nil, queue: nil) { _ in
+            ShareExtensionContext.shared.shareExtensionIsActive = true
             ShareExtensionContext.shared.xmppController.startConnectingIfNecessary()
+        }
+        
+        NotificationCenter.default.addObserver(forName: .NSExtensionHostDidEnterBackground, object: nil, queue: nil) { _ in
+            ShareExtensionContext.shared.shareExtensionIsActive = false
         }
     }
     
