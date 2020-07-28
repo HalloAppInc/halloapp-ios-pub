@@ -487,7 +487,7 @@ extension TextLabel: UIContextMenuInteractionDelegate {
         var items = [UIMenuElement]()
 
         // Call <phone number>
-        if let url = URL(string: "tel:\(link.text)"), UIApplication.shared.canOpenURL(url) {
+        if let url = URL(string: "tel:\(link.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)"), UIApplication.shared.canOpenURL(url) {
             items.append(UIAction(title: "Call \(link.text)", image: UIImage(systemName: "phone")) { (_) in
                 UIApplication.shared.open(url)
             })
