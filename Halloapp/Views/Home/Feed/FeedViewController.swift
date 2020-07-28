@@ -22,6 +22,8 @@ class FeedViewController: FeedTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        installLargeTitleUsingGothamFont()
+
         let notificationButton = BadgedButton(type: .system)
         notificationButton.setImage(UIImage(named: "FeedNavbarNotifications"), for: .normal)
         notificationButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)

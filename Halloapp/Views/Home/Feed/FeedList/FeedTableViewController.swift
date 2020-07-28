@@ -36,7 +36,6 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         super.viewDidLoad()
         
         DDLogInfo("FeedTableViewController/viewDidLoad")
-        installLargeTitleUsingGothamFont()
 
         navigationItem.standardAppearance = .transparentAppearance
 
@@ -240,6 +239,10 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
                 guard let self = self else { return }
                 self.showSeenByView(for: feedPost.id)
             }
+            cell.showUserAction = { [weak self] in
+                guard let self = self else { return }
+                self.showUserFeed(for: feedPost.userId)
+            }
         }
         cell.delegate = self
         return cell
@@ -304,6 +307,11 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     private func showSeenByView(for postId: FeedPostID) {
         let seenByViewController = FeedPostSeenByViewController(feedPostId: postId)
         self.present(UINavigationController(rootViewController: seenByViewController), animated: true)
+    }
+
+    private func showUserFeed(for userID: UserID) {
+        let userViewController = UserFeedViewController(userID: userID)
+        self.navigationController?.pushViewController(userViewController, animated: true)
     }
 
     // MARK: Misc
@@ -398,6 +406,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
     var showSeenByAction: (() -> ())?
+    var showUserAction: (() -> ())?
 
     weak var delegate: FeedTableViewCellDelegate?
 
@@ -485,6 +494,9 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
 
         self.postId = post.id
         self.headerView.configure(with: post)
+        self.headerView.showUserAction = { [weak self] in
+            self?.showUserAction?()
+        }
         self.itemContentView.configure(with: post, contentWidth: contentWidth)
         if post.isPostRetracted {
             self.footerView.isHidden = true
@@ -523,7 +535,6 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
             self.delegate?.feedTableViewCellDidRequestReloadHeight(self) {
                 self.itemContentView.textLabel.numberOfLines = 0
             }
-
         default:
             break
         }
@@ -558,6 +569,11 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         if self.showSeenByAction != nil {
             self.showSeenByAction!()
         }
+    }
+
+    @objc(showUser)
+    private func showUser() {
+        showUserAction?()
     }
 }
 
@@ -723,8 +739,13 @@ fileprivate class FeedItemHeaderView: UIView {
         setupView()
     }
 
+    var showUserAction: (() -> ())? = nil
+
     private lazy var contactImageView: AvatarView = {
-        return AvatarView()
+        let avatarView = AvatarView()
+        avatarView.isUserInteractionEnabled = true
+        avatarView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showUser)))
+        return avatarView
     }()
 
     // Gotham Medium, 15 pt (Subhead)
@@ -735,6 +756,8 @@ fileprivate class FeedItemHeaderView: UIView {
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow - 10, for: .horizontal)
+        label.isUserInteractionEnabled = true
+        label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showUser)))
         return label
     }()
 
@@ -777,6 +800,12 @@ fileprivate class FeedItemHeaderView: UIView {
     func prepareForReuse() {
         contactImageView.prepareForReuse()
     }
+
+    @objc(showUser)
+    func showUser() {
+        showUserAction?()
+    }
+
 }
 
 
