@@ -10,6 +10,8 @@ import SwiftUI
 import UIKit
 import Core
 import Combine
+import Contacts
+import ContactsUI
 
 struct HomeView: UIViewControllerRepresentable {
     typealias UIViewControllerType = HomeViewController
@@ -35,7 +37,7 @@ struct HomeView: UIViewControllerRepresentable {
     }
 }
 
-class HomeViewController: UITabBarController, UITabBarControllerDelegate {
+class HomeViewController: UITabBarController {
 
     private var cancellableSet: Set<AnyCancellable> = []
     
@@ -76,7 +78,7 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
             MainAppContext.shared.chatData.didChangeUnreadThreadCount.sink { [weak self] (count) in
                 guard let self = self else { return }
                 self.updateChatNavigationControllerBadge(count)
-            })
+        })
         MainAppContext.shared.chatData.updateUnreadThreadCount()
         
         // When the app was in the background
@@ -84,8 +86,14 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
                 guard let self = self else { return }
                 self.processNotification(metadata: metadata)
-            }
-        )
+        })
+
+        // Present UIActivityViewController from the tabbar view controller.
+        self.cancellableSet.insert(
+            MainAppContext.shared.activityViewControllerPresentRequest.sink { [weak self] (items) in
+                guard let self = self else { return }
+                self.presentActivityViewController(forItems: items)
+        })
         
         // When the app just started (had been force-quit before)
         if let metadata = NotificationUtility.Metadata.fromUserDefaults() {
@@ -151,8 +159,9 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
             self.selectedIndex = 0
         }
     }
-    
-    // MARK: UITabBarControllerDelegate
+}
+
+extension HomeViewController: UITabBarControllerDelegate {
 
     func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
         // Tap on selected tab again to make it scroll to the top.
@@ -165,4 +174,15 @@ class HomeViewController: UITabBarController, UITabBarControllerDelegate {
         }
         return true
     }
+}
+
+// MARK: Presenting Various View Controllers
+
+extension HomeViewController {
+
+    private func presentActivityViewController(forItems items: [Any]) {
+        let activityViewController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        self.present(activityViewController, animated: true)
+    }
+
 }

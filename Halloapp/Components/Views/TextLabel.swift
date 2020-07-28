@@ -6,7 +6,9 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Contacts
 import Foundation
+import SafariServices
 import UIKit
 
 fileprivate class LayoutManager: NSLayoutManager {
@@ -19,20 +21,27 @@ fileprivate class LayoutManager: NSLayoutManager {
 
 class AttributedTextLink: Equatable {
     let text: String
-    let textCheckingResult: NSTextCheckingResult.CheckingType
+    let linkType: NSTextCheckingResult.CheckingType
     let range: NSRange
-    let url: URL?
-    var rects: [ CGRect ] = []
+    let result: NSTextCheckingResult?
+    var rects = [CGRect]()
 
-    init(text: String, textCheckingResult: NSTextCheckingResult.CheckingType, range: NSRange, url: URL?) {
+    init(text: String, textCheckingResult: NSTextCheckingResult) {
         self.text = text
-        self.textCheckingResult = textCheckingResult
+        self.linkType = textCheckingResult.resultType
+        self.range = textCheckingResult.range
+        self.result = textCheckingResult
+    }
+
+    init(text: String, resultType: NSTextCheckingResult.CheckingType, range: NSRange) {
+        self.text = text
+        self.linkType = resultType
         self.range = range
-        self.url = url
+        self.result = nil
     }
 
     static func == (lhs: AttributedTextLink, rhs: AttributedTextLink) -> Bool {
-        if lhs.textCheckingResult != rhs.textCheckingResult { return false }
+        if lhs.linkType != rhs.linkType { return false }
         if lhs.range != rhs.range { return false }
         if lhs.text != rhs.text { return false }
         return true
@@ -70,6 +79,8 @@ class TextLabel: UILabel {
         super.init(frame: .zero)
 
         self.isUserInteractionEnabled = true
+
+        self.addInteraction(UIContextMenuInteraction(delegate: self))
     }
 
     required init?(coder: NSCoder) {
@@ -156,16 +167,6 @@ class TextLabel: UILabel {
         links?.forEach { link in
             guard link.rects.isEmpty else { return }
             link.rects = Self.textRects(forCharacterRange: link.range, inTextContainer: textContainer, withLayoutManager: layoutManager)
-        }
-
-        // Background for highlighted link
-        if let link = self.highlightedLink {
-            UIColor.systemGray.withAlphaComponent(0.5).setFill()
-            for rect in link.rects {
-                let linkRect = rect.integral.inset(by: UIEdgeInsets(top: -2, left: -2, bottom: -2, right: -2))
-                let bezierPath = UIBezierPath(roundedRect: linkRect, cornerRadius: 3)
-                bezierPath.fill()
-            }
         }
 
         self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
@@ -281,7 +282,7 @@ class TextLabel: UILabel {
         self.textStorage.append(NSAttributedString(string: readMoreLinkText, attributes: attributes))
 
         let readMoreRange = NSRange(location: readMoreLinkCharacterIndex + 1, length: self.textStorage.length - readMoreLinkCharacterIndex - 1)
-        self.readMoreLink = AttributedTextLink(text: readMoreLinkText, textCheckingResult: .readMoreLink, range:readMoreRange, url: nil)
+        self.readMoreLink = AttributedTextLink(text: readMoreLinkText, resultType: .readMoreLink, range:readMoreRange)
         self.links = [ self.readMoreLink! ]
     }
 
@@ -372,7 +373,7 @@ class TextLabel: UILabel {
                     // Do nothing if text was truncated while link detection was happening on a background thread.
                     guard textStorage.string == text else { return }
 
-                    let link = AttributedTextLink(text: String(text[range]), textCheckingResult: match.resultType, range:match.range, url: match.url)
+                    let link = AttributedTextLink(text: String(text[range]), textCheckingResult: match)
                     results.append(link)
 
                     textStorage.addAttributes(Self.textAttributes(for: match.resultType), range: match.range)
@@ -408,57 +409,152 @@ class TextLabel: UILabel {
 
     private var trackedLink: AttributedTextLink?
 
-    private var highlightedLink: AttributedTextLink?
-
     private func link(at point: CGPoint) -> AttributedTextLink? {
-        guard self.links != nil else { return nil }
-        for link in self.links! {
-            for rect in link.rects {
-                if rect.contains(point) {
-                    return link
-                }
-            }
-        }
-        return nil
+        guard let links = links else { return nil }
+        return links.first(where: { (link) in
+            return link.rects.contains(where: { $0.contains(point) })
+        })
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        self.trackedLink = self.link(at: (touches.first?.location(in: self))!)
-        self.highlightedLink = self.trackedLink
-        if self.highlightedLink != nil {
-            self.setNeedsDisplay()
-        } else {
+        if let touch = touches.first {
+            trackedLink = link(at: touch.location(in: self))
+        }
+        if trackedLink == nil {
             super.touchesBegan(touches, with: event)
         }
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        let link = self.link(at: (touches.first?.location(in: self))!)
-        if self.trackedLink != nil && self.trackedLink != link {
-            self.trackedLink = nil
-            self.highlightedLink = nil
-            self.setNeedsDisplay()
+        if let touch = touches.first, trackedLink != nil {
+            let linkAtCurrentLocation = link(at: touch.location(in: self))
+            if trackedLink != linkAtCurrentLocation {
+                trackedLink = nil
+            }
         }
         super.touchesMoved(touches, with: event)
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        self.trackedLink = nil
-        self.highlightedLink = nil
-        self.setNeedsDisplay()
+        trackedLink = nil
         super.touchesCancelled(touches, with: event)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if self.trackedLink != nil {
-            self.delegate?.textLabel(self, didRequestHandle: self.trackedLink!)
-            self.trackedLink = nil
+        if let link = trackedLink {
+            self.delegate?.textLabel(self, didRequestHandle: link)
+            trackedLink = nil
         } else {
             super.touchesEnded(touches, with: event)
         }
-        self.highlightedLink = nil
-        self.setNeedsDisplay()
     }
 
     // TODO: Add Accessibility support
+}
+
+extension TextLabel: UIContextMenuInteractionDelegate {
+
+    private func contextMenuItems(forWebLink link: AttributedTextLink) -> [UIMenuElement]? {
+        guard let url  = link.result?.url else { return nil }
+
+        var items = [UIMenuElement]()
+
+        // Open Link
+        items.append(UIAction(title: "Open Link", image: UIImage(systemName: "safari")) { (_) in
+            UIApplication.shared.open(url)
+        })
+
+        // Add to Reading List
+        items.append(UIAction(title: "Add to Reading list", image: UIImage(systemName: "eyeglasses")) { (_) in
+            try? SSReadingList.default()?.addItem(with: url, title: nil, previewText: nil)
+        })
+
+        // Copy Link
+        items.append(UIAction(title: "Copy Link", image: UIImage(systemName: "doc.on.doc")) { (_) in
+            UIPasteboard.general.string = link.text
+            UIPasteboard.general.url = url
+        })
+
+        // Share
+        items.append(UIAction(title: "Share...", image: UIImage(systemName: "square.and.arrow.up")) { (_) in
+            MainAppContext.shared.activityViewControllerPresentRequest.send([url])
+        })
+
+        return items
+    }
+
+    private func contextMenuItems(forTelLink link: AttributedTextLink) -> [UIMenuElement] {
+        var items = [UIMenuElement]()
+
+        // Call <phone number>
+        if let url = URL(string: "tel:\(link.text)"), UIApplication.shared.canOpenURL(url) {
+            items.append(UIAction(title: "Call \(link.text)", image: UIImage(systemName: "phone")) { (_) in
+                UIApplication.shared.open(url)
+            })
+        }
+
+        /// TODO: "Add to Contacts"
+
+        // Copy Phone Number
+        items.append(UIAction(title: "Copy Phone Number", image: UIImage(systemName: "doc.on.doc")) { (_) in
+            UIPasteboard.general.string = link.text
+        })
+
+        return items
+    }
+
+    private func contextMenuItems(forAddressLink link: AttributedTextLink) -> [UIMenuElement] {
+        var items = [UIMenuElement]()
+
+        // Get Directions
+        if let directionsURL = URL(string: "https://maps.apple.com/?daddr=\(link.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)"),
+            UIApplication.shared.canOpenURL(directionsURL) {
+            items.append(UIAction(title: "Get Directions", image: UIImage(systemName: "arrow.up.right.diamond")) { (_) in
+                UIApplication.shared.open(directionsURL)
+            })
+        }
+
+        // Open in Maps
+        if let mapsURL = URL(string: "https://maps.apple.com/?address=\(link.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)"),
+           UIApplication.shared.canOpenURL(mapsURL){
+            items.append(UIAction(title: "Open in Maps", image: UIImage(systemName: "map")) { (_) in
+                UIApplication.shared.open(mapsURL)
+            })
+        }
+
+        /// TODO: "Add to Contacts"
+
+        // Copy Address
+        items.append(UIAction(title: "Copy Address", image: UIImage(systemName: "doc.on.doc")) { (_) in
+            UIPasteboard.general.string = link.text
+        })
+
+        return items
+    }
+
+    private func contextMenuItems(forLink link: AttributedTextLink) -> [UIMenuElement]? {
+        switch link.linkType {
+        case .link:
+            return contextMenuItems(forWebLink: link)
+
+        case .phoneNumber:
+            return contextMenuItems(forTelLink: link)
+
+        case .address:
+            return contextMenuItems(forAddressLink: link)
+
+        default:
+            break
+        }
+        return nil
+    }
+
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        guard let link = link(at: location), let menuItems = contextMenuItems(forLink: link) else { return nil }
+
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { (suggestedActions) in
+            return UIMenu(title: link.text, children: menuItems)
+        }
+    }
+
 }

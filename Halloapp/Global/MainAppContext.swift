@@ -8,6 +8,7 @@
 
 import CocoaLumberjack
 import Combine
+import Contacts
 import Core
 import Firebase
 import Foundation
@@ -24,6 +25,7 @@ class MainAppContext: AppContext {
     private(set) var syncManager: SyncManager!
     
     let didTapNotification = PassthroughSubject<NotificationUtility.Metadata, Never>()
+    let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
 
     override var xmppController: XMPPControllerMain {
         get {

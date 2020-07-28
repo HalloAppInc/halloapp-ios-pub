@@ -500,9 +500,9 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     // MARK: TextLabelDelegate
 
     func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
-        switch link.textCheckingResult {
+        switch link.linkType {
         case .link, .phoneNumber:
-            if let url = link.url {
+            if let url = link.result?.url {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                     UIApplication.shared.open(url, options: [:])
                 }

@@ -514,9 +514,9 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     }
 
     func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
-        switch link.textCheckingResult {
+        switch link.linkType {
         case .link, .phoneNumber:
-            if let url = link.url {
+            if let url = link.result?.url {
                 self.delegate?.feedTableViewCell(self, didRequestOpen: url)
             }
         case .readMoreLink:
