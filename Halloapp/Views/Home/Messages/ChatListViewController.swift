@@ -261,7 +261,9 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     // MARK: New Message Delegates
     
     func newMessageViewController(_ newMessageViewController: NewMessageViewController, chatWithUserId: String) {
-        self.navigationController?.pushViewController(ChatViewController(for: chatWithUserId), animated: true)
+        newMessageViewController.dismiss(animated: true) {
+            self.navigationController?.pushViewController(ChatViewController(for: chatWithUserId), animated: true)
+        }
     }
     
     // MARK: Tap Notification

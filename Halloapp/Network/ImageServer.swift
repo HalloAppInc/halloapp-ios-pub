@@ -64,15 +64,17 @@ class ImageServer {
 
     private func initiateUpload(_ item: PendingMedia) {
         self.mediaProcessingGroup.enter()
-        let request = XMPPMediaUploadURLRequest(completion: { urls, error in
+        let request = XMPPMediaUploadURLRequest(completion: { (result) in
             guard !self.cancelled else {
                 self.mediaProcessingGroup.leave()
                 return
             }
-            if urls != nil {
-                self.processAndUpload(item, to: urls!)
-            } else {
-                item.error = error!
+            switch result {
+            case .success(let urls):
+                self.processAndUpload(item, to: urls)
+
+            case .failure(let error):
+                item.error = error
             }
             self.mediaProcessingGroup.leave()
         })

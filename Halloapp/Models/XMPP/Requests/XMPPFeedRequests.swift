@@ -14,11 +14,11 @@ struct MediaURL {
     var get: URL, put: URL
 }
 
-class XMPPMediaUploadURLRequest : XMPPRequest {
+class XMPPMediaUploadURLRequest: XMPPRequest {
 
-    typealias XMPPMediaUploadURLRequestCompletion = (MediaURL?, Error?) -> Void
+    typealias XMPPMediaUploadURLRequestCompletion = (Result<MediaURL, Error>) -> Void
 
-    var completion: XMPPMediaUploadURLRequestCompletion
+    private let completion: XMPPMediaUploadURLRequestCompletion
 
     init(completion: @escaping XMPPMediaUploadURLRequestCompletion) {
         self.completion = completion
@@ -28,29 +28,27 @@ class XMPPMediaUploadURLRequest : XMPPRequest {
     }
 
     override func didFinish(with response: XMPPIQ) {
-        var urls: MediaURL?
         if let mediaURLs = response.childElement?.element(forName: "media_urls") {
             if let get = mediaURLs.attributeStringValue(forName: "get"), let put = mediaURLs.attributeStringValue(forName: "put") {
                 if let getURL = URL(string: get), let putURL = URL(string: put) {
-                    urls = MediaURL(get: getURL, put: putURL)
+                    self.completion(.success(MediaURL(get: getURL, put: putURL)))
+                    return
                 }
             }
         }
-        self.completion(urls, nil)
+        self.completion(.failure(XMPPError.malformed))
     }
 
     override func didFail(with error: Error) {
-        self.completion(nil, error)
+        self.completion(.failure(error))
     }
 }
 
 class XMPPRetractItemRequest: XMPPRequest {
 
-    typealias XMPPRetractItemRequestCompletion = (Error?) -> Void
+    private let completion: XMPPRequestCompletion
 
-    let completion: XMPPRetractItemRequestCompletion
-
-    init<T>(feedItem: T, feedOwnerId: UserID, completion: @escaping XMPPRetractItemRequestCompletion) where T: FeedItemProtocol {
+    init<T>(feedItem: T, feedOwnerId: UserID, completion: @escaping XMPPRequestCompletion) where T: FeedItemProtocol {
         self.completion = completion
 
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"))
@@ -68,10 +66,10 @@ class XMPPRetractItemRequest: XMPPRequest {
     }
 
     override func didFinish(with response: XMPPIQ) {
-        self.completion(nil)
+        self.completion(.success(()))
     }
 
     override func didFail(with error: Error) {
-        self.completion(error)
+        self.completion(.failure(error))
     }
 }

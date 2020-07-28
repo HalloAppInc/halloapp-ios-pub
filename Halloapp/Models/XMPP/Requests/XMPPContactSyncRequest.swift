@@ -100,15 +100,16 @@ struct XMPPContact {
 
 fileprivate let xmppNamespaceContacts = "halloapp:user:contacts"
 
-class XMPPContactSyncRequest : XMPPRequest {
-    enum RequestType: String {
-        case full = "full"
-        case delta = "delta"
+class XMPPContactSyncRequest: XMPPRequest {
+
+    enum RequestType: String, RawRepresentable {
+        case full
+        case delta
     }
 
-    typealias XMPPContactListRequestCompletion = ([XMPPContact]?, Error?) -> Void
+    typealias XMPPContactListRequestCompletion = (Result<[XMPPContact], Error>) -> Void
 
-    var completion: XMPPContactListRequestCompletion
+    private let completion: XMPPContactListRequestCompletion
 
     init<T: Sequence>(with contacts: T, type: RequestType, syncID: String, batchIndex: Int? = nil, isLastBatch: Bool? = nil,
                       completion: @escaping XMPPContactListRequestCompletion) where T.Iterator.Element == XMPPContact {
@@ -131,15 +132,15 @@ class XMPPContactSyncRequest : XMPPRequest {
     }
 
     override func didFinish(with response: XMPPIQ) {
-        var contacts: [XMPPContact]?
-        if let contactList = response.childElement {
-            assert(contactList.name == "contact_list")
-            contacts = contactList.elements(forName: "contact").compactMap{ XMPPContact($0) }
+        guard let contactList = response.childElement, contactList.name == "contact_list" else {
+            self.completion(.failure(XMPPError.malformed))
+            return
         }
-        self.completion(contacts, nil)
+        let contacts = contactList.elements(forName: "contact").compactMap({ XMPPContact($0) })
+        self.completion(.success(contacts))
     }
 
     override func didFail(with error: Error) {
-        self.completion(nil, error)
+        self.completion(.failure(error))
     }
 }

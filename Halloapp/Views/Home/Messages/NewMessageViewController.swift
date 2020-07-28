@@ -14,22 +14,55 @@ import Foundation
 import UIKit
 import SwiftUI
 
-
-fileprivate enum NewMessageViewSection {
-    case main
+fileprivate struct Constants {
+    static let cellReuseIdentifier = "NewMessageViewCell"
 }
 
 protocol NewMessageViewControllerDelegate: AnyObject {
     func newMessageViewController(_ newMessageViewController: NewMessageViewController, chatWithUserId: String)
 }
 
+fileprivate class ContactsSearchResultsController: UITableViewController {
+
+    var contacts: [ABContact] = [] {
+        didSet {
+            if self.isViewLoaded {
+                self.tableView.reloadData()
+            }
+        }
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        self.tableView.separatorStyle = .none
+        self.tableView.backgroundColor = UIColor.systemGray6
+        self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+    }
+
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return contacts.count
+    }
+
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
+        cell.configure(with: contacts[indexPath.row])
+        return cell
+    }
+}
+
 class NewMessageViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
     weak var delegate: NewMessageViewControllerDelegate?
 
-    private static let cellReuseIdentifier = "NewMessageViewCell"
-
     private var fetchedResultsController: NSFetchedResultsController<ABContact>?
+
+    private var searchController: UISearchController!
+    private var searchResultsController: ContactsSearchResultsController!
 
     private var trackedContacts: [String:TrackedContact] = [:]
 
@@ -51,11 +84,16 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         self.navigationItem.standardAppearance = .transparentAppearance
         self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
 
-        self.tableView.backgroundColor = .clear
         self.tableView.separatorStyle = .none
-        self.tableView.allowsSelection = true
-        self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: NewMessageViewController.cellReuseIdentifier)
         self.tableView.backgroundColor = UIColor.systemGray6
+        self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+
+        searchResultsController = ContactsSearchResultsController(style: .plain)
+        searchController = UISearchController(searchResultsController: searchResultsController)
+        searchController.delegate = self
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.autocapitalizationType = .none
+        self.navigationItem.searchController = searchController
 
         self.setupFetchedResultsController()
     }
@@ -193,31 +231,62 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
-        let cell = tableView.dequeueReusableCell(withIdentifier: NewMessageViewController.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
-
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
         if let abContact = fetchedResultsController?.object(at: indexPath) {
-            cell.configure(with: abContact, hide: self.isDuplicate(abContact))
+            cell.configure(with: abContact)
         }
-
         return cell
     }
 
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        var result:CGFloat = 60
-        guard let abContact = self.fetchedResultsController?.object(at: indexPath) else { return result }
-        if self.isDuplicate(abContact) {
-            result = 0
+        var contact: ABContact?
+        if tableView == self.tableView {
+            contact = self.fetchedResultsController?.object(at: indexPath)
+        } else {
+            contact = searchResultsController.contacts[indexPath.row]
         }
-        return result
+        if let contact = contact, self.isDuplicate(contact) {
+            return 0
+        }
+        return UITableView.automaticDimension
+    }
+
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        var contact: ABContact?
+        if tableView == self.tableView {
+            contact = self.fetchedResultsController?.object(at: indexPath)
+        } else {
+            contact = searchResultsController.contacts[indexPath.row]
+        }
+        if let contact = contact, self.isDuplicate(contact) {
+            cell.isHidden = true
+        }
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if let abContact = fetchedResultsController?.object(at: indexPath) {
-            if let userId = abContact.userId {
-                self.dismiss(animated: false) // gotcha: don't animate or else chatInput will not be shown
-                self.delegate?.newMessageViewController(self, chatWithUserId: userId)
+        guard let delegate = delegate else {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
+        }
+
+        var userId: UserID?
+        if tableView == self.tableView {
+            userId = fetchedResultsController?.object(at: indexPath).userId
+        } else {
+            userId = searchResultsController.contacts[indexPath.row].userId
+        }
+
+        if let userId = userId {
+            if searchController.isActive {
+                searchController.dismiss(animated: false) {
+                    delegate.newMessageViewController(self, chatWithUserId: userId)
+                }
+            } else {
+                delegate.newMessageViewController(self, chatWithUserId: userId)
+
             }
+        } else {
+            tableView.deselectRow(at: indexPath, animated: true)
         }
     }
 
@@ -240,6 +309,37 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         return result
     }
 
+}
+
+extension NewMessageViewController: UISearchControllerDelegate {
+
+    func willPresentSearchController(_ searchController: UISearchController) {
+        if let resultsController = searchController.searchResultsController as? UITableViewController {
+            resultsController.tableView.delegate = self
+        }
+    }
+}
+
+extension NewMessageViewController: UISearchResultsUpdating {
+
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let resultsController = searchController.searchResultsController as? ContactsSearchResultsController else { return }
+        guard let allContacts = fetchedResultsController?.fetchedObjects else { return }
+
+        let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
+        let searchItems = strippedString.components(separatedBy: " ")
+
+        let andPredicates: [NSPredicate] = searchItems.map { (searchString) in
+            NSComparisonPredicate(leftExpression: NSExpression(forKeyPath: "searchTokens"),
+                                  rightExpression: NSExpression(forConstantValue: searchString),
+                                  modifier: .any,
+                                  type: .contains,
+                                  options: [.caseInsensitive, .diacriticInsensitive])
+        }
+
+        let finalCompoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: andPredicates)
+        resultsController.contacts = allContacts.filter { finalCompoundPredicate.evaluate(with: $0) }
+    }
 }
 
 fileprivate struct TrackedContact {
@@ -271,10 +371,9 @@ fileprivate class NewMessageViewCell: UITableViewCell {
         contactImageView.prepareForReuse()
     }
 
-    public func configure(with abContact: ABContact, hide: Bool) {
+    public func configure(with abContact: ABContact) {
         self.nameLabel.text = abContact.fullName
         self.lastMessageLabel.text = abContact.phoneNumber
-        self.isHidden = hide ? true : false
 
         if let userId = abContact.userId {
             contactImageView.configure(with: userId, using: MainAppContext.shared.avatarStore)
@@ -309,24 +408,23 @@ fileprivate class NewMessageViewCell: UITableViewCell {
         vStack.axis = .vertical
         vStack.spacing = 2
 
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
-        spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-        
         let imageSize: CGFloat = 40.0
         self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
 
-        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, vStack, spacer ])
+        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, vStack ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
-        hStack.alignment = .leading
         hStack.spacing = 10
 
         self.contentView.addSubview(hStack)
+        // Priority is lower than "required" because cell's height might be 0 (duplicate contacts).
+        self.contentView.addConstraint({
+            let constraint = hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor)
+            constraint.priority = .defaultHigh
+            return constraint
+            }())
         hStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
 

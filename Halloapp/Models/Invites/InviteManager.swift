@@ -41,18 +41,20 @@ class InviteManager: ObservableObject {
         DDLogInfo("invite-manager/fetch-request/start")
         self.fetchError = false
 
-        let request = XMPPGetInviteAllowanceRequest { (inviteCount, refreshDate, error) in
-            if error != nil {
-                DDLogError("invite-manager/fetch-request/error \(error!)")
-                self.fetchError = true
-            } else {
-                DDLogInfo("invite-manager/fetch-request/complete Count: [\(inviteCount!)] Refresh Date: [\(refreshDate!)]")
+        let request = XMPPGetInviteAllowanceRequest { (result) in
+            switch result {
+            case .success(let (inviteCount, refreshDate)):
+                DDLogInfo("invite-manager/fetch-request/complete Count: [\(inviteCount)] Refresh Date: [\(refreshDate)]")
 
-                self.numberOfInvitesAvailable = inviteCount!
+                self.numberOfInvitesAvailable = inviteCount
                 self.nextRefreshDate = refreshDate
                 self.saveToUserDefaults()
 
                 self.dataAvailable = true
+
+            case .failure(let error):
+                DDLogError("invite-manager/fetch-request/error \(error)")
+                self.fetchError = true
             }
         }
         MainAppContext.shared.xmppController.enqueue(request: request)
@@ -68,28 +70,30 @@ class InviteManager: ObservableObject {
         self.redeemInProgress = true
 
         let phoneNumber = "+\(contact.normalizedPhoneNumber!)"
-        let request = XMPPRegisterInvitesRequest(phoneNumbers: [ phoneNumber ]) { (results, inviteCount, refreshDate,  error) in
+        let request = XMPPRegisterInvitesRequest(phoneNumbers: [ phoneNumber ]) { (result) in
             self.redeemInProgress = false
 
-            if error != nil {
-                DDLogInfo("invite-manager/redeem-request/error \(error!)")
-                presentErrorAlert.wrappedValue = true
-            } else if let result = results?[phoneNumber] {
-                DDLogInfo("invite-manager/redeem-request/complete Result: [\(result)] Count: [\(inviteCount!)] Refresh Date: [\(refreshDate!)]")
+            switch result {
+            case .success(let (inviteResults, inviteCount, refreshDate)):
+                let inviteResult = inviteResults[phoneNumber]!
 
-                self.numberOfInvitesAvailable = inviteCount!
+                DDLogInfo("invite-manager/redeem-request/complete Result: [\(inviteResult)] Count: [\(inviteCount)] Refresh Date: [\(refreshDate)]")
+
+                self.numberOfInvitesAvailable = inviteCount
                 self.nextRefreshDate = refreshDate
                 self.saveToUserDefaults()
 
-                if case .success = result {
+                if case .success = inviteResult {
                     presentShareSheet.wrappedValue = true
-                } else if case .failure(let reason) = result, reason == .existingUser {
+                } else if case .failure(let reason) = inviteResult, reason == .existingUser {
                     presentShareSheet.wrappedValue = true
                 } else {
                     presentErrorAlert.wrappedValue = true
                 }
-            } else {
-                assert(false, "Invalid server response.")
+
+            case .failure(let error):
+                DDLogInfo("invite-manager/redeem-request/error \(error)")
+                presentErrorAlert.wrappedValue = true
             }
         }
         MainAppContext.shared.xmppController.enqueue(request: request)

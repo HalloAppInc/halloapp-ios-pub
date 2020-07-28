@@ -41,7 +41,7 @@ enum InviteResult {
 
 class XMPPGetInviteAllowanceRequest: XMPPRequest {
 
-    typealias XMPPGetInviteAllowanceRequestCompletion = (Int?, Date?, Error?) -> Void
+    typealias XMPPGetInviteAllowanceRequestCompletion = (Result<(Int, Date), Error>) -> Void
 
     private let completion: XMPPGetInviteAllowanceRequestCompletion
 
@@ -53,23 +53,22 @@ class XMPPGetInviteAllowanceRequest: XMPPRequest {
 
     override func didFinish(with response: XMPPIQ) {
         guard let invitesElement = response.childElement, invitesElement.name == XMPPConstants.Elements.invites else {
-            // Invalid response
-            completion(nil, nil, nil)
+            completion(.failure(XMPPError.malformed))
             return
         }
         let invitesLeft = invitesElement.attributeIntegerValue(forName: XMPPConstants.Attributes.invitesLeft)
         let timeUntilRefresh = invitesElement.attributeDoubleValue(forName: XMPPConstants.Attributes.timeUntilRefresh)
-        completion(invitesLeft, Date(timeIntervalSinceNow: timeUntilRefresh), nil)
+        completion(.success((invitesLeft, Date(timeIntervalSinceNow: timeUntilRefresh))))
     }
 
     override func didFail(with error: Error) {
-        completion(nil, nil, error)
+        completion(.failure(error))
     }
 }
 
 class XMPPRegisterInvitesRequest: XMPPRequest {
 
-    typealias XMPPRegisterInvitesRequestCompletion = ([String: InviteResult]?, Int?, Date?, Error?) -> Void
+    typealias XMPPRegisterInvitesRequestCompletion = (Result<([String: InviteResult], Int, Date), Error>) -> Void
 
     private let completion: XMPPRegisterInvitesRequestCompletion
 
@@ -88,8 +87,7 @@ class XMPPRegisterInvitesRequest: XMPPRequest {
 
     override func didFinish(with response: XMPPIQ) {
         guard let invitesElement = response.childElement, invitesElement.name == XMPPConstants.Elements.invites else {
-            // Invalid response
-            completion(nil, nil, nil, nil)
+            completion(.failure(XMPPError.malformed))
             return
         }
         let invitesLeft = invitesElement.attributeIntegerValue(forName: XMPPConstants.Attributes.invitesLeft)
@@ -110,11 +108,11 @@ class XMPPRegisterInvitesRequest: XMPPRequest {
                 break
             }
         }
-        completion(results, invitesLeft, Date(timeIntervalSinceNow: timeUntilRefresh), nil)
+        completion(.success((results, invitesLeft, Date(timeIntervalSinceNow: timeUntilRefresh))))
     }
 
     override func didFail(with error: Error) {
-        completion(nil, nil, nil, error)
+        completion(.failure(error))
     }
 
 }

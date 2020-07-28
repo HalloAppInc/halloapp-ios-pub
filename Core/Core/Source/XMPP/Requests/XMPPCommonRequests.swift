@@ -9,10 +9,10 @@
 import Foundation
 import XMPPFramework
 
-public class XMPPPostItemRequest : XMPPRequest {
-    public typealias XMPPPostItemRequestCompletion = (Date?, Error?) -> Void
+public class XMPPPostItemRequest: XMPPRequest {
+    public typealias XMPPPostItemRequestCompletion = (Result<Date?, Error>) -> Void
 
-    let completion: XMPPPostItemRequestCompletion
+    private let completion: XMPPPostItemRequestCompletion
 
     public init<T>(feedItem: T, feedOwnerId: UserID, completion: @escaping XMPPPostItemRequestCompletion) where T: FeedItemProtocol {
         self.completion = completion
@@ -36,10 +36,10 @@ public class XMPPPostItemRequest : XMPPRequest {
         if let ts: TimeInterval = response.element(forName: "pubsub")?.element(forName: "publish")?.element(forName: "item")?.attributeDoubleValue(forName: "timestamp") {
             timestamp = Date(timeIntervalSince1970: ts)
         }
-        self.completion(timestamp, nil)
+        self.completion(.success(timestamp))
     }
 
     public override func didFail(with error: Error) {
-        self.completion(nil, error)
+        self.completion(.failure(error))
     }
 }

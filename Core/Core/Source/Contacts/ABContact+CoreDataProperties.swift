@@ -45,4 +45,10 @@ public extension ABContact {
             self.statusValue = newValue.rawValue
         }
     }
+
+    @objc var searchTokens: [String] {
+        get {
+            searchTokenList?.components(separatedBy: " ") ?? []
+        }
+    }
 }

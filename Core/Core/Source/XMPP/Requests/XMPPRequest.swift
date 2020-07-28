@@ -12,17 +12,21 @@ import XMPPFramework
 
 public let XMPPIQDefaultTo = "s.halloapp.net"
 
-enum XMPPRequestState {
-    case ready
-    case sending
-    case cancelled
-    case finished
-}
-
-public typealias XMPPRequestCompletion = (Error?) -> Void
+/**
+ Generic result to use where we only care about whether request was successful or not.
+ */
+public typealias XMPPRequestCompletion = (Result<Void, Error>) -> Void
 
 open class XMPPRequest {
-    internal var state: XMPPRequestState = .ready
+
+    enum State {
+        case ready
+        case sending
+        case cancelled
+        case finished
+    }
+
+    internal var state: State = .ready
     internal var retriesRemaining = 0
     private(set) var requestId: String
     internal var iq: XMPPIQ
@@ -49,7 +53,7 @@ open class XMPPRequest {
         }
         DDLogWarn("xmpprequest/\(self.requestId)/failed: not-connected")
         self.state = .cancelled
-        self.didFail(with: xmppErrorNotConnected())
+        self.didFail(with: XMPPError.notConnected)
     }
 
     func cancelAndPrepareFor(retry willRetry: Bool) -> Bool {
@@ -60,7 +64,7 @@ open class XMPPRequest {
         case .ready, .sending:
             if !willRetry || self.retriesRemaining <= 0 {
                 self.state = .cancelled
-                self.didFail(with: xmppErrorAborted())
+                self.didFail(with: XMPPError.aborted)
                 return false
             }
         }
@@ -82,13 +86,12 @@ open class XMPPRequest {
         if response.isResultIQ {
             self.didFinish(with: response)
         } else if response.isErrorIQ {
-            var iqError = xmppErrorUnknown()
+            var iqError = XMPPError.malformed
             if let errorNode = response.childErrorElement {
-                if let errorCodeString = errorNode.attribute(forName: "code")?.stringValue {
-                    if let errorCode = Int(errorCodeString) {
-                        let errorText = errorNode.attribute(forName: "text")?.stringValue
-                        iqError = xmppError(code: errorCode, text: errorText)
-                    }
+                if let errorCodeString = errorNode.attribute(forName: "code")?.stringValue,
+                   let errorCode = Int(errorCodeString) {
+                    let errorText = errorNode.attribute(forName: "text")?.stringValue
+                    iqError = XMPPError.serverError(errorCode, errorText)
                 }
             }
             self.didFail(with: iqError)

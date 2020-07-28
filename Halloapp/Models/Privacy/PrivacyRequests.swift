@@ -24,7 +24,7 @@ fileprivate struct XMPPConstants {
 
 class XMPPSendPrivacyListRequest: XMPPRequest {
 
-    var completion: XMPPRequestCompletion
+    private let completion: XMPPRequestCompletion
 
     init(privacyList: PrivacyList, completion: @escaping XMPPRequestCompletion) {
         self.completion = completion
@@ -34,19 +34,19 @@ class XMPPSendPrivacyListRequest: XMPPRequest {
     }
 
     override func didFinish(with response: XMPPIQ) {
-        self.completion(nil)
+        self.completion(.success(()))
     }
 
     override func didFail(with error: Error) {
-        self.completion(error)
+        self.completion(.failure(error))
     }
 }
 
 class XMPPGetPrivacyListsRequest: XMPPRequest {
 
-    typealias XMPPGetPrivacyListsRequestCompletion = ([PrivacyList]?, PrivacyListType?, Error?) -> Void
+    typealias XMPPGetPrivacyListsRequestCompletion = (Result<([PrivacyList], PrivacyListType), Error>) -> Void
 
-    var completion: XMPPGetPrivacyListsRequestCompletion
+    private let completion: XMPPGetPrivacyListsRequestCompletion
 
     init(includeMuted: Bool, completion: @escaping XMPPGetPrivacyListsRequestCompletion) {
         self.completion = completion
@@ -79,23 +79,21 @@ class XMPPGetPrivacyListsRequest: XMPPRequest {
 
     override func didFinish(with response: XMPPIQ) {
         guard let listsElement = response.childElement, listsElement.name == XMPPConstants.listsElement else {
-            // Invalid response
-            // TODO: return error.
-            self.completion(nil, nil, nil)
+            self.completion(.failure(XMPPError.malformed))
             return
         }
         guard let activeType = PrivacyListType(rawValue: listsElement.attributeStringValue(forName: XMPPConstants.activeTypeAttribute) ?? ""),
               activeType == .all || activeType == .whitelist || activeType == .blacklist else {
             // "active_type" not set or incorrect
-            self.completion(nil, nil, nil)
+            self.completion(.failure(XMPPError.malformed))
             return
         }
         let privacyLists = listsElement.elements(forName: XMPPConstants.listElement).compactMap({ PrivacyList(xmppElement: $0) })
-        self.completion(privacyLists, activeType, nil)
+        self.completion(.success((privacyLists, activeType)))
     }
 
     override func didFail(with error: Error) {
-        self.completion(nil, nil, error)
+        self.completion(.failure(error))
     }
 }
 
