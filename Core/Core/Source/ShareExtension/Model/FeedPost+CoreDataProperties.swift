@@ -12,10 +12,11 @@ import SwiftProtobuf
 
 
 extension SharedFeedPost {
-    enum Status: Int16 {
+    public enum Status: Int16 {
         case none = 0
         case sent = 1
         case received = 2
+        case sendError = 3
     }
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<SharedFeedPost> {
@@ -30,7 +31,7 @@ extension SharedFeedPost {
     @NSManaged public var userId: UserID
     @NSManaged public var media: Set<SharedMedia>?
 
-    var status: Status {
+    public var status: Status {
         get {
             return Status(rawValue: self.statusValue)!
         }

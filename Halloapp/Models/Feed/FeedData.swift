@@ -1301,6 +1301,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let existingPosts = self.feedPosts(with: postIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
             
             for post in posts {
+                // Ignore posts with status .none (should never happen), .sendError (will be deleted later), and .received (not supported)
+                guard post.status == .sent else { continue }
+                
                 guard existingPosts[post.id] == nil else {
                     DDLogError("FeedData/mergeSharedData/duplicate [\(post.id)]")
                     continue

@@ -46,11 +46,26 @@ class ComposeViewController: SLComposeServiceViewController {
          since we need to disconnet XMPP before the user left
          */
         self.isModalInPresentation = true
+        
+        initAppContext(ShareExtensionContext.self, xmppControllerClass: XMPPControllerShareExtension.self, contactStoreClass: ContactStore.self)
+        
+        /*
+         If the user switches from the host app (the app that starts the share extension request)
+         to HalloApp while the compose view is still active,
+         the connection in HalloApp will override the connection here,
+         when the user comes back, we need to reconnect.
+         */
+        NotificationCenter.default.addObserver(forName: .NSExtensionHostWillEnterForeground, object: nil, queue: nil) { _ in
+            ShareExtensionContext.shared.shareExtensionIsActive = true
+            ShareExtensionContext.shared.xmppController.startConnectingIfNecessary()
+        }
+        
+        NotificationCenter.default.addObserver(forName: .NSExtensionHostDidEnterBackground, object: nil, queue: nil) { _ in
+            ShareExtensionContext.shared.shareExtensionIsActive = false
+        }
     }
     
     override func presentationAnimationDidFinish() {
-        initAppContext(ShareExtensionContext.self, xmppControllerClass: XMPPControllerShareExtension.self, contactStoreClass: ContactStore.self)
-        
         guard ShareExtensionContext.shared.userData.isLoggedIn else {
             DDLogError("ComposeViewController/presentationAnimationDidFinish/error user has not logged in")
             
@@ -121,11 +136,25 @@ class ComposeViewController: SLComposeServiceViewController {
         switch destination {
         case .post:
             ShareExtensionContext.shared.sharedDataStore.post(text: contentText, media: mediaToSend, using: ShareExtensionContext.shared.xmppController) { result in
-                // TODO: Handle failed request
-                ShareExtensionContext.shared.shareExtensionIsActive = false
-                ShareExtensionContext.shared.xmppController.disconnect()
-                
-                super.didSelectPost()
+                switch result {
+                case .success(_):
+                    ShareExtensionContext.shared.shareExtensionIsActive = false
+                    ShareExtensionContext.shared.xmppController.disconnect()
+                    super.didSelectPost()
+                    
+                case .failure(let error):
+                    let message = "We encountered an error when posting: \(error.localizedDescription)"
+                    let alert = UIAlertController(title: "Failed to Post", message: message, preferredStyle: .alert)
+                    let okAction = UIAlertAction(title: "OK", style: .default) { _ in
+                        // This is rare
+                        // The ComposeView already disappeared, we cannot go back
+                        ShareExtensionContext.shared.shareExtensionIsActive = false
+                        ShareExtensionContext.shared.xmppController.disconnect()
+                        super.didSelectPost()
+                    }
+                    alert.addAction(okAction)
+                    self.present(alert, animated: true, completion: nil)
+                }
             }
             
         case .contact(_, _):
