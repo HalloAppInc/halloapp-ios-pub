@@ -46,7 +46,6 @@ class PrivacyListTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.tableView.backgroundColor = .systemBackground
         self.tableView.register(PrivacyListTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
     }
 

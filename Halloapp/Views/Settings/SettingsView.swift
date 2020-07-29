@@ -40,10 +40,12 @@ struct SettingsView: View {
     @State private var isEditingProfile = false
     @State private var isBlockedListPresented = false
 
-    var body: some View {
-        UITableView.appearance().backgroundColor = nil
+    init() {
+        UITableView.appearance(whenContainedInInstancesOf: [ UIHostingController<SettingsView>.self ]).backgroundColor = .feedBackground
+    }
 
-        return VStack {
+    var body: some View {
+        VStack {
             if self.privacySettings.privacyListSyncError != nil {
                 HStack {
                     Text(self.privacySettings.privacyListSyncError!)
@@ -162,7 +164,6 @@ struct SettingsView: View {
             self.privacySettings.resetSyncError()
         })
         .navigationBarTitle("Settings", displayMode: .inline)
-        .background(Color.feedBackground)
         .edgesIgnoringSafeArea(.bottom)
     }
 }

@@ -21,11 +21,15 @@ struct ProfileEditView: View {
     @State private var showingImageMenu = false
     @State private var showingImagePicker = false
     @State private var showingImageDeleteConfirm = false
-    
+
+    init(dismiss: (() -> ())? = nil) {
+        self.dismiss = dismiss
+
+        UITableView.appearance(whenContainedInInstancesOf: [ UIHostingController<ProfileEditView>.self ]).backgroundColor = .feedBackground
+    }
+
     var body: some View {
-        UITableView.appearance().backgroundColor = nil
-        
-        return VStack {
+        VStack {
             List {
                 Section(header: Text("Your Photo")) {
                     Button(action: {
@@ -101,7 +105,6 @@ struct ProfileEditView: View {
             }
         }
         .navigationBarTitle("Edit Profile", displayMode: .inline)
-        .background(Color.feedBackground)
         .navigationBarItems(trailing:
             Button(action: {
                 if (self.name.text != MainAppContext.shared.userData.name) {

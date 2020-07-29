@@ -43,12 +43,6 @@ fileprivate class InvitePeopleResultsController: UITableViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        self.tableView.backgroundColor = .systemBackground
-    }
-
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
@@ -93,8 +87,6 @@ class InvitePeopleTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        self.tableView.backgroundColor = .systemBackground
 
         self.dataSource = UITableViewDiffableDataSource<TableSection, ABContact>(tableView: self.tableView) { (tableView, indexPath, contact) in
             var cell: UITableViewCell! = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier)
