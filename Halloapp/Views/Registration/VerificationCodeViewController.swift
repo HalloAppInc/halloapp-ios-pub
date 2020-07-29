@@ -13,6 +13,22 @@ protocol VerificationCodeViewControllerDelegate: AnyObject {
     func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController)
 }
 
+enum VerificationCodeRequestError: String, Error, RawRepresentable {
+    case notInvited = "not_invited"
+    case smsFailure = "sms_fail"
+    case malformedResponse // everything else
+}
+
+enum VerificationCodeValidationError: String, Error, RawRepresentable {
+    case incorrectCode = "wrong_sms_code" // The sms code provided does not match
+    case missingPhone = "missing_phone"   // Request is missing phone field
+    case missingCode = "missing_code"     // Request is missing code field
+    case missingName = "missing_name"     // Request is missing name field
+    case invalidName = "invalid_name"     // Invalid name in the request
+    case badRequest = "bad_request"       // Could be several reasons, one is UserAgent does not follow the HalloApp.
+    case malformedResponse                // Everything else
+}
+
 class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     weak var delegate: VerificationCodeViewControllerDelegate?
 
@@ -174,31 +190,31 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         request.httpBody = try! JSONSerialization.data(withJSONObject: ["phone": phoneNumber])
         DDLogInfo("reg/request-sms/begin url=[\(request.url!)]  phone=[\(phoneNumber)]")
         let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
-            guard error == nil else {
-                DDLogError("reg/request-sms/error [\(error!)]")
+            if let error = error {
+                DDLogError("reg/request-sms/error [\(error)]")
                 DispatchQueue.main.async {
-                    self.verificationCodeRequestFailed()
+                    self.verificationCodeRequestFailed(withError: error)
                 }
                 return
             }
             guard let data = data else {
                 DDLogError("reg/request-sms/error Data is empty.")
                 DispatchQueue.main.async {
-                    self.verificationCodeRequestFailed()
+                    self.verificationCodeRequestFailed(withError: VerificationCodeRequestError.malformedResponse)
                 }
                 return
             }
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
                 DDLogError("reg/request-sms/error Invalid response. [\(String(describing: urlResponse))]")
                 DispatchQueue.main.async {
-                    self.verificationCodeRequestFailed()
+                    self.verificationCodeRequestFailed(withError: VerificationCodeRequestError.malformedResponse)
                 }
                 return
             }
             guard let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
                 DDLogError("reg/request-sms/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
                 DispatchQueue.main.async {
-                    self.verificationCodeRequestFailed()
+                    self.verificationCodeRequestFailed(withError: VerificationCodeRequestError.malformedResponse)
                 }
                 return
             }
@@ -211,13 +227,14 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         task.resume()
     }
 
-    private func verificationCodeRequestFailed(with message: String? = nil) {
+    private func verificationCodeRequestFailed(withError error: Error) {
         isCodeRequestInProgress = false
 
         labelTitle.isHidden = true
         viewChangePhone.isHidden = false
 
-        if let message = message {
+        if let codeRequestError = error as? VerificationCodeRequestError, case .notInvited = codeRequestError {
+            let message = "We are currently in beta and by invitation only. Please have one of your friends who is a HalloApp user invite you."
             let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .cancel))
             self.present(alert, animated: true)
@@ -227,20 +244,14 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     }
 
     private func verificationCodeRequestFinished(with response: [String : Any]) {
-        if let error = response["error"] as? String {
-            let message: String?
-            switch error {
-            case "no_friends":
-                message = "We are currently in beta and by invitation only. Please have one of your friends who is a HalloApp user invite you."
-            default:
-                message = nil
-                break
-            }
-            verificationCodeRequestFailed(with: message)
+        if let errorString = response["error"] as? String {
+            let error = VerificationCodeRequestError(rawValue: errorString) ?? .malformedResponse
+            verificationCodeRequestFailed(withError: error)
             return
         }
+
         guard let normalizedPhoneNumber = response["phone"] as? String else {
-            verificationCodeRequestFailed()
+            verificationCodeRequestFailed(withError: VerificationCodeRequestError.malformedResponse)
             return
         }
 
@@ -269,31 +280,31 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         request.httpBody = try! JSONSerialization.data(withJSONObject: json, options: [])
         DDLogInfo("reg/validate-code/begin url=[\(request.url!)]  data=[\(json)]")
         let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
-            guard error == nil else {
-                DDLogError("reg/validate-code/error [\(error!)]")
+            if let error = error {
+                DDLogError("reg/validate-code/error [\(error)]")
                 DispatchQueue.main.async {
-                    self.codeValidationFailed()
+                    self.codeValidationFailed(withError: error)
                 }
                 return
             }
             guard let data = data else {
                 DDLogError("reg/validate-code/error Data is empty.")
                 DispatchQueue.main.async {
-                    self.codeValidationFailed()
+                    self.codeValidationFailed(withError: VerificationCodeValidationError.malformedResponse)
                 }
                 return
             }
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
                 DDLogError("reg/validate-code/error Invalid response. [\(String(describing: urlResponse))]")
                 DispatchQueue.main.async {
-                    self.codeValidationFailed()
+                    self.codeValidationFailed(withError: VerificationCodeValidationError.malformedResponse)
                 }
                 return
             }
             guard let response = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
                 DDLogError("reg/validate-code/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
                 DispatchQueue.main.async {
-                    self.codeValidationFailed()
+                    self.codeValidationFailed(withError: VerificationCodeValidationError.malformedResponse)
                 }
                 return
             }
@@ -305,14 +316,15 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         task.resume()
     }
 
-    private func codeValidationFailed() {
+    private func codeValidationFailed(withError error: Error) {
         isCodeValidationInProgress = false
     }
 
     private func codeValidationFinished(with response: [String: Any]) {
         isCodeValidationInProgress = false
 
-        if let error = response["error"] as? String {
+        if let errorString = response["error"] as? String {
+            let error = VerificationCodeValidationError(rawValue: errorString) ?? .malformedResponse
             DDLogInfo("reg/validate-code/invalid [\(error)]")
             labelInvalidCode.alpha = 1
             textFieldCode.text = ""
