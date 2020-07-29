@@ -19,7 +19,8 @@ fileprivate class LayoutManager: NSLayoutManager {
     }
 }
 
-class AttributedTextLink: Equatable {
+class AttributedTextLink: Equatable, Identifiable {
+    let id: String
     let text: String
     let linkType: NSTextCheckingResult.CheckingType
     let range: NSRange
@@ -27,6 +28,7 @@ class AttributedTextLink: Equatable {
     var rects = [CGRect]()
 
     init(text: String, textCheckingResult: NSTextCheckingResult) {
+        self.id = UUID().uuidString
         self.text = text
         self.linkType = textCheckingResult.resultType
         self.range = textCheckingResult.range
@@ -34,6 +36,7 @@ class AttributedTextLink: Equatable {
     }
 
     init(text: String, resultType: NSTextCheckingResult.CheckingType, range: NSRange) {
+        self.id = UUID().uuidString
         self.text = text
         self.linkType = resultType
         self.range = range
@@ -41,10 +44,7 @@ class AttributedTextLink: Equatable {
     }
 
     static func == (lhs: AttributedTextLink, rhs: AttributedTextLink) -> Bool {
-        if lhs.linkType != rhs.linkType { return false }
-        if lhs.range != rhs.range { return false }
-        if lhs.text != rhs.text { return false }
-        return true
+        return lhs.id == rhs.id
     }
 
 }
@@ -552,9 +552,30 @@ extension TextLabel: UIContextMenuInteractionDelegate {
     func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
         guard let link = link(at: location), let menuItems = contextMenuItems(forLink: link) else { return nil }
 
-        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { (suggestedActions) in
+        return UIContextMenuConfiguration(identifier: link.id as NSString, previewProvider: nil) { (suggestedActions) in
             return UIMenu(title: link.text, children: menuItems)
         }
+    }
+
+    private func link(forMenuConfiguration configuration: UIContextMenuConfiguration) -> AttributedTextLink? {
+        guard let configurationIdentifier = configuration.identifier as? String else { return nil }
+        return links?.first(where: { $0.id == configurationIdentifier })
+    }
+
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, previewForHighlightingMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+        guard let link = link(forMenuConfiguration: configuration) else { return nil }
+
+        let previewParameters = UIPreviewParameters(textLineRects: link.rects.map({ NSValue(cgRect: $0.insetBy(dx: 4, dy: 4)) }))
+        previewParameters.backgroundColor = .secondarySystemGroupedBackground
+        return UITargetedPreview(view: self, parameters: previewParameters)
+    }
+
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, previewForDismissingMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
+        guard let link = link(forMenuConfiguration: configuration) else { return nil }
+
+        let previewParameters = UIPreviewParameters(textLineRects: link.rects.map({ NSValue(cgRect: $0.insetBy(dx: 4, dy: 4)) }))
+        previewParameters.backgroundColor = .clear
+        return UITargetedPreview(view: self, parameters: previewParameters)
     }
 
 }
