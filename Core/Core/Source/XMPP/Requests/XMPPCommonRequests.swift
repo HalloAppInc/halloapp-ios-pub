@@ -43,3 +43,44 @@ public class XMPPPostItemRequest: XMPPRequest {
         self.completion(.failure(error))
     }
 }
+
+public class XMPPGetServerPropertiesRequest: XMPPRequest {
+    public typealias Completion = (Result<(String, [String:String]), Error>) -> ()
+
+    private static let xmlns = "halloapp:props"
+
+    private let completion: Completion
+
+    public init(completion: @escaping Completion) {
+        self.completion = completion
+
+        let iq = XMPPIQ(iqType: .get, to: XMPPJID(string: XMPPIQDefaultTo))
+        iq.addChild(XMLElement(name: "props", xmlns: Self.xmlns))
+        super.init(iq: iq)
+    }
+
+    public override func didFinish(with response: XMPPIQ) {
+        guard let propsElement = response.element(forName: "props") else {
+            self.completion(.failure(XMPPError.malformed))
+            return
+        }
+        guard let version = propsElement.attributeStringValue(forName: "hash"), !version.isEmpty else {
+            self.completion(.failure(XMPPError.malformed))
+            return
+        }
+        let props = propsElement.elements(forName: "prop").reduce(into: [String:String]()) { (properties, propElement) in
+            guard let propName = propElement.attributeStringValue(forName: "name"), !propName.isEmpty else {
+                return
+            }
+            guard let propValue = propElement.stringValue, !propValue.isEmpty else {
+                return
+            }
+            properties[propName] = propValue
+        }
+        self.completion(.success((version, props)))
+    }
+
+    public override func didFail(with error: Error) {
+        self.completion(.failure(error))
+    }
+}

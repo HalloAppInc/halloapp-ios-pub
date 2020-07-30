@@ -248,6 +248,26 @@ class XMPPControllerMain: XMPPController {
         self.unackedReceipts.forEach { self.xmppStream.send($1) }
     }
 
+    // MARK: Server Properties
+
+    private func requestServerPropertiesIfNecessary() {
+        guard ServerProperties.shouldQuery(forVersion: xmppStream.serverPropertiesVersion) else {
+            return
+        }
+        DDLogInfo("xmpp/serverprops/request")
+        let request = XMPPGetServerPropertiesRequest { (result) in
+            switch result {
+            case .success(let (version, properties)):
+                DDLogDebug("xmpp/serverprops/request/success version=[\(version)]")
+                ServerProperties.update(withProperties: properties, version: version)
+
+            case .failure(let error):
+                DDLogError("xmpp/serverprops/request/error [\(error)]")
+            }
+        }
+        self.enqueue(request: request)
+    }
+
     // MARK: XMPPController Overrides
 
     override func performOnConnect() {
@@ -261,6 +281,7 @@ class XMPPControllerMain: XMPPController {
         resendAvatarIfNecessary()
         resendAllPendingReceipts()
         queryAvatarForCurrentUserIfNecessary()
+        requestServerPropertiesIfNecessary()
     }
 
     override func didReceive(message: XMPPMessage) {

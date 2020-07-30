@@ -102,7 +102,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   XMPPFramework:
-    :commit: d1f86ba9c3163ce6501ba84f00d42f26ffc89d63
+    :commit: 18d2f613dc37e59ec9be2f2970296be650d5b0f3
     :git: "git@github.com:HalloAppInc/XMPPFramework.git"
   YPImagePicker:
     :git: "git@github.com:HalloAppInc/YPImagePicker.git"

@@ -48,6 +48,7 @@
 		76C7429C24A1597000C7D945 /* MediaCrypter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C7429B24A1597000C7D945 /* MediaCrypter.swift */; };
 		76E5152F24A1761E003F1273 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 76E5152E24A1761E003F1273 /* Alamofire */; };
 		76E5153824A18171003F1273 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E5153724A18171003F1273 /* Digest.swift */; };
+		76F45E0024D226D300EFA301 /* ServerProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F45DFF24D226D300EFA301 /* ServerProperties.swift */; };
 		ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3156278C2E59CE6580A649AA /* Pods_Core.framework */; };
 /* End PBXBuildFile section */
 
@@ -95,6 +96,7 @@
 		76C7429B24A1597000C7D945 /* MediaCrypter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaCrypter.swift; sourceTree = "<group>"; };
 		76E5153524A180B9003F1273 /* CryptoKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoKit.framework; path = System/Library/Frameworks/CryptoKit.framework; sourceTree = SDKROOT; };
 		76E5153724A18171003F1273 /* Digest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Digest.swift; sourceTree = "<group>"; };
+		76F45DFF24D226D300EFA301 /* ServerProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProperties.swift; sourceTree = "<group>"; };
 		A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.external beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.external beta.xcconfig"; sourceTree = "<group>"; };
 		C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.internal beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.internal beta.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -221,6 +223,7 @@
 				246A8B70248FEC9400CE0429 /* NotificationUtility.swift */,
 				768123F024860F67008C5216 /* UserData.swift */,
 				76925CFC24872E85008333FA /* UserData.xcdatamodeld */,
+				76F45DFF24D226D300EFA301 /* ServerProperties.swift */,
 			);
 			path = Global;
 			sourceTree = "<group>";
@@ -418,6 +421,7 @@
 				246A8B7B24902A3E00CE0429 /* Avatars.xcdatamodeld in Sources */,
 				768123D72485DC4F008C5216 /* AppContext.swift in Sources */,
 				2490287524C524250019C4D5 /* XMPPCommonRequests.swift in Sources */,
+				76F45E0024D226D300EFA301 /* ServerProperties.swift in Sources */,
 				246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */,
 				76812409248614F1008C5216 /* XMPPRequest.swift in Sources */,
 				768123FE248612E7008C5216 /* XMPPController.swift in Sources */,
