@@ -79,6 +79,23 @@ class PostComposerViewController: UIViewController {
             imageServer: self.imageServer,
             mediaItems: mediaItems,
             textToPost: textToPost,
+            crop: { index in
+                let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value) { controller, media, selected, cancel in
+                    controller.dismiss(animated: true)
+                    
+                    guard !cancel else { return }
+                    
+                    index.value = selected
+                    self.mediaItems.value = media
+                    
+                    if media.count == 0 {
+                        self.backAction()
+                    }
+                }
+                
+                editController.modalPresentationStyle = .fullScreen
+                self.present(editController, animated: true)
+            },
             goBack: { [weak self] in self?.backAction() },
             setShareVisibility: { [weak self] visibility in self?.setShareVisibility(visibility)}
         )
@@ -141,6 +158,7 @@ fileprivate struct PostComposerView: View {
     private let imageServer: ImageServer
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var textToPost: ObservableString
+    private let crop: (_ index: ObservableInt) -> Void
     private let goBack: () -> Void
     private let setShareVisibility: (_ visibility: Bool) -> Void
 
@@ -195,10 +213,11 @@ fileprivate struct PostComposerView: View {
         (mediaCount > 1 ? MediaCarouselView.pageControlAreaHeight : 0) + PostComposerLayoutConstants.controlSpacing
     }
 
-    init(imageServer: ImageServer, mediaItems: ObservableMediaItems, textToPost: ObservableString, goBack: @escaping () -> Void, setShareVisibility: @escaping (_ visibility: Bool) -> Void) {
+    init(imageServer: ImageServer, mediaItems: ObservableMediaItems, textToPost: ObservableString, crop: @escaping (_ index: ObservableInt) -> Void, goBack: @escaping () -> Void, setShareVisibility: @escaping (_ visibility: Bool) -> Void) {
         self.imageServer = imageServer
         self.mediaItems = mediaItems
         self.textToPost = textToPost
+        self.crop = crop
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
     }
@@ -313,8 +332,7 @@ fileprivate struct PostComposerView: View {
     }
 
     private func cropMedia() {
-        // TODO(Vasil): Change once the new cropper is ready.
-        print("composer crop media")
+        crop(currentPosition)
     }
 
     private func deleteMedia() {
@@ -393,7 +411,7 @@ fileprivate struct TextView: UIViewRepresentable {
 
 fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     @ObservedObject var mediaItems: ObservableMediaItems
-    var currentPosition: ObservableInt
+    @ObservedObject var currentPosition: ObservableInt
 
     var feedMediaItems: [FeedMedia] {
         mediaItems.value.map { FeedMedia($0, feedPostId: "") }
@@ -414,7 +432,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: MediaCarouselView, context: Context) {
-        uiView.refreshData(media: context.coordinator.parent.feedMediaItems)
+        uiView.refreshData(media: context.coordinator.parent.feedMediaItems, index: context.coordinator.parent.currentPosition.value)
     }
 
     func makeCoordinator() -> Coordinator {

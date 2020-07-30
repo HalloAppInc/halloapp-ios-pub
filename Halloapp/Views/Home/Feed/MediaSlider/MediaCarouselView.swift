@@ -232,7 +232,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
     }
 
-    public func refreshData(media: [FeedMedia]) {
+    public func refreshData(media: [FeedMedia], index: Int) {
         var snapshot = NSDiffableDataSourceSnapshot<MediaSliderSection, FeedMedia>()
         snapshot.appendSections([.main])
         if collectionView.effectiveUserInterfaceLayoutDirection == .rightToLeft {
@@ -240,11 +240,16 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         } else {
             snapshot.appendItems(media)
         }
-        self.dataSource?.apply(snapshot)
+        
+        self.dataSource?.apply(snapshot, animatingDifferences: false)
+        
         self.media = media
         updatePageControl()
-        if (currentIndex >= self.media.count) {
-            currentIndex = self.media.count - 1
+        
+        let newIndex = max(0, min(index, self.media.count - 1))
+        if newIndex != currentIndex {
+            currentIndex = newIndex
+            self.setCurrentIndex(newIndex, animated: true)
         }
     }
 

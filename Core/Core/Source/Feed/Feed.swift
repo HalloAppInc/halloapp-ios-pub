@@ -121,6 +121,20 @@ extension FeedMediaProtocol {
     }
 }
 
+public struct PendingMediaEdit {
+    public var originalURL: URL?
+    public var image: UIImage?
+    public var cropRect: CGRect = CGRect.zero
+    public var hFlipped: Bool = false
+    public var vFlipped: Bool = false
+    public var numberOfRotations: Int = 0
+    
+    public init(originalURL: URL?, image: UIImage?) {
+        self.originalURL = originalURL
+        self.image = image
+    }
+}
+
 public class PendingMedia {
     public var order: Int = 0
     public var type: FeedMediaType
@@ -132,9 +146,21 @@ public class PendingMedia {
     public var videoURL: URL?
     public var fileURL: URL?
     public var error: Error?
+    
+    public var edit: PendingMediaEdit?
 
     public init(type: FeedMediaType) {
         self.type = type
+    }
+    
+    private func clearTemporaryMedia() {
+        guard self.edit != nil else { return }
+        guard let url = self.fileURL else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+    
+    deinit {
+        self.clearTemporaryMedia()
     }
 }
 
