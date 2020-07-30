@@ -35,6 +35,7 @@ extension FeedPost {
     @NSManaged public var userId: UserID
     @NSManaged var comments: Set<FeedPostComment>?
     @NSManaged var media: Set<FeedPostMedia>?
+    @NSManaged var mentions: Set<FeedMention>?
     @NSManaged var unreadCount: Int32
     @NSManaged var info: FeedPostInfo?
     @NSManaged private var statusValue: Int16
@@ -59,6 +60,13 @@ extension FeedPost: FeedPostProtocol {
 
     public static var itemType: FeedItemType {
         .post
+    }
+
+    public var orderedMentions: [FeedMentionProtocol] {
+        get {
+            guard let mentions = self.mentions else { return [] }
+            return mentions.sorted { $0.index < $1.index }
+        }
     }
 
     public var orderedMedia: [FeedMediaProtocol] {

@@ -136,12 +136,18 @@ class CommentView: UIView {
     }
 
     func updateWith(comment: FeedPostComment) {
-        let contactName = MainAppContext.shared.contactStore.fullName(for: comment.userId)
-        let commentText = comment.isCommentRetracted ? "" : comment.text
-        let baseFont =  UIFont.preferredFont(forTextStyle: .subheadline)
+        let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
         let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
-        let attributedText = NSMutableAttributedString(string: contactName, attributes: [ NSAttributedString.Key.font: nameFont ])
-        attributedText.append(NSAttributedString(string: " \(commentText)", attributes: [ NSAttributedString.Key.font: baseFont ]))
+
+        let contactName = MainAppContext.shared.contactStore.fullName(for: comment.userId)
+        let attributedText = NSMutableAttributedString(string: "\(contactName) ", attributes: [ NSAttributedString.Key.font: nameFont ])
+
+        if let commentText = MainAppContext.shared.contactStore.textWithMentions(comment.text, orderedMentions: comment.orderedMentions),
+            !comment.isCommentRetracted
+        {
+            attributedText.append(commentText.with(font: baseFont))
+        }
+
         attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
 
         self.textLabel.attributedText = attributedText
@@ -188,9 +194,6 @@ class CommentsTableHeaderView: UIView {
     let textLabel: TextLabel = {
         let label = TextLabel()
         label.numberOfLines = 0
-        label.textColor = .label
-        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
-        label.font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
         return label
     }()
 
@@ -271,7 +274,14 @@ class CommentsTableHeaderView: UIView {
 
         // Text
         if let feedPostText = feedPost.text, !feedPostText.isEmpty {
-            textLabel.text = feedPostText
+            let textWithMentions = MainAppContext.shared.contactStore.textWithMentions(
+                feedPostText,
+                orderedMentions: feedPost.orderedMentions)
+
+            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+            let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
+            textLabel.attributedText = textWithMentions?.with(font: font)
+
             vStack.insertArrangedSubview(textLabel, at: vStack.arrangedSubviews.count - 1)
         } else {
             vStack.removeArrangedSubview(textLabel)

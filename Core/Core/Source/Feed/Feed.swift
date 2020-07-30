@@ -60,6 +60,28 @@ extension FeedItemProtocol {
     }
 }
 
+// MARK: Feed Mention
+
+public protocol FeedMentionProtocol {
+
+    var index: Int { get }
+
+    var userID: String { get }
+
+    var name: String { get }
+}
+
+
+extension FeedMentionProtocol {
+    var protoMention: Proto_Mention {
+        get {
+            var mention = Proto_Mention()
+            mention.index = Int32(index)
+            mention.name = name
+            return mention
+        }
+    }
+}
 
 // MARK: Feed Post Media
 
@@ -123,6 +145,8 @@ public protocol FeedPostProtocol: FeedItemProtocol {
 
     var text: String? { get }
 
+    var orderedMentions: [FeedMentionProtocol] { get }
+
     var orderedMedia: [FeedMediaProtocol] { get }
 }
 
@@ -134,18 +158,20 @@ public extension FeedPostProtocol {
             if text != nil {
                 post.text = text!
             }
+            post.mentions = orderedMentions.map { $0.protoMention }
             post.media = orderedMedia.compactMap{ $0.protoMessage }
         }
         return post
     }
 }
 
-
 // MARK: Feed Comment
 
 public protocol FeedCommentProtocol: FeedItemProtocol {
 
     var text: String { get }
+
+    var orderedMentions: [FeedMentionProtocol] { get }
 
     var feedPostId: String { get }
 

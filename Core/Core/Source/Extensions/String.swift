@@ -54,4 +54,6 @@ extension String {
     public func strippingNonDigits() -> String {
         return String(self.unicodeScalars.filter { CharacterSet.decimalDigits.contains($0) })
     }
+
+    public var fullExtent: NSRange { NSRange(location: 0, length: count) }
 }

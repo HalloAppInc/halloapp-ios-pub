@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19E287" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="FeedMention" representedClassName="FeedMention" syncable="YES">
+        <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="userID" optional="YES" attributeType="String"/>
+    </entity>
     <entity name="FeedNotification" representedClassName="FeedNotification" syncable="YES">
         <attribute name="commentId" optional="YES" attributeType="String"/>
         <attribute name="eventValue" attributeType="Integer 16" usesScalarValueType="YES"/>
@@ -21,6 +26,7 @@
         <relationship name="comments" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FeedPostComment" inverseName="post" inverseEntity="FeedPostComment"/>
         <relationship name="info" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="FeedPostInfo" inverseName="post" inverseEntity="FeedPostInfo"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Deny" destinationEntity="FeedPostMedia" inverseName="post" inverseEntity="FeedPostMedia"/>
+        <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedMention"/>
         <fetchIndex name="byTimestamp">
             <fetchIndexElement property="timestamp" type="Binary" order="descending"/>
         </fetchIndex>
@@ -35,6 +41,7 @@
         <attribute name="text" attributeType="String"/>
         <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="userId" attributeType="String"/>
+        <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FeedMention"/>
         <relationship name="parent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPostComment" inverseName="replies" inverseEntity="FeedPostComment"/>
         <relationship name="post" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="comments" inverseEntity="FeedPost"/>
         <relationship name="replies" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FeedPostComment" inverseName="parent" inverseEntity="FeedPostComment"/>
@@ -64,9 +71,10 @@
         <relationship name="post" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="media" inverseEntity="FeedPost"/>
     </entity>
     <elements>
+        <element name="FeedMention" positionX="-45" positionY="117" width="128" height="88"/>
         <element name="FeedNotification" positionX="-18" positionY="45" width="128" height="178"/>
-        <element name="FeedPost" positionX="-63" positionY="-18" width="128" height="163"/>
-        <element name="FeedPostComment" positionX="-54" positionY="18" width="128" height="163"/>
+        <element name="FeedPost" positionX="-63" positionY="-18" width="128" height="193"/>
+        <element name="FeedPostComment" positionX="-54" positionY="18" width="128" height="178"/>
         <element name="FeedPostInfo" positionX="-45" positionY="117" width="128" height="73"/>
         <element name="FeedPostMedia" positionX="-27" positionY="81" width="128" height="193"/>
     </elements>

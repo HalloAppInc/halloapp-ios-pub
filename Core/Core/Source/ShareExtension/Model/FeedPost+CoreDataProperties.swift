@@ -27,6 +27,7 @@ extension SharedFeedPost {
 
     @NSManaged public var id: FeedPostID
     @NSManaged public var text: String?
+    @NSManaged public var mentions: Set<SharedFeedMention>?
     @NSManaged public var timestamp: Date
     @NSManaged public var userId: UserID
     @NSManaged public var media: Set<SharedMedia>?
@@ -65,6 +66,11 @@ extension SharedFeedPost: FeedItemProtocol {
 }
 
 extension SharedFeedPost: FeedPostProtocol {
+    public var orderedMentions: [FeedMentionProtocol] {
+        guard let mentions = self.mentions else { return [] }
+        return mentions.sorted { $0.index < $1.index }
+    }
+
     public var orderedMedia: [FeedMediaProtocol] {
         guard let media = media else { return [] }
         return media.sorted { $0.order < $1.order }

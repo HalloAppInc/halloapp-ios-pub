@@ -21,6 +21,10 @@
 		249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 249028A724C5E01B0019C4D5 /* SharedData.xcdatamodeld */; };
 		249028AB24C5E0600019C4D5 /* SharedDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249028AA24C5E05F0019C4D5 /* SharedDataStore.swift */; };
 		24D743C724AEA821001111BF /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D743C624AEA821001111BF /* AvatarView.swift */; };
+		68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E7F24D2128300F40F1F /* NSAttributedString.swift */; };
+		68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8124D22E5500F40F1F /* NSRange.swift */; };
+		68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */; };
+		68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */; };
 		7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7656F93124BCE66500F00AF7 /* LogFileManager.swift */; };
 		768123BD2485D9C7008C5216 /* Core.h in Headers */ = {isa = PBXBuildFile; fileRef = 768123BB2485D9C7008C5216 /* Core.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		768123D32485DBE2008C5216 /* LogFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123D12485DBE2008C5216 /* LogFormatter.swift */; };
@@ -70,6 +74,10 @@
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
 		5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.debug.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.debug.xcconfig"; sourceTree = "<group>"; };
+		68A64E7F24D2128300F40F1F /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
+		68A64E8124D22E5500F40F1F /* NSRange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSRange.swift; sourceTree = "<group>"; };
+		68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedMention+CoreDataClass.swift"; sourceTree = "<group>"; };
+		68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		7656F93124BCE66500F00AF7 /* LogFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileManager.swift; sourceTree = "<group>"; };
 		768123B82485D9C7008C5216 /* Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		768123BB2485D9C7008C5216 /* Core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Core.h; sourceTree = "<group>"; };
@@ -146,6 +154,8 @@
 				2490289C24C5DFDE0019C4D5 /* Media+CoreDataClass.swift */,
 				2490289E24C5DFDE0019C4D5 /* Media+CoreDataProperties.swift */,
 				249028A724C5E01B0019C4D5 /* SharedData.xcdatamodeld */,
+				68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */,
+				68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -285,6 +295,8 @@
 				7681241E2486C178008C5216 /* String.swift */,
 				2490287824C525030019C4D5 /* UIImage.swift */,
 				76925CF924871506008333FA /* UserDefaults.swift */,
+				68A64E7F24D2128300F40F1F /* NSAttributedString.swift */,
+				68A64E8124D22E5500F40F1F /* NSRange.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -423,12 +435,14 @@
 				2490287524C524250019C4D5 /* XMPPCommonRequests.swift in Sources */,
 				76F45E0024D226D300EFA301 /* ServerProperties.swift in Sources */,
 				246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */,
+				68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */,
 				76812409248614F1008C5216 /* XMPPRequest.swift in Sources */,
 				768123FE248612E7008C5216 /* XMPPController.swift in Sources */,
 				249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */,
 				7681240224861487008C5216 /* XMPPError.swift in Sources */,
 				768123F924861068008C5216 /* ABContact+CoreDataClass.swift in Sources */,
 				2490287924C525030019C4D5 /* UIImage.swift in Sources */,
+				68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */,
 				246A8B71248FEC9400CE0429 /* NotificationUtility.swift in Sources */,
 				24D743C724AEA821001111BF /* AvatarView.swift in Sources */,
 				768123F824861068008C5216 /* Contacts.xcdatamodeld in Sources */,
@@ -436,6 +450,7 @@
 				76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */,
 				768123F124860F67008C5216 /* UserData.swift in Sources */,
 				246A8B8224902BA600CE0429 /* Avatar+CoreDataProperties.swift in Sources */,
+				68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */,
 				7681240024861481008C5216 /* XMPPAck.swift in Sources */,
 				76812406248614BA008C5216 /* XMPPReceipt.swift in Sources */,
 				76812417248619BB008C5216 /* schema.pb.swift in Sources */,
@@ -444,6 +459,7 @@
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
 				246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */,
+				68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */,
 				76C7429624A155E900C7D945 /* FeedDownloadManager.swift in Sources */,
 				249028A024C5DFDE0019C4D5 /* Media+CoreDataClass.swift in Sources */,
 				7681241F2486C178008C5216 /* String.swift in Sources */,

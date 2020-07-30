@@ -28,7 +28,9 @@
 		24D743E824B3D504001111BF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
 		681E0DAA24C8E0190073A03E /* NewPostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 681E0DA924C8E0190073A03E /* NewPostViewController.swift */; };
-		68D475C424D0AF86003FCB81 /* UserFeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D475C324D0AF86003FCB81 /* UserFeedViewController.swift */; };
+		6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */; };
+		6829F78324CFA41F00207F6B /* FeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */; };
+		6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F78624D0A62800207F6B /* UserFeedViewController.swift */; };
 		761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
 		761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
 		761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C4245D32C200DD9D1A /* UIDevice.swift */; };
@@ -261,8 +263,10 @@
 		3B784BE84F86CCDF62B0AAA2 /* Pods-Share Extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.debug.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.debug.xcconfig"; sourceTree = "<group>"; };
 		477D47B0022D866E02A122DB /* Pods-Share Extension.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.internal beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.internal beta.xcconfig"; sourceTree = "<group>"; };
 		681E0DA924C8E0190073A03E /* NewPostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPostViewController.swift; sourceTree = "<group>"; };
+		6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedMention+CoreDataClass.swift"; sourceTree = "<group>"; };
+		6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		6829F78624D0A62800207F6B /* UserFeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFeedViewController.swift; sourceTree = "<group>"; };
 		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
-		68D475C324D0AF86003FCB81 /* UserFeedViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserFeedViewController.swift; sourceTree = "<group>"; };
 		74296216C820A50656388247 /* Pods-Share Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Share Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Share Extension/Pods-Share Extension.external beta.xcconfig"; sourceTree = "<group>"; };
 		761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VerificationCodeViewController.swift; path = HalloApp/Views/Registration/VerificationCodeViewController.swift; sourceTree = SOURCE_ROOT; };
 		761442C2245CF4FC00DD9D1A /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIColor.swift; path = HalloApp/Components/Extensions/UIColor.swift; sourceTree = SOURCE_ROOT; };
@@ -531,10 +535,10 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
-		68D475C224D0AF86003FCB81 /* User */ = {
+		6829F78524D0A61100207F6B /* User */ = {
 			isa = PBXGroup;
 			children = (
-				68D475C324D0AF86003FCB81 /* UserFeedViewController.swift */,
+				6829F78624D0A62800207F6B /* UserFeedViewController.swift */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -690,6 +694,8 @@
 				7653808D243D4B32000AD9A1 /* FeedPostMedia+CoreDataClass.swift */,
 				7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */,
 				76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */,
+				6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */,
+				6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */,
 			);
 			path = "CoreData Stack";
 			sourceTree = "<group>";
@@ -750,7 +756,7 @@
 		EA38843423A15C9D00E8BF92 /* Feed */ = {
 			isa = PBXGroup;
 			children = (
-				68D475C224D0AF86003FCB81 /* User */,
+				6829F78524D0A61100207F6B /* User */,
 				EA5414D723EE16EB00390EF6 /* FeedList */,
 				EA5414D623EE16D500390EF6 /* Comment */,
 				EA5414D423EE164C00390EF6 /* Media */,
@@ -1383,6 +1389,7 @@
 				2446D67E24CB558F005BAD3C /* ImageServer.swift in Sources */,
 				EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */,
 				EA52EB18245A012700FB03F6 /* NewMessageViewController.swift in Sources */,
+				6829F78324CFA41F00207F6B /* FeedMention+CoreDataProperties.swift in Sources */,
 				EAF3A1C32334191E00805FF9 /* AppDelegate.swift in Sources */,
 				2446D67C24CB54F8005BAD3C /* VideoUtils.swift in Sources */,
 				761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */,
@@ -1391,6 +1398,7 @@
 				764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */,
 				766103A72461EE8200728870 /* receipts.pb.swift in Sources */,
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
+				6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */,
 				76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */,
 				761442CB245DF6A600DD9D1A /* CharacterSet.swift in Sources */,
 				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,
@@ -1416,7 +1424,6 @@
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
 				761BD10024B4291200B567F6 /* InvitePeopleTableViewController.swift in Sources */,
 				766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */,
-				68D475C424D0AF86003FCB81 /* UserFeedViewController.swift in Sources */,
 				EA796B9B2469DDF100BC795E /* ChatQuoted+CoreDataClass.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* VerificationView.swift in Sources */,
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
@@ -1467,6 +1474,7 @@
 				76C2D1F924AA6B9700930320 /* PrivacyListViewController.swift in Sources */,
 				76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */,
 				76A92444244E659600794859 /* FeedViewController.swift in Sources */,
+				6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */,
 				EA25178F246B693B00CE24C0 /* MediaPreviewController.swift in Sources */,
 				762EDBDD244E5A7800986617 /* HomeView.swift in Sources */,
 				764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */,

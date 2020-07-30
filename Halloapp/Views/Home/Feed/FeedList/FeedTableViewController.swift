@@ -239,9 +239,9 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
                 guard let self = self else { return }
                 self.showSeenByView(for: feedPost.id)
             }
-            cell.showUserAction = { [weak self] in
+            cell.showUserAction = { [weak self] userID in
                 guard let self = self else { return }
-                self.showUserFeed(for: feedPost.userId)
+                self.showUserFeed(for: userID)
             }
         }
         cell.delegate = self
@@ -406,7 +406,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
     var showSeenByAction: (() -> ())?
-    var showUserAction: (() -> ())?
+    var showUserAction: ((UserID) -> ())?
 
     weak var delegate: FeedTableViewCellDelegate?
 
@@ -495,7 +495,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         self.postId = post.id
         self.headerView.configure(with: post)
         self.headerView.showUserAction = { [weak self] in
-            self?.showUserAction?()
+            self?.showUserAction?(post.userId)
         }
         self.itemContentView.configure(with: post, contentWidth: contentWidth)
         if post.isPostRetracted {
@@ -535,6 +535,10 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
             self.delegate?.feedTableViewCellDidRequestReloadHeight(self) {
                 self.itemContentView.textLabel.numberOfLines = 0
             }
+        case .userMention:
+            if let userID = link.userID {
+                showUserAction?(userID)
+            }
         default:
             break
         }
@@ -569,11 +573,6 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         if self.showSeenByAction != nil {
             self.showSeenByAction!()
         }
-    }
-
-    @objc(showUser)
-    private func showUser() {
-        showUserAction?()
     }
 }
 
@@ -632,7 +631,6 @@ fileprivate class FeedItemContentView: UIView {
 
     private(set) lazy var textLabel: TextLabel = {
         let label = TextLabel()
-        label.font = UIFont.preferredFont(forTextStyle: .body)
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -696,12 +694,15 @@ fileprivate class FeedItemContentView: UIView {
         else if !(post.text ?? "").isEmpty {
             self.textContentView.isHidden = false
 
-            self.textLabel.text = post.text
-            self.textLabel.font = {
+            let postText = MainAppContext.shared.contactStore.textWithMentions(
+                post.text,
+                orderedMentions: post.orderedMentions)
+            let postFont: UIFont = {
                 let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
-                let fontSizeDiff: CGFloat = postContainsMedia || (self.textLabel.text ?? "").count > 180 ? -1 : 3
+                let fontSizeDiff: CGFloat = postContainsMedia || (postText?.string ?? "").count > 180 ? -1 : 3
                 return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
             }()
+            self.textLabel.attributedText = postText?.with(font: postFont)
             self.textLabel.numberOfLines = feedDataItem.textExpanded ? 0 : postContainsMedia ? 3 : 10
             // Adjust vertical margins around text.
             self.textContentView.layoutMargins.top = postContainsMedia ? 11 : 9

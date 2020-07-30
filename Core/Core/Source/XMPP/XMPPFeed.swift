@@ -67,11 +67,15 @@ public struct XMPPFeedPost: FeedPostProtocol {
 
     // MARK: FeedPost
     public let text: String?
+    public var orderedMentions: [FeedMentionProtocol] {
+        get { mentions.sorted { $0.index < $1.index } }
+    }
     public var orderedMedia: [FeedMediaProtocol] {
         get { media }
     }
 
     public let media: [XMPPFeedMedia]
+    public let mentions: [XMPPFeedMention]
 
     /**
      <item timestamp="1585853535" publisher="16504228573@s.halloapp.net/iphone" type="feedpost" id="4A0D1C4E-566A-4BED-93A3-0D6D995B3B9B">
@@ -97,11 +101,19 @@ public struct XMPPFeedPost: FeedPostProtocol {
         self.userId = userId
         self.text = protoContainer.post.text.isEmpty ? nil : protoContainer.post.text
         self.media = protoContainer.post.media.enumerated().compactMap { XMPPFeedMedia(id: "\(id)-\($0)", protoMedia: $1) }
+        self.mentions = protoContainer.post.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
         let ts = item.attributeDoubleValue(forName: "timestamp")
         if ts > 0 {
             self.timestamp = Date(timeIntervalSince1970: ts)
         }
     }
+}
+
+public struct XMPPFeedMention: FeedMentionProtocol {
+
+    public let index: Int
+    public let userID: String
+    public let name: String
 }
 
 public struct XMPPFeedMedia: FeedMediaProtocol {
@@ -145,6 +157,11 @@ public struct XMPPComment: FeedCommentProtocol {
     public let feedPostId: FeedPostID
     public let parentId: FeedPostCommentID?
     public let text: String
+    public var orderedMentions: [FeedMentionProtocol] {
+        get { mentions.sorted { $0.index < $1.index } }
+    }
+
+    public let mentions: [XMPPFeedMention]
 
     /**
      <item timestamp="1585847898" publisher="16504228573@s.halloapp.net/iphone" type="comment" id="F198FE77-EEF7-487A-9D40-A36A74B24221">
@@ -177,6 +194,7 @@ public struct XMPPComment: FeedCommentProtocol {
         self.feedPostId = feedPostId!
         self.parentId = parentCommentId
         self.text = text!
+        self.mentions = protoComment.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
         let ts = item.attributeDoubleValue(forName: "timestamp")
         if ts > 0 {
             self.timestamp = Date(timeIntervalSince1970: ts)

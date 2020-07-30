@@ -431,6 +431,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.status = .incoming
             feedPost.timestamp = xmppPost.timestamp
 
+            var mentions = Set<FeedMention>()
+            for xmppMention in xmppPost.mentions {
+                let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+                mention.index = xmppMention.index
+                mention.userID = xmppMention.userID
+                mention.name = xmppMention.name
+                mentions.insert(mention)
+            }
+            feedPost.mentions = mentions
+
             // Process post media
             for (index, xmppMedia) in xmppPost.media.enumerated() {
                 DDLogDebug("FeedData/process-posts/new/add-media [\(xmppMedia.url)]")
@@ -533,6 +543,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comment.post = feedPost
                 comment.status = .incoming
                 comment.timestamp = xmppComment.timestamp
+
+                var mentions = Set<FeedMention>()
+                for xmppMention in xmppComment.mentions {
+                    let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+                    mention.index = xmppMention.index
+                    mention.userID = xmppMention.userID
+                    mention.name = xmppMention.name
+                    mentions.insert(mention)
+                }
+                comment.mentions = mentions
 
                 comments[comment.id] = comment
                 newComments.append(comment)

@@ -160,6 +160,11 @@ open class ContactStore {
     // MARK: UI Support
 
     public func fullName(for userID: UserID) -> String {
+        // Fallback to a static string.
+        return fullNameIfAvailable(for: userID) ?? "Unknown Contact"
+    }
+
+    public func fullNameIfAvailable(for userID: UserID) -> String? {
         if userID == self.userData.userId {
             // TODO: return correct pronoun.
             return "Me"
@@ -187,8 +192,7 @@ open class ContactStore {
             }
         }
 
-        // Fallback to a static string.
-        return fullName ?? "Unknown Contact"
+        return fullName
     }
 
     public func firstName(for userID: UserID) -> String {
@@ -253,5 +257,32 @@ open class ContactStore {
         }
 
         return results
+    }
+
+    public func textWithMentions(_ text: String?, orderedMentions: [FeedMentionProtocol]) -> NSAttributedString? {
+        guard let text = text else { return nil }
+        let mutableString = NSMutableAttributedString(string: text)
+        for mention in orderedMentions.reversed() {
+            // NB: We replace mention placeholders with usernames in reverse order so we don't change indices
+
+            let name: String = {
+                if let fullName = fullNameIfAvailable(for: mention.userID) {
+                    return fullName
+                }
+                if !mention.name.isEmpty {
+                    return mention.name
+                }
+                return "Unknown Contact"
+            }()
+
+            let replacementString = NSAttributedString(
+                string: "@\(name)",
+                attributes: [NSAttributedString.Key.userMention: mention.userID])
+
+            mutableString.replaceCharacters(
+                in: NSRange(location: mention.index, length: 1),
+                with: replacementString)
+        }
+        return mutableString
     }
 }

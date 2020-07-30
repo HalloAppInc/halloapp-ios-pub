@@ -7,6 +7,7 @@
 //
 
 import Contacts
+import Core
 import Foundation
 import SafariServices
 import UIKit
@@ -27,30 +28,35 @@ class AttributedTextLink: Equatable, Identifiable {
     let result: NSTextCheckingResult?
     var rects = [CGRect]()
 
+    /// Mentioned user ID
+    let userID: UserID?
+
     init(text: String, textCheckingResult: NSTextCheckingResult) {
         self.id = UUID().uuidString
         self.text = text
         self.linkType = textCheckingResult.resultType
         self.range = textCheckingResult.range
         self.result = textCheckingResult
+        self.userID = nil
     }
 
-    init(text: String, resultType: NSTextCheckingResult.CheckingType, range: NSRange) {
+    init(text: String, resultType: NSTextCheckingResult.CheckingType, range: NSRange, userID: UserID? = nil) {
         self.id = UUID().uuidString
         self.text = text
         self.linkType = resultType
         self.range = range
         self.result = nil
+        self.userID = userID
     }
 
     static func == (lhs: AttributedTextLink, rhs: AttributedTextLink) -> Bool {
         return lhs.id == rhs.id
     }
-
 }
 
 extension NSTextCheckingResult.CheckingType {
     static let readMoreLink = NSTextCheckingResult.CheckingType(rawValue: 1 << 34)
+    static let userMention = NSTextCheckingResult.CheckingType(rawValue: 1 << 35)
 }
 
 protocol TextLabelDelegate: AnyObject {
@@ -320,6 +326,13 @@ class TextLabel: UILabel {
         [ NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue,
           NSAttributedString.Key.underlineColor: UIColor.label.withAlphaComponent(0.5) ]
 
+    private static func mentionAttributes(baseFont: UIFont) -> [ NSAttributedString.Key: Any] {
+        guard let boldDescriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitBold) else {
+            return [:]
+        }
+        return [.font: UIFont(descriptor: boldDescriptor, size: 0)]
+    }
+
     static private let detectionQueue = DispatchQueue(label: "hyperlink-detection")
 
     static private let dataDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue | NSTextCheckingResult.CheckingType.phoneNumber.rawValue | NSTextCheckingResult.CheckingType.address.rawValue)
@@ -334,10 +347,25 @@ class TextLabel: UILabel {
 
     private func reallyDetectHyperlinks() {
         var text: String = ""
+        var links = [AttributedTextLink]()
         self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
             text = textStorage.string
+            links += self.userMentions(in: textStorage, ignoredRange: self.hyperlinkDetectionIgnoreRange)
         }
-        let links = self.detectSystemDataTypes(in: text, ignoredRange: self.hyperlinkDetectionIgnoreRange)
+        links += self.detectSystemDataTypes(in: text, ignoredRange: self.hyperlinkDetectionIgnoreRange)
+
+        self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
+            // String may have been changed or truncated while link detection was happening on a background thread.
+            let possiblyTruncatedRange = text.commonPrefix(with: textStorage.string).fullExtent
+            let linksFullyContainedInRange = links.filter { possiblyTruncatedRange.contains($0.range) }
+
+            for link in linksFullyContainedInRange {
+                if let linkBaseFont = textStorage.attribute(.font, at: link.range.location, effectiveRange: nil) as? UIFont {
+                    textStorage.addAttributes(Self.textAttributes(for: link.linkType, baseFont: linkBaseFont), range: link.range)
+                }
+            }
+        }
+
         DispatchQueue.main.async {
             self.links = links
             if self.readMoreLink != nil {
@@ -347,12 +375,38 @@ class TextLabel: UILabel {
         }
     }
 
-    private class func textAttributes(for textCheckingType: NSTextCheckingResult.CheckingType) -> [ NSAttributedString.Key: Any ] {
-        if textCheckingType == .address || textCheckingType == .date {
+    private class func textAttributes(for textCheckingType: NSTextCheckingResult.CheckingType, baseFont: UIFont) -> [ NSAttributedString.Key: Any ] {
+        switch textCheckingType {
+        case .address, .date:
             return TextLabel.addressAttributes
-        } else {
+        case .userMention:
+            return TextLabel.mentionAttributes(baseFont: baseFont)
+        default:
             return TextLabel.linkAttributes
         }
+    }
+
+    private func userMentions(in attributedString: NSAttributedString?, ignoredRange: Range<String.Index>? = nil) -> [AttributedTextLink] {
+        guard let attributedString = attributedString else { return [] }
+        var links = [AttributedTextLink]()
+        let range = NSRange(location: 0, length: attributedString.string.count)
+        attributedString.enumerateAttribute(.userMention, in: range, options: .init()) { value, mentionRange, _ in
+            guard let userID = value as? UserID else {
+                return
+            }
+            if let ignoredRange = ignoredRange,
+                let mentionRangeInText = Range(mentionRange, in: attributedString.string),
+                ignoredRange.overlaps(mentionRangeInText)
+            {
+                return
+            }
+            links.append(AttributedTextLink(
+                text: attributedString.attributedSubstring(from: mentionRange).string,
+                resultType: .userMention,
+                range: mentionRange,
+                userID: userID))
+        }
+        return links
     }
 
     private func detectSystemDataTypes(in text: String, ignoredRange: Range<String.Index>? = nil) -> [AttributedTextLink] {
@@ -369,15 +423,8 @@ class TextLabel: UILabel {
                     continue
                 }
 
-                self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
-                    // Do nothing if text was truncated while link detection was happening on a background thread.
-                    guard textStorage.string == text else { return }
-
-                    let link = AttributedTextLink(text: String(text[range]), textCheckingResult: match)
-                    results.append(link)
-
-                    textStorage.addAttributes(Self.textAttributes(for: match.resultType), range: match.range)
-                }
+                let link = AttributedTextLink(text: String(text[range]), textCheckingResult: match)
+                results.append(link)
             }
         }
         return results

@@ -190,6 +190,11 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
     // MARK: UI Actions
 
+    private func showUserFeed(for userID: UserID) {
+        let userViewController = UserFeedViewController(userID: userID)
+        self.navigationController?.pushViewController(userViewController, animated: true)
+    }
+
     @objc(deletePost)
     private func retractPost() {
         let actionSheet = UIAlertController(title: nil, message: "Delete this post? This action cannot be undone.", preferredStyle: .actionSheet)
@@ -507,7 +512,10 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
                     UIApplication.shared.open(url, options: [:])
                 }
             }
-
+        case .userMention:
+            if let userID = link.userID {
+                showUserFeed(for: userID)
+            }
         default:
             break
         }

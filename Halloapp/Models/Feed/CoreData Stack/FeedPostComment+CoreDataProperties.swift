@@ -28,6 +28,7 @@ extension FeedPostComment {
     }
 
     @NSManaged public var id: FeedPostID
+    @NSManaged public var mentions: Set<FeedMention>?
     @NSManaged public var text: String
     @NSManaged public var timestamp: Date
     @NSManaged public var userId: UserID
@@ -63,5 +64,12 @@ extension FeedPostComment: FeedCommentProtocol {
 
     public var parentId: String? {
         get { parent?.id }
+    }
+
+    public var orderedMentions: [FeedMentionProtocol] {
+        get {
+            guard let mentions = self.mentions else { return [] }
+            return mentions.sorted { $0.index < $1.index }
+        }
     }
 }
