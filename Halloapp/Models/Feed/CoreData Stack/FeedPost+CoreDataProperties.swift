@@ -53,7 +53,6 @@ extension FeedPost {
             return self.status == .retracted || self.status == .retracting
         }
     }
-
 }
 
 extension FeedPost: FeedPostProtocol {

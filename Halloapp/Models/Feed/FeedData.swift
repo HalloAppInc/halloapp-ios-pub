@@ -1004,6 +1004,29 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
     }
+    
+    func seenByUsers(for feedPost: FeedPost) -> [SeenByUser] {
+        let allContacts = contactStore.allRegisteredContacts(sorted: true)
+        
+        // Contacts that have seen the post go into the first section.
+        var users: [SeenByUser] = []
+        
+        if let seenReceipts = feedPost.info?.receipts {
+            for (userId, receipt) in seenReceipts {
+                var contactName: String?
+                if let contactIndex = allContacts.firstIndex(where: { $0.userId == userId }) {
+                    contactName = allContacts[contactIndex].fullName
+                }
+                if contactName == nil {
+                    contactName = contactStore.fullName(for: userId)
+                }
+                users.append(SeenByUser(userId: userId, postStatus: .seen, contactName: contactName!, timestamp: receipt.seenDate!))
+            }
+        }
+        users.sort(by: { $0.timestamp > $1.timestamp })
+
+        return users
+    }
 
     // MARK: Feed Media
 

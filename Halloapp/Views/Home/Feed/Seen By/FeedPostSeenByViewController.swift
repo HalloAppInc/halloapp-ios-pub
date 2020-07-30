@@ -10,14 +10,14 @@ import Core
 import CoreData
 import UIKit
 
-fileprivate struct TableRow {
+struct SeenByUser {
     let userId: UserID
     let postStatus: PostStatus
     let contactName: String?
     let timestamp: Date
 }
 
-extension TableRow : Hashable {
+extension SeenByUser : Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(userId)
         hasher.combine(postStatus)
@@ -25,7 +25,7 @@ extension TableRow : Hashable {
     }
 }
 
-extension TableRow : Equatable {
+extension SeenByUser : Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         return lhs.postStatus == rhs.postStatus && lhs.userId == rhs.userId && lhs.contactName == rhs.contactName
     }
@@ -37,7 +37,7 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
 
     private let feedPostId: FeedPostID
 
-    private var dataSource: UITableViewDiffableDataSource<PostStatus, TableRow>?
+    private var dataSource: UITableViewDiffableDataSource<PostStatus, SeenByUser>?
     private var fetchedResultsController: NSFetchedResultsController<FeedPost>?
 
     required init(feedPostId: FeedPostID) {
@@ -59,7 +59,7 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         self.tableView.allowsSelection = false
         self.tableView.separatorStyle = .none
 
-        dataSource = UITableViewDiffableDataSource<PostStatus, TableRow>(tableView: self.tableView) { (tableView, indexPath, tableRow) in
+        dataSource = UITableViewDiffableDataSource<PostStatus, SeenByUser>(tableView: self.tableView) { (tableView, indexPath, tableRow) in
             let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
             
             cell.configureForSeenBy(with: tableRow.userId, name: tableRow.contactName!, status: tableRow.postStatus, using: MainAppContext.shared.avatarStore)
@@ -97,24 +97,8 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
     }
 
     private func reloadData(from feedPost: FeedPost) {
-        var allContacts = AppContext.shared.contactStore.allRegisteredContacts(sorted: true)
-
-        // Contacts that have seen the post go into the first section.
-        var seenRows: [TableRow] = []
-        if let seenReceipts = feedPost.info?.receipts {
-            for (userId, receipt) in seenReceipts {
-                var contactName: String?
-                if let contactIndex = allContacts.firstIndex(where: { $0.userId == userId }) {
-                    contactName = allContacts[contactIndex].fullName
-                    allContacts.remove(at: contactIndex)
-                }
-                if contactName == nil {
-                    contactName = AppContext.shared.contactStore.fullName(for: userId)
-                }
-                seenRows.append(TableRow(userId: userId, postStatus: .seen, contactName: contactName!, timestamp: receipt.seenDate!))
-            }
-        }
-        seenRows.sort(by: { $0.timestamp < $1.timestamp })
+        let allContacts = AppContext.shared.contactStore.allRegisteredContacts(sorted: true)
+        let seenRows: [SeenByUser] = MainAppContext.shared.feedData.seenByUsers(for: feedPost)
 
         var addedUserIds = Set(seenRows.map(\.userId))
 
@@ -122,14 +106,14 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         addedUserIds.insert(AppContext.shared.userData.userId)
 
         // All other contacts go into "delivered" section.
-        var deliveredRows: [TableRow] = []
+        var deliveredRows: [SeenByUser] = []
         allContacts.forEach { (abContact) in
             if addedUserIds.insert(abContact.userId!).inserted {
-                deliveredRows.append(TableRow(userId: abContact.userId!, postStatus: .delivered, contactName: abContact.fullName, timestamp: Date()))
+                deliveredRows.append(SeenByUser(userId: abContact.userId!, postStatus: .delivered, contactName: abContact.fullName, timestamp: Date()))
             }
         }
 
-        var snapshot = NSDiffableDataSourceSnapshot<PostStatus, TableRow>()
+        var snapshot = NSDiffableDataSourceSnapshot<PostStatus, SeenByUser>()
         snapshot.appendSections([ .seen, .delivered ])
         snapshot.appendItems(seenRows, toSection: .seen)
         snapshot.appendItems(deliveredRows, toSection: .delivered)

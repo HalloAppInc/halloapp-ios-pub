@@ -14,19 +14,9 @@ public class AvatarView: UIImageView {
     
     public static let defaultImage = UIImage.init(systemName: "person.crop.circle")
     
-    public override var frame: CGRect {
-        didSet {
-            if oldValue.size != frame.size {
-                applyCornerRadius()
-            }
-        }
-    }
-    public override var bounds: CGRect {
-        didSet {
-            if oldValue.size != bounds.size {
-                applyCornerRadius()
-            }
-        }
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+        applyCornerRadius()
     }
     
     public init() {
@@ -42,7 +32,10 @@ public class AvatarView: UIImageView {
     
     public func configure(with userId: UserID, using avatarStore: AvatarStore) {
         let userAvatar = avatarStore.userAvatar(forUserId: userId)
-        
+        configure(with: userAvatar, using: avatarStore)
+    }
+    
+    public func configure(with userAvatar: UserAvatar, using avatarStore: AvatarStore) {
         if let image = userAvatar.image {
             self.image = image
             self.tintColor = nil
@@ -70,6 +63,8 @@ public class AvatarView: UIImageView {
     
     public func prepareForReuse() {
         avatarUpdatingCancellable?.cancel()
+        self.image = AvatarView.defaultImage
+        self.tintColor = UIColor.systemGray
     }
     
     private func applyCornerRadius() {

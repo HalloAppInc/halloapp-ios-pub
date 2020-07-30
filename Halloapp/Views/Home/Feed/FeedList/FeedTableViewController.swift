@@ -476,7 +476,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         // Connect actions of footer view buttons
         footerView.commentButton.addTarget(self, action: #selector(showComments), for: .touchUpInside)
         footerView.messageButton.addTarget(self, action: #selector(messageContact), for: .touchUpInside)
-        footerView.seenByButton.addTarget(self, action: #selector(showSeenBy), for: .touchUpInside)
+        footerView.facePileView.addTarget(self, action: #selector(showSeenBy), for: .touchUpInside)
     }
 
     override func layoutSubviews() {
@@ -905,13 +905,11 @@ fileprivate class FeedItemFooterView: UIView {
         return button
     }()
     
-    lazy var seenByButton: UIButton = {
-        let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 4 : -4
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(named: "FeedPostSeenBy"), for: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: 15, left: 9, bottom: 9, right: 8)
-        return button
+    lazy var facePileView: FacePileView = {
+        let view = FacePileView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isUserInteractionEnabled = true
+        return view
     }()
 
     lazy var separator: UIView = {
@@ -940,18 +938,109 @@ fileprivate class FeedItemFooterView: UIView {
         hStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
 
-        self.addSubview(self.seenByButton)
-        self.seenByButton.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
-        self.seenByButton.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+        self.addSubview(self.facePileView)
+        self.facePileView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -8).isActive = true
+        self.facePileView.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: 4).isActive = true
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
         self.commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .unread : .read)
         let usersOwnPost = post.userId == MainAppContext.shared.userData.userId
         self.messageButton.alpha = usersOwnPost ? 0 : 1
-        self.seenByButton.isHidden = !usersOwnPost
-        self.seenByButton.tintColor = .tertiaryLabel
+        if usersOwnPost {
+            self.facePileView.isHidden = false
+            self.facePileView.configure(with: post)
+        } else {
+            self.facePileView.isHidden = true
+        }
     }
 
-    func prepareForReuse() { }
+    func prepareForReuse() {
+        self.facePileView.prepareForReuse()
+    }
+}
+
+fileprivate class FacePileView: UIControl {
+    var avatarViews: [AvatarView] = []
+    let numberOfFaces = 3
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupView()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupView() {
+        for index in 0 ..< numberOfFaces {
+            // The avatars are added from right to left
+            let avatarView = AvatarView()
+            avatarView.translatesAutoresizingMaskIntoConstraints = false
+            
+            self.addSubview(avatarView)
+            avatarViews.append(avatarView)
+            
+            if index == 0 {
+                // The rightmost avatar
+                avatarView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+            } else {
+                let previousView = self.avatarViews[index - 1]
+                avatarView.trailingAnchor.constraint(equalTo: previousView.centerXAnchor).isActive = true
+            }
+            
+            avatarView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+            avatarView.heightAnchor.constraint(equalToConstant: 25).isActive = true
+            avatarView.widthAnchor.constraint(equalTo: avatarView.heightAnchor).isActive = true
+            avatarView.isHidden = true
+        }
+        
+        let lastView = avatarViews.last!
+        self.leadingAnchor.constraint(equalTo: lastView.leadingAnchor).isActive = true
+        self.topAnchor.constraint(equalTo: lastView.topAnchor).isActive = true
+        self.bottomAnchor.constraint(equalTo: lastView.bottomAnchor).isActive = true
+    }
+    
+    func configure(with post: FeedPost) {
+        let seenByUsers = MainAppContext.shared.feedData.seenByUsers(for: post)
+        
+        var usersWithAvatars: [UserAvatar] = []
+        var usersWithoutAvatar: [UserAvatar] = []
+        
+        for user in seenByUsers {
+            let userAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: user.userId)
+            if !userAvatar.isEmpty {
+                usersWithAvatars.append(userAvatar)
+            } else {
+                usersWithoutAvatar.append(userAvatar)
+            }
+            if usersWithAvatars.count >= numberOfFaces {
+                break
+            }
+        }
+        
+        if usersWithAvatars.count < numberOfFaces {
+            usersWithAvatars.append(contentsOf: usersWithoutAvatar.prefix(numberOfFaces - usersWithAvatars.count))
+        }
+        
+        if !usersWithAvatars.isEmpty {
+            // The avatars are applied from right to left
+            usersWithAvatars.reverse()
+            for userIndex in 0 ..< usersWithAvatars.count {
+                let avatarView = avatarViews[userIndex]
+                avatarView.configure(with: usersWithAvatars[userIndex], using: MainAppContext.shared.avatarStore)
+                avatarView.isHidden = false
+            }
+        } else { // No one has seen this post. Just show a dummy avatar.
+            avatarViews.first!.isHidden = false
+        }
+    }
+
+    func prepareForReuse() {
+        for avatarView in avatarViews {
+            avatarView.prepareForReuse()
+            avatarView.isHidden = true
+        }
+    }
 }
