@@ -22,9 +22,14 @@ class ProfileViewController: FeedTableViewController {
         installLargeTitleUsingGothamFont()
 
         var rightBarButtonItems = [ UIBarButtonItem(image: UIImage(named: "NavbarSettings"), style: .plain, target: self, action: #selector(presentSettingsScreen)) ]
-        #if INTERNAL
-        rightBarButtonItems.append(UIBarButtonItem(image: UIImage(systemName: "hammer"), style: .plain, target: self, action: #selector(presentDeveloperMenu)))
+        #if DEBUG
+        let showDeveloperMenu = true
+        #else
+        let showDeveloperMenu = ServerProperties.isInternalUser
         #endif
+        if showDeveloperMenu {
+            rightBarButtonItems.append(UIBarButtonItem(image: UIImage(systemName: "hammer"), style: .plain, target: self, action: #selector(presentDeveloperMenu)))
+        }
 
         self.navigationItem.rightBarButtonItems = rightBarButtonItems
 
