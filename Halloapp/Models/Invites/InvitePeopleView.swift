@@ -105,7 +105,7 @@ struct InvitePeopleView: View {
         .sheet(isPresented: self.$isShareSheetPresented, onDismiss: {
             self.inviteManager.contactToInvite = nil
         }) {
-            ActivityView(activityItems: [ "Check out this new cool app called HalloApp. Download it from: http://halloapp.net/dl" ])
+            ActivityView(activityItems: [ "Check out this new app called HalloApp. Download it from: http://halloapp.net/dl" ])
         }
         .onDisappear {
             self.inviteManager.contactToInvite = nil
