@@ -123,7 +123,7 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
         self.save(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
     }
     
-    @discardableResult private func save(avatarId: AvatarID, forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext) -> Avatar {
+    @discardableResult private func save(avatarId: AvatarID, forUserId userId: UserID, using managedObjectContext: NSManagedObjectContext, isContactSync: Bool = false) -> Avatar {
         var currentAvatar = avatar(forUserId: userId, using: managedObjectContext)
         
         if currentAvatar == nil {
@@ -132,7 +132,10 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
             currentAvatar!.userId = userId
         } else {
             guard currentAvatar!.avatarId != avatarId else {
-                DDLogError("AvatarStore/save/error avatar id is same")
+                // For ContactSync, most avatarIds remain the same
+                if !isContactSync {
+                    DDLogError("AvatarStore/save/error avatar \(avatarId) for user \(userId) is same")
+                }
                 return currentAvatar!
             }
             
@@ -270,7 +273,7 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
     public func processContactSync(_ avatarDict: [UserID: AvatarID]) {
         performOnBackgroundContextAndWait { (managedObjectContext) in
             for (userId, avatarId) in avatarDict {
-                save(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
+                save(avatarId: avatarId, forUserId: userId, using: managedObjectContext, isContactSync: true)
             }
         }
     }
