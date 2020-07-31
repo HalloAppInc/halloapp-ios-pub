@@ -702,7 +702,7 @@ fileprivate class FeedItemContentView: UIView {
                 let fontSizeDiff: CGFloat = postContainsMedia || (postText?.string ?? "").count > 180 ? -1 : 3
                 return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
             }()
-            self.textLabel.attributedText = postText?.with(font: postFont)
+            self.textLabel.attributedText = postText?.with(font: postFont, color: .label)
             self.textLabel.numberOfLines = feedDataItem.textExpanded ? 0 : postContainsMedia ? 3 : 10
             // Adjust vertical margins around text.
             self.textContentView.layoutMargins.top = postContainsMedia ? 11 : 9

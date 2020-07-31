@@ -11,9 +11,14 @@ import UIKit
 public extension NSAttributedString {
     var fullExtent: NSRange { NSRange(location: 0, length: length) }
 
-    func with(font: UIFont) -> NSAttributedString {
+    func with(font: UIFont? = nil, color: UIColor? = nil) -> NSAttributedString {
         let mutableString = NSMutableAttributedString(attributedString: self)
-        mutableString.addAttribute(.font, value: font, range: fullExtent)
+        if let font = font {
+            mutableString.addAttribute(.font, value: font, range: fullExtent)
+        }
+        if let color = color {
+            mutableString.addAttribute(.foregroundColor, value: color, range: fullExtent)
+        }
         return mutableString
     }
 }
