@@ -73,6 +73,15 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
                 guard let self = self else { return }
                 self.refreshTimestamps()
         })
+
+        self.cancellableSet.insert(
+            NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] (_) in
+                guard let self = self else { return }
+                guard let indexPaths = self.tableView.indexPathsForVisibleRows else { return }
+                indexPaths.forEach { (indexPath) in
+                    self.didShowPost(atIndexPath: indexPath)
+                }
+        })
     }
 
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -254,21 +263,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if let feedPost = fetchedResultsController?.object(at: indexPath) {
-            // Load downloaded images into memory.
-            MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)?.loadImages()
-
-            // Initiate download for images that were not yet downloaded.
-            MainAppContext.shared.feedData.downloadMedia(in: [ feedPost ])
-
-            // If app is in foreground and is currently active:
-            // • send "seen" receipt for the post
-            // • remove notifications for the post
-            if UIApplication.shared.applicationState == .active {
-                MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
-                NotificationUtility.removeDelivered(forType: .feedpost, withContentId: feedPost.id)
-            }
-        }
+        didShowPost(atIndexPath: indexPath)
     }
 
     override func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -335,6 +330,24 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             if let feedTableViewCell = tableView.cellForRow(at: indexPath) as? FeedTableViewCell,
                 let feedPost = fetchedResultsController?.object(at: indexPath) {
                 feedTableViewCell.refreshTimestamp(using: feedPost)
+            }
+        }
+    }
+
+    private func didShowPost(atIndexPath indexPath: IndexPath) {
+        if let feedPost = fetchedResultsController?.object(at: indexPath) {
+            // Load downloaded images into memory.
+            MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)?.loadImages()
+
+            // Initiate download for images that were not yet downloaded.
+            MainAppContext.shared.feedData.downloadMedia(in: [ feedPost ])
+
+            // If app is in foreground and is currently active:
+            // • send "seen" receipt for the post
+            // • remove notifications for the post
+            if UIApplication.shared.applicationState == .active {
+                MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
+                NotificationUtility.removeDelivered(forType: .feedpost, withContentId: feedPost.id)
             }
         }
     }
