@@ -280,7 +280,7 @@ class CommentsTableHeaderView: UIView {
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
-            textLabel.attributedText = textWithMentions?.with(font: font)
+            textLabel.attributedText = textWithMentions?.with(font: font, color: .label)
 
             vStack.insertArrangedSubview(textLabel, at: vStack.arrangedSubviews.count - 1)
         } else {
