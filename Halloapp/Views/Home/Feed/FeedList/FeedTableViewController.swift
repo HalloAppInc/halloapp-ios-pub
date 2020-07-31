@@ -47,25 +47,30 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
         self.setupFetchedResultsController()
 
-        self.cancellableSet.insert(MainAppContext.shared.feedData.willDestroyStore.sink {
+        self.cancellableSet.insert(MainAppContext.shared.feedData.willDestroyStore.sink { [weak self] in
+            guard let self = self else { return }
             self.fetchedResultsController = nil
             self.tableView.reloadData()
             self.view.isUserInteractionEnabled = false
         })
 
-        self.cancellableSet.insert(MainAppContext.shared.feedData.didReloadStore.sink {
-            self.view.isUserInteractionEnabled = true
-            self.setupFetchedResultsController()
-            self.tableView.reloadData()
+        self.cancellableSet.insert(
+            MainAppContext.shared.feedData.didReloadStore.sink { [weak self] in
+                guard let self = self else { return }
+                self.view.isUserInteractionEnabled = true
+                self.setupFetchedResultsController()
+                self.tableView.reloadData()
         })
 
         self.cancellableSet.insert(
-            NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { (_) in
+            NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] (_) in
+                guard let self = self else { return }
                 self.stopAllVideoPlayback()
         })
 
         self.cancellableSet.insert(
-            NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification).sink { (_) in
+            NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification).sink { [weak self] (_) in
+                guard let self = self else { return }
                 self.refreshTimestamps()
         })
     }

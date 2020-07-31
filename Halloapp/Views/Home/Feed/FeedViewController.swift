@@ -46,18 +46,18 @@ class FeedViewController: FeedTableViewController {
             UIBarButtonItem(customView: notificationButton) ]
 
         let privacySettings = MainAppContext.shared.xmppController.privacySettings!
-        cancellables.insert(privacySettings.mutedContactsChanged.sink { [weak self] in
-            guard let self = self else { return }
-            self.reloadTableView()
-            })
+        cancellables.insert(
+            privacySettings.mutedContactsChanged.sink { [weak self] in
+                guard let self = self else { return }
+                self.reloadTableView()
+        })
 
         cancellables.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
                 guard metadata.contentType == .comment else { return }
                 guard let self = self else { return }
                 self.processNotification(metadata: metadata)
-            }
-        )
+        })
 
         // When the user was not on this view, and HomeView sends user to here
         if let metadata = NotificationUtility.Metadata.fromUserDefaults(), metadata.contentType == .comment {
