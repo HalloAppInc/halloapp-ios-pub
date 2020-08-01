@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import AVFoundation
 import CocoaLumberjack
 import Core
 import UIKit
@@ -21,8 +22,9 @@ class ComposeViewController: SLComposeServiceViewController {
     private enum AttachmentType: String {
         case image = "public.image"
         case propertyList = "com.apple.property-list"
-        case url = "public.url"
         case text = "public.plain-text"
+        case url = "public.url"
+        case video = "public.movie"
     }
     
     private var destination: ShareDestination = .post {
@@ -68,11 +70,9 @@ class ComposeViewController: SLComposeServiceViewController {
     override func presentationAnimationDidFinish() {
         guard ShareExtensionContext.shared.userData.isLoggedIn else {
             DDLogError("ComposeViewController/presentationAnimationDidFinish/error user has not logged in")
-            
-            let alert = UIAlertController(title: nil, message: "Please go to HalloApp and sign in", preferredStyle: .alert)
-            let okAction = UIAlertAction(title: "OK", style: .default) { _ in self.didSelectCancel() }
-            alert.addAction(okAction)
-            present(alert, animated: true, completion: nil)
+            presentSimpleAlert(title: nil, message: "Please go to HalloApp and sign in") {
+                self.didSelectCancel()
+            }
             
             return
         }
@@ -102,14 +102,19 @@ class ComposeViewController: SLComposeServiceViewController {
             if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.image.rawValue) {
                 hasMedia = true
                 mediaProcessingGroup.enter()
-                processImage(itemProvider, attachmentType: .image, mediaOrder: orderCounter)
+                processImage(itemProvider, mediaOrder: orderCounter)
                 orderCounter += 1
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.propertyList.rawValue) {
                 processWebpage(itemProvider)
-            } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.url.rawValue) {
-                processURL(itemProvider)
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.text.rawValue) {
                 // No need to handle public.plain-text for now
+            } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.url.rawValue) {
+                processURL(itemProvider)
+            } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.video.rawValue) {
+                hasMedia = true
+                mediaProcessingGroup.enter()
+                processVideo(itemProvider, mediaOrder: orderCounter)
+                orderCounter += 1
             } else {
                 DDLogError("ComposeViewController/presentationAnimationDidFinish/error unknown TypeIdentifier: \(itemProvider.registeredTypeIdentifiers)")
             }
@@ -144,16 +149,13 @@ class ComposeViewController: SLComposeServiceViewController {
                     
                 case .failure(let error):
                     let message = "We encountered an error when posting: \(error.localizedDescription)"
-                    let alert = UIAlertController(title: "Failed to Post", message: message, preferredStyle: .alert)
-                    let okAction = UIAlertAction(title: "OK", style: .default) { _ in
+                    self.presentSimpleAlert(title: "Failed to Post", message: message) {
                         // This is rare
                         // The ComposeView already disappeared, we cannot go back
                         ShareExtensionContext.shared.shareExtensionIsActive = false
                         ShareExtensionContext.shared.xmppController.disconnect()
                         super.didSelectPost()
                     }
-                    alert.addAction(okAction)
-                    self.present(alert, animated: true, completion: nil)
                 }
             }
             
@@ -211,13 +213,15 @@ class ComposeViewController: SLComposeServiceViewController {
                 self.isMediaReady = true
             } else {
                 DDLogError("ComposeViewController/uploadMedia failed")
-                // TODO: Cancel?
+                self.presentSimpleAlert(title: nil, message: "There is a problem uploading your media. Please try again later.") {
+                    self.didSelectCancel()
+                }
             }
         }
     }
     
-    private func processImage(_ itemProvider: NSItemProvider, attachmentType: AttachmentType, mediaOrder: Int) {
-        itemProvider.loadItem(forTypeIdentifier: attachmentType.rawValue, options: nil) { (media, error) in
+    private func processImage(_ itemProvider: NSItemProvider, mediaOrder: Int) {
+        itemProvider.loadItem(forTypeIdentifier: AttachmentType.image.rawValue, options: nil) { (media, error) in
             guard error == nil else {
                 DDLogError("ComposeViewController/processImage/error while loading item: \(error!.localizedDescription)")
                 // TODO: show error message?
@@ -257,8 +261,43 @@ class ComposeViewController: SLComposeServiceViewController {
         }
     }
     
+    private func processVideo(_ itemProvider: NSItemProvider, mediaOrder: Int) {
+        itemProvider.loadItem(forTypeIdentifier: AttachmentType.video.rawValue, options: nil) { (item, error) in
+            guard error == nil else {
+                DDLogError("ComposeViewController/processVideo/error while loading item: \(error!.localizedDescription)")
+                // TODO: show error message?
+                self.mediaProcessingGroup.leave()
+                return
+            }
+            
+            guard let url = item as? URL else {
+                DDLogError("ComposeViewController/processVideo/error can't load video url")
+                // TODO: show error message?
+                self.mediaProcessingGroup.leave()
+                return
+            }
+            
+            let avAsset = AVURLAsset(url: url)
+            guard CMTimeGetSeconds(avAsset.duration) <= 60 else {
+                self.mediaProcessingGroup.leave()
+                self.presentSimpleAlert(title: nil, message: "Please pick a video less than 60 seconds long.") {
+                    self.didSelectCancel()
+                }
+                return
+            }
+            
+            
+            let mediaItem = PendingMedia(type: .video)
+            mediaItem.order = mediaOrder
+            mediaItem.videoURL = url
+            self.mediaToSend.append(mediaItem)
+            
+            self.mediaProcessingGroup.leave()
+        }
+    }
+    
     private func processWebpage(_ itemProvider: NSItemProvider) {
-        itemProvider.loadItem(forTypeIdentifier: "com.apple.property-list", options: nil) { (item, error) in
+        itemProvider.loadItem(forTypeIdentifier: AttachmentType.propertyList.rawValue, options: nil) { (item, error) in
             guard error == nil else {
                 DDLogError("ComposeViewController/processImage/error while loading item: \(error!.localizedDescription)")
                 // TODO: show error message?
@@ -274,12 +313,13 @@ class ComposeViewController: SLComposeServiceViewController {
             
             DispatchQueue.main.async {
                 self.textView.text = "\(title)\n\(url)"
+                self.validateContent()
             }
         }
     }
     
     private func processURL(_ itemProvider: NSItemProvider) {
-        itemProvider.loadItem(forTypeIdentifier: "public.url", options: nil) { (url, error) in
+        itemProvider.loadItem(forTypeIdentifier: AttachmentType.url.rawValue, options: nil) { (url, error) in
             guard error == nil else {
                 DDLogError("ComposeViewController/processImage/error while loading item: \(error!.localizedDescription)")
                 // TODO: show error message?
@@ -294,6 +334,15 @@ class ComposeViewController: SLComposeServiceViewController {
                 self.textView.text = text
                 self.validateContent()
             }
+        }
+    }
+    
+    private func presentSimpleAlert(title: String?, message: String?, completion: @escaping (() -> Void)) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let okAction = UIAlertAction(title: "OK", style: .default) { _ in completion() }
+        alert.addAction(okAction)
+        DispatchQueue.main.async {
+            self.present(alert, animated: true, completion: nil)
         }
     }
 }
