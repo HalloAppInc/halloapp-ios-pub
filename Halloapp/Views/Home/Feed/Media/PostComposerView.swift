@@ -138,7 +138,6 @@ fileprivate struct PostComposerLayoutConstants {
 }
 
 fileprivate struct PostComposerView: View {
-
     private let imageServer: ImageServer
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var textToPost: ObservableString
@@ -187,6 +186,53 @@ fileprivate struct PostComposerView: View {
         return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding)
     }
 
+    var pageIndexView: some View {
+        Text("\(currentPosition.value + 1) / \(mediaCount)")
+            .frame(width: 2 * PostComposerLayoutConstants.controlSize, height: PostComposerLayoutConstants.controlSize)
+            .background(
+                RoundedRectangle(cornerRadius: PostComposerLayoutConstants.controlRadius)
+                    .fill(Color(.secondarySystemGroupedBackground))
+            )
+            .padding(.trailing, PostComposerLayoutConstants.controlXSpacing)
+    }
+
+    var controls: some View {
+        HStack {
+            if (mediaCount > 1) {
+                pageIndexView
+            }
+            Button(action: addMedia) {
+                ControlIconView(imageLabel: "ComposerAddMedia")
+            }
+            Spacer()
+            Button(action: deleteMedia) {
+                ControlIconView(imageLabel: "ComposerDeleteMedia")
+            }
+            Button(action: cropMedia) {
+                ControlIconView(imageLabel: "ComposerCropMedia")
+            }.padding(.leading, PostComposerLayoutConstants.controlXSpacing)
+        }
+        .padding(.horizontal, PostComposerLayoutConstants.controlSpacing)
+        .offset(y: -controlYOffset)
+    }
+
+    var postTextView: some View {
+        ZStack (alignment: .topLeading) {
+            if (textToPost.value.isEmpty) {
+                Text(mediaCount > 0 ? "Write a description" : "Write a post")
+                    .font(.body)
+                    .foregroundColor(.gray)
+                    .padding(.top, 8)
+                    .padding(.leading, 4)
+                    .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260), alignment: .topLeading)
+            }
+            TextView(text: textToPost, textHeight: postTextHeight)
+                .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260))
+        }
+        .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding + PostComposerLayoutConstants.controlSpacing)
+        .padding(.vertical, PostComposerLayoutConstants.verticalPadding + PostComposerLayoutConstants.controlSpacing)
+    }
+
     var body: some View {
         return GeometryReader { geometry in
             ScrollView {
@@ -197,51 +243,7 @@ fileprivate struct PostComposerView: View {
                                 MediaPreviewSlider(mediaItems: self.mediaItems, currentPosition: self.currentPosition)
                                     .frame(height: self.getMediaSliderHeight(geometry.size.width), alignment: .center)
 
-                                HStack {
-                                    if (self.mediaCount > 1) {
-                                        Text("\(self.currentPosition.value + 1) / \(self.mediaCount)")
-                                            .frame(width: 2 * PostComposerLayoutConstants.controlSize, height: PostComposerLayoutConstants.controlSize)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: PostComposerLayoutConstants.controlRadius)
-                                                    .fill(Color(.secondarySystemGroupedBackground))
-                                            )
-                                            .padding(.trailing, PostComposerLayoutConstants.controlXSpacing)
-                                    }
-
-                                    Button(action: self.addMedia) {
-                                        Image("ComposerAddMedia")
-                                            .frame(width: PostComposerLayoutConstants.controlSize, height: PostComposerLayoutConstants.controlSize)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: PostComposerLayoutConstants.controlRadius)
-                                                    .fill(Color(.systemGray6))
-                                            )
-                                            .padding(.trailing, PostComposerLayoutConstants.controlXSpacing)
-                                    }
-
-                                    Spacer()
-
-                                    Button(action: self.deleteMedia) {
-                                        Image("ComposerDeleteMedia")
-                                            .frame(width: PostComposerLayoutConstants.controlSize, height: PostComposerLayoutConstants.controlSize)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: PostComposerLayoutConstants.controlRadius)
-                                                    .fill(Color(.systemGray6))
-                                            )
-                                            .padding(.leading, PostComposerLayoutConstants.controlXSpacing)
-                                    }
-
-                                    Button(action: self.cropMedia) {
-                                        Image("ComposerCropMedia")
-                                            .frame(width: PostComposerLayoutConstants.controlSize, height: PostComposerLayoutConstants.controlSize)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: PostComposerLayoutConstants.controlRadius)
-                                                    .fill(Color(.systemGray6))
-                                            )
-                                            .padding(.leading, PostComposerLayoutConstants.controlXSpacing)
-                                    }
-                                }
-                                .padding(.horizontal, PostComposerLayoutConstants.controlSpacing)
-                                .offset(y: -self.controlYOffset)
+                                self.controls
                             }
                             .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
                             .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
@@ -258,20 +260,7 @@ fileprivate struct PostComposerView: View {
                             }
                         }
 
-                        ZStack (alignment: .topLeading) {
-                            if (self.textToPost.value.isEmpty) {
-                                Text(self.mediaCount > 0 ? "Write a description" : "Write a post")
-                                    .font(.body)
-                                    .foregroundColor(.gray)
-                                    .padding(.top, 8)
-                                    .padding(.leading, 4)
-                                    .frame(height: max(self.postTextHeight.value, self.mediaCount > 0 ? 10 : 260), alignment: .topLeading)
-                            }
-                            TextView(text: self.textToPost, textHeight: self.postTextHeight)
-                                .frame(height: max(self.postTextHeight.value, self.mediaCount > 0 ? 10 : 260))
-                        }
-                        .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding + PostComposerLayoutConstants.controlSpacing)
-                        .padding(.vertical, PostComposerLayoutConstants.verticalPadding + PostComposerLayoutConstants.controlSpacing)
+                        self.postTextView
                     }
                     .background(
                         RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
@@ -328,6 +317,19 @@ fileprivate struct PostComposerView: View {
         if (mediaItems.value.count == 0) {
             goBack()
         }
+    }
+}
+
+fileprivate struct ControlIconView: View {
+    let imageLabel: String
+
+    var body: some View {
+        Image(imageLabel)
+            .frame(width: PostComposerLayoutConstants.controlSize, height: PostComposerLayoutConstants.controlSize)
+            .background(
+                RoundedRectangle(cornerRadius: PostComposerLayoutConstants.controlRadius)
+                    .fill(Color(.systemGray6))
+            )
     }
 }
 
