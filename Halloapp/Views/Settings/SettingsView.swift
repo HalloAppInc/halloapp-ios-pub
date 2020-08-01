@@ -10,7 +10,7 @@ import Core
 import MessageUI
 import SwiftUI
 
-fileprivate struct ProfilePictureView: UIViewRepresentable {
+struct ProfilePictureView: UIViewRepresentable {
 
     typealias UIViewType = AvatarView
 

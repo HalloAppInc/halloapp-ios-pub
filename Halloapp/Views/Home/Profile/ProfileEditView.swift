@@ -16,11 +16,11 @@ struct ProfileEditView: View {
     
     @ObservedObject private var name = TextWithLengthLimit(limit: 25, text: MainAppContext.shared.userData.name)
     
-    @State private var profileImage: UIImage? = MainAppContext.shared.avatarStore.userAvatar(forUserId: MainAppContext.shared.userData.userId).image
     @State private var profileImageInput: UIImage?
     @State private var showingImageMenu = false
     @State private var showingImagePicker = false
     @State private var showingImageDeleteConfirm = false
+    @State private var userHasAvatar = !MainAppContext.shared.avatarStore.userAvatar(forUserId: MainAppContext.shared.userData.userId).isEmpty
 
     init(dismiss: (() -> ())? = nil) {
         self.dismiss = dismiss
@@ -33,26 +33,14 @@ struct ProfileEditView: View {
             List {
                 Section(header: Text("Your Photo")) {
                     Button(action: {
-                        if self.profileImage == nil {
+                        if !self.userHasAvatar {
                             self.showingImagePicker = true
                         } else {
                             self.showingImageMenu = true
                         }
                     }) {
-                        if self.profileImage != nil {
-                            Image(uiImage: profileImage!)
-                                .renderingMode(.original)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 70, height: 70)
-                                .cornerRadius(35)
-                        } else {
-                            Image(systemName: "person.crop.circle")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 70, height: 70)
-                                .foregroundColor(.gray)
-                        }
+                        ProfilePictureView(userId: MainAppContext.shared.userData.userId)
+                            .frame(width: 60, height: 60)
                     }
                     .actionSheet(isPresented: self.$showingImageMenu) {
                         ActionSheet(title: Text("Edit Your Photo"), message: nil, buttons: [
@@ -92,7 +80,7 @@ struct ProfileEditView: View {
                     .destructive(Text("Confirm"), action: {
                         DDLogInfo("ProfileEditView/Done will remove user avatar")
 
-                        self.profileImage = nil
+                        self.userHasAvatar = false
 
                         MainAppContext.shared.avatarStore.save(avatarId: "", forUserId: MainAppContext.shared.userData.userId)
 
@@ -135,7 +123,7 @@ struct ProfileEditView: View {
             return
         }
 
-        profileImage = resizedImage
+        userHasAvatar = true
         
         DDLogInfo("ProfileEditView/Done will change user avatar")
         

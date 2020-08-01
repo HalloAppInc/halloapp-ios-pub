@@ -12,7 +12,7 @@ import UIKit
 public class AvatarView: UIImageView {
     private var avatarUpdatingCancellable: AnyCancellable?
     
-    public static let defaultImage = UIImage.init(systemName: "person.crop.circle")
+    public static let defaultImage = UIImage(named: "DefaultUser")
     
     public override func layoutSubviews() {
         super.layoutSubviews()
@@ -20,10 +20,12 @@ public class AvatarView: UIImageView {
     }
     
     public init() {
-        super.init(image: AvatarView.defaultImage)
+        super.init(frame: .zero)
         
-        tintColor = UIColor.systemGray
-        translatesAutoresizingMaskIntoConstraints = false
+        self.contentMode = .scaleAspectFill
+        self.image = AvatarView.defaultImage
+        self.tintColor = UIColor.systemGray
+        self.translatesAutoresizingMaskIntoConstraints = false
     }
     
     required init?(coder: NSCoder) {
@@ -41,7 +43,6 @@ public class AvatarView: UIImageView {
             self.tintColor = nil
         } else {
             self.image = AvatarView.defaultImage
-            self.tintColor = UIColor.systemGray
             
             if !userAvatar.isEmpty {
                 userAvatar.loadImage(using: avatarStore)
@@ -56,7 +57,6 @@ public class AvatarView: UIImageView {
                 self.tintColor = nil
             } else {
                 self.image = AvatarView.defaultImage
-                self.tintColor = UIColor.systemGray
             }
         }
     }
@@ -64,7 +64,6 @@ public class AvatarView: UIImageView {
     public func prepareForReuse() {
         avatarUpdatingCancellable?.cancel()
         self.image = AvatarView.defaultImage
-        self.tintColor = UIColor.systemGray
     }
     
     private func applyCornerRadius() {
