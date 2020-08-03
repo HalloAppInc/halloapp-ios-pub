@@ -25,6 +25,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
             window.rootViewController = UIHostingController(rootView: Landing())
+            if let tintColor = UIColor(named: "Tint") {
+                window.tintColor = tintColor
+            }
             self.window = window
             window.makeKeyAndVisible()
         }

@@ -6,12 +6,12 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import SwiftUI
-import UIKit
-import Core
 import Combine
 import Contacts
 import ContactsUI
+import Core
+import SwiftUI
+import UIKit
 
 struct HomeView: UIViewControllerRepresentable {
     typealias UIViewControllerType = HomeViewController
@@ -66,11 +66,6 @@ class HomeViewController: UITabBarController {
             chatNavigationController(),
             profileNavigationController()
         ]
-
-        if let tintColor = UIColor(named: "Tint") {
-            self.view.tintColor = tintColor
-            UIView.appearance().tintColor = tintColor
-        }
 
         self.tabBar.tintColor = .systemBlue
 
