@@ -201,12 +201,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { return }
             DDLogDebug("FeedTableView/frc/update [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                if let cell = self.tableView.cellForRow(at: indexPath) as? FeedTableViewCell {
-                    let contentWidth = tableView.frame.width - tableView.layoutMargins.left - tableView.layoutMargins.right
-                    cell.configure(with: feedPost, contentWidth: contentWidth)
-                } else {
-                    self.tableView.reloadRows(at: [ indexPath ], with: .none)
-                }
+                self.tableView.reloadRows(at: [ indexPath ], with: .none)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
