@@ -22,7 +22,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.navigationItem.title = "Notifications"
+        self.navigationItem.title = "Activity"
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Read All", style: .plain, target: self, action: #selector(markAllNotificationsRead))
 
