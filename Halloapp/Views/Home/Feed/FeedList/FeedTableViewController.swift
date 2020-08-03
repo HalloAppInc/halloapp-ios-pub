@@ -946,7 +946,7 @@ fileprivate class FeedItemFooterView: UIView {
         let hStack = UIStackView(arrangedSubviews: [ self.commentButton, self.messageButton ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
-        hStack.distribution = .fillProportionally
+        hStack.distribution = .fillEqually
         self.addSubview(hStack)
         hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
