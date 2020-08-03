@@ -24,48 +24,45 @@ class ShapeView: UIView {
     }
 
     var fillColor: UIColor? {
-        get {
-            guard let cgColor = self.shapeLayer.fillColor else {
-                return nil
-            }
-            return UIColor(cgColor: cgColor)
-        }
-        set {
-            self.shapeLayer.fillColor = newValue?.cgColor
+        didSet {
+            shapeLayer.fillColor = fillColor?.cgColor
         }
     }
 
     var strokeColor: UIColor? {
-        get {
-            guard let cgColor = self.shapeLayer.strokeColor else {
-                return nil
-            }
-            return UIColor(cgColor: cgColor)
+        didSet {
+            shapeLayer.strokeColor = strokeColor?.cgColor
         }
-        set {
-            self.shapeLayer.strokeColor = newValue?.cgColor
-        }
-
     }
 
     var lineWidth: CGFloat {
         get {
-            return self.shapeLayer.lineWidth
+            return shapeLayer.lineWidth
         }
         set {
-            self.shapeLayer.lineWidth = newValue
+            shapeLayer.lineWidth = newValue
         }
     }
 
     var path: UIBezierPath? {
         get {
-            guard let cgPath = self.shapeLayer.path else {
+            guard let cgPath = shapeLayer.path else {
                 return nil
             }
             return UIBezierPath(cgPath: cgPath)
         }
         set {
-            self.shapeLayer.path = newValue?.cgPath
+            shapeLayer.path = newValue?.cgPath
+        }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        // It is necessary to re-apply fill and stroke colors when user interface changes between dark and light mode
+        // because CALayer doesn't understand dynamic colors.
+        if traitCollection.userInterfaceStyle != previousTraitCollection?.userInterfaceStyle {
+            shapeLayer.fillColor = fillColor?.cgColor
+            shapeLayer.strokeColor = strokeColor?.cgColor
         }
     }
 }
