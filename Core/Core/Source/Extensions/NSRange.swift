@@ -12,4 +12,9 @@ public extension NSRange {
     func contains(_ other: NSRange) -> Bool {
         return NSLocationInRange(other.location, self) && NSMaxRange(self) >= NSMaxRange(other)
     }
+
+    /// Returns true if there is any intersection (even if intersection has 0 length)
+    func overlaps(_ other: NSRange) -> Bool {
+        return intersection(other) != nil
+    }
 }

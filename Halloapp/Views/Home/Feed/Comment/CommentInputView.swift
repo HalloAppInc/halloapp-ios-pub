@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjack
+import Core
 import UIKit
 
 fileprivate protocol ContainerViewDelegate: AnyObject {
@@ -16,7 +17,8 @@ fileprivate protocol ContainerViewDelegate: AnyObject {
 
 protocol CommentInputViewDelegate: AnyObject {
     func commentInputView(_ inputView: CommentInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve)
-    func commentInputView(_ inputView: CommentInputView, wantsToSend text: String)
+    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText)
+    func commentInputView(_ inputView: CommentInputView, possibleMentionsForInput input: String) -> [MentionableUser]
     func commentInputViewResetReplyContext(_ inputView: CommentInputView)
 }
 
@@ -24,6 +26,10 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     weak var delegate: CommentInputViewDelegate?
 
+    // Only one of these should be active at a time
+    private var mentionPickerTopConstraint: NSLayoutConstraint?
+    private var vStackTopConstraint: NSLayoutConstraint?
+    
     private var textViewHeight: NSLayoutConstraint?
     private var textView1LineHeight: CGFloat = 0
     private var textView5LineHeight: CGFloat = 0
@@ -63,7 +69,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         let view = ContainerView()
         view.delegate = self
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.setContentHuggingPriority(.required, for: .vertical)
         view.preservesSuperviewLayoutMargins = true
         return view
     }()
@@ -161,6 +166,18 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         return panel
     }()
+    
+    private lazy var mentionPicker: MentionPickerView = {
+        let picker = MentionPickerView()
+        picker.cornerRadius = 10
+        picker.borderColor = .systemGray
+        picker.borderWidth = 1
+        picker.clipsToBounds = true
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.isHidden = true // Hide until content is set
+        picker.didSelectItem = { [weak self] item in self?.acceptMentionPickerItem(item) }
+        return picker
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -244,14 +261,22 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.contentView.addSubview(self.vStack)
         self.vStack.addArrangedSubview(textFieldPanel)
         self.vStack.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor).isActive = true
-        self.vStack.topAnchor.constraint(equalTo: self.contentView.topAnchor).isActive = true
         self.vStack.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor).isActive = true
         self.vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor).isActive = true
+        self.vStackTopConstraint = self.vStack.topAnchor.constraint(equalTo: self.contentView.topAnchor)
+        self.vStackTopConstraint?.isActive = true
 
+        // mention picker
+        self.contentView.addSubview(self.mentionPicker)
+        self.mentionPicker.constrain([.leading, .trailing], to: hStack)
+        self.mentionPicker.bottomAnchor.constraint(equalTo: self.textView.topAnchor).isActive = true
+        self.mentionPicker.heightAnchor.constraint(lessThanOrEqualToConstant: 120).isActive = true
+        self.mentionPicker.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
+        self.mentionPickerTopConstraint = self.mentionPicker.topAnchor.constraint(equalTo: self.contentView.topAnchor)
+        
         self.recalculateSingleLineHeight()
 
         self.textViewHeight = self.textView.heightAnchor.constraint(equalToConstant: self.textView1LineHeight)
-        self.textViewHeight?.priority = .defaultHigh
         self.textViewHeight?.isActive = true
     }
 
@@ -338,11 +363,25 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             self.inputTextViewDidChange(self.textView)
         }
     }
+    
+    // MARK: Mention Picker
+    
+    private func updateMentionPickerContent() {
+
+        let mentionableUsers = fetchMentionPickerContent(
+            for: textView.text,
+            selectedRange: textView.selectedRange)
+
+        self.mentionPicker.items = mentionableUsers
+        self.mentionPicker.isHidden = mentionableUsers.isEmpty
+        self.mentionPickerTopConstraint?.isActive = !mentionableUsers.isEmpty
+        self.vStackTopConstraint?.isActive = mentionableUsers.isEmpty
+    }
 
     @objc func postButtonClicked() {
         self.acceptAutoCorrection()
-        let trimmedText = (self.textView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        self.delegate?.commentInputView(self, wantsToSend: trimmedText)
+        let mentionText = MentionText(expandedText: textView.text, mentionRanges: textView.mentions)
+        self.delegate?.commentInputView(self, wantsToSend: mentionText.trimmed())
     }
 
     private func acceptAutoCorrection() {
@@ -355,6 +394,43 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             }
         }
     }
+    
+    private func acceptMentionPickerItem(_ item: MentionableUser) {
+
+        guard let currentWordRange = text.rangeOfWord(at: textView.selectedRange.location) else {
+            // For now we assume there is a word to replace (but in theory we could just insert at point?)
+            return
+        }
+
+        let replacementString = "@\(item.fullName)"
+        let replacementRange = NSRange(location: currentWordRange.location, length: replacementString.count)
+
+        text = (text as NSString).replacingCharacters(in: currentWordRange, with: replacementString)
+
+        textView.addMention(userID: item.userID, range: replacementRange)
+
+        textView.selectedRange = NSRange(location: replacementRange.upperBound, length: 0)
+
+        self.updateMentionPickerContent()
+    }
+    
+    private func fetchMentionPickerContent(for input: String?, selectedRange: NSRange) -> [MentionableUser] {
+        guard let input = input,
+            let currentWordRange = input.rangeOfWord(at: selectedRange.location),
+            !textView.mentions.keys.contains(where: { currentWordRange.overlaps($0) }),
+            selectedRange.length == 0 else
+        {
+            return []
+        }
+
+        let currentWord = (input as NSString).substring(with: currentWordRange)
+        guard currentWord.hasPrefix("@") else {
+            return []
+        }
+
+        let trimmedInput = String(currentWord.dropFirst())
+        return delegate?.commentInputView(self, possibleMentionsForInput: trimmedInput) ?? []
+    }
 
     // MARK: InputTextViewDelegate
 
@@ -362,6 +438,12 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         let trimmedText = (inputTextView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         self.postButton.isEnabled = !trimmedText.isEmpty
         self.placeholder.isHidden = !inputTextView.text.isEmpty
+
+        self.updateMentionPickerContent()
+    }
+
+    func inputTextViewDidChangeSelection(_ inputTextView: InputTextView) {
+        self.updateMentionPickerContent()
     }
 
     func maximumHeight(for inputTextView: InputTextView) -> CGFloat {

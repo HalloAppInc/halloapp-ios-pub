@@ -1215,7 +1215,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         AppContext.shared.xmppController.enqueue(request: request)
     }
 
-    func post(comment text: String, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostCommentID? = nil) {
+    func post(comment: MentionText, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostCommentID? = nil) {
         let commentId: FeedPostCommentID = UUID().uuidString
 
         // Create and save FeedPostComment
@@ -1231,19 +1231,30 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/new-comment/error  Missing parent comment with id=[\(parentCommentId!)]")
             }
         }
+
+        var mentionSet = Set<FeedMention>()
+        for (index, userID) in comment.mentions {
+            let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+            feedMention.index = index
+            feedMention.userID = userID
+            feedMention.name = MainAppContext.shared.contactStore.pushNames[userID] ?? ""
+            mentionSet.insert(feedMention)
+        }
+
         DDLogDebug("FeedData/new-comment/create id=[\(commentId)]  postId=[\(feedPost.id)]")
-        let comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
-        comment.id = commentId
-        comment.userId = AppContext.shared.userData.userId
-        comment.text = text
-        comment.parent = parentComment
-        comment.post = feedPost
-        comment.status = .sending
-        comment.timestamp = Date()
+        let feedComment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
+        feedComment.id = commentId
+        feedComment.userId = AppContext.shared.userData.userId
+        feedComment.text = comment.collapsedText
+        feedComment.mentions = mentionSet
+        feedComment.parent = parentComment
+        feedComment.post = feedPost
+        feedComment.status = .sending
+        feedComment.timestamp = Date()
         self.save(managedObjectContext)
 
         // Now send data over the wire.
-        self.send(comment: comment)
+        self.send(comment: feedComment)
     }
 
     func resend(commentWithId commentId: FeedPostCommentID) {

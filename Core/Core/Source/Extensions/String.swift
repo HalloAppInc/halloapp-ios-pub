@@ -55,5 +55,28 @@ extension String {
         return String(self.unicodeScalars.filter { CharacterSet.decimalDigits.contains($0) })
     }
 
+    /// Returns the range of the (whitespace-separated) word at the current cursor position if it exists, nil otherwise
+    public func rangeOfWord(at cursorPosition: Int) -> NSRange? {
+
+        // NB: Cursor position will be equal to count when it's at the end of the string.
+        guard cursorPosition >= 0 && cursorPosition <= count else { return nil }
+
+        var start = cursorPosition
+        while start > 0 && !self[index(startIndex, offsetBy: start-1)].isWhitespace {
+            start -= 1
+        }
+
+        var end = cursorPosition
+        while end <= count - 1 && !self[index(startIndex, offsetBy: end)].isWhitespace {
+            end += 1
+        }
+
+        return end > start ? NSRange(location: start, length: end-start) : nil
+    }
+
+    public func characterAtOffset(_ offset: Int) -> Character {
+        return self[index(startIndex, offsetBy: offset)]
+    }
+
     public var fullExtent: NSRange { NSRange(location: 0, length: count) }
 }

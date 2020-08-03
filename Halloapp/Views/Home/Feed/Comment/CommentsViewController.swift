@@ -20,7 +20,11 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
     var highlightedCommentId: FeedPostCommentID?
 
-    private var feedPostId: FeedPostID?
+    private var feedPostId: FeedPostID? {
+        didSet {
+            mentionableUsers = computeMentionableUsers()
+        }
+    }
     private var replyContext: ReplyContext? {
         didSet {
             self.refreshCommentInputViewReplyPanel()
@@ -31,6 +35,9 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
     private var fetchedResultsController: NSFetchedResultsController<FeedPostComment>?
     private var scrollToBottomOnContentChange = false
+    private lazy var mentionableUsers: [MentionableUser] = {
+        computeMentionableUsers()
+    }()
 
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: self.view.bounds, style: .plain)
@@ -476,7 +483,16 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         }
     }
 
-    func commentInputView(_ inputView: CommentInputView, wantsToSend text: String) {
+    func computeMentionableUsers() -> [MentionableUser] {
+        guard let postID = feedPostId else { return [] }
+        return Mentions.mentionableUsers(forPostID: postID)
+    }
+
+    func commentInputView(_ inputView: CommentInputView, possibleMentionsForInput input: String) -> [MentionableUser] {
+        return mentionableUsers.filter { Mentions.isPotentialMatch(fullName: $0.fullName, input: input) }
+    }
+
+    func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText) {
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: self.feedPostId!) else { return }
         self.scrollToBottomOnContentChange = true
         MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: self.replyContext?.parentCommentId)

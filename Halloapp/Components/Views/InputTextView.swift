@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Core
 import CoreServices
 import UIKit
 
@@ -21,6 +22,7 @@ protocol InputTextViewDelegate: AnyObject {
     func inputTextViewShouldEndEditing(_ inputTextView: InputTextView) -> Bool
     func inputTextViewDidEndEditing(_ inputTextView: InputTextView)
     func inputTextViewDidChange(_ inputTextView: InputTextView)
+    func inputTextViewDidChangeSelection(_ inputTextView: InputTextView)
     func inputTextView(_ inputTextView: InputTextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool
 }
 
@@ -30,6 +32,7 @@ class InputTextView: UITextView, UITextViewDelegate {
 
     var scrollIndicatorsShown: Bool = false
     private var lastReportedHeight: CGFloat
+    private(set) var mentions = [NSRange: UserID]()
 
     required init(frame: CGRect) {
         lastReportedHeight = frame.height
@@ -49,6 +52,15 @@ class InputTextView: UITextView, UITextViewDelegate {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    func addMention(userID: UserID, range: NSRange) {
+        guard text.fullExtent.contains(range), !mentions.keys.contains(where: { range.overlaps($0) }) else {
+            // Ignore invalid mention requests
+            return
+        }
+
+        mentions[range] = userID
     }
 
     // MARK: Size Calculations
@@ -219,9 +231,27 @@ class InputTextView: UITextView, UITextViewDelegate {
         self.inputTextViewDelegate?.inputTextViewDidChange(self)
     }
 
-    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        guard self.inputTextViewDelegate != nil else { return true }
-        return self.inputTextViewDelegate!.inputTextView(self, shouldChangeTextIn: range, replacementText: text)
+    func textViewDidChangeSelection(_ textView: UITextView) {
+        self.inputTextViewDelegate?.inputTextViewDidChangeSelection(self)
     }
 
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        // Treat mentions atomically (editing any part of the mention should remove the whole thing)
+
+        let impactedMentions = mentions.keys.filter { range.overlaps($0) }
+        let rangeIncludingImpactedMentions = impactedMentions.reduce(range) { range, mention in NSUnionRange(range, mention) }
+        guard range == rangeIncludingImpactedMentions else {
+            // Ask delegate about expanded range, replacing text if necessary. Return false to the original (non-expanded) request.
+            let shouldChange = inputTextViewDelegate?.inputTextView(self, shouldChangeTextIn: rangeIncludingImpactedMentions, replacementText: text) ?? true
+            if shouldChange {
+                self.text = (self.text as NSString).replacingCharacters(in: rangeIncludingImpactedMentions, with: text)
+                let newCursorPosition = rangeIncludingImpactedMentions.location + text.count
+                textView.selectedRange = NSRange(location: newCursorPosition, length: 0)
+                impactedMentions.forEach { mentions[$0] = nil }
+            }
+            return false
+        }
+
+        return inputTextViewDelegate?.inputTextView(self, shouldChangeTextIn: range, replacementText: text) ?? true
+    }
 }
