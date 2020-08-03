@@ -24,7 +24,7 @@ public class AvatarView: UIImageView {
         
         self.contentMode = .scaleAspectFill
         self.image = AvatarView.defaultImage
-        self.tintColor = UIColor.systemGray
+        self.tintColor = .systemGray
         self.translatesAutoresizingMaskIntoConstraints = false
     }
     
@@ -40,7 +40,6 @@ public class AvatarView: UIImageView {
     public func configure(with userAvatar: UserAvatar, using avatarStore: AvatarStore) {
         if let image = userAvatar.image {
             self.image = image
-            self.tintColor = nil
         } else {
             self.image = AvatarView.defaultImage
             
@@ -54,7 +53,6 @@ public class AvatarView: UIImageView {
             
             if let image = image {
                 self.image = image
-                self.tintColor = nil
             } else {
                 self.image = AvatarView.defaultImage
             }

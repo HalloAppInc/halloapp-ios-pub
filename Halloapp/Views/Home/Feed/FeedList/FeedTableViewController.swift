@@ -995,6 +995,7 @@ fileprivate class FacePileView: UIControl {
         for index in 0 ..< numberOfFaces {
             // The avatars are added from right to left
             let avatarView = AvatarView()
+            avatarView.backgroundColor = .secondarySystemGroupedBackground
             avatarView.translatesAutoresizingMaskIntoConstraints = false
             
             self.addSubview(avatarView)
