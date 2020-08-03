@@ -451,7 +451,6 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         view.preservesSuperviewLayoutMargins = true
         view.translatesAutoresizingMaskIntoConstraints = false
         view.textLabel.delegate = self
-        view.clipsToBounds = false
         return view
     }()
 
@@ -686,7 +685,6 @@ fileprivate class FeedItemContentView: UIView {
         if postContainsMedia && !reuseMediaView {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
             let mediaView = MediaCarouselView(feedDataItem: feedDataItem)
-            mediaView.clipsToBounds = false
             mediaView.addConstraint({
                 let constraint = NSLayoutConstraint.init(item: mediaView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: mediaViewHeight)
                 constraint.priority = .defaultHigh
