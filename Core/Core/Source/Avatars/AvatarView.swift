@@ -12,7 +12,7 @@ import UIKit
 public class AvatarView: UIImageView {
     private var avatarUpdatingCancellable: AnyCancellable?
     
-    public static let defaultImage = UIImage(named: "DefaultUser")
+    public static let defaultImage = UIImage(named: "AvatarPlaceholder")
     
     public override func layoutSubviews() {
         super.layoutSubviews()
