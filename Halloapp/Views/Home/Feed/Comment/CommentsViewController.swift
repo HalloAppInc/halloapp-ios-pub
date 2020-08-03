@@ -72,8 +72,8 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        guard self.feedPostId != nil else { return }
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: self.feedPostId!) else { return }
+        guard let feedPostId = self.feedPostId,
+            let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else { return }
 
         self.navigationItem.title = "Comments"
 
@@ -90,10 +90,11 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         let headerView = CommentsTableHeaderView(frame: CGRect(x: 0, y: 0, width: self.tableView.bounds.size.width, height: 200))
         headerView.configure(withPost: feedPost)
         headerView.textLabel.delegate = self
+        headerView.profilePictureButton.addTarget(self, action: #selector(showUserFeedForPostAuthor), for: .touchUpInside)
         self.tableView.tableHeaderView = headerView
 
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "post.id = %@", self.feedPostId!)
+        fetchRequest.predicate = NSPredicate(format: "post.id = %@", feedPostId)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true) ]
         self.fetchedResultsController =
             NSFetchedResultsController<FeedPostComment>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext,
@@ -196,6 +197,13 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     // MARK: UI Actions
+
+    @objc private func showUserFeedForPostAuthor() {
+        if let postId = self.feedPostId,
+            let feedPost = MainAppContext.shared.feedData.feedPost(with: postId) {
+            showUserFeed(for: feedPost.userId)
+        }
+    }
 
     private func showUserFeed(for userID: UserID) {
         let userViewController = UserFeedViewController(userID: userID)
@@ -387,6 +395,10 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         let commentId = feedPostComment.id
         let commentAuthorUserId = feedPostComment.userId
         cell.update(with: feedPostComment)
+        cell.openProfileAction = { [weak self] in
+            guard let self = self else { return }
+            self.showUserFeed(for: commentAuthorUserId)
+        }
         cell.replyAction = { [ weak self ] in
             guard let self = self else { return }
             self.replyContext = (parentCommentId: commentId, userId: commentAuthorUserId)
@@ -544,6 +556,7 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
     }()
 
     var commentId: FeedPostCommentID?
+    var openProfileAction: (() -> ()) = {}
     var replyAction: (() -> ()) = {}
     var accessoryViewAction: (() -> ()) = {}
 
@@ -574,7 +587,8 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
         self.commentView.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
         self.commentView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        self.commentView.replyButton.addTarget(self, action: #selector(self.replyButtonAction), for: .touchUpInside)
+        self.commentView.profilePictureButton.addTarget(self, action: #selector(profileButtonAction), for: .touchUpInside)
+        self.commentView.replyButton.addTarget(self, action: #selector(replyButtonAction), for: .touchUpInside)
     }
 
     override func prepareForReuse() {
@@ -583,12 +597,16 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
         commentId = nil
     }
 
+    @objc private func profileButtonAction() {
+        openProfileAction()
+    }
+
     @objc private func replyButtonAction() {
-        self.replyAction()
+        replyAction()
     }
 
     @objc private func accessoryButtonAction() {
-        self.accessoryViewAction()
+        accessoryViewAction()
     }
 
     func update(with comment: FeedPostComment) {

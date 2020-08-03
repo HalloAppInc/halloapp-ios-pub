@@ -33,8 +33,10 @@ class CommentView: UIView {
         }
     }
 
-    private lazy var contactImageView: AvatarView = {
-        return AvatarView()
+    private(set) lazy var profilePictureButton: AvatarViewButton = {
+        let button = AvatarViewButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }()
 
     private(set) lazy var textLabel: TextLabel = {
@@ -104,7 +106,7 @@ class CommentView: UIView {
     private func commonInit() {
         self.preservesSuperviewLayoutMargins = true
 
-        self.addSubview(self.contactImageView)
+        self.addSubview(self.profilePictureButton)
 
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
@@ -119,16 +121,16 @@ class CommentView: UIView {
         vStack.addArrangedSubview(hStack)
         self.addSubview(self.vStack)
         
-        self.profilePictureWidth = self.contactImageView.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeNormal)
-        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
+        self.profilePictureWidth = self.profilePictureButton.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeNormal)
+        self.profilePictureButton.heightAnchor.constraint(equalTo: self.profilePictureButton.widthAnchor).isActive = true
         self.profilePictureWidth.isActive = true
 
-        self.leadingMargin = self.contactImageView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: LayoutConstants.profilePictureLeadingMarginNormal)
+        self.leadingMargin = self.profilePictureButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: LayoutConstants.profilePictureLeadingMarginNormal)
         self.leadingMargin.isActive = true
-        self.contactImageView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        self.contactImageView.bottomAnchor.constraint(lessThanOrEqualTo: self.bottomAnchor).isActive = true
+        self.profilePictureButton.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        self.profilePictureButton.bottomAnchor.constraint(lessThanOrEqualTo: self.bottomAnchor).isActive = true
 
-        self.profilePictureTrailingSpace = self.vStack.leadingAnchor.constraint(equalTo: self.contactImageView.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceNormal)
+        self.profilePictureTrailingSpace = self.vStack.leadingAnchor.constraint(equalTo: self.profilePictureButton.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceNormal)
         self.profilePictureTrailingSpace.isActive = true
         self.vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
         self.vStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
@@ -173,14 +175,17 @@ class CommentView: UIView {
             }
         }
         
-        contactImageView.configure(with: comment.userId, using: MainAppContext.shared.avatarStore)
+        profilePictureButton.avatarView.configure(with: comment.userId, using: MainAppContext.shared.avatarStore)
     }
 }
 
 
 class CommentsTableHeaderView: UIView {
-    private let contactImageView: AvatarView = {
-        return AvatarView()
+
+    let profilePictureButton: AvatarViewButton = {
+        let button = AvatarViewButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }()
 
     private let contactNameLabel: UILabel = {
@@ -226,19 +231,19 @@ class CommentsTableHeaderView: UIView {
     private func commonInit() {
         self.preservesSuperviewLayoutMargins = true
 
-        self.addSubview(contactImageView)
+        self.addSubview(profilePictureButton)
 
         vStack.addArrangedSubview(contactNameLabel)
         vStack.addArrangedSubview(timestampLabel)
         self.addSubview(vStack)
 
-        contactImageView.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeSmall).isActive = true
-        contactImageView.heightAnchor.constraint(equalTo: contactImageView.widthAnchor).isActive = true
-        contactImageView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-        contactImageView.topAnchor.constraint(equalTo: self.topAnchor, constant: 8).isActive = true // using layout margins yields incorrect layout
-        contactImageView.bottomAnchor.constraint(lessThanOrEqualTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
+        profilePictureButton.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeSmall).isActive = true
+        profilePictureButton.heightAnchor.constraint(equalTo: profilePictureButton.widthAnchor).isActive = true
+        profilePictureButton.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
+        profilePictureButton.topAnchor.constraint(equalTo: self.topAnchor, constant: 8).isActive = true // using layout margins yields incorrect layout
+        profilePictureButton.bottomAnchor.constraint(lessThanOrEqualTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        vStack.leadingAnchor.constraint(equalTo: contactImageView.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceSmall).isActive = true
+        vStack.leadingAnchor.constraint(equalTo: profilePictureButton.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceSmall).isActive = true
         vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
         vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 8).isActive = true // using layout margins yields incorrect layout
         vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
@@ -292,6 +297,6 @@ class CommentsTableHeaderView: UIView {
         timestampLabel.text = feedPost.timestamp.feedTimestamp()
         
         // Avatar
-        contactImageView.configure(with: feedPost.userId, using: MainAppContext.shared.avatarStore)
+        profilePictureButton.avatarView.configure(with: feedPost.userId, using: MainAppContext.shared.avatarStore)
     }
 }
