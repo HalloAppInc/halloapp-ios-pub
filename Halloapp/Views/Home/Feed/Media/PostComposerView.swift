@@ -42,7 +42,7 @@ class PostComposerViewController: UIViewController {
     private let mediaItems = ObservableMediaItems()
     private var textToPost = ObservableString()
     private var postComposerView: PostComposerView?
-    private var shareButton: UIBarButtonItem?
+    private var shareButton: UIBarButtonItem!
     private let didFinish: (() -> Void)
     private let willDismissWithText: ((String) -> Void)?
 
@@ -73,7 +73,7 @@ class PostComposerViewController: UIViewController {
             self.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
         }
         shareButton = UIBarButtonItem(title: "Share", style: .done, target: self, action: #selector(shareAction))
-        shareButton?.tintColor = .systemBlue
+        shareButton.tintColor = .systemBlue
 
         postComposerView = PostComposerView(
             imageServer: self.imageServer,
@@ -151,15 +151,36 @@ fileprivate struct PostComposerView: View {
     @State private var keyboardHeight: CGFloat = 0
 
     private var keyboardHeightPublisher: AnyPublisher<CGFloat, Never> {
-        Publishers.Merge(
+        Publishers.Merge3(
             NotificationCenter.default
                 .publisher(for: UIResponder.keyboardWillShowNotification)
                 .compactMap { $0.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect }
                 .map { $0.height },
             NotificationCenter.default
+                .publisher(for: UIResponder.keyboardWillChangeFrameNotification)
+                .compactMap { $0.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect }
+                .map { $0.height },
+            NotificationCenter.default
                 .publisher(for: UIResponder.keyboardWillHideNotification)
                 .map { _ in CGFloat(0) }
-        ).eraseToAnyPublisher()
+        )
+        .removeDuplicates()
+        .eraseToAnyPublisher()
+    }
+
+    private var shareVisibilityPublisher: AnyPublisher<Bool, Never> {
+        Publishers.CombineLatest4(
+            mediaItems.$value,
+            mediaState.$isReady,
+            mediaState.$numberOfFailedUploads,
+            textToPost.$value
+        )
+        .map { (mediaItems, mediaIsReady, numberOfFailedUploads, textValue) -> Bool in
+            return (mediaItems.count > 0 && mediaIsReady && numberOfFailedUploads == 0) ||
+                (mediaItems.count == 0 && !textValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+        .removeDuplicates()
+        .eraseToAnyPublisher()
     }
 
     private var mediaCount: Int {
@@ -275,24 +296,8 @@ fileprivate struct PostComposerView: View {
                             self.mediaState.isReady = true
                         }
                     }
-                    .onReceive(self.mediaState.$isReady) { newMediaReady in
-                        if (self.mediaCount > 0) {
-                            self.setShareVisibility(newMediaReady && self.mediaState.numberOfFailedUploads == 0)
-                        }
-                    }
-                    .onReceive(self.mediaState.$numberOfFailedUploads) { newNumberOfFailedUploads in
-                        if (self.mediaCount > 0) {
-                            self.setShareVisibility(self.mediaState.isReady && newNumberOfFailedUploads == 0)
-                        }
-                    }
-                    .onReceive(self.textToPost.$value) { newTextValue in
-                        if (self.mediaCount == 0) {
-                            self.setShareVisibility(!newTextValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        }
-                    }
-                    .onReceive(self.keyboardHeightPublisher) { keyboardHeight in
-                        self.keyboardHeight = keyboardHeight
-                    }
+                    .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
+                    .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
                 }
                 .frame(width: geometry.size.width)
                 .frame(minHeight: geometry.size.height - self.keyboardHeight)

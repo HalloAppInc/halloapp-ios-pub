@@ -49,7 +49,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     private var media: [FeedMedia]
 
-    weak var indexChangeDelegate: MediaIndexChangeListener? = nil
+    private var collectionBottomConstraint: NSLayoutConstraint!
+    weak var indexChangeDelegate: MediaIndexChangeListener?
 
     private var currentIndex = 0 {
         didSet {
@@ -166,6 +167,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             self.collectionView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
         }
         self.collectionView.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
+        self.collectionBottomConstraint = self.collectionView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor)
 
         updatePageControl()
         self.collectionView.delegate = self
@@ -220,13 +222,13 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 self.pageControl = pageControl
             }
             self.pageControl?.numberOfPages = self.media.count
-            self.collectionView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = false
+            self.collectionBottomConstraint.isActive = false
         } else {
             if (self.pageControl != nil) {
                 self.pageControl?.removeFromSuperview()
                 self.pageControl = nil
             }
-            self.collectionView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
+            self.collectionBottomConstraint.isActive = true
         }
     }
 
