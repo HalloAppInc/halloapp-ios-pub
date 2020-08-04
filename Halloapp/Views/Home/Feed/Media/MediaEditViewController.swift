@@ -47,7 +47,8 @@ class MediaEditViewController: UIViewController {
             return
         }
         
-        let mediaEditView = MediaEditView(media: items, selected: selected) { media, selected, cancel in
+        let mediaEditView = MediaEditView(media: items, selected: selected) { [weak self] media, selected, cancel in
+            guard let self = self else { return }
             self.didFinish(self, media.map { $0.process() }, selected, cancel)
         }
         let hostingController = UIHostingController(rootView: mediaEditView)
