@@ -39,6 +39,7 @@ struct SettingsView: View {
 
     @State private var isEditingProfile = false
     @State private var isBlockedListPresented = false
+    @State private var isTOSPagePresented = false
 
     init() {
         UITableView.appearance(whenContainedInInstancesOf: [ UIHostingController<SettingsView>.self ]).backgroundColor = .feedBackground
@@ -113,8 +114,12 @@ struct SettingsView: View {
                     }
 
                     // Privacy Policy
-                    NavigationLink(destination: Text("Coming Soon")) {
+                    Button(action: { self.isTOSPagePresented = true }) {
                         Text("Terms and Privacy Policy")
+                    }
+                    .sheet(isPresented: self.$isTOSPagePresented) {
+                        SafariView(url: URL(string: "https://www.halloapp.com/terms-of-service")!)
+                            .edgesIgnoringSafeArea(.bottom)
                     }
                 }
 

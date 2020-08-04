@@ -95,6 +95,7 @@
 		76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */; };
 		76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */; };
 		765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765D03D62492C971007A7D3B /* ZoomableImageView.swift */; };
+		765EB4EB24D92404002FA5D9 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765EB4EA24D92404002FA5D9 /* SafariView.swift */; };
 		765FE0FE2469C4E500806CED /* PhoneNumberMetadata.json in Resources */ = {isa = PBXBuildFile; fileRef = 765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */; };
 		766103A42461E65300728870 /* Receipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A32461E65300728870 /* Receipt.swift */; };
 		766103A72461EE8200728870 /* receipts.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A62461EE8200728870 /* receipts.pb.swift */; };
@@ -333,6 +334,7 @@
 		7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedDownloadManager.swift; path = HalloApp/Models/Feed/FeedDownloadManager.swift; sourceTree = SOURCE_ROOT; };
 		765D03D62492C971007A7D3B /* ZoomableImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ZoomableImageView.swift; path = HalloApp/Views/Home/Feed/MediaSlider/ZoomableImageView.swift; sourceTree = SOURCE_ROOT; };
+		765EB4EA24D92404002FA5D9 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafariView.swift; path = HalloApp/Components/Views/SafariView.swift; sourceTree = SOURCE_ROOT; };
 		765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = PhoneNumberMetadata.json; path = HalloApp/Resources/PhoneNumberMetadata.json; sourceTree = SOURCE_ROOT; };
 		766103A32461E65300728870 /* Receipt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Receipt.swift; path = HalloApp/Models/Receipts/Receipt.swift; sourceTree = SOURCE_ROOT; };
 		766103A52461E7BA00728870 /* receipts.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = receipts.proto; sourceTree = "<group>"; };
@@ -605,6 +607,7 @@
 				764F774D246224C30063645A /* ContactTableViewCell.swift */,
 				761EE21D24B5135400B30632 /* MFMessageComposeView.swift */,
 				7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */,
+				765EB4EA24D92404002FA5D9 /* SafariView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1482,6 +1485,7 @@
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
 				EA35857D2450BE3300E6E8AB /* OutgoingMsgView.swift in Sources */,
 				76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */,
+				765EB4EB24D92404002FA5D9 /* SafariView.swift in Sources */,
 				766492252450E04D009BC368 /* BadgeView.swift in Sources */,
 				7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */,
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
