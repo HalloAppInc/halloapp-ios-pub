@@ -241,7 +241,8 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         let cell = tableView.dequeueReusableCell(withIdentifier: FeedTableViewController.cellReuseIdentifier, for: indexPath) as! FeedTableViewCell
         if let feedPost = fetchedResultsController?.object(at: indexPath) {
             let contentWidth = tableView.frame.size.width - tableView.layoutMargins.left - tableView.layoutMargins.right
-            cell.configure(with: feedPost, contentWidth: contentWidth)
+            let gutterWidth = (1 - FeedTableViewCell.LayoutConstants.backgroundPanelHMarginRatio) * tableView.layoutMargins.left
+            cell.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth)
             cell.commentAction = { [weak self] in
                 guard let self = self else { return }
                 self.showCommentsView(for: feedPost.id)
@@ -405,7 +406,7 @@ fileprivate class FeedTableViewCellBackgroundPanelView: UIView {
 
 fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
 
-    private struct LayoutConstants {
+    fileprivate struct LayoutConstants {
         static let backgroundCornerRadius: CGFloat = 15
         /**
          Content view (vertical stack takes standard table view content width: tableView.width - tableView.layoutMargins.left - tableView.layoutMargins.right
@@ -418,6 +419,11 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
          Content is further inset 8 points relative to the card's top and bottom edges.
          */
         static let backgroundPanelVMargin: CGFloat = 25
+        /**
+         The background panel's width is defined as a ratio of the table view's layout margins. Because it is 0.5,
+         the edge of the card lies halfway between the edge of the cell's content and the edge of the screen.
+         */
+        static let backgroundPanelHMarginRatio: CGFloat = 0.5
     }
 
     var postId: FeedPostID? = nil
@@ -502,13 +508,16 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         super.layoutSubviews()
 
         if let backgroundView = self.backgroundView {
-            let panelInsets = UIEdgeInsets(top: LayoutConstants.backgroundPanelVMargin, left: 0.5*backgroundView.layoutMargins.left,
-                                           bottom: LayoutConstants.backgroundPanelVMargin, right: 0.5*backgroundView.layoutMargins.right)
+            let panelInsets = UIEdgeInsets(
+                top: LayoutConstants.backgroundPanelVMargin,
+                left: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.left,
+                bottom: LayoutConstants.backgroundPanelVMargin,
+                right: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.right)
             backgroundPanelView.frame = backgroundView.bounds.inset(by: panelInsets)
         }
     }
 
-    public func configure(with post: FeedPost, contentWidth: CGFloat) {
+    public func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) {
         DDLogVerbose("FeedTableViewCell/configure [\(post.id)]")
 
         self.postId = post.id
@@ -516,7 +525,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         self.headerView.showUserAction = { [weak self] in
             self?.showUserAction?(post.userId)
         }
-        self.itemContentView.configure(with: post, contentWidth: contentWidth)
+        self.itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth)
         if post.isPostRetracted {
             self.footerView.isHidden = true
         } else {
@@ -671,7 +680,7 @@ fileprivate class FeedItemContentView: UIView {
         self.vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat) {
+    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) {
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) else { return }
 
         var reuseMediaView = false
@@ -691,7 +700,9 @@ fileprivate class FeedItemContentView: UIView {
         let postContainsMedia = !feedDataItem.media.isEmpty
         if postContainsMedia && !reuseMediaView {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
-            let mediaView = MediaCarouselView(feedDataItem: feedDataItem)
+            var mediaViewConfiguration = MediaCarouselViewConfiguration.default
+            mediaViewConfiguration.gutterWidth = gutterWidth
+            let mediaView = MediaCarouselView(feedDataItem: feedDataItem, configuration: mediaViewConfiguration)
             mediaView.addConstraint({
                 let constraint = NSLayoutConstraint.init(item: mediaView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: mediaViewHeight)
                 constraint.priority = .defaultHigh

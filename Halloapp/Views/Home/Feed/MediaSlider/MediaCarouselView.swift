@@ -22,6 +22,7 @@ struct MediaCarouselViewConfiguration {
     var alwaysScaleToFitContent = false
     var cellSpacing: CGFloat = 20
     var cornerRadius: CGFloat = 15
+    var gutterWidth: CGFloat = 0
 
     static var `default`: MediaCarouselViewConfiguration {
         get { MediaCarouselViewConfiguration() }
@@ -153,11 +154,21 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     }
 
     private func commonInit() {
-        self.clipsToBounds = true
+        self.clipsToBounds = false
         self.isUserInteractionEnabled = true
         self.layoutMargins = .zero
 
-        self.addSubview(self.collectionView)
+        // Collection view container lets items remain visible when scrolling through "gutter" but clip at edge of card
+        let collectionViewContainer = UIView()
+        collectionViewContainer.translatesAutoresizingMaskIntoConstraints = false
+        collectionViewContainer.clipsToBounds = true
+
+        collectionViewContainer.addSubview(self.collectionView)
+        self.addSubview(collectionViewContainer)
+
+        collectionViewContainer.constrain([.top, .bottom], to: collectionView)
+        collectionViewContainer.constrain(anchor: .leading, to: self, constant: -configuration.gutterWidth)
+        collectionViewContainer.constrain(anchor: .trailing, to: self, constant: configuration.gutterWidth)
 
         if configuration.isPagingEnabled {
             self.collectionView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: -0.5*configuration.cellSpacing).isActive = true
