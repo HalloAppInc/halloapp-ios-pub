@@ -410,6 +410,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Process Incoming Feed Data
 
+    let didReceiveFeedPost = PassthroughSubject<FeedPost, Never>()
+
+    let didReceiveFeedPostComment = PassthroughSubject<FeedPostComment, Never>()
+
     @discardableResult private func process(posts xmppPosts: [XMPPFeedPost], using managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
         guard !xmppPosts.isEmpty else { return [] }
 
@@ -465,18 +469,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         DDLogInfo("FeedData/process-posts/finished  \(newPosts.count) new items.  \(xmppPosts.count - newPosts.count) duplicates.")
         self.save(managedObjectContext)
 
-        // Only initiate downloads for feed posts received in real-time.
-        // Media for older posts in the feed will be downloaded as user scrolls down.
-        if newPosts.count == 1 {
-            // Initiate downloads from the main thread.
-            // This is done to avoid race condition with downloads initiated from FeedTableView.
-            try? managedObjectContext.obtainPermanentIDs(for: newPosts)
-            let postObjectIDs = newPosts.map { $0.objectID }
-            DispatchQueue.main.async {
-                let managedObjectContext = self.viewContext
-                let feedPosts = postObjectIDs.compactMap{ try? managedObjectContext.existingObject(with: $0) as? FeedPost }
+        try? managedObjectContext.obtainPermanentIDs(for: newPosts)
+        let postObjectIDs = newPosts.map { $0.objectID }
+        DispatchQueue.main.async {
+            let managedObjectContext = self.viewContext
+            let feedPosts = postObjectIDs.compactMap{ try? managedObjectContext.existingObject(with: $0) as? FeedPost }
+
+            // Initiate downloads from the main thread to avoid race condition with downloads initiated from FeedTableView.
+            // Only initiate downloads for feed posts received in real-time.
+            // Media for older posts in the feed will be downloaded as user scrolls down.
+            if newPosts.count == 1 {
                 self.downloadMedia(in: feedPosts)
             }
+
+            // Notify about new posts all interested parties.
+            feedPosts.forEach({ self.didReceiveFeedPost.send($0) })
         }
 
         return newPosts
@@ -569,6 +576,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         DDLogInfo("FeedData/process-comments/finished  \(newComments.count) new items.  \(duplicateCount) duplicates.  \(ignoredCommentIds.count) ignored.")
         self.save(managedObjectContext)
+
+        try? managedObjectContext.obtainPermanentIDs(for: newComments)
+        let commentObjectIDs = newComments.map { $0.objectID }
+        DispatchQueue.main.async {
+            let managedObjectContext = self.viewContext
+            let feedPostComments = commentObjectIDs.compactMap{ try? managedObjectContext.existingObject(with: $0) as? FeedPostComment }
+
+            // Notify about new comments all interested parties.
+            feedPostComments.forEach({ self.didReceiveFeedPostComment.send($0) })
+        }
+
         return newComments
     }
 
