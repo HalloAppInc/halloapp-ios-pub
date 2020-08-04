@@ -11,6 +11,10 @@ import Combine
 import Core
 import UIKit
 
+protocol MediaIndexChangeListener: class {
+    func indexChanged(position: Int)
+}
+
 struct MediaCarouselViewConfiguration {
     var isPagingEnabled = true
     var isZoomEnabled = true
@@ -43,7 +47,10 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     private let feedDataItem: FeedDataItem?
 
-    private let media: [FeedMedia]
+    private var media: [FeedMedia]
+
+    private var collectionBottomConstraint: NSLayoutConstraint!
+    weak var indexChangeDelegate: MediaIndexChangeListener?
 
     private var currentIndex = 0 {
         didSet {
@@ -53,6 +60,10 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             if oldValue != currentIndex {
                 if let videoCell = collectionView.cellForItem(at: IndexPath(row: oldValue, section: MediaSliderSection.main.rawValue)) as? MediaCarouselVideoCollectionViewCell {
                     videoCell.stopPlayback()
+                }
+
+                if self.indexChangeDelegate != nil {
+                    self.indexChangeDelegate?.indexChanged(position: currentIndex)
                 }
             }
         }
@@ -112,7 +123,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     }()
 
     private lazy var pageControl: UIPageControl? = nil
-    private static let pageControlAreaHeight: CGFloat = {
+    public static let pageControlAreaHeight: CGFloat = {
         let pageControl = UIPageControl()
         pageControl.numberOfPages = 2
         pageControl.sizeToFit()
@@ -156,25 +167,9 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             self.collectionView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
         }
         self.collectionView.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
+        self.collectionBottomConstraint = self.collectionView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor)
 
-        if self.media.count > 1 && configuration.isPagingEnabled {
-            let pageControl = UIPageControl()
-            pageControl.pageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.2)
-            pageControl.currentPageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.7)
-            pageControl.translatesAutoresizingMaskIntoConstraints = false
-            pageControl.numberOfPages = self.media.count
-            pageControl.addTarget(self, action: #selector(pageControlAction), for: .valueChanged)
-            pageControl.sizeToFit()
-            addSubview(pageControl)
-
-            pageControl.topAnchor.constraint(equalTo: self.collectionView.bottomAnchor, constant: LayoutConstants.pageControlSpacingTop).isActive = true
-            pageControl.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor, constant: -LayoutConstants.pageControlSpacingBottom).isActive = true
-            pageControl.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-
-            self.pageControl = pageControl
-        } else {
-            self.collectionView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
-        }
+        updatePageControl()
         self.collectionView.delegate = self
 
         let dataSource = UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>(collectionView: self.collectionView) { [weak self] collectionView, indexPath, feedMedia in
@@ -207,6 +202,50 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
         dataSource.apply(snapshot, animatingDifferences: false)
         self.dataSource = dataSource
+    }
+
+    private func updatePageControl() {
+        if self.media.count > 1 && configuration.isPagingEnabled {
+            if (self.pageControl == nil) {
+                let pageControl = UIPageControl()
+                pageControl.pageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.2)
+                pageControl.currentPageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.7)
+                pageControl.translatesAutoresizingMaskIntoConstraints = false
+                pageControl.addTarget(self, action: #selector(pageControlAction), for: .valueChanged)
+                pageControl.sizeToFit()
+                addSubview(pageControl)
+
+                pageControl.topAnchor.constraint(equalTo: self.collectionView.bottomAnchor, constant: LayoutConstants.pageControlSpacingTop).isActive = true
+                pageControl.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor, constant: -LayoutConstants.pageControlSpacingBottom).isActive = true
+                pageControl.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+
+                self.pageControl = pageControl
+            }
+            self.pageControl?.numberOfPages = self.media.count
+            self.collectionBottomConstraint.isActive = false
+        } else {
+            if (self.pageControl != nil) {
+                self.pageControl?.removeFromSuperview()
+                self.pageControl = nil
+            }
+            self.collectionBottomConstraint.isActive = true
+        }
+    }
+
+    public func refreshData(media: [FeedMedia]) {
+        var snapshot = NSDiffableDataSourceSnapshot<MediaSliderSection, FeedMedia>()
+        snapshot.appendSections([.main])
+        if collectionView.effectiveUserInterfaceLayoutDirection == .rightToLeft {
+            snapshot.appendItems(media.reversed())
+        } else {
+            snapshot.appendItems(media)
+        }
+        self.dataSource?.apply(snapshot)
+        self.media = media
+        updatePageControl()
+        if (currentIndex >= self.media.count) {
+            currentIndex = self.media.count - 1
+        }
     }
 
     @objc(pageControlAction)
