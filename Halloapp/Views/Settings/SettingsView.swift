@@ -29,6 +29,14 @@ struct ProfilePictureView: UIViewRepresentable {
     func updateUIView(_ uiView: AvatarView, context: Context) { }
 }
 
+struct TableViewCellChevron: View {
+    var body: some View {
+        Image(systemName: "chevron.right")
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(Color(UIColor.placeholderText))
+    }
+}
+
 struct SettingsView: View {
     @ObservedObject private var privacySettings = MainAppContext.shared.xmppController.privacySettings
     @ObservedObject private var userData = MainAppContext.shared.userData
@@ -104,6 +112,7 @@ struct SettingsView: View {
                             Text(PrivacyList.name(forPrivacyListType: .blocked))
                             Spacer()
                             Text(self.privacySettings.blockedSetting).foregroundColor(.secondary)
+                            TableViewCellChevron()
                         }
                     }
                     .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
@@ -115,7 +124,11 @@ struct SettingsView: View {
 
                     // Privacy Policy
                     Button(action: { self.isTOSPagePresented = true }) {
-                        Text("Terms and Privacy Policy")
+                        HStack {
+                            Text("Terms and Privacy Policy")
+                            Spacer()
+                            TableViewCellChevron()
+                        }
                     }
                     .sheet(isPresented: self.$isTOSPagePresented) {
                         SafariView(url: URL(string: "https://www.halloapp.com/terms-of-service")!)
