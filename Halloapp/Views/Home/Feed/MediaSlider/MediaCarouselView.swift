@@ -23,6 +23,7 @@ struct MediaCarouselViewConfiguration {
     var cellSpacing: CGFloat = 20
     var cornerRadius: CGFloat = 15
     var gutterWidth: CGFloat = 0
+    var downloadProgressViewSize: CGFloat = 80 // Diameter of the circular progress view. Set to 0 to hide progress view.
 
     static var `default`: MediaCarouselViewConfiguration {
         get { MediaCarouselViewConfiguration() }
@@ -196,6 +197,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 cell.scaleContentToFit = self.configuration.alwaysScaleToFitContent
                 cell.isZoomEnabled = self.configuration.isZoomEnabled
                 cell.cornerRadius = self.configuration.cornerRadius
+                cell.downloadProgressViewSize = self.configuration.downloadProgressViewSize
                 if let videoCell = cell as? MediaCarouselVideoCollectionViewCell {
                     videoCell.showsVideoPlaybackControls = self.configuration.showVideoPlaybackControls
                 }
@@ -335,6 +337,16 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     var scaleContentToFit: Bool = false
     var isZoomEnabled: Bool = true
     var cornerRadius: CGFloat = 10
+    var downloadProgressViewSize: CGFloat = 80 {
+        didSet {
+            if downloadProgressViewSize == 0 {
+                hideProgressView()
+            } else if let constraint = downloadProgressViewWidthConstraint {
+                constraint.constant = downloadProgressViewSize
+            }
+        }
+    }
+    private var downloadProgressViewWidthConstraint: NSLayoutConstraint?
     var downloadProgressCancellable: AnyCancellable?
 
     private lazy var progressView: CircularProgressView = {
@@ -342,7 +354,8 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
         progressView.barWidth = 2
         progressView.trackTintColor = .systemGray3 // Same color as the placeholder
         progressView.translatesAutoresizingMaskIntoConstraints = false
-        progressView.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        downloadProgressViewWidthConstraint = progressView.widthAnchor.constraint(equalToConstant: downloadProgressViewSize)
+        downloadProgressViewWidthConstraint?.isActive = true
         progressView.heightAnchor.constraint(equalTo: progressView.widthAnchor, multiplier: 1).isActive = true
         return progressView
     }()
@@ -363,6 +376,7 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
             downloadProgressCancellable = nil
             return
         }
+        guard downloadProgressViewSize > 0 else { return }
         showProgressView()
         startObservingDownloadProgressIfNecessary(media)
     }
