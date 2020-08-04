@@ -67,7 +67,7 @@ final class NewPostViewController: UIViewController {
     private func makeNavigationController() -> UINavigationController {
         switch state.mediaSource {
         case .library:
-            return makeMediaPickerViewController()
+            return makeMediaPickerViewControllerNew()
         case .camera:
             return makeCameraViewController()
         case .noMedia:
@@ -182,6 +182,21 @@ final class NewPostViewController: UIViewController {
         }
 
         return picker
+    }
+    
+    private func makeMediaPickerViewControllerNew() -> UINavigationController {
+        let pickerController = MediaPickerViewController() { [weak self] controller, media, cancel in
+            guard let self = self else { return }
+            
+            if cancel {
+                self.didFinish()
+            } else {
+                self.state.pendingMedia = media
+                self.didFinishPickingMedia()
+            }
+        }
+        
+        return UINavigationController(rootViewController: pickerController)
     }
 }
 
