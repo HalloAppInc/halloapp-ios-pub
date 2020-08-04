@@ -16,6 +16,12 @@ fileprivate enum FeedTableSection {
     case main
 }
 
+fileprivate extension FeedPost {
+    var hideFooterSeparator: Bool {
+        !orderedMedia.isEmpty && text?.isEmpty ?? true
+    }
+}
+
 class FeedTableViewController: UITableViewController, NSFetchedResultsControllerDelegate, FeedTableViewCellDelegate {
     private static let cellReuseIdentifier = "FeedTableViewCell"
 
@@ -655,13 +661,14 @@ fileprivate class FeedItemContentView: UIView {
 
     private func setupView() {
         self.isUserInteractionEnabled = true
+        self.layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 8, right: 0)
 
         self.addSubview(self.vStack)
-        self.vStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
+        self.vStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
         // This is the required amount of spacing between profile photo (bottom of the header view) and top of the post media.
-        self.vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 5).isActive = true
-        self.vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
-        self.vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8).isActive = true
+        self.vStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
+        self.vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
+        self.vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
@@ -722,6 +729,9 @@ fileprivate class FeedItemContentView: UIView {
         } else {
             self.textContentView.isHidden = true
         }
+
+        // Remove extra spacing
+        self.layoutMargins.bottom = post.hideFooterSeparator ? 2 : 8
 
         feedPostId = post.id
     }
@@ -957,6 +967,7 @@ fileprivate class FeedItemFooterView: UIView {
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
+        separator.isHidden = post.hideFooterSeparator
         self.commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .unread : .read)
         let usersOwnPost = post.userId == MainAppContext.shared.userData.userId
         self.messageButton.alpha = usersOwnPost ? 0 : 1
