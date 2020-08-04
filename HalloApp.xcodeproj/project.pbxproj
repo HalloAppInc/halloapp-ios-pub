@@ -168,6 +168,7 @@
 		EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */; };
 		EAF3A1DA2334192000805FF9 /* HalloappTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1D92334192000805FF9 /* HalloappTests.swift */; };
 		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
+		F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -423,6 +424,7 @@
 		EAF3A1E02334192000805FF9 /* HalloAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HalloAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EAF3A1E42334192000805FF9 /* HalloappUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloappUITests.swift; sourceTree = "<group>"; };
 		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaEditViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -813,6 +815,7 @@
 			isa = PBXGroup;
 			children = (
 				EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */,
+				F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */,
 				EA0C315623EB97C800016EDB /* PostComposerView.swift */,
 				681E0DA924C8E0190073A03E /* NewPostViewController.swift */,
 			);
@@ -1454,6 +1457,7 @@
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
 				764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */,
 				EAD476F92458F9FE00EF8591 /* ChatMessageMedia.swift in Sources */,
+				F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */,
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */,
 				764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */,
