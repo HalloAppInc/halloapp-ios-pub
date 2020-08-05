@@ -46,7 +46,7 @@ public protocol FeedItemProtocol {
     func protoMessage(withData: Bool) -> SwiftProtobuf.Message
 }
 
-extension FeedItemProtocol {
+public extension FeedItemProtocol {
 
     func protoContainer(withData: Bool) -> Proto_Container {
         var container = Proto_Container()

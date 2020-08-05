@@ -482,6 +482,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.downloadMedia(in: feedPosts)
             }
 
+            // Show local notifications if necessary.
+            self.presentLocalNotifications(forFeedPosts: feedPosts)
+
             // Notify about new posts all interested parties.
             feedPosts.forEach({ self.didReceiveFeedPost.send($0) })
         }
@@ -583,6 +586,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let managedObjectContext = self.viewContext
             let feedPostComments = commentObjectIDs.compactMap{ try? managedObjectContext.existingObject(with: $0) as? FeedPostComment }
 
+            // Show local notifications.
+            self.presentLocalNotifications(forComments: feedPostComments)
+
             // Notify about new comments all interested parties.
             feedPostComments.forEach({ self.didReceiveFeedPostComment.send($0) })
         }
@@ -630,8 +636,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     xmppController.sendAck(for: message)
                 }
             }
-
-            self.presentLocalNotifications(forComments: comments)
         }
     }
 
@@ -751,9 +755,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return false
         }
 
-        // Server sends pushes for comments on your posts.
+        // Notify when someone comments on your post.
         if comment.post.userId == selfId {
-            return false
+            return true
         }
 
         // Notify when someone replies to your comment.
@@ -766,26 +770,78 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func presentLocalNotifications(forComments comments: [FeedPostComment]) {
+        guard UIApplication.shared.applicationState == .background else { return }
+
         let userIds = Set(comments.map { $0.userId })
         let contactNames = contactStore.fullNames(forUserIds: userIds)
 
-        var notifications: [UNMutableNotificationContent] = []
-        comments.filter{ isCommentEligibleForLocalNotification($0) }.forEach { (comment) in
-            let notification = UNMutableNotificationContent()
-            notification.title = contactNames[comment.userId] ?? "Unknown Contact"
-            notification.body = "Replied to your comment: \(comment.text)"
-            
-            let metadata = NotificationUtility.Metadata(contentId: comment.id, contentType: .comment, data: nil, fromId: comment.userId)
-            notification.userInfo[NotificationUtility.Metadata.userInfoKey] = metadata.rawData
-            
-            notifications.append(notification)
+        var commentIdsToFilterOut = [FeedPostCommentID]()
+
+        let dispatchGroup = DispatchGroup()
+        dispatchGroup.enter()
+        NotificationUtility.getContentIdsForDeliveredNotifications(ofType: .comment) { (commentIds) in
+            commentIdsToFilterOut = commentIds
+            dispatchGroup.leave()
         }
 
-        guard !notifications.isEmpty else { return }
+        dispatchGroup.notify(queue: .main) {
+            var notifications: [UNMutableNotificationContent] = []
+            comments.filter{ !commentIdsToFilterOut.contains($0.id) && self.isCommentEligibleForLocalNotification($0) }.forEach { (comment) in
+                let protoContainer = comment.protoContainer(withData: true)
+                let protobufData = try? protoContainer.serializedData()
+                let metadata = NotificationUtility.Metadata(contentId: comment.id, contentType: .comment, data: protobufData, fromId: comment.userId)
 
-        let notificationCenter = UNUserNotificationCenter.current()
-        notifications.forEach { (notificationContent) in
-            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+                let notification = UNMutableNotificationContent()
+                notification.title = contactNames[comment.userId] ?? "Unknown Contact"
+                NotificationUtility.populate(notification: notification, withDataFrom: protoContainer)
+                notification.userInfo[NotificationUtility.Metadata.userInfoKey] = metadata.rawData
+
+                notifications.append(notification)
+            }
+
+            guard !notifications.isEmpty else { return }
+
+            let notificationCenter = UNUserNotificationCenter.current()
+            notifications.forEach { (notificationContent) in
+                notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+            }
+        }
+    }
+
+    private func presentLocalNotifications(forFeedPosts feedPosts: [FeedPost]) {
+        guard UIApplication.shared.applicationState == .background else { return }
+
+        let userIds = Set(feedPosts.map { $0.userId })
+        let contactNames = contactStore.fullNames(forUserIds: userIds)
+
+        var postIdsToFilterOut = [FeedPostID]()
+
+        let dispatchGroup = DispatchGroup()
+        dispatchGroup.enter()
+        NotificationUtility.getContentIdsForDeliveredNotifications(ofType: .feedpost) { (feedPostIds) in
+            postIdsToFilterOut = feedPostIds
+            dispatchGroup.leave()
+        }
+
+        dispatchGroup.notify(queue: .main) {
+            var notifications: [UNMutableNotificationContent] = []
+            feedPosts.filter({ !postIdsToFilterOut.contains($0.id) }).forEach { (feedPost) in
+                let protoContainer = feedPost.protoContainer(withData: true)
+                let protobufData = try? protoContainer.serializedData()
+                let metadata = NotificationUtility.Metadata(contentId: feedPost.id, contentType: .feedpost, data: protobufData, fromId: feedPost.userId)
+
+                let notification = UNMutableNotificationContent()
+                notification.title = contactNames[feedPost.userId] ?? "Unknown Contact"
+                NotificationUtility.populate(notification: notification, withDataFrom: protoContainer)
+                notification.userInfo[NotificationUtility.Metadata.userInfoKey] = metadata.rawData
+
+                notifications.append(notification)
+            }
+
+            let notificationCenter = UNUserNotificationCenter.current()
+            notifications.forEach { (notificationContent) in
+                notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+            }
         }
     }
 

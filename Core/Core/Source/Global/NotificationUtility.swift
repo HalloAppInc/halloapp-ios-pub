@@ -9,6 +9,15 @@
 import CocoaLumberjack
 import UIKit
 
+fileprivate extension UNNotificationRequest {
+    func contentId(forContentType requestedContentType: NotificationUtility.ContentType) -> String? {
+        if let (contentId, contentType) = NotificationUtility.Metadata.parseIds(from: self), contentType == requestedContentType {
+            return contentId
+        }
+        return nil
+    }
+}
+
 public class NotificationUtility {
     public enum ContentType: String {
         case chat = "chat"
@@ -58,6 +67,19 @@ public class NotificationUtility {
                 }
                 return nil
             }
+        }
+
+        /**
+         Lightweight parsing of metadata attached to a notification.
+
+         - returns: Identifier and type of the content that given notification is for.
+         */
+        fileprivate static func parseIds(from request: UNNotificationRequest) -> (String, ContentType)? {
+            guard let metadata = request.content.userInfo[Metadata.userInfoKey] as? [String:String] else { return nil }
+            if let contentId = metadata[Keys.contentId], let contentType = ContentType(rawValue: metadata[Keys.contentType] ?? "") {
+                return (contentId, contentType)
+            }
+            return nil
         }
         
         private init?(fromRawMetadata rawMetadata: Any) {
@@ -127,6 +149,80 @@ public class NotificationUtility {
         public func removeFromUserDefaults() {
             DDLogDebug("NotificationMetadata/removeFromUserDefaults")
             UserDefaults.standard.removeObject(forKey: Metadata.userDefaultsKey)
+        }
+    }
+
+    static func notificationTextIcon(forMedia protoMedia: Proto_Media) -> String {
+        switch protoMedia.type {
+            case .image:
+                return "📷"
+            case .video:
+                return "📹"
+            default:
+                return ""
+        }
+    }
+
+    static func notificationText(forMedia media: [Proto_Media]) -> String {
+        let numPhotos = media.filter { $0.type == .image }.count
+        let numVideos = media.filter { $0.type == .video }.count
+        var strings = [String]()
+        if numPhotos > 1 {
+            strings.append("📷 \(numPhotos) photos")
+        } else if numPhotos > 0 {
+            if numVideos > 0 {
+                strings.append("📷 1 photo")
+            } else {
+                strings.append("📷 photo")
+            }
+        }
+        if numVideos > 1 {
+            strings.append("📹 \(numVideos) videos")
+        } else if numVideos > 0 {
+            if numPhotos > 0 {
+                strings.append("📹 1 video")
+            } else {
+                strings.append("📹 video")
+            }
+        }
+        return strings.joined(separator: ", ")
+    }
+
+    public static func populate(notification: UNMutableNotificationContent, withDataFrom protoContainer: Proto_Container) {
+        if protoContainer.hasPost {
+            notification.subtitle = "New Post"
+            notification.body = protoContainer.post.text
+            if !protoContainer.post.media.isEmpty {
+                // Display how many photos and videos post contains if there's no caption.
+                if notification.body.isEmpty {
+                    notification.body = Self.notificationText(forMedia: protoContainer.post.media)
+                } else {
+                    let mediaIcon = Self.notificationTextIcon(forMedia: protoContainer.post.media.first!)
+                    notification.body = "\(mediaIcon) \(notification.body)"
+                }
+            }
+        } else if protoContainer.hasComment {
+            notification.body = "Commented: \(protoContainer.comment.text)"
+        } else if protoContainer.hasChatMessage {
+            notification.body = protoContainer.chatMessage.text
+            if !protoContainer.chatMessage.media.isEmpty {
+                // Display how many photos and videos message contains if there's no caption.
+                if notification.body.isEmpty {
+                    notification.body = Self.notificationText(forMedia: protoContainer.chatMessage.media)
+                } else {
+                    let mediaIcon = Self.notificationTextIcon(forMedia: protoContainer.chatMessage.media.first!)
+                    notification.body = "\(mediaIcon) \(notification.body)"
+                }
+            }
+        }
+    }
+
+    /**
+     - returns: IDs of posts / comments / messages for which there were notifications presented.
+     */
+    public static func getContentIdsForDeliveredNotifications(ofType contentType: ContentType, completion: @escaping ([String]) -> ()) {
+        UNUserNotificationCenter.current().getDeliveredNotifications { (notifications) in
+            completion(notifications.compactMap({ $0.request.contentId(forContentType: contentType) }))
         }
     }
     

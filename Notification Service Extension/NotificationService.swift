@@ -50,7 +50,7 @@ class NotificationService: UNNotificationServiceExtension {
         // Populate notification body.
         var invokeHandler = true
         if let protoContainer = metadata.protoContainer {
-            populate(notification: bestAttemptContent, withDataFrom: protoContainer)
+            NotificationUtility.populate(notification: bestAttemptContent, withDataFrom: protoContainer)
             if protoContainer.hasPost && !protoContainer.post.media.isEmpty {
                 invokeHandler = !startDownloading(media: protoContainer.post.media, containerId: metadata.contentId)
             } else if protoContainer.hasChatMessage && !protoContainer.chatMessage.media.isEmpty {
@@ -66,70 +66,6 @@ class NotificationService: UNNotificationServiceExtension {
         }
     }
 
-    static func notificationTextIcon(forMedia protoMedia: Proto_Media) -> String {
-        switch protoMedia.type {
-            case .image:
-                return "📷"
-            case .video:
-                return "📹"
-            default:
-                return ""
-        }
-    }
-
-    static func notificationText(forMedia media: [Proto_Media]) -> String {
-        let numPhotos = media.filter { $0.type == .image }.count
-        let numVideos = media.filter { $0.type == .video }.count
-        var strings = [String]()
-        if numPhotos > 1 {
-            strings.append("📷 \(numPhotos) photos")
-        } else if numPhotos > 0 {
-            if numVideos > 0 {
-                strings.append("📷 1 photo")
-            } else {
-                strings.append("📷 photo")
-            }
-        }
-        if numVideos > 1 {
-            strings.append("📹 \(numVideos) videos")
-        } else if numVideos > 0 {
-            if numPhotos > 0 {
-                strings.append("📹 1 video")
-            } else {
-                strings.append("📹 video")
-            }
-        }
-        return strings.joined(separator: ", ")
-    }
-
-    private func populate(notification: UNMutableNotificationContent, withDataFrom protoContainer: Proto_Container) {
-        if protoContainer.hasPost {
-            notification.subtitle = "New Post"
-            notification.body = protoContainer.post.text
-            if !protoContainer.post.media.isEmpty {
-                // Display how many photos and videos post contains if there's no caption.
-                if notification.body.isEmpty {
-                    notification.body = Self.notificationText(forMedia: protoContainer.post.media)
-                } else {
-                    let mediaIcon = Self.notificationTextIcon(forMedia: protoContainer.post.media.first!)
-                    notification.body = "\(mediaIcon) \(notification.body)"
-                }
-            }
-        } else if protoContainer.hasComment {
-            notification.body = "Commented: \(protoContainer.comment.text)"
-        } else if protoContainer.hasChatMessage {
-            notification.body = protoContainer.chatMessage.text
-            if !protoContainer.chatMessage.media.isEmpty {
-                // Display how many photos and videos message contains if there's no caption.
-                if notification.body.isEmpty {
-                    notification.body = Self.notificationText(forMedia: protoContainer.chatMessage.media)
-                } else {
-                    let mediaIcon = Self.notificationTextIcon(forMedia: protoContainer.chatMessage.media.first!)
-                    notification.body = "\(mediaIcon) \(notification.body)"
-                }
-            }
-        }
-    }
 
     private var downloadTasks = [ FeedDownloadManager.Task ]()
     /**
