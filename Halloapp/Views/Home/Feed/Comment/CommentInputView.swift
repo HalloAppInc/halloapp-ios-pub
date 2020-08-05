@@ -99,6 +99,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         textView.scrollsToTop = false
         textView.textContainerInset.left = -5
         textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.showsVerticalScrollIndicator = false
         return textView
     }()
 
