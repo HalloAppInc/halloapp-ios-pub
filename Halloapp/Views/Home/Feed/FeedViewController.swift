@@ -17,6 +17,8 @@ class FeedViewController: FeedTableViewController {
 
     private var cancellables: Set<AnyCancellable> = []
 
+    private var feedPostIdToScrollTo: FeedPostID?
+
     // MARK: UIViewController
 
     override func viewDidLoad() {
@@ -53,14 +55,23 @@ class FeedViewController: FeedTableViewController {
         })
 
         cancellables.insert(
+            MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] (feedPost) in
+                guard let self = self else { return }
+                if self.feedPostIdToScrollTo == feedPost.id {
+                    DDLogDebug("FeedViewController/scroll-to-post/postponed \(feedPost.id)")
+                    self.scrollTo(post: feedPost)
+                    self.feedPostIdToScrollTo = nil
+                }
+        })
+
+        cancellables.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
-                guard metadata.contentType == .comment else { return }
                 guard let self = self else { return }
                 self.processNotification(metadata: metadata)
         })
 
         // When the user was not on this view, and HomeView sends user to here
-        if let metadata = NotificationUtility.Metadata.fromUserDefaults(), metadata.contentType == .comment {
+        if let metadata = NotificationUtility.Metadata.fromUserDefaults()  {
             self.processNotification(metadata: metadata)
         }
     }
@@ -118,23 +129,57 @@ class FeedViewController: FeedTableViewController {
 
     // MARK: Notification Handling
 
+    private func scrollTo(post feedPost: FeedPost) {
+        if let indexPath = fetchedResultsController?.indexPath(forObject: feedPost) {
+            tableView.scrollToRow(at: indexPath, at: .top, animated: false)
+        }
+    }
+
     private func processNotification(metadata: NotificationUtility.Metadata) {
+        guard metadata.contentType == .comment || metadata.contentType == .feedpost else {
+            return
+        }
+
         metadata.removeFromUserDefaults()
 
-        DDLogInfo("FeedViewController/notification/process contentId=\(metadata.contentId)")
+        DDLogInfo("FeedViewController/notification/process type=\(metadata.contentType) contentId=\(metadata.contentId)")
 
-        guard let protoContainer = metadata.protoContainer, protoContainer.hasComment else {
+        guard let protoContainer = metadata.protoContainer, protoContainer.hasComment || protoContainer.hasPost else {
             DDLogError("FeedViewController/notification/process/error Invalid protobuf")
             return
         }
 
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: protoContainer.comment.feedPostID) else {
-            DDLogError("FeedViewController/notification/process/error Missing post with id=[\(protoContainer.comment.feedPostID)]")
-            return
+        let feedPostId = protoContainer.hasPost ? metadata.contentId : protoContainer.comment.feedPostID
+
+        let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId)
+        if feedPost == nil {
+            DDLogWarn("FeedViewController/notification/process/warning Missing post with id=[\(feedPostId)]")
         }
 
         self.navigationController?.popToRootViewController(animated: false)
-        self.showCommentsView(for: feedPost.id, highlighting: metadata.contentId)
+
+        switch metadata.contentType {
+        case .comment:
+            self.showCommentsView(for: feedPostId, highlighting: metadata.contentId)
+
+        case .feedpost:
+            if let feedPost = feedPost {
+                DDLogDebug("FeedViewController/scroll-to-post/immediate \(feedPostId)")
+                // Scroll to feed post now.
+                scrollTo(post: feedPost)
+            } else {
+                DDLogDebug("FeedViewController/scroll-to-post/postpone \(feedPostId)")
+                // Scroll to the top now and wait for post to be received.
+                ///TODO: some kind of indicator?
+                feedPostIdToScrollTo = feedPostId
+                if !(fetchedResultsController?.fetchedObjects?.isEmpty ?? true) {
+                    tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
+                }
+            }
+
+        default:
+            break
+        }
     }
 
 }
