@@ -181,18 +181,18 @@ fileprivate class MediaEdit : ObservableObject {
     }
     
     func process() -> PendingMedia {
-        var edit = self.media.edit ?? PendingMediaEdit(originalURL: media.fileURL, image: self.media.image)
-        edit.cropRect = self.cropRect
-        edit.hFlipped = self.hFlipped
-        edit.vFlipped = self.vFlipped
-        edit.numberOfRotations = self.numberOfRotations
+        var edit = media.edit ?? PendingMediaEdit(originalURL: media.fileURL, image: media.image)
+        edit.cropRect = cropRect
+        edit.hFlipped = hFlipped
+        edit.vFlipped = vFlipped
+        edit.numberOfRotations = numberOfRotations
         
-        let image = self.crop()
+        let image = crop()
         guard let data = image?.jpegData(compressionQuality: 0.8) else { return media }
         
         var url: URL;
-        if self.media.edit != nil {
-            url = self.media.fileURL!
+        if media.edit != nil {
+            url = media.fileURL!
         } else {
             let name = UUID().uuidString + ".jpg"
             let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -206,6 +206,7 @@ fileprivate class MediaEdit : ObservableObject {
         }
         
         media.image = image
+        media.size = image!.size
         media.fileURL = url
         media.edit = edit
         
