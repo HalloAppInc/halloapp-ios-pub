@@ -82,6 +82,10 @@ class ProfileViewController: FeedTableViewController {
             return fetchRequest
         }
     }
+
+    override func shouldOpenFeed(for userID: UserID) -> Bool {
+        return userID != MainAppContext.shared.userData.userId
+    }
 }
 
 

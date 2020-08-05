@@ -133,6 +133,10 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         }
     }
 
+    public func shouldOpenFeed(for userID: UserID) -> Bool {
+        return true
+    }
+
     // MARK: Fetched Results Controller
 
     private var trackPerRowFRCChanges = false
@@ -312,6 +316,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     private func showUserFeed(for userID: UserID) {
+        guard shouldOpenFeed(for: userID) else { return }
         let userViewController = UserFeedViewController(userID: userID)
         self.navigationController?.pushViewController(userViewController, animated: true)
     }

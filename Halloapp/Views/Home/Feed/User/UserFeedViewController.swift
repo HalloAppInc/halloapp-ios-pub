@@ -55,6 +55,10 @@ class UserFeedViewController: FeedTableViewController {
             return fetchRequest
         }
     }
+
+    override func shouldOpenFeed(for userID: UserID) -> Bool {
+        return userID != self.userID
+    }
 }
 
 
