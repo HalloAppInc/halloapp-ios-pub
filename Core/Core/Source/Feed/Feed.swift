@@ -215,6 +215,7 @@ public extension FeedCommentProtocol {
         if let parentId = parentId {
             comment.parentCommentID = parentId
         }
+        comment.mentions = orderedMentions.map { $0.protoMention }
         return comment
     }
 }
