@@ -181,7 +181,9 @@ class ImageServer {
 
                 // Save unencrypted data to disk - this will be copied to Feed media directory
                 // if user proceeds posting media.
-                let tempMediaURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(item.url!.lastPathComponent)
+                let tempMediaURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                    .appendingPathComponent(item.url!.lastPathComponent)
+                    .appendingPathExtension(item.type == FeedMediaType.video ? "mp4" : "")
                 DDLogDebug("ImageServer/media/copy to [\(tempMediaURL)]")
                 do {
                     try plaintextData?.write(to: tempMediaURL, options: [ .atomic ])
