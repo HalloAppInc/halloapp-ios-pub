@@ -77,6 +77,7 @@ extension FeedMentionProtocol {
         get {
             var mention = Proto_Mention()
             mention.index = Int32(index)
+            mention.userID = userID
             mention.name = name
             return mention
         }
