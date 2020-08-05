@@ -7,12 +7,74 @@
 //
 
 import CocoaLumberjack
+import Combine
 import Core
 import CoreData
 import UIKit
 import XMPPFramework
 
-class CommentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate {
+class CommentsViewController: UIViewController {
+
+    private let feedPostId: FeedPostID
+    var highlightedCommentId: FeedPostCommentID?
+
+    private var commentsViewController: CommentsViewControllerInternal!
+    private var loadingViewController: LoadingViewController!
+
+    private var postLoadingCancellable: AnyCancellable?
+
+    init(feedPostId: FeedPostID) {
+        self.feedPostId = feedPostId
+        super.init(nibName: nil, bundle: nil)
+        self.hidesBottomBarWhenPushed = true
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        if MainAppContext.shared.feedData.feedPost(with: feedPostId) != nil {
+            showCommentsViewController()
+        } else {
+            loadingViewController = LoadingViewController()
+            self.view.addSubview(loadingViewController.view)
+            self.addChild(loadingViewController)
+            loadingViewController.didMove(toParent: self)
+
+            postLoadingCancellable = MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] (feedPost) in
+                guard let self = self else { return }
+                guard self.feedPostId == feedPost.id else { return }
+                self.showCommentsViewController()
+            }
+        }
+    }
+
+    private func showCommentsViewController() {
+        if loadingViewController != nil {
+            loadingViewController.willMove(toParent: nil)
+            loadingViewController.view.removeFromSuperview()
+            loadingViewController.removeFromParent()
+            loadingViewController = nil
+        }
+
+        commentsViewController = CommentsViewControllerInternal(feedPostId: feedPostId)
+        commentsViewController.highlightedCommentId = highlightedCommentId
+        self.view.addSubview(commentsViewController.view)
+        self.addChild(commentsViewController)
+        commentsViewController.didMove(toParent: self)
+
+        if postLoadingCancellable != nil {
+            postLoadingCancellable?.cancel()
+            postLoadingCancellable = nil
+        }
+    }
+
+}
+
+fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewDataSource, UITableViewDelegate, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate {
     static private let cellReuseIdentifier = "CommentCell"
     static private let sectionMain = 0
 
@@ -20,7 +82,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
 
     var highlightedCommentId: FeedPostCommentID?
 
-    private var feedPostId: FeedPostID? {
+    private var feedPostId: FeedPostID {
         didSet {
             mentionableUsers = computeMentionableUsers()
         }
@@ -50,7 +112,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         tableView.contentInsetAdjustmentBehavior = .scrollableAxes
         tableView.keyboardDismissMode = .interactive
         tableView.preservesSuperviewLayoutMargins = true
-        tableView.register(CommentsTableViewCell.self, forCellReuseIdentifier: CommentsViewController.cellReuseIdentifier)
+        tableView.register(CommentsTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
         return tableView
     }()
 
@@ -58,22 +120,20 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         DDLogDebug("CommentsViewController/init/\(feedPostId)")
         self.feedPostId = feedPostId
         super.init(nibName: nil, bundle: nil)
-        self.hidesBottomBarWhenPushed = true
     }
 
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
+        fatalError("init(coder:) has not been implemented")
     }
 
     deinit {
-        DDLogDebug("CommentsViewController/deinit/\(feedPostId ?? "")")
+        DDLogDebug("CommentsViewController/deinit/\(feedPostId)")
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        guard let feedPostId = self.feedPostId,
-            let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else { return }
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else { return }
 
         self.navigationItem.title = "Comments"
 
@@ -118,9 +178,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         super.viewDidAppear(animated)
         viewDidAppear()
 
-        if let itemId = self.feedPostId {
-            MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: itemId)
-        }
+        MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
 
         self.commentsInputView.didAppear(in: self)
         if self.sortedComments.isEmpty {
@@ -134,9 +192,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
         super.viewWillDisappear(animated)
         viewWillDisappear()
 
-        if let itemId = self.feedPostId {
-            MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: itemId)
-        }
+        MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
 
         self.commentsInputView.willDisappear(in: self)
     }
@@ -199,8 +255,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     // MARK: UI Actions
 
     @objc private func showUserFeedForPostAuthor() {
-        if let postId = self.feedPostId,
-            let feedPost = MainAppContext.shared.feedData.feedPost(with: postId) {
+        if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
             showUserFeed(for: feedPost.userId)
         }
     }
@@ -221,7 +276,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     private func reallyRetractPost() {
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: self.feedPostId!) else {
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else {
             self.navigationController?.popViewController(animated: true)
             return
         }
@@ -305,7 +360,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
             }
             self.sortedComments.insert(comment, at: commentIndex)
             DDLogDebug("CommentsView/frc/insert Position: [\(commentIndex)] Comment: [\(comment)]")
-            self.tableView.insertRows(at: [ IndexPath(row: commentIndex, section: CommentsViewController.sectionMain) ], with: .fade)
+            self.tableView.insertRows(at: [ IndexPath(row: commentIndex, section: Self.sectionMain) ], with: .fade)
         }
 
         switch type {
@@ -333,7 +388,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
                 // Update cell directly if there are animations attached to the UITableView.
                 // This is done to prevent multiple animation from overlapping and breaking
                 // smooth animation on new comment send.
-                let tableViewIndexPath = IndexPath(row: commentIndex!, section: CommentsViewController.sectionMain)
+                let tableViewIndexPath = IndexPath(row: commentIndex!, section: Self.sectionMain)
                 if self.tableView.layer.animationKeys()?.isEmpty ?? true {
                     self.tableView.reloadRows(at: [ tableViewIndexPath ], with: .fade)
                 } else {
@@ -390,7 +445,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: CommentsViewController.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
         let feedPostComment = self.sortedComments[indexPath.row]
         let commentId = feedPostComment.id
         let commentAuthorUserId = feedPostComment.userId
@@ -496,8 +551,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     func computeMentionableUsers() -> [MentionableUser] {
-        guard let postID = feedPostId else { return [] }
-        return Mentions.mentionableUsers(forPostID: postID)
+        return Mentions.mentionableUsers(forPostID: feedPostId)
     }
 
     func commentInputView(_ inputView: CommentInputView, possibleMentionsForInput input: String) -> [MentionableUser] {
@@ -505,7 +559,7 @@ class CommentsViewController: UIViewController, UITableViewDataSource, UITableVi
     }
 
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText) {
-        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: self.feedPostId!) else { return }
+        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPostId) else { return }
         self.scrollToBottomOnContentChange = true
         MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: self.replyContext?.parentCommentId)
         self.commentsInputView.text = ""
@@ -624,6 +678,51 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
             }()
         } else {
             self.accessoryView = nil
+        }
+    }
+}
+
+fileprivate class LoadingViewController: UIViewController {
+
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.color = .secondaryLabel
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        return activityIndicator
+    }()
+
+    private let tryAgainLabel: UILabel = {
+        let label = UILabel()
+        label.font = .preferredFont(forTextStyle: .title2)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "An error occured while trying to load this post. Please try again later."
+        return label
+    }()
+
+    override func loadView() {
+        view = UIView(frame: UIScreen.main.bounds)
+        view.backgroundColor = .feedBackground
+
+        view.addSubview(activityIndicator)
+        activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        activityIndicator.startAnimating()
+
+        view.addSubview(tryAgainLabel)
+        tryAgainLabel.constrainMargins(to: view)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            guard let self = self else { return }
+            self.activityIndicator.stopAnimating()
+            self.tryAgainLabel.isHidden = false
         }
     }
 }
