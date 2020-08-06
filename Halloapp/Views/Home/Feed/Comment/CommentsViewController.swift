@@ -135,12 +135,6 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
 
         guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else { return }
 
-        self.navigationItem.title = "Comments"
-
-        if feedPost.userId == MainAppContext.shared.userData.userId {
-            self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .done, target: self, action: #selector(retractPost))
-        }
-
         self.view.addSubview(self.tableView)
         self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
         self.tableView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
@@ -165,6 +159,16 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
             self.reloadComments()
         } catch {
             return
+        }
+    }
+
+    override func willMove(toParent parent: UIViewController?) {
+        super.willMove(toParent: parent)
+        if let parent = parent, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            parent.navigationItem.title = "Comments"
+            if feedPost.userId == MainAppContext.shared.userData.userId {
+                parent.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .done, target: self, action: #selector(retractPost))
+            }
         }
     }
 
