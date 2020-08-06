@@ -131,7 +131,7 @@ struct SettingsView: View {
                         }
                     }
                     .sheet(isPresented: self.$isTOSPagePresented) {
-                        SafariView(url: URL(string: "https://www.halloapp.com/terms-of-service")!)
+                        SafariView(url: URL(string: "https://www.halloapp.com/")!)
                             .edgesIgnoringSafeArea(.bottom)
                     }
                 }
