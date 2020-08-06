@@ -170,7 +170,7 @@ class TextLabel: UILabel {
     override func draw(_ rect: CGRect) {
         self.prepareTextStorageIfNeeded()
 
-        links?.forEach { link in
+        links.forEach { link in
             guard link.rects.isEmpty else { return }
             link.rects = Self.textRects(forCharacterRange: link.range, inTextContainer: textContainer, withLayoutManager: layoutManager)
         }
@@ -219,6 +219,7 @@ class TextLabel: UILabel {
             textStorage.deleteCharacters(in: NSRange(location: 0, length: textStorage.length))
             self.links = []
         }
+        self.invalidateIntrinsicContentSize()
         self.textStorageIsValid = false
     }
 
@@ -317,7 +318,7 @@ class TextLabel: UILabel {
 
     private var needsDetectHyperlinks = false
 
-    private var links: [AttributedTextLink]?
+    private var links = [AttributedTextLink]()
 
     private static let linkAttributes: [ NSAttributedString.Key: Any ] =
         [ NSAttributedString.Key.foregroundColor: UIColor.systemBlue ]
@@ -369,7 +370,7 @@ class TextLabel: UILabel {
         DispatchQueue.main.async {
             self.links = links
             if self.readMoreLink != nil {
-                self.links?.append(self.readMoreLink!)
+                self.links.append(self.readMoreLink!)
             }
             self.setNeedsDisplay()
         }
@@ -457,7 +458,6 @@ class TextLabel: UILabel {
     private var trackedLink: AttributedTextLink?
 
     private func link(at point: CGPoint) -> AttributedTextLink? {
-        guard let links = links else { return nil }
         return links.first(where: { (link) in
             return link.rects.contains(where: { $0.contains(point) })
         })
@@ -606,7 +606,7 @@ extension TextLabel: UIContextMenuInteractionDelegate {
 
     private func link(forMenuConfiguration configuration: UIContextMenuConfiguration) -> AttributedTextLink? {
         guard let configurationIdentifier = configuration.identifier as? String else { return nil }
-        return links?.first(where: { $0.id == configurationIdentifier })
+        return links.first(where: { $0.id == configurationIdentifier })
     }
 
     func contextMenuInteraction(_ interaction: UIContextMenuInteraction, previewForHighlightingMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
