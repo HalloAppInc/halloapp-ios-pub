@@ -14,9 +14,8 @@ import YPImagePicker
 struct ProfileEditView: View {
     var dismiss: (() -> ())?
     
-    @ObservedObject private var name = TextWithLengthLimit(limit: 25, text: MainAppContext.shared.userData.name)
-    
     @State private var profileImageInput: UIImage?
+    @State private var profileName = MainAppContext.shared.userData.name
     @State private var showingImageMenu = false
     @State private var showingImagePicker = false
     @State private var showingImageDeleteConfirm = false
@@ -60,9 +59,9 @@ struct ProfileEditView: View {
 
                 Section(header: Text("Your Name")) {
                     HStack {
-                        TextField("Enter your name", text: $name.text)
+                        WrappedTextField(placeholder: "Your Name", text: $profileName, limit: 25)
 
-                        Text("\(name.text.count)/25")
+                        Text("\(profileName.count)/25")
                             .foregroundColor(.gray)
                     }
                 }
@@ -95,10 +94,10 @@ struct ProfileEditView: View {
         .navigationBarTitle("Edit Profile", displayMode: .inline)
         .navigationBarItems(trailing:
             Button(action: {
-                if (self.name.text != MainAppContext.shared.userData.name) {
+                if (self.profileName != MainAppContext.shared.userData.name) {
                     DDLogInfo("ProfileEditView/Done will change user name")
 
-                    MainAppContext.shared.userData.name = self.name.text
+                    MainAppContext.shared.userData.name = self.profileName
                     MainAppContext.shared.userData.save()
 
                     MainAppContext.shared.xmppController.sendCurrentUserNameIfPossible()
@@ -110,7 +109,7 @@ struct ProfileEditView: View {
                 Text("Done")
                     .fontWeight(.medium)
             }
-            .disabled(name.text.isEmpty)
+            .disabled(profileName.isEmpty)
         )
     }
     
@@ -130,23 +129,6 @@ struct ProfileEditView: View {
         MainAppContext.shared.avatarStore.save(image:resizedImage, forUserId: MainAppContext.shared.userData.userId, avatarId: "self")
         
         MainAppContext.shared.xmppController.sendCurrentAvatarIfPossible()
-    }
-}
-
-fileprivate class TextWithLengthLimit: ObservableObject {
-    let limit: Int
-    
-    @Published var text: String {
-        didSet {
-            if text.count > limit {
-                text = oldValue
-            }
-        }
-    }
-    
-    init(limit: Int, text: String) {
-        self.limit = limit
-        self.text = text
     }
 }
 
@@ -188,6 +170,64 @@ fileprivate struct ImagePicker: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: YPImagePicker, context: Context) {
         
+    }
+}
+
+fileprivate struct WrappedTextField: UIViewRepresentable {
+    let placeholder: String
+    @Binding var text: String
+    let limit: Int
+    
+    func makeUIView(context: Context) -> UITextField {
+        let textField = UITextField()
+        textField.autocapitalizationType = .words
+        textField.autocorrectionType = .no
+        textField.delegate = context.coordinator
+        textField.placeholder = placeholder
+        textField.returnKeyType = .done
+        textField.text = text
+        textField.textContentType = .name
+        return textField
+    }
+    
+    func updateUIView(_ uiView: UITextField, context: Context) {
+        // Set uiView.text to $text here will cause unexpected behavior
+        // for some input modes (such as voice dictation, Chinese, Japanese, etc.)
+    }
+    
+    func makeCoordinator() -> TextFieldCoordinator {
+        return TextFieldCoordinator(text: $text, limit: limit)
+    }
+    
+    class TextFieldCoordinator: NSObject, UITextFieldDelegate {
+        @Binding var text: String
+        let limit: Int
+        
+        init(text: Binding<String>, limit: Int) {
+            self._text = text
+            self.limit = limit
+        }
+        
+        func textFieldDidChangeSelection(_ textField: UITextField) {
+            self.text = textField.text ?? ""
+        }
+        
+        func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+            let currentText = textField.text ?? ""
+            guard let stringRange = Range(range, in: currentText) else { return false }
+            let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+            return updatedText.count <= limit
+        }
+        
+        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+            let currentText = textField.text ?? ""
+            if currentText.isEmpty {
+                return false
+            } else {
+                textField.resignFirstResponder()
+                return true
+            }
+        }
     }
 }
 
