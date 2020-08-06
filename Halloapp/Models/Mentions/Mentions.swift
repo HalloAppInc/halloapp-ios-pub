@@ -79,6 +79,9 @@ public final class Mentions {
         // Allow mentioning everyone who has commented on the post
         contactSet.formUnion(post.comments?.map { $0.userId } ?? [])
 
+        // Disallow self mentions
+        contactSet.remove(MainAppContext.shared.userData.userId)
+
         let fullNames = MainAppContext.shared.contactStore.fullNames(forUserIds: contactSet)
 
         return fullNames
