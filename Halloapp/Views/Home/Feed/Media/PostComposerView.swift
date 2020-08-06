@@ -168,7 +168,7 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var postTextHeight = ObservableFloat()
     @State private var keyboardHeight: CGFloat = 0
 
-    private var keyboardHeightPublisher: AnyPublisher<CGFloat, Never> {
+    private var keyboardHeightPublisher: AnyPublisher<CGFloat, Never> =
         Publishers.Merge3(
             NotificationCenter.default
                 .publisher(for: UIResponder.keyboardWillShowNotification)
@@ -184,22 +184,9 @@ fileprivate struct PostComposerView: View {
         )
         .removeDuplicates()
         .eraseToAnyPublisher()
-    }
 
-    private var shareVisibilityPublisher: AnyPublisher<Bool, Never> {
-        Publishers.CombineLatest4(
-            mediaItems.$value,
-            mediaState.$isReady,
-            mediaState.$numberOfFailedUploads,
-            textToPost.$value
-        )
-        .map { (mediaItems, mediaIsReady, numberOfFailedUploads, textValue) -> Bool in
-            return (mediaItems.count > 0 && mediaIsReady && numberOfFailedUploads == 0) ||
-                (mediaItems.count == 0 && !textValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        }
-        .removeDuplicates()
-        .eraseToAnyPublisher()
-    }
+    private var shareVisibilityPublisher: AnyPublisher<Bool, Never>!
+    private var pageChangedPublisher: AnyPublisher<Bool, Never>!
 
     private var mediaCount: Int {
         mediaItems.value.count
@@ -213,6 +200,10 @@ fileprivate struct PostComposerView: View {
         (mediaCount > 1 ? MediaCarouselView.pageControlAreaHeight : 0) + PostComposerLayoutConstants.controlSpacing
     }
 
+    private var showCropButton: Bool {
+        currentPosition.value < mediaCount && mediaItems.value[currentPosition.value].type == FeedMediaType.image
+    }
+
     init(imageServer: ImageServer, mediaItems: ObservableMediaItems, textToPost: ObservableString, crop: @escaping (_ index: ObservableInt) -> Void, goBack: @escaping () -> Void, setShareVisibility: @escaping (_ visibility: Bool) -> Void) {
         self.imageServer = imageServer
         self.mediaItems = mediaItems
@@ -220,6 +211,23 @@ fileprivate struct PostComposerView: View {
         self.crop = crop
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
+
+        self.shareVisibilityPublisher =
+            Publishers.CombineLatest4(
+                self.mediaItems.$value,
+                self.mediaState.$isReady,
+                self.mediaState.$numberOfFailedUploads,
+                self.textToPost.$value
+            )
+                .map { (mediaItems, mediaIsReady, numberOfFailedUploads, textValue) -> Bool in
+                    return (mediaItems.count > 0 && mediaIsReady && numberOfFailedUploads == 0) ||
+                        (mediaItems.count == 0 && !textValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            .removeDuplicates()
+            .eraseToAnyPublisher()
+
+        self.pageChangedPublisher =
+            self.currentPosition.$value.removeDuplicates().map { _ in return true }.eraseToAnyPublisher()
     }
     
     private func getMediaSliderHeight(_ width: CGFloat) -> CGFloat {
@@ -248,9 +256,12 @@ fileprivate struct PostComposerView: View {
             Button(action: deleteMedia) {
                 ControlIconView(imageLabel: "ComposerDeleteMedia")
             }
-            Button(action: cropMedia) {
-                ControlIconView(imageLabel: "ComposerCropMedia")
-            }.padding(.leading, PostComposerLayoutConstants.controlXSpacing)
+            if (showCropButton) {
+                Button(action: cropMedia) {
+                    ControlIconView(imageLabel: "ComposerCropMedia")
+                }
+                .padding(.leading, PostComposerLayoutConstants.controlXSpacing)
+            }
         }
         .padding(.horizontal, PostComposerLayoutConstants.controlSpacing)
         .offset(y: -controlYOffset)
@@ -287,9 +298,6 @@ fileprivate struct PostComposerView: View {
                             }
                             .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
                             .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
-                            .onTapGesture {
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
-                            }
 
                             if self.mediaState.numberOfFailedUploads > 1 {
                                 Text("Failed to upload \(self.mediaState.numberOfFailedUploads) media items. Please try again.")
@@ -317,6 +325,7 @@ fileprivate struct PostComposerView: View {
                     }
                     .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
                     .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
+                    .onReceive(self.pageChangedPublisher) { _ in self.stopTextEdit() }
                 }
                 .frame(width: geometry.size.width)
                 .frame(minHeight: geometry.size.height - self.keyboardHeight)
@@ -327,17 +336,22 @@ fileprivate struct PostComposerView: View {
         }
     }
 
+    private func stopTextEdit() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
+    }
+
     private func addMedia() {
         goBack()
     }
 
     private func cropMedia() {
+        self.mediaState.isReady = false
         crop(currentPosition)
     }
 
     private func deleteMedia() {
         mediaItems.remove(index: currentPosition.value)
-        if (mediaItems.value.count == 0) {
+        if (mediaCount == 0) {
             goBack()
         }
     }
@@ -411,7 +425,7 @@ fileprivate struct TextView: UIViewRepresentable {
 
 fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     @ObservedObject var mediaItems: ObservableMediaItems
-    @ObservedObject var currentPosition: ObservableInt
+    var currentPosition: ObservableInt
 
     var feedMediaItems: [FeedMedia] {
         mediaItems.value.map { FeedMedia($0, feedPostId: "") }
