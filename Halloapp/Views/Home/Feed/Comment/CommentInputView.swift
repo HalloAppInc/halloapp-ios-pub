@@ -355,13 +355,16 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }
 
     // MARK: Text view
+
+    func clear() {
+        textView.text = ""
+        textView.resetMentions()
+        self.inputTextViewDidChange(self.textView)
+    }
+
     var text: String! {
         get {
             return self.textView.text
-        }
-        set {
-            self.textView.text = newValue
-            self.inputTextViewDidChange(self.textView)
         }
     }
     
@@ -403,12 +406,15 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
             return
         }
 
-        let replacementString = "@\(item.fullName)"
+        let mentionString = "@\(item.fullName)"
+        let mentionRange = NSRange(location: currentWordRange.location, length: mentionString.count)
+
+        let replacementString = mentionString + " "
         let replacementRange = NSRange(location: currentWordRange.location, length: replacementString.count)
 
-        text = (text as NSString).replacingCharacters(in: currentWordRange, with: replacementString)
+        textView.text = (text as NSString).replacingCharacters(in: currentWordRange, with: replacementString)
 
-        textView.addMention(userID: item.userID, range: replacementRange)
+        textView.addMention(userID: item.userID, range: mentionRange)
 
         textView.selectedRange = NSRange(location: replacementRange.upperBound, length: 0)
 

@@ -562,7 +562,7 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPostId) else { return }
         self.scrollToBottomOnContentChange = true
         MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: self.replyContext?.parentCommentId)
-        self.commentsInputView.text = ""
+        self.commentsInputView.clear()
         self.replyContext = nil
     }
 

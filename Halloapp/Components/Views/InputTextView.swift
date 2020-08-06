@@ -63,6 +63,10 @@ class InputTextView: UITextView, UITextViewDelegate {
         mentions[range] = userID
     }
 
+    func resetMentions() {
+        mentions.removeAll()
+    }
+
     // MARK: Size Calculations
 
     override func sizeThatFits(_ size: CGSize) -> CGSize {
@@ -248,6 +252,7 @@ class InputTextView: UITextView, UITextViewDelegate {
                 let newCursorPosition = rangeIncludingImpactedMentions.location + text.count
                 textView.selectedRange = NSRange(location: newCursorPosition, length: 0)
                 impactedMentions.forEach { mentions[$0] = nil }
+                self.inputTextViewDelegate?.inputTextViewDidChange(self)
             }
             return false
         }
