@@ -257,6 +257,11 @@ class InputTextView: UITextView, UITextViewDelegate {
             return false
         }
 
-        return inputTextViewDelegate?.inputTextView(self, shouldChangeTextIn: range, replacementText: text) ?? true
+        if inputTextViewDelegate?.inputTextView(self, shouldChangeTextIn: range, replacementText: text) ?? true {
+            impactedMentions.forEach { mentions[$0] = nil }
+            return true
+        }
+
+        return false
     }
 }
