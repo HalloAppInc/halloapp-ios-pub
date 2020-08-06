@@ -432,8 +432,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.id = xmppPost.id
             feedPost.userId = xmppPost.userId
             feedPost.text = xmppPost.text
-            feedPost.status = .incoming
             feedPost.timestamp = xmppPost.timestamp
+            
+            if feedPost.userId == userData.userId {
+                // This only happens when the user re-register,
+                // and the server sends us old posts.
+                feedPost.status = .seen
+            } else {
+                feedPost.status = .incoming
+            }
 
             var mentions = Set<FeedMention>()
             for xmppMention in xmppPost.mentions {
