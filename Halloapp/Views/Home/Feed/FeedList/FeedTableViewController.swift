@@ -899,8 +899,9 @@ fileprivate class FeedItemFooterView: UIView {
 
             guard let titleLabel = self.titleLabel else { return }
 
-            let spacing: CGFloat = 8
-            let badgeCenterX: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? titleLabel.frame.maxX + spacing : titleLabel.frame.minX - spacing
+            let spacing: CGFloat = 6
+            let spacingToCenter = spacing + badgeView.bounds.width/2
+            let badgeCenterX: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? titleLabel.frame.maxX + spacingToCenter : titleLabel.frame.minX - spacingToCenter
             self.badgeView.center = self.badgeView.alignedCenter(from: CGPoint(x: badgeCenterX, y: titleLabel.frame.midY))
         }
 
@@ -918,11 +919,12 @@ fileprivate class FeedItemFooterView: UIView {
 
     // Gotham Medium, 15 pt (Subhead)
     lazy var commentButton: ButtonWithBadge = {
-        let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 8 : -8
+        let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 6 : -6
         let button = ButtonWithBadge(type: .system)
         button.setTitle("Comment", for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
         button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
         button.contentEdgeInsets.bottom = 9
         button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
@@ -937,6 +939,7 @@ fileprivate class FeedItemFooterView: UIView {
         button.setTitle("Message", for: .normal)
         button.setImage(UIImage(named: "FeedPostMessage"), for: .normal)
         button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
         button.contentEdgeInsets.bottom = 9
         button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
@@ -971,6 +974,7 @@ fileprivate class FeedItemFooterView: UIView {
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.distribution = .fillEqually
+        hStack.spacing = 24
         self.addSubview(hStack)
         hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
