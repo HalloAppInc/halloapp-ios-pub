@@ -357,7 +357,10 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         func insert(comment: FeedPostComment) {
-            let currentRoot = comment.parent ?? comment
+            var currentRoot = comment
+            while let parent = currentRoot.parent {
+                currentRoot = parent
+            }
             var commentIndex = self.sortedComments.endIndex
             if let nextRootCommentIndex = self.sortedComments.firstIndex(where: { $0.parent == nil && $0.timestamp > currentRoot.timestamp }) {
                 commentIndex = nextRootCommentIndex
