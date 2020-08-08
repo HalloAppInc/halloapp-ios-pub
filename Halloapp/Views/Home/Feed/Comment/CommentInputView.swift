@@ -369,6 +369,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         textView.text = ""
         textView.resetMentions()
         self.inputTextViewDidChange(self.textView)
+        self.setNeedsUpdateHeight(animationDuration: 0.25)
     }
 
     var text: String! {

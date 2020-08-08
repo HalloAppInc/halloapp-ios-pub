@@ -74,52 +74,47 @@ class CommentsViewController: UIViewController {
 
 }
 
-fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewDataSource, UITableViewDelegate, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate {
+fileprivate class CommentsViewControllerInternal: UITableViewController, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate {
+
     static private let cellReuseIdentifier = "CommentCell"
+    static private let cellHighlightAnimationDuration = 0.15
     static private let sectionMain = 0
 
     typealias ReplyContext = (parentCommentId: String, userId: String)
-
-    var highlightedCommentId: FeedPostCommentID?
 
     private var feedPostId: FeedPostID {
         didSet {
             mentionableUsers = computeMentionableUsers()
         }
     }
+    var highlightedCommentId: FeedPostCommentID?
     private var replyContext: ReplyContext? {
+        // Manually update cell highlighting to avoid conflicts with potential keyboard animations.
+        willSet {
+            if let replyContext = replyContext {
+                for cell in tableView.visibleCells.compactMap({ $0 as? CommentsTableViewCell }) {
+                    if cell.commentId == replyContext.parentCommentId {
+                        UIView.animate(withDuration: Self.cellHighlightAnimationDuration) {
+                            cell.isCellHighlighted = cell.commentId == self.highlightedCommentId
+                        }
+                        break
+                    }
+                }
+            }
+        }
         didSet {
             self.refreshCommentInputViewReplyPanel()
-            if let indexPaths = self.tableView.indexPathsForVisibleRows {
-                self.tableView.reloadRows(at: indexPaths, with: .none)
-            }
         }
     }
     private var fetchedResultsController: NSFetchedResultsController<FeedPostComment>?
-    private var scrollToBottomOnContentChange = false
     private lazy var mentionableUsers: [MentionableUser] = {
         computeMentionableUsers()
     }()
 
-    private lazy var tableView: UITableView = {
-        let tableView = UITableView(frame: self.view.bounds, style: .plain)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.separatorStyle = .none
-        tableView.allowsSelection = false
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.backgroundColor = .feedBackground
-        tableView.contentInsetAdjustmentBehavior = .scrollableAxes
-        tableView.keyboardDismissMode = .interactive
-        tableView.preservesSuperviewLayoutMargins = true
-        tableView.register(CommentsTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
-        return tableView
-    }()
-
     init(feedPostId: FeedPostID) {
-        DDLogDebug("CommentsViewController/init/\(feedPostId)")
+        DDLogDebug("CommentsView/init/\(feedPostId)")
         self.feedPostId = feedPostId
-        super.init(nibName: nil, bundle: nil)
+        super.init(style: .plain)
     }
 
     required init?(coder: NSCoder) {
@@ -127,19 +122,25 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
     }
 
     deinit {
-        DDLogDebug("CommentsViewController/deinit/\(feedPostId)")
+        DDLogDebug("CommentsView/deinit/\(feedPostId)")
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else { return }
+        tableView.separatorStyle = .none
+        tableView.allowsSelection = false
+        tableView.backgroundColor = .feedBackground
+        tableView.contentInsetAdjustmentBehavior = .scrollableAxes
+        tableView.keyboardDismissMode = .interactive
+        tableView.preservesSuperviewLayoutMargins = true
+        tableView.register(CommentsTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
 
-        self.view.addSubview(self.tableView)
-        self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-        self.tableView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-        self.tableView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-        self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+        if let highlightedCommentId = highlightedCommentId {
+            setNeedsScroll(toComment: highlightedCommentId, highlightAfterScroll: false, animated: false)
+        }
+
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else { return }
 
         let headerView = CommentsTableHeaderView(frame: CGRect(x: 0, y: 0, width: self.tableView.bounds.size.width, height: 200))
         headerView.configure(withPost: feedPost)
@@ -176,6 +177,10 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
         super.viewWillAppear(animated)
         viewWillAppear()
         self.commentsInputView.willAppear(in: self)
+
+        if view.window == nil {
+            setNeedsScrollToTarget(withAnimation: false)
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -188,6 +193,8 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
         if self.sortedComments.isEmpty {
             self.commentsInputView.showKeyboard(from: self)
         }
+
+        allowScrollToBottom = true
 
         resetCommentHighlightingIfNeeded()
     }
@@ -218,10 +225,24 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
             }
         }
 
-        scrollToHighlightedCommentIfNeeded()
+        if let animated = needsScrollToTargetWithAnimation {
+            if animated {
+                scrollToTarget(withAnimation: true)
+            } else {
+                UIView.performWithoutAnimation {
+                    self.scrollToTarget(withAnimation: false)
+                    self.tableView.layoutIfNeeded()
+                }
+            }
+            needsScrollToTargetWithAnimation = nil
+
+            commentToScrollTo = nil
+            needsHighlightCommentToScrollTo = false
+
+        }
     }
 
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView == tableView {
             updateNavigationBarStyleUsing(scrollView: scrollView)
         }
@@ -229,30 +250,104 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
 
     // MARK: Scrolling / highlighting
 
-    private func scrollToHighlightedCommentIfNeeded() {
-        guard let highlightedCommentId = highlightedCommentId,
-              let indexPath = indexPath(forCommentId: highlightedCommentId) else { return }
-        tableView.scrollToRow(at: indexPath, at: .middle, animated: false)
+    private var preventAdjustContentOffsetOnChatBarBottomInsetChangeCounter = 0
+    private var commentToScrollTo: FeedPostCommentID?
+    private var needsHighlightCommentToScrollTo: Bool = false
+    private var needsScrollToTargetWithAnimation: Bool?
+    private var commentToHighlightAfterScrollingEnds: FeedPostCommentID?
+    private var allowScrollToBottom = false
+
+    private func scrollToBottom(animated: Bool) {
+        guard let indexPath = bottomMostIndexPath() else {
+            return
+        }
+        scrollIndexPathToBottom(indexPath, animated: animated)
+    }
+
+    private func scrollIndexPathToBottom(_ indexPath: IndexPath, animated: Bool) {
+        tableView.scrollToRow(at: indexPath, at: .bottom, animated: animated)
+    }
+
+    private func setNeedsScrollToTarget(withAnimation: Bool) {
+        needsScrollToTargetWithAnimation = withAnimation
+        tableView.setNeedsLayout()
+    }
+
+    private func setNeedsScroll(toComment comment: FeedPostCommentID, highlightAfterScroll: Bool, animated: Bool) {
+        commentToScrollTo = comment
+        needsHighlightCommentToScrollTo = highlightAfterScroll
+        setNeedsScrollToTarget(withAnimation: animated)
+    }
+
+    private func scrollToTarget(withAnimation: Bool) {
+        var animated = withAnimation
+        if animated {
+            animated = isViewLoaded && view.window != nil && transitionCoordinator == nil
+        }
+        if let comment = commentToScrollTo  {
+            scroll(toComment: comment, animated: animated, highlightAfterScroll: needsHighlightCommentToScrollTo ? comment : nil)
+        } else {
+            if allowScrollToBottom {
+                scrollToBottom(animated: animated)
+            }
+        }
+    }
+
+    private func scroll(toComment commentId: FeedPostCommentID, animated: Bool, highlightAfterScroll: FeedPostCommentID?) {
+
+        guard let indexPath = indexPath(forCommentId: commentId) else {
+            return
+        }
+
+        DDLogDebug("CommentsView/scroll/animated/\(animated)/comment/\(indexPath)")
+        tableView.scrollToRow(at: indexPath, at: .middle, animated: animated)
+
+        if let commentToHighlight = highlightAfterScroll {
+            if tableView.hasScrollAnimation {
+                commentToHighlightAfterScrollingEnds = commentToHighlight
+            } else {
+                highlightComment(commentToHighlight)
+            }
+        }
+    }
+
+    private func highlightComment(_ commentId: FeedPostCommentID) {
+        for cell in tableView.visibleCells.compactMap({ $0 as? CommentsTableViewCell }) {
+            if cell.commentId == commentId {
+                UIView.animate(withDuration: Self.cellHighlightAnimationDuration) {
+                    cell.isCellHighlighted = true
+                }
+                break
+            }
+        }
     }
 
     private func resetCommentHighlightingIfNeeded() {
-        func unhighlightComment(withId commentId: FeedPostCommentID) {
-            guard let indexPath = indexPath(forCommentId: commentId),
-                  let cell = tableView.cellForRow(at: indexPath) as? CommentsTableViewCell else { return }
-            if cell.isCellHighlighted {
-                UIView.animate(withDuration: 0.15) {
-                    cell.isCellHighlighted = false
+        func unhighlightComment(_ commentId: FeedPostCommentID) {
+            for cell in tableView.visibleCells.compactMap({ $0 as? CommentsTableViewCell }) {
+                if cell.commentId == commentId && cell.isCellHighlighted {
+                    UIView.animate(withDuration: Self.cellHighlightAnimationDuration) {
+                        cell.isCellHighlighted = false
+                    }
                 }
             }
         }
 
         // It is possible that comment isn't received yet - when opening Comments from an iOS notification.
         // We'll wait until the comment arrives and then flash its cell.
-        if let highlightedCommentId = highlightedCommentId, indexPath(forCommentId: highlightedCommentId) != nil {
+        if let commentId = highlightedCommentId, indexPath(forCommentId: commentId) != nil {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                unhighlightComment(withId: highlightedCommentId)
+                unhighlightComment(commentId)
             }
-            self.highlightedCommentId = nil
+            highlightedCommentId = nil
+        }
+    }
+
+    override func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        if let commentId = commentToHighlightAfterScrollingEnds{
+            DDLogDebug("CommentsView/content-offset-change/animated/ended: [\(tableView.contentOffset)]")
+            highlightComment(commentId)
+            commentToHighlightAfterScrollingEnds = nil
         }
     }
 
@@ -320,9 +415,11 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
 
     // MARK: Data
 
-    private var trackPerRowFRCChanges = false
+    private var trackingPerRowFRCChanges = false
 
-    private var reloadTableViewInDidChangeContent = false
+    private var needsScrollToTargetAfterTableUpdates = false
+
+    private var numberOfInsertedItems = 0
 
     private var sortedComments: [FeedPostComment] = []
 
@@ -349,13 +446,31 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
         return IndexPath(row: commentIndex, section: Self.sectionMain)
     }
 
+    private func bottomMostIndexPath() -> IndexPath? {
+        guard !sortedComments.isEmpty else {
+            return nil
+        }
+        return IndexPath(row: sortedComments.count - 1, section: Self.sectionMain)
+    }
+
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        reloadTableViewInDidChangeContent = false
-        trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
-        DDLogDebug("CommentsView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+        trackingPerRowFRCChanges = isViewLoaded && view.window != nil && UIApplication.shared.applicationState == .active
+        if trackingPerRowFRCChanges {
+            numberOfInsertedItems = 0
+            CATransaction.begin()
+        }
+
+        DDLogDebug("CommentsView/frc/will-change perRowChanges=[\(trackingPerRowFRCChanges)]")
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+
+        DDLogDebug("CommentsView/frc/\(type) indexpath=[\(String(describing: indexPath))] object=[\(anObject)]")
+
+        guard trackingPerRowFRCChanges else {
+            return
+        }
+
         func insert(comment: FeedPostComment) {
             var currentRoot = comment
             while let parent = currentRoot.parent {
@@ -365,46 +480,36 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
             if let nextRootCommentIndex = self.sortedComments.firstIndex(where: { $0.parent == nil && $0.timestamp > currentRoot.timestamp }) {
                 commentIndex = nextRootCommentIndex
             }
-            self.sortedComments.insert(comment, at: commentIndex)
+            sortedComments.insert(comment, at: commentIndex)
             DDLogDebug("CommentsView/frc/insert Position: [\(commentIndex)] Comment: [\(comment)]")
-            self.tableView.insertRows(at: [ IndexPath(row: commentIndex, section: Self.sectionMain) ], with: .fade)
+            tableView.insertRows(at: [ IndexPath(row: commentIndex, section: Self.sectionMain) ], with: .none)
         }
 
         switch type {
         case .insert:
-            if trackPerRowFRCChanges {
-                if let comment = anObject as? FeedPostComment {
-                    insert(comment: comment)
-                }
-            } else {
-                reloadTableViewInDidChangeContent = true
-            }
+            insert(comment: anObject as! FeedPostComment)
+            numberOfInsertedItems += 1
+            needsScrollToTargetAfterTableUpdates = true
 
-            // Delete and Move should not happen at this time.
         case .delete, .move:
-            guard let comment = anObject as? FeedPostComment else { break }
-            DDLogWarn("CommentsView/frc/\(type) [\(comment)]")
-            trackPerRowFRCChanges = false
-            reloadTableViewInDidChangeContent = true
+            // Delete and Move should not happen at this time.
+            assert(false, "Unexpected FRC operation.")
 
         case .update:
-            guard let comment = anObject as? FeedPostComment else { return }
-            let commentIndex = self.sortedComments.firstIndex(where: { $0 == comment })
-            if trackPerRowFRCChanges && commentIndex != nil {
-                DDLogDebug("CommentsView/frc/update Position: [\(commentIndex!)]  Comment: [\(comment)] ")
-                // Update cell directly if there are animations attached to the UITableView.
-                // This is done to prevent multiple animation from overlapping and breaking
-                // smooth animation on new comment send.
-                let tableViewIndexPath = IndexPath(row: commentIndex!, section: Self.sectionMain)
-                if self.tableView.layer.animationKeys()?.isEmpty ?? true {
-                    self.tableView.reloadRows(at: [ tableViewIndexPath ], with: .fade)
-                } else {
-                    if let cell = self.tableView.cellForRow(at: tableViewIndexPath) as? CommentsTableViewCell {
-                        cell.update(with: comment)
-                    }
+            guard let comment = anObject as? FeedPostComment,
+                let commentIndex = sortedComments.firstIndex(where: { $0 == comment }) else { return }
+
+            DDLogDebug("CommentsView/frc/update Position: [\(commentIndex)]  Comment: [\(comment)] ")
+            // Update cell directly if there are animations attached to the UITableView.
+            // This is done to prevent multiple animation from overlapping and breaking
+            // smooth animation on new comment send.
+            let tableViewIndexPath = IndexPath(row: commentIndex, section: Self.sectionMain)
+            if tableView.hasScrollAnimation {
+                if let cell = tableView.cellForRow(at: tableViewIndexPath) as? CommentsTableViewCell {
+                    cell.update(with: comment)
                 }
             } else {
-                reloadTableViewInDidChangeContent = true
+                tableView.reloadRows(at: [ tableViewIndexPath ], with: .none)
             }
 
         default:
@@ -413,45 +518,61 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("CommentsView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
-        if !trackPerRowFRCChanges {
-            self.reloadComments()
-        }
-        if reloadTableViewInDidChangeContent {
-            self.tableView.reloadData()
-        }
-        // TODO: Scroll table view on new comment from someone else.
-        if self.scrollToBottomOnContentChange {
-            DispatchQueue.main.async {
-                self.scrollToBottom(true)
-            }
-            self.scrollToBottomOnContentChange = false
+        DDLogDebug("CommentsView/frc/did-change perRowChanges=[\(trackingPerRowFRCChanges)]")
+
+        if !trackingPerRowFRCChanges {
+            reloadComments()
+            tableView.reloadData()
+            didUpdateCommentsTableAfterControllerDidChangeContent()
+            return
         }
 
-        scrollToHighlightedCommentIfNeeded()
-        resetCommentHighlightingIfNeeded()
+        var needsNotify = true
+        var notifyImmediately = false
+        if numberOfInsertedItems == 1 {
+            // Special case when the user hits Send from the chat bar - in this case we know
+            // that scrolling will always work right away. Deferring scrolling until the table
+            // view update animation finishes ruins the effect -- we want the new message to
+            // scroll in while the chat bar shrinks back to its original height.
+            notifyImmediately = true
+        }
+
+        CATransaction.setCompletionBlock {
+            if needsNotify {
+                needsNotify = false
+                self.didUpdateCommentsTableAfterControllerDidChangeContent()
+            }
+        }
+
+        CATransaction.commit() // triggers a full layout pass
+
+        trackingPerRowFRCChanges = false
+        if needsNotify && notifyImmediately {
+            needsNotify = false
+            didUpdateCommentsTableAfterControllerDidChangeContent()
+        }
     }
 
-    private func scrollToBottom(_ animated: Bool = true) {
-        if let numSections = self.fetchedResultsController?.sections?.count, let numRows = self.fetchedResultsController?.sections?.last?.numberOfObjects {
-            if numSections > 0 && numRows > 0 {
-                let indexPath = IndexPath(row: numRows - 1, section: numSections - 1)
-                self.tableView.scrollToRow(at: indexPath, at: .none, animated: animated)
+    private func didUpdateCommentsTableAfterControllerDidChangeContent() {
+        if needsScrollToTargetAfterTableUpdates {
+            needsScrollToTargetAfterTableUpdates = false
+            DispatchQueue.main.async {
+                self.setNeedsScrollToTarget(withAnimation: true)
             }
         }
     }
 
     // MARK: UITableView
 
-    func numberOfSections(in tableView: UITableView) -> Int {
+    override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.sortedComments.count
     }
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! CommentsTableViewCell
         let feedPostComment = self.sortedComments[indexPath.row]
         let commentId = feedPostComment.id
@@ -464,6 +585,7 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
         cell.replyAction = { [ weak self ] in
             guard let self = self else { return }
             self.replyContext = (parentCommentId: commentId, userId: commentAuthorUserId)
+            self.setNeedsScroll(toComment: commentId, highlightAfterScroll: true, animated: true)
             self.commentsInputView.showKeyboard(from: self)
         }
         cell.accessoryViewAction = { [weak self] in
@@ -475,14 +597,14 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
         return cell
     }
 
-    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         // Only allow to delete your own comments.
         let feedPostComment = self.sortedComments[indexPath.row]
         guard !feedPostComment.isCommentRetracted else { return false }
         return feedPostComment.userId == AppContext.shared.userData.userId && abs(feedPostComment.timestamp.timeIntervalSinceNow) < Date.hours(1)
     }
 
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         // Use this method instead of tableView(_:commit:forRowAt:) because this method
         // allows in-cell Delete button to stay visible when confirmation (action sheet) is presented.
         let feedPostComment = self.sortedComments[indexPath.row]
@@ -512,46 +634,45 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
         return self.commentsInputView
     }
 
-    func updateTableViewContentInsets(with keyboardHeight: CGFloat, adjustContentOffset: Bool) {
-        let topInset = self.tableView.contentInset.top
-        let bottomInset = keyboardHeight - self.tableView.safeAreaInsets.bottom
-
-        let currentInset = self.tableView.contentInset
+    func updateTableViewContentOffset(forKeyboardHeight keyboardHeight: CGFloat) {
+        let bottomInset = keyboardHeight
+        let currentInset = self.tableView.adjustedContentInset
         var contentOffset = self.tableView.contentOffset
-        var adjustContentOffset = adjustContentOffset
-        if bottomInset > currentInset.bottom && currentInset.bottom == 0 {
+
+        DDLogDebug("CommentsView/keyboard Bottom inset: [\(bottomInset)]  Current insets: [\(currentInset)]")
+
+        if bottomInset > currentInset.bottom && currentInset.bottom == tableView.safeAreaInsets.bottom {
             // Because of the SwiftUI the accessory view appears with a slight delay
             // and bottom inset increased from 0 to some value. Do not scroll when that happens.
-            adjustContentOffset = false
+            return
         }
-        if adjustContentOffset {
-            contentOffset.y += bottomInset - currentInset.bottom
-        }
-        if (adjustContentOffset) {
-            self.tableView.contentOffset = contentOffset
-        }
-        // Setting contentInset below will also adjust contentOffset as needed if it is outside of the
-        // UITableView's scrollable range.
-        self.tableView.contentInset = UIEdgeInsets(top: topInset, left: 0, bottom: bottomInset, right: 0)
-        let scrollIndicatorInsets = UIEdgeInsets(top: topInset, left: 0, bottom: bottomInset, right: 0)
-        self.tableView.scrollIndicatorInsets = scrollIndicatorInsets
+
+        contentOffset.y += bottomInset - currentInset.bottom
+
+        contentOffset.y = min(contentOffset.y, tableView.contentSize.height - (tableView.frame.height - currentInset.top - bottomInset))
+        contentOffset.y = max(contentOffset.y, -currentInset.top)
+
+        DDLogDebug("CommentsView/keyboard Content offset: [\(tableView.contentOffset)] -> [\(contentOffset)]")
+        self.tableView.contentOffset = contentOffset
     }
 
     func commentInputView(_ inputView: CommentInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
-        var animationDuration = animationDuration
-        if self.transitionCoordinator != nil {
-            animationDuration = 0
-        }
-        var adjustContentOffset = true
+
         // Prevent the content offset from changing when the user drags the keyboard down.
         if self.tableView.panGestureRecognizer.state == .ended || self.tableView.panGestureRecognizer.state == .changed {
-            adjustContentOffset = false
+            return
         }
+        guard preventAdjustContentOffsetOnChatBarBottomInsetChangeCounter == 0 else {
+            return
+        }
+
+        let animationDuration = self.transitionCoordinator == nil ? animationDuration : 0
         let updateBlock = {
-            self.updateTableViewContentInsets(with: inputView.bottomInset, adjustContentOffset: adjustContentOffset)
+            self.updateTableViewContentOffset(forKeyboardHeight: inputView.bottomInset)
         }
         if animationDuration > 0 {
-            updateBlock()
+            let animationOptions = UIView.AnimationOptions(rawValue: UInt(animationCurve.rawValue) << 16)
+            UIView.animate(withDuration: animationDuration, delay: 0, options: animationOptions, animations: updateBlock)
         } else {
             UIView.performWithoutAnimation(updateBlock)
         }
@@ -567,10 +688,17 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
 
     func commentInputView(_ inputView: CommentInputView, wantsToSend text: MentionText) {
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPostId) else { return }
-        self.scrollToBottomOnContentChange = true
-        MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: self.replyContext?.parentCommentId)
-        self.commentsInputView.clear()
-        self.replyContext = nil
+
+        let parentCommentId = replyContext?.parentCommentId
+        MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: parentCommentId)
+
+        replyContext = nil
+        commentsInputView.clear()
+
+        preventAdjustContentOffsetOnChatBarBottomInsetChangeCounter += 1
+        DispatchQueue.main.async {
+            self.preventAdjustContentOffsetOnChatBarBottomInsetChangeCounter -= 1
+        }
     }
 
     func commentInputViewResetReplyContext(_ inputView: CommentInputView) {
@@ -733,4 +861,15 @@ fileprivate class LoadingViewController: UIViewController {
             self.tryAgainLabel.isHidden = false
         }
     }
+}
+
+extension UITableView {
+
+    var hasScrollAnimation: Bool {
+        get {
+            let result = self.value(forKey: "animation") != nil
+            return result
+        }
+    }
+
 }
