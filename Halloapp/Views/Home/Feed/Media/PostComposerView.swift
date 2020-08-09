@@ -392,7 +392,7 @@ fileprivate struct TextView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UITextView, context: Context) {
-        uiView.text = text.value
+        // Don't set uiView.text here (it clears markedTextRange, which breaks IME)
         TextView.recomputeHeight(textView: uiView, resultHeight: $textHeight.value)
     }
 
