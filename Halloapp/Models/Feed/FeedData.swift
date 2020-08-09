@@ -664,6 +664,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return .comment
         }
 
+        // Someone mentioned you in a comment
+        else if comment.mentions?.contains(where: { $0.userID == selfId }) ?? false {
+            return .mentionComment
+        }
+
         // Someone commented on the post you've commented before.
         if comment.post.comments?.contains(where: { $0.userId == selfId }) ?? false {
             return .otherComment
@@ -687,6 +692,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             notification.userId = comment.userId
             notification.timestamp = comment.timestamp
             notification.text = comment.text
+
+            var mentionSet = Set<FeedMention>()
+            for commentMention in comment.mentions ?? [] {
+                let newMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+                newMention.index = commentMention.index
+                newMention.userID = commentMention.userID
+                newMention.name = commentMention.name
+                mentionSet.insert(newMention)
+            }
+            notification.mentions = mentionSet
+
             if let media = comment.post.media?.first {
                 switch media.type {
                 case .image:

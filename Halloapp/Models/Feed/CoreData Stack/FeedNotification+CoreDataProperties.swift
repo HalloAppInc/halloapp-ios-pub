@@ -19,6 +19,7 @@ extension FeedNotification {
         case retractedComment = 2 // comment was deleted
         case retractedPost = 3    // post was deleted
         case otherComment = 4     // comment on the post your commented on
+        case mentionComment = 5   // mentioned in a comment
     }
 
     enum MediaType: Int16 {
@@ -42,6 +43,7 @@ extension FeedNotification {
     }
     @NSManaged var commentId: FeedPostCommentID?
     @NSManaged var mediaPreview: Data?
+    @NSManaged var mentions: Set<FeedMention>?
     @NSManaged var postId: FeedPostID
     @NSManaged var userId: UserID
     @NSManaged var read: Bool
@@ -71,14 +73,22 @@ extension FeedNotification {
         }
     }
 
+    var textWithMentions: NSAttributedString? {
+        get {
+            let orderedMentions = mentions?.sorted(by: { $0.index < $1.index }) ?? []
+            return AppContext.shared.contactStore.textWithMentions(
+                text,
+                orderedMentions: orderedMentions)
+        }
+    }
+
     var formattedText: NSAttributedString {
         get {
             var eventText: String
             switch self.event {
             case .comment:
                 if self.text != nil {
-                    // TODO: truncate as necessary
-                    eventText = "<$author$> commented: \(self.text!)"
+                    eventText = "<$author$> commented: <$text$>"
                 } else {
                     eventText =  "<$author$> commented on your post"
                 }
@@ -93,20 +103,37 @@ extension FeedNotification {
 
             case .otherComment:
                 if self.text != nil {
-                    // TODO: truncate as necessary
-                    eventText = "<$author$> also commented: \(self.text!)"
+                    eventText = "<$author$> also commented: <$text$>"
                 } else {
                     eventText =  "<$author$> also commented"
                 }
+
+            case .mentionComment:
+                if self.text != nil {
+                    eventText = "<$author$> mentioned you in a comment: <$text$>"
+                } else {
+                    eventText = "<$author$> mentioned you in a comment"
+                }
             }
 
-            let parameterRange = (eventText as NSString).range(of: "<$author$>")
 
             let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
             let boldFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
             let result = NSMutableAttributedString(string: eventText, attributes: [ .font: baseFont ])
-            let author = NSAttributedString(string: self.authorName, attributes: [ .font: boldFont ])
-            result.replaceCharacters(in: parameterRange, with: author)
+
+            let authorRange = (result.string as NSString).range(of: "<$author$>")
+            if authorRange.location != NSNotFound {
+                let author = NSAttributedString(string: self.authorName, attributes: [ .font: boldFont ])
+                result.replaceCharacters(in: authorRange, with: author)
+            }
+
+            let textRange = (result.string as NSString).range(of: "<$text$>")
+            if textRange.location != NSNotFound {
+                // TODO: truncate as necessary
+                let replacementString = textWithMentions?.string ?? ""
+                result.replaceCharacters(in: textRange, with: replacementString)
+            }
+
             result.addAttribute(.foregroundColor, value: UIColor.label, range: NSRange(location: 0, length: result.length))
 
             let timestampString = NSAttributedString(string: " \(self.formattedTimestamp)", attributes: [ .font: baseFont, .foregroundColor: UIColor.secondaryLabel ])
