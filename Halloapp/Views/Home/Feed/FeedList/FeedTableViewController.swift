@@ -141,8 +141,6 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     private var trackPerRowFRCChanges = false
 
-    private var reloadTableViewInDidChangeContent = false
-
     func reloadTableView() {
         guard self.fetchedResultsController != nil else { return }
         self.fetchedResultsController?.delegate = nil
@@ -170,12 +168,15 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        reloadTableViewInDidChangeContent = false
         trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
-        DDLogDebug("FeedTableView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
             self.tableView.beginUpdates()
+            CATransaction.begin()
+            CATransaction.setCompletionBlock {
+                self.tableView.setNeedsLayout()
+            }
         }
+        DDLogDebug("FeedTableView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
@@ -184,9 +185,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             guard let indexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
             DDLogDebug("FeedTableView/frc/insert [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.insertRows(at: [ indexPath ], with: .none)
-            } else {
-                reloadTableViewInDidChangeContent = true
+                self.tableView.insertRows(at: [ indexPath ], with: .automatic)
             }
 
         case .delete:
@@ -194,8 +193,6 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             DDLogDebug("FeedTableView/frc/delete [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.deleteRows(at: [ indexPath ], with: .none)
-            } else {
-                reloadTableViewInDidChangeContent = true
             }
 
         case .move:
@@ -203,8 +200,6 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             DDLogDebug("FeedTableView/frc/move [\(feedPost)] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
-            } else {
-                reloadTableViewInDidChangeContent = true
             }
 
         case .update:
@@ -212,8 +207,6 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             DDLogDebug("FeedTableView/frc/update [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.reloadRows(at: [ indexPath ], with: .none)
-            } else {
-                reloadTableViewInDidChangeContent = true
             }
 
         default:
@@ -222,10 +215,11 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("FeedTableView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        DDLogDebug("FeedTableView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
             self.tableView.endUpdates()
-        } else if reloadTableViewInDidChangeContent {
+            CATransaction.commit()
+        } else {
             self.tableView.reloadData()
         }
     }
