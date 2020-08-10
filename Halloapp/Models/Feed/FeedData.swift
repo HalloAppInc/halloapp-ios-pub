@@ -757,6 +757,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 notifications = self.notifications(with: isNotReadPredicate, in: managedObjectContext)
             }
             DDLogInfo("FeedData/notifications/mark-read-all Count: \(notifications.count)")
+            guard !notifications.isEmpty else { return }
             notifications.forEach {
                 $0.read = true
                 
