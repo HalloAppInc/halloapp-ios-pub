@@ -320,6 +320,15 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     // MARK: Reply Context
 
+    func addReplyMentionIfPossible(for userID: UserID, name: String) {
+        if textView.text.isEmpty {
+            let mentionString = "@\(name)"
+            textView.text = mentionString + " "
+            textView.addMention(userID: userID, range: mentionString.fullExtent)
+            inputTextViewDidChange(textView)
+        }
+    }
+
     func showReplyPanel(with contactName: String) {
         let formatString = "Replying to <$author$>"
         let parameterRange = (formatString as NSString).range(of: "<$author$>")

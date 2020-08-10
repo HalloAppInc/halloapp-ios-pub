@@ -584,6 +584,7 @@ fileprivate class CommentsViewControllerInternal: UIViewController, UITableViewD
                 contactName = "myself"
             } else {
                 contactName = AppContext.shared.contactStore.fullName(for: context.userId)
+                self.commentsInputView.addReplyMentionIfPossible(for: context.userId, name: contactName)
             }
             self.commentsInputView.showReplyPanel(with: contactName)
         } else {
