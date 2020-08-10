@@ -185,7 +185,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             guard let indexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
             DDLogDebug("FeedTableView/frc/insert [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.insertRows(at: [ indexPath ], with: .automatic)
+                self.tableView.insertRows(at: [ indexPath ], with: .fade)
             }
 
         case .delete:
