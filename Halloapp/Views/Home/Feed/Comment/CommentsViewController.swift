@@ -181,6 +181,12 @@ fileprivate class CommentsViewControllerInternal: UITableViewController, Comment
         if view.window == nil {
             setNeedsScrollToTarget(withAnimation: false)
         }
+
+        // This is necessary because calling simply in `viewWillAppear` does not always work
+        // because the view isn't yet attached to a window.
+        DispatchQueue.main.async {
+            self.becomeFirstResponder()
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
