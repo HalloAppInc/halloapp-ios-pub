@@ -7,30 +7,64 @@
 //
 
 import CocoaLumberjack
-import SwiftUI
+import Combine
 import UIKit
 
-class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+class SceneDelegate: UIResponder {
 
     var window: UIWindow?
+
+    private var cancellables = Set<AnyCancellable>()
+
+    enum UserInterfaceState {
+        case none
+        case registration
+        case mainInterface
+    }
+
+    private var userIntefaceState: UserInterfaceState = .none
+
+    private func viewController(forUserInterfaceState state: UserInterfaceState) -> UIViewController? {
+        switch state {
+        case .registration:
+            return VerificationViewController.loadedFromStoryboard()
+
+        case .mainInterface:
+            return HomeViewController()
+
+        default:
+            return nil
+        }
+    }
+
+    private func transition(toUserInterfaceState newState: UserInterfaceState) {
+        guard newState != userIntefaceState else { return }
+        userIntefaceState = newState
+        if let viewController = viewController(forUserInterfaceState: userIntefaceState) {
+            window?.rootViewController = viewController
+        }
+    }
+}
+
+extension SceneDelegate: UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         DDLogInfo("application/sceneWillConnect")
 
-        // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
-        // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
-        // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-
-        // Use a UIHostingController as window root view controller.
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
-            window.rootViewController = UIHostingController(rootView: Landing())
             if let tintColor = UIColor(named: "Tint") {
                 window.tintColor = tintColor
             }
             self.window = window
             window.makeKeyAndVisible()
         }
+
+        cancellables.insert(
+            MainAppContext.shared.userData.$isLoggedIn.sink { [weak self] (isLoggedIn) in
+                guard let self = self else { return }
+                self.transition(toUserInterfaceState: isLoggedIn ? .mainInterface : .registration)
+        })
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

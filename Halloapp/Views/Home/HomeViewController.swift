@@ -10,32 +10,7 @@ import Combine
 import Contacts
 import ContactsUI
 import Core
-import SwiftUI
 import UIKit
-
-struct HomeView: UIViewControllerRepresentable {
-    typealias UIViewControllerType = HomeViewController
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    func makeUIViewController(context: Context) -> UIViewControllerType {
-        return HomeViewController()
-    }
-
-    func updateUIViewController(_ viewController: UIViewControllerType, context: Context) { }
-
-    static func dismantleUIViewController(_ uiViewController: Self.UIViewControllerType, coordinator: Self.Coordinator) { }
-
-    class Coordinator: NSObject {
-        var parent: HomeView
-
-        init(_ homeView: HomeView) {
-            self.parent = homeView
-        }
-    }
-}
 
 class HomeViewController: UITabBarController {
 

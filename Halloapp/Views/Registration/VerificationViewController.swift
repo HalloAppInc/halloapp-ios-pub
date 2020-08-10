@@ -6,33 +6,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
-import SwiftUI
 import UIKit
-
-struct VerificationView: UIViewControllerRepresentable {
-    typealias UIViewControllerType = VerificationViewController
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    func makeUIViewController(context: Context) -> UIViewControllerType {
-        return UIStoryboard(name: "Registration", bundle: nil).instantiateInitialViewController() as! VerificationViewController
-    }
-
-    func updateUIViewController(_ viewController: UIViewControllerType, context: Context) { }
-
-    static func dismantleUIViewController(_ uiViewController: Self.UIViewControllerType, coordinator: Self.Coordinator) { }
-
-    class Coordinator: NSObject {
-        var parent: VerificationView
-
-        init(_ verificationView: VerificationView) {
-            self.parent = verificationView
-        }
-    }
-
-}
 
 struct VerificationPhoneInputContext {
 }
@@ -52,6 +26,10 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
         case complete(VerificationCompleteContext)
     }
     var state: State?
+
+    class func loadedFromStoryboard() -> VerificationViewController {
+        return UIStoryboard(name: "Registration", bundle: nil).instantiateInitialViewController() as! VerificationViewController
+    }
 
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
