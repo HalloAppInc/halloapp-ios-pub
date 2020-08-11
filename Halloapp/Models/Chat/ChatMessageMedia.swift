@@ -10,11 +10,6 @@ import CocoaLumberjack
 import Combine
 import Foundation
 
-enum ChatMessageMediaType: Int {
-    case image = 0
-    case video = 1
-}
-
 class ChatMessageMedia: Identifiable, ObservableObject, Hashable {
     static let chatImageLoadingQueue = DispatchQueue(label: "com.halloapp.chat-media-loading", qos: .userInitiated)
 

@@ -154,14 +154,26 @@ class ComposeViewController: SLComposeServiceViewController {
                         // The ComposeView already disappeared, we cannot go back
                         ShareExtensionContext.shared.shareExtensionIsActive = false
                         ShareExtensionContext.shared.xmppController.disconnect()
-                        super.didSelectPost()
+                        super.didSelectCancel()
                     }
                 }
             }
             
-        case .contact(_, _):
-            // TODO
-            return
+        case .contact(let userId, _):
+            ShareExtensionContext.shared.sharedDataStore.sned(to: userId, text: contentText, media: mediaToSend, using: ShareExtensionContext.shared.xmppController) { result in
+                switch result {
+                case .success(_):
+                    ShareExtensionContext.shared.shareExtensionIsActive = false
+                    ShareExtensionContext.shared.xmppController.disconnect()
+                    super.didSelectPost()
+                    
+                case .failure(_):
+                    // This should never happen
+                    ShareExtensionContext.shared.shareExtensionIsActive = false
+                    ShareExtensionContext.shared.xmppController.disconnect()
+                    super.didSelectCancel()
+                }
+            }
         }
     }
     

@@ -86,7 +86,6 @@ class DestinationViewController: UITableViewController {
         } else {
             let cell = tableView.dequeueReusableCell(withIdentifier: Self.contactCellReuseIdentifier, for: indexPath) as! ContactTableViewCell
             cell.configure(with: contacts[indexPath.row].userId!, name: contacts[indexPath.row].fullName!, using: avatarStore)
-            cell.isUserInteractionEnabled = false // Disable contacts for the first version
             return cell
         }
     }

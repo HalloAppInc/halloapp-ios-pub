@@ -1124,33 +1124,104 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             
         }
     }
+    
+    func mergeSharedData(using sharedDataStore: SharedDataStore, completion: @escaping (() -> Void)) {
+        let messages = sharedDataStore.messages()
+        
+        guard !messages.isEmpty else {
+            completion()
+            return
+        }
+        
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            for message in messages {
+                guard self.chatMessage(with: message.id, in: managedObjectContext) == nil else {
+                    DDLogError("ChatData/mergeSharedData/already-exists [\(message.id)]")
+                    continue
+                }
+                
+                DDLogDebug("ChatData/mergeSharedData/new [\(message.id)]")
+                
+                let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
+                chatMessage.id = message.id
+                chatMessage.toUserId = message.toUserId
+                chatMessage.fromUserId = message.fromUserId
+                chatMessage.text = message.text
+                chatMessage.feedPostId = nil
+                chatMessage.feedPostMediaIndex = 0
+                chatMessage.incomingStatus = .none
+                chatMessage.outgoingStatus = .sentOut
+                chatMessage.timestamp = message.timestamp
+                
+                var lastMsgMediaType: ChatThread.LastMsgMediaType = .none
+                
+                if let messageMedia = message.media {
+                    for (index, media) in messageMedia.enumerated() {
+                        DDLogDebug("ChatData/mergeSharedData/new/add-media [\(media.url)]")
+                        let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
+                        switch media.type {
+                        case .image:
+                            chatMedia.type = .image
+                            if lastMsgMediaType == .none {
+                                lastMsgMediaType = .image
+                            }
+                        case .video:
+                            chatMedia.type = .video
+                            if lastMsgMediaType == .none {
+                                lastMsgMediaType = .video
+                            }
+                        }
+                        chatMedia.incomingStatus = .none
+                        chatMedia.outgoingStatus = .uploaded
+                        chatMedia.url = media.url
+                        chatMedia.size = media.size
+                        chatMedia.key = media.key
+                        chatMedia.order = Int16(index)
+                        chatMedia.sha256 = media.sha256
+                        chatMedia.message = chatMessage
+                        
+                        do {
+                            try self.copyPendingToChatMedia(fromUrl: SharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath), to: chatMedia, chatMessage: chatMessage)
+                        } catch {
+                            DDLogError("ChatData/mergeSharedData/media/copy-media/error [\(error)]")
+                        }
+                    }
+                }
+                
+                // Update Chat Thread
+                if let chatThread = self.chatThread(chatWithUserId: chatMessage.toUserId, in: managedObjectContext) {
+                    chatThread.lastMsgId = chatMessage.id
+                    chatThread.lastMsgUserId = chatMessage.fromUserId
+                    chatThread.lastMsgText = chatMessage.text
+                    chatThread.lastMsgMediaType = lastMsgMediaType
+                    chatThread.lastMsgStatus = .none
+                    chatThread.lastMsgTimestamp = chatMessage.timestamp
+                } else {
+                    let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
+                    chatThread.chatWithUserId = chatMessage.toUserId
+                    chatThread.lastMsgId = chatMessage.id
+                    chatThread.lastMsgUserId = chatMessage.fromUserId
+                    chatThread.lastMsgText = chatMessage.text
+                    chatThread.lastMsgMediaType = lastMsgMediaType
+                    chatThread.lastMsgStatus = .none
+                    chatThread.lastMsgTimestamp = chatMessage.timestamp
+                }
+            }
+            
+            DispatchQueue.main.async {
+                // Save will trigger a UI refresh
+                self.save(managedObjectContext)
+            }
+            DDLogInfo("ChatData/mergeSharedData/finished")
+            
+            sharedDataStore.delete(messages) {
+                completion()
+            }
+        }
+    }
 }
 
-struct XMPPChatMessage {
-    let id: String
-    let fromUserId: UserID
-    let toUserId: UserID
-    let text: String?
-    let media: [XMPPChatMedia]
-    let feedPostId: String?
-    let feedPostMediaIndex: Int32
-    var timestamp: TimeInterval?
-
-    // init outgoing message
-    init(toUserId: String, text: String?, media: [PendingMedia]?, feedPostId: String?, feedPostMediaIndex: Int32) {
-        self.id = UUID().uuidString
-        self.fromUserId = MainAppContext.shared.userData.userId
-        self.toUserId = toUserId
-        self.text = text
-        if let media = media?.map({ XMPPChatMedia(chatMedia: $0) }) {
-            self.media = media
-        } else {
-            self.media = []
-        }
-        self.feedPostId = feedPostId
-        self.feedPostMediaIndex = feedPostMediaIndex
-    }
-
+extension XMPPChatMessage {
     init(chatMessage: ChatMessage) {
         self.id = chatMessage.id
         self.fromUserId = chatMessage.fromUserId
@@ -1208,7 +1279,7 @@ struct XMPPChatMessage {
         
         self.timestamp = chat.attributeDoubleValue(forName: "timestamp")
     }
-
+    
     func encryptXMPPElement(completion: @escaping (XMPPElement) -> Void) {
         let element = self.xmppElement
         guard let chat = element.element(forName: "chat") else { return }
@@ -1219,9 +1290,9 @@ struct XMPPChatMessage {
         guard let unencryptedData = Data(base64Encoded: encStringValue, options: .ignoreUnknownCharacters) else { return }
         
         MainAppContext.shared.keyData.wrapMessage(for: self.toUserId, unencrypted: unencryptedData) { (data, identityKey, oneTimeKeyId) in
-
+            
             if let data = data {
-//                chat.remove(forName: "s1")
+                //                chat.remove(forName: "s1")
                 chat.addChild({
                     let enc = XMPPElement(name: "enc", stringValue: data.base64EncodedString())
                     
@@ -1231,178 +1302,17 @@ struct XMPPChatMessage {
                             enc.addAttribute(withName: "one_time_pre_key_id", stringValue: String(oneTimeKeyId))
                         }
                     }
-                        
+                    
                     return enc
-                }())
+                    }())
                 
                 return completion(element)
             }
         }
     }
-    
-    var xmppElement: XMPPElement {
-        get {
-            let message = XMPPElement(name: "message")
-            message.addAttribute(withName: "id", stringValue: id)
-            message.addAttribute(withName: "to", stringValue: "\(toUserId)@s.halloapp.net")
-            message.addChild({
-                let chat = XMPPElement(name: "chat")
-                chat.addAttribute(withName: "xmlns", stringValue: "halloapp:chat:messages")
-
-                if let protobufData = try? self.protoContainer.serializedData() {
-                    chat.addChild(XMPPElement(name: "s1", stringValue: protobufData.base64EncodedString()))
-                }
-                    
-                return chat
-            }())
-            return message
-        }
-    }
-    
-    var protoContainer: Proto_Container {
-        get {
-            var protoChatMessage = Proto_ChatMessage()
-            if self.text != nil {
-                protoChatMessage.text = self.text!
-            }
-            
-            if self.feedPostId != nil {
-                protoChatMessage.feedPostID = self.feedPostId!
-                protoChatMessage.feedPostMediaIndex = self.feedPostMediaIndex
-            }
-            
-            if self.media.count > 0 {
-                protoChatMessage.media = self.media.compactMap { med in
-                    
-                    var protoMedia = Proto_Media()
-                    protoMedia.type = {
-                        switch med.type {
-                        case .image: return .image
-                        case .video: return .video
-                        }
-                    }()
-                    protoMedia.width = Int32(med.size.width)
-                    protoMedia.height = Int32(med.size.height)
-                    protoMedia.encryptionKey = Data(base64Encoded: med.key)!
-                    protoMedia.plaintextHash = Data(base64Encoded: med.sha256)!
-                    protoMedia.downloadURL = med.url.absoluteString
-                    return protoMedia
-                }
-            }
-            
-            var protoContainer = Proto_Container()
-            protoContainer.chatMessage = protoChatMessage
-            
-            return protoContainer
-        }
-    }
-    
 }
-
-
-
-protocol ChatMediaProtocol {
-    var url: URL { get }
-    var type: ChatMessageMediaType { get }
-    var size: CGSize { get }
-    var key: String { get }
-    var sha256: String { get }
-}
-
-extension ChatMediaProtocol {
-    var protoMessage: Proto_Media {
-        get {
-            var media = Proto_Media()
-            media.type = {
-                switch type {
-                case .image: return .image
-                case .video: return .video
-                }
-            }()
-            media.width = Int32(size.width)
-            media.height = Int32(size.height)
-            media.encryptionKey = Data(base64Encoded: key)!
-            media.plaintextHash = Data(base64Encoded: sha256)!
-            media.downloadURL = url.absoluteString
-            return media
-        }
-    }
-}
-
-struct XMPPChatMedia: ChatMediaProtocol {
-
-    let url: URL
-    let type: ChatMessageMediaType
-    let size: CGSize
-    let key: String
-    let sha256: String
-
-    init(chatMedia: PendingMedia) {
-        self.url = chatMedia.url!
-        self.type = chatMedia.type == .image ? ChatMessageMediaType.image : ChatMessageMediaType.video
-        self.size = chatMedia.size!
-        self.key = chatMedia.key!
-        self.sha256 = chatMedia.sha256!
-    }
-
-    init?(urlElement: XMLElement) {
-        guard let typeStr = urlElement.attributeStringValue(forName: "type") else { return nil }
-        guard let type: ChatMessageMediaType = {
-            switch typeStr {
-            case "image": return .image
-            case "video": return .video
-            default: return nil
-            }}() else { return nil }
-        guard let urlString = urlElement.stringValue else { return nil }
-        guard let url = URL(string: urlString) else { return nil }
-        let width = urlElement.attributeIntegerValue(forName: "width"), height = urlElement.attributeIntegerValue(forName: "height")
-        guard width > 0 && height > 0 else { return nil }
-        guard let key = urlElement.attributeStringValue(forName: "key") else { return nil }
-        guard let sha256 = urlElement.attributeStringValue(forName: "sha256hash") else { return nil }
-
-        self.url = url
-        self.type = type
-        self.size = CGSize(width: width, height: height)
-        self.key = key
-        self.sha256 = sha256
-    }
-
-    init?(protoMedia: Proto_Media) {
-        guard let type: ChatMessageMediaType = {
-            switch protoMedia.type {
-            case .image: return .image
-            case .video: return .video
-            default: return nil
-            }}() else { return nil }
-        guard let url = URL(string: protoMedia.downloadURL) else { return nil }
-        let width = CGFloat(protoMedia.width), height = CGFloat(protoMedia.height)
-        guard width > 0 && height > 0 else { return nil }
-
-        self.url = url
-        self.type = type
-        self.size = CGSize(width: width, height: height)
-        self.key = protoMedia.encryptionKey.base64EncodedString()
-        self.sha256 = protoMedia.plaintextHash.base64EncodedString()
-    }
-}
-
 
 extension Proto_Container {
-    static func chatMessageContainer(from entry: XMLElement) -> Proto_Container? {
-        guard let s1 = entry.element(forName: "s1")?.stringValue else { return nil }
-        guard let data = Data(base64Encoded: s1, options: .ignoreUnknownCharacters) else { return nil }
-        do {
-            let protoContainer = try Proto_Container(serializedData: data)
-            if protoContainer.hasChatMessage {
-                return protoContainer
-            }
-        }
-        catch {
-            DDLogError("xmpp/chatmessage/invalid-protobuf")
-        }
-        return nil
-    }
-    
     static func unwrapMessage(for userId: String, from entry: XMLElement) -> Proto_Container? {
         guard let protoContainerData = MainAppContext.shared.keyData.unwrapMessage(for: userId, from: entry) else { return nil }
         do {
@@ -1421,6 +1331,3 @@ extension XMPPReceipt {
         return XMPPReceipt(itemId: chatMessage.id, userId: chatMessage.fromUserId, type: .read, timestamp: nil, thread: .none)
     }
 }
-
-
-

@@ -20,6 +20,8 @@
 		249028A324C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490289F24C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift */; };
 		249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 249028A724C5E01B0019C4D5 /* SharedData.xcdatamodeld */; };
 		249028AB24C5E0600019C4D5 /* SharedDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249028AA24C5E05F0019C4D5 /* SharedDataStore.swift */; };
+		24AA69D924DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D724DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift */; };
+		24AA69DA24DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */; };
 		24D743C724AEA821001111BF /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D743C624AEA821001111BF /* AvatarView.swift */; };
 		68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E7F24D2128300F40F1F /* NSAttributedString.swift */; };
 		68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8124D22E5500F40F1F /* NSRange.swift */; };
@@ -84,6 +86,8 @@
 		2490289F24C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FeedPost+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		249028A824C5E01B0019C4D5 /* SharedDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SharedDataModel.xcdatamodel; sourceTree = "<group>"; };
 		249028AA24C5E05F0019C4D5 /* SharedDataStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharedDataStore.swift; sourceTree = "<group>"; };
+		24AA69D724DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedChatMessage+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedChatMessage+CoreDataClass.swift"; sourceTree = "<group>"; };
 		24D743C624AEA821001111BF /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
@@ -181,6 +185,8 @@
 				2490289F24C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift */,
 				2490289C24C5DFDE0019C4D5 /* Media+CoreDataClass.swift */,
 				2490289E24C5DFDE0019C4D5 /* Media+CoreDataProperties.swift */,
+				24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */,
+				24AA69D724DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift */,
 				249028A724C5E01B0019C4D5 /* SharedData.xcdatamodeld */,
 				68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */,
 				68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */,
@@ -521,7 +527,9 @@
 				76812406248614BA008C5216 /* XMPPReceipt.swift in Sources */,
 				76812417248619BB008C5216 /* schema.pb.swift in Sources */,
 				768123D32485DBE2008C5216 /* LogFormatter.swift in Sources */,
+				24AA69DA24DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift in Sources */,
 				76E5153824A18171003F1273 /* Digest.swift in Sources */,
+				24AA69D924DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift in Sources */,
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
 				EAAE7B3E24DD04ED00946B77 /* XMPPWhisper.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,

@@ -17,7 +17,10 @@ public enum MediaType: Int {
 }
 
 open class SharedDataStore {
-    public typealias ShareExtenstionFeedPostRequestCompletion = (Result<FeedPostID, Error>) -> Void
+    public enum PostOrMessage {
+        case post(SharedFeedPost)
+        case message(SharedChatMessage)
+    }
     
     private class var persistentStoreURL: URL {
         get {
@@ -76,6 +79,36 @@ open class SharedDataStore {
         }
     }
     
+    public func save(_ media: PendingMedia, index: Int, to target: PostOrMessage, using managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("SharedDataStore/save/add new media with [\(media.url!)]")
+        
+        let feedMedia = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+        feedMedia.type = media.type
+        feedMedia.url = media.url!
+        feedMedia.size = media.size!
+        feedMedia.key = media.key!
+        feedMedia.sha256 = media.sha256!
+        feedMedia.order = Int16(index)
+        
+        switch target {
+        case .post(let feedPost):
+            feedMedia.post = feedPost
+        case .message(let chatMessage):
+            feedMedia.message = chatMessage
+        }
+        
+        let mediaFilename = UUID().uuidString
+        let destinationFileURL = Self.fileURL(forFileName: mediaFilename, withFileType: feedMedia.type)
+        feedMedia.relativeFilePath = destinationFileURL.lastPathComponent
+        
+        do {
+            try FileManager.default.createDirectory(at: Self.dataDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+            try FileManager.default.copyItem(at: media.fileURL!, to: destinationFileURL)
+        } catch {
+            DDLogError("SharedDataStore/save/copy-media/error [\(error)]")
+        }
+    }
+    
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         self.backgroundProcessingQueue.async {
             let managedObjectContext = self.persistentContainer.newBackgroundContext()
@@ -91,16 +124,30 @@ open class SharedDataStore {
         do {
             let posts = try managedObjectContext.fetch(fetchRequest)
             return posts
-        }catch {
-            DDLogError("SharedDataStore/postData/error  [\(error)]")
-            fatalError("Failed to fetch shared feed posts.")
+        } catch {
+            DDLogError("SharedDataStore/posts/error  [\(error)]")
+            fatalError("Failed to fetch shared posts.")
         }
     }
     
-    public func delete(_ posts: [SharedFeedPost], completion: @escaping (() -> Void)) {
+    public func messages() -> [SharedChatMessage] {
+        let managedObjectContext = persistentContainer.viewContext
+        let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: false)]
+        
+        do {
+            let messages = try managedObjectContext.fetch(fetchRequest)
+            return messages
+        } catch {
+            DDLogError("SharedDataStore/messages/error  [\(error)]")
+            fatalError("Failed to fetch shared messages.")
+        }
+    }
+    
+    public func delete(_ objects: [NSManagedObject], completion: @escaping (() -> Void)) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
-            for post in posts {
-                managedObjectContext.delete(managedObjectContext.object(with: post.objectID))
+            for object in objects {
+                managedObjectContext.delete(managedObjectContext.object(with: object.objectID))
             }
             
             self.save(managedObjectContext)

@@ -112,7 +112,10 @@ class MainAppContext: AppContext {
             mergeGroup.leave()
         }
         
-        // TODO: Merge Chats Here
+        mergeGroup.enter()
+        chatData.mergeSharedData(using: sharedDataStore) {
+            mergeGroup.leave()
+        }
         
         mergeGroup.notify(queue: .main) {
             DDLogInfo("MainAppContext/mergeSharedData/end")

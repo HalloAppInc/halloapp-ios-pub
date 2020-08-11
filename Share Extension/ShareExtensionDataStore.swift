@@ -13,6 +13,8 @@ import UIKit
 import XMPPFramework
 
 class ShareExtensionDataStore: SharedDataStore {
+    public typealias ShareExtenstionFeedPostRequestCompletion = (Result<FeedPostID, Error>) -> Void
+    
     func post(text: String, media: [PendingMedia], using xmppController: XMPPController, completion: @escaping ShareExtenstionFeedPostRequestCompletion) {
         let postId: FeedPostID = UUID().uuidString
         DDLogInfo("SharedDataStore/post/create new feedpost with [\(postId)]")
@@ -27,27 +29,7 @@ class ShareExtensionDataStore: SharedDataStore {
         feedPost.status = .none
         
         for (index, item) in media.enumerated() {
-            DDLogInfo("SharedDataStore/post/add new media with [\(item.url!)]")
-            
-            let feedMedia = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
-            feedMedia.type = item.type
-            feedMedia.url = item.url!
-            feedMedia.size = item.size!
-            feedMedia.key = item.key!
-            feedMedia.sha256 = item.sha256!
-            feedMedia.order = Int16(index)
-            feedMedia.post = feedPost
-            
-            let mediaFilename = UUID().uuidString
-            let destinationFileURL = Self.fileURL(forFileName: mediaFilename, withFileType: feedMedia.type)
-            feedMedia.relativeFilePath = destinationFileURL.lastPathComponent
-            
-            do {
-                try FileManager.default.createDirectory(at: Self.dataDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-                try FileManager.default.copyItem(at: item.fileURL!, to: destinationFileURL)
-            } catch {
-                DDLogError("SharedDataStore/post/copy-media/error [\(error)]")
-            }
+            self.save(item, index: index, to: .post(feedPost), using: managedObjectContext)
         }
         
         save(managedObjectContext)
@@ -72,5 +54,35 @@ class ShareExtensionDataStore: SharedDataStore {
         }
         
         xmppController.enqueue(request: request)
+    }
+    
+    public typealias ShareExtenstionMessageRequestCompletion = (Result<String, Error>) -> Void
+    
+    func sned(to userId: UserID, text: String, media: [PendingMedia], using xmppController: XMPPController, completion: @escaping ShareExtenstionMessageRequestCompletion) {
+        let xmppChatMessage = XMPPChatMessage(toUserId: userId, text: text, media: media, feedPostId: nil, feedPostMediaIndex: 0)
+        
+        DDLogInfo("SharedDataStore/send/create new message with [\(xmppChatMessage.id)]")
+        
+        let managedObjectContext = persistentContainer.viewContext
+        
+        let chatMessage = NSEntityDescription.insertNewObject(forEntityName: SharedChatMessage.entity().name!, into: managedObjectContext) as! SharedChatMessage
+        chatMessage.id = xmppChatMessage.id
+        chatMessage.toUserId = userId
+        chatMessage.fromUserId = AppContext.shared.userData.userId
+        chatMessage.text = text
+        chatMessage.status = .sent
+        chatMessage.timestamp = Date()
+        
+        for (index, item) in media.enumerated() {
+            self.save(item, index: index, to: .message(chatMessage), using: managedObjectContext)
+        }
+        
+        save(managedObjectContext)
+        
+        xmppController.xmppStream.send(xmppChatMessage.xmppElement)
+        
+        // TODO: Find a way to detect send error
+        
+        completion(.success(xmppChatMessage.id))
     }
 }

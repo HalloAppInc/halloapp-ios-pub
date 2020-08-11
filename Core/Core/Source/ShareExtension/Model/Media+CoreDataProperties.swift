@@ -49,6 +49,7 @@ extension SharedMedia {
     @NSManaged public var width: Float
     
     @NSManaged public var post: SharedFeedPost?
+    @NSManaged public var message: SharedChatMessage?
 
 }
 

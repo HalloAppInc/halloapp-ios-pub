@@ -24,6 +24,9 @@
 		2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681242C2486EAC2008C5216 /* AppExtensionContext.swift */; };
 		2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
 		2446D68B24CF732B005BAD3C /* ShareExtensionDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D68A24CF732B005BAD3C /* ShareExtensionDataStore.swift */; };
+		24AA69D324DCC1B500ED65CE /* XMPPChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */; };
+		24AA69D524DCC21000ED65CE /* XMPPChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */; };
+		24AA69DC24DDC6DA00ED65CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
 		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		24D743E824B3D504001111BF /* Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; };
 		49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90C695FCA0C4D9E04A558D6 /* Pods_HalloApp.framework */; };
@@ -267,6 +270,7 @@
 		2446D67B24CB54F8005BAD3C /* VideoUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		2446D67D24CB558F005BAD3C /* ImageServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
 		2446D68A24CF732B005BAD3C /* ShareExtensionDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionDataStore.swift; sourceTree = "<group>"; };
+		24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPChatMessage.swift; sourceTree = "<group>"; };
 		24D743D624B3D199001111BF /* Share Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Share Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		368056ED77A75DB993231195 /* Pods-Halloapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Halloapp.release.xcconfig"; path = "Target Support Files/Pods-Halloapp/Pods-Halloapp.release.xcconfig"; sourceTree = "<group>"; };
@@ -774,6 +778,7 @@
 				EA796B8E2469B99A00BC795E /* CoreData Stack */,
 				EA35856F2450BE2900E6E8AB /* ChatData.swift */,
 				EAD476F82458F9FE00EF8591 /* ChatMessageMedia.swift */,
+				24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */,
 			);
 			path = Chat;
 			sourceTree = "<group>";
@@ -1241,6 +1246,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				24009E8E24B667FA00155DE2 /* GoogleService-Info.plist in Resources */,
+				24AA69DC24DDC6DA00ED65CE /* Assets.xcassets in Resources */,
 				2446D66924C7E48E005BAD3C /* ExtensionPreprocessing.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1451,6 +1457,7 @@
 				24009EBA24BE3FA200155DE2 /* DestinationView.swift in Sources */,
 				24009E9124B66E6800155DE2 /* XMPPController.swift in Sources */,
 				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
+				24AA69D524DCC21000ED65CE /* XMPPChatMessage.swift in Sources */,
 				2446D68B24CF732B005BAD3C /* ShareExtensionDataStore.swift in Sources */,
 				24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */,
 				2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */,
@@ -1505,6 +1512,7 @@
 				7681241924861C5D008C5216 /* XMPPController.swift in Sources */,
 				761B3957241D815800858251 /* SyncManager.swift in Sources */,
 				76538094243D4B33000AD9A1 /* FeedNotification+CoreDataProperties.swift in Sources */,
+				24AA69D324DCC1B500ED65CE /* XMPPChatMessage.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				76A9244B244EC49000794859 /* UIView.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
