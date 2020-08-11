@@ -43,7 +43,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         
         DDLogInfo("FeedTableViewController/viewDidLoad")
 
-        navigationItem.standardAppearance = .transparentAppearance
+        navigationItem.standardAppearance = .opaqueAppearance
 
         self.tableView.separatorStyle = .none
         self.tableView.allowsSelection = false
@@ -96,26 +96,16 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         }
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        viewWillAppear()
-    }
-
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        viewDidAppear()
+
         updateNavigationBarStyleUsing(scrollView: tableView)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        viewWillDisappear()
-        stopAllVideoPlayback()
-    }
 
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        viewDidDisappear()
+        stopAllVideoPlayback()
     }
 
     func scrollToTop(animated: Bool) {

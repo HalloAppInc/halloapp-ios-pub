@@ -25,33 +25,14 @@ extension UIViewController {
     }
 
     func updateNavigationBarStyleUsing(scrollView: UIScrollView) {
-        let makeNavigationBarTransparent = scrollView.contentOffset.y <= -scrollView.adjustedContentInset.top
-        let isNavigationBarTransparent = self.navigationItem.standardAppearance?.backgroundEffect == nil
-        guard makeNavigationBarTransparent != isNavigationBarTransparent else { return }
-        if makeNavigationBarTransparent {
-            self.navigationItem.standardAppearance = .transparentAppearance
+        let makeNavigationBarOpaque = scrollView.contentOffset.y <= -scrollView.adjustedContentInset.top
+        let isNavigationBarOpaque = self.navigationItem.standardAppearance?.backgroundEffect == nil
+        guard makeNavigationBarOpaque != isNavigationBarOpaque else { return }
+        if makeNavigationBarOpaque {
+            self.navigationItem.standardAppearance = .opaqueAppearance
         } else {
             self.navigationItem.standardAppearance = .translucentAppearance
         }
-    }
-
-    func viewWillAppear() {
-        DDLogInfo("\(type(of: self))/willAppear")
-        if self.transitionCoordinator?.initiallyInteractive ?? false {
-            navigationItem.standardAppearance = .opaqueAppearance
-        }
-    }
-
-    func viewDidAppear() {
-        DDLogInfo("\(type(of: self))/didAppear")
-    }
-
-    func viewWillDisappear() {
-        DDLogInfo("\(type(of: self))/willDisappear")
-    }
-
-    func viewDidDisappear() {
-        DDLogInfo("\(type(of: self))/didDisappear")
     }
 
 }

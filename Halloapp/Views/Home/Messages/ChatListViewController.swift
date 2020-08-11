@@ -51,7 +51,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         rightButton.addTarget(self, action: #selector(showContacts), for: .touchUpInside)
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: rightButton)
         
-        self.navigationItem.standardAppearance = .transparentAppearance
+        self.navigationItem.standardAppearance = .opaqueAppearance
         
         self.tableView.backgroundColor = .feedBackground
         self.tableView.separatorStyle = .none

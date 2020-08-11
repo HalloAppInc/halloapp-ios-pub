@@ -106,7 +106,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        viewWillAppear()
+
         self.commentsInputView.willAppear(in: self)
 
         if view.window == nil {
@@ -116,7 +116,6 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        viewDidAppear()
 
         viewDidAppear = true
         self.commentsInputView.didAppear(in: self)
@@ -136,18 +135,12 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        viewWillDisappear()
 
         if isFeedPostAvailable {
             MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
         }
 
         commentsInputView.willDisappear(in: self)
-    }
-
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        viewDidDisappear()
     }
 
     override func viewDidLayoutSubviews() {
