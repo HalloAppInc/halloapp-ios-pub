@@ -54,13 +54,10 @@ class InputTextView: UITextView, UITextViewDelegate {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func addMention(userID: UserID, range: NSRange) {
-        guard text.fullExtent.contains(range), !mentions.keys.contains(where: { range.overlaps($0) }) else {
-            // Ignore invalid mention requests
-            return
-        }
-
-        mentions[range] = userID
+    func addMention(name: String, userID: UserID, in range: NSRange) {
+        var mentionInput = MentionInput(text: text, mentions: mentions, selectedRange: selectedRange)
+        mentionInput.addMention(name: name, userID: userID, in: range)
+        update(from: mentionInput)
     }
 
     func resetMentions() {
@@ -240,28 +237,36 @@ class InputTextView: UITextView, UITextViewDelegate {
     }
 
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        // Treat mentions atomically (editing any part of the mention should remove the whole thing)
 
-        let impactedMentions = mentions.keys.filter { range.overlaps($0) }
-        let rangeIncludingImpactedMentions = impactedMentions.reduce(range) { range, mention in NSUnionRange(range, mention) }
-        guard range == rangeIncludingImpactedMentions else {
-            // Ask delegate about expanded range, replacing text if necessary. Return false to the original (non-expanded) request.
-            let shouldChange = inputTextViewDelegate?.inputTextView(self, shouldChangeTextIn: rangeIncludingImpactedMentions, replacementText: text) ?? true
-            if shouldChange {
-                self.text = (self.text as NSString).replacingCharacters(in: rangeIncludingImpactedMentions, with: text)
-                let newCursorPosition = rangeIncludingImpactedMentions.location + text.count
-                textView.selectedRange = NSRange(location: newCursorPosition, length: 0)
-                impactedMentions.forEach { mentions[$0] = nil }
-                self.inputTextViewDelegate?.inputTextViewDidChange(self)
-            }
+        var mentionInput = MentionInput(text: textView.text, mentions: mentions, selectedRange: selectedRange)
+
+        // Treat mentions atomically (editing any part of the mention should remove the whole thing)
+        let rangeIncludingImpactedMentions = mentionInput
+            .impactedMentionRanges(in: range)
+            .reduce(range) { range, mention in NSUnionRange(range, mention) }
+
+        guard inputTextViewDelegate?.inputTextView(self, shouldChangeTextIn: rangeIncludingImpactedMentions, replacementText: text) ?? true else {
             return false
         }
 
-        if inputTextViewDelegate?.inputTextView(self, shouldChangeTextIn: range, replacementText: text) ?? true {
-            impactedMentions.forEach { mentions[$0] = nil }
-            return true
-        }
+        mentionInput.changeText(in: rangeIncludingImpactedMentions, to: text)
 
-        return false
+        if range == rangeIncludingImpactedMentions {
+            // Update mentions and return true so UITextView can update text without breaking IME
+            mentions = mentionInput.mentions
+            return true
+        } else {
+            // Update content ourselves and return false so UITextView doesn't issue conflicting update
+            update(from: mentionInput)
+            return false
+        }
+    }
+
+    /// Update all fields to match the input struct. This will interfere with active IME (e.g. Japanese kanji entry)
+    private func update(from mentionInput: MentionInput) {
+        self.text = mentionInput.text
+        self.mentions = mentionInput.mentions
+        self.selectedRange = mentionInput.selectedRange
+        self.inputTextViewDelegate?.inputTextViewDidChange(self)
     }
 }

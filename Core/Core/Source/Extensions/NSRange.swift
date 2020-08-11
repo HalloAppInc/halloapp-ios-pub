@@ -13,8 +13,14 @@ public extension NSRange {
         return NSLocationInRange(other.location, self) && NSMaxRange(self) >= NSMaxRange(other)
     }
 
-    /// Returns true if there is any intersection (even if intersection has 0 length)
+    /// Returns true if ranges have intersection of non-zero length or a zero-length intersection anywhere other than start or end
     func overlaps(_ other: NSRange) -> Bool {
-        return intersection(other) != nil
+        guard let overlap = intersection(other) else { return false }
+        return overlap.length > 0 || !isAdjacent(to: other)
+    }
+
+    /// Returns true if either range starts at the other's endpoint.
+    func isAdjacent(to other: NSRange) -> Bool {
+        return location == NSMaxRange(other) || other.location == NSMaxRange(self)
     }
 }

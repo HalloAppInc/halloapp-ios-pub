@@ -7,7 +7,7 @@
 //
 
 import XCTest
-@testable import Halloapp
+@testable import HalloApp
 
 class HalloappTests: XCTestCase {
 

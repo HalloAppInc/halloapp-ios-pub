@@ -95,3 +95,60 @@ public final class Mentions {
         }
     }
 }
+
+/// Handles editing text with expanded mentions
+public struct MentionInput {
+
+    init(text: String, mentions: [NSRange: UserID], selectedRange: NSRange) {
+        self.text = text
+        self.mentions = mentions
+        self.selectedRange = selectedRange
+    }
+
+    var text: String
+    var mentions: [NSRange: UserID]
+    var selectedRange: NSRange
+
+    public func impactedMentionRanges(in editRange: NSRange) -> [NSRange] {
+        return mentions.keys.filter { editRange.overlaps($0) }
+    }
+
+    public mutating func addMention(name: String, userID: UserID, in range: NSRange) {
+        let mentionString = "@\(name)"
+        let mentionRange = NSRange(location: range.location, length: mentionString.count)
+
+        let replacementString = mentionString + " "
+
+        changeText(in: range, to: replacementString)
+        mentions[mentionRange] = userID
+    }
+
+    public mutating func changeText(in range: NSRange, to replacementText: String) {
+        guard let stringRange = Range(range, in: text) else {
+            return
+        }
+
+        // Update mentions
+        let impactedMentions = impactedMentionRanges(in: range)
+        mentions = mentions.filter { !impactedMentions.contains($0.key) }
+        applyOffsetToMentions(replacementText.count - range.length, from: range.location)
+
+        // Update text
+        text = text.replacingCharacters(in: stringRange, with: replacementText)
+
+        // Update selection (move cursor to end of range)
+        let newCursorPosition = range.location + replacementText.count
+        selectedRange = NSRange(location: newCursorPosition, length: 0)
+    }
+
+    private mutating func applyOffsetToMentions(_ offset: Int, from location: Int) {
+        // Shift mentions when we make edits earlier in the text
+        mentions = Dictionary(uniqueKeysWithValues: mentions.map { (range, userID) in
+            var newRange = range
+            if range.location >= location {
+                newRange.location += offset
+            }
+            return (newRange, userID)
+        })
+    }
+}

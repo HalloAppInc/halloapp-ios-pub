@@ -336,10 +336,8 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     func addReplyMentionIfPossible(for userID: UserID, name: String) {
         if textView.text.isEmpty {
-            let mentionString = "@\(name)"
-            textView.text = mentionString + " "
-            textView.addMention(userID: userID, range: mentionString.fullExtent)
-            inputTextViewDidChange(textView)
+            // Only add reply mention if the textfield is empty
+            textView.addMention(name: name, userID: userID, in: NSRange(location: 0, length: 0))
         }
     }
 
@@ -426,22 +424,11 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     private func acceptMentionPickerItem(_ item: MentionableUser) {
 
         guard let currentWordRange = text.rangeOfWord(at: textView.selectedRange.location) else {
-            // For now we assume there is a word to replace (but in theory we could just insert at point?)
+            // For now we assume there is a word to replace (but in theory we could just insert at point)
             return
         }
 
-        let mentionString = "@\(item.fullName)"
-        let mentionRange = NSRange(location: currentWordRange.location, length: mentionString.count)
-
-        let replacementString = mentionString + " "
-        let replacementRange = NSRange(location: currentWordRange.location, length: replacementString.count)
-
-        textView.text = (text as NSString).replacingCharacters(in: currentWordRange, with: replacementString)
-
-        textView.addMention(userID: item.userID, range: mentionRange)
-
-        textView.selectedRange = NSRange(location: replacementRange.upperBound, length: 0)
-
+        textView.addMention(name: item.fullName, userID: item.userID, in: currentWordRange)
         self.updateMentionPickerContent()
     }
     

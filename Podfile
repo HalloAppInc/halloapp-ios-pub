@@ -16,6 +16,10 @@ target 'HalloApp' do
   pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
 end
 
+target 'HalloAppTests' do
+  pod 'Firebase/Crashlytics'
+end
+
 target 'Notification Service Extension' do
   pod 'Firebase/Crashlytics'
 end
