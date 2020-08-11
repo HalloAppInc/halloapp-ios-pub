@@ -10,8 +10,13 @@ import CocoaLumberjack
 import Combine
 import Core
 import CoreData
-import UIKit
 import SwiftUI
+import UIKit
+
+// MARK: Constraint Constants
+fileprivate struct LayoutConstants {
+    static let avatarSize: CGFloat = 50
+}
 
 fileprivate enum ChatListViewSection {
     case main
@@ -85,6 +90,13 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView == tableView {
             updateNavigationBarStyleUsing(scrollView: scrollView)
+        }
+    }
+    
+    func scrollToTop(animated: Bool) {
+        guard let firstSection = self.fetchedResultsController?.sections?.first else { return }
+        if firstSection.numberOfObjects > 0 {
+            self.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
         }
     }
     
@@ -530,8 +542,7 @@ fileprivate class ChatListViewCell: UITableViewCell {
     private func setup() {
         self.backgroundColor = .clear
         
-        let imageSize: CGFloat = 40.0
-        self.avatarColumn.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
+        self.avatarColumn.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize).isActive = true
         self.avatarColumn.heightAnchor.constraint(equalTo: self.avatarColumn.widthAnchor).isActive = true
         
         self.contentView.addSubview(mainRow)

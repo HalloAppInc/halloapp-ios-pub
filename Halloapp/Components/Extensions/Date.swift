@@ -69,10 +69,12 @@ extension Date {
         let seconds = -self.timeIntervalSinceNow
         
         if seconds < Date.minutes(1) {
-            return "now"
+            return "Now"
         } else if Calendar.current.isDateInToday(self) {
             let dateFormatter = DateFormatter.dateTimeFormatterCompactTime
             return dateFormatter.string(from: self)
+        } else if Calendar.current.isDateInYesterday(self) {
+            return "Yesterday"
         } else if seconds < Date.weeks(1) {
             let dateFormatter = DateFormatter.dateTimeFormatterDayOfWeek
             return dateFormatter.string(from: self)

@@ -25,6 +25,9 @@ protocol XMPPControllerChatDelegate: AnyObject {
     func xmppController(_ xmppController: XMPPController, didSendMessageReceipt receipt: XMPPReceipt)
 }
 
+protocol XMPPControllerKeyDelegate: AnyObject {
+    func xmppController(_ xmppController: XMPPController, didReceiveWhisperMessage item: XMLElement)
+}
 
 fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
@@ -41,6 +44,9 @@ class XMPPControllerMain: XMPPController {
     weak var chatDelegate: XMPPControllerChatDelegate?
     let didGetNewChatMessage = PassthroughSubject<XMPPMessage, Never>()
 
+    // MARK: Key
+    weak var keyDelegate: XMPPControllerKeyDelegate?
+    
     // MARK: Misc
     let didGetAck = PassthroughSubject<XMPPAck, Never>()
     let didGetPresence = PassthroughSubject<XMPPPresence, Never>()
@@ -358,6 +364,14 @@ class XMPPControllerMain: XMPPController {
         if let avatarElement = message.element(forName: "avatar") {
             if let delegate = self.avatarDelegate {
                 delegate.xmppController(self, didReceiveAvatar: avatarElement)
+            }
+            self.sendAck(for: message)
+            return
+        }
+        
+        if let whisperMessageElement = message.element(forName: "whisper_keys") {
+            if let delegate = self.keyDelegate {
+                delegate.xmppController(self, didReceiveWhisperMessage: whisperMessageElement)
             }
             self.sendAck(for: message)
             return

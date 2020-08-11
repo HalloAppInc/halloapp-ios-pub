@@ -164,6 +164,8 @@ extension HomeViewController: UITabBarControllerDelegate {
             if let navigationController = viewController as? UINavigationController {
                 if let visibleViewController = navigationController.topViewController as? FeedTableViewController {
                     visibleViewController.scrollToTop(animated: true)
+                } else if let visibleViewController = navigationController.topViewController as? ChatListViewController {
+                    visibleViewController.scrollToTop(animated: true)
                 }
             }
         }

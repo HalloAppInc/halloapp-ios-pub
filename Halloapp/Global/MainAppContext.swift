@@ -22,6 +22,7 @@ class MainAppContext: AppContext {
     private(set) var avatarStore: AvatarStore!
     private(set) var feedData: FeedData!
     private(set) var chatData: ChatData!
+    private(set) var keyData: KeyData!
     private(set) var syncManager: SyncManager!
     
     let didTapNotification = PassthroughSubject<NotificationUtility.Metadata, Never>()
@@ -38,10 +39,11 @@ class MainAppContext: AppContext {
             super.contactStore as! ContactStoreMain
         }
     }
-
+    
     override var isAppExtension: Bool {
         get { false }
     }
+    
 
     // MARK: Paths
     static let documentsDirectoryURL = {
@@ -67,7 +69,7 @@ class MainAppContext: AppContext {
     static let chatStoreURL = {
         documentsDirectoryURL.appendingPathComponent(chatDatabaseFilename)
     }()
-
+    
     // MARK: Initializer
 
     override class var shared: MainAppContext {
@@ -82,14 +84,13 @@ class MainAppContext: AppContext {
         let logger = CrashlyticsLogger()
         logger.logFormatter = LogFormatter()
         DDLog.add(logger)
-
         super.init(xmppControllerClass: xmppControllerClass, contactStoreClass: contactStoreClass)
-
         // This is needed to encode/decode protobuf in FeedPostInfo.
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
 
         feedData = FeedData(xmppController: xmppController, contactStore: contactStore, userData: userData)
         chatData = ChatData(xmppController: xmppController, userData: userData)
+        keyData = KeyData(xmppController: xmppController, userData: userData, keyStore: keyStore)
         syncManager = SyncManager(contactStore: contactStore, xmppController: xmppController, userData: userData)
         avatarStore = AvatarStore()
         xmppController.avatarDelegate = avatarStore

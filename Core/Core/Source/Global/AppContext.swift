@@ -22,6 +22,7 @@ open class AppContext {
     // MARK: Constants
     private static let appGroupName = "group.com.halloapp.shared"
     private static let contactsDatabaseFilename = "contacts.sqlite"
+    private static let keysDatabaseFilename = "keys.sqlite"
     
     public static let appVersion: String = {
         guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
@@ -40,6 +41,7 @@ open class AppContext {
     // MARK: Global objects
     public let userData: UserData
     public let userDefaults: UserDefaults! = UserDefaults(suiteName: AppContext.appGroupName)
+    public let keyStore: KeyStore
     public let fileLogger: DDFileLogger
     public let phoneNumberFormatter = PhoneNumberKit(metadataCallback: AppContext.phoneNumberKitMetadataCallback)
 
@@ -56,7 +58,7 @@ open class AppContext {
             contactStoreImpl
         }
     }
-
+    
     // MARK: Paths
     public static let sharedDirectoryURL: URL! = {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppContext.appGroupName)
@@ -66,6 +68,10 @@ open class AppContext {
         sharedDirectoryURL.appendingPathComponent(AppContext.contactsDatabaseFilename)
     }()
 
+    static let keyStoreURL = {
+        sharedDirectoryURL.appendingPathComponent(AppContext.keysDatabaseFilename)
+    }()
+    
     // MARK: Initializer
     open class var shared: AppContext {
         get {
@@ -108,9 +114,9 @@ open class AppContext {
         }
 
         userData = UserData()
-        
         xmppControllerImpl = xmppControllerClass.init(userData: userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
+        keyStore = KeyStore(userData: userData)
     }
 
     static func phoneNumberKitMetadataCallback() throws -> Data? {

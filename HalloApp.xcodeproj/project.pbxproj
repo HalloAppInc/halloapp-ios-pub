@@ -131,6 +131,8 @@
 		EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostComposerView.swift */; };
 		EA0D20072363AC4D008B8289 /* Landing.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20062363AC4D008B8289 /* Landing.swift */; };
 		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
+		EA220B7424D0E77D00C44CE7 /* XMPPWhisperRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA220B7224D0E77D00C44CE7 /* XMPPWhisperRequests.swift */; };
+		EA220B7B24D0EA1500C44CE7 /* KeyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA220B7A24D0EA1500C44CE7 /* KeyData.swift */; };
 		EA25178F246B693B00CE24C0 /* MediaPreviewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA25178E246B693B00CE24C0 /* MediaPreviewController.swift */; };
 		EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = EA35856C2450BE2900E6E8AB /* Chat.xcdatamodeld */; };
 		EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA35856F2450BE2900E6E8AB /* ChatData.swift */; };
@@ -380,6 +382,8 @@
 		EA0C315623EB97C800016EDB /* PostComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerView.swift; sourceTree = "<group>"; };
 		EA0D20062363AC4D008B8289 /* Landing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Landing.swift; sourceTree = "<group>"; };
 		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
+		EA220B7224D0E77D00C44CE7 /* XMPPWhisperRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMPPWhisperRequests.swift; sourceTree = "<group>"; };
+		EA220B7A24D0EA1500C44CE7 /* KeyData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyData.swift; sourceTree = "<group>"; };
 		EA25178E246B693B00CE24C0 /* MediaPreviewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewController.swift; sourceTree = "<group>"; };
 		EA35856D2450BE2900E6E8AB /* Chat.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Chat.xcdatamodel; sourceTree = "<group>"; };
 		EA35856F2450BE2900E6E8AB /* ChatData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatData.swift; sourceTree = "<group>"; };
@@ -565,6 +569,7 @@
 				761B3953241C38A300858251 /* XMPPCommonRequests.swift */,
 				76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */,
 				EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */,
+				EA220B7224D0E77D00C44CE7 /* XMPPWhisperRequests.swift */,
 			);
 			path = Requests;
 			sourceTree = "<group>";
@@ -745,6 +750,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		EA220B7524D0E7E000C44CE7 /* Key */ = {
+			isa = PBXGroup;
+			children = (
+				EA220B7A24D0EA1500C44CE7 /* KeyData.swift */,
+			);
+			path = Key;
+			sourceTree = "<group>";
+		};
 		EA35856A2450BE2900E6E8AB /* Chat */ = {
 			isa = PBXGroup;
 			children = (
@@ -759,6 +772,7 @@
 			isa = PBXGroup;
 			children = (
 				68A64E8B24D33DEF00F40F1F /* Mentions */,
+				EA220B7524D0E7E000C44CE7 /* Key */,
 				EA35856A2450BE2900E6E8AB /* Chat */,
 				EA5414DA23EE1D6900390EF6 /* Contacts */,
 				EA5414D923EE1D2B00390EF6 /* Feed */,
@@ -1497,6 +1511,7 @@
 				76538093243D4B33000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */,
 				76C2D1F924AA6B9700930320 /* PrivacyListViewController.swift in Sources */,
 				76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */,
+				EA220B7424D0E77D00C44CE7 /* XMPPWhisperRequests.swift in Sources */,
 				76A92444244E659600794859 /* FeedViewController.swift in Sources */,
 				6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */,
 				EA25178F246B693B00CE24C0 /* MediaPreviewController.swift in Sources */,
@@ -1519,6 +1534,7 @@
 				EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */,
 				764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */,
 				EAD476F72458F03700EF8591 /* ChatMessage+CoreDataProperties.swift in Sources */,
+				EA220B7B24D0EA1500C44CE7 /* KeyData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

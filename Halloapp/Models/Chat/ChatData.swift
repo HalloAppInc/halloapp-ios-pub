@@ -7,7 +7,10 @@
 
 import Combine
 import Core
+import CryptoKit
+import CryptoSwift
 import Foundation
+import Sodium
 import XMPPFramework
 
 typealias ChatMessageID = String
@@ -19,7 +22,6 @@ public enum UserPresenceType: Int16 {
 }
 
 class ChatData: ObservableObject, XMPPControllerChatDelegate {
-    
     public var currentPage: Int = 0
     
     let didChangeUnreadThreadCount = PassthroughSubject<Int, Never>()
@@ -38,6 +40,9 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     private var unreadThreadCount: Int = 0 {
         didSet {
             self.didChangeUnreadThreadCount.send(unreadThreadCount)
+//            DispatchQueue.main.async {
+//                UIApplication.shared.applicationIconBadgeNumber = self.unreadThreadCount
+//            }
         }
     }
     
@@ -128,6 +133,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 if (UIApplication.shared.applicationState == .active) {
                     self.processPendingChatMedia()
                 }
+                
             }
     
         )
@@ -140,13 +146,24 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             }
         )
         
-        /** gotcha: use Combine sink instead of notificationCenter.addObserver because for some reason if the user flicks the app to the background and foreground
+        /** gotcha: use Combine sink instead of notificationCenter.addObserver because for some reason if the user flicks the app to the background and 3
             really quickly, the observer doesn't fire
          */
         self.cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] notification in
                 guard let self = self else { return }
                 self.sendPresence(type: "available")
+                
+                if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
+ 
+                    self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+
+                        self.markSeenMessages(for: currentlyChattingWithUserId, in: managedObjectContext)
+
+                    }
+
+                }
+                
             }
         )
         
@@ -156,6 +173,8 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 self.sendPresence(type: "away")
             }
         )
+        
+        
         
     }
     
@@ -401,12 +420,14 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             return
         }
         
+        let isAppActive = UIApplication.shared.applicationState == .active
+        
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            self.processIncomingChatMessage(xmppChatMessage: xmppChatMessage, using: managedObjectContext)
+            self.processIncomingChatMessage(xmppChatMessage: xmppChatMessage, using: managedObjectContext, isAppActive: isAppActive)
         }
     }
     
-    private func processIncomingChatMessage(xmppChatMessage: XMPPChatMessage, using managedObjectContext: NSManagedObjectContext) {
+    private func processIncomingChatMessage(xmppChatMessage: XMPPChatMessage, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
         
         guard self.chatMessage(with: xmppChatMessage.id, in: managedObjectContext) == nil else {
             DDLogError("ChatData/process/already-exists [\(xmppChatMessage.id)]")
@@ -522,9 +543,8 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
 
         self.save(managedObjectContext)
         
-        if isCurrentlyChattingWithUser {
+        if isCurrentlyChattingWithUser && isAppActive {
             self.sendSeenReceipt(for: chatMessage)
-
             self.updateChatMessage(with: chatMessage.id) { (chatMessage) in
                 chatMessage.incomingStatus = .haveSeen
             }
@@ -733,9 +753,12 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             chatThread.unreadCount = 0
         }
         self.save(managedObjectContext)
-        MainAppContext.shared.xmppController.xmppStream.send(xmppChatMessage.xmppElement)
+        
+        xmppChatMessage.encryptXMPPElement() { xmppEl in
+            MainAppContext.shared.xmppController.xmppStream.send(xmppEl)
+        }
     }
-
+    
     // MARK: Fetching Messages
 
     func senderStatusChatMessages(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
@@ -883,6 +906,20 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         }
     }
     
+    func markSeenMessages(for chatWithUserId: String, in managedObjectContext: NSManagedObjectContext) {
+        let unseenChatMessages = self.unseenChatMessages(with: chatWithUserId, in: managedObjectContext)
+                    
+        unseenChatMessages.forEach {
+            self.sendSeenReceipt(for: $0)
+            $0.incomingStatus = ChatMessage.IncomingStatus.haveSeen
+        }
+        
+        if managedObjectContext.hasChanges {
+            self.save(managedObjectContext)
+        }
+        
+    }
+    
     func markThreadAsRead(for chatWithUserId: String) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             
@@ -892,12 +929,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 }
             }
 
-            let unseenChatMessages = self.unseenChatMessages(with: chatWithUserId, in: managedObjectContext)
-                        
-            unseenChatMessages.forEach {
-                self.sendSeenReceipt(for: $0)
-                $0.incomingStatus = ChatMessage.IncomingStatus.haveSeen
-            }
+            self.markSeenMessages(for: chatWithUserId, in: managedObjectContext)
 
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -1140,15 +1172,28 @@ struct XMPPChatMessage {
 
         var text: String?, media: [XMPPChatMedia] = [], feedPostId: String?, feedPostMediaIndex: Int32 = 0
         
-        if let protoContainer = Proto_Container.chatMessageContainer(from: chat) {
+        if let protoContainer = Proto_Container.unwrapMessage(for: fromUserId, from: chat) {
             if protoContainer.hasChatMessage {
                 text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
+
+                DDLogInfo("ChatData/XMPPChatMessage/decryptedMessage: \(text ?? "")")
                 
                 media = protoContainer.chatMessage.media.compactMap { XMPPChatMedia(protoMedia: $0) }
                 
                 feedPostId = protoContainer.chatMessage.feedPostID.isEmpty ? nil : protoContainer.chatMessage.feedPostID
                 feedPostMediaIndex = protoContainer.chatMessage.feedPostMediaIndex
+            }
+        }
+        
+        else if let protoContainer = Proto_Container.chatMessageContainer(from: chat) {
+            if protoContainer.hasChatMessage {
+                text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
+                DDLogInfo("ChatData/XMPPChatMessage/plainText: \(text ?? "")")
                 
+                media = protoContainer.chatMessage.media.compactMap { XMPPChatMedia(protoMedia: $0) }
+
+                feedPostId = protoContainer.chatMessage.feedPostID.isEmpty ? nil : protoContainer.chatMessage.feedPostID
+                feedPostMediaIndex = protoContainer.chatMessage.feedPostMediaIndex
             }
         }
         
@@ -1164,6 +1209,37 @@ struct XMPPChatMessage {
         self.timestamp = chat.attributeDoubleValue(forName: "timestamp")
     }
 
+    func encryptXMPPElement(completion: @escaping (XMPPElement) -> Void) {
+        let element = self.xmppElement
+        guard let chat = element.element(forName: "chat") else { return }
+        
+        guard let s1 = chat.element(forName: "s1") else { return }
+        guard let encStringValue = s1.stringValue else { return }
+        
+        guard let unencryptedData = Data(base64Encoded: encStringValue, options: .ignoreUnknownCharacters) else { return }
+        
+        MainAppContext.shared.keyData.wrapMessage(for: self.toUserId, unencrypted: unencryptedData) { (data, identityKey, oneTimeKeyId) in
+
+            if let data = data {
+//                chat.remove(forName: "s1")
+                chat.addChild({
+                    let enc = XMPPElement(name: "enc", stringValue: data.base64EncodedString())
+                    
+                    if let identityKey = identityKey {
+                        enc.addAttribute(withName: "identity_key", stringValue: identityKey.base64EncodedString())
+                        if oneTimeKeyId >= 0 {
+                            enc.addAttribute(withName: "one_time_pre_key_id", stringValue: String(oneTimeKeyId))
+                        }
+                    }
+                        
+                    return enc
+                }())
+                
+                return completion(element)
+            }
+        }
+    }
+    
     var xmppElement: XMPPElement {
         get {
             let message = XMPPElement(name: "message")
@@ -1326,6 +1402,17 @@ extension Proto_Container {
         }
         return nil
     }
+    
+    static func unwrapMessage(for userId: String, from entry: XMLElement) -> Proto_Container? {
+        guard let protoContainerData = MainAppContext.shared.keyData.unwrapMessage(for: userId, from: entry) else { return nil }
+        do {
+            let protoContainer = try Proto_Container(serializedData: protoContainerData)
+            return protoContainer
+        } catch {
+            DDLogError("xmpp/chatmessage/unwrapMessage/invalid-protobuf")
+        }
+        return nil
+    }
 }
 
 extension XMPPReceipt {
@@ -1334,3 +1421,6 @@ extension XMPPReceipt {
         return XMPPReceipt(itemId: chatMessage.id, userId: chatMessage.fromUserId, type: .read, timestamp: nil, thread: .none)
     }
 }
+
+
+

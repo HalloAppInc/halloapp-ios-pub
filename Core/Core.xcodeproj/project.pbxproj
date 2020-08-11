@@ -54,6 +54,20 @@
 		76E5153824A18171003F1273 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E5153724A18171003F1273 /* Digest.swift */; };
 		76F45E0024D226D300EFA301 /* ServerProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F45DFF24D226D300EFA301 /* ServerProperties.swift */; };
 		ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3156278C2E59CE6580A649AA /* Pods_Core.framework */; };
+		EAAE7B3724DCD98C00946B77 /* Keys.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3524DCD98C00946B77 /* Keys.xcdatamodeld */; };
+		EAAE7B3924DCDEBB00946B77 /* KeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3824DCDEBB00946B77 /* KeyStore.swift */; };
+		EAAE7B3C24DD039900946B77 /* XMPPWhisperRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3B24DD039900946B77 /* XMPPWhisperRequests.swift */; };
+		EAAE7B3E24DD04ED00946B77 /* XMPPWhisper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3D24DD04ED00946B77 /* XMPPWhisper.swift */; };
+		EAAE7B4924DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3F24DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift */; };
+		EAAE7B4A24DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4024DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift */; };
+		EAAE7B4B24DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4124DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift */; };
+		EAAE7B4C24DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4224DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift */; };
+		EAAE7B4D24DD2C3000946B77 /* SignedPreKey+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4324DD2C3000946B77 /* SignedPreKey+CoreDataClass.swift */; };
+		EAAE7B4E24DD2C3000946B77 /* SignedPreKey+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4424DD2C3000946B77 /* SignedPreKey+CoreDataProperties.swift */; };
+		EAAE7B4F24DD2C3000946B77 /* OneTimePreKey+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4524DD2C3000946B77 /* OneTimePreKey+CoreDataClass.swift */; };
+		EAAE7B5024DD2C3000946B77 /* OneTimePreKey+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4624DD2C3000946B77 /* OneTimePreKey+CoreDataProperties.swift */; };
+		EAAE7B5124DD2C3000946B77 /* MessageKey+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4724DD2C3000946B77 /* MessageKey+CoreDataClass.swift */; };
+		EAAE7B5224DD2C3000946B77 /* MessageKey+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4824DD2C3000946B77 /* MessageKey+CoreDataProperties.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -107,6 +121,20 @@
 		76F45DFF24D226D300EFA301 /* ServerProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProperties.swift; sourceTree = "<group>"; };
 		A424FFB38B8AA79AE42105CE /* Pods-Core.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.external beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.external beta.xcconfig"; sourceTree = "<group>"; };
 		C26C42B3208FE3BE00C20FDA /* Pods-Core.internal beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.internal beta.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.internal beta.xcconfig"; sourceTree = "<group>"; };
+		EAAE7B3624DCD98C00946B77 /* Keys.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Keys.xcdatamodel; sourceTree = "<group>"; };
+		EAAE7B3824DCDEBB00946B77 /* KeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyStore.swift; sourceTree = "<group>"; };
+		EAAE7B3B24DD039900946B77 /* XMPPWhisperRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPWhisperRequests.swift; sourceTree = "<group>"; };
+		EAAE7B3D24DD04ED00946B77 /* XMPPWhisper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPWhisper.swift; sourceTree = "<group>"; };
+		EAAE7B3F24DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserKeyBundle+CoreDataClass.swift"; sourceTree = "<group>"; };
+		EAAE7B4024DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserKeyBundle+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		EAAE7B4124DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageKeyBundle+CoreDataClass.swift"; sourceTree = "<group>"; };
+		EAAE7B4224DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageKeyBundle+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		EAAE7B4324DD2C3000946B77 /* SignedPreKey+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SignedPreKey+CoreDataClass.swift"; sourceTree = "<group>"; };
+		EAAE7B4424DD2C3000946B77 /* SignedPreKey+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SignedPreKey+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		EAAE7B4524DD2C3000946B77 /* OneTimePreKey+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OneTimePreKey+CoreDataClass.swift"; sourceTree = "<group>"; };
+		EAAE7B4624DD2C3000946B77 /* OneTimePreKey+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OneTimePreKey+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		EAAE7B4724DD2C3000946B77 /* MessageKey+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageKey+CoreDataClass.swift"; sourceTree = "<group>"; };
+		EAAE7B4824DD2C3000946B77 /* MessageKey+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageKey+CoreDataProperties.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -203,6 +231,7 @@
 		768123CF2485DA8B008C5216 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				EAAE7B2E24DBD47800946B77 /* Keys */,
 				246A8B7824902A2200CE0429 /* Avatars */,
 				768123F224860FF3008C5216 /* Contacts */,
 				7681241C2486C133008C5216 /* Extensions */,
@@ -258,6 +287,7 @@
 				7681240124861487008C5216 /* XMPPError.swift */,
 				76812403248614BA008C5216 /* XMPPFeed.swift */,
 				76812404248614BA008C5216 /* XMPPReceipt.swift */,
+				EAAE7B3D24DD04ED00946B77 /* XMPPWhisper.swift */,
 			);
 			path = XMPP;
 			sourceTree = "<group>";
@@ -267,6 +297,7 @@
 			children = (
 				76812408248614F1008C5216 /* XMPPRequest.swift */,
 				2490287424C524250019C4D5 /* XMPPCommonRequests.swift */,
+				EAAE7B3B24DD039900946B77 /* XMPPWhisperRequests.swift */,
 			);
 			path = Requests;
 			sourceTree = "<group>";
@@ -308,6 +339,33 @@
 				3156278C2E59CE6580A649AA /* Pods_Core.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		EAAE7B2E24DBD47800946B77 /* Keys */ = {
+			isa = PBXGroup;
+			children = (
+				EAAE7B2F24DBD67800946B77 /* CoreData Stack */,
+				EAAE7B3824DCDEBB00946B77 /* KeyStore.swift */,
+			);
+			path = Keys;
+			sourceTree = "<group>";
+		};
+		EAAE7B2F24DBD67800946B77 /* CoreData Stack */ = {
+			isa = PBXGroup;
+			children = (
+				EAAE7B3F24DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift */,
+				EAAE7B4024DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift */,
+				EAAE7B4324DD2C3000946B77 /* SignedPreKey+CoreDataClass.swift */,
+				EAAE7B4424DD2C3000946B77 /* SignedPreKey+CoreDataProperties.swift */,
+				EAAE7B4524DD2C3000946B77 /* OneTimePreKey+CoreDataClass.swift */,
+				EAAE7B4624DD2C3000946B77 /* OneTimePreKey+CoreDataProperties.swift */,
+				EAAE7B4124DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift */,
+				EAAE7B4224DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift */,
+				EAAE7B4724DD2C3000946B77 /* MessageKey+CoreDataClass.swift */,
+				EAAE7B4824DD2C3000946B77 /* MessageKey+CoreDataProperties.swift */,
+				EAAE7B3524DCD98C00946B77 /* Keys.xcdatamodeld */,
+			);
+			path = "CoreData Stack";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -428,15 +486,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EAAE7B4924DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift in Sources */,
 				768124132486193E008C5216 /* Feed.swift in Sources */,
 				249028A124C5DFDE0019C4D5 /* FeedPost+CoreDataClass.swift in Sources */,
 				246A8B7B24902A3E00CE0429 /* Avatars.xcdatamodeld in Sources */,
 				768123D72485DC4F008C5216 /* AppContext.swift in Sources */,
+				EAAE7B5124DD2C3000946B77 /* MessageKey+CoreDataClass.swift in Sources */,
+				EAAE7B5024DD2C3000946B77 /* OneTimePreKey+CoreDataProperties.swift in Sources */,
 				2490287524C524250019C4D5 /* XMPPCommonRequests.swift in Sources */,
+				EAAE7B3924DCDEBB00946B77 /* KeyStore.swift in Sources */,
 				76F45E0024D226D300EFA301 /* ServerProperties.swift in Sources */,
 				246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */,
 				68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */,
 				76812409248614F1008C5216 /* XMPPRequest.swift in Sources */,
+				EAAE7B4B24DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift in Sources */,
 				768123FE248612E7008C5216 /* XMPPController.swift in Sources */,
 				249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */,
 				7681240224861487008C5216 /* XMPPError.swift in Sources */,
@@ -451,23 +514,32 @@
 				768123F124860F67008C5216 /* UserData.swift in Sources */,
 				246A8B8224902BA600CE0429 /* Avatar+CoreDataProperties.swift in Sources */,
 				68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */,
+				EAAE7B5224DD2C3000946B77 /* MessageKey+CoreDataProperties.swift in Sources */,
+				EAAE7B4E24DD2C3000946B77 /* SignedPreKey+CoreDataProperties.swift in Sources */,
 				7681240024861481008C5216 /* XMPPAck.swift in Sources */,
+				EAAE7B4C24DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift in Sources */,
 				76812406248614BA008C5216 /* XMPPReceipt.swift in Sources */,
 				76812417248619BB008C5216 /* schema.pb.swift in Sources */,
 				768123D32485DBE2008C5216 /* LogFormatter.swift in Sources */,
 				76E5153824A18171003F1273 /* Digest.swift in Sources */,
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
+				EAAE7B3E24DD04ED00946B77 /* XMPPWhisper.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
+				EAAE7B3C24DD039900946B77 /* XMPPWhisperRequests.swift in Sources */,
 				246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */,
 				68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */,
 				76C7429624A155E900C7D945 /* FeedDownloadManager.swift in Sources */,
 				249028A024C5DFDE0019C4D5 /* Media+CoreDataClass.swift in Sources */,
 				7681241F2486C178008C5216 /* String.swift in Sources */,
 				76812405248614BA008C5216 /* XMPPFeed.swift in Sources */,
+				EAAE7B4F24DD2C3000946B77 /* OneTimePreKey+CoreDataClass.swift in Sources */,
 				76C7429C24A1597000C7D945 /* MediaCrypter.swift in Sources */,
+				EAAE7B4A24DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift in Sources */,
 				7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */,
 				768123F724861068008C5216 /* ABContact+CoreDataProperties.swift in Sources */,
+				EAAE7B3724DCD98C00946B77 /* Keys.xcdatamodeld in Sources */,
 				249028AB24C5E0600019C4D5 /* SharedDataStore.swift in Sources */,
+				EAAE7B4D24DD2C3000946B77 /* SignedPreKey+CoreDataClass.swift in Sources */,
 				249028A224C5DFDE0019C4D5 /* Media+CoreDataProperties.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -866,6 +938,16 @@
 			);
 			currentVersion = 76925CFD24872E85008333FA /* Halloapp.xcdatamodel */;
 			path = UserData.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+		EAAE7B3524DCD98C00946B77 /* Keys.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				EAAE7B3624DCD98C00946B77 /* Keys.xcdatamodel */,
+			);
+			currentVersion = EAAE7B3624DCD98C00946B77 /* Keys.xcdatamodel */;
+			path = Keys.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};
