@@ -252,16 +252,15 @@ extension KeyData {
         }
         
         group.notify(queue: self.keyStore.backgroundProcessingQueue) {
-            var encryptedData: Data? = nil
+            var encryptedData: Data? = nil, identityKey: Data? = nil, oneTimeKey: Int32 = 0
             if let keyBundle = keyBundle {
                 encryptedData = self.keyStore.encryptMessage(for: userId, unencrypted: unencrypted, keyBundle: keyBundle)
-                var identityKey: Data? = nil, oneTimeKey: Int32 = 0
                 if let outboundIdentityKey = keyBundle.outboundIdentityPublicEdKey {
                     identityKey = outboundIdentityKey
                     oneTimeKey = keyBundle.outboundOneTimePreKeyId
                 }
-                completion(encryptedData, identityKey, oneTimeKey)
             }
+            completion(encryptedData, identityKey, oneTimeKey)
         }
     }
     

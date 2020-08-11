@@ -1290,24 +1290,20 @@ extension XMPPChatMessage {
         guard let unencryptedData = Data(base64Encoded: encStringValue, options: .ignoreUnknownCharacters) else { return }
         
         MainAppContext.shared.keyData.wrapMessage(for: self.toUserId, unencrypted: unencryptedData) { (data, identityKey, oneTimeKeyId) in
-            
             if let data = data {
-                //                chat.remove(forName: "s1")
+//                chat.remove(forName: "s1")
                 chat.addChild({
                     let enc = XMPPElement(name: "enc", stringValue: data.base64EncodedString())
-                    
                     if let identityKey = identityKey {
                         enc.addAttribute(withName: "identity_key", stringValue: identityKey.base64EncodedString())
                         if oneTimeKeyId >= 0 {
                             enc.addAttribute(withName: "one_time_pre_key_id", stringValue: String(oneTimeKeyId))
                         }
                     }
-                    
                     return enc
-                    }())
-                
-                return completion(element)
+                }())
             }
+            return completion(element)
         }
     }
 }
