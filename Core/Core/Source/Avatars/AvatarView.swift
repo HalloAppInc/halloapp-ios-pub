@@ -9,27 +9,73 @@
 import Combine
 import UIKit
 
-public class AvatarView: UIImageView {
-    private var avatarUpdatingCancellable: AnyCancellable?
-    
+public class AvatarView: UIView {
     public static let defaultImage = UIImage(named: "AvatarPlaceholder")
     
-    public override func layoutSubviews() {
-        super.layoutSubviews()
-        applyCornerRadius()
+    private let avatar = UIImageView()
+    private var avatarUpdatingCancellable: AnyCancellable?
+    private var borderLayer: CAShapeLayer?
+    
+    public var borderColor: UIColor? {
+        didSet {
+            if oldValue != borderColor {
+                applyBorder()
+            }
+        }
     }
     
-    public init() {
-        super.init(frame: .zero)
-        
-        self.contentMode = .scaleAspectFill
-        self.image = AvatarView.defaultImage
-        self.tintColor = .systemGray
-        self.translatesAutoresizingMaskIntoConstraints = false
+    public var borderWidth: CGFloat? {
+        didSet {
+            if oldValue != borderWidth {
+                applyBorder()
+            }
+        }
+    }
+    
+    public override var bounds: CGRect {
+        didSet {
+            if oldValue != self.bounds {
+                applyCornerRadius()
+                applyBorder()
+            }
+        }
+    }
+    
+    public override var frame: CGRect {
+        didSet {
+            if oldValue != self.frame {
+                applyCornerRadius()
+                applyBorder()
+            }
+        }
+    }
+    
+    public var imageAlpha: CGFloat {
+        get {
+            avatar.alpha
+        }
+        set {
+            avatar.alpha = newValue
+        }
+    }
+    
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+        commonInit()
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: coder)
+        commonInit()
+    }
+    
+    private func commonInit() {
+        avatar.contentMode = .scaleAspectFit
+        avatar.image = AvatarView.defaultImage
+        avatar.tintColor = .systemGray
+        self.addSubview(avatar)
+        
+        self.translatesAutoresizingMaskIntoConstraints = false
     }
     
     public func configure(with userId: UserID, using avatarStore: AvatarStore) {
@@ -39,9 +85,9 @@ public class AvatarView: UIImageView {
     
     public func configure(with userAvatar: UserAvatar, using avatarStore: AvatarStore) {
         if let image = userAvatar.image {
-            self.image = image
+            avatar.image = image
         } else {
-            self.image = AvatarView.defaultImage
+            avatar.image = AvatarView.defaultImage
             
             if !userAvatar.isEmpty {
                 userAvatar.loadImage(using: avatarStore)
@@ -52,26 +98,52 @@ public class AvatarView: UIImageView {
             guard let self = self else { return }
             
             if let image = image {
-                self.image = image
+                self.avatar.image = image
             } else {
-                self.image = AvatarView.defaultImage
+                self.avatar.image = AvatarView.defaultImage
             }
         }
     }
     
     public func prepareForReuse() {
         avatarUpdatingCancellable?.cancel()
-        self.image = AvatarView.defaultImage
+    }
+    
+    public func resetImage() {
+        avatar.image = AvatarView.defaultImage
     }
     
     private func applyCornerRadius() {
-        let rect = self.bounds
-        let cornerRadius = min(rect.height, rect.width) / 2
-        
         let maskLayer = CAShapeLayer()
-        maskLayer.path = UIBezierPath(roundedRect: rect, cornerRadius: cornerRadius).cgPath
-        
+        maskLayer.path = UIBezierPath(ovalIn: self.bounds).cgPath
         self.layer.mask = maskLayer
+    }
+    
+    private func applyBorder() {
+        if let borderColor = borderColor, let borderWidth = borderWidth, borderWidth > 0 {
+            avatar.frame = self.bounds.insetBy(dx: borderWidth / 2, dy: borderWidth / 2)
+            
+            let border = CAShapeLayer()
+            border.fillColor = UIColor.clear.cgColor
+            border.strokeColor = borderColor.cgColor
+            border.lineWidth = borderWidth * 2 // Make sure the stroke can reach the border
+            border.path = UIBezierPath(ovalIn: self.bounds).cgPath
+            
+            if let oldBorderLayer = borderLayer {
+                self.layer.replaceSublayer(oldBorderLayer, with: border)
+            } else {
+                self.layer.addSublayer(border)
+            }
+            
+            borderLayer = border
+        } else {
+            avatar.frame = self.bounds
+            
+            if let oldBorderLayer = borderLayer {
+                oldBorderLayer.removeFromSuperlayer()
+                borderLayer = nil
+            }
+        }
     }
 
     public override var intrinsicContentSize: CGSize {

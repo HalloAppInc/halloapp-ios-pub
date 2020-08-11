@@ -1006,6 +1006,10 @@ fileprivate class FacePileView: UIControl {
             // The avatars are added from right to left
             let avatarView = AvatarView()
             avatarView.backgroundColor = .secondarySystemGroupedBackground
+            avatarView.borderColor = .secondarySystemGroupedBackground
+            avatarView.borderWidth = 2
+            avatarView.isHidden = true
+            avatarView.isUserInteractionEnabled = false // Let FacePileView handle touch event
             avatarView.translatesAutoresizingMaskIntoConstraints = false
             
             self.addSubview(avatarView)
@@ -1022,7 +1026,6 @@ fileprivate class FacePileView: UIControl {
             avatarView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
             avatarView.heightAnchor.constraint(equalToConstant: 25).isActive = true
             avatarView.widthAnchor.constraint(equalTo: avatarView.heightAnchor).isActive = true
-            avatarView.isHidden = true
         }
         
         let lastView = avatarViews.last!
@@ -1058,11 +1061,24 @@ fileprivate class FacePileView: UIControl {
             usersWithAvatars.reverse()
             for userIndex in 0 ..< usersWithAvatars.count {
                 let avatarView = avatarViews[userIndex]
-                avatarView.configure(with: usersWithAvatars[userIndex], using: MainAppContext.shared.avatarStore)
                 avatarView.isHidden = false
+                avatarView.configure(with: usersWithAvatars[userIndex], using: MainAppContext.shared.avatarStore)
+                
+                switch usersWithAvatars.count - userIndex {
+                case 3:
+                    avatarView.imageAlpha = 0.7 // The rightmost avatar
+                case 2:
+                    avatarView.imageAlpha = 0.9 // The middle avatar
+                default:
+                    avatarView.imageAlpha = 1 // The leftmost avatar
+                }
+                
             }
         } else { // No one has seen this post. Just show a dummy avatar.
-            avatarViews.first!.isHidden = false
+            guard let avatarView = avatarViews.first else { return }
+            avatarView.resetImage()
+            avatarView.imageAlpha = 1
+            avatarView.isHidden = false
         }
     }
 
