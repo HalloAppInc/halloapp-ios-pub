@@ -36,6 +36,21 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private var previousHeight: CGFloat = 0
 
+    private var isPostButtonEnabled: Bool {
+        get {
+            if !isEnabled {
+                return false
+            }
+            return !(textView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+    var isEnabled: Bool = true {
+        didSet {
+            textView.isEditable = isEnabled
+            postButton.isEnabled = isPostButtonEnabled
+        }
+    }
+
     class ContainerView: UIView {
         fileprivate weak var delegate: ContainerViewDelegate?
 
@@ -283,7 +298,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     func willAppear(in viewController: UIViewController) {
         self.setInputViewWidth(viewController.view.bounds.size.width)
-        viewController.becomeFirstResponder()
     }
 
     func didAppear(in viewController: UIViewController) {
@@ -291,7 +305,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }
 
     func willDisappear(in viewController: UIViewController) {
-        guard self.isKeyboardVisible || !viewController.isFirstResponder else { return }
+        guard self.isKeyboardVisible || viewController.isFirstResponder else { return }
 
         var deferResigns = false
         if viewController.isMovingFromParent {
@@ -452,8 +466,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     // MARK: InputTextViewDelegate
 
     func inputTextViewDidChange(_ inputTextView: InputTextView) {
-        let trimmedText = (inputTextView.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        self.postButton.isEnabled = !trimmedText.isEmpty
+        self.postButton.isEnabled = isPostButtonEnabled
         self.placeholder.isHidden = !inputTextView.text.isEmpty
 
         self.updateMentionPickerContent()

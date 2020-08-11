@@ -13,68 +13,7 @@ import CoreData
 import UIKit
 import XMPPFramework
 
-class CommentsViewController: UIViewController {
-
-    private let feedPostId: FeedPostID
-    var highlightedCommentId: FeedPostCommentID?
-
-    private var commentsViewController: CommentsViewControllerInternal!
-    private var loadingViewController: LoadingViewController!
-
-    private var postLoadingCancellable: AnyCancellable?
-
-    init(feedPostId: FeedPostID) {
-        self.feedPostId = feedPostId
-        super.init(nibName: nil, bundle: nil)
-        self.hidesBottomBarWhenPushed = true
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        if MainAppContext.shared.feedData.feedPost(with: feedPostId) != nil {
-            showCommentsViewController()
-        } else {
-            loadingViewController = LoadingViewController()
-            self.view.addSubview(loadingViewController.view)
-            self.addChild(loadingViewController)
-            loadingViewController.didMove(toParent: self)
-
-            postLoadingCancellable = MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] (feedPost) in
-                guard let self = self else { return }
-                guard self.feedPostId == feedPost.id else { return }
-                self.showCommentsViewController()
-            }
-        }
-    }
-
-    private func showCommentsViewController() {
-        if loadingViewController != nil {
-            loadingViewController.willMove(toParent: nil)
-            loadingViewController.view.removeFromSuperview()
-            loadingViewController.removeFromParent()
-            loadingViewController = nil
-        }
-
-        commentsViewController = CommentsViewControllerInternal(feedPostId: feedPostId)
-        commentsViewController.highlightedCommentId = highlightedCommentId
-        self.view.addSubview(commentsViewController.view)
-        self.addChild(commentsViewController)
-        commentsViewController.didMove(toParent: self)
-
-        if postLoadingCancellable != nil {
-            postLoadingCancellable?.cancel()
-            postLoadingCancellable = nil
-        }
-    }
-
-}
-
-fileprivate class CommentsViewControllerInternal: UITableViewController, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate {
+class CommentsViewController: UITableViewController, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate {
 
     static private let cellReuseIdentifier = "CommentCell"
     static private let cellHighlightAnimationDuration = 0.15
@@ -87,6 +26,7 @@ fileprivate class CommentsViewControllerInternal: UITableViewController, Comment
             mentionableUsers = computeMentionableUsers()
         }
     }
+
     var highlightedCommentId: FeedPostCommentID?
     private var replyContext: ReplyContext? {
         // Manually update cell highlighting to avoid conflicts with potential keyboard animations.
@@ -115,6 +55,7 @@ fileprivate class CommentsViewControllerInternal: UITableViewController, Comment
         DDLogDebug("CommentsView/init/\(feedPostId)")
         self.feedPostId = feedPostId
         super.init(style: .plain)
+        self.hidesBottomBarWhenPushed = true
     }
 
     required init?(coder: NSCoder) {
@@ -122,11 +63,15 @@ fileprivate class CommentsViewControllerInternal: UITableViewController, Comment
     }
 
     deinit {
+        postLoadingCancellable?.cancel()
         DDLogDebug("CommentsView/deinit/\(feedPostId)")
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        self.navigationItem.title = "Comments"
+        self.navigationItem.standardAppearance = .opaqueAppearance
 
         tableView.separatorStyle = .none
         tableView.allowsSelection = false
@@ -136,39 +81,25 @@ fileprivate class CommentsViewControllerInternal: UITableViewController, Comment
         tableView.preservesSuperviewLayoutMargins = true
         tableView.register(CommentsTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
 
-        if let highlightedCommentId = highlightedCommentId {
-            setNeedsScroll(toComment: highlightedCommentId, highlightAfterScroll: false, animated: false)
-        }
+        commentsInputView.delegate = self
 
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else { return }
+        if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            configureUI(with: feedPost)
+        } else {
+            commentsInputView.isEnabled = false
 
-        let headerView = CommentsTableHeaderView(frame: CGRect(x: 0, y: 0, width: self.tableView.bounds.size.width, height: 200))
-        headerView.configure(withPost: feedPost)
-        headerView.textLabel.delegate = self
-        headerView.profilePictureButton.addTarget(self, action: #selector(showUserFeedForPostAuthor), for: .touchUpInside)
-        self.tableView.tableHeaderView = headerView
+            loadingViewController = LoadingViewController()
+            self.view.addSubview(loadingViewController!.view)
+            loadingViewController!.view.translatesAutoresizingMaskIntoConstraints = false
+            loadingViewController!.view.constrainMargins([ .leading, .trailing], to: self.view)
+            loadingViewController!.view.centerYAnchor.constraint(equalTo: self.view.layoutMarginsGuide.centerYAnchor).isActive = true
+            self.addChild(loadingViewController!)
+            loadingViewController?.didMove(toParent: self)
 
-        let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "post.id = %@", feedPostId)
-        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true) ]
-        self.fetchedResultsController =
-            NSFetchedResultsController<FeedPostComment>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext,
-                                                        sectionNameKeyPath: nil, cacheName: nil)
-        self.fetchedResultsController?.delegate = self
-        do {
-            try self.fetchedResultsController!.performFetch()
-            self.reloadComments()
-        } catch {
-            return
-        }
-    }
-
-    override func willMove(toParent parent: UIViewController?) {
-        super.willMove(toParent: parent)
-        if let parent = parent, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-            parent.navigationItem.title = "Comments"
-            if feedPost.userId == MainAppContext.shared.userData.userId {
-                parent.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .done, target: self, action: #selector(retractPost))
+            postLoadingCancellable = MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] (feedPost) in
+                guard let self = self else { return }
+                guard self.feedPostId == feedPost.id else { return }
+                self.configureUI(with: feedPost)
             }
         }
     }
@@ -181,37 +112,37 @@ fileprivate class CommentsViewControllerInternal: UITableViewController, Comment
         if view.window == nil {
             setNeedsScrollToTarget(withAnimation: false)
         }
-
-        // This is necessary because calling simply in `viewWillAppear` does not always work
-        // because the view isn't yet attached to a window.
-        DispatchQueue.main.async {
-            self.becomeFirstResponder()
-        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         viewDidAppear()
 
-        MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
-
+        viewDidAppear = true
         self.commentsInputView.didAppear(in: self)
-        if self.sortedComments.isEmpty {
-            self.commentsInputView.showKeyboard(from: self)
+
+        if isFeedPostAvailable {
+            MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
+
+            if sortedComments.isEmpty {
+                DispatchQueue.main.async {
+                    self.commentsInputView.showKeyboard(from: self)
+                }
+            }
+
+            resetCommentHighlightingIfNeeded()
         }
-
-        allowScrollToBottom = true
-
-        resetCommentHighlightingIfNeeded()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         viewWillDisappear()
 
-        MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
+        if isFeedPostAvailable {
+            MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
+        }
 
-        self.commentsInputView.willDisappear(in: self)
+        commentsInputView.willDisappear(in: self)
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -244,13 +175,76 @@ fileprivate class CommentsViewControllerInternal: UITableViewController, Comment
 
             commentToScrollTo = nil
             needsHighlightCommentToScrollTo = false
-
         }
     }
 
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView == tableView {
             updateNavigationBarStyleUsing(scrollView: scrollView)
+        }
+    }
+
+    // MARK: Delayed Post Loading
+
+    private var isFeedPostAvailable: Bool = false
+
+    private var postLoadingCancellable: AnyCancellable?
+
+    private var loadingViewController: LoadingViewController?
+
+    private var viewDidAppear: Bool = false
+
+    private func configureUI(with feedPost: FeedPost) {
+        isFeedPostAvailable = true
+
+        // Remove "Loading" view if any.
+        if let loadingViewController = loadingViewController {
+            loadingViewController.willMove(toParent: nil)
+            loadingViewController.view.removeFromSuperview()
+            loadingViewController.removeFromParent()
+            self.loadingViewController = nil
+        }
+
+        if postLoadingCancellable != nil {
+            postLoadingCancellable?.cancel()
+            postLoadingCancellable = nil
+        }
+
+        commentsInputView.isEnabled = true
+
+        if let highlightedCommentId = highlightedCommentId {
+            setNeedsScroll(toComment: highlightedCommentId, highlightAfterScroll: false, animated: false)
+        }
+
+        if feedPost.userId == MainAppContext.shared.userData.userId {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .done, target: self, action: #selector(retractPost))
+        }
+
+        let headerView = CommentsTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 200))
+        headerView.configure(withPost: feedPost)
+        headerView.textLabel.delegate = self
+        headerView.profilePictureButton.addTarget(self, action: #selector(showUserFeedForPostAuthor), for: .touchUpInside)
+        tableView.tableHeaderView = headerView
+
+        let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "post.id = %@", feedPostId)
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true) ]
+        fetchedResultsController =
+            NSFetchedResultsController<FeedPostComment>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext,
+                                                        sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController!.delegate = self
+        do {
+            try fetchedResultsController!.performFetch()
+            reloadComments()
+            if viewDidAppear {
+                tableView.reloadData()
+            }
+        } catch {
+            return
+        }
+
+        if viewDidAppear {
+            MainAppContext.shared.feedData.markCommentsAsRead(feedPostId: feedPostId)
         }
     }
 
@@ -261,7 +255,6 @@ fileprivate class CommentsViewControllerInternal: UITableViewController, Comment
     private var needsHighlightCommentToScrollTo: Bool = false
     private var needsScrollToTargetWithAnimation: Bool?
     private var commentToHighlightAfterScrollingEnds: FeedPostCommentID?
-    private var allowScrollToBottom = false
 
     private func scrollToBottom(animated: Bool) {
         guard let indexPath = bottomMostIndexPath() else {
@@ -293,7 +286,7 @@ fileprivate class CommentsViewControllerInternal: UITableViewController, Comment
         if let comment = commentToScrollTo  {
             scroll(toComment: comment, animated: animated, highlightAfterScroll: needsHighlightCommentToScrollTo ? comment : nil)
         } else {
-            if allowScrollToBottom {
+            if viewDidAppear {
                 scrollToBottom(animated: animated)
             }
         }
@@ -623,11 +616,7 @@ fileprivate class CommentsViewControllerInternal: UITableViewController, Comment
 
     // MARK: Input view
 
-    lazy var commentsInputView: CommentInputView = {
-        let inputView = CommentInputView(frame: .zero)
-        inputView.delegate = self
-        return inputView
-    }()
+    private let commentsInputView: CommentInputView = CommentInputView(frame: .zero)
 
     override var canBecomeFirstResponder: Bool {
         get {
@@ -846,12 +835,13 @@ fileprivate class LoadingViewController: UIViewController {
     }()
 
     override func loadView() {
-        view = UIView(frame: UIScreen.main.bounds)
+        let width = UIScreen.main.bounds.width
+        view = UIView(frame: CGRect(origin: .zero, size: CGSize(width: width, height: width)))
         view.backgroundColor = .feedBackground
 
         view.addSubview(activityIndicator)
-        activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        activityIndicator.centerXAnchor.constraint(equalTo: view.layoutMarginsGuide.centerXAnchor).isActive = true
+        activityIndicator.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor).isActive = true
         activityIndicator.startAnimating()
 
         view.addSubview(tryAgainLabel)
