@@ -13,6 +13,8 @@ public struct MentionableUser: Hashable {
     var fullName: String
 }
 
+public typealias MentionRangeMap = [NSRange: UserID]
+
 /// Contains text with "@" placeholders that can be replaced with the names of mentioned users.
 public struct MentionText {
     var collapsedText: String
@@ -23,7 +25,7 @@ public struct MentionText {
         self.mentions = mentions
     }
 
-    init(expandedText: String, mentionRanges: [NSRange: UserID]) {
+    init(expandedText: String, mentionRanges: MentionRangeMap) {
         var outputText = expandedText as NSString
         mentions = [Int: UserID]()
         var charactersToDrop = mentionRanges.keys.reduce(0) { sum, range in sum + range.length } - mentionRanges.count
@@ -99,14 +101,14 @@ public final class Mentions {
 /// Handles editing text with expanded mentions
 public struct MentionInput {
 
-    init(text: String, mentions: [NSRange: UserID], selectedRange: NSRange) {
+    init(text: String, mentions: MentionRangeMap, selectedRange: NSRange) {
         self.text = text
         self.mentions = mentions
         self.selectedRange = selectedRange
     }
 
     var text: String
-    var mentions: [NSRange: UserID]
+    var mentions: MentionRangeMap
     var selectedRange: NSRange
 
     public func impactedMentionRanges(in editRange: NSRange) -> [NSRange] {

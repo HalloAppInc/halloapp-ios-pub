@@ -32,7 +32,7 @@ class InputTextView: UITextView, UITextViewDelegate {
 
     var scrollIndicatorsShown: Bool = false
     private var lastReportedHeight: CGFloat
-    private(set) var mentions = [NSRange: UserID]()
+    private(set) var mentions = MentionRangeMap()
 
     required init(frame: CGRect) {
         lastReportedHeight = frame.height

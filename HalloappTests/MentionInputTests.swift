@@ -20,7 +20,7 @@ class MentionInputTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    private func makeInput(text: String = "", mentions: [NSRange: UserID] = [:], selectedRange: NSRange? = nil) -> MentionInput {
+    private func makeInput(text: String = "", mentions: MentionRangeMap = [:], selectedRange: NSRange? = nil) -> MentionInput {
         return MentionInput(
             text: text,
             mentions: mentions,
