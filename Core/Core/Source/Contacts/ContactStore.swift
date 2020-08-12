@@ -266,6 +266,9 @@ open class ContactStore {
             // NB: We replace mention placeholders with usernames in reverse order so we don't change indices
 
             let name: String = {
+                if mention.userID == userData.userId {
+                    return userData.name
+                }
                 if let fullName = fullNameIfAvailable(for: mention.userID) {
                     return fullName
                 }
