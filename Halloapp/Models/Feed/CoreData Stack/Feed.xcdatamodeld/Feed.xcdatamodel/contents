@@ -67,6 +67,7 @@
         <attribute name="sha256" attributeType="String"/>
         <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="uploadUrl" optional="YES" attributeType="URI"/>
         <attribute name="url" optional="YES" attributeType="URI"/>
         <attribute name="width" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="post" maxCount="1" deletionRule="Nullify" destinationEntity="FeedPost" inverseName="media" inverseEntity="FeedPost"/>
@@ -77,6 +78,6 @@
         <element name="FeedPost" positionX="-63" positionY="-18" width="128" height="193"/>
         <element name="FeedPostComment" positionX="-54" positionY="18" width="128" height="178"/>
         <element name="FeedPostInfo" positionX="-45" positionY="117" width="128" height="73"/>
-        <element name="FeedPostMedia" positionX="-27" positionY="81" width="128" height="193"/>
+        <element name="FeedPostMedia" positionX="-27" positionY="81" width="128" height="208"/>
     </elements>
 </model>
