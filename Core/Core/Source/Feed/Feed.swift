@@ -140,6 +140,7 @@ public class PendingMedia {
     public var order: Int = 0
     public var type: FeedMediaType
     public var url: URL?
+    public var uploadUrl: URL?
     public var size: CGSize?
     public var key: String?
     public var sha256: String?
