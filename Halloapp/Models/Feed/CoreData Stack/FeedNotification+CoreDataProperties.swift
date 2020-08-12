@@ -20,6 +20,7 @@ extension FeedNotification {
         case retractedPost = 3    // post was deleted
         case otherComment = 4     // comment on the post your commented on
         case mentionComment = 5   // mentioned in a comment
+        case mentionPost = 6   // mentioned in a post
     }
 
     enum MediaType: Int16 {
@@ -114,8 +115,14 @@ extension FeedNotification {
                 } else {
                     eventText = "<$author$> mentioned you in a comment"
                 }
-            }
 
+            case .mentionPost:
+                if self.text != nil {
+                    eventText = "<$author$> mentioned you in a post: <$text$>"
+                } else {
+                    eventText = "<$author$> mentioned you in a post"
+                }
+            }
 
             let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
             let boldFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)

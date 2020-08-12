@@ -634,7 +634,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            self.process(posts: feedPosts, using: managedObjectContext)
+            let posts = self.process(posts: feedPosts, using: managedObjectContext)
+            self.generateNotifications(for: posts, using: managedObjectContext)
+
             let comments = self.process(comments: comments, using: managedObjectContext)
             self.generateNotifications(for: comments, using: managedObjectContext)
 
@@ -647,6 +649,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     // MARK: Notifications
+
+    private func notificationEvent(for post: FeedPost) -> FeedNotification.Event? {
+        let selfId = userData.userId
+
+        if post.mentions?.contains(where: { $0.userID == selfId}) ?? false {
+            return .mentionPost
+        }
+
+        return nil
+    }
 
     private func notificationEvent(for comment: FeedPostComment) -> FeedNotification.Event? {
         let selfId = userData.userId
@@ -675,6 +687,52 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         return nil
+    }
+
+    private func generateNotifications(for posts: [FeedPost], using managedObjectContext: NSManagedObjectContext) {
+        guard !posts.isEmpty else { return }
+
+        for post in posts {
+            // Step 1. Determine if post is eligible for a notification.
+            guard let event = notificationEvent(for: post) else { continue }
+
+            // Step 2. Add notification entry to the database.
+            let notification = NSEntityDescription.insertNewObject(forEntityName: FeedNotification.entity().name!, into: managedObjectContext) as! FeedNotification
+            notification.commentId = nil
+            notification.postId = post.id
+            notification.event = event
+            notification.userId = post.userId
+            notification.timestamp = post.timestamp
+            notification.text = post.text
+
+            var mentionSet = Set<FeedMention>()
+            for postMention in post.mentions ?? [] {
+                let newMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+                newMention.index = postMention.index
+                newMention.userID = postMention.userID
+                newMention.name = postMention.name
+                mentionSet.insert(newMention)
+            }
+            notification.mentions = mentionSet
+
+            if let media = post.media?.first {
+                switch media.type {
+                case .image:
+                    notification.mediaType = .image
+                case .video:
+                    notification.mediaType = .video
+                }
+            } else {
+                notification.mediaType = .none
+            }
+            DDLogInfo("FeedData/generateNotifications  New notification [\(notification)]")
+
+            // Step 3. Generate media preview for the notification.
+            self.generateMediaPreview(for: notification, feedPost: post, using: managedObjectContext)
+        }
+        if managedObjectContext.hasChanges {
+            self.save(managedObjectContext)
+        }
     }
 
     private func generateNotifications(for comments: [FeedPostComment], using managedObjectContext: NSManagedObjectContext) {
