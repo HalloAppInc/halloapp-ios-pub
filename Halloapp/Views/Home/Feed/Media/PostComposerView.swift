@@ -79,7 +79,8 @@ class PostComposerViewController: UIViewController {
             imageServer: self.imageServer,
             mediaItems: mediaItems,
             textToPost: textToPost,
-            crop: { index in
+            crop: { [weak self] index in
+                guard let self = self else { return }
                 let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value) { controller, media, selected, cancel in
                     controller.dismiss(animated: true)
                     
