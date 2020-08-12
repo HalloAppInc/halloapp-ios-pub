@@ -72,14 +72,9 @@ class ContactTableViewCell: UITableViewCell {
         
         let showDoubleBlueCheck = status == .seen
         let checkmarkImage = UIImage(named: showDoubleBlueCheck ? "CheckmarkDouble" : "CheckmarkSingle")?.withRenderingMode(.alwaysTemplate)
-        
-        if let imageView = self.accessoryView as? UIImageView {
-            imageView.image = checkmarkImage
-        } else {
-            self.accessoryView = UIImageView(image: checkmarkImage)
-        }
-        
-        self.accessoryView?.tintColor = showDoubleBlueCheck ? .systemBlue : .systemGray
+
+        accessoryView = UIImageView(image: checkmarkImage)
+        accessoryView?.tintColor = showDoubleBlueCheck ? .systemBlue : .systemGray
     }
     
     public func configure(with userId: UserID, name: String, using avatarStore: AvatarStore) {
@@ -89,6 +84,7 @@ class ContactTableViewCell: UITableViewCell {
 
     override func prepareForReuse() {
         contactImage.prepareForReuse()
+        accessoryView = nil
         nameLabel.text = ""
     }
 }
