@@ -454,7 +454,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
             // Process post media
             for (index, xmppMedia) in xmppPost.media.enumerated() {
-                DDLogDebug("FeedData/process-posts/new/add-media [\(xmppMedia.url)]")
+                DDLogDebug("FeedData/process-posts/new/add-media [\(xmppMedia.url!)]")
                 let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
                 switch xmppMedia.type {
                 case .image:
@@ -1557,7 +1557,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 
                 if let postMedia = post.media {
                     for media in postMedia {
-                        DDLogDebug("FeedData/mergeSharedData/new/add-media [\(media.url)]")
+                        guard let url = media.url else {
+                            DDLogError("ChatData/mergeSharedData/ Skip invalid media [\(media)]")
+                            continue
+                        }
+
+                        DDLogDebug("FeedData/mergeSharedData/new/add-media [\(media.url!)]")
                         
                         let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
                         
@@ -1568,7 +1573,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                             feedMedia.type = .video
                         }
                         feedMedia.status = .uploaded
-                        feedMedia.url = media.url
+                        feedMedia.url = url
                         feedMedia.size = media.size
                         feedMedia.key = media.key
                         feedMedia.order = media.order

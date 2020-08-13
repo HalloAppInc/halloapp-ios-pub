@@ -38,7 +38,7 @@ extension FeedPostMedia {
     }
     @NSManaged var typeValue: Int16
     @NSManaged var relativeFilePath: String?
-    @NSManaged public var url: URL
+    @NSManaged public var url: URL?
     @NSManaged public var uploadUrl: URL?
     @NSManaged var post: FeedPost
     @NSManaged private var statusValue: Int16

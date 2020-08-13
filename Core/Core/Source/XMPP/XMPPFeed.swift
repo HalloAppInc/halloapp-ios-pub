@@ -119,7 +119,7 @@ public struct XMPPFeedMention: FeedMentionProtocol {
 public struct XMPPFeedMedia: FeedMediaProtocol {
 
     public let id: String
-    public let url: URL
+    public let url: URL?
     public let type: FeedMediaType
     public let size: CGSize
     public let key: String

@@ -90,7 +90,7 @@ public protocol FeedMediaProtocol {
 
     var id: String { get }
 
-    var url: URL { get }
+    var url: URL? { get }
 
     var type: FeedMediaType { get }
 
@@ -116,7 +116,7 @@ extension FeedMediaProtocol {
             media.height = Int32(size.height)
             media.encryptionKey = Data(base64Encoded: key)!
             media.plaintextHash = Data(base64Encoded: sha256)!
-            media.downloadURL = url.absoluteString
+            media.downloadURL = url!.absoluteString
             return media
         }
     }

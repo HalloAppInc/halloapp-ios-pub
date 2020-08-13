@@ -45,7 +45,7 @@ extension SharedMedia {
     @NSManaged public var relativeFilePath: String
     @NSManaged public var sha256: String
     @NSManaged public var typeValue: Int16
-    @NSManaged public var url: URL
+    @NSManaged public var url: URL?
     @NSManaged public var width: Float
     
     @NSManaged public var post: SharedFeedPost?

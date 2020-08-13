@@ -224,7 +224,8 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 
                     guard med.incomingStatus == ChatMedia.IncomingStatus.pending else { continue }
                     guard med.numTries <= self.maxTries else { continue }
-                    guard !self.currentlyDownloading.contains(med.url) else { continue }
+                    guard let url = med.url else { continue }
+                    guard !self.currentlyDownloading.contains(url) else { continue }
 
                     let threadId = chatMessage.fromUserId
                     let messageId = chatMessage.id
@@ -240,7 +241,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                         }
                     }
                     
-                    _ = ChatMediaDownloader(url: med.url, completion: { (outputUrl) in
+                    _ = ChatMediaDownloader(url: url, completion: { (outputUrl) in
 
                         var encryptedData: Data
                         do {
@@ -1159,7 +1160,12 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 
                 if let messageMedia = message.media {
                     for media in messageMedia {
-                        DDLogDebug("ChatData/mergeSharedData/new/add-media [\(media.url)]")
+                        guard let url = media.url else {
+                            DDLogError("ChatData/mergeSharedData/ Skip invalid media [\(media)]")
+                            continue
+                        }
+
+                        DDLogDebug("ChatData/mergeSharedData/new/add-media [\(url)]")
                         let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
                         switch media.type {
                         case .image:
@@ -1175,7 +1181,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                         }
                         chatMedia.incomingStatus = .none
                         chatMedia.outgoingStatus = .uploaded
-                        chatMedia.url = media.url
+                        chatMedia.url = url
                         chatMedia.size = media.size
                         chatMedia.key = media.key
                         chatMedia.order = media.order

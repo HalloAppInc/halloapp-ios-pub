@@ -46,7 +46,7 @@ public class FeedDownloadManager {
 
         public init(media: FeedMediaProtocol) {
             self.id = Self.taskId(for: media)
-            self.downloadURL = media.url
+            self.downloadURL = media.url! // Safe to unwrap - there's validation happening at receive time.
             self.mediaType = media.type
             self.key = media.key
             self.sha256 = media.sha256
