@@ -62,6 +62,14 @@ public struct MentionText {
 }
 
 public final class Mentions {
+    public static func mentionableUsersForNewPost() -> [MentionableUser] {
+        let allContactIDs = Set(MainAppContext.shared.contactStore.allRegisteredContactIDs())
+
+        return MainAppContext.shared.contactStore.fullNames(forUserIds: allContactIDs)
+            .map { MentionableUser(userID: $0.key, fullName: $0.value) }
+            .sorted { m1, m2 in m1.fullName < m2.fullName }
+    }
+
     public static func mentionableUsers(forPostID postID: FeedPostID) -> [MentionableUser] {
         guard let post = MainAppContext.shared.feedData.feedPost(with: postID) else { return [] }
 

@@ -22,7 +22,7 @@ enum NewPostMediaSource {
 struct NewPostState {
     var pendingMedia = [PendingMedia]()
     var mediaSource = NewPostMediaSource.noMedia
-    var pendingText: String? = nil
+    var pendingInput = MentionInput(text: "", mentions: MentionRangeMap(), selectedRange: NSRange())
 
     var isPostComposerCancellable: Bool {
         // We can only return to the library picker (UIImagePickerController freezes after choosing an image 🙄).
@@ -78,9 +78,9 @@ final class NewPostViewController: UIViewController {
     private func makeComposerViewController() -> UIViewController {
         return PostComposerViewController(
             mediaToPost: state.pendingMedia,
-            initialText: state.pendingText ?? "",
+            initialInput: state.pendingInput,
             showCancelButton: state.isPostComposerCancellable,
-            willDismissWithText: { [weak self] text in self?.state.pendingText = text },
+            willDismissWithInput: { [weak self] input in self?.state.pendingInput = input },
             didFinish: { [weak self] in self?.didFinish() })
     }
 

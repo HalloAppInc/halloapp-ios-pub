@@ -12,12 +12,12 @@ fileprivate class ObservableFloat: ObservableObject {
     @Published var value: CGFloat = 0
 }
 
-fileprivate class ObservableString: ObservableObject {
-    @Published var value = ""
-
-    func set(_ newValue: String) {
-        value = newValue
+fileprivate class GenericObservable<T>: ObservableObject {
+    init(_ value: T) {
+        self.value = value
     }
+
+    @Published var value: T
 }
 
 fileprivate class ObservableMediaItems: ObservableObject {
@@ -40,24 +40,24 @@ class PostComposerViewController: UIViewController {
 
     private let showCancelButton: Bool
     private let mediaItems = ObservableMediaItems()
-    private var textToPost = ObservableString()
+    private var inputToPost: GenericObservable<MentionInput>
     private var postComposerView: PostComposerView?
     private var shareButton: UIBarButtonItem!
     private let didFinish: (() -> Void)
-    private let willDismissWithText: ((String) -> Void)?
+    private let willDismissWithInput: ((MentionInput) -> Void)?
 
     init(
         mediaToPost media: [PendingMedia],
-        initialText: String,
+        initialInput: MentionInput,
         showCancelButton: Bool,
-        willDismissWithText: ((String) -> Void)? = nil,
+        willDismissWithInput: ((MentionInput) -> Void)? = nil,
         didFinish: @escaping () -> Void)
     {
         self.mediaItems.value = media
         self.showCancelButton = showCancelButton
-        self.willDismissWithText = willDismissWithText
+        self.willDismissWithInput = willDismissWithInput
         self.didFinish = didFinish
-        self.textToPost.set(initialText)
+        self.inputToPost = GenericObservable(initialInput)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -78,7 +78,7 @@ class PostComposerViewController: UIViewController {
         postComposerView = PostComposerView(
             imageServer: self.imageServer,
             mediaItems: mediaItems,
-            textToPost: textToPost,
+            inputToPost: inputToPost,
             crop: { [weak self] index in
                 guard let self = self else { return }
                 let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value) { controller, media, selected, cancel in
@@ -114,7 +114,7 @@ class PostComposerViewController: UIViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        willDismissWithText?(textToPost.value)
+        willDismissWithInput?(inputToPost.value)
     }
 
     private func finish() {
@@ -127,7 +127,8 @@ class PostComposerViewController: UIViewController {
     }
 
     @objc private func shareAction() {
-        MainAppContext.shared.feedData.post(text: textToPost.value.trimmingCharacters(in: .whitespacesAndNewlines), media: mediaItems.value)
+        let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
+        MainAppContext.shared.feedData.post(text: mentionText, media: mediaItems.value)
         finish()
     }
 
@@ -158,7 +159,7 @@ fileprivate struct PostComposerLayoutConstants {
 fileprivate struct PostComposerView: View {
     private let imageServer: ImageServer
     @ObservedObject private var mediaItems: ObservableMediaItems
-    @ObservedObject private var textToPost: ObservableString
+    @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     private let crop: (_ index: ObservableInt) -> Void
     private let goBack: () -> Void
     private let setShareVisibility: (_ visibility: Bool) -> Void
@@ -205,10 +206,17 @@ fileprivate struct PostComposerView: View {
         currentPosition.value < mediaCount && mediaItems.value[currentPosition.value].type == FeedMediaType.image
     }
 
-    init(imageServer: ImageServer, mediaItems: ObservableMediaItems, textToPost: ObservableString, crop: @escaping (_ index: ObservableInt) -> Void, goBack: @escaping () -> Void, setShareVisibility: @escaping (_ visibility: Bool) -> Void) {
+    init(
+        imageServer: ImageServer,
+        mediaItems: ObservableMediaItems,
+        inputToPost: GenericObservable<MentionInput>,
+        crop: @escaping (_ index: ObservableInt) -> Void,
+        goBack: @escaping () -> Void,
+        setShareVisibility: @escaping (_ visibility: Bool) -> Void)
+    {
         self.imageServer = imageServer
         self.mediaItems = mediaItems
-        self.textToPost = textToPost
+        self.inputToPost = inputToPost
         self.crop = crop
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
@@ -218,11 +226,11 @@ fileprivate struct PostComposerView: View {
                 self.mediaItems.$value,
                 self.mediaState.$isReady,
                 self.mediaState.$numberOfFailedUploads,
-                self.textToPost.$value
+                self.inputToPost.$value
             )
-                .map { (mediaItems, mediaIsReady, numberOfFailedUploads, textValue) -> Bool in
+                .map { (mediaItems, mediaIsReady, numberOfFailedUploads, inputValue) -> Bool in
                     return (mediaItems.count > 0 && mediaIsReady && numberOfFailedUploads == 0) ||
-                        (mediaItems.count == 0 && !textValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        (mediaItems.count == 0 && !inputValue.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
@@ -270,7 +278,7 @@ fileprivate struct PostComposerView: View {
 
     var postTextView: some View {
         ZStack (alignment: .topLeading) {
-            if (textToPost.value.isEmpty) {
+            if (inputToPost.value.text.isEmpty) {
                 Text(mediaCount > 0 ? "Write a description" : "Write a post")
                     .font(.body)
                     .foregroundColor(.gray)
@@ -278,7 +286,7 @@ fileprivate struct PostComposerView: View {
                     .padding(.leading, 4)
                     .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260), alignment: .topLeading)
             }
-            TextView(text: textToPost, textHeight: postTextHeight)
+            TextView(input: inputToPost, textHeight: postTextHeight)
                 .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260))
         }
         .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding + PostComposerLayoutConstants.controlSpacing)
@@ -371,9 +379,16 @@ fileprivate struct ControlIconView: View {
     }
 }
 
+private struct PendingMention {
+    var name: String
+    var userID: UserID
+    var range: NSRange
+}
+
 fileprivate struct TextView: UIViewRepresentable {
-    @ObservedObject var text: ObservableString
+    @ObservedObject var input: GenericObservable<MentionInput>
     @ObservedObject var textHeight: ObservableFloat
+    @State var pendingMention: PendingMention?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -383,17 +398,31 @@ fileprivate struct TextView: UIViewRepresentable {
         let myTextView = UITextView()
         myTextView.delegate = context.coordinator
         myTextView.font = .preferredFont(forTextStyle: .body)
+        myTextView.inputAccessoryView = context.coordinator.mentionPicker
         myTextView.isScrollEnabled = false
         myTextView.isEditable = true
         myTextView.isUserInteractionEnabled = true
         myTextView.backgroundColor = .textFieldBackground
         myTextView.backgroundColor = UIColor.clear
         myTextView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        myTextView.text = input.value.text
         return myTextView
     }
 
     func updateUIView(_ uiView: UITextView, context: Context) {
-        // Don't set uiView.text here (it clears markedTextRange, which breaks IME)
+        // Don't set text or selection on uiView (it clears markedTextRange, which breaks IME)
+
+        if let mention = pendingMention {
+            DispatchQueue.main.async {
+                var mentionInput = self.input.value
+                mentionInput.addMention(name: mention.name, userID: mention.userID, in: mention.range)
+                uiView.text = mentionInput.text
+                uiView.selectedRange = mentionInput.selectedRange
+                self.input.value = mentionInput
+                self.pendingMention = nil
+            }
+        }
+
         TextView.recomputeHeight(textView: uiView, resultHeight: $textHeight.value)
     }
 
@@ -406,20 +435,107 @@ fileprivate struct TextView: UIViewRepresentable {
         }
     }
 
-    class Coordinator : NSObject, UITextViewDelegate {
+    class Coordinator: NSObject, UITextViewDelegate {
         var parent: TextView
 
         init(_ uiTextView: TextView) {
             self.parent = uiTextView
         }
 
+        // MARK: Mentions
+
+        lazy var mentionPicker: MentionPickerView = {
+            let picker = MentionPickerView()
+            picker.cornerRadius = 10
+            picker.borderColor = .systemGray
+            picker.borderWidth = 1
+            picker.clipsToBounds = true
+            picker.translatesAutoresizingMaskIntoConstraints = false
+            picker.isHidden = true // Hide until content is set
+            picker.didSelectItem = { [weak self] item in self?.acceptMentionPickerItem(item) }
+            return picker
+        }()
+
+        private lazy var mentionableUsers: [MentionableUser] = {
+            return Mentions.mentionableUsersForNewPost()
+        }()
+
+        private func updateMentionPickerContent() {
+            let mentionableUsers = fetchMentionPickerContent(
+                for: parent.input.value.text,
+                selectedRange: parent.input.value.selectedRange)
+
+            mentionPicker.items = mentionableUsers
+            mentionPicker.isHidden = mentionableUsers.isEmpty
+        }
+
+        private func acceptMentionPickerItem(_ item: MentionableUser) {
+            guard let currentWordRange = parent.input.value.text.rangeOfWord(at: parent.input.value.selectedRange.location) else {
+                return
+            }
+            parent.pendingMention = PendingMention(
+                name: item.fullName,
+                userID: item.userID,
+                range: currentWordRange)
+            updateMentionPickerContent()
+        }
+
+        private func fetchMentionPickerContent(for input: String?, selectedRange: NSRange) -> [MentionableUser] {
+            guard let input = input,
+                let currentWordRange = input.rangeOfWord(at: selectedRange.location),
+                !parent.input.value.mentions.keys.contains(where: { currentWordRange.overlaps($0) }),
+                selectedRange.length == 0 else
+            {
+                return []
+            }
+
+            let currentWord = (input as NSString).substring(with: currentWordRange)
+            guard currentWord.hasPrefix("@") else {
+                return []
+            }
+
+            let trimmedInput = String(currentWord.dropFirst())
+            return mentionableUsers.filter {
+                Mentions.isPotentialMatch(fullName: $0.fullName, input: trimmedInput)
+            }
+        }
+
+
+        // MARK: UITextViewDelegate
+
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-            return true
+
+            var mentionInput = parent.input.value
+
+            // Treat mentions atomically (editing any part of the mention should remove the whole thing)
+            let rangeIncludingImpactedMentions = mentionInput
+                .impactedMentionRanges(in: range)
+                .reduce(range) { range, mention in NSUnionRange(range, mention) }
+
+            mentionInput.changeText(in: rangeIncludingImpactedMentions, to: text)
+
+            if range == rangeIncludingImpactedMentions {
+                // Update mentions and return true so UITextView can update text without breaking IME
+                parent.input.value = mentionInput
+                return true
+            } else {
+                // Update content ourselves and return false so UITextView doesn't issue conflicting update
+                textView.text = mentionInput.text
+                textView.selectedRange = mentionInput.selectedRange
+                parent.input.value = mentionInput
+                return false
+            }
         }
 
         func textViewDidChange(_ textView: UITextView) {
-            self.parent.text.set(textView.text ?? "")
-            TextView.recomputeHeight(textView: textView, resultHeight: self.parent.$textHeight.value)
+            parent.input.value.text = textView.text ?? ""
+            TextView.recomputeHeight(textView: textView, resultHeight: parent.$textHeight.value)
+            updateMentionPickerContent()
+        }
+
+        func textViewDidChangeSelection(_ textView: UITextView) {
+            parent.input.value.selectedRange = textView.selectedRange
+            updateMentionPickerContent()
         }
     }
 }

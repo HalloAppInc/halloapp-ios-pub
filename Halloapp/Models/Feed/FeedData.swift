@@ -1316,7 +1316,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Posting
 
-    func post(text: String, media: [PendingMedia]) {
+    func post(text: MentionText, media: [PendingMedia]) {
         let postId: FeedPostID = UUID().uuidString
 
         // Create and save new FeedPost object.
@@ -1325,9 +1325,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
         feedPost.id = postId
         feedPost.userId = AppContext.shared.userData.userId
-        feedPost.text = text
+        feedPost.text = text.collapsedText
         feedPost.status = .sending
         feedPost.timestamp = Date()
+
+        // Add mentions
+        var mentionSet = Set<FeedMention>()
+        for (index, userID) in text.mentions {
+            let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+            feedMention.index = index
+            feedMention.userID = userID
+            feedMention.name = MainAppContext.shared.contactStore.pushNames[userID] ?? ""
+            mentionSet.insert(feedMention)
+        }
+        feedPost.mentions = mentionSet
+
         // Add post media.
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("FeedData/new-post/add-media [\(mediaItem.url!)]")
