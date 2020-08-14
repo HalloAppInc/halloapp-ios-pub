@@ -97,13 +97,14 @@ class OutgoingMsgView: UIView {
         
         let subView = UIView(frame: stackView.bounds)
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.backgroundColor = .systemGray5
         subView.layer.cornerRadius = 20
-        subView.layer.backgroundColor = UIColor.systemGray5.cgColor
         subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
         stackView.insertSubview(subView, at: 0)
         stackView.isHidden = true
+        
         return stackView
     }()
     
@@ -227,8 +228,8 @@ class OutgoingMsgView: UIView {
         
         let subView = UIView(frame: view.bounds)
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.backgroundColor = .systemBackground
         subView.layer.cornerRadius = 20
-        subView.layer.backgroundColor = UIColor.systemBackground.cgColor
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
         view.insertSubview(subView, at: 0)

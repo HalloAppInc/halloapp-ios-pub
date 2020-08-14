@@ -149,6 +149,16 @@ public class AvatarView: UIView {
     public override var intrinsicContentSize: CGSize {
         get { CGSize(width: UIView.noIntrinsicMetric, height: UIView.noIntrinsicMetric) }
     }
+    
+    public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        
+        // Reapply borderColor
+        if traitCollection.userInterfaceStyle != previousTraitCollection?.userInterfaceStyle,
+            let borderColor = borderColor {
+            borderLayer?.strokeColor = borderColor.cgColor
+        }
+    }
 }
 
 
