@@ -68,15 +68,15 @@ class PostComposerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.navigationItem.title = "New Post"
+        navigationItem.title = "New Post"
         if showCancelButton {
-            self.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
+            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
         }
         shareButton = UIBarButtonItem(title: "Share", style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
 
         postComposerView = PostComposerView(
-            imageServer: self.imageServer,
+            imageServer: imageServer,
             mediaItems: mediaItems,
             inputToPost: inputToPost,
             crop: { [weak self] index in
@@ -85,7 +85,7 @@ class PostComposerViewController: UIViewController {
                     controller.dismiss(animated: true)
                     
                     guard !cancel else { return }
-                    
+
                     index.value = selected
                     self.mediaItems.value = media
                     
@@ -102,13 +102,13 @@ class PostComposerViewController: UIViewController {
         )
 
         let postComposerViewController = UIHostingController(rootView: postComposerView)
-        self.addChild(postComposerViewController)
-        self.view.addSubview(postComposerViewController.view)
+        addChild(postComposerViewController)
+        view.addSubview(postComposerViewController.view)
         postComposerViewController.view.translatesAutoresizingMaskIntoConstraints = false
-        postComposerViewController.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-        postComposerViewController.view.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-        postComposerViewController.view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-        postComposerViewController.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+        postComposerViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        postComposerViewController.view.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        postComposerViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        postComposerViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         postComposerViewController.didMove(toParent: self)
     }
 
@@ -134,14 +134,14 @@ class PostComposerViewController: UIViewController {
 
     private func backAction() {
         imageServer.cancel()
-        self.navigationController?.popViewController(animated: true)
+        navigationController?.popViewController(animated: true)
     }
 
     private func setShareVisibility(_ visibility: Bool) {
-        if (visibility && self.navigationItem.rightBarButtonItem == nil) {
-            self.navigationItem.rightBarButtonItem = shareButton
-        } else if (!visibility && self.navigationItem.rightBarButtonItem != nil) {
-            self.navigationItem.rightBarButtonItem = nil
+        if (visibility && navigationItem.rightBarButtonItem == nil) {
+            navigationItem.rightBarButtonItem = shareButton
+        } else if (!visibility && navigationItem.rightBarButtonItem != nil) {
+            navigationItem.rightBarButtonItem = nil
         }
     }
 }
@@ -154,6 +154,17 @@ fileprivate struct PostComposerLayoutConstants {
     static let controlXSpacing: CGFloat = 17
     static let controlSize: CGFloat = 30
     static let backgroundRadius: CGFloat = 20
+
+    static let fontSize: CGFloat = 16
+    static let fontSizeLarge: CGFloat = 20
+
+    static let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
+    static let smallFont = UIFont(descriptor: fontDescriptor, size: fontSize)
+    static let largeFont = UIFont(descriptor: fontDescriptor, size: fontSizeLarge)
+
+    static func getFontSize(textSize: Int, isPostWithMedia: Bool) -> UIFont {
+        return isPostWithMedia || textSize > 180 ? smallFont : largeFont
+    }
 }
 
 fileprivate struct PostComposerView: View {
@@ -206,6 +217,10 @@ fileprivate struct PostComposerView: View {
         currentPosition.value < mediaCount && mediaItems.value[currentPosition.value].type == FeedMediaType.image
     }
 
+    static func stopTextEdit() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
+    }
+
     init(
         imageServer: ImageServer,
         mediaItems: ObservableMediaItems,
@@ -243,24 +258,19 @@ fileprivate struct PostComposerView: View {
         return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding)
     }
 
-    var pageIndexView: some View {
-        Text("\(currentPosition.value + 1) / \(mediaCount)")
-            .frame(width: 2 * PostComposerLayoutConstants.controlSize, height: PostComposerLayoutConstants.controlSize)
-            .background(
-                RoundedRectangle(cornerRadius: PostComposerLayoutConstants.controlRadius)
-                    .fill(Color(.secondarySystemGroupedBackground))
-            )
-            .padding(.trailing, PostComposerLayoutConstants.controlXSpacing)
+    var pageIndex: some View {
+        HStack {
+            if (mediaCount > 1) {
+                PageIndexView(mediaItems: mediaItems, currentPosition: currentPosition)
+                    .frame(height: 20, alignment: .trailing)
+            }
+        }
+        .padding(.horizontal, 2 * PostComposerLayoutConstants.controlSpacing)
+        .offset(y: 2 * PostComposerLayoutConstants.controlSpacing)
     }
 
     var controls: some View {
         HStack {
-            if (mediaCount > 1) {
-                pageIndexView
-            }
-            Button(action: addMedia) {
-                ControlIconView(imageLabel: "ComposerAddMedia")
-            }
             Spacer()
             Button(action: deleteMedia) {
                 ControlIconView(imageLabel: "ComposerDeleteMedia")
@@ -280,13 +290,14 @@ fileprivate struct PostComposerView: View {
         ZStack (alignment: .topLeading) {
             if (inputToPost.value.text.isEmpty) {
                 Text(mediaCount > 0 ? "Write a description" : "Write a post")
-                    .font(.body)
-                    .foregroundColor(.gray)
+                    .font(Font(PostComposerLayoutConstants.getFontSize(
+                        textSize: inputToPost.value.text.count, isPostWithMedia: mediaCount > 0)))
+                    .foregroundColor(Color.black.opacity(0.5))
                     .padding(.top, 8)
                     .padding(.leading, 4)
                     .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260), alignment: .topLeading)
             }
-            TextView(input: inputToPost, textHeight: postTextHeight)
+            TextView(mediaItems: mediaItems, input: inputToPost, textHeight: postTextHeight)
                 .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260))
         }
         .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding + PostComposerLayoutConstants.controlSpacing)
@@ -300,8 +311,12 @@ fileprivate struct PostComposerView: View {
                     VStack (alignment: .center) {
                         if self.mediaCount > 0 {
                             ZStack(alignment: .bottom) {
-                                MediaPreviewSlider(mediaItems: self.mediaItems, currentPosition: self.currentPosition)
-                                    .frame(height: self.getMediaSliderHeight(geometry.size.width), alignment: .center)
+                                ZStack(alignment: .top) {
+                                    MediaPreviewSlider(mediaItems: self.mediaItems, currentPosition: self.currentPosition)
+                                        .frame(height: self.getMediaSliderHeight(geometry.size.width), alignment: .center)
+
+                                    self.pageIndex
+                                }
 
                                 self.controls
                             }
@@ -334,7 +349,7 @@ fileprivate struct PostComposerView: View {
                     }
                     .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
                     .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
-                    .onReceive(self.pageChangedPublisher) { _ in self.stopTextEdit() }
+                    .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
                 }
                 .frame(width: geometry.size.width)
                 .frame(minHeight: geometry.size.height - self.keyboardHeight)
@@ -345,16 +360,8 @@ fileprivate struct PostComposerView: View {
         }
     }
 
-    private func stopTextEdit() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
-    }
-
-    private func addMedia() {
-        goBack()
-    }
-
     private func cropMedia() {
-        self.mediaState.isReady = false
+        mediaState.isReady = false
         crop(currentPosition)
     }
 
@@ -385,7 +392,45 @@ private struct PendingMention {
     var range: NSRange
 }
 
+fileprivate struct PageIndexView: UIViewRepresentable {
+    @ObservedObject var mediaItems: ObservableMediaItems
+    @ObservedObject var currentPosition: ObservableInt
+
+    private let strokeTextAttributes: [NSAttributedString.Key : Any] = [
+        .strokeWidth: -0.5,
+        .foregroundColor: UIColor.white,
+        .strokeColor: UIColor.black.withAlphaComponent(0.4),
+        .font: UIFont.gothamFont(ofSize: 17)
+    ]
+
+    private var attributedString: NSAttributedString {
+        return NSAttributedString(
+            string: "\(currentPosition.value + 1) / \(mediaItems.value.count)",
+            attributes: strokeTextAttributes
+        )
+    }
+
+    func makeUIView(context: Context) -> UILabel {
+        let pageIndexLabel = UILabel()
+        pageIndexLabel.textAlignment = .right
+        pageIndexLabel.backgroundColor = .clear
+        pageIndexLabel.attributedText = attributedString
+
+        pageIndexLabel.layer.shadowColor = UIColor.black.cgColor
+        pageIndexLabel.layer.shadowOffset = CGSize(width: 0, height: 0)
+        pageIndexLabel.layer.shadowOpacity = 0.4
+        pageIndexLabel.layer.shadowRadius = 2.0
+
+        return pageIndexLabel
+    }
+
+    func updateUIView(_ uiView: UILabel, context: Context) {
+        uiView.attributedText = attributedString
+    }
+}
+
 fileprivate struct TextView: UIViewRepresentable {
+    @ObservedObject var mediaItems: ObservableMediaItems
     @ObservedObject var input: GenericObservable<MentionInput>
     @ObservedObject var textHeight: ObservableFloat
     @State var pendingMention: PendingMention?
@@ -395,22 +440,29 @@ fileprivate struct TextView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> UITextView {
-        let myTextView = UITextView()
-        myTextView.delegate = context.coordinator
-        myTextView.font = .preferredFont(forTextStyle: .body)
-        myTextView.inputAccessoryView = context.coordinator.mentionPicker
-        myTextView.isScrollEnabled = false
-        myTextView.isEditable = true
-        myTextView.isUserInteractionEnabled = true
-        myTextView.backgroundColor = .textFieldBackground
-        myTextView.backgroundColor = UIColor.clear
-        myTextView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        myTextView.text = input.value.text
-        return myTextView
+        let textView = UITextView()
+        textView.delegate = context.coordinator
+        textView.font = .preferredFont(forTextStyle: .body)
+        textView.inputAccessoryView = context.coordinator.mentionPicker
+        textView.isScrollEnabled = false
+        textView.isEditable = true
+        textView.isUserInteractionEnabled = true
+        textView.backgroundColor = .textFieldBackground
+        textView.backgroundColor = UIColor.clear
+        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textView.font = PostComposerLayoutConstants.getFontSize(
+            textSize: input.value.text.count, isPostWithMedia: mediaItems.value.count > 0)
+        textView.text = input.value.text
+        return textView
     }
 
-    func updateUIView(_ uiView: UITextView, context: Context) {
+    func updateUIView(_ uiView: UITextView, context: Context)  {
         // Don't set text or selection on uiView (it clears markedTextRange, which breaks IME)
+        let fontToUse = PostComposerLayoutConstants.getFontSize(
+            textSize: input.value.text.count, isPostWithMedia: mediaItems.value.count > 0)
+        if uiView.font != fontToUse {
+            uiView.font = fontToUse
+        }
 
         if let mention = pendingMention {
             DispatchQueue.main.async {
@@ -439,7 +491,7 @@ fileprivate struct TextView: UIViewRepresentable {
         var parent: TextView
 
         init(_ uiTextView: TextView) {
-            self.parent = uiTextView
+            parent = uiTextView
         }
 
         // MARK: Mentions
@@ -549,17 +601,16 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         mediaItems.value.map { FeedMedia($0, feedPostId: "") }
     }
 
-    init(mediaItems: ObservableMediaItems, currentPosition: ObservableInt) {
-        self.mediaItems = mediaItems
-        self.currentPosition = currentPosition
-    }
-
     func makeUIView(context: Context) -> MediaCarouselView {
         var configuration = MediaCarouselViewConfiguration.default
-        configuration.isZoomEnabled = false
+        configuration.autoplayVideos = true
         let feedMedia = context.coordinator.parent.feedMediaItems
         let carouselView = MediaCarouselView(media: feedMedia, configuration: configuration)
         carouselView.indexChangeDelegate = context.coordinator
+
+        let gestureRecognizer = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped))
+        carouselView.addGestureRecognizer(gestureRecognizer)
+
         return carouselView
     }
 
@@ -575,11 +626,15 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         var parent: MediaPreviewSlider
 
         init(_ view: MediaPreviewSlider) {
-            self.parent = view
+            parent = view
         }
 
         func indexChanged(position: Int) {
             parent.currentPosition.value = position
+        }
+
+        @objc func tapped(gesture: UITapGestureRecognizer) {
+            PostComposerView.stopTextEdit()
         }
     }
 }
