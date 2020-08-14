@@ -1125,6 +1125,8 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         }
     }
     
+    // MARK: Merge Data
+    
     func mergeSharedData(using sharedDataStore: SharedDataStore, completion: @escaping (() -> Void)) {
         let messages = sharedDataStore.messages()
         
@@ -1156,7 +1158,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 var lastMsgMediaType: ChatThread.LastMsgMediaType = .none
                 
                 if let messageMedia = message.media {
-                    for (index, media) in messageMedia.enumerated() {
+                    for media in messageMedia {
                         DDLogDebug("ChatData/mergeSharedData/new/add-media [\(media.url)]")
                         let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
                         switch media.type {
@@ -1176,7 +1178,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                         chatMedia.url = media.url
                         chatMedia.size = media.size
                         chatMedia.key = media.key
-                        chatMedia.order = Int16(index)
+                        chatMedia.order = media.order
                         chatMedia.sha256 = media.sha256
                         chatMedia.message = chatMessage
                         

@@ -104,17 +104,17 @@ class ComposeViewController: SLComposeServiceViewController {
                 mediaProcessingGroup.enter()
                 processImage(itemProvider, mediaOrder: orderCounter)
                 orderCounter += 1
+            } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.video.rawValue) {
+                hasMedia = true
+                mediaProcessingGroup.enter()
+                processVideo(itemProvider, mediaOrder: orderCounter)
+                orderCounter += 1
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.propertyList.rawValue) {
                 processWebpage(itemProvider)
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.text.rawValue) {
                 // No need to handle public.plain-text for now
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.url.rawValue) {
                 processURL(itemProvider)
-            } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.video.rawValue) {
-                hasMedia = true
-                mediaProcessingGroup.enter()
-                processVideo(itemProvider, mediaOrder: orderCounter)
-                orderCounter += 1
             } else {
                 DDLogError("ComposeViewController/presentationAnimationDidFinish/error unknown TypeIdentifier: \(itemProvider.registeredTypeIdentifiers)")
             }
@@ -233,6 +233,8 @@ class ComposeViewController: SLComposeServiceViewController {
     }
     
     private func processImage(_ itemProvider: NSItemProvider, mediaOrder: Int) {
+        DDLogDebug("ComposeViewController/processImage/start")
+        
         itemProvider.loadItem(forTypeIdentifier: AttachmentType.image.rawValue, options: nil) { (media, error) in
             guard error == nil else {
                 DDLogError("ComposeViewController/processImage/error while loading item: \(error!.localizedDescription)")
@@ -274,6 +276,8 @@ class ComposeViewController: SLComposeServiceViewController {
     }
     
     private func processVideo(_ itemProvider: NSItemProvider, mediaOrder: Int) {
+        DDLogDebug("ComposeViewController/processVideo/start")
+        
         itemProvider.loadItem(forTypeIdentifier: AttachmentType.video.rawValue, options: nil) { (item, error) in
             guard error == nil else {
                 DDLogError("ComposeViewController/processVideo/error while loading item: \(error!.localizedDescription)")
@@ -309,6 +313,8 @@ class ComposeViewController: SLComposeServiceViewController {
     }
     
     private func processWebpage(_ itemProvider: NSItemProvider) {
+        DDLogDebug("ComposeViewController/processWebpage/start")
+        
         itemProvider.loadItem(forTypeIdentifier: AttachmentType.propertyList.rawValue, options: nil) { (item, error) in
             guard error == nil else {
                 DDLogError("ComposeViewController/processImage/error while loading item: \(error!.localizedDescription)")
@@ -331,6 +337,8 @@ class ComposeViewController: SLComposeServiceViewController {
     }
     
     private func processURL(_ itemProvider: NSItemProvider) {
+        DDLogDebug("ComposeViewController/processURL/start")
+        
         itemProvider.loadItem(forTypeIdentifier: AttachmentType.url.rawValue, options: nil) { (url, error) in
             guard error == nil else {
                 DDLogError("ComposeViewController/processImage/error while loading item: \(error!.localizedDescription)")

@@ -1510,6 +1510,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
     
+    // MARK: Merge Data
+    
     func mergeSharedData(using sharedDataStore: SharedDataStore, completion: @escaping (() -> Void)) {
         let posts = sharedDataStore.posts()
         
@@ -1541,7 +1543,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedPost.timestamp = post.timestamp
                 
                 if let postMedia = post.media {
-                    for (index, media) in postMedia.enumerated() {
+                    for media in postMedia {
                         DDLogDebug("FeedData/mergeSharedData/new/add-media [\(media.url)]")
                         
                         let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
@@ -1556,7 +1558,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         feedMedia.url = media.url
                         feedMedia.size = media.size
                         feedMedia.key = media.key
-                        feedMedia.order = Int16(index)
+                        feedMedia.order = media.order
                         feedMedia.sha256 = media.sha256
                         feedMedia.post = feedPost
                         

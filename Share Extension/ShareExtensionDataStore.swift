@@ -28,8 +28,8 @@ class ShareExtensionDataStore: SharedDataStore {
         feedPost.userId = AppContext.shared.userData.userId
         feedPost.status = .none
         
-        for (index, item) in media.enumerated() {
-            self.save(item, index: index, to: .post(feedPost), using: managedObjectContext)
+        for item in media {
+            self.save(item, to: .post(feedPost), using: managedObjectContext)
         }
         
         save(managedObjectContext)
@@ -73,8 +73,8 @@ class ShareExtensionDataStore: SharedDataStore {
         chatMessage.status = .sent
         chatMessage.timestamp = Date()
         
-        for (index, item) in media.enumerated() {
-            self.save(item, index: index, to: .message(chatMessage), using: managedObjectContext)
+        for item in media {
+            self.save(item, to: .message(chatMessage), using: managedObjectContext)
         }
         
         save(managedObjectContext)

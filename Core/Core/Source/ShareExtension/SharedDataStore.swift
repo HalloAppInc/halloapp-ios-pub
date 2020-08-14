@@ -79,7 +79,7 @@ open class SharedDataStore {
         }
     }
     
-    public func save(_ media: PendingMedia, index: Int, to target: PostOrMessage, using managedObjectContext: NSManagedObjectContext) {
+    public func save(_ media: PendingMedia, to target: PostOrMessage, using managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("SharedDataStore/save/add new media with [\(media.url!)]")
         
         let feedMedia = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
@@ -88,7 +88,7 @@ open class SharedDataStore {
         feedMedia.size = media.size!
         feedMedia.key = media.key!
         feedMedia.sha256 = media.sha256!
-        feedMedia.order = Int16(index)
+        feedMedia.order = Int16(media.order)
         
         switch target {
         case .post(let feedPost):
