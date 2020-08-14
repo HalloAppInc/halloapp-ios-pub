@@ -31,9 +31,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UIApplication.shared.registerForRemoteNotifications()
         
         UNUserNotificationCenter.current().delegate = self
-        
-        // Temporary fix for avatars. See comments below.
-        forceRefreshAvatarIfNecessary()
 
         return true
     }
@@ -242,25 +239,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         // Schedule next bg fetch.
         scheduleFeedRefresh(after: Date.minutes(5))
-    }
-    
-    /*
-     Temporary fix for avatars. Will remove in the future.
-     Per server-side request, the avatar bulk update only happens during contact sync,
-     which means avatars will not update until the first contact sync.
-     For current users, they will not be able to see avatars immediately after the upgrade.
-     This temporary fix will force the contact to sync for one time.
-     This should not be a problem for new users since the contact sync will start after login.
-     */
-    func forceRefreshAvatarIfNecessary() {
-        guard !UserDefaults.standard.bool(forKey: "force-refresh-avatar") else {
-            DDLogInfo("AppDelegate/forceRefreshAvatar not necessary")
-            return
-        }
-        
-        UserDefaults.standard.set(true, forKey: "force-refresh-avatar")
-        MainAppContext.shared.syncManager.requestFullSync()
-        DDLogInfo("AppDelegate/forceRefreshAvatar Done")
     }
 
     // MARK: Background Connection Task

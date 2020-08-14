@@ -83,15 +83,7 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
         
         do {
             let results = try managedObjectContext.fetch(fetchRequest)
-            
-            if let avatar = results.first {
-                // Temporary fix for the old avatar path. Please see comments below.
-                changeRelativeFilePathIfNecessary(for: avatar, using: managedObjectContext)
-            
-                return avatar
-            } else {
-                return nil
-            }
+            return results.first
         } catch  {
             DDLogError("AvatarStore/fetch/error [\(error)]")
             
@@ -275,29 +267,6 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
             for (userId, avatarId) in avatarDict {
                 save(avatarId: avatarId, forUserId: userId, using: managedObjectContext, isContactSync: true)
             }
-        }
-    }
-    
-    /*
-     Temporary fix for the old avatar path. Will remove in the future.
-     I accidentally saved the absolute path instead of the relative path for the old avatar.
-     This temporary fix will change the path.
-     */
-    private func changeRelativeFilePathIfNecessary(for avatar: Avatar, using managedObjectContext: NSManagedObjectContext) {
-        if let relativeFilePath = avatar.relativeFilePath {
-            guard relativeFilePath.contains("Avatars") else { return }
-            
-            if let realRelativeFilePath = relativeFilePath.components(separatedBy: "/").last {
-                avatar.relativeFilePath = realRelativeFilePath
-                
-                do {
-                    try managedObjectContext.save()
-                    DDLogInfo("AvatarStore/changeRelativeFilePathIfNecessary changed from \(relativeFilePath) to \(realRelativeFilePath)")
-                } catch let error as NSError {
-                    DDLogError("AvatarStore/changeRelativeFilePathIfNecessary/error [\(error)]")
-                }
-            }
-            
         }
     }
 }
