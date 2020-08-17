@@ -453,6 +453,7 @@ fileprivate struct TextView: UIViewRepresentable {
             picker.translatesAutoresizingMaskIntoConstraints = false
             picker.isHidden = true // Hide until content is set
             picker.didSelectItem = { [weak self] item in self?.acceptMentionPickerItem(item) }
+            picker.heightAnchor.constraint(lessThanOrEqualToConstant: 120).isActive = true
             return picker
         }()
 
