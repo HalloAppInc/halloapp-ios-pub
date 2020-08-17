@@ -43,13 +43,8 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         DDLogInfo("ChatListViewController/viewDidLoad")
 
         installLargeTitleUsingGothamFont()
+        installFloatingActionMenu()
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        
-        let rightButton = UIButton(type: .system)
-        rightButton.tintColor = .lavaOrange
-        rightButton.setImage(UIImage(named: "ChatNavbarCompose"), for: .normal)
-        rightButton.addTarget(self, action: #selector(showContacts), for: .touchUpInside)
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: rightButton)
         
         self.navigationItem.standardAppearance = .opaqueAppearance
         
@@ -80,11 +75,22 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         super.viewWillAppear(animated)
         self.tableView.reloadData()
         self.populateWithSymmetricContacts()
+
+        // Floating menu is hidden while our view is obscured
+        floatingMenu.isHidden = false
     }
 
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("ChatListViewController/viewDidAppear")
         super.viewDidAppear(animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        // Floating menu is in the navigation controller's view so we have to hide it
+        floatingMenu.setState(.collapsed, animated: true)
+        floatingMenu.isHidden = true
     }
 
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -100,9 +106,28 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         }
     }
     
-    // MARK: Top Nav Button Actions
-    
-    @objc(showContacts)
+    // MARK: New Chat
+
+    private lazy var floatingMenu: FloatingMenu = {
+        FloatingMenu(
+            permanentButton: .standardActionButton(
+                iconTemplate: UIImage(named: "icon_fab_compose_message")?.withRenderingMode(.alwaysTemplate),
+                accessibilityLabel: "New message",
+                action: { [weak self] in self?.showContacts() }))
+    }()
+
+    private func installFloatingActionMenu() {
+        // Install in NavigationController's view because our own view is a table view (complicates position and z-ordering)
+        guard let container = navigationController?.view else {
+            DDLogError("Cannot install FAB on chat list without navigation controller")
+            return
+        }
+
+        floatingMenu.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(floatingMenu)
+        floatingMenu.constrain(to: container)
+    }
+
     private func showContacts() {
         let controller = NewMessageViewController()
         controller.delegate = self

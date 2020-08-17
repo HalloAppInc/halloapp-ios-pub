@@ -25,6 +25,7 @@ class FeedViewController: FeedTableViewController {
         super.viewDidLoad()
 
         installLargeTitleUsingGothamFont()
+        installFloatingActionMenu()
 
         let notificationButton = BadgedButton(type: .system)
         notificationButton.setImage(UIImage(named: "FeedNavbarNotifications"), for: .normal)
@@ -37,15 +38,7 @@ class FeedViewController: FeedTableViewController {
             })
         }
 
-        let composeButton = UIButton(type: .system)
-        composeButton.setImage(UIImage(named: "FeedCompose"), for: .normal)
-        composeButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
-        composeButton.tintColor = .lavaOrange
-        composeButton.addTarget(self, action: #selector(composePost), for: .touchUpInside)
-
-        self.navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(customView: composeButton),
-            UIBarButtonItem(customView: notificationButton) ]
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: notificationButton)
 
         let privacySettings = MainAppContext.shared.xmppController.privacySettings!
         cancellables.insert(
@@ -76,6 +69,21 @@ class FeedViewController: FeedTableViewController {
         }
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        // Floating menu is hidden while our view is obscured
+        floatingMenu.isHidden = false
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        // Floating menu is in the navigation controller's view so we have to hide it
+        floatingMenu.setState(.collapsed, animated: true)
+        floatingMenu.isHidden = true
+    }
+
     deinit {
         self.cancellables.forEach { $0.cancel() }
     }
@@ -96,28 +104,46 @@ class FeedViewController: FeedTableViewController {
 
     // MARK: UI Actions
 
-    @objc(composePost)
-    private func composePost() {
-        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: "Photo Library", style: .default) { _ in
-            self.presentNewPostViewController(source: .library)
-        })
-        actionSheet.addAction(UIAlertAction(title: "Camera", style: .default) { _ in
-            self.presentNewPostViewController(source: .camera)
-        })
-        actionSheet.addAction(UIAlertAction(title: "Text", style: .default) { _ in
-            self.presentNewPostViewController(source: .noMedia)
-        })
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        self.present(actionSheet, animated: true, completion: nil)
-    }
-
     @objc(showNotifications)
     private func presentNotificationsView() {
         self.present(UINavigationController(rootViewController: NotificationsViewController(style: .plain)), animated: true)
     }
 
     // MARK: New post
+
+    private lazy var floatingMenu: FloatingMenu = {
+        FloatingMenu(
+            permanentButton: .rotatingToggleButton(
+                collapsedIconTemplate: UIImage(named: "icon_fab_compose_post")?.withRenderingMode(.alwaysTemplate),
+                expandedRotation: 45),
+            expandedButtons: [
+                .standardActionButton(
+                    iconTemplate: UIImage(named: "icon_fab_compose_image")?.withRenderingMode(.alwaysTemplate),
+                    accessibilityLabel: "Photo",
+                    action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
+                .standardActionButton(
+                    iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
+                    accessibilityLabel: "Camera",
+                    action: { [weak self] in self?.presentNewPostViewController(source: .camera) }),
+                .standardActionButton(
+                    iconTemplate: UIImage(named: "icon_fab_compose_text")?.withRenderingMode(.alwaysTemplate),
+                    accessibilityLabel: "Text",
+                    action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
+            ]
+        )
+    }()
+
+    private func installFloatingActionMenu() {
+        // Install in NavigationController's view because our own view is a table view (complicates position and z-ordering)
+        guard let container = navigationController?.view else {
+            DDLogError("Cannot install FAB on feed without navigation controller")
+            return
+        }
+
+        floatingMenu.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(floatingMenu)
+        floatingMenu.constrain(to: container)
+    }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
         let newPostViewController = NewPostViewController(source: source) {

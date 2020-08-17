@@ -1,16 +1,17 @@
 {
   "images" : [
     {
+      "filename" : "icon_fab_compose_message.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "FeedCompose@2x.png",
+      "filename" : "icon_fab_compose_message@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "FeedCompose@3x.png",
+      "filename" : "icon_fab_compose_message@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
