@@ -4,14 +4,6 @@ import Combine
 import SwiftUI
 import UIKit
 
-fileprivate class ObservableInt: ObservableObject {
-    @Published var value = 0
-}
-
-fileprivate class ObservableFloat: ObservableObject {
-    @Published var value: CGFloat = 0
-}
-
 fileprivate class GenericObservable<T>: ObservableObject {
     init(_ value: T) {
         self.value = value
@@ -41,6 +33,7 @@ class PostComposerViewController: UIViewController {
     private let showCancelButton: Bool
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
+    private var shouldAutoPlay = GenericObservable(false)
     private var postComposerView: PostComposerView?
     private var shareButton: UIBarButtonItem!
     private let didFinish: (() -> Void)
@@ -79,6 +72,7 @@ class PostComposerViewController: UIViewController {
             imageServer: imageServer,
             mediaItems: mediaItems,
             inputToPost: inputToPost,
+            shouldAutoPlay: shouldAutoPlay,
             crop: { [weak self] index in
                 guard let self = self else { return }
                 let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value) { controller, media, selected, cancel in
@@ -112,9 +106,22 @@ class PostComposerViewController: UIViewController {
         postComposerViewController.didMove(toParent: self)
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.shouldAutoPlay.value = true
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        self.shouldAutoPlay.value = false
         willDismissWithInput?(inputToPost.value)
+    }
+
+    override func willMove(toParent parent: UIViewController?) {
+        super.willMove(toParent: parent)
+        if parent == nil {
+            imageServer.cancel()
+        }
     }
 
     private func finish() {
@@ -133,7 +140,6 @@ class PostComposerViewController: UIViewController {
     }
 
     private func backAction() {
-        imageServer.cancel()
         navigationController?.popViewController(animated: true)
     }
 
@@ -171,14 +177,15 @@ fileprivate struct PostComposerView: View {
     private let imageServer: ImageServer
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
-    private let crop: (_ index: ObservableInt) -> Void
+    @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
+    private let crop: (_ index: GenericObservable<Int>) -> Void
     private let goBack: () -> Void
     private let setShareVisibility: (_ visibility: Bool) -> Void
 
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject private var mediaState = ObservableMediaState()
-    @ObservedObject private var currentPosition = ObservableInt()
-    @ObservedObject private var postTextHeight = ObservableFloat()
+    @ObservedObject private var currentPosition = GenericObservable(0)
+    @ObservedObject private var postTextHeight = GenericObservable<CGFloat>(0)
     @State private var keyboardHeight: CGFloat = 0
 
     private var keyboardHeightPublisher: AnyPublisher<CGFloat, Never> =
@@ -225,13 +232,15 @@ fileprivate struct PostComposerView: View {
         imageServer: ImageServer,
         mediaItems: ObservableMediaItems,
         inputToPost: GenericObservable<MentionInput>,
-        crop: @escaping (_ index: ObservableInt) -> Void,
+        shouldAutoPlay: GenericObservable<Bool>,
+        crop: @escaping (_ index: GenericObservable<Int>) -> Void,
         goBack: @escaping () -> Void,
         setShareVisibility: @escaping (_ visibility: Bool) -> Void)
     {
         self.imageServer = imageServer
         self.mediaItems = mediaItems
         self.inputToPost = inputToPost
+        self.shouldAutoPlay = shouldAutoPlay
         self.crop = crop
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
@@ -301,7 +310,7 @@ fileprivate struct PostComposerView: View {
                 .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260))
         }
         .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding + PostComposerLayoutConstants.controlSpacing)
-        .padding(.vertical, PostComposerLayoutConstants.verticalPadding + PostComposerLayoutConstants.controlSpacing)
+        .padding(.top, PostComposerLayoutConstants.verticalPadding + PostComposerLayoutConstants.controlSpacing)
     }
 
     var body: some View {
@@ -312,8 +321,11 @@ fileprivate struct PostComposerView: View {
                         if self.mediaCount > 0 {
                             ZStack(alignment: .bottom) {
                                 ZStack(alignment: .top) {
-                                    MediaPreviewSlider(mediaItems: self.mediaItems, currentPosition: self.currentPosition)
-                                        .frame(height: self.getMediaSliderHeight(geometry.size.width), alignment: .center)
+                                    MediaPreviewSlider(
+                                        mediaItems: self.mediaItems,
+                                        shouldAutoPlay: self.shouldAutoPlay,
+                                        currentPosition: self.currentPosition)
+                                    .frame(height: self.getMediaSliderHeight(geometry.size.width), alignment: .center)
 
                                     self.pageIndex
                                 }
@@ -351,8 +363,6 @@ fileprivate struct PostComposerView: View {
                     .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
                     .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
                 }
-                .frame(width: geometry.size.width)
-                .frame(minHeight: geometry.size.height - self.keyboardHeight)
             }
             .background(Color.feedBackground)
             .padding(.bottom, self.keyboardHeight)
@@ -394,7 +404,7 @@ private struct PendingMention {
 
 fileprivate struct PageIndexView: UIViewRepresentable {
     @ObservedObject var mediaItems: ObservableMediaItems
-    @ObservedObject var currentPosition: ObservableInt
+    @ObservedObject var currentPosition: GenericObservable<Int>
 
     private let strokeTextAttributes: [NSAttributedString.Key : Any] = [
         .strokeWidth: -0.5,
@@ -432,7 +442,7 @@ fileprivate struct PageIndexView: UIViewRepresentable {
 fileprivate struct TextView: UIViewRepresentable {
     @ObservedObject var mediaItems: ObservableMediaItems
     @ObservedObject var input: GenericObservable<MentionInput>
-    @ObservedObject var textHeight: ObservableFloat
+    @ObservedObject var textHeight: GenericObservable<CGFloat>
     @State var pendingMention: PendingMention?
 
     func makeCoordinator() -> Coordinator {
@@ -453,6 +463,7 @@ fileprivate struct TextView: UIViewRepresentable {
         textView.font = PostComposerLayoutConstants.getFontSize(
             textSize: input.value.text.count, isPostWithMedia: mediaItems.value.count > 0)
         textView.text = input.value.text
+        textView.textContainerInset.bottom = PostComposerLayoutConstants.verticalPadding + PostComposerLayoutConstants.controlSpacing
         return textView
     }
 
@@ -595,18 +606,18 @@ fileprivate struct TextView: UIViewRepresentable {
 
 fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     @ObservedObject var mediaItems: ObservableMediaItems
-    var currentPosition: ObservableInt
+    @ObservedObject var shouldAutoPlay: GenericObservable<Bool>
+    var currentPosition: GenericObservable<Int>
 
     var feedMediaItems: [FeedMedia] {
         mediaItems.value.map { FeedMedia($0, feedPostId: "") }
     }
 
     func makeUIView(context: Context) -> MediaCarouselView {
-        var configuration = MediaCarouselViewConfiguration.default
-        configuration.autoplayVideos = true
         let feedMedia = context.coordinator.parent.feedMediaItems
-        let carouselView = MediaCarouselView(media: feedMedia, configuration: configuration)
+        let carouselView = MediaCarouselView(media: feedMedia, configuration: MediaCarouselViewConfiguration.default)
         carouselView.indexChangeDelegate = context.coordinator
+        carouselView.shouldAutoPlay = context.coordinator.parent.shouldAutoPlay.value
 
         let gestureRecognizer = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped))
         carouselView.addGestureRecognizer(gestureRecognizer)
@@ -615,7 +626,10 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: MediaCarouselView, context: Context) {
-        uiView.refreshData(media: context.coordinator.parent.feedMediaItems, index: context.coordinator.parent.currentPosition.value)
+        uiView.shouldAutoPlay = context.coordinator.parent.shouldAutoPlay.value
+        uiView.refreshData(
+            media: context.coordinator.parent.feedMediaItems,
+            index: context.coordinator.parent.currentPosition.value)
     }
 
     func makeCoordinator() -> Coordinator {

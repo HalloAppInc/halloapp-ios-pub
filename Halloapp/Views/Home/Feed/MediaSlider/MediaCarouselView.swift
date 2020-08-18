@@ -20,7 +20,6 @@ struct MediaCarouselViewConfiguration {
     var isZoomEnabled = true
     var showVideoPlaybackControls = true
     var alwaysScaleToFitContent = false
-    var autoplayVideos = false
     var cellSpacing: CGFloat = 20
     var cornerRadius: CGFloat = 15
     var gutterWidth: CGFloat = 0
@@ -51,6 +50,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     private let feedDataItem: FeedDataItem?
 
     private var media: [FeedMedia]
+    public var shouldAutoPlay = false
 
     private var collectionBottomConstraint: NSLayoutConstraint!
     weak var indexChangeDelegate: MediaIndexChangeListener?
@@ -65,7 +65,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                     videoCell.stopPlayback()
                 }
 
-                if configuration.autoplayVideos {
+                if shouldAutoPlay {
                     playCurrentVideo()
                 }
 
@@ -207,7 +207,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                     videoCell.showsVideoPlaybackControls = self.configuration.showVideoPlaybackControls
                 }
                 cell.configure(with: feedMedia)
-                if self.configuration.autoplayVideos,
+                if self.shouldAutoPlay,
                     indexPath.item == self.currentIndex,
                     let videoCell = cell as? MediaCarouselVideoCollectionViewCell
                 {
@@ -276,7 +276,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         if newIndex != currentIndex {
             currentIndex = newIndex
             self.setCurrentIndex(newIndex, animated: true)
-        } else if configuration.autoplayVideos {
+        } else if self.shouldAutoPlay {
             playCurrentVideo()
         }
     }
