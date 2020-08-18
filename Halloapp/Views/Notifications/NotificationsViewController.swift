@@ -136,6 +136,7 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
 
     private lazy var mediaPreview: UIImageView = {
         let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.layer.cornerRadius = 8
         imageView.heightAnchor.constraint(equalToConstant: 44).isActive = true
