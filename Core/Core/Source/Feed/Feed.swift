@@ -129,6 +129,8 @@ public struct PendingMediaEdit {
     public var hFlipped: Bool = false
     public var vFlipped: Bool = false
     public var numberOfRotations: Int = 0
+    public var scale: CGFloat = 1.0
+    public var offset = CGPoint.zero
     
     public init(originalURL: URL?, image: UIImage?) {
         self.originalURL = originalURL
