@@ -6,6 +6,7 @@
 //
 
 import AVKit
+import Core
 import UIKit
 
 protocol ChatMediaSliderDelegate: AnyObject {

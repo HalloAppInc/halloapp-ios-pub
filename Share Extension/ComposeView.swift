@@ -17,6 +17,11 @@ enum ShareDestination {
     case contact(UserID, String)
 }
 
+enum ItemLoadingError: Error {
+    case invalidData
+    case videoTooLong
+}
+
 @objc(ComposeViewController)
 class ComposeViewController: SLComposeServiceViewController {
     private enum AttachmentType: String {
@@ -36,9 +41,11 @@ class ComposeViewController: SLComposeServiceViewController {
     private var isMediaReady = false {
         didSet { validateContent() }
     }
-    private var imageServer:ImageServer?
-    private let mediaProcessingGroup = DispatchGroup()
-    private var mediaToSend: [PendingMedia] = []
+
+    private let imageServer = ImageServer()
+    private var mediaToSend = [PendingMedia]()
+    private var dataStore: ShareExtensionDataStore!
+    private var xmppController: XMPPController!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,19 +54,22 @@ class ComposeViewController: SLComposeServiceViewController {
          Prevent the interactive dismissal of the view,
          since we need to disconnet XMPP before the user left
          */
-        self.isModalInPresentation = true
+        isModalInPresentation = true
         
         initAppContext(ShareExtensionContext.self, xmppControllerClass: XMPPControllerShareExtension.self, contactStoreClass: ContactStore.self)
-        
+        dataStore = ShareExtensionContext.shared.dataStore
+        xmppController = ShareExtensionContext.shared.xmppController
+
         /*
          If the user switches from the host app (the app that starts the share extension request)
          to HalloApp while the compose view is still active,
          the connection in HalloApp will override the connection here,
          when the user comes back, we need to reconnect.
          */
-        NotificationCenter.default.addObserver(forName: .NSExtensionHostWillEnterForeground, object: nil, queue: nil) { _ in
+        NotificationCenter.default.addObserver(forName: .NSExtensionHostWillEnterForeground, object: nil, queue: nil) { [weak self] _ in
+            guard let self = self else { return }
             ShareExtensionContext.shared.shareExtensionIsActive = true
-            ShareExtensionContext.shared.xmppController.startConnectingIfNecessary()
+            self.xmppController.startConnectingIfNecessary()
         }
         
         NotificationCenter.default.addObserver(forName: .NSExtensionHostDidEnterBackground, object: nil, queue: nil) { _ in
@@ -69,7 +79,7 @@ class ComposeViewController: SLComposeServiceViewController {
     
     override func presentationAnimationDidFinish() {
         guard ShareExtensionContext.shared.userData.isLoggedIn else {
-            DDLogError("ComposeViewController/presentationAnimationDidFinish/error user has not logged in")
+            DDLogError("User has not logged in")
             presentSimpleAlert(title: nil, message: "Please go to HalloApp and sign in") {
                 self.didSelectCancel()
             }
@@ -77,110 +87,77 @@ class ComposeViewController: SLComposeServiceViewController {
             return
         }
         
-        guard let item = extensionContext?.inputItems.first as? NSExtensionItem else {
-            DDLogError("ComposeViewController/presentationAnimationDidFinish/error Failed to get NSExtensionItem")
+        guard let item = extensionContext?.inputItems.first as? NSExtensionItem,
+            let attachments = item.attachments else {
+            DDLogError("Failed to get NSItemProvider items")
             self.didSelectCancel()
             return
         }
-        
-        guard let attachments = item.attachments else {
-            DDLogError("ComposeViewController/presentationAnimationDidFinish/error Failed to get [NSItemProvider]")
-            self.didSelectCancel()
-            return
-        }
-        
+
         ShareExtensionContext.shared.shareExtensionIsActive = true
-        ShareExtensionContext.shared.xmppController.startConnectingIfNecessary()
+        xmppController.startConnectingIfNecessary()
         
-        DDLogInfo("ComposeViewController/presentationAnimationDidFinish start loading attachments")
+        DDLogInfo("Start loading attachments")
         
-        var orderCounter: Int = 1
+        var mediaCount: Int = 1
+        let itemLoadingGroup = DispatchGroup()
         
         for itemProvider in attachments {
             DDLogDebug("TypeIdentifiers: \(itemProvider.registeredTypeIdentifiers)")
             
             if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.image.rawValue) {
                 hasMedia = true
-                mediaProcessingGroup.enter()
-                processImage(itemProvider, mediaOrder: orderCounter)
-                orderCounter += 1
+                itemLoadingGroup.enter()
+                loadImage(itemProvider, mediaOrder: mediaCount) { (_) in
+                    itemLoadingGroup.leave()
+                }
+                mediaCount += 1
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.video.rawValue) {
                 hasMedia = true
-                mediaProcessingGroup.enter()
-                processVideo(itemProvider, mediaOrder: orderCounter)
-                orderCounter += 1
+                itemLoadingGroup.enter()
+                loadVideo(itemProvider, mediaOrder: mediaCount) { (_) in
+                    itemLoadingGroup.leave()
+                }
+                mediaCount += 1
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.propertyList.rawValue) {
-                processWebpage(itemProvider)
+                loadWebpage(itemProvider) { (_) in
+                    itemLoadingGroup.leave()
+                }
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.text.rawValue) {
                 // No need to handle public.plain-text for now
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.url.rawValue) {
-                processURL(itemProvider)
+                loadURL(itemProvider) { (_) in
+                    itemLoadingGroup.leave()
+                }
             } else {
-                DDLogError("ComposeViewController/presentationAnimationDidFinish/error unknown TypeIdentifier: \(itemProvider.registeredTypeIdentifiers)")
+                DDLogError("Failer to load item. Unknown TypeIdentifier: \(itemProvider.registeredTypeIdentifiers)")
             }
         }
         
-        mediaProcessingGroup.notify(queue: .main) {
-            guard self.mediaToSend.count > 0 else { return }
-            
-            DDLogInfo("ComposeViewController/presentationAnimationDidFinish \(self.mediaToSend.count) of \(attachments.count) items have been loaded")
-            
-            self.mediaToSend.sort { $0.order < $1.order }
-            
-            if ShareExtensionContext.shared.xmppController.connectionState == .connected {
-                self.uploadMedia()
-            } else {
-                ShareExtensionContext.shared.xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
-                    self.uploadMedia()
-                }
-            }
+        itemLoadingGroup.notify(queue: .main) {
+            guard !self.mediaToSend.isEmpty else { return }
+
+            DDLogInfo("\(self.mediaToSend.count) of \(attachments.count) items have been loaded")
+            self.prepareMedia()
         }
     }
     
     override func didSelectPost() {
-        switch destination {
-        case .post:
-            ShareExtensionContext.shared.sharedDataStore.post(text: contentText, media: mediaToSend, using: ShareExtensionContext.shared.xmppController) { result in
-                switch result {
-                case .success(_):
-                    ShareExtensionContext.shared.shareExtensionIsActive = false
-                    ShareExtensionContext.shared.xmppController.disconnect()
-                    super.didSelectPost()
-                    
-                case .failure(let error):
-                    let message = "We encountered an error when posting: \(error.localizedDescription)"
-                    self.presentSimpleAlert(title: "Failed to Post", message: message) {
-                        // This is rare
-                        // The ComposeView already disappeared, we cannot go back
-                        ShareExtensionContext.shared.shareExtensionIsActive = false
-                        ShareExtensionContext.shared.xmppController.disconnect()
-                        super.didSelectCancel()
-                    }
-                }
-            }
-            
-        case .contact(let userId, _):
-            ShareExtensionContext.shared.sharedDataStore.sned(to: userId, text: contentText, media: mediaToSend, using: ShareExtensionContext.shared.xmppController) { result in
-                switch result {
-                case .success(_):
-                    ShareExtensionContext.shared.shareExtensionIsActive = false
-                    ShareExtensionContext.shared.xmppController.disconnect()
-                    super.didSelectPost()
-                    
-                case .failure(_):
-                    // This should never happen
-                    ShareExtensionContext.shared.shareExtensionIsActive = false
-                    ShareExtensionContext.shared.xmppController.disconnect()
-                    super.didSelectCancel()
-                }
-            }
+        ///TODO: Show progress indicator and disable UI.
+
+        xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            self.startSending()
         }
     }
     
     override func didSelectCancel() {
-        imageServer?.cancel()
+        imageServer.cancel()
+        dataStore.cancelSending()
+
+        ///TODO: delete saved data
+
         ShareExtensionContext.shared.shareExtensionIsActive = false
-        ShareExtensionContext.shared.xmppController.disconnect()
+        xmppController.disconnect()
         
         super.didSelectCancel()
     }
@@ -189,7 +166,7 @@ class ComposeViewController: SLComposeServiceViewController {
         if hasMedia {
             return isMediaReady
         } else {
-            return !contentText.isEmpty
+            return !contentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
     }
     
@@ -214,91 +191,129 @@ class ComposeViewController: SLComposeServiceViewController {
         
         return [destinationItem]
     }
-    
-    private func uploadMedia() {
-        DDLogInfo("ComposeViewController/uploadMedia start")
-        
-        imageServer = ImageServer()
-        imageServer!.upload(mediaToSend) { (didSuccess) in
-            if didSuccess {
-                DDLogInfo("ComposeViewController/uploadMedia success")
-                self.isMediaReady = true
-            } else {
-                DDLogError("ComposeViewController/uploadMedia failed")
-                self.presentSimpleAlert(title: nil, message: "There is a problem uploading your media. Please try again later.") {
-                    self.didSelectCancel()
+
+    private func startSending() {
+        let text = contentText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        switch destination {
+        case .post:
+            dataStore.post(text: text, media: mediaToSend) { (result) in
+                switch result {
+                case .success(_):
+                    ShareExtensionContext.shared.shareExtensionIsActive = false
+                    self.xmppController.disconnect()
+                    super.didSelectPost()
+
+                case .failure(_):
+                    self.presentSimpleAlert(title: "Failed to Post", message: "Please open HalloApp and retry posting.") {
+                        // This is rare
+                        // The ComposeView already disappeared, we cannot go back
+                        ShareExtensionContext.shared.shareExtensionIsActive = false
+                        self.xmppController.disconnect()
+                        super.didSelectCancel()
+                    }
+                }
+            }
+
+        case .contact(let userId, _):
+            dataStore.send(to: userId, text: text, media: mediaToSend) { (result) in
+                switch result {
+                case .success(_):
+                    ShareExtensionContext.shared.shareExtensionIsActive = false
+                    self.xmppController.disconnect()
+                    super.didSelectPost()
+
+                case .failure(_):
+                    // This should never happen
+                    ShareExtensionContext.shared.shareExtensionIsActive = false
+                    self.xmppController.disconnect()
+                    super.didSelectCancel()
                 }
             }
         }
     }
     
-    private func processImage(_ itemProvider: NSItemProvider, mediaOrder: Int) {
-        DDLogDebug("ComposeViewController/processImage/start")
-        
-        itemProvider.loadItem(forTypeIdentifier: AttachmentType.image.rawValue, options: nil) { (media, error) in
+    private func prepareMedia() {
+        DDLogInfo("ComposeViewController/prepareMedia start")
+
+        mediaToSend.sort { $0.order < $1.order }
+
+        imageServer.prepare(mediaItems: mediaToSend) { (success) in
+            if success {
+                DDLogInfo("ComposeViewController/prepareMedia success")
+                self.isMediaReady = true
+            } else {
+                DDLogError("ComposeViewController/prepareMedia failed")
+                self.presentSimpleAlert(title: nil, message: "One or more items you have selected could not be send. Please choose different item(s).") {
+                    self.didSelectCancel()
+                }
+            }
+        }
+    }
+
+    typealias ItemLoadingCompletion = (Result<Void, Error>) -> ()
+    
+    private func loadImage(_ itemProvider: NSItemProvider, mediaOrder: Int, completion: @escaping ItemLoadingCompletion) {
+        itemProvider.loadItem(forTypeIdentifier: AttachmentType.image.rawValue, options: nil) { (item, error) in
             guard error == nil else {
-                DDLogError("ComposeViewController/processImage/error while loading item: \(error!.localizedDescription)")
-                // TODO: show error message?
-                self.mediaProcessingGroup.leave()
+                DDLogError("ComposeViewController/loadImage/error \(error!)")
+                completion(.failure(error!))
                 return
             }
-            
-            let item: UIImage?
-            
-            switch media {
-            case let img as UIImage:
-                item = img
-            case let data as Data:
-                item = UIImage(data: data)
-            case let url as URL:
-                item = UIImage(contentsOfFile: url.path)
-            default:
-                item = nil
-                DDLogError("ComposeViewController/processImage/error unexpected type: \(type(of: media))")
-                // TODO: show error message?
+
+            func image(from item: NSSecureCoding?) -> UIImage? {
+                switch item {
+                case let img as UIImage:
+                    return img
+
+                case let data as Data:
+                    return UIImage(data: data)
+
+                case let url as URL:
+                    return UIImage(contentsOfFile: url.path)
+
+                default:
+                    DDLogError("ComposeViewController/loadImage/error Unexpected type: \(type(of: item))")
+                    return nil
+                }
             }
-            
-            guard let image = item else {
-                DDLogError("ComposeViewController/processImage/error can't get image")
-                // TODO: show error message?
-                self.mediaProcessingGroup.leave()
+
+            guard let image = image(from: item) else {
+                DDLogError("ComposeViewController/loadImage/error Can't get image")
+                completion(.failure(ItemLoadingError.invalidData))
                 return
             }
-            
+
             let mediaItem = PendingMedia(type: .image)
             mediaItem.order = mediaOrder
             mediaItem.image = image
             mediaItem.size = image.size
             self.mediaToSend.append(mediaItem)
             
-            self.mediaProcessingGroup.leave()
+            completion(.success(Void()))
         }
     }
     
-    private func processVideo(_ itemProvider: NSItemProvider, mediaOrder: Int) {
-        DDLogDebug("ComposeViewController/processVideo/start")
-        
+    private func loadVideo(_ itemProvider: NSItemProvider, mediaOrder: Int, completion: @escaping ItemLoadingCompletion) {
         itemProvider.loadItem(forTypeIdentifier: AttachmentType.video.rawValue, options: nil) { (item, error) in
             guard error == nil else {
-                DDLogError("ComposeViewController/processVideo/error while loading item: \(error!.localizedDescription)")
-                // TODO: show error message?
-                self.mediaProcessingGroup.leave()
+                DDLogError("ComposeViewController/loadVideo/error \(error!)")
+                completion(.failure(error!))
                 return
             }
             
             guard let url = item as? URL else {
-                DDLogError("ComposeViewController/processVideo/error can't load video url")
-                // TODO: show error message?
-                self.mediaProcessingGroup.leave()
+                DDLogError("ComposeViewController/loadVideo/error Can't load video url")
+                completion(.failure(ItemLoadingError.invalidData))
                 return
             }
             
             let avAsset = AVURLAsset(url: url)
             guard CMTimeGetSeconds(avAsset.duration) <= 60 else {
-                self.mediaProcessingGroup.leave()
                 self.presentSimpleAlert(title: nil, message: "Please pick a video less than 60 seconds long.") {
                     self.didSelectCancel()
                 }
+                completion(.failure(ItemLoadingError.videoTooLong))
                 return
             }
             
@@ -308,17 +323,15 @@ class ComposeViewController: SLComposeServiceViewController {
             mediaItem.videoURL = url
             self.mediaToSend.append(mediaItem)
             
-            self.mediaProcessingGroup.leave()
+            completion(.success(Void()))
         }
     }
     
-    private func processWebpage(_ itemProvider: NSItemProvider) {
-        DDLogDebug("ComposeViewController/processWebpage/start")
-        
+    private func loadWebpage(_ itemProvider: NSItemProvider, completion: @escaping ItemLoadingCompletion) {
         itemProvider.loadItem(forTypeIdentifier: AttachmentType.propertyList.rawValue, options: nil) { (item, error) in
             guard error == nil else {
-                DDLogError("ComposeViewController/processImage/error while loading item: \(error!.localizedDescription)")
-                // TODO: show error message?
+                DDLogError("ComposeViewController/loadWebpage/error \(error!)")
+                completion(.failure(error!))
                 return
             }
             
@@ -326,6 +339,7 @@ class ComposeViewController: SLComposeServiceViewController {
                 let results = dictionary[NSExtensionJavaScriptPreprocessingResultsKey] as? NSDictionary,
                 let title = results["title"] as? String,
                 let url = results["url"] as? String else {
+                    completion(.failure(ItemLoadingError.invalidData))
                     return
             }
             
@@ -333,27 +347,31 @@ class ComposeViewController: SLComposeServiceViewController {
                 self.textView.text = "\(title)\n\(url)"
                 self.validateContent()
             }
+
+            completion(.success(Void()))
         }
     }
     
-    private func processURL(_ itemProvider: NSItemProvider) {
-        DDLogDebug("ComposeViewController/processURL/start")
-        
+    private func loadURL(_ itemProvider: NSItemProvider, completion: @escaping ItemLoadingCompletion) {
         itemProvider.loadItem(forTypeIdentifier: AttachmentType.url.rawValue, options: nil) { (url, error) in
             guard error == nil else {
-                DDLogError("ComposeViewController/processImage/error while loading item: \(error!.localizedDescription)")
-                // TODO: show error message?
+                DDLogError("ComposeViewController/loadURL/error \(error!)")
+                completion(.failure(error!))
                 return
             }
             
-            guard let url = url as? URL else { return }
-            
+            guard let url = url as? URL else {
+                completion(.failure(ItemLoadingError.invalidData))
+                return
+            }
+
             let text = self.contentText.isEmpty ? url.absoluteString : "\(self.contentText ?? "")\n\(url.absoluteString)"
-            
             DispatchQueue.main.async {
                 self.textView.text = text
                 self.validateContent()
             }
+
+            completion(.success(Void()))
         }
     }
     
@@ -368,6 +386,7 @@ class ComposeViewController: SLComposeServiceViewController {
 }
 
 extension ComposeViewController: ShareDestinationDelegate {
+
     func setDestination(to newDestination: ShareDestination) {
         destination = newDestination
         popConfigurationViewController()

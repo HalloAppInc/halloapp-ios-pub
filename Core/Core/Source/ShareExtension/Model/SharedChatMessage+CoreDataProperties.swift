@@ -57,3 +57,21 @@ extension SharedChatMessage {
     @NSManaged public func removeFromMedia(_ values: NSSet)
 
 }
+
+extension SharedChatMessage: ChatMessageProtocol {
+
+    public var orderedMedia: [ChatMediaProtocol] {
+        guard let media = media else { return [] }
+        return media.sorted { $0.order < $1.order }
+    }
+
+    public var feedPostId: FeedPostID? {
+        nil
+    }
+    
+    public var feedPostMediaIndex: Int32 {
+        0
+    }
+    
+
+}

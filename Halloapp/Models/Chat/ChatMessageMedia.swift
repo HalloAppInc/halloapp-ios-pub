@@ -8,6 +8,7 @@
 
 import CocoaLumberjack
 import Combine
+import Core
 import Foundation
 
 class ChatMessageMedia: Identifiable, ObservableObject, Hashable {

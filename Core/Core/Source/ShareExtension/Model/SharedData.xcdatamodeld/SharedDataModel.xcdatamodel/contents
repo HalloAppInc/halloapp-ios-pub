@@ -29,16 +29,18 @@
         <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="relativeFilePath" attributeType="String"/>
         <attribute name="sha256" attributeType="String"/>
+        <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="typeValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="url" attributeType="URI"/>
+        <attribute name="uploadUrl" optional="YES" attributeType="URI"/>
+        <attribute name="url" optional="YES" attributeType="URI"/>
         <attribute name="width" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedChatMessage" inverseName="media" inverseEntity="SharedChatMessage"/>
         <relationship name="post" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SharedFeedPost" inverseName="media" inverseEntity="SharedFeedPost"/>
     </entity>
     <elements>
+        <element name="SharedChatMessage" positionX="-54" positionY="81" width="128" height="148"/>
         <element name="SharedFeedMention" positionX="-54" positionY="81" width="128" height="88"/>
         <element name="SharedFeedPost" positionX="-63" positionY="-18" width="128" height="148"/>
-        <element name="SharedMedia" positionX="-45" positionY="27" width="128" height="193"/>
-        <element name="SharedChatMessage" positionX="-54" positionY="81" width="128" height="148"/>
+        <element name="SharedMedia" positionX="-45" positionY="27" width="128" height="223"/>
     </elements>
 </model>

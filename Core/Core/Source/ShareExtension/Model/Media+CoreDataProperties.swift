@@ -16,10 +16,18 @@ import UIKit
  */
 extension SharedMedia {
 
+    public enum Status: Int16 {
+        case none = 0
+        case uploading = 1
+        case uploaded = 2
+        case error = 3
+    }
+
     @nonobjc public class func fetchRequest() -> NSFetchRequest<SharedMedia> {
         return NSFetchRequest<SharedMedia>(entityName: "SharedMedia")
     }
     
+    @NSManaged private var typeValue: Int16
     public var `type`: FeedMediaType {
         get {
             return FeedMediaType(rawValue: Int(self.typeValue))!
@@ -28,7 +36,19 @@ extension SharedMedia {
             typeValue = Int16(newValue.rawValue)
         }
     }
+
+    @NSManaged private var statusValue: Int16
+    public var status: Status {
+        get {
+            return Status(rawValue: self.statusValue)!
+        }
+        set {
+            self.statusValue = newValue.rawValue
+        }
+    }
     
+    @NSManaged private var width: Float
+    @NSManaged private var height: Float
     public var size: CGSize {
         get {
             return CGSize(width: CGFloat(width), height: CGFloat(height))
@@ -39,22 +59,28 @@ extension SharedMedia {
         }
     }
 
-    @NSManaged public var height: Float
     @NSManaged public var key: String
     @NSManaged public var order: Int16
     @NSManaged public var relativeFilePath: String
     @NSManaged public var sha256: String
-    @NSManaged public var typeValue: Int16
     @NSManaged public var url: URL?
-    @NSManaged public var width: Float
-    
+    @NSManaged public var uploadUrl: URL?
+
     @NSManaged public var post: SharedFeedPost?
     @NSManaged public var message: SharedChatMessage?
-
 }
 
 extension SharedMedia: FeedMediaProtocol {
     public var id: String {
         "\(post!.id)-\(order)"
+    }
+}
+
+extension SharedMedia: ChatMediaProtocol {
+    public var mediaType: ChatMessageMediaType {
+        switch type {
+        case .image: return .image
+        case .video: return .video
+        }
     }
 }

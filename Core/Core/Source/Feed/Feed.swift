@@ -147,6 +147,7 @@ public class PendingMedia {
     public var image: UIImage?
     public var videoURL: URL?
     public var fileURL: URL?
+    public var encryptedFileUrl: URL?
     public var error: Error?
     
     public var edit: PendingMediaEdit?

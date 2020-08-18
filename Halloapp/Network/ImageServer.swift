@@ -6,7 +6,6 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Alamofire
 import CocoaLumberjack
 import Core
 import SwiftUI
@@ -33,72 +32,33 @@ class ImageServer {
     private let mediaProcessingGroup = DispatchGroup()
     private var isCancelled = false
 
-    func upload(_ mediaItems: [PendingMedia], completion: @escaping (Bool) -> ()) {
-        mediaItems.forEach{ initiateUpload($0) }
+    func prepare(mediaItems: [PendingMedia], completion: @escaping (Bool) -> ()) {
+        mediaItems.forEach{ prepare(mediaItem: $0) }
         self.mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
             guard let self = self else { return }
             if !self.isCancelled {
-                let allUploadsSuccessful = mediaItems.filter{ $0.error != nil }.isEmpty
-                completion(allUploadsSuccessful)
+                let allItemsPrepared = mediaItems.filter{ $0.error != nil }.isEmpty
+                completion(allItemsPrepared)
             }
         }
     }
     
-    func upload(_ mediaItems: [PendingMedia], isReady: Binding<Bool>, numberOfFailedUploads: Binding<Int>) {
-        mediaItems.forEach{ initiateUpload($0) }
+    func prepare(mediaItems: [PendingMedia], isReady: Binding<Bool>, numberOfFailedItems: Binding<Int>) {
+        mediaItems.forEach{ prepare(mediaItem: $0) }
         self.mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
             guard let self = self else { return }
             if !self.isCancelled {
                 isReady.wrappedValue = true
-                numberOfFailedUploads.wrappedValue = mediaItems.filter{ $0.error != nil }.count
+                numberOfFailedItems.wrappedValue = mediaItems.filter{ $0.error != nil }.count
             }
         }
     }
 
     func cancel() {
         isCancelled = true
-        AF.session.getTasksWithCompletionHandler { (dataTasks, uploadTasks, downloadTasks) in
-            uploadTasks.forEach { (task) in
-                // Cancellation of a task will invoke task completion handler.
-                DDLogDebug("ImageServer/upload/cancel")
-                task.cancel()
-            }
-        }
     }
 
-    private func initiateUpload(_ item: PendingMedia) {
-        // Start uploading immediately if there is an upload url already.
-        guard item.uploadUrl == nil else {
-            processAndUpload(item)
-            return
-        }
-
-        // Request upload / download url for each media item.
-        mediaProcessingGroup.enter()
-        let request = XMPPMediaUploadURLRequest { (result) in
-            guard !self.isCancelled else {
-                self.mediaProcessingGroup.leave()
-                return
-            }
-            switch result {
-            case .success(let urls):
-                item.url = urls.get
-                item.uploadUrl = urls.put
-                self.processAndUpload(item)
-
-            case .failure(let error):
-                item.error = error
-            }
-            self.mediaProcessingGroup.leave()
-        }
-        AppContext.shared.xmppController.enqueue(request: request)
-    }
-
-    private func processAndUpload(_ item: PendingMedia) {
-        guard let uploadUrl = item.uploadUrl, let downloadUrl = item.url else {
-            assert(false, "Item does not have upload URL")
-        }
-
+    private func prepare(mediaItem item: PendingMedia) {
         mediaProcessingGroup.enter()
         mediaProcessingQueue.async {
             // 1. Resize media as necessary.
@@ -146,7 +106,7 @@ class ImageServer {
                 }
             }
 
-            // 2. Encrypt and upload media.
+            // 2. Encrypt media.
             mediaResizeGroup.notify(queue: self.mediaProcessingQueue) {
 
                 guard item.error == nil else {
@@ -165,10 +125,12 @@ class ImageServer {
                         plaintextData = imageData
 
                         // Save resized image to the temp directory - it will be copied to the permanent directory if user proceeds posting media.
-                        let tempMediaURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(item.url!.lastPathComponent)
+                        let tempMediaURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                            .appendingPathComponent(UUID().uuidString, isDirectory: false)
+                            .appendingPathExtension("jpg")
                         DDLogDebug("ImageServer/media/copy to [\(tempMediaURL)]")
                         do {
-                            try plaintextData.write(to: tempMediaURL, options: [ .atomic ])
+                            try imageData.write(to: tempMediaURL, options: [ .atomic ])
                             item.fileURL = tempMediaURL
                         }
                         catch {
@@ -200,10 +162,10 @@ class ImageServer {
 
                 // 2.2 Encrypt media.
                 let ts = Date()
-                let data: Data, key: Data, sha256Hash: Data
+                let encryptedData: Data, key: Data, sha256Hash: Data
                 DDLogDebug("ImageServer/encrypt/begin")
                 do {
-                    (data, key, sha256Hash) = try MediaCrypter.encrypt(data: plaintextData, mediaType: item.type)
+                    (encryptedData, key, sha256Hash) = try MediaCrypter.encrypt(data: plaintextData, mediaType: item.type)
                 } catch {
                     DDLogError("ImageServer/encrypt/error item=[\(item)] [\(error)]")
                     item.error = error
@@ -212,32 +174,25 @@ class ImageServer {
                 }
                 DDLogDebug("ImageServer/encrypt/finished  Duration: \(-ts.timeIntervalSinceNow) s")
 
-                // 2.3 Upload encrypted media.
-                self.mediaProcessingGroup.enter()
-                DispatchQueue.main.async {
-                    // Post composer could have been canceled while media was being processed.
-                    if self.isCancelled {
-                        self.mediaProcessingGroup.leave()
-                        return
-                    }
-
-                    // Encryption data would be send over the wire and saved to db.
+                // 2.3 Save encrypted data into a temp file.
+                let encryptedFileURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                    .appendingPathComponent(UUID().uuidString, isDirectory: false)
+                    .appendingPathExtension("enc")
+                DDLogDebug("ImageServer/media/save-enc to [\(encryptedFileURL)]")
+                do {
+                    try encryptedData.write(to: encryptedFileURL, options: [ .atomic ])
                     item.key = key.base64EncodedString()
                     item.sha256 = sha256Hash.base64EncodedString()
-
-                    // Start upload.
-                    DDLogDebug("ImageServer/upload/begin url=[\(uploadUrl)]")
-                    AF.upload(data, to: uploadUrl, method: .put, headers: [ "Content-Type": "application/octet-stream" ]).response { (response) in
-                        if response.error != nil {
-                            DDLogError("ImageServer/upload/error url=[\(uploadUrl)] [\(response.error!)]")
-                            item.error = response.error
-                        } else {
-                            DDLogDebug("ImageServer/upload/success url=[\(downloadUrl)]")
-                        }
-                        self.mediaProcessingGroup.leave()
-                    }
+                    item.encryptedFileUrl = encryptedFileURL
+                }
+                catch {
+                    DDLogError("ImageServer/media/save-enc/error [\(error)]")
+                    item.error = error
+                    self.mediaProcessingGroup.leave()
+                    return
                 }
 
+                // 2.4 Finish processing.
                 self.mediaProcessingGroup.leave()
             }
         }

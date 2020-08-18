@@ -68,6 +68,20 @@ extension FeedPostMedia {
     @NSManaged var order: Int16
 }
 
+extension FeedPostMedia: MediaUploadable {
+
+    var encryptedFilePath: String? {
+        guard let filePath = relativeFilePath else {
+            return nil
+        }
+        return filePath.appending(".enc")
+    }
+
+    var index: Int {
+        get { Int(order) }
+    }
+}
+
 extension FeedPostMedia: FeedMediaProtocol {
     public var id: String {
         get {

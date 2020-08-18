@@ -30,8 +30,9 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
-    private var userData: UserData
-    private var xmppController: XMPPControllerMain
+    private let userData: UserData
+    private let xmppController: XMPPControllerMain
+    private let mediaUploader: MediaUploader
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var currentlyChattingWithUserId: String? = nil
@@ -67,7 +68,13 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         self.xmppController = xmppController
         self.userData = userData
-        self.xmppController.chatDelegate = self
+        self.mediaUploader = MediaUploader(xmppController: xmppController)
+
+        xmppController.chatDelegate = self
+
+        mediaUploader.resolveMediaPath = { relativePath in
+            return MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
+        }
         
         self.migrateSenderStatusChatMessages()
         self.migrateReceiverStatusChatMessages()
@@ -465,28 +472,31 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         
         // Process chat media
         for (index, xmppMedia) in xmppChatMessage.media.enumerated() {
-            DDLogDebug("ChatData/process/new/add-media [\(xmppMedia.url)]")
-            let feedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
+            guard let downloadUrl = xmppMedia.url else { continue }
+
+            DDLogDebug("ChatData/process/new/add-media [\(downloadUrl)]")
+            let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
+            
             switch xmppMedia.type {
             case .image:
-                feedMedia.type = .image
+                chatMedia.type = .image
                 if lastMsgMediaType == .none {
                     lastMsgMediaType = .image
                 }
             case .video:
-                feedMedia.type = .video
+                chatMedia.type = .video
                 if lastMsgMediaType == .none {
                     lastMsgMediaType = .video
                 }
             }
-            feedMedia.incomingStatus = .pending
-            feedMedia.outgoingStatus = .none
-            feedMedia.url = xmppMedia.url
-            feedMedia.size = xmppMedia.size
-            feedMedia.key = xmppMedia.key
-            feedMedia.order = Int16(index)
-            feedMedia.sha256 = xmppMedia.sha256
-            feedMedia.message = chatMessage
+            chatMedia.incomingStatus = .pending
+            chatMedia.outgoingStatus = .none
+            chatMedia.url = xmppMedia.url
+            chatMedia.size = xmppMedia.size
+            chatMedia.key = xmppMedia.key
+            chatMedia.order = Int16(index)
+            chatMedia.sha256 = xmppMedia.sha256
+            chatMedia.message = chatMessage
         }
         
         // Process Quoted
@@ -574,13 +584,10 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: notification, trigger: nil))
     }
             
-    func copyPendingToChatMedia(fromUrl: URL?, to chatMedia: ChatMedia, chatMessage: ChatMessage) throws {
-        guard let fromUrl = fromUrl else {
-            return
-        }
-                
-        let threadId = chatMessage.toUserId
-        let messageId = chatMessage.id
+    func copyFiles(toChatMedia chatMedia: ChatMedia, fileUrl: URL, encryptedFileUrl: URL?) throws {
+
+        let threadId = chatMedia.message.toUserId
+        let messageId = chatMedia.message.id
         let order = chatMedia.order
         
         let fileExtension = chatMedia.type == .image ? "jpg" : "mp4"
@@ -594,13 +601,17 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         if !FileManager.default.fileExists(atPath: toUrl.path) {
             do {
                 try FileManager.default.createDirectory(at: toUrl.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
-
             } catch {
                 DDLogError(error.localizedDescription)
             }
         }
 
-        try FileManager.default.copyItem(at: fromUrl, to: toUrl)
+        try FileManager.default.copyItem(at: fileUrl, to: toUrl)
+
+        if let encryptedFileUrl = encryptedFileUrl {
+            let encryptedDestinationUrl = toUrl.appendingPathExtension("enc")
+            try FileManager.default.copyItem(at: encryptedFileUrl, to: encryptedDestinationUrl)
+        }
         
         let relativePath = self.relativePath(from: toUrl)
         chatMedia.relativeFilePath = relativePath
@@ -650,18 +661,18 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     }
     
     func sendMessage(toUserId: String, text: String, media: [PendingMedia], feedPostId: String?, feedPostMediaIndex: Int32) {
-        let xmppChatMessage = XMPPChatMessage(toUserId: toUserId, text: text, media: media, feedPostId: feedPostId, feedPostMediaIndex: feedPostMediaIndex)
-        
+        let messageId = UUID().uuidString
+
         // Create and save new ChatMessage object.
         let managedObjectContext = self.persistentContainer.viewContext
-        DDLogDebug("ChatData/new-msg/create")
+        DDLogDebug("ChatData/new-msg/\(messageId)")
         let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
-        chatMessage.id = xmppChatMessage.id
-        chatMessage.toUserId = xmppChatMessage.toUserId
-        chatMessage.fromUserId = xmppChatMessage.fromUserId
-        chatMessage.text = xmppChatMessage.text
-        chatMessage.feedPostId = xmppChatMessage.feedPostId
-        chatMessage.feedPostMediaIndex = xmppChatMessage.feedPostMediaIndex
+        chatMessage.id = messageId
+        chatMessage.toUserId = toUserId
+        chatMessage.fromUserId = userData.userId
+        chatMessage.text = text
+        chatMessage.feedPostId = feedPostId
+        chatMessage.feedPostMediaIndex = feedPostMediaIndex
         chatMessage.incomingStatus = .none
         chatMessage.outgoingStatus = .pending
         chatMessage.timestamp = Date()
@@ -669,7 +680,8 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         var lastMsgMediaType: ChatThread.LastMsgMediaType = .none // going with the first media
         
         for (index, mediaItem) in media.enumerated() {
-            DDLogDebug("ChatData/new-msg/add-media [\(mediaItem.url!)]")
+            DDLogDebug("ChatData/new-msg/\(messageId)/add-media [\(mediaItem)]")
+
             let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
             switch mediaItem.type {
             case .image:
@@ -683,8 +695,9 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                     lastMsgMediaType = .video
                 }
             }
-            chatMedia.outgoingStatus = .uploaded // For now we're only posting when all uploads are completed.
-            chatMedia.url = mediaItem.url!
+            chatMedia.outgoingStatus = .pending
+            chatMedia.url = mediaItem.url
+            chatMedia.uploadUrl = mediaItem.uploadUrl
             chatMedia.size = mediaItem.size!
             chatMedia.key = mediaItem.key!
             chatMedia.sha256 = mediaItem.sha256!
@@ -692,49 +705,45 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             chatMedia.message = chatMessage
 
             do {
-                try self.copyPendingToChatMedia(fromUrl: mediaItem.fileURL, to: chatMedia, chatMessage: chatMessage)
+                try copyFiles(toChatMedia: chatMedia, fileUrl: mediaItem.fileURL!, encryptedFileUrl: mediaItem.encryptedFileUrl)
             }
             catch {
-                DDLogError("ChatData/new-msg/media/copy-media/error [\(error)]")
+                DDLogError("ChatData/new-msg/\(messageId)/copy-media/error [\(error)]")
             }
         }
         
         // Create and save Quoted
-        if xmppChatMessage.feedPostId != nil {
-            if let feedPost = MainAppContext.shared.feedData.feedPost(with: xmppChatMessage.feedPostId!) {
-                let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
-                quoted.type = .feedpost
-                quoted.userId = feedPost.userId
-                quoted.text = feedPost.text
-                quoted.message = chatMessage
-                
-                if feedPost.media != nil {
-                    if let feedPostMedia = feedPost.media!.first(where: { $0.order == xmppChatMessage.feedPostMediaIndex }) {
-                        let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
-                        if feedPostMedia.type == .image {
-                            quotedMedia.type = .image
-                        } else {
-                            quotedMedia.type = .video
-                        }
-                        quotedMedia.order = feedPostMedia.order
-                        quotedMedia.width = Float(feedPostMedia.size.width)
-                        quotedMedia.height = Float(feedPostMedia.size.height)
-                        quotedMedia.quoted = quoted
-                        
-                        do {
-                            try copyMediaToQuotedMedia(fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
-                        }
-                        catch {
-                            DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
-                        }
-                    }
+        if let feedPostId = feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
+            quoted.type = .feedpost
+            quoted.userId = feedPost.userId
+            quoted.text = feedPost.text
+            quoted.message = chatMessage
+
+            if let feedPostMedia = feedPost.media?.first(where: { $0.order == feedPostMediaIndex }) {
+                let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
+                if feedPostMedia.type == .image {
+                    quotedMedia.type = .image
+                } else {
+                    quotedMedia.type = .video
+                }
+                quotedMedia.order = feedPostMedia.order
+                quotedMedia.width = Float(feedPostMedia.size.width)
+                quotedMedia.height = Float(feedPostMedia.size.height)
+                quotedMedia.quoted = quoted
+
+                do {
+                    try copyMediaToQuotedMedia(fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
+                }
+                catch {
+                    DDLogError("ChatData/new-msg/\(messageId)/quoted/copy-media/error [\(error)]")
                 }
             }
         }
         
         // Update Chat Thread
         if let chatThread = self.chatThread(chatWithUserId: chatMessage.toUserId, in: managedObjectContext) {
-            DDLogDebug("ChatData/new-msg/update-thread")
+            DDLogDebug("ChatData/new-msg/\(messageId)/update-thread")
             chatThread.lastMsgId = chatMessage.id
             chatThread.lastMsgUserId = chatMessage.fromUserId
             chatThread.lastMsgText = chatMessage.text
@@ -742,7 +751,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             chatThread.lastMsgStatus = .pending
             chatThread.lastMsgTimestamp = chatMessage.timestamp
         } else {
-            DDLogDebug("ChatData/new-msg/new-thread")
+            DDLogDebug("ChatData/new-msg/\(messageId)/new-thread")
             let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
             chatThread.chatWithUserId = chatMessage.toUserId
             chatThread.lastMsgId = chatMessage.id
@@ -753,10 +762,76 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
             chatThread.lastMsgTimestamp = chatMessage.timestamp
             chatThread.unreadCount = 0
         }
-        self.save(managedObjectContext)
-        
-        xmppChatMessage.encryptXMPPElement() { xmppEl in
-            MainAppContext.shared.xmppController.xmppStream.send(xmppEl)
+        save(managedObjectContext)
+
+        uploadMediaAndSend(chatMessage)
+
+    }
+
+    private func uploadMediaAndSend(_ message: ChatMessage) {
+
+        // Either all media has already been uploaded or post does not contain media.
+        guard let mediaItemsToUpload = message.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
+            send(message: message)
+            return
+        }
+
+        let messageId = message.id
+        var numberOfFailedUploads = 0
+        let totalUploads = mediaItemsToUpload.count
+        DDLogInfo("ChatData/upload-media/\(messageId)/starting [\(totalUploads)]")
+
+        let uploadGroup = DispatchGroup()
+        for mediaItem in mediaItemsToUpload {
+            let mediaIndex = mediaItem.order
+            uploadGroup.enter()
+            mediaUploader.upload(media: mediaItem, groupId: messageId, didGetURLs: { (mediaURLs) in
+                DDLogInfo("ChatData/upload-media/\(messageId)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
+
+                // Save URLs acquired during upload to the database.
+                self.updateChatMessage(with: messageId) { (chatMessage) in
+                    if let media = chatMessage.media?.first(where: { $0.order == mediaIndex }) {
+                        media.url = mediaURLs.get
+                        media.uploadUrl = mediaURLs.put
+                    }
+                }
+            }) { (uploadResult) in
+                DDLogInfo("ChatData/upload-media/\(messageId)/\(mediaIndex)/finished result=[\(uploadResult)]")
+
+                // Save URLs acquired during upload to the database.
+                self.updateChatMessage(with: messageId) { (chatMessage) in
+                    if let media = chatMessage.media?.first(where: { $0.order == mediaIndex }) {
+                        switch uploadResult {
+                        case .success(_):
+                            media.outgoingStatus = .uploaded
+
+                        case .failure(_):
+                            numberOfFailedUploads += 1
+                            media.outgoingStatus = .error
+                        }
+                    }
+
+                    uploadGroup.leave()
+                }
+            }
+        }
+
+        uploadGroup.notify(queue: .main) {
+            DDLogInfo("ChatData/upload-media/\(messageId)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
+            if numberOfFailedUploads > 0 {
+                self.updateChatMessage(with: messageId) { (chatMessage) in
+                    chatMessage.outgoingStatus = .error
+                }
+            } else if let chatMessage = self.chatMessage(with: messageId) {
+                self.send(message: chatMessage)
+            }
+        }
+    }
+
+    private func send(message: ChatMessage) {
+        let xmppMessage = XMPPChatMessage(chatMessage: message)
+        xmppMessage.encryptXMPPElement { xmppElement in
+            self.xmppController.xmppStream.send(xmppElement)
         }
     }
     
@@ -990,7 +1065,6 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
         self.currentlyChattingWithUserId = chatWithUserId
         self.isSubscribedToCurrentUser = false
     }
-
     
     // MARK: Delete Thread
     
@@ -1142,8 +1216,10 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                     DDLogError("ChatData/mergeSharedData/already-exists [\(message.id)]")
                     continue
                 }
-                
-                DDLogDebug("ChatData/mergeSharedData/new [\(message.id)]")
+
+                let messageId = message.id
+
+                DDLogDebug("ChatData/mergeSharedData/message/\(messageId)")
                 
                 let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
                 chatMessage.id = message.id
@@ -1153,46 +1229,51 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 chatMessage.feedPostId = nil
                 chatMessage.feedPostMediaIndex = 0
                 chatMessage.incomingStatus = .none
-                chatMessage.outgoingStatus = .sentOut
+                chatMessage.outgoingStatus = message.status == .sent ? .sentOut : .error
                 chatMessage.timestamp = message.timestamp
                 
                 var lastMsgMediaType: ChatThread.LastMsgMediaType = .none
                 
-                if let messageMedia = message.media {
-                    for media in messageMedia {
-                        guard let url = media.url else {
-                            DDLogError("ChatData/mergeSharedData/ Skip invalid media [\(media)]")
-                            continue
-                        }
+                message.media?.forEach { media in
+                    DDLogDebug("ChatData/mergeSharedData/message/\(messageId)/add-media [\(media)]")
 
-                        DDLogDebug("ChatData/mergeSharedData/new/add-media [\(url)]")
-                        let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
-                        switch media.type {
-                        case .image:
-                            chatMedia.type = .image
-                            if lastMsgMediaType == .none {
-                                lastMsgMediaType = .image
-                            }
-                        case .video:
-                            chatMedia.type = .video
-                            if lastMsgMediaType == .none {
-                                lastMsgMediaType = .video
-                            }
+                    let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
+                    switch media.type {
+                    case .image:
+                        chatMedia.type = .image
+                        if lastMsgMediaType == .none {
+                            lastMsgMediaType = .image
                         }
-                        chatMedia.incomingStatus = .none
-                        chatMedia.outgoingStatus = .uploaded
-                        chatMedia.url = url
-                        chatMedia.size = media.size
-                        chatMedia.key = media.key
-                        chatMedia.order = media.order
-                        chatMedia.sha256 = media.sha256
-                        chatMedia.message = chatMessage
-                        
-                        do {
-                            try self.copyPendingToChatMedia(fromUrl: SharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath), to: chatMedia, chatMessage: chatMessage)
-                        } catch {
-                            DDLogError("ChatData/mergeSharedData/media/copy-media/error [\(error)]")
+                    case .video:
+                        chatMedia.type = .video
+                        if lastMsgMediaType == .none {
+                            lastMsgMediaType = .video
                         }
+                    }
+                    chatMedia.incomingStatus = .none
+                    chatMedia.outgoingStatus = {
+                        switch media.status {
+                            ///TODO: treatment of "none" as "uploaded" is a temporary workaround to migrate media created without status attribute. safe to remove this case after 09/14/2020.
+                        case .none, .uploaded:
+                            return .uploaded
+                        case .uploading, .error:
+                            return .error
+                        }
+                    }()
+                    chatMedia.url = media.url
+                    chatMedia.uploadUrl = media.uploadUrl
+                    chatMedia.size = media.size
+                    chatMedia.key = media.key
+                    chatMedia.order = media.order
+                    chatMedia.sha256 = media.sha256
+                    chatMedia.message = chatMessage
+
+                    do {
+                        let sourceUrl = SharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath)
+                        let encryptedFileUrl = chatMedia.outgoingStatus != .uploaded ? sourceUrl.appendingPathExtension("enc") : nil
+                        try self.copyFiles(toChatMedia: chatMedia, fileUrl: sourceUrl, encryptedFileUrl: encryptedFileUrl)
+                    } catch {
+                        DDLogError("ChatData/mergeSharedData/media/copy-media/error [\(error)]")
                     }
                 }
                 
@@ -1216,13 +1297,11 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
                 }
             }
             
-            DispatchQueue.main.async {
-                // Save will trigger a UI refresh
-                self.save(managedObjectContext)
-            }
+            self.save(managedObjectContext)
+
             DDLogInfo("ChatData/mergeSharedData/finished")
             
-            sharedDataStore.delete(messages) {
+            sharedDataStore.delete(messages: messages) {
                 completion()
             }
         }
@@ -1230,6 +1309,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
 }
 
 extension XMPPChatMessage {
+
     init(chatMessage: ChatMessage) {
         self.id = chatMessage.id
         self.fromUserId = chatMessage.fromUserId
@@ -1238,8 +1318,11 @@ extension XMPPChatMessage {
         self.feedPostId = chatMessage.feedPostId
         self.feedPostMediaIndex = chatMessage.feedPostMediaIndex
         
-        // TODO: Media
-        self.media = []
+        if let media = chatMessage.media {
+            self.media = media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) }
+        } else {
+            self.media = []
+        }
     }
     
     // init incoming message

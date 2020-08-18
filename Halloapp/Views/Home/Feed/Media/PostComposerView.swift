@@ -32,7 +32,7 @@ fileprivate class ObservableMediaItems: ObservableObject {
 
 fileprivate class ObservableMediaState: ObservableObject {
     @Published var isReady: Bool = false
-    @Published var numberOfFailedUploads: Int = 0
+    @Published var numberOfFailedItems: Int = 0
 }
 
 class PostComposerViewController: UIViewController {
@@ -225,7 +225,7 @@ fileprivate struct PostComposerView: View {
             Publishers.CombineLatest4(
                 self.mediaItems.$value,
                 self.mediaState.$isReady,
-                self.mediaState.$numberOfFailedUploads,
+                self.mediaState.$numberOfFailedItems,
                 self.inputToPost.$value
             )
                 .map { (mediaItems, mediaIsReady, numberOfFailedUploads, inputValue) -> Bool in
@@ -308,11 +308,11 @@ fileprivate struct PostComposerView: View {
                             .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
                             .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
 
-                            if self.mediaState.numberOfFailedUploads > 1 {
-                                Text("Failed to upload \(self.mediaState.numberOfFailedUploads) media items. Please try again.")
+                            if self.mediaState.numberOfFailedItems > 1 {
+                                Text("Failed to prepare \(self.mediaState.numberOfFailedItems) media items. Please try again or select a different photo / video.")
                                     .foregroundColor(.red)
-                            } else if self.mediaState.numberOfFailedUploads > 0 {
-                                Text("Failed to upload media. Please try again.")
+                            } else if self.mediaState.numberOfFailedItems > 0 {
+                                Text("Failed to prepare media. Please try again or select a different photo / video.")
                                     .foregroundColor(.red)
                             }
                         }
@@ -327,7 +327,7 @@ fileprivate struct PostComposerView: View {
                     .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
                     .onAppear {
                         if (self.mediaCount > 0) {
-                            self.imageServer.upload(self.mediaItems.value, isReady: self.$mediaState.isReady, numberOfFailedUploads: self.$mediaState.numberOfFailedUploads)
+                            self.imageServer.prepare(mediaItems: self.mediaItems.value, isReady: self.$mediaState.isReady, numberOfFailedItems: self.$mediaState.numberOfFailedItems)
                         } else {
                             self.mediaState.isReady = true
                         }

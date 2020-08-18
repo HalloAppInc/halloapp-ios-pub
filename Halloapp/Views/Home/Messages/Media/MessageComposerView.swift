@@ -15,11 +15,11 @@ protocol MessageComposerViewDelegate: AnyObject {
     func messageComposerView(_ messageComposerView: MessageComposerView, text: String, media: [PendingMedia])
 }
 
-class MessageComposerView: UIViewController, UITextViewDelegate, MessageComposerBodyViewDelegate {
+class MessageComposerView: UIViewController, UITextViewDelegate {
     
     weak var delegate: MessageComposerViewDelegate?
     
-    var mediaItemsToPost: [PendingMedia]?
+    var mediaItemsToPost: [PendingMedia]
     private let imageServer = ImageServer()
     
     init(mediaItemsToPost: [PendingMedia]) {
@@ -28,9 +28,9 @@ class MessageComposerView: UIViewController, UITextViewDelegate, MessageComposer
     }
 
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
+        fatalError("init(coder:) has not been implemented")
     }
-        
+    
     private lazy var chatMediaSlider: ChatMediaSlider = {
         let chatMediaSlider = ChatMediaSlider()
         return chatMediaSlider
@@ -39,7 +39,6 @@ class MessageComposerView: UIViewController, UITextViewDelegate, MessageComposer
     private lazy var messageComposerBodyView: MessageComposerBodyView = {
         let messageComposerBodyView = MessageComposerBodyView()
         messageComposerBodyView.translatesAutoresizingMaskIntoConstraints = false
-        messageComposerBodyView.delegate = self
         return messageComposerBodyView
     }()
     
@@ -52,17 +51,12 @@ class MessageComposerView: UIViewController, UITextViewDelegate, MessageComposer
         vSpacer.setContentHuggingPriority(.fittingSizeLevel, for: .vertical)
         vSpacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .vertical)
         
-        let vStack = UIStackView(arrangedSubviews: [ self.messageComposerBodyView, vSpacer ])
-        if let media = self.mediaItemsToPost {
-            self.messageComposerBodyView.update(pendingMedia: media)
-        }
-
+        let vStack = UIStackView(arrangedSubviews: [ messageComposerBodyView, vSpacer ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         vStack.alignment = .fill
-
         self.view.addSubview(vStack)
-        
+
         vStack.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
         vStack.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
         vStack.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
@@ -70,44 +64,36 @@ class MessageComposerView: UIViewController, UITextViewDelegate, MessageComposer
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard(_:)))
         self.view.addGestureRecognizer(tapGesture)
-    }
-     
-     override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        if let media = self.mediaItemsToPost {
-            self.imageServer.upload(media) { (allUploadsSuccessful) in
-                if allUploadsSuccessful {
-                    self.messageComposerBodyView.enableSendButton()
-                }
+
+        messageComposerBodyView.update(pendingMedia: mediaItemsToPost)
+        messageComposerBodyView.cancelButton.addTarget(self, action: #selector(cancelAction), for: .touchUpInside)
+        messageComposerBodyView.sendButton.addTarget(self, action: #selector(sendAction), for: .touchUpInside)
+
+        imageServer.prepare(mediaItems: mediaItemsToPost) { [weak self] success in
+            guard let self = self else { return }
+            if success {
+                self.messageComposerBodyView.enableSendButton()
             }
         }
     }
-    
+
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
         self.messageComposerBodyView.hideKeyboard()
     }
-    
-    // MARK: MessageComposerBodyView Delegates
-    
-    func messageComposerBodyView(_ view: MessageComposerBodyView) {
-        self.dismiss(animated: false)
-    }
-    
-    func messageComposerBodyView(_ view: MessageComposerBodyView, text: String) {
-        guard let mediaToSend = self.mediaItemsToPost else { return }
-        self.delegate?.messageComposerView(self, text: text, media: mediaToSend)
-        self.dismiss(animated: false)
-    }
-    
-}
 
-protocol MessageComposerBodyViewDelegate: AnyObject {
-    func messageComposerBodyView(_ inputView: MessageComposerBodyView)
-    func messageComposerBodyView(_ inputView: MessageComposerBodyView, text: String)
+    @objc func cancelAction() {
+        dismiss(animated: false)
+    }
+    
+    @objc func sendAction() {
+        let text = messageComposerBodyView.text
+        delegate?.messageComposerView(self, text: text, media: mediaItemsToPost)
+        dismiss(animated: false)
+    }
+    
 }
 
 class MessageComposerBodyView: UIView, UITextViewDelegate {
-    weak var delegate: MessageComposerBodyViewDelegate?
     private var placeholderText = "Add a caption"
     
     override init(frame: CGRect){
@@ -120,13 +106,12 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
         setup()
     }
 
-    private lazy var cancelButton: UIButton = {
+    private(set) lazy var cancelButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.isEnabled = true
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 10, bottom: 0, right: 0)
-        button.addTarget(self, action: #selector(self.cancelButtonClicked), for: .touchUpInside)
         button.setTitleColor(UIColor.systemGray, for: .normal)
         button.setTitle("Cancel", for: .normal)
         button.tintColor = UIColor.systemGray
@@ -163,12 +148,11 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
         return textView
     }()
         
-    private lazy var sendButton: UIButton = {
+    private(set) lazy var sendButton: UIButton = {
         let button = UIButton(type: .system)
         button.isEnabled = false
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .subheadline)
         button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
-        button.addTarget(self, action: #selector(self.sendButtonClicked), for: .touchUpInside)
         button.setTitle("SEND", for: .normal)
         button.setBackgroundColor(.systemGray, for: .disabled)
         button.setBackgroundColor(.lavaOrange, for: .normal)
@@ -304,6 +288,9 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
     
     var text: String {
         get {
+            if textView.tag == 0 {
+                return ""
+            }
             return self.textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         }
         set {
@@ -314,19 +301,7 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
     
     func textViewDidChange(_ textView: UITextView) {
     }
-    
-    @objc func cancelButtonClicked() {
-        self.delegate?.messageComposerBodyView(self)
-    }
-    
-    @objc func sendButtonClicked() {
-        var text = self.text
-        if self.textView.tag == 0 {
-            text = ""
-        }
-        self.delegate?.messageComposerBodyView(self, text: text)
-    }
-    
+
     private func setPlaceholderText() {
         if self.textView.text.isEmpty {
             self.textView.text = placeholderText
@@ -336,7 +311,7 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
     }
     
     func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
-        if (textView.tag == 0){
+        if textView.tag == 0 {
             textView.text = ""
             textView.textColor = UIColor.label
             textView.tag = 1

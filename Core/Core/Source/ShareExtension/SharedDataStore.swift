@@ -17,6 +17,7 @@ public enum MediaType: Int {
 }
 
 open class SharedDataStore {
+
     public enum PostOrMessage {
         case post(SharedFeedPost)
         case message(SharedChatMessage)
@@ -57,16 +58,13 @@ open class SharedDataStore {
     public static func fileURL(forRelativeFilePath relativePath: String) -> URL {
         return Self.dataDirectoryURL.appendingPathComponent(relativePath)
     }
-    
-    public static func fileURL(forFileName fileName: String, withFileType fileType: FeedMediaType) -> URL {
-        switch fileType {
-        case .image:
-            return Self.dataDirectoryURL.appendingPathComponent(fileName).appendingPathExtension("jpeg")
-        case .video:
-            return Self.dataDirectoryURL.appendingPathComponent(fileName).appendingPathExtension("mp4")
-        }
+
+    public static func relativeFilePath(forFilename filename: String, mediaType: FeedMediaType) -> String {
+        // No intermediate directories needed.
+        let fileExtension = FeedDownloadManager.fileExtension(forMediaType: mediaType)
+        return "\(filename).\(fileExtension)"
     }
-    
+
     public init() {}
     
     public func save(_ managedObjectContext: NSManagedObjectContext) {
@@ -79,12 +77,13 @@ open class SharedDataStore {
         }
     }
     
-    public func save(_ media: PendingMedia, to target: PostOrMessage, using managedObjectContext: NSManagedObjectContext) {
-        DDLogInfo("SharedDataStore/save/add new media with [\(media.url!)]")
+    public func attach(media: PendingMedia, to target: PostOrMessage, using managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("SharedDataStore/attach-media [\(media.fileURL!)]")
         
         let feedMedia = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
         feedMedia.type = media.type
-        feedMedia.url = media.url!
+        feedMedia.url = media.url
+        feedMedia.uploadUrl = media.uploadUrl
         feedMedia.size = media.size!
         feedMedia.key = media.key!
         feedMedia.sha256 = media.sha256!
@@ -97,15 +96,29 @@ open class SharedDataStore {
             feedMedia.message = chatMessage
         }
         
-        let mediaFilename = UUID().uuidString
-        let destinationFileURL = Self.fileURL(forFileName: mediaFilename, withFileType: feedMedia.type)
-        feedMedia.relativeFilePath = destinationFileURL.lastPathComponent
-        
+        let relativeFilePath = Self.relativeFilePath(forFilename: UUID().uuidString, mediaType: media.type)
+
         do {
-            try FileManager.default.createDirectory(at: Self.dataDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-            try FileManager.default.copyItem(at: media.fileURL!, to: destinationFileURL)
+            let destinationUrl = Self.fileURL(forRelativeFilePath: relativeFilePath)
+
+            // Copy unencrypted media file.
+            if let sourceUrl = media.fileURL {
+                try FileManager.default.createDirectory(at: Self.dataDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+                try FileManager.default.copyItem(at: sourceUrl, to: destinationUrl)
+                DDLogDebug("SharedDataStore/attach-media/ copied [\(sourceUrl)] to [\(destinationUrl)]")
+
+                feedMedia.relativeFilePath = relativeFilePath
+            }
+
+            // Copy encrypted media file.
+            // Encrypted media would be saved at the same file path with an additional ".enc" appended.
+            if let sourceUrl = media.encryptedFileUrl {
+                let encryptedDestinationUrl = destinationUrl.appendingPathExtension("enc")
+                try FileManager.default.copyItem(at: sourceUrl, to: encryptedDestinationUrl)
+                DDLogDebug("SharedDataStore/attach-media/ copied [\(sourceUrl)] to [\(encryptedDestinationUrl)]")
+            }
         } catch {
-            DDLogError("SharedDataStore/save/copy-media/error [\(error)]")
+            DDLogError("SharedDataStore/attach-media/error [\(error)]")
         }
     }
     
@@ -144,10 +157,15 @@ open class SharedDataStore {
         }
     }
     
-    public func delete(_ objects: [NSManagedObject], completion: @escaping (() -> Void)) {
+    public func delete(posts: [SharedFeedPost], completion: @escaping (() -> Void)) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
-            for object in objects {
-                managedObjectContext.delete(managedObjectContext.object(with: object.objectID))
+            let posts = posts.compactMap({ managedObjectContext.object(with: $0.objectID) as? SharedFeedPost })
+
+            for post in posts {
+                if let media = post.media, !media.isEmpty {
+                    self.deleteFiles(forMedia: Array(media))
+                }
+                managedObjectContext.delete(post)
             }
             
             self.save(managedObjectContext)
@@ -155,6 +173,40 @@ open class SharedDataStore {
             DispatchQueue.main.async {
                 completion()
             }
+        }
+    }
+
+    public func delete(messages: [SharedChatMessage], completion: @escaping (() -> Void)) {
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let messages = messages.compactMap({ managedObjectContext.object(with: $0.objectID) as? SharedChatMessage })
+
+            for message in messages {
+                if let media = message.media, !media.isEmpty {
+                    self.deleteFiles(forMedia: Array(media))
+                }
+                managedObjectContext.delete(message)
+            }
+
+            self.save(managedObjectContext)
+
+            DispatchQueue.main.async {
+                completion()
+            }
+        }
+    }
+
+    private func deleteFiles(forMedia mediaItems: [SharedMedia]) {
+        mediaItems.forEach { (mediaItem) in
+            let fileUrl = Self.fileURL(forRelativeFilePath: mediaItem.relativeFilePath)
+            do {
+                try FileManager.default.removeItem(at: fileUrl)
+                DDLogInfo("SharedDataStore/delete-media [\(fileUrl)]")
+            } catch { }
+            do {
+                let encFileUrl = fileUrl.appendingPathExtension("enc")
+                try FileManager.default.removeItem(at: encFileUrl)
+                DDLogInfo("SharedDataStore/delete-media [\(encFileUrl)]")
+            } catch {}
         }
     }
 }

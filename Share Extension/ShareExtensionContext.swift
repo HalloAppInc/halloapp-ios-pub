@@ -12,7 +12,7 @@ import Foundation
 
 class ShareExtensionContext: AppExtensionContext {
     // MARK: Global objects
-    private(set) var sharedDataStore: ShareExtensionDataStore
+    private(set) var dataStore: ShareExtensionDataStore!
     
     public var shareExtensionIsActive = false
 
@@ -23,9 +23,8 @@ class ShareExtensionContext: AppExtensionContext {
     }
     
     required init(xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
-        sharedDataStore = ShareExtensionDataStore()
-        
         super.init(xmppControllerClass: xmppControllerClass, contactStoreClass: contactStoreClass)
+        dataStore = ShareExtensionDataStore(xmppController: xmppController)
     }
 
 }

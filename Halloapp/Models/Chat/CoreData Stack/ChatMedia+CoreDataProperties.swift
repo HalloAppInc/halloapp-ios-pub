@@ -7,8 +7,9 @@
 //
 //
 
-import Foundation
+import Core
 import CoreData
+import Foundation
 import UIKit
 
 extension ChatMedia {
@@ -83,4 +84,17 @@ extension ChatMedia {
     @NSManaged var sha256: String
     @NSManaged var order: Int16
     
+}
+
+extension ChatMedia: MediaUploadable {
+    var index: Int {
+        Int(order)
+    }
+
+    var encryptedFilePath: String? {
+        guard let filePath = relativeFilePath else {
+            return nil
+        }
+        return filePath.appending(".enc")
+    }
 }

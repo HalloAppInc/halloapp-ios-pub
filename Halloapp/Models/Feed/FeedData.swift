@@ -35,14 +35,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return downloadManager
     }()
 
+    private let mediaUploader: MediaUploader
+
     init(xmppController: XMPPControllerMain, contactStore: ContactStoreMain, userData: UserData) {
         self.xmppController = xmppController
         self.contactStore = contactStore
         self.userData = userData
+        self.mediaUploader = MediaUploader(xmppController: xmppController)
 
         super.init()
 
         self.xmppController.feedDelegate = self
+        mediaUploader.resolveMediaPath = { (relativePath) in
+            return MainAppContext.mediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
+        }
 
         /* enable videoes to play with sound even when the phone is set to ringer mode */
         do {
@@ -1219,7 +1225,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.media?.forEach { feedPostMedia in
                 // Status could be "downloading" if download has previously started
                 // but the app was terminated before the download has finished.
-                if feedPostMedia.status == .none || feedPostMedia.status == .downloading || feedPostMedia.status == .downloadError {
+                if feedPostMedia.url != nil && (feedPostMedia.status == .none || feedPostMedia.status == .downloading || feedPostMedia.status == .downloadError) {
                     let (taskAdded, task) = downloadManager.downloadMedia(for: feedPostMedia)
                     if taskAdded {
                         task.feedMediaObjectId = feedPostMedia.objectID
@@ -1333,7 +1339,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let postId: FeedPostID = UUID().uuidString
 
         // Create and save new FeedPost object.
-        let managedObjectContext = self.persistentContainer.viewContext
+        let managedObjectContext = persistentContainer.viewContext
         DDLogDebug("FeedData/new-post/create [\(postId)]")
         let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
         feedPost.id = postId
@@ -1355,11 +1361,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Add post media.
         for (index, mediaItem) in media.enumerated() {
-            DDLogDebug("FeedData/new-post/add-media [\(mediaItem.url!)]")
+            DDLogDebug("FeedData/new-post/add-media [\(mediaItem.fileURL!)]")
             let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
             feedMedia.type = mediaItem.type
-            feedMedia.status = .uploaded // For now we're only posting when all uploads are completed.
-            feedMedia.url = mediaItem.url!
+            feedMedia.status = .uploading
+            feedMedia.url = mediaItem.url
             feedMedia.size = mediaItem.size!
             feedMedia.key = mediaItem.key!
             feedMedia.sha256 = mediaItem.sha256!
@@ -1374,26 +1380,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/new-post/copy-media/error [\(error)]")
             }
         }
-        self.save(managedObjectContext)
+        save(managedObjectContext)
 
-        // Now send data over the wire.
-        let request = XMPPPostItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (result) in
-            switch result {
-            case .success(let timestamp):
-                self.updateFeedPost(with: postId) { (feedPost) in
-                    if timestamp != nil {
-                        feedPost.timestamp = timestamp!
-                    }
-                    feedPost.status = .sent
-                }
-
-            case .failure(_):
-                self.updateFeedPost(with: postId) { (feedPost) in
-                    feedPost.status = .sendError
-                }
-            }
-        }
-        AppContext.shared.xmppController.enqueue(request: request)
+        uploadMediaAndSend(feedPost: feedPost)
     }
 
     func post(comment: MentionText, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostCommentID? = nil) {
@@ -1469,7 +1458,90 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
         }
-        AppContext.shared.xmppController.enqueue(request: request)
+        xmppController.enqueue(request: request)
+    }
+
+    private func send(post: FeedPost) {
+        let postId = post.id
+        let request = XMPPPostItemRequest(feedItem: post, feedOwnerId: post.userId) { (result) in
+            switch result {
+            case .success(let timestamp):
+                self.updateFeedPost(with: postId) { (feedPost) in
+                    if timestamp != nil {
+                        feedPost.timestamp = timestamp!
+                    }
+                    feedPost.status = .sent
+                }
+
+            case .failure(_):
+                self.updateFeedPost(with: postId) { (feedPost) in
+                    feedPost.status = .sendError
+                }
+            }
+        }
+        xmppController.enqueue(request: request)
+    }
+
+    // MARK: Media Upload
+
+    private func uploadMediaAndSend(feedPost: FeedPost) {
+        let postId = feedPost.id
+
+        // Either all media has already been uploaded or post does not contain media.
+        guard let mediaItemsToUpload = feedPost.media?.filter({ $0.status == .none || $0.status == .uploading || $0.status == .uploadError }), !mediaItemsToUpload.isEmpty else {
+            send(post: feedPost)
+            return
+        }
+
+        var numberOfFailedUploads = 0
+        let totalUploads = mediaItemsToUpload.count
+        DDLogInfo("FeedData/upload-media/\(postId)/starting [\(totalUploads)]")
+
+        let uploadGroup = DispatchGroup()
+        for mediaItem in mediaItemsToUpload {
+            let mediaIndex = mediaItem.order
+            uploadGroup.enter()
+            mediaUploader.upload(media: mediaItem, groupId: postId, didGetURLs: { (mediaURLs) in
+                DDLogInfo("FeedData/upload-media/\(postId)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
+
+                // Save URLs acquired during upload to the database.
+                self.updateFeedPost(with: postId) { (feedPost) in
+                    if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
+                        media.uploadUrl = mediaURLs.put
+                        media.url = mediaURLs.get
+                    }
+                }
+            }) { (uploadResult) in
+                DDLogInfo("FeedData/upload-media/\(postId)/\(mediaIndex)/finished result=[\(uploadResult)]")
+
+                // Save URLs acquired during upload to the database.
+                self.updateFeedPost(with: postId) { (feedPost) in
+                    if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
+                        switch uploadResult {
+                        case .success(_):
+                            media.status = .uploaded
+
+                        case .failure(_):
+                            numberOfFailedUploads += 1
+                            media.status = .uploadError
+                        }
+                    }
+
+                    uploadGroup.leave()
+                }
+            }
+        }
+
+        uploadGroup.notify(queue: .main) {
+            DDLogInfo("FeedData/upload-media/\(postId)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
+            if numberOfFailedUploads > 0 {
+                self.updateFeedPost(with: postId) { (feedPost) in
+                    feedPost.status = .sendError
+                }
+            } else if let feedPost = self.feedPost(with: postId) {
+                self.send(post: feedPost)
+            }
+        }
     }
 
     // MARK: Debug
@@ -1525,7 +1597,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     // MARK: Merge Data
     
-    func mergeSharedData(using sharedDataStore: SharedDataStore, completion: @escaping (() -> Void)) {
+    func mergeSharedData(using sharedDataStore: SharedDataStore, completion: @escaping () -> ()) {
         let posts = sharedDataStore.posts()
         
         guard !posts.isEmpty else {
@@ -1535,71 +1607,69 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             let postIds = Set(posts.map{ $0.id })
-            let existingPosts = self.feedPosts(with: postIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+            let existingPosts = self.feedPosts(with: postIds, in: managedObjectContext).reduce(into: [FeedPostID : FeedPost]()) { $0[$1.id] = $1 }
             
             for post in posts {
-                // Ignore posts with status .none (should never happen), .sendError (will be deleted later), and .received (not supported)
-                guard post.status == .sent else { continue }
-                
                 guard existingPosts[post.id] == nil else {
                     DDLogError("FeedData/mergeSharedData/duplicate [\(post.id)]")
                     continue
                 }
-                
-                DDLogDebug("FeedData/mergeSharedData/new [\(post.id)]")
+
+                let postId = post.id
+
+                DDLogDebug("FeedData/mergeSharedData/post/\(postId)")
                 let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
-                
                 feedPost.id = post.id
                 feedPost.userId = post.userId
                 feedPost.text = post.text
-                feedPost.status = .sent
+                feedPost.status = post.status == .sent ? .sent : .sendError
                 feedPost.timestamp = post.timestamp
                 
-                if let postMedia = post.media {
-                    for media in postMedia {
-                        guard let url = media.url else {
-                            DDLogError("ChatData/mergeSharedData/ Skip invalid media [\(media)]")
-                            continue
-                        }
+                post.media?.forEach { (media) in
+                    DDLogDebug("FeedData/mergeSharedData/post/\(postId)/add-media [\(media)]")
 
-                        DDLogDebug("FeedData/mergeSharedData/new/add-media [\(media.url!)]")
-                        
-                        let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
-                        
+                    let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                    feedMedia.type = {
                         switch media.type {
-                        case .image:
-                            feedMedia.type = .image
-                        case .video:
-                            feedMedia.type = .video
+                        case .image: return .image
+                        case .video: return .video
                         }
-                        feedMedia.status = .uploaded
-                        feedMedia.url = url
-                        feedMedia.size = media.size
-                        feedMedia.key = media.key
-                        feedMedia.order = media.order
-                        feedMedia.sha256 = media.sha256
-                        feedMedia.post = feedPost
-                        
-                        let pendingMedia = PendingMedia(type: feedMedia.type)
-                        pendingMedia.fileURL = SharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath)
-                        
-                        do {
-                            try self.downloadManager.copyMedia(from: pendingMedia, to: feedMedia)
+                    }()
+                    feedMedia.status = {
+                        switch media.status {
+                            ///TODO: treatment of "none" as "uploaded" is a temporary workaround to migrate media created without status attribute. safe to remove this case after 09/14/2020.
+                        case .none, .uploaded: return .uploaded
+                        default: return .uploadError
                         }
-                        catch {
-                            DDLogError("FeedData/mergeSharedData/copy-media/error [\(error)]")
-                        }
+                    }()
+                    feedMedia.url = media.url
+                    feedMedia.uploadUrl = media.uploadUrl
+                    feedMedia.size = media.size
+                    feedMedia.key = media.key
+                    feedMedia.order = media.order
+                    feedMedia.sha256 = media.sha256
+                    feedMedia.post = feedPost
+
+                    let pendingMedia = PendingMedia(type: feedMedia.type)
+                    pendingMedia.fileURL = SharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath)
+                    if feedMedia.status != .uploaded {
+                        // Only copy encrypted file if media failed to upload so that upload could be retried.
+                        pendingMedia.encryptedFileUrl = pendingMedia.fileURL!.appendingPathExtension("enc")
+                    }
+                    do {
+                        try self.downloadManager.copyMedia(from: pendingMedia, to: feedMedia)
+                    }
+                    catch {
+                        DDLogError("FeedData/mergeSharedData/post/\(postId)/copy-media-error [\(error)]")
                     }
                 }
             }
+
+            self.save(managedObjectContext)
             
-            DispatchQueue.main.async {
-                // Save will trigger a UI refresh
-                self.save(managedObjectContext)
-            }
             DDLogInfo("FeedData/mergeSharedData/finished")
             
-            sharedDataStore.delete(posts) {
+            sharedDataStore.delete(posts: posts) {
                 completion()
             }
         }
