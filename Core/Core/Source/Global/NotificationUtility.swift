@@ -188,10 +188,14 @@ public class NotificationUtility {
         return strings.joined(separator: ", ")
     }
 
-    public static func populate(notification: UNMutableNotificationContent, withDataFrom protoContainer: Proto_Container) {
+    public static func populate(
+        notification: UNMutableNotificationContent,
+        withDataFrom protoContainer: Proto_Container,
+        mentionNameProvider: (UserID) -> String)
+    {
         if protoContainer.hasPost {
             notification.subtitle = "New Post"
-            notification.body = protoContainer.post.text
+            notification.body = protoContainer.post.mentionText.expandedText(nameProvider: mentionNameProvider).string
             if !protoContainer.post.media.isEmpty {
                 // Display how many photos and videos post contains if there's no caption.
                 if notification.body.isEmpty {
@@ -202,7 +206,8 @@ public class NotificationUtility {
                 }
             }
         } else if protoContainer.hasComment {
-            notification.body = "Commented: \(protoContainer.comment.text)"
+            let commentText = protoContainer.comment.mentionText.expandedText(nameProvider: mentionNameProvider).string
+            notification.body = "Commented: \(commentText)"
         } else if protoContainer.hasChatMessage {
             notification.body = protoContainer.chatMessage.text
             if !protoContainer.chatMessage.media.isEmpty {

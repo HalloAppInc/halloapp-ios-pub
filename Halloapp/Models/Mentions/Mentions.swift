@@ -13,54 +13,6 @@ public struct MentionableUser: Hashable {
     var fullName: String
 }
 
-public typealias MentionRangeMap = [NSRange: UserID]
-
-/// Contains text with "@" placeholders that can be replaced with the names of mentioned users.
-public struct MentionText {
-    var collapsedText: String
-    var mentions: [Int: UserID]
-
-    init(collapsedText: String, mentions: [Int: UserID]) {
-        self.collapsedText = collapsedText
-        self.mentions = mentions
-    }
-
-    init(expandedText: String, mentionRanges: MentionRangeMap) {
-        var outputText = expandedText as NSString
-        mentions = [Int: UserID]()
-        var charactersToDrop = mentionRanges.keys.reduce(0) { sum, range in sum + range.length } - mentionRanges.count
-        let reverseOrderedMentions = mentionRanges.sorted { $0.key.location > $1.key.location }
-        for (range, user) in reverseOrderedMentions {
-            outputText = outputText.replacingCharacters(in: range, with: "@") as NSString
-            charactersToDrop -= (range.length - 1)
-
-            // Input ranges are based on the expanded text, but output indices should be based on collapsed text.
-            // The offset between them is the number of characters that will be removed from earlier mentions.
-            mentions[range.location - charactersToDrop] = user
-        }
-        collapsedText = outputText as String
-    }
-
-    /// Returns a copy with leading and trailing whitespace removed, adjusting mention indices accordingly
-    func trimmed() -> MentionText {
-        var trimStart = 0
-        while trimStart < collapsedText.count && collapsedText.characterAtOffset(trimStart).isWhitespace {
-            trimStart += 1
-        }
-        var trimEnd = 0
-        while trimEnd < (collapsedText.count - trimStart) && collapsedText.characterAtOffset(collapsedText.count - 1 - trimEnd).isWhitespace {
-            trimEnd += 1
-        }
-
-        let trimmedText = String(collapsedText.dropFirst(trimStart).dropLast(trimEnd))
-        let offsetMentions = Dictionary(uniqueKeysWithValues: mentions.map { (index, userID) in
-            (index - trimStart, userID)
-        })
-
-        return MentionText(collapsedText: trimmedText, mentions: offsetMentions)
-    }
-}
-
 public final class Mentions {
     public static func mentionableUsersForNewPost() -> [MentionableUser] {
         let allContactIDs = Set(MainAppContext.shared.contactStore.allRegisteredContactIDs())

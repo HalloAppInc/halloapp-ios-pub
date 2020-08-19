@@ -23,6 +23,8 @@
 		24AA69D924DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D724DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift */; };
 		24AA69DA24DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */; };
 		24D743C724AEA821001111BF /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D743C624AEA821001111BF /* AvatarView.swift */; };
+		688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1D24ED979400258BB9 /* MentionText.swift */; };
+		688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */; };
 		68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E7F24D2128300F40F1F /* NSAttributedString.swift */; };
 		68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8124D22E5500F40F1F /* NSRange.swift */; };
 		68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */; };
@@ -92,6 +94,8 @@
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
 		5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.debug.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.debug.xcconfig"; sourceTree = "<group>"; };
+		688D8A1D24ED979400258BB9 /* MentionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MentionText.swift; sourceTree = "<group>"; };
+		688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Proto+Mentions.swift"; sourceTree = "<group>"; };
 		68A64E7F24D2128300F40F1F /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
 		68A64E8124D22E5500F40F1F /* NSRange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSRange.swift; sourceTree = "<group>"; };
 		68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedMention+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -206,6 +210,15 @@
 			path = ../Pods;
 			sourceTree = "<group>";
 		};
+		688D8A1C24ED976900258BB9 /* Mentions */ = {
+			isa = PBXGroup;
+			children = (
+				688D8A1D24ED979400258BB9 /* MentionText.swift */,
+				688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */,
+			);
+			path = Mentions;
+			sourceTree = "<group>";
+		};
 		768123AE2485D9C7008C5216 = {
 			isa = PBXGroup;
 			children = (
@@ -237,6 +250,7 @@
 		768123CF2485DA8B008C5216 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				688D8A1C24ED976900258BB9 /* Mentions */,
 				EAAE7B2E24DBD47800946B77 /* Keys */,
 				246A8B7824902A2200CE0429 /* Avatars */,
 				768123F224860FF3008C5216 /* Contacts */,
@@ -512,6 +526,7 @@
 				768123F924861068008C5216 /* ABContact+CoreDataClass.swift in Sources */,
 				2490287924C525030019C4D5 /* UIImage.swift in Sources */,
 				68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */,
+				688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */,
 				246A8B71248FEC9400CE0429 /* NotificationUtility.swift in Sources */,
 				24D743C724AEA821001111BF /* AvatarView.swift in Sources */,
 				768123F824861068008C5216 /* Contacts.xcdatamodeld in Sources */,
@@ -533,6 +548,7 @@
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
 				EAAE7B3E24DD04ED00946B77 /* XMPPWhisper.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
+				688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */,
 				EAAE7B3C24DD039900946B77 /* XMPPWhisperRequests.swift in Sources */,
 				246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */,
 				68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */,

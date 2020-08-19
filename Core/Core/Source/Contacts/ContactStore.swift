@@ -259,33 +259,32 @@ open class ContactStore {
         return results
     }
 
-    public func textWithMentions(_ text: String?, orderedMentions: [FeedMentionProtocol]) -> NSAttributedString? {
-        guard let text = text else { return nil }
-        let mutableString = NSMutableAttributedString(string: text)
-        for mention in orderedMentions.reversed() {
-            // NB: We replace mention placeholders with usernames in reverse order so we don't change indices
+    /// Returns an attributed string where mention placeholders have been replaced with contact names. User IDs are retrievable via the .userMention attribute.
+    public func textWithMentions(_ collapsedText: String?, orderedMentions: [FeedMentionProtocol]) -> NSAttributedString? {
+        guard let collapsedText = collapsedText else { return nil }
 
-            let name: String = {
-                if mention.userID == userData.userId {
-                    return userData.name
-                }
-                if let fullName = fullNameIfAvailable(for: mention.userID) {
-                    return fullName
-                }
-                if !mention.name.isEmpty {
-                    return mention.name
-                }
-                return "Unknown Contact"
-            }()
+        let mentionText = MentionText(
+            collapsedText: collapsedText,
+            mentions: Dictionary(uniqueKeysWithValues: orderedMentions.map { ($0.index, $0.userID) }))
 
-            let replacementString = NSAttributedString(
-                string: "@\(name)",
-                attributes: [NSAttributedString.Key.userMention: mention.userID])
-
-            mutableString.replaceCharacters(
-                in: NSRange(location: mention.index, length: 1),
-                with: replacementString)
+        return mentionText.expandedText { userID in
+            self.mentionName(
+                for: userID,
+                pushedName: orderedMentions.first(where: { userID == $0.userID })?.name)
         }
-        return mutableString
+    }
+
+    /// Name appropriate for use in mention. Does not contain "@" prefix.
+    public func mentionName(for userID: UserID, pushedName: String?) -> String {
+        if userID == userData.userId {
+            return userData.name
+        }
+        if let fullName = fullNameIfAvailable(for: userID) {
+            return fullName
+        }
+        if let pushedName = pushedName, !pushedName.isEmpty {
+            return pushedName
+        }
+        return "Unknown Contact"
     }
 }

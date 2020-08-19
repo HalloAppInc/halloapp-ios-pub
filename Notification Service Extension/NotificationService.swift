@@ -50,7 +50,13 @@ class NotificationService: UNNotificationServiceExtension {
         // Populate notification body.
         var invokeHandler = true
         if let protoContainer = metadata.protoContainer {
-            NotificationUtility.populate(notification: bestAttemptContent, withDataFrom: protoContainer)
+            NotificationUtility.populate(
+                notification: bestAttemptContent,
+                withDataFrom: protoContainer,
+                mentionNameProvider: { userID in
+                    AppExtensionContext.shared.contactStore.mentionName(
+                        for: userID,
+                        pushedName: protoContainer.mentionPushName(for: userID)) })
             if protoContainer.hasPost && !protoContainer.post.media.isEmpty {
                 invokeHandler = !startDownloading(media: protoContainer.post.media, containerId: metadata.contentId)
             } else if protoContainer.hasChatMessage && !protoContainer.chatMessage.media.isEmpty {

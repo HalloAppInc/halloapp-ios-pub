@@ -875,7 +875,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                 let notification = UNMutableNotificationContent()
                 notification.title = contactNames[comment.userId] ?? "Unknown Contact"
-                NotificationUtility.populate(notification: notification, withDataFrom: protoContainer)
+                NotificationUtility.populate(
+                    notification: notification,
+                    withDataFrom: protoContainer,
+                    mentionNameProvider: { userID in
+                        self.contactStore.mentionName(
+                            for: userID,
+                            pushedName: protoContainer.mentionPushName(for: userID)) })
                 notification.userInfo[NotificationUtility.Metadata.userInfoKey] = metadata.rawData
 
                 notifications.append(notification)
@@ -914,7 +920,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
                 let notification = UNMutableNotificationContent()
                 notification.title = contactNames[feedPost.userId] ?? "Unknown Contact"
-                NotificationUtility.populate(notification: notification, withDataFrom: protoContainer)
+                NotificationUtility.populate(
+                    notification: notification,
+                    withDataFrom: protoContainer,
+                    mentionNameProvider: { userID in
+                        self.contactStore.mentionName(
+                            for: userID,
+                            pushedName: protoContainer.mentionPushName(for: userID)) })
+
                 notification.userInfo[NotificationUtility.Metadata.userInfoKey] = metadata.rawData
 
                 notifications.append(notification)
