@@ -350,7 +350,7 @@ class TextLabel: UILabel {
 
         self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
             // String may have been changed or truncated while link detection was happening on a background thread.
-            let possiblyTruncatedRange = text.commonPrefix(with: textStorage.string).fullExtent
+            let possiblyTruncatedRange = text.commonPrefix(with: textStorage.string).utf16Extent
             let linksFullyContainedInRange = links.filter { possiblyTruncatedRange.contains($0.range) }
 
             for link in linksFullyContainedInRange {
@@ -383,8 +383,7 @@ class TextLabel: UILabel {
     private func userMentions(in attributedString: NSAttributedString?) -> [AttributedTextLink] {
         guard let attributedString = attributedString else { return [] }
         var links = [AttributedTextLink]()
-        let range = NSRange(location: 0, length: attributedString.string.count)
-        attributedString.enumerateAttribute(.userMention, in: range, options: .init()) { value, mentionRange, _ in
+        attributedString.enumerateAttribute(.userMention, in: attributedString.utf16Extent, options: .init()) { value, mentionRange, _ in
             guard let userID = value as? UserID else {
                 return
             }

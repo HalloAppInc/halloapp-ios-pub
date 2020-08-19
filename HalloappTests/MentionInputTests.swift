@@ -96,7 +96,7 @@ class MentionInputTests: XCTestCase {
         XCTAssert(input.impactedMentionRanges(in: NSRange(location: 6, length: 3)) == [bobRange])
 
         // Multiple intersections
-        XCTAssert(input.impactedMentionRanges(in: input.text.fullExtent).sorted { $0.location < $1.location } == [aliceRange, bobRange])
+        XCTAssert(input.impactedMentionRanges(in: input.text.utf16Extent).sorted { $0.location < $1.location } == [aliceRange, bobRange])
         XCTAssert(input.impactedMentionRanges(in: NSRange(location: 3, length: 8)).sorted { $0.location < $1.location } == [aliceRange, bobRange])
     }
 }

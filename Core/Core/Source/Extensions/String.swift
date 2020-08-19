@@ -78,5 +78,5 @@ extension String {
         return self[index(startIndex, offsetBy: offset)]
     }
 
-    public var fullExtent: NSRange { NSRange(location: 0, length: count) }
+    public var utf16Extent: NSRange { NSRange(location: 0, length: (self as NSString).length) }
 }
