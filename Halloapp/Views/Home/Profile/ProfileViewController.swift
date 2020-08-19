@@ -45,6 +45,11 @@ class ProfileViewController: FeedTableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
+        // This VC pushes SwiftUI views that hide the tab bar and use `navigationBarTitle` to display custom titles.
+        // These titles aren't reset when the SwiftUI views are dismissed, so we need to manually update the title
+        // here or the tab bar will show the wrong title when it reappears.
+        navigationController?.title = title
+
         if let tableHeaderView = self.tableView.tableHeaderView as? FeedTableHeaderView {
             tableHeaderView.updateProfile()
         }
