@@ -308,14 +308,6 @@ class TextLabel: UILabel {
 
     // MARK: Hyperlinks
 
-    var hyperlinkDetectionIgnoreRange: Range<String.Index>? {
-        didSet {
-            if oldValue != hyperlinkDetectionIgnoreRange {
-                self.invalidateTextStorage()
-            }
-        }
-    }
-
     private var needsDetectHyperlinks = false
 
     private var links = [AttributedTextLink]()
@@ -351,9 +343,10 @@ class TextLabel: UILabel {
         var links = [AttributedTextLink]()
         self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
             text = textStorage.string
-            links += self.userMentions(in: textStorage, ignoredRange: self.hyperlinkDetectionIgnoreRange)
+            links += self.userMentions(in: textStorage)
         }
-        links += self.detectSystemDataTypes(in: text, ignoredRange: self.hyperlinkDetectionIgnoreRange)
+        let rangesOfExistingLinks = links.compactMap { Range($0.range, in: text) }
+        links += self.detectSystemDataTypes(in: text, ignoredRanges: rangesOfExistingLinks)
 
         self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
             // String may have been changed or truncated while link detection was happening on a background thread.
@@ -387,18 +380,12 @@ class TextLabel: UILabel {
         }
     }
 
-    private func userMentions(in attributedString: NSAttributedString?, ignoredRange: Range<String.Index>? = nil) -> [AttributedTextLink] {
+    private func userMentions(in attributedString: NSAttributedString?) -> [AttributedTextLink] {
         guard let attributedString = attributedString else { return [] }
         var links = [AttributedTextLink]()
         let range = NSRange(location: 0, length: attributedString.string.count)
         attributedString.enumerateAttribute(.userMention, in: range, options: .init()) { value, mentionRange, _ in
             guard let userID = value as? UserID else {
-                return
-            }
-            if let ignoredRange = ignoredRange,
-                let mentionRangeInText = Range(mentionRange, in: attributedString.string),
-                ignoredRange.overlaps(mentionRangeInText)
-            {
                 return
             }
             links.append(AttributedTextLink(
@@ -410,12 +397,12 @@ class TextLabel: UILabel {
         return links
     }
 
-    private func detectSystemDataTypes(in text: String, ignoredRange: Range<String.Index>? = nil) -> [AttributedTextLink] {
+    private func detectSystemDataTypes(in text: String, ignoredRanges: [Range<String.Index>]) -> [AttributedTextLink] {
         var results: [AttributedTextLink] = []
         let matches = TextLabel.dataDetector.matches(in: text, options: [], range: NSRange(location: 0, length: text.count))
         for match in matches {
             if let range = Range(match.range, in: text) {
-                if ignoredRange != nil && ignoredRange!.overlaps(range) {
+                if ignoredRanges.contains(where: { $0.overlaps(range) }) {
                     continue
                 }
                 // Don't linkify if up against truncation boundary, as the extracted data could be based on

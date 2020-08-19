@@ -183,6 +183,7 @@ public class AvatarViewButton: UIButton {
     public override func layoutSubviews() {
         super.layoutSubviews()
         avatarView.frame = self.bounds
+        avatarView.isUserInteractionEnabled = false
     }
 
     public override var intrinsicContentSize: CGSize {

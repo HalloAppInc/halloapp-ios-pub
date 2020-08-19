@@ -142,7 +142,12 @@ class CommentView: UIView {
         let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
 
         let contactName = MainAppContext.shared.contactStore.fullName(for: comment.userId)
-        let attributedText = NSMutableAttributedString(string: "\(contactName) ", attributes: [ NSAttributedString.Key.font: nameFont ])
+        let attributedText = NSMutableAttributedString(
+            string: contactName,
+            attributes: [NSAttributedString.Key.userMention: comment.userId,
+                         NSAttributedString.Key.font: nameFont])
+
+        attributedText.append(NSAttributedString(string: " "))
 
         if let commentText = MainAppContext.shared.contactStore.textWithMentions(comment.text, orderedMentions: comment.orderedMentions),
             !comment.isCommentRetracted
@@ -153,7 +158,6 @@ class CommentView: UIView {
         attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
 
         self.textLabel.attributedText = attributedText
-        self.textLabel.hyperlinkDetectionIgnoreRange = attributedText.string.range(of: contactName)
         self.timestampLabel.text = comment.timestamp.feedTimestamp()
         self.isReplyButtonVisible = !comment.isCommentRetracted
 
