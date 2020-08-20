@@ -110,6 +110,10 @@ final class MediaUploader {
         return Set(tasks.map({ $0.groupId }))
     }
 
+    func hasTasks(forGroupId groupId: String) -> Bool {
+        return tasks.contains(where: { $0.groupId == groupId })
+    }
+
     private func finish(task: Task) {
         task.finished()
         tasks.remove(task)

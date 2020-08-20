@@ -917,6 +917,75 @@ fileprivate class FeedItemFooterView: UIView {
 
     }
 
+    class PostingProgressView: UIView {
+
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+            commonInit()
+        }
+
+        required init?(coder: NSCoder) {
+            super.init(coder: coder)
+            commonInit()
+        }
+
+        var isIndeterminate = false {
+            didSet {
+                progressView.isHidden = isIndeterminate
+                cancelButton.isHidden = isIndeterminate
+                textLabel.isHidden = !isIndeterminate
+                if isIndeterminate {
+                    activityIndicatorView.startAnimating()
+                } else {
+                    activityIndicatorView.stopAnimating()
+                }
+            }
+        }
+
+        var progress: Float {
+            get { progressView.progress }
+            set { progressView.progress = newValue }
+        }
+
+        lazy private var progressView = UIProgressView(progressViewStyle: .default)
+        lazy private var textLabel: UILabel = {
+            let label = UILabel()
+            label.text = "Posting..."
+            label.font = .preferredFont(forTextStyle: .subheadline)
+            label.textColor = .secondaryLabel
+            return label
+        }()
+        lazy private var activityIndicatorView = UIActivityIndicatorView()
+        lazy private(set) var cancelButton: UIButton = {
+            let button = UIButton(type: .system)
+            button.setImage(UIImage(systemName: "xmark.circle", withConfiguration: UIImage.SymbolConfiguration(textStyle: .headline)), for: .normal)
+            return button
+        }()
+
+        private func commonInit() {
+            addSubview(progressView)
+            progressView.translatesAutoresizingMaskIntoConstraints = false
+            progressView.constrainMargin(anchor: .leading, to: self)
+            progressView.centerYAnchor.constraint(equalTo: self.layoutMarginsGuide.centerYAnchor).isActive = true
+
+            addSubview(textLabel)
+            textLabel.translatesAutoresizingMaskIntoConstraints = false
+            textLabel.constrain([ .leading, .trailing ], to: progressView)
+            textLabel.constrainMargins([ .top, .bottom ], to: self)
+
+            addSubview(cancelButton)
+            cancelButton.translatesAutoresizingMaskIntoConstraints = false
+            cancelButton.constrainMargins([ .trailing, .top, .bottom ], to: self)
+            cancelButton.widthAnchor.constraint(equalTo: cancelButton.heightAnchor).isActive = true
+            cancelButton.leadingAnchor.constraint(equalToSystemSpacingAfter: progressView.trailingAnchor, multiplier: 2).isActive = true
+
+            addSubview(activityIndicatorView)
+            activityIndicatorView.translatesAutoresizingMaskIntoConstraints = false
+            activityIndicatorView.centerXAnchor.constraint(equalTo: cancelButton.centerXAnchor).isActive = true
+            activityIndicatorView.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor).isActive = true
+        }
+    }
+
     private enum State {
         case normal
         case ownPost
@@ -1021,26 +1090,33 @@ fileprivate class FeedItemFooterView: UIView {
         buttonStack.isHidden = state == .sending || state == .error
         if buttonStack.isHidden {
             if state == .sending {
-                showUploadProgressView()
+                showProgressView()
                 hideErrorView()
 
-                if uploadProgressCancellable == nil {
-                    let postId = post.id
-                    let mediaUploader = MainAppContext.shared.feedData.mediaUploader
-                    uploadProgressCancellable = mediaUploader.uploadProgressDidChange.sink { [weak self] (groupId, progress) in
-                        guard let self = self else { return }
-                        if postId == groupId {
-                            self.progressView.progress = progress
+                let postId = post.id
+                let mediaUploader = MainAppContext.shared.feedData.mediaUploader
+
+                if mediaUploader.hasTasks(forGroupId: postId) {
+                    progressView.isIndeterminate = false
+
+                    if uploadProgressCancellable == nil {
+                        uploadProgressCancellable = mediaUploader.uploadProgressDidChange.sink { [weak self] (groupId, progress) in
+                            guard let self = self else { return }
+                            if postId == groupId {
+                                self.progressView.progress = progress
+                            }
                         }
+                        progressView.progress = mediaUploader.uploadProgress(forGroupId: postId)
                     }
-                    progressView.progress = mediaUploader.uploadProgress(forGroupId: postId)
+                } else {
+                    progressView.isIndeterminate = true
                 }
             } else {
                 showSendErrorView()
-                hideUploadProgressView()
+                hideProgressView()
             }
         } else {
-            hideUploadProgressView()
+            hideProgressView()
             hideErrorView()
 
             commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .unread : .read)
@@ -1065,45 +1141,26 @@ fileprivate class FeedItemFooterView: UIView {
 
     static private let progressViewTag = 1
 
-    private var progressView: UIProgressView!
-
     private var uploadProgressCancellable: AnyCancellable?
 
-    private lazy var uploadProgressView: UIView = {
-        progressView = UIProgressView(progressViewStyle: .default)
-        progressView.translatesAutoresizingMaskIntoConstraints = false
-
-        let cancelButton = UIButton(type: .system)
-        cancelButton.translatesAutoresizingMaskIntoConstraints = false
-        cancelButton.setImage(UIImage(systemName: "xmark.circle", withConfiguration: UIImage.SymbolConfiguration(textStyle: .headline)), for: .normal)
-        cancelButton.addTarget(self, action: #selector(cancelButtonAction), for: .touchUpInside)
-
-        let view = UIView()
+    private lazy var progressView: PostingProgressView = {
+        let view = PostingProgressView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 0, trailing: 0)
         view.tag = Self.progressViewTag
-
-        view.addSubview(progressView)
-        view.addSubview(cancelButton)
-
-        progressView.constrainMargin(anchor: .leading, to: view)
-        progressView.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor).isActive = true
-        cancelButton.constrainMargins([ .trailing, .top, .bottom ], to: view)
-        cancelButton.widthAnchor.constraint(equalTo: cancelButton.heightAnchor).isActive = true
-        cancelButton.leadingAnchor.constraint(equalToSystemSpacingAfter: progressView.trailingAnchor, multiplier: 2).isActive = true
-
+        view.cancelButton.addTarget(self, action: #selector(cancelButtonAction), for: .touchUpInside)
         return view
     }()
 
-    private func showUploadProgressView() {
-        if uploadProgressView.superview == nil {
-            addSubview(uploadProgressView)
-            uploadProgressView.constrain(to: buttonStack)
+    private func showProgressView() {
+        if progressView.superview == nil {
+            addSubview(progressView)
+            progressView.constrain(to: buttonStack)
         }
-        uploadProgressView.isHidden = false
+        progressView.isHidden = false
     }
 
-    private func hideUploadProgressView() {
+    private func hideProgressView() {
         uploadProgressCancellable?.cancel()
         uploadProgressCancellable = nil
 
