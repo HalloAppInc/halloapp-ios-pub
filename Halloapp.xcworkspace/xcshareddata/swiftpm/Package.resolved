@@ -11,6 +11,33 @@
         }
       },
       {
+        "package": "CryptoSwift",
+        "repositoryURL": "git@github.com:krzyzanowskim/CryptoSwift.git",
+        "state": {
+          "branch": null,
+          "revision": "39f08ac5269361a50c08ce1e2f41989bfc4b1ec8",
+          "version": "1.3.1"
+        }
+      },
+      {
+        "package": "PhoneNumberKit",
+        "repositoryURL": "git@github.com:marmelroy/PhoneNumberKit.git",
+        "state": {
+          "branch": "master",
+          "revision": "896174b848f47b3ca7f1f0cf26e5109fe61f4b5f",
+          "version": null
+        }
+      },
+      {
+        "package": "SwiftProtobuf",
+        "repositoryURL": "git@github.com:apple/swift-protobuf.git",
+        "state": {
+          "branch": null,
+          "revision": "05cb9347bb095d9a28234a593d45cb9fcdc9d196",
+          "version": "1.10.0"
+        }
+      },
+      {
         "package": "Zip",
         "repositoryURL": "https://github.com/marmelroy/Zip.git",
         "state": {

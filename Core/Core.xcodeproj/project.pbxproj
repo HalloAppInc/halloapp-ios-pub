@@ -219,6 +219,8 @@
 				688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */,
 			);
 			path = Mentions;
+			sourceTree = "<group>";
+		};
 		76608ECB24EC2B2100DD61C3 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
@@ -266,7 +268,6 @@
 				7681241C2486C133008C5216 /* Extensions */,
 				768124112486191A008C5216 /* Feed */,
 				768123D52485DC0B008C5216 /* Global */,
-				EAAE7B2E24DBD47800946B77 /* Keys */,
 				768123D02485DB8D008C5216 /* Logging */,
 				76812415248619BB008C5216 /* Proto */,
 				2490289924C5DDBD0019C4D5 /* ShareExtension */,
