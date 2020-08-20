@@ -8,6 +8,7 @@
 
 import Alamofire
 import CocoaLumberjack
+import Combine
 import Core
 import Foundation
 
@@ -38,6 +39,8 @@ final class MediaUploader {
         private var isFinished = false
 
         var uploadRequest: UploadRequest?
+        var totalUploadSize: Int64 = 0
+        var completedSize: Int64 = 0
 
         init(groupId: String, index: Int, fileURL: URL, completion: @escaping Completion) {
             self.groupId = groupId
@@ -47,8 +50,11 @@ final class MediaUploader {
         }
 
         func cancel() {
-            assert(!isCanceled, "Task has already been canceled")
-            assert(!isFinished, "Attempt to cancel a finished task")
+            guard !isCanceled && !isFinished else {
+                return
+            }
+
+            DDLogDebug("MediaUploader/task/\(groupId)-\(index)/cancel")
 
             isCanceled = true
             uploadRequest?.cancel()
@@ -56,16 +62,22 @@ final class MediaUploader {
         }
 
         func finished() {
-            assert(!isFinished, "Task has already been finished")
-            assert(!isCanceled, "Attempt to finished a canceled task")
+            guard !isCanceled && !isFinished else {
+                return
+            }
+
+            DDLogDebug("MediaUploader/task/\(groupId)-\(index)/finished")
 
             isFinished = true
             completion(.success(Void()))
         }
 
         func failed(withError error: Error) {
-            assert(!isFinished, "Task has already been finished")
-            assert(!isCanceled, "Attempt to finished a canceled task")
+            guard !isCanceled && !isFinished else {
+                return
+            }
+
+            DDLogDebug("MediaUploader/task/\(groupId)-\(index)/failed [\(error)]")
 
             isFinished = true
             completion(.failure(error))
@@ -83,14 +95,55 @@ final class MediaUploader {
 
     private let xmppController: XMPPController
 
-    private var tasks = Set<Task>()
-
     // Resolves relative media file path to file url.
     var resolveMediaPath: ((String) -> (URL))!
 
     init(xmppController: XMPPController) {
         self.xmppController = xmppController
     }
+
+    // MARK: Task Management
+
+    private var tasks = Set<Task>()
+
+    func activeTaskGroupIdentifiers() -> Set<String> {
+        return Set(tasks.map({ $0.groupId }))
+    }
+
+    private func finish(task: Task) {
+        task.finished()
+        tasks.remove(task)
+    }
+
+    private func fail(task: Task, withError error: Error) {
+        task.failed(withError: error)
+        tasks.remove(task)
+    }
+
+    // MARK: Upload progress
+
+    let uploadProgressDidChange = PassthroughSubject<(String, Float), Never>()
+
+    func uploadProgress(forGroupId groupId: String) -> Float {
+        let (totalSize, uploadedSize) = tasks.filter({ $0.groupId == groupId }).reduce(into: (Int64(0), Int64(0))) { (result, task) in
+            result.0 += task.totalUploadSize
+            result.1 += task.completedSize
+        }
+        guard totalSize > 0 else {
+            DDLogDebug("MediaUploader/task/\(groupId)/upload-progress [0.0]")
+            return 0
+        }
+        let progress = Float(Double(uploadedSize) / Double(totalSize))
+        DDLogDebug("MediaUploader/task/\(groupId)/upload-progress [\(progress)]")
+        return progress
+    }
+
+    private func updateUploadProgress(forGroupId groupId: String) {
+        let progress = uploadProgress(forGroupId: groupId)
+        uploadProgressDidChange.send((groupId, progress))
+    }
+
+    // MARK: Starting / canceling uploads.
 
     func cancelAllUploads() {
         tasks.forEach({ $0.cancel() })
@@ -101,7 +154,6 @@ final class MediaUploader {
         let tasksToCancel = tasks.filter({ $0.groupId == groupId })
         tasksToCancel.forEach { (task) in
             task.cancel()
-
             tasks.remove(task)
         }
     }
@@ -109,13 +161,15 @@ final class MediaUploader {
     func upload(media mediaItem: MediaUploadable, groupId: String, didGetURLs: @escaping (MediaURL) -> (), completion: @escaping Completion) {
         let fileURL = resolveMediaPath(mediaItem.encryptedFilePath!)
         let task = Task(groupId: groupId, index: Int(mediaItem.index), fileURL: fileURL, completion: completion)
+        // Task might fail immediately so make sure it's added before being started.
+        tasks.insert(task)
         if let uploadUrl = mediaItem.uploadUrl {
             // Initiate media upload.
             startUpload(forTask: task, to: uploadUrl)
         } else {
             // Request URLs first.
-            let request = XMPPMediaUploadURLRequest { (result) in
-                guard !task.isCanceled else { return }
+            let request = XMPPMediaUploadURLRequest { [weak task] (result) in
+                guard let task = task, !task.isCanceled else { return }
 
                 switch result {
                 case .success(let mediaURLs):
@@ -123,25 +177,43 @@ final class MediaUploader {
                     self.startUpload(forTask: task, to: mediaURLs.put)
 
                 case .failure(let error):
-                    task.failed(withError: error)
+                    self.fail(task: task, withError: error)
                 }
             }
-            xmppController.enqueue(request: request)
+            // Wait until connected to request URLs. User meanwhile can cancel posting.
+            xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) { [weak task] in
+                guard let task = task, !task.isCanceled else {
+                    return
+                }
+                self.xmppController.enqueue(request: request)
+            }
         }
-        tasks.insert(task)
     }
 
     private func startUpload(forTask task: Task, to url: URL) {
         DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/begin url=[\(url)]")
 
-        task.uploadRequest = AF.upload(task.fileURL, to: url, method: .put, headers: [ "Content-Type": "application/octet-stream" ]).response { (response) in
-            if let error = response.error {
-                DDLogError("MediaUploader/upload/\(task.groupId)/\(task.index)/error [\(error)]")
-                task.failed(withError: error)
-            } else {
-                DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/success")
-                task.finished()
+        task.uploadRequest = AF.upload(task.fileURL, to: url, method: .put, headers: [ "Content-Type": "application/octet-stream" ])
+            .uploadProgress { [weak task, weak self] (progress) in
+                guard let self = self, let task = task, !task.isCanceled else {
+                    return
+                }
+                DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/progress \(progress.fractionCompleted)")
+                task.totalUploadSize = progress.totalUnitCount
+                task.completedSize = progress.completedUnitCount
+                self.updateUploadProgress(forGroupId: task.groupId)
             }
+            .response { [weak task] (response) in
+                guard let task = task, !task.isCanceled else {
+                    return
+                }
+                if let error = response.error {
+                    DDLogError("MediaUploader/upload/\(task.groupId)/\(task.index)/error [\(error)]")
+                    self.fail(task: task, withError: error)
+                } else {
+                    DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/success")
+                    self.finish(task: task)
+                }
         }
     }
 }

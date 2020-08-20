@@ -228,24 +228,33 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FeedTableViewController.cellReuseIdentifier, for: indexPath) as! FeedTableViewCell
         if let feedPost = fetchedResultsController?.object(at: indexPath) {
+            let postId = feedPost.id
             let contentWidth = tableView.frame.size.width - tableView.layoutMargins.left - tableView.layoutMargins.right
             let gutterWidth = (1 - FeedTableViewCell.LayoutConstants.backgroundPanelHMarginRatio) * tableView.layoutMargins.left
             cell.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth)
             cell.commentAction = { [weak self] in
                 guard let self = self else { return }
-                self.showCommentsView(for: feedPost.id)
+                self.showCommentsView(for: postId)
             }
             cell.messageAction = { [weak self] in
                 guard let self = self else { return }
-                self.showMessageView(for: feedPost.id)
+                self.showMessageView(for: postId)
             }
             cell.showSeenByAction = { [weak self] in
                 guard let self = self else { return }
-                self.showSeenByView(for: feedPost.id)
+                self.showSeenByView(for: postId)
             }
             cell.showUserAction = { [weak self] userID in
                 guard let self = self else { return }
                 self.showUserFeed(for: userID)
+            }
+            cell.cancelSendingAction = { [weak self] in
+                guard let self = self else { return }
+                self.cancelSending(postId: postId)
+            }
+            cell.retrySendingAction = { [weak self] in
+                guard let self = self else { return }
+                self.retrySending(postId: postId)
             }
         }
         cell.delegate = self
@@ -303,6 +312,14 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         guard shouldOpenFeed(for: userID) else { return }
         let userViewController = UserFeedViewController(userID: userID)
         self.navigationController?.pushViewController(userViewController, animated: true)
+    }
+
+    private func cancelSending(postId: FeedPostID) {
+        MainAppContext.shared.feedData.cancelMediaUpload(postId: postId)
+    }
+
+    private func retrySending(postId: FeedPostID) {
+        MainAppContext.shared.feedData.retryPosting(postId: postId)
     }
 
     // MARK: Misc
@@ -421,6 +438,8 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     var messageAction: (() -> ())?
     var showSeenByAction: (() -> ())?
     var showUserAction: ((UserID) -> ())?
+    var cancelSendingAction: (() -> ())?
+    var retrySendingAction: (() -> ())?
 
     weak var delegate: FeedTableViewCellDelegate?
 
@@ -491,6 +510,12 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         footerView.commentButton.addTarget(self, action: #selector(showComments), for: .touchUpInside)
         footerView.messageButton.addTarget(self, action: #selector(messageContact), for: .touchUpInside)
         footerView.facePileView.addTarget(self, action: #selector(showSeenBy), for: .touchUpInside)
+        footerView.cancelAction = { [weak self] in
+            self?.cancelSendingAction?()
+        }
+        footerView.retryAction = { [weak self] in
+            self?.retrySendingAction?()
+        }
     }
 
     override func layoutSubviews() {
@@ -521,6 +546,7 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
             self.footerView.isHidden = false
             self.footerView.configure(with: post, contentWidth: contentWidth)
         }
+
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -891,6 +917,16 @@ fileprivate class FeedItemFooterView: UIView {
 
     }
 
+    private enum State {
+        case normal
+        case ownPost
+        case sending
+        case error
+    }
+
+    var cancelAction: (() -> ())? = nil
+    var retryAction: (() -> ())? = nil
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.setupView()
@@ -946,45 +982,186 @@ fileprivate class FeedItemFooterView: UIView {
         return separator
     }()
 
+    var buttonStack: UIStackView!
+
     private func setupView() {
-        self.isUserInteractionEnabled = true
+        isUserInteractionEnabled = true
 
-        self.addSubview(separator)
+        addSubview(separator)
 
-        separator.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        separator.topAnchor.constraint(equalTo: topAnchor).isActive = true
         // Horizontal size / position constraints will be installed by the cell.
 
-        let hStack = UIStackView(arrangedSubviews: [ self.commentButton, self.messageButton ])
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.axis = .horizontal
-        hStack.distribution = .fillEqually
-        hStack.spacing = 24
-        self.addSubview(hStack)
-        hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
-        hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        buttonStack = UIStackView(arrangedSubviews: [ commentButton, messageButton ])
+        buttonStack.translatesAutoresizingMaskIntoConstraints = false
+        buttonStack.axis = .horizontal
+        buttonStack.distribution = .fillEqually
+        buttonStack.spacing = 24
+        addSubview(buttonStack)
+        buttonStack.constrain(to: self)
 
-        self.addSubview(self.facePileView)
-        self.facePileView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -8).isActive = true
-        self.facePileView.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: 4).isActive = true
+        addSubview(facePileView)
+        facePileView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8).isActive = true
+        facePileView.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 4).isActive = true
+    }
+
+    private class func state(for post: FeedPost) -> State {
+        switch post.status {
+        case .sending: return .sending
+        case .sendError: return .error
+        default: return post.userId == MainAppContext.shared.userData.userId ? .ownPost : .normal
+        }
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
         separator.isHidden = post.hideFooterSeparator
-        self.commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .unread : .read)
-        let usersOwnPost = post.userId == MainAppContext.shared.userData.userId
-        self.messageButton.alpha = usersOwnPost ? 0 : 1
-        if usersOwnPost {
-            self.facePileView.isHidden = false
-            self.facePileView.configure(with: post)
+
+        let state = Self.state(for: post)
+
+        buttonStack.isHidden = state == .sending || state == .error
+        if buttonStack.isHidden {
+            if state == .sending {
+                showUploadProgressView()
+                hideErrorView()
+
+                if uploadProgressCancellable == nil {
+                    let postId = post.id
+                    let mediaUploader = MainAppContext.shared.feedData.mediaUploader
+                    uploadProgressCancellable = mediaUploader.uploadProgressDidChange.sink { [weak self] (groupId, progress) in
+                        guard let self = self else { return }
+                        if postId == groupId {
+                            self.progressView.progress = progress
+                        }
+                    }
+                    progressView.progress = mediaUploader.uploadProgress(forGroupId: postId)
+                }
+            } else {
+                showSendErrorView()
+                hideUploadProgressView()
+            }
         } else {
-            self.facePileView.isHidden = true
+            hideUploadProgressView()
+            hideErrorView()
+
+            commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .unread : .read)
+            messageButton.alpha = state == .ownPost ? 0 : 1
         }
+
+        facePileView.isHidden = state != .ownPost
+        if !facePileView.isHidden {
+            facePileView.configure(with: post)
+        }
+
     }
 
     func prepareForReuse() {
-        self.facePileView.prepareForReuse()
+        uploadProgressCancellable?.cancel()
+        uploadProgressCancellable = nil
+
+        facePileView.prepareForReuse()
+    }
+
+    // MARK: Upload Progress
+
+    static private let progressViewTag = 1
+
+    private var progressView: UIProgressView!
+
+    private var uploadProgressCancellable: AnyCancellable?
+
+    private lazy var uploadProgressView: UIView = {
+        progressView = UIProgressView(progressViewStyle: .default)
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+
+        let cancelButton = UIButton(type: .system)
+        cancelButton.translatesAutoresizingMaskIntoConstraints = false
+        cancelButton.setImage(UIImage(systemName: "xmark.circle", withConfiguration: UIImage.SymbolConfiguration(textStyle: .headline)), for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancelButtonAction), for: .touchUpInside)
+
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 0, trailing: 0)
+        view.tag = Self.progressViewTag
+
+        view.addSubview(progressView)
+        view.addSubview(cancelButton)
+
+        progressView.constrainMargin(anchor: .leading, to: view)
+        progressView.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.centerYAnchor).isActive = true
+        cancelButton.constrainMargins([ .trailing, .top, .bottom ], to: view)
+        cancelButton.widthAnchor.constraint(equalTo: cancelButton.heightAnchor).isActive = true
+        cancelButton.leadingAnchor.constraint(equalToSystemSpacingAfter: progressView.trailingAnchor, multiplier: 2).isActive = true
+
+        return view
+    }()
+
+    private func showUploadProgressView() {
+        if uploadProgressView.superview == nil {
+            addSubview(uploadProgressView)
+            uploadProgressView.constrain(to: buttonStack)
+        }
+        uploadProgressView.isHidden = false
+    }
+
+    private func hideUploadProgressView() {
+        uploadProgressCancellable?.cancel()
+        uploadProgressCancellable = nil
+
+        subviews.first(where: { $0.tag == Self.progressViewTag })?.isHidden = true
+    }
+
+    @objc(retryAction)
+    private func retryButtonAction() {
+        retryAction?()
+    }
+
+    // MARK: Error / retry View
+
+    static private let errorViewTag = 2
+
+    private lazy var errorView: UIView = {
+        let errorText = UILabel()
+        errorText.translatesAutoresizingMaskIntoConstraints = false
+        errorText.font = .preferredFont(forTextStyle: .subheadline)
+        errorText.numberOfLines = 0
+        errorText.textColor = .systemRed
+        errorText.text = "Failed to post."
+
+        let retryButton = UIButton(type: .system)
+        retryButton.translatesAutoresizingMaskIntoConstraints = false
+        retryButton.setImage(UIImage(systemName: "arrow.counterclockwise.circle", withConfiguration: UIImage.SymbolConfiguration(textStyle: .headline)), for: .normal)
+        retryButton.addTarget(self, action: #selector(retryButtonAction), for: .touchUpInside)
+
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 0, trailing: 0)
+        view.tag = Self.errorViewTag
+        view.addSubview(errorText)
+        view.addSubview(retryButton)
+
+        errorText.constrainMargins([ .leading, .top, .bottom ], to: view)
+        retryButton.constrainMargins([ .trailing, .top, .bottom ], to: view)
+        retryButton.widthAnchor.constraint(equalTo: retryButton.heightAnchor).isActive = true
+        retryButton.leadingAnchor.constraint(equalToSystemSpacingAfter: errorText.trailingAnchor, multiplier: 1).isActive = true
+
+        return view
+    }()
+
+    private func showSendErrorView() {
+        if errorView.superview == nil {
+            addSubview(errorView)
+            errorView.constrain(to: buttonStack)
+        }
+        errorView.isHidden = false
+    }
+
+    private func hideErrorView() {
+        subviews.first(where: { $0.tag == Self.errorViewTag })?.isHidden = true
+    }
+
+    @objc(cancelAction)
+    private func cancelButtonAction() {
+        cancelAction?()
     }
 }
 

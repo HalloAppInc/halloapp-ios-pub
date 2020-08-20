@@ -35,7 +35,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return downloadManager
     }()
 
-    private let mediaUploader: MediaUploader
+    let mediaUploader: MediaUploader
 
     init(xmppController: XMPPControllerMain, contactStore: ContactStoreMain, userData: UserData) {
         self.xmppController = xmppController
@@ -212,7 +212,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return
         }
 
-        // Reload re-useing existing FeedDataItem.
+        // Reload re-using existing FeedDataItem.
         // Preserving existing objects is a requirement for proper functioning of SwiftUI interfaces.
         let feedDataItemMap = self.feedDataItems.reduce(into: [:]) { $0[$1.id] = $1 }
         self.feedDataItems = feedPosts.map{ (feedPost) -> FeedDataItem in
@@ -229,6 +229,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             if let feedPosts = self.fetchedResultsController.fetchedObjects {
                 self.reloadFeedDataItems(using: feedPosts)
                 DDLogInfo("FeedData/fetch/completed \(self.feedDataItems.count) posts")
+
+                // Turn tasks stuck in "sending" state into "sendError".
+                let idsOfTasksInProgress = mediaUploader.activeTaskGroupIdentifiers()
+                let stuckPosts = feedPosts.filter({ $0.status == .sending }).filter({ !idsOfTasksInProgress.contains($0.id) })
+                if !stuckPosts.isEmpty {
+                    stuckPosts.forEach({ $0.status = .sendError })
+                    save(fetchedResultsController.managedObjectContext)
+                }
             }
         }
         catch {
@@ -1427,6 +1435,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.send(comment: feedComment)
     }
 
+    func retryPosting(postId: FeedPostID) {
+        let managedObjectContext = self.persistentContainer.viewContext
+
+        guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else { return }
+        guard feedPost.status == .sendError else { return }
+
+        // Change status to "sending" and start sending / uploading.
+        feedPost.status = .sending
+        save(managedObjectContext)
+        uploadMediaAndSend(feedPost: feedPost)
+    }
+
     func resend(commentWithId commentId: FeedPostCommentID) {
         let managedObjectContext = self.persistentContainer.viewContext
 
@@ -1542,6 +1562,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.send(post: feedPost)
             }
         }
+    }
+
+    func cancelMediaUpload(postId: FeedPostID) {
+        DDLogInfo("FeedData/upload-media/cancel/\(postId)")
+        mediaUploader.cancelUpload(groupId: postId)
     }
 
     // MARK: Debug
