@@ -323,7 +323,7 @@ class TextLabel: UILabel {
         guard let boldDescriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitBold) else {
             return [:]
         }
-        return [.font: UIFont(descriptor: boldDescriptor, size: 0)]
+        return [.font: UIFont(descriptor: boldDescriptor, size: baseFont.pointSize)]
     }
 
     static private let detectionQueue = DispatchQueue(label: "hyperlink-detection")
