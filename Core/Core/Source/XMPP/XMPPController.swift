@@ -78,8 +78,9 @@ open class XMPPController: NSObject, ObservableObject {
         xmppStream.registerCustomElementNames(["ack"])
         xmppStream.myJID = userData.userJID
         
-        let clientVersion = NSString(string: AppContext.appVersion)
-        xmppStream.clientVersion = clientVersion
+        let appVersion = AppContext.appVersionForXMPP
+        let userAgent = NSString(string: "HalloApp/iOS\(appVersion)")
+        xmppStream.clientVersion = userAgent
     }
 
     open func startConnectingIfNecessary() {

@@ -34,6 +34,16 @@ open class AppContext {
         return "\(version) (\(buildNumber))"
     }()
 
+    public static let appVersionForXMPP: String = {
+        guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
+            return ""
+        }
+        guard let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String else {
+            return "\(version)"
+        }
+        return "\(version).\(buildNumber)"
+    }()
+
     open var isAppExtension: Bool {
         get { true }
     }
