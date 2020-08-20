@@ -558,7 +558,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
 
                 // Check if parent comment has been retracted.
-                if parentComment?.isCommentRetracted ?? false {
+                if parentComment?.isRetracted ?? false {
                     DDLogError("FeedData/process-comments/retracted-parent [\(parentComment!.id)]")
                     ignoredCommentIds.insert(xmppComment.id)
                     continue
@@ -1478,7 +1478,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
         }
-        xmppController.enqueue(request: request)
+        // Request will fail immediately if we're not connected, therefore delay sending until connected.
+        ///TODO: add option of canceling posting.
+        xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            self.xmppController.enqueue(request: request)
+        }
     }
 
     private func send(post: FeedPost) {

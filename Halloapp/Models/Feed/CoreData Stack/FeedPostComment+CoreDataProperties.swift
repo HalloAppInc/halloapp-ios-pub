@@ -45,9 +45,21 @@ extension FeedPostComment {
         }
     }
 
-    var isCommentRetracted: Bool {
+    var canBeRetracted: Bool {
         get {
-            return self.status == .retracted || self.status == .retracting
+            status == .sent
+        }
+    }
+
+    var isRetracted: Bool {
+        get {
+            return status == .retracted || status == .retracting
+        }
+    }
+
+    var isPosted: Bool {
+        get {
+            return status == .sent || status == .incoming
         }
     }
 }

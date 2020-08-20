@@ -66,22 +66,22 @@ class CommentView: UIView {
     }()
 
     static let deletedCommentViewTag = 1
+    private var deletedCommentTextLabel: UILabel!
     private lazy var deletedCommentView: UIView = {
-        let textLabel = UILabel()
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-        textLabel.textColor = .secondaryLabel
-        textLabel.text = "This comment has been deleted"
-        textLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        deletedCommentTextLabel = UILabel()
+        deletedCommentTextLabel.translatesAutoresizingMaskIntoConstraints = false
+        deletedCommentTextLabel.textColor = .secondaryLabel
+        deletedCommentTextLabel.font = UIFont.preferredFont(forTextStyle: .subheadline)
         let view = UIView()
         view.backgroundColor = .clear
         view.layoutMargins = UIEdgeInsets(top: 4, left: 0, bottom: 4, right: 0)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.tag = CommentView.deletedCommentViewTag
-        view.addSubview(textLabel)
-        textLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
-        textLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor).isActive = true
-        textLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor).isActive = true
-        textLabel.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor).isActive = true
+        view.addSubview(deletedCommentTextLabel)
+        deletedCommentTextLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
+        deletedCommentTextLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor).isActive = true
+        deletedCommentTextLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor).isActive = true
+        deletedCommentTextLabel.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor).isActive = true
         return view
 
     }()
@@ -150,7 +150,7 @@ class CommentView: UIView {
         attributedText.append(NSAttributedString(string: " "))
 
         if let commentText = MainAppContext.shared.contactStore.textWithMentions(comment.text, orderedMentions: comment.orderedMentions),
-            !comment.isCommentRetracted
+            !comment.isRetracted
         {
             attributedText.append(commentText.with(font: baseFont))
         }
@@ -159,15 +159,16 @@ class CommentView: UIView {
 
         self.textLabel.attributedText = attributedText
         self.timestampLabel.text = comment.timestamp.feedTimestamp()
-        self.isReplyButtonVisible = !comment.isCommentRetracted
+        self.isReplyButtonVisible = comment.isPosted
 
         let isRootComment = comment.parent == nil
         self.profilePictureWidth.constant = isRootComment ? LayoutConstants.profilePictureSizeNormal : LayoutConstants.profilePictureSizeSmall
         self.profilePictureTrailingSpace.constant = isRootComment ? LayoutConstants.profilePictureTrailingSpaceNormal : LayoutConstants.profilePictureTrailingSpaceSmall
         self.leadingMargin.constant = isRootComment ? LayoutConstants.profilePictureLeadingMarginNormal : LayoutConstants.profilePictureLeadingMarginReply
 
-        if comment.isCommentRetracted {
+        if comment.isRetracted {
             self.deletedCommentView.isHidden = false
+            deletedCommentTextLabel.text = comment.status == .retracted ? "This comment has been deleted" : "Deleting comment"
             if self.deletedCommentView.superview == nil {
                 self.vStack.insertArrangedSubview(self.deletedCommentView, at: self.vStack.arrangedSubviews.firstIndex(of: self.textLabel)! + 1)
             }

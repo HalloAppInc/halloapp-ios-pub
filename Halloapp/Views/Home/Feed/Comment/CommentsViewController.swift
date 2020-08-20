@@ -590,10 +590,11 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Only allow to delete your own comments.
         let feedPostComment = self.sortedComments[indexPath.row]
-        guard !feedPostComment.isCommentRetracted else { return false }
-        return feedPostComment.userId == AppContext.shared.userData.userId && abs(feedPostComment.timestamp.timeIntervalSinceNow) < Date.hours(1)
+        if feedPostComment.canBeRetracted {
+            return abs(feedPostComment.timestamp.timeIntervalSinceNow) < Date.hours(1)
+        }
+        return false
     }
 
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -790,7 +791,18 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
     func update(with comment: FeedPostComment) {
         commentId = comment.id
         self.commentView.updateWith(comment: comment)
-        if comment.status == .sendError {
+        switch comment.status {
+        case .sending, .retracting:
+            if let activityIndicator = self.accessoryView as? UIActivityIndicatorView {
+                activityIndicator.startAnimating()
+            } else {
+                let activityIndicator = UIActivityIndicatorView(style: .medium)
+                self.accessoryView = activityIndicator
+                activityIndicator.startAnimating()
+            }
+
+        case .sendError:
+            guard self.accessoryView as? UIButton == nil else { break }
             self.accessoryView = {
                 let button = UIButton(type: .system)
                 button.setImage(UIImage(systemName: "exclamationmark.circle"), for: .normal)
@@ -800,8 +812,10 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
                 button.addTarget(self, action: #selector(accessoryButtonAction), for: .touchUpInside)
                 return button
             }()
-        } else {
+
+        default:
             self.accessoryView = nil
+            break
         }
     }
 }
