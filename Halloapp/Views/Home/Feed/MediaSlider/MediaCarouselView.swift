@@ -50,6 +50,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     private let feedDataItem: FeedDataItem?
 
     private var media: [FeedMedia]
+    public var shouldAutoPlay = false
 
     private var collectionBottomConstraint: NSLayoutConstraint!
     weak var indexChangeDelegate: MediaIndexChangeListener?
@@ -62,6 +63,10 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             if oldValue != currentIndex {
                 if let videoCell = collectionView.cellForItem(at: IndexPath(row: oldValue, section: MediaSliderSection.main.rawValue)) as? MediaCarouselVideoCollectionViewCell {
                     videoCell.stopPlayback()
+                }
+
+                if shouldAutoPlay {
+                    playCurrentVideo()
                 }
 
                 if self.indexChangeDelegate != nil {
@@ -202,6 +207,12 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                     videoCell.showsVideoPlaybackControls = self.configuration.showVideoPlaybackControls
                 }
                 cell.configure(with: feedMedia)
+                if self.shouldAutoPlay,
+                    indexPath.item == self.currentIndex,
+                    let videoCell = cell as? MediaCarouselVideoCollectionViewCell
+                {
+                    videoCell.startPlayback()
+                }
                 return cell
             }
             return MediaCarouselCollectionViewCell()
@@ -246,6 +257,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     }
 
     public func refreshData(media: [FeedMedia], index: Int) {
+        stopPlayback()
+
         var snapshot = NSDiffableDataSourceSnapshot<MediaSliderSection, FeedMedia>()
         snapshot.appendSections([.main])
         if collectionView.effectiveUserInterfaceLayoutDirection == .rightToLeft {
@@ -253,16 +266,18 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         } else {
             snapshot.appendItems(media)
         }
-        
+
         self.dataSource?.apply(snapshot, animatingDifferences: false)
-        
+
         self.media = media
         updatePageControl()
-        
+
         let newIndex = max(0, min(index, self.media.count - 1))
         if newIndex != currentIndex {
             currentIndex = newIndex
             self.setCurrentIndex(newIndex, animated: true)
+        } else if self.shouldAutoPlay {
+            playCurrentVideo()
         }
     }
 
@@ -292,6 +307,12 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             if let videoCell = cell as? MediaCarouselVideoCollectionViewCell {
                 videoCell.stopPlayback()
             }
+        }
+    }
+
+    func playCurrentVideo() {
+        if let videoCell = collectionView.cellForItem(at: IndexPath(row: currentIndex, section: MediaSliderSection.main.rawValue)) as? MediaCarouselVideoCollectionViewCell {
+            videoCell.startPlayback()
         }
     }
 
@@ -634,6 +655,13 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
 
     func stopPlayback() {
         avPlayerViewController.player?.pause()
+    }
+
+    func startPlayback() {
+        if avPlayerViewController.player?.timeControlStatus == AVPlayer.TimeControlStatus.paused {
+            avPlayerViewController.player?.seek(to: .zero)
+            avPlayerViewController.player?.play()
+        }
     }
 
     private func updatePlayerViewFrame() {
