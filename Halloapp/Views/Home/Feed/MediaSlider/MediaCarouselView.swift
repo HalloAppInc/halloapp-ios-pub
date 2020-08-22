@@ -281,8 +281,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
     }
 
-    @objc(pageControlAction)
-    private func pageControlAction() {
+    @objc private func pageControlAction() {
         self.setCurrentIndex(self.pageControl?.currentPage ?? 0, animated: true)
     }
 

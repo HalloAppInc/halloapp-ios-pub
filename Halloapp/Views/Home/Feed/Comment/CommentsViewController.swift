@@ -356,8 +356,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         self.navigationController?.pushViewController(userViewController, animated: true)
     }
 
-    @objc(deletePost)
-    private func retractPost() {
+    @objc private func retractPost() {
         let actionSheet = UIAlertController(title: nil, message: "Delete this post? This action cannot be undone.", preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: "Delete Post", style: .destructive) { _ in
             self.reallyRetractPost()

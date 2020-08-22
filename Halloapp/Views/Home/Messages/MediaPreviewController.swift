@@ -143,11 +143,11 @@ class MediaPreviewController: UIViewController {
         return view
     }()
     
-    @objc(cancelAction) private func cancelAction() {
+    @objc private func cancelAction() {
         self.dismiss(animated: true)
     }
     
-    @objc(tapToClose) private func tapToClose() {
+    @objc private func tapToClose() {
         self.dismiss(animated: true)
     }
 }

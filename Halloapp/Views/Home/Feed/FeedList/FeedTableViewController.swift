@@ -597,22 +597,19 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
 
     // MARK: Button actions
 
-    @objc(showComments)
-    private func showComments() {
+    @objc private func showComments() {
         if self.commentAction != nil {
             self.commentAction!()
         }
     }
 
-    @objc(messageContact)
-    private func messageContact() {
+    @objc private func messageContact() {
         if self.messageAction != nil {
             self.messageAction!()
         }
     }
 
-    @objc(showSeenBy)
-    private func showSeenBy() {
+    @objc private func showSeenBy() {
         if self.showSeenByAction != nil {
             self.showSeenByAction!()
         }
@@ -851,8 +848,7 @@ fileprivate class FeedItemHeaderView: UIView {
         contactImageView.prepareForReuse()
     }
 
-    @objc(showUser)
-    func showUser() {
+    @objc func showUser() {
         showUserAction?()
     }
 
@@ -1167,9 +1163,8 @@ fileprivate class FeedItemFooterView: UIView {
         subviews.first(where: { $0.tag == Self.progressViewTag })?.isHidden = true
     }
 
-    @objc(retryAction)
-    private func retryButtonAction() {
-        retryAction?()
+    @objc private func cancelButtonAction() {
+        cancelAction?()
     }
 
     // MARK: Error / retry View
@@ -1216,9 +1211,8 @@ fileprivate class FeedItemFooterView: UIView {
         subviews.first(where: { $0.tag == Self.errorViewTag })?.isHidden = true
     }
 
-    @objc(cancelAction)
-    private func cancelButtonAction() {
-        cancelAction?()
+    @objc private func retryButtonAction() {
+        retryAction?()
     }
 }
 

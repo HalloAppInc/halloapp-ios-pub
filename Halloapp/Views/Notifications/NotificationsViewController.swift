@@ -83,13 +83,11 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
 
     // MARK: UI Actions
 
-    @objc(cancelAction)
-    private func cancelAction() {
+    @objc private func cancelAction() {
         self.dismiss(animated: true)
     }
 
-    @objc(markAllNotificationsRead)
-    private func markAllNotificationsRead() {
+    @objc private func markAllNotificationsRead() {
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: "Mark All as Read", style:.destructive) { _ in
             MainAppContext.shared.feedData.markNotificationsAsRead()

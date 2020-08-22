@@ -104,8 +104,7 @@ class FeedViewController: FeedTableViewController {
 
     // MARK: UI Actions
 
-    @objc(showNotifications)
-    private func presentNotificationsView() {
+    @objc private func presentNotificationsView() {
         self.present(UINavigationController(rootViewController: NotificationsViewController(style: .plain)), animated: true)
     }
 

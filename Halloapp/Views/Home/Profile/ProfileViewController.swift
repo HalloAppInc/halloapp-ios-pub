@@ -57,21 +57,18 @@ class ProfileViewController: FeedTableViewController {
 
     // MARK: UI Actions
 
-    @objc(presentDeveloperMenu)
-    private func presentDeveloperMenu() {
+    @objc private func presentDeveloperMenu() {
         let developerMenuView = DeveloperMenuView(useTestServer: MainAppContext.shared.userData.useTestServer, dismiss: { self.dismiss(animated: true) })
         self.present(UIHostingController(rootView: developerMenuView), animated: true)
     }
 
-    @objc(presentSettingsScreen)
-    private func presentSettingsScreen() {
+    @objc private func presentSettingsScreen() {
         let viewController = UIHostingController(rootView: SettingsView())
         viewController.hidesBottomBarWhenPushed = true
         self.navigationController?.pushViewController(viewController, animated: true)
     }
     
-    @objc(presentProfileEditScreen)
-    private func presentProfileEditScreen() {
+    @objc private func presentProfileEditScreen() {
         var profileEditView = ProfileEditView()
         profileEditView.dismiss = { self.navigationController?.popViewController(animated: true) }
         self.navigationController?.pushViewController(UIHostingController(rootView: profileEditView), animated: true)

@@ -117,8 +117,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
     // MARK: Top Nav Button Actions
 
-    @objc(cancelAction)
-    private func cancelAction() {
+    @objc private func cancelAction() {
         self.dismiss(animated: true)
     }
 

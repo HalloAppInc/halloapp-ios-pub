@@ -138,9 +138,8 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         }
     }
 
-    @objc(dismiss)
-    private func closeAction() {
-        self.dismiss(animated: true)
+    @objc private func closeAction() {
+        dismiss(animated: true)
     }
 
     // MARK: Deleting Post
