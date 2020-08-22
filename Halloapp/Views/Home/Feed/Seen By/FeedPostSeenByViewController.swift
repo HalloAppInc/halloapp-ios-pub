@@ -108,7 +108,7 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         navigationItem.title = "Your Post"
         navigationItem.standardAppearance = .opaqueAppearance
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarTrashBin"), style: .plain, target: self, action: #selector(retractPostAction))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarTrashBinWithLid"), style: .plain, target: self, action: #selector(retractPostAction))
 
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
         tableView.register(SectionHeaderView.self, forHeaderFooterViewReuseIdentifier: Constants.headerReuseIdentifier)
