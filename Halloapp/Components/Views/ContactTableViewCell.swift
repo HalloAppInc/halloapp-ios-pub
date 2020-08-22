@@ -9,12 +9,8 @@
 import Core
 import UIKit
 
-enum PostStatus: Int {
-    case seen = 0
-    case delivered = 1
-}
-
 class ContactTableViewCell: UITableViewCell {
+
     override var isUserInteractionEnabled: Bool {
         didSet {
             if isUserInteractionEnabled {
@@ -25,18 +21,37 @@ class ContactTableViewCell: UITableViewCell {
         }
     }
     
-    private lazy var contactImage: AvatarView = {
+    let contactImage: AvatarView = {
         return AvatarView()
     }()
+
+    private var profilePictureSizeConstraint: NSLayoutConstraint!
+
+    var profilePictureSize: CGFloat = 30 {
+        didSet {
+            profilePictureSizeConstraint.constant = profilePictureSize
+        }
+    }
     
-    private lazy var nameLabel: UILabel = {
+    let nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = .preferredFont(forTextStyle: .body)
+        label.font = .preferredFont(forTextStyle: .headline)
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+
+    let subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = .preferredFont(forTextStyle: .subheadline)
+        label.textColor = .secondaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private var vStack: UIStackView!
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -49,37 +64,20 @@ class ContactTableViewCell: UITableViewCell {
     }
 
     private func commonInit() {
-        let hStack = UIStackView(arrangedSubviews: [contactImage, nameLabel])
-        hStack.axis = .horizontal
-        hStack.spacing = 8
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        
-        self.contentView.addSubview(hStack)
-        
-        hStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
-        
-        contactImage.heightAnchor.constraint(equalToConstant: 25).isActive = true
+        contentView.addSubview(contactImage)
+        contactImage.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        contactImage.centerYAnchor.constraint(equalTo: contentView.layoutMarginsGuide.centerYAnchor).isActive = true
+        profilePictureSizeConstraint = contactImage.heightAnchor.constraint(equalToConstant: profilePictureSize)
+        profilePictureSizeConstraint.isActive = true
         contactImage.heightAnchor.constraint(equalTo: contactImage.widthAnchor).isActive = true
-    }
-    
-    public func configureForSeenBy(with userId: UserID, name: String, status: PostStatus, using avatarStore: AvatarStore) {
-        contactImage.configure(with: userId, using: avatarStore)
-        
-        nameLabel.text = name
-        
-        let showDoubleBlueCheck = status == .seen
-        let checkmarkImage = UIImage(named: showDoubleBlueCheck ? "CheckmarkDouble" : "CheckmarkSingle")?.withRenderingMode(.alwaysTemplate)
 
-        accessoryView = UIImageView(image: checkmarkImage)
-        accessoryView?.tintColor = showDoubleBlueCheck ? .systemBlue : .systemGray
-    }
-    
-    public func configure(with userId: UserID, name: String, using avatarStore: AvatarStore) {
-        contactImage.configure(with: userId, using: avatarStore)
-        nameLabel.text = name
+        vStack = UIStackView(arrangedSubviews: [ nameLabel, subtitleLabel ])
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.axis = .vertical
+        vStack.spacing = 4
+        contentView.addSubview(vStack)
+        vStack.constrainMargins([ .top, .trailing, .bottom ], to: contentView)
+        vStack.leadingAnchor.constraint(equalToSystemSpacingAfter: contactImage.trailingAnchor, multiplier: 1).isActive = true
     }
 
     override func prepareForReuse() {
@@ -87,4 +85,14 @@ class ContactTableViewCell: UITableViewCell {
         accessoryView = nil
         nameLabel.text = ""
     }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        let labelSpacing: CGFloat = subtitleLabel.text?.isEmpty ?? true ? 0 : 4
+        if vStack.spacing != labelSpacing {
+            vStack.spacing = labelSpacing
+        }
+    }
+
 }

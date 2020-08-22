@@ -17,12 +17,14 @@ fileprivate struct Constants {
 fileprivate extension UITableViewCell {
 
     func configure(withContact contact: ABContact) {
-        self.textLabel?.text = contact.fullName
-        self.textLabel?.textColor = .label
-        self.textLabel?.font = .preferredFont(forTextStyle: .headline)
-        self.detailTextLabel?.text = contact.phoneNumber
-        self.detailTextLabel?.textColor = .secondaryLabel
-        self.detailTextLabel?.font = .preferredFont(forTextStyle: .subheadline)
+        let isUserAlready = contact.status == .in
+        selectionStyle = isUserAlready ? .none : .default
+        textLabel?.text = contact.fullName
+        textLabel?.textColor = isUserAlready ? .secondaryLabel : .label
+        textLabel?.font = .preferredFont(forTextStyle: .headline)
+        detailTextLabel?.text = isUserAlready ? "Already a HalloApp user" : contact.phoneNumber
+        detailTextLabel?.textColor = .secondaryLabel
+        detailTextLabel?.font = .preferredFont(forTextStyle: .subheadline)
     }
 }
 
@@ -41,6 +43,11 @@ fileprivate class InvitePeopleResultsController: UITableViewController {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .feedBackground
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -88,7 +95,9 @@ class InvitePeopleTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.dataSource = UITableViewDiffableDataSource<TableSection, ABContact>(tableView: self.tableView) { (tableView, indexPath, contact) in
+        view.backgroundColor = .feedBackground
+
+        dataSource = UITableViewDiffableDataSource<TableSection, ABContact>(tableView: self.tableView) { (tableView, indexPath, contact) in
             var cell: UITableViewCell! = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier)
             if cell == nil {
                 cell = UITableViewCell(style: .subtitle, reuseIdentifier: Constants.cellReuseIdentifier)
@@ -98,7 +107,7 @@ class InvitePeopleTableViewController: UITableViewController {
         }
 
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.out.rawValue)
+        fetchRequest.predicate = NSPredicate(format: "statusValue == %d OR statusValue == %d", ABContact.Status.out.rawValue, ABContact.Status.in.rawValue)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
         fetchedResultsController = NSFetchedResultsController<ABContact>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.contactStore.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController?.delegate = self
@@ -128,16 +137,25 @@ class InvitePeopleTableViewController: UITableViewController {
 
 extension InvitePeopleTableViewController {
 
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        var contact: ABContact!
+    private func contactForIndexPath(_ indexPath: IndexPath, in tableView: UITableView) -> ABContact {
         if tableView == self.tableView {
-            contact = dataSource.itemIdentifier(for: indexPath)
+            return dataSource.itemIdentifier(for: indexPath)!
         } else {
-            contact = resultsController.contacts[indexPath.row]
+            return resultsController.contacts[indexPath.row]
         }
+    }
 
+    override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+        let contact = contactForIndexPath(indexPath, in: tableView)
+        guard contact.status != .in else {
+            return nil
+        }
+        return indexPath
+    }
+
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let contact = contactForIndexPath(indexPath, in: tableView)
         self.didSelectContact(contact)
-
         DispatchQueue.main.async {
             tableView.deselectRow(at: indexPath, animated: true)
         }
@@ -150,7 +168,7 @@ extension InvitePeopleTableViewController: NSFetchedResultsControllerDelegate {
         var dataSourceSnapshot = NSDiffableDataSourceSnapshot<TableSection, ABContact>()
         dataSourceSnapshot.appendSections([.main])
         dataSourceSnapshot.appendItems(fetchedResultsController.fetchedObjects ?? [])
-        dataSource.apply(dataSourceSnapshot, animatingDifferences: self.viewIfLoaded?.window != nil)
+        dataSource.apply(dataSourceSnapshot, animatingDifferences: viewIfLoaded?.window != nil)
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
@@ -177,61 +195,5 @@ extension InvitePeopleTableViewController: UISearchResultsUpdating {
 
         let finalCompoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: andPredicates)
         resultsController.contacts = allContacts.filter { finalCompoundPredicate.evaluate(with: $0) }
-    }
-}
-
-fileprivate class InvitePeopleTableViewCell: UITableViewCell {
-
-    enum CellState {
-        case notSelected
-        case selected
-        case alreadyInvited
-    }
-
-    var state: CellState = .notSelected {
-        didSet {
-            if oldValue != state || self.accessoryView == nil {
-                reloadAccessoryView()
-            }
-        }
-    }
-
-    private func setAccessoryImage(_ image: UIImage) {
-        if let imageView = self.accessoryView as? UIImageView {
-            imageView.image = image.withRenderingMode(.alwaysTemplate)
-        } else {
-            let imageView = UIImageView(image: image.withRenderingMode(.alwaysTemplate))
-            imageView.tintColor = .lavaOrange
-            imageView.frame.size = CGSize(width: 28, height: 28)
-            self.accessoryView = imageView
-        }
-    }
-
-    private func setAccessoryText(_ text: String) {
-        if let label = self.accessoryView as? UILabel {
-            label.text = text
-            label.sizeToFit()
-        } else {
-            let label = UILabel()
-            label.text = text
-            label.font = UIFont.preferredFont(forTextStyle: .footnote)
-            label.textColor = .lavaOrange
-            label.sizeToFit()
-            self.accessoryView = label
-        }
-    }
-
-    private func reloadAccessoryView() {
-        switch state {
-        case .notSelected:
-            setAccessoryImage(UIImage(systemName: "circle")!)
-
-        case .selected:
-            setAccessoryImage(UIImage(systemName: "checkmark.circle.fill")!)
-
-        case .alreadyInvited:
-            setAccessoryText("Invited")
-
-        }
     }
 }

@@ -14,7 +14,18 @@ protocol ShareDestinationDelegate {
     func setDestination(to: ShareDestination)
 }
 
+fileprivate extension ContactTableViewCell {
+
+    func configureWithContact(_ contact: ABContact, using avatarStore: AvatarStore) {
+        contactImage.configure(with: contact.userId!, using: avatarStore)
+
+        nameLabel.font = .preferredFont(forTextStyle: .body)
+        nameLabel.text = contact.fullName!
+    }
+}
+
 class DestinationViewController: UITableViewController {
+
     static let defaultCellReuseIdentifier = "default-cell"
     static let contactCellReuseIdentifier = "contact-cell"
     
@@ -26,7 +37,7 @@ class DestinationViewController: UITableViewController {
     override init(style: UITableView.Style) {
         avatarStore = AvatarStore()
         contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: true)
-        
+
         super.init(style: style)
     }
     
@@ -37,11 +48,11 @@ class DestinationViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.navigationItem.title = "Send To"
-        self.tableView.backgroundColor = .clear
-        
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: Self.defaultCellReuseIdentifier)
-        self.tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Self.contactCellReuseIdentifier)
+        navigationItem.title = "Send To"
+
+        tableView.backgroundColor = .clear
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: Self.defaultCellReuseIdentifier)
+        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Self.contactCellReuseIdentifier)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -51,9 +62,7 @@ class DestinationViewController: UITableViewController {
          SLComposeServiceViewController observes changes to preferredContentSize of each view,
          and animates sheet size changes as necessary.
          */
-        let frame = self.view.frame
-        let newSize:CGSize = CGSize(width:frame.size.width, height:frame.size.height * 2)
-        self.preferredContentSize = newSize
+        preferredContentSize = CGSize(width: view.frame.width, height: view.frame.height * 2)
     }
 
     // MARK: - Table view data source
@@ -63,19 +72,17 @@ class DestinationViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if section == 0 {
-            return 1
-        } else {
+        if section == 1 {
             return contacts.count
         }
+        return 1
     }
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if section == 0 {
-            return "Post"
-        } else {
+        if section == 1 {
             return "Contacts"
         }
+        return nil
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -85,7 +92,8 @@ class DestinationViewController: UITableViewController {
             return cell
         } else {
             let cell = tableView.dequeueReusableCell(withIdentifier: Self.contactCellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-            cell.configure(with: contacts[indexPath.row].userId!, name: contacts[indexPath.row].fullName!, using: avatarStore)
+            cell.profilePictureSize = 25
+            cell.configureWithContact(contacts[indexPath.row], using: avatarStore)
             return cell
         }
     }

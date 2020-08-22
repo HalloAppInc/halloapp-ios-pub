@@ -10,35 +10,88 @@ import Core
 import CoreData
 import UIKit
 
-struct SeenByUser {
+struct FeedPostReceipt {
+    enum ReceiptType: Int {
+        case seen = 0
+        case delivered = 1
+    }
+
     let userId: UserID
-    let postStatus: PostStatus
+    let type: ReceiptType
     let contactName: String?
+    let phoneNumber: String?
     let timestamp: Date
 }
 
-extension SeenByUser : Hashable {
+extension FeedPostReceipt : Hashable {
     func hash(into hasher: inout Hasher) {
         hasher.combine(userId)
-        hasher.combine(postStatus)
-        hasher.combine(contactName)
+        hasher.combine(type)
     }
 }
 
-extension SeenByUser : Equatable {
+extension FeedPostReceipt : Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
-        return lhs.postStatus == rhs.postStatus && lhs.userId == rhs.userId && lhs.contactName == rhs.contactName
+        return lhs.userId == rhs.userId && lhs.type == rhs.type
     }
+}
+
+fileprivate extension ContactTableViewCell {
+
+    func configureWithReceipt(_ receipt: FeedPostReceipt, using avatarStore: AvatarStore) {
+        contactImage.configure(with: receipt.userId, using: avatarStore)
+
+        nameLabel.text = receipt.contactName
+        subtitleLabel.text = receipt.phoneNumber
+    }
+}
+
+fileprivate class SectionHeaderView: UITableViewHeaderFooterView {
+
+    override init(reuseIdentifier: String?) {
+        super.init(reuseIdentifier: reuseIdentifier)
+        commonInit()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        commonInit()
+    }
+
+    var sectionNameLabel: UILabel!
+
+    private func commonInit() {
+        directionalLayoutMargins.top = 16
+        directionalLayoutMargins.bottom = 16
+
+        let view = UIView(frame: bounds)
+        view.backgroundColor = .feedBackground
+        backgroundView = view
+
+        sectionNameLabel = UILabel()
+        sectionNameLabel.textColor = .label
+        sectionNameLabel.font = UIFont.gothamFont(forTextStyle: .headline, weight: .medium)
+        sectionNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(sectionNameLabel)
+        sectionNameLabel.constrainMargins(to: contentView)
+    }
+}
+
+fileprivate class PostReceiptsDataSource: UITableViewDiffableDataSource<FeedPostReceipt.ReceiptType, FeedPostReceipt> {
+
 }
 
 class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
-    static let cellReuseIdentifier = "contact-cell"
+    private struct Constants {
+        static let cellReuseIdentifier = "contact-cell"
+        static let headerReuseIdentifier = "header"
+    }
 
     private let feedPostId: FeedPostID
 
-    private var dataSource: UITableViewDiffableDataSource<PostStatus, SeenByUser>?
-    private var fetchedResultsController: NSFetchedResultsController<FeedPost>?
+    private var dataSource: PostReceiptsDataSource!
+    private var fetchedResultsController: NSFetchedResultsController<FeedPost>!
 
     required init(feedPostId: FeedPostID) {
         self.feedPostId = feedPostId
@@ -52,18 +105,20 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.navigationItem.title = "Viewed by"
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
+        navigationItem.title = "Your Post"
+        navigationItem.standardAppearance = .opaqueAppearance
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarTrashBin"), style: .plain, target: self, action: #selector(retractPostAction))
 
-        self.tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
-        self.tableView.allowsSelection = false
-        self.tableView.separatorStyle = .none
+        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+        tableView.register(SectionHeaderView.self, forHeaderFooterViewReuseIdentifier: Constants.headerReuseIdentifier)
+        tableView.allowsSelection = false
+        tableView.backgroundColor = .feedBackground
+        tableView.delegate = self
 
-        dataSource = UITableViewDiffableDataSource<PostStatus, SeenByUser>(tableView: self.tableView) { (tableView, indexPath, tableRow) in
-            let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-            
-            cell.configureForSeenBy(with: tableRow.userId, name: tableRow.contactName!, status: tableRow.postStatus, using: MainAppContext.shared.avatarStore)
-
+        dataSource = PostReceiptsDataSource(tableView: tableView) { (tableView, indexPath, receipt) in
+            let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
+            cell.configureWithReceipt(receipt, using: MainAppContext.shared.avatarStore)
             return cell
         }
 
@@ -71,10 +126,10 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         fetchRequest.predicate = NSPredicate(format: "id == %@", feedPostId)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: true) ]
         fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
-        fetchedResultsController?.delegate = self
+        fetchedResultsController.delegate = self
         do {
-            try fetchedResultsController?.performFetch()
-            if let feedPost = fetchedResultsController?.fetchedObjects?.first {
+            try fetchedResultsController.performFetch()
+            if let feedPost = fetchedResultsController.fetchedObjects?.first {
                 reloadData(from: feedPost)
             }
         }
@@ -88,7 +143,50 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         self.dismiss(animated: true)
     }
 
+    // MARK: Deleting Post
+
+    @objc private func retractPostAction() {
+        let actionSheet = UIAlertController(title: nil, message: "Delete this post? This action cannot be undone.", preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Delete Post", style: .destructive) { _ in
+            self.reallyRetractPost()
+        })
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        self.present(actionSheet, animated: true)
+    }
+
+    private func reallyRetractPost() {
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else {
+            dismiss(animated: true)
+            return
+        }
+        // Stop processing data changes because all post is about to be deleted.
+        fetchedResultsController.delegate = nil
+        MainAppContext.shared.feedData.retract(post: feedPost)
+        dismiss(animated: true)
+    }
+
     // MARK: Table View Support
+
+    private func titleForHeader(inSection section: Int) -> String? {
+        guard let receiptType = FeedPostReceipt.ReceiptType(rawValue: section) else { return nil }
+        switch receiptType  {
+        case .seen:
+            return "Viewed by"
+
+        case .delivered:
+            return "Delivered to"
+        }
+    }
+
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        var headerView: SectionHeaderView! = tableView.dequeueReusableHeaderFooterView(withIdentifier: Constants.headerReuseIdentifier) as? SectionHeaderView
+        if headerView == nil {
+            headerView = SectionHeaderView(reuseIdentifier: Constants.headerReuseIdentifier)
+        }
+        headerView.directionalLayoutMargins.top = section > 0 ? 32 : 16
+        headerView.sectionNameLabel.text = titleForHeader(inSection: section)
+        return headerView
+    }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         if let feedPost = controller.fetchedObjects?.last as? FeedPost {
@@ -98,7 +196,7 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
 
     private func reloadData(from feedPost: FeedPost) {
         let allContacts = AppContext.shared.contactStore.allRegisteredContacts(sorted: true)
-        let seenRows: [SeenByUser] = MainAppContext.shared.feedData.seenByUsers(for: feedPost)
+        let seenRows: [FeedPostReceipt] = MainAppContext.shared.feedData.seenByUsers(for: feedPost)
 
         var addedUserIds = Set(seenRows.map(\.userId))
 
@@ -106,18 +204,18 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         addedUserIds.insert(AppContext.shared.userData.userId)
 
         // All other contacts go into "delivered" section.
-        var deliveredRows: [SeenByUser] = []
+        var deliveredRows = [FeedPostReceipt]()
         allContacts.forEach { (abContact) in
             if addedUserIds.insert(abContact.userId!).inserted {
-                deliveredRows.append(SeenByUser(userId: abContact.userId!, postStatus: .delivered, contactName: abContact.fullName, timestamp: Date()))
+                deliveredRows.append(FeedPostReceipt(userId: abContact.userId!, type: .delivered, contactName: abContact.fullName, phoneNumber: abContact.phoneNumber, timestamp: Date()))
             }
         }
 
-        var snapshot = NSDiffableDataSourceSnapshot<PostStatus, SeenByUser>()
+        var snapshot = NSDiffableDataSourceSnapshot<FeedPostReceipt.ReceiptType, FeedPostReceipt>()
         snapshot.appendSections([ .seen, .delivered ])
         snapshot.appendItems(seenRows, toSection: .seen)
         snapshot.appendItems(deliveredRows, toSection: .delivered)
-        dataSource?.apply(snapshot, animatingDifferences: self.viewIfLoaded?.window != nil)
+        dataSource?.apply(snapshot, animatingDifferences: viewIfLoaded?.window != nil)
     }
 
 }

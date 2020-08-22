@@ -45,8 +45,7 @@ class PrivacyListTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        self.tableView.register(PrivacyListTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
+        tableView.register(PrivacyListTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
     }
 
     // MARK: - Table view data source
@@ -81,8 +80,8 @@ class PrivacyListSearchResultsViewController: PrivacyListTableViewController {
 
     override var contacts: [PrivacyListEntry] {
         didSet {
-            if self.isViewLoaded {
-                self.tableView.reloadData()
+            if isViewLoaded {
+                tableView.reloadData()
             }
         }
     }
@@ -140,9 +139,7 @@ class PrivacyListViewController: PrivacyListTableViewController {
         searchController.delegate = self
         searchController.searchResultsUpdater = self
         searchController.searchBar.autocapitalizationType = .none
-        self.navigationItem.searchController = searchController
-
-        self.definesPresentationContext = true
+        navigationItem.searchController = searchController
     }
 
     /**
@@ -172,7 +169,7 @@ class PrivacyListViewController: PrivacyListTableViewController {
 extension PrivacyListViewController: UISearchControllerDelegate {
 
     func willDismissSearchController(_ searchController: UISearchController) {
-        self.tableView.reloadData()
+        tableView.reloadData()
     }
 }
 
@@ -197,33 +194,20 @@ extension PrivacyListViewController: UISearchResultsUpdating {
     }
 }
 
-fileprivate class PrivacyListTableViewCell: UITableViewCell {
+fileprivate class PrivacyListTableViewCell: ContactTableViewCell {
 
-    var userId: UserID?
+    private static var checkmarkUnchecked: UIImage {
+        get { UIImage(systemName: "circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate) }
+    }
+
+    private static var checkmarkChecked: UIImage {
+        get { UIImage(systemName: "checkmark.circle.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate) }
+    }
 
     private let checkMark: UIImageView = {
-        let imageView = UIImageView(image: UIImage(systemName: "circle")?.withRenderingMode(.alwaysTemplate))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.widthAnchor.constraint(equalToConstant: 28).isActive = true
-        imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor).isActive = true
+        let imageView = UIImageView(image: PrivacyListTableViewCell.checkmarkUnchecked)
         imageView.tintColor = .lavaOrange
         return imageView
-    }()
-
-    private let contactNameLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .label
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        return label
-    }()
-
-    private let phoneNumberLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .secondaryLabel
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        return label
     }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -237,41 +221,21 @@ fileprivate class PrivacyListTableViewCell: UITableViewCell {
     }
 
     private func commonInit() {
-        self.preservesSuperviewLayoutMargins = true
-        self.selectionStyle = .none
-
-        let vStack = UIStackView()
-        vStack.spacing = 4
-        vStack.axis = .vertical
-        vStack.addArrangedSubview(contactNameLabel)
-        vStack.addArrangedSubview(phoneNumberLabel)
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-
-        self.contentView.addSubview(vStack)
-        self.contentView.addSubview(checkMark)
-
-        vStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
-        checkMark.leadingAnchor.constraint(greaterThanOrEqualToSystemSpacingAfter: vStack.trailingAnchor, multiplier: 1).isActive = true
-        checkMark.centerYAnchor.constraint(equalTo: self.contentView.centerYAnchor).isActive = true
-        checkMark.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        selectionStyle = .none
     }
 
     func configure(withListEntry listEntry: PrivacyListEntry) {
-        contactNameLabel.text = listEntry.name ?? MainAppContext.shared.contactStore.fullName(for: listEntry.userId)
-        phoneNumberLabel.text = listEntry.phoneNumber
+        accessoryView = checkMark
+        nameLabel.text = listEntry.name ?? MainAppContext.shared.contactStore.fullName(for: listEntry.userId)
+        subtitleLabel.text = listEntry.phoneNumber
     }
 
+    var userId: UserID?
     private(set) var isContactSelected: Bool = false
 
     func setContact(selected: Bool, animated: Bool = false) {
-        guard selected != isContactSelected else { return }
-
         isContactSelected = selected
-
-        let image = isContactSelected ? UIImage(systemName: "checkmark.circle.fill") : UIImage(systemName: "circle")
-        checkMark.image = image?.withRenderingMode(.alwaysTemplate)
+        checkMark.image = isContactSelected ? Self.checkmarkChecked : Self.checkmarkUnchecked
         if animated {
             checkMark.layer.add({
                 let transition = CATransition()

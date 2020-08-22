@@ -50,6 +50,8 @@ struct InvitePeopleView: View {
     @State private var isRedeemErrorAlertPresented = false
     @State private var isShareSheetPresented = false
 
+    let dismiss: () -> ()
+
     private let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.timeStyle = .short
@@ -67,25 +69,28 @@ struct InvitePeopleView: View {
                 .disabled(self.inviteManager.redeemInProgress)
                 .blur(radius: self.inviteManager.redeemInProgress ? 4 : 0)
                 .overlay(Text("Please wait")
-                    .font(.title)
-                    .foregroundColor(.secondary)
-                    .padding()
-                    .opacity(self.inviteManager.redeemInProgress ? 1 : 0))
+                    .padding(.horizontal)
+                    .opacity(self.inviteManager.redeemInProgress ? 1 : 0)
+                )
             } else if inviteManager.dataAvailable {
                 Text("You're out of invites. Please check back after \(self.dateFormatter.string(from: inviteManager.nextRefreshDate!))")
                     .multilineTextAlignment(.center)
-                    .font(.title)
-                    .foregroundColor(.secondary)
-                    .padding()
+                    .padding(.horizontal)
+                    .frame(maxHeight: .infinity)
             } else {
                 Text("Loading...")
-                    .font(.title)
-                    .foregroundColor(.secondary)
-                    .padding()
+                    .padding(.horizontal)
+                    .frame(maxHeight: .infinity)
             }
         }
-        .edgesIgnoringSafeArea(.all)
+        .font(.title)
+        .foregroundColor(.secondary)
+        .background(Color.feedBackground)
+        .edgesIgnoringSafeArea(.bottom)
         .navigationBarTitle("Invite Friends", displayMode: .inline)
+        .navigationBarItems(leading: Button(action: { self.dismiss() }) {
+            Image("NavbarClose")
+        })
         .actionSheet(isPresented: $isActionSheetPresented) {
             ActionSheet(title: Text("You are about to redeem one invite for \(self.inviteManager.contactToInvite!.fullName!)"),
                         message: nil,
@@ -116,6 +121,6 @@ struct InvitePeopleView: View {
 
 struct InvitePeopleView_Previews: PreviewProvider {
     static var previews: some View {
-        InvitePeopleView()
+        InvitePeopleView(dismiss: {})
     }
 }

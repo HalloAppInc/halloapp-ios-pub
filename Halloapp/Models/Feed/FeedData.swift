@@ -1188,22 +1188,23 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
     
-    func seenByUsers(for feedPost: FeedPost) -> [SeenByUser] {
+    func seenByUsers(for feedPost: FeedPost) -> [FeedPostReceipt] {
         let allContacts = contactStore.allRegisteredContacts(sorted: true)
         
         // Contacts that have seen the post go into the first section.
-        var users: [SeenByUser] = []
+        var users = [FeedPostReceipt]()
         
         if let seenReceipts = feedPost.info?.receipts {
             for (userId, receipt) in seenReceipts {
-                var contactName: String?
-                if let contactIndex = allContacts.firstIndex(where: { $0.userId == userId }) {
-                    contactName = allContacts[contactIndex].fullName
+                var contactName: String?, phoneNumber: String?
+                if let contact = allContacts.first(where: { $0.userId == userId }) {
+                    contactName = contact.fullName
+                    phoneNumber = contact.phoneNumber
                 }
                 if contactName == nil {
                     contactName = contactStore.fullName(for: userId)
                 }
-                users.append(SeenByUser(userId: userId, postStatus: .seen, contactName: contactName!, timestamp: receipt.seenDate!))
+                users.append(FeedPostReceipt(userId: userId, type: .seen, contactName: contactName!, phoneNumber: phoneNumber, timestamp: receipt.seenDate!))
             }
         }
         users.sort(by: { $0.timestamp > $1.timestamp })

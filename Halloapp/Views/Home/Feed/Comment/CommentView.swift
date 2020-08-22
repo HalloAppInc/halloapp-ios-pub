@@ -61,7 +61,7 @@ class CommentView: UIView {
         button.setTitleColor(.secondaryLabel, for: .normal)
         button.setTitle("Reply", for: .normal)
         let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .footnote)
-        button.titleLabel?.font = .systemFont(ofSize: fontDescriptor.pointSize, weight: .medium)
+        button.titleLabel?.font = .systemFont(ofSize: fontDescriptor.pointSize, weight: .bold)
         return button
     }()
 

@@ -116,6 +116,7 @@
 		768123E12485DFB7008C5216 /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7681241924861C5D008C5216 /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681241824861C5D008C5216 /* XMPPController.swift */; };
 		7681242D2486EAC2008C5216 /* AppExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681242C2486EAC2008C5216 /* AppExtensionContext.swift */; };
+		76936FB824F03C37006DBC2D /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A9244A244EC49000794859 /* UIView.swift */; };
 		76955DEA24746E4C0088BE8C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76A92444244E659600794859 /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92443244E659600794859 /* FeedViewController.swift */; };
 		76A92449244EBCB600794859 /* ShapeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92448244EBCB600794859 /* ShapeView.swift */; };
@@ -1460,6 +1461,7 @@
 				2446D68124CB5867005BAD3C /* VideoUtils.swift in Sources */,
 				76C64E0E24E5AD85007C0F6F /* MediaUploader.swift in Sources */,
 				24009EB824BE399F00155DE2 /* ComposeView.swift in Sources */,
+				76936FB824F03C37006DBC2D /* UIView.swift in Sources */,
 				2446D68024CB5840005BAD3C /* XMPPFeedRequests.swift in Sources */,
 				24009EBA24BE3FA200155DE2 /* DestinationView.swift in Sources */,
 				24009E9124B66E6800155DE2 /* XMPPController.swift in Sources */,

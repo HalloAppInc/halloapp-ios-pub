@@ -44,6 +44,12 @@ class HomeViewController: UITabBarController {
 
         self.tabBar.tintColor = .systemBlue
 
+        // Set background color for navigation bar and search bar system-wide.
+        // Settings background color throguh appearance proxy seems to be the only way
+        // to modify navigation bar in SwiftUI's NavigationView.
+        UINavigationBar.appearance().backgroundColor = .feedBackground
+        UISearchBar.appearance().backgroundColor = .feedBackground
+
         self.cancellableSet.insert(
             MainAppContext.shared.chatData.didChangeUnreadThreadCount.sink { [weak self] (count) in
                 guard let self = self else { return }

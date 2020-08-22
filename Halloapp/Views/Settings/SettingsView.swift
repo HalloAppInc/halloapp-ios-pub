@@ -48,6 +48,7 @@ struct SettingsView: View {
     @State private var isEditingProfile = false
     @State private var isBlockedListPresented = false
     @State private var isTOSPagePresented = false
+    @State private var isInviteFriendsPresented = false
 
     init() {
         UITableView.appearance(whenContainedInInstancesOf: [ UIHostingController<SettingsView>.self ]).backgroundColor = .feedBackground
@@ -161,14 +162,18 @@ struct SettingsView: View {
                     }
 
                     // Invite Friends
-                    NavigationLink(destination: InvitePeopleView()) {
+                    Button(action: { self.isInviteFriendsPresented = true }) {
                         HStack {
                             Text("Invite Friends")
-
                             Spacer()
-
                             Text(self.inviteManager.dataAvailable ? "\(self.inviteManager.numberOfInvitesAvailable) Invites" : "...")
                                 .foregroundColor(.secondary)
+                            TableViewCellChevron()
+                        }
+                    }
+                    .sheet(isPresented: self.$isInviteFriendsPresented) {
+                        NavigationView {
+                            InvitePeopleView(dismiss: { self.isInviteFriendsPresented = false })
                         }
                     }
                 }
