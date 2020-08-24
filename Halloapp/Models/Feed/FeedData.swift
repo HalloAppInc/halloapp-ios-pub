@@ -617,29 +617,26 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newComments
     }
 
-    func xmppController(_ xmppController: XMPPController, didReceiveFeedItems items: [XMLElement], in xmppMessage: XMPPMessage?) {
-        var feedPosts: [XMPPFeedPost] = []
-        var comments: [XMPPComment] = []
-        var contactNames: [UserID:String] = [:]
-        for item in items {
-            guard let type = item.attribute(forName: "type")?.stringValue else {
-                DDLogError("Invalid item: [\(item)]")
-                continue
-            }
-            if type == "feedpost" {
-                if let feedPost = XMPPFeedPost(itemElement: item) {
+    func xmppController(_ xmppController: XMPPController, didReceiveFeedElements elements: [XMLElement], in xmppMessage: XMPPMessage?) {
+        var feedPosts = [XMPPFeedPost]()
+        var comments = [XMPPComment]()
+        var contactNames = [UserID:String]()
+
+        for element in elements {
+            guard let elementName = element.name else { continue }
+
+            if elementName == "post" {
+                if let feedPost = XMPPFeedPost(itemElement: element) {
                     feedPosts.append(feedPost)
                 }
-            } else if type == "comment" {
-                if let comment = XMPPComment(itemElement: item) {
+            } else if elementName == "comment" {
+                if let comment = XMPPComment(itemElement: element) {
                     comments.append(comment)
 
-                    if let contactName = item.attributeStringValue(forName: "publisher_name") {
+                    if let contactName = element.attributeStringValue(forName: "publisher_name") {
                         contactNames[comment.userId] = contactName
                     }
                 }
-            } else {
-                DDLogError("Invalid item type: [\(type)]")
             }
         }
 
@@ -956,7 +953,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Retracts
 
-    private func processRetract(forPostId postId: FeedPostID, completion: @escaping () -> Void) {
+    private func processPostRetract(_ postId: FeedPostID, completion: @escaping () -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
 
@@ -999,7 +996,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func processRetract(forCommentId commentId: FeedPostCommentID, completion: @escaping () -> Void) {
+    private func processCommentRetract(_ commentId: FeedPostCommentID, completion: @escaping () -> Void) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedComment = self.feedComment(with: commentId, in: managedObjectContext) else {
                 DDLogError("FeedData/retract-comment/error Missing comment. [\(commentId)]")
@@ -1033,33 +1030,26 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func xmppController(_ xmppController: XMPPController, didReceiveFeedRetracts items: [XMLElement], in xmppMessage: XMPPMessage?) {
+    func xmppController(_ xmppController: XMPPController, didReceiveFeedRetractElements elements: [XMLElement], in xmppMessage: XMPPMessage?) {
         /**
          Example:
          <retract timestamp="1587161372" publisher="1000000000354803885@s.halloapp.net/android" type="feedpost" id="b2d888ecfe2343d9916173f2f416f4ae"><entry xmlns="http://halloapp.com/published-entry"><feedpost/><s1>CgA=</s1></entry></retract>
          */
         let processingGroup = DispatchGroup()
-        for item in items {
-            guard let itemId = item.attributeStringValue(forName: "id") else {
-                DDLogError("FeedData/process-retract/error Missing item id. [\(item)]")
-                continue
-            }
-            guard let type = item.attribute(forName: "type")?.stringValue else {
-                DDLogError("FeedData/process-retract/error Missing item type. [\(item)]")
-                continue
-            }
-            if type == "feedpost" {
+        for element in elements {
+            guard let elementName = element.name,
+                let itemId = element.attributeStringValue(forName: "id") else { continue }
+
+            if elementName == "post" {
                 processingGroup.enter()
-                self.processRetract(forPostId: itemId) {
+                self.processPostRetract(itemId) {
                     processingGroup.leave()
                 }
-            } else if type == "comment" {
+            } else if elementName == "comment" {
                 processingGroup.enter()
-                self.processRetract(forCommentId: itemId) {
+                self.processCommentRetract(itemId) {
                     processingGroup.leave()
                 }
-            } else {
-                DDLogError("FeedData/process-retract/error Invalid item type. [\(item)]")
             }
         }
         processingGroup.notify(queue: DispatchQueue.main) {
@@ -1080,7 +1070,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let request = XMPPRetractItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (result) in
             switch result {
             case .success:
-                self.processRetract(forPostId: postId) {}
+                self.processPostRetract(postId) {}
 
             case .failure(_):
                 self.updateFeedPost(with: postId) { (post) in
@@ -1102,7 +1092,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let request = XMPPRetractItemRequest(feedItem: comment, feedOwnerId: comment.post.userId) { (result) in
             switch result {
             case .success:
-                self.processRetract(forCommentId: commentId) {}
+                self.processCommentRetract(commentId) {}
 
             case .failure(_):
                 self.updateFeedPostComment(with: commentId) { (comment) in

@@ -39,9 +39,10 @@ enum XMPPFeedMediaType: String {
 
 extension Proto_Container {
 
-    static func feedItemContainer(from entry: XMLElement) -> Proto_Container? {
-        guard let s1 = entry.element(forName: "s1")?.stringValue else { return nil }
-        guard let data = Data(base64Encoded: s1, options: .ignoreUnknownCharacters) else { return nil }
+    static func feedItemContainer(from itemElement: XMLElement) -> Proto_Container? {
+
+        guard let base64String = itemElement.stringValue,
+            let data = Data(base64Encoded: base64String, options: .ignoreUnknownCharacters) else { return nil }
         do {
             let protoContainer = try Proto_Container(serializedData: data)
             if protoContainer.hasComment || protoContainer.hasPost {
@@ -78,34 +79,26 @@ public struct XMPPFeedPost: FeedPostProtocol {
     public let mentions: [XMPPFeedMention]
 
     /**
-     <item timestamp="1585853535" publisher="16504228573@s.halloapp.net/iphone" type="feedpost" id="4A0D1C4E-566A-4BED-93A3-0D6D995B3B9B">
-        <entry>
-            <feedpost>
-                <text>Test post</text>
-                <media>
-                    <url type="image" width="1200" height="1600" key="wn58/JZ4nsZgxOBHw6usvdHfSIBRltZWzqb7u4kSyxc=" sha256hash="FA0cGbpNOfG9oFXezNIdsGVy3GSL2OXGxZ5sX8uXZls=">https://cdn.halloapp.net/CumlsHUTEeqobwpeZJbt6A</url>
-                </media>
-            </feedpost>
-            <s1>EmYKIDM0MzBjYmFjNmM5YTRjMGVhZWEwMDhkMTE3MjU1M2JjEgsxNjUwMjgxMzY3NxokRDUyOEIzNUYtNzUxQy00ODdGLUFBODgtQkE2NkVDNEE0RDZBIg9UaGV5IGFyZSB5ZWxsb3c=</s1>
-        </entry>
-     </item>
+     <post id='bnd81g37d61f49fgn581' uid='1000000000000000001' timestamp='1583883173'>
+       .....pb_payload.....
+     </post >
      */
     public init?(itemElement item: XMLElement) {
-        guard let id = item.attributeStringValue(forName: "id") else { return nil }
-        guard let userId = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
-        guard let entry = item.element(forName: "entry") else { return nil }
-        guard let protoContainer = Proto_Container.feedItemContainer(from: entry) else { return nil }
-        guard protoContainer.hasPost else { return nil }
+        guard let id = item.attributeStringValue(forName: "id"),
+            let userId = item.attributeStringValue(forName: "uid"),
+            let protoContainer = Proto_Container.feedItemContainer(from: item), protoContainer.hasPost else { return nil }
+
+        let timestamp = item.attributeDoubleValue(forName: "timestamp")
+        guard timestamp > 0 else { return nil }
+
+        let protoPost = protoContainer.post
 
         self.id = id
         self.userId = userId
-        self.text = protoContainer.post.text.isEmpty ? nil : protoContainer.post.text
-        self.media = protoContainer.post.media.enumerated().compactMap { XMPPFeedMedia(id: "\(id)-\($0)", protoMedia: $1) }
-        self.mentions = protoContainer.post.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
-        let ts = item.attributeDoubleValue(forName: "timestamp")
-        if ts > 0 {
-            self.timestamp = Date(timeIntervalSince1970: ts)
-        }
+        self.text = protoPost.text.isEmpty ? nil : protoPost.text
+        self.media = protoPost.media.enumerated().compactMap { XMPPFeedMedia(id: "\(id)-\($0)", protoMedia: $1) }
+        self.mentions = protoPost.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
+        self.timestamp = Date(timeIntervalSince1970: timestamp)
     }
 }
 
@@ -164,40 +157,27 @@ public struct XMPPComment: FeedCommentProtocol {
     public let mentions: [XMPPFeedMention]
 
     /**
-     <item timestamp="1585847898" publisher="16504228573@s.halloapp.net/iphone" type="comment" id="F198FE77-EEF7-487A-9D40-A36A74B24221">
-         <entry>
-             <comment>
-                <feedItemId>5099E935-65AD-4325-93B7-FA30B3FD8461</feedItemId>
-                <text>Qwertyu</text>
-             </comment>
-             <s1>EmYKIDM0MzBjYmFjNmM5YTRjMGVhZWEwMDhkMTE3MjU1M2JjEgsxNjUwMjgxMzY3NxokRDUyOEIzNUYtNzUxQy00ODdGLUFBODgtQkE2NkVDNEE0RDZBIg9UaGV5IGFyZSB5ZWxsb3c=</s1>
-         </entry>
-     </item>
+     <comment id='6ede90def1fb40b08ff71' post_id='bnd81g37d61f49fgn581' timestamp='1583894714' publisher_uid='1000000000000000003' publisher_name='user3'/>
+       .....pb_payload.....
+     </comment >
      */
     public init?(itemElement item: XMLElement) {
-        guard let id = item.attributeStringValue(forName: "id") else { return nil }
-        guard let userId = item.attributeStringValue(forName: "publisher")?.components(separatedBy: "@").first else { return nil }
-        guard let entry = item.element(forName: "entry") else { return nil }
+        guard let id = item.attributeStringValue(forName: "id"),
+            let postId = item.attributeStringValue(forName: "post_id"),
+            let userId = item.attributeStringValue(forName: "publisher_uid"),
+            let protoContainer = Proto_Container.feedItemContainer(from: item), protoContainer.hasComment else { return nil }
 
-        guard let protoContainer = Proto_Container.feedItemContainer(from: entry) else { return nil }
-        guard protoContainer.hasComment else { return nil }
+        let timestamp = item.attributeDoubleValue(forName: "timestamp")
+        guard timestamp > 0 else { return nil }
 
         let protoComment = protoContainer.comment
 
-        let text = protoComment.text.isEmpty ? nil : protoComment.text
-        let feedPostId = protoComment.feedPostID.isEmpty ? nil : protoComment.feedPostID
-        let parentCommentId = protoComment.parentCommentID.isEmpty ? nil : protoComment.parentCommentID
-        guard feedPostId != nil && text != nil else { return nil }
-
         self.id = id
         self.userId = userId
-        self.feedPostId = feedPostId!
-        self.parentId = parentCommentId
-        self.text = text!
+        self.feedPostId = postId
+        self.parentId = item.attributeStringValue(forName: "parent_comment_id")
+        self.text = protoComment.text
         self.mentions = protoComment.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
-        let ts = item.attributeDoubleValue(forName: "timestamp")
-        if ts > 0 {
-            self.timestamp = Date(timeIntervalSince1970: ts)
-        }
+        self.timestamp = Date(timeIntervalSince1970: timestamp)
     }
 }

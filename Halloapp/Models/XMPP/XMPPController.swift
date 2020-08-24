@@ -14,8 +14,8 @@ import SwiftUI
 import XMPPFramework
 
 protocol XMPPControllerFeedDelegate: AnyObject {
-    func xmppController(_ xmppController: XMPPController, didReceiveFeedItems items: [XMLElement], in xmppMessage: XMPPMessage?)
-    func xmppController(_ xmppController: XMPPController, didReceiveFeedRetracts items: [XMLElement], in xmppMessage: XMPPMessage?)
+    func xmppController(_ xmppController: XMPPController, didReceiveFeedElements elements: [XMLElement], in xmppMessage: XMPPMessage?)
+    func xmppController(_ xmppController: XMPPController, didReceiveFeedRetractElements elements: [XMLElement], in xmppMessage: XMPPMessage?)
     func xmppController(_ xmppController: XMPPController, didReceiveFeedReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?)
     func xmppController(_ xmppController: XMPPController, didSendFeedReceipt receipt: XMPPReceipt)
 }
@@ -312,6 +312,24 @@ class XMPPControllerMain: XMPPController {
             return
         }
 
+        // Feed Items
+        if let feed = message.element(forName: "feed"), feed.xmlns() == "halloapp:feed",
+            let action = feed.attributeStringValue(forName: "action"),
+            let delegate = feedDelegate {
+
+            var postsAndComments = feed.elements(forName: "post")
+            postsAndComments.append(contentsOf: feed.elements(forName: "comment"))
+
+            if action == "publish" || action == "share" {
+                delegate.xmppController(self, didReceiveFeedElements: postsAndComments, in: message)
+            } else if action == "retract" {
+                delegate.xmppController(self, didReceiveFeedRetractElements: postsAndComments, in: message)
+            } else {
+                sendAck(for: message)
+            }
+            return
+        }
+
         // Delivery receipt.
         if let deliveryReceipt = message.deliveryReceipt {
 
@@ -433,21 +451,8 @@ extension XMPPControllerMain: XMPPPubSubDelegate {
 
         switch nodeParts.first! {
         case "feed":
-            guard let delegate = self.feedDelegate else {
-                self.sendAck(for: message)
-                break
-            }
-            let feedItems = items.elements(forName: "item")
-            let feedRetracts = items.elements(forName: "retract")
-            // One message could not contain both feed items and retracts.
-            // Delegate is responsible for sending an ack once it's finished processing data.
-            if !feedItems.isEmpty {
-                delegate.xmppController(self, didReceiveFeedItems: feedItems, in: message)
-            } else if !feedRetracts.isEmpty {
-                delegate.xmppController(self, didReceiveFeedRetracts: feedRetracts, in: message)
-            } else {
-                self.sendAck(for: message)
-            }
+            DDLogInfo("xmpp/pubsub/message/incoming/feed Ignore obsolete format.")
+            self.sendAck(for: message)
 
         case "metadata":
             DDLogInfo("xmpp/pubsub/message/incoming/metadata Ack metadata message silently.")
