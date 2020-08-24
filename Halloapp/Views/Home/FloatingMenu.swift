@@ -123,7 +123,7 @@ final class FloatingMenu: UIView {
     static var ButtonDiameter: CGFloat = 55
     static var ButtonSpacing: CGFloat = 15
     static var PermanentButtonExtraSpacing: CGFloat = 5
-    static var ShadowOpacity: Float = 0.4
+    static var ShadowOpacity: Float = 0.2
 
     init(permanentButton: FloatingMenuButton, expandedButtons: [FloatingMenuButton] = []) {
         self.permanentButton = permanentButton
@@ -223,9 +223,9 @@ final class FloatingMenu: UIView {
             button.menu = self
             button.translatesAutoresizingMaskIntoConstraints = false
             button.layer.shadowColor = UIColor.black.cgColor
-            button.layer.shadowRadius = 5
+            button.layer.shadowRadius = 6
             button.layer.shadowOpacity = Self.ShadowOpacity
-            button.layer.shadowOffset = .zero
+            button.layer.shadowOffset = CGSize(width: 0, height: 5)
         }
 
         permanentButton.constrainMargin(anchor: .bottom, to: self, constant: -4)
