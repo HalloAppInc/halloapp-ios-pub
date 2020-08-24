@@ -209,10 +209,6 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             setNeedsScroll(toComment: highlightedCommentId, highlightAfterScroll: false, animated: false)
         }
 
-        if feedPost.userId == MainAppContext.shared.userData.userId {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .done, target: self, action: #selector(retractPost))
-        }
-
         let headerView = CommentsTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 200))
         headerView.configure(withPost: feedPost)
         headerView.textLabel.delegate = self
@@ -354,26 +350,6 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     private func showUserFeed(for userID: UserID) {
         let userViewController = UserFeedViewController(userID: userID)
         self.navigationController?.pushViewController(userViewController, animated: true)
-    }
-
-    @objc private func retractPost() {
-        let actionSheet = UIAlertController(title: nil, message: "Delete this post? This action cannot be undone.", preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: "Delete Post", style: .destructive) { _ in
-            self.reallyRetractPost()
-        })
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        self.present(actionSheet, animated: true)
-    }
-
-    private func reallyRetractPost() {
-        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else {
-            self.navigationController?.popViewController(animated: true)
-            return
-        }
-        // Stop processing data changes because all comments are about to be deleted.
-        self.fetchedResultsController?.delegate = nil
-        MainAppContext.shared.feedData.retract(post: feedPost)
-        self.navigationController?.popViewController(animated: true)
     }
 
     private func retractComment(with commentId: FeedPostCommentID, completionHandler: @escaping (Bool) -> Void) {
