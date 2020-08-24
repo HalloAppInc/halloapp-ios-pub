@@ -120,7 +120,7 @@ final class FloatingMenuButton: UIView {
 
 final class FloatingMenu: UIView {
 
-    static var ButtonDiameter: CGFloat = 50
+    static var ButtonDiameter: CGFloat = 55
     static var ButtonSpacing: CGFloat = 15
     static var PermanentButtonExtraSpacing: CGFloat = 5
     static var ShadowOpacity: Float = 0.4
@@ -228,8 +228,8 @@ final class FloatingMenu: UIView {
             button.layer.shadowOffset = .zero
         }
 
-        permanentButton.constrainMargin(anchor: .bottom, to: self, constant: -16)
-        permanentButton.constrainMargin(anchor: .trailing, to: self, constant: -16)
+        permanentButton.constrainMargin(anchor: .bottom, to: self, constant: -4)
+        permanentButton.constrainMargin(anchor: .trailing, to: self, constant: -4)
         setNeedsLayout()
     }
 }
