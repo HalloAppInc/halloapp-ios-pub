@@ -102,6 +102,11 @@ class FeedViewController: FeedTableViewController {
         }
     }
 
+    override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        super.scrollViewWillBeginDragging(scrollView)
+        floatingMenu.setState(.collapsed, animated: true)
+    }
+
     // MARK: UI Actions
 
     @objc private func presentNotificationsView() {

@@ -96,6 +96,10 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         }
     }
 
+    override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        // This is implemented so that subclasses can call super.scrollViewWillBeginDragging in their overrides.
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
