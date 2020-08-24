@@ -69,21 +69,6 @@ struct DeveloperMenuView: View {
                 }
 
                 Button(action: {
-                    MainAppContext.shared.feedData.refetchEverything()
-
-                    if self.dismiss != nil {
-                        self.dismiss!()
-                    }
-                }) {
-                    Text("Refetch Feed")
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(24)
-                }
-
-                Button(action: {
                     self.useTestServer = !self.useTestServer
                     self.userData.useTestServer = self.useTestServer
                     self.xmppController.disconnectImmediately()

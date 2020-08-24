@@ -79,15 +79,6 @@ class XMPPControllerMain: XMPPController {
         privacySettings = PrivacySettings(xmppController: self)
     }
 
-    // MARK: Feed
-
-    func retrieveFeedData<T: Collection>(for userIds: T) where T.Element == UserID {
-        guard !userIds.isEmpty else { return }
-        userIds.forEach {
-            self.xmppPubSub.retrieveItems(fromNode: "feed-\($0)")
-        }
-    }
-
     // MARK: Push token
 
     var hasValidAPNSPushToken: Bool {
@@ -417,21 +408,6 @@ class XMPPControllerMain: XMPPController {
 }
 
 extension XMPPControllerMain: XMPPPubSubDelegate {
-
-    func xmppPubSub(_ sender: XMPPPubSub, didRetrieveItems iq: XMPPIQ, fromNode node: String) {
-        DDLogInfo("xmpp/pubsub/didRetrieveItems")
-
-        guard let delegate = self.feedDelegate else { return }
-
-        // TODO: redo this using XMPPRequest
-        guard let items = iq.element(forName: "pubsub")?.element(forName: "items") else { return }
-        guard let nodeAttr = items.attributeStringValue(forName: "node") else { return }
-        let nodeParts = nodeAttr.components(separatedBy: "-")
-        guard nodeParts.count == 2 else { return }
-        if nodeParts.first! == "feed" {
-            delegate.xmppController(self, didReceiveFeedItems: items.elements(forName: "item"), in: nil)
-        }
-    }
 
     func xmppPubSub(_ sender: XMPPPubSub, didReceive message: XMPPMessage) {
         guard let items = message.element(forName: "event")?.element(forName: "items") else {

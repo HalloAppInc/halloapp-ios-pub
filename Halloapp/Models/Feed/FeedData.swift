@@ -1581,13 +1581,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         mediaUploader.cancelUpload(groupId: postId)
     }
 
-    // MARK: Debug
-
-    func refetchEverything() {
-        let userIds = self.contactStore.allRegisteredContactIDs()
-        self.xmppController.retrieveFeedData(for: userIds)
-    }
-
     // MARK: Deletion
 
     private func deleteMedia(in feedPost: FeedPost) {
