@@ -8,6 +8,7 @@
 
 import CoreGraphics
 import SwiftProtobuf
+import XMPPFramework
 import UIKit
 
 // MARK: Types
@@ -43,20 +44,37 @@ public protocol FeedItemProtocol {
 
     // MARK: Serialization
 
-    func protoMessage(withData: Bool) -> SwiftProtobuf.Message
+    func oldFormatProtoMessage(withData: Bool) -> SwiftProtobuf.Message
+
+    var protoMessage: SwiftProtobuf.Message { get }
+
+    func xmppElement(withData: Bool) -> XMPPElement
 }
 
 public extension FeedItemProtocol {
 
-    func protoContainer(withData: Bool) -> Proto_Container {
+    func oldFormatProtoContainer(withData: Bool) -> Proto_Container {
         var container = Proto_Container()
         switch Self.itemType {
         case .post:
-            container.post = self.protoMessage(withData: withData) as! Proto_Post
+            container.post = self.oldFormatProtoMessage(withData: withData) as! Proto_Post
         case .comment:
-            container.comment = self.protoMessage(withData: withData) as! Proto_Comment
+            container.comment = self.oldFormatProtoMessage(withData: withData) as! Proto_Comment
         }
         return container
+    }
+
+    var protoContainer: Proto_Container {
+        get {
+            var container = Proto_Container()
+            switch Self.itemType {
+            case .post:
+                container.post = protoMessage as! Proto_Post
+            case .comment:
+                container.comment = protoMessage as! Proto_Comment
+            }
+            return container
+        }
     }
 }
 
@@ -183,7 +201,7 @@ public protocol FeedPostProtocol: FeedItemProtocol {
 
 public extension FeedPostProtocol {
 
-    func protoMessage(withData: Bool) -> Message {
+    func oldFormatProtoMessage(withData: Bool) -> Message {
         var post = Proto_Post()
         if withData {
             if text != nil {
@@ -193,6 +211,18 @@ public extension FeedPostProtocol {
             post.media = orderedMedia.compactMap{ $0.protoMessage }
         }
         return post
+    }
+
+    var protoMessage: SwiftProtobuf.Message {
+        get {
+            var post = Proto_Post()
+            if let text = text {
+                post.text = text
+            }
+            post.mentions = orderedMentions.map { $0.protoMention }
+            post.media = orderedMedia.compactMap{ $0.protoMessage }
+            return post
+        }
     }
 }
 
@@ -211,16 +241,29 @@ public protocol FeedCommentProtocol: FeedItemProtocol {
 
 public extension FeedCommentProtocol {
 
-    func protoMessage(withData: Bool) -> Message {
+    func oldFormatProtoMessage(withData: Bool) -> Message {
         var comment = Proto_Comment()
         if withData {
             comment.text = text
+            comment.mentions = orderedMentions.map { $0.protoMention }
         }
         comment.feedPostID = feedPostId
         if let parentId = parentId {
             comment.parentCommentID = parentId
         }
-        comment.mentions = orderedMentions.map { $0.protoMention }
         return comment
+    }
+
+    var protoMessage: Message {
+        get {
+            var comment = Proto_Comment()
+            comment.text = text
+            comment.feedPostID = feedPostId
+            if let parentId = parentId {
+                comment.parentCommentID = parentId
+            }
+            comment.mentions = orderedMentions.map { $0.protoMention }
+            return comment
+        }
     }
 }

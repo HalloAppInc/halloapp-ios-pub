@@ -125,7 +125,7 @@ class ShareExtensionDataStore: SharedDataStore {
 
         DDLogError("SharedDataStore/post/\(feedPost.id)/send")
 
-        let request = XMPPPostItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (result) in
+        let request = XMPPPostItemRequest(feedItem: feedPost) { (result) in
             switch result {
             case .success(let timestamp):
                 DDLogError("SharedDataStore/post/\(feedPost.id)/send/complete")

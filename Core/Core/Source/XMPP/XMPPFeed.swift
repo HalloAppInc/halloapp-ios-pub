@@ -12,7 +12,7 @@ import XMPPFramework
 
 public extension FeedItemProtocol {
 
-    func xmppElement(withData: Bool) -> XMPPElement {
+    func oldFormatXmppElement(withData: Bool) -> XMPPElement {
         let type: String = {
             switch Self.itemType {
             case .post: return "feedpost"
@@ -23,12 +23,42 @@ public extension FeedItemProtocol {
         item.addAttribute(withName: "type", stringValue: type)
         item.addChild({
             let entry = XMPPElement(name: "entry")
-            if let protobufData = try? self.protoContainer(withData: withData).serializedData() {
+            if let protobufData = try? self.oldFormatProtoContainer(withData: withData).serializedData() {
                 entry.addChild(XMPPElement(name: "s1", stringValue: protobufData.base64EncodedString()))
             }
             return entry
             }())
         return item
+    }
+}
+
+public extension FeedPostProtocol {
+
+    func xmppElement(withData: Bool) -> XMPPElement {
+        let postElement = XMPPElement(name: "post")
+        postElement.addAttribute(withName: "id", stringValue: id)
+        // "uid" and "timestamp" are ignored when posting.
+        if withData, let protobufData = try? protoContainer.serializedData() {
+            postElement.stringValue = protobufData.base64EncodedString()
+        }
+        return postElement
+    }
+}
+
+public extension FeedCommentProtocol {
+
+    func xmppElement(withData: Bool) -> XMPPElement {
+        let commentElement = XMPPElement(name: "comment")
+        commentElement.addAttribute(withName: "id", stringValue: id)
+        commentElement.addAttribute(withName: "post_id", stringValue: feedPostId)
+        if let parentCommentId = parentId {
+            commentElement.addAttribute(withName: "parent_comment_id", stringValue: parentCommentId)
+        }
+        // "publisher_uid", "publisher_name" and "timestamp" are ignored when posting.
+        if withData, let protobufData = try? protoContainer.serializedData() {
+            commentElement.stringValue = protobufData.base64EncodedString()
+        }
+        return commentElement
     }
 }
 

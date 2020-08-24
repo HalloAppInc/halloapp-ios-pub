@@ -9,9 +9,10 @@
 import Foundation
 import XMPPFramework
 
-public class XMPPPostItemRequest: XMPPRequest {
-    public typealias XMPPPostItemRequestCompletion = (Result<Date?, Error>) -> Void
+public typealias XMPPPostItemRequestCompletion = (Result<Date?, Error>) -> Void
 
+public class XMPPPostItemRequestOld: XMPPRequest {
+    
     private let completion: XMPPPostItemRequestCompletion
 
     public init<T>(feedItem: T, feedOwnerId: UserID, completion: @escaping XMPPPostItemRequestCompletion) where T: FeedItemProtocol {
@@ -23,7 +24,7 @@ public class XMPPPostItemRequest: XMPPRequest {
             pubsub.addChild({
                 let publish = XMPPElement(name: "publish")
                 publish.addAttribute(withName: "node", stringValue: "feed-\(feedOwnerId)")
-                publish.addChild(feedItem.xmppElement(withData: true))
+                publish.addChild(feedItem.oldFormatXmppElement(withData: true))
                 return publish
             }())
             return pubsub
@@ -35,6 +36,45 @@ public class XMPPPostItemRequest: XMPPRequest {
         var timestamp: Date?
         if let ts: TimeInterval = response.element(forName: "pubsub")?.element(forName: "publish")?.element(forName: "item")?.attributeDoubleValue(forName: "timestamp") {
             timestamp = Date(timeIntervalSince1970: ts)
+        }
+        self.completion(.success(timestamp))
+    }
+
+    public override func didFail(with error: Error) {
+        self.completion(.failure(error))
+    }
+}
+
+public class XMPPPostItemRequest: XMPPRequest {
+
+    private let completion: XMPPPostItemRequestCompletion
+
+    public init<T>(feedItem: T, completion: @escaping XMPPPostItemRequestCompletion) where T: FeedItemProtocol {
+        self.completion = completion
+        
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
+        iq.addChild({
+            let feedElement = XMPPElement(name: "feed", xmlns: "halloapp:feed")
+            feedElement.addAttribute(withName: "action", stringValue: "publish")
+            feedElement.addChild(feedItem.xmppElement(withData: true))
+            return feedElement
+        }())
+        super.init(iq: iq)
+    }
+
+    public override func didFinish(with response: XMPPIQ) {
+        var timestamp: Date?
+        if let postElement = response.element(forName: "feed")?.element(forName: "post") {
+            let ts = postElement.attributeDoubleValue(forName: "timestamp")
+            if ts > 0 {
+                timestamp = Date(timeIntervalSince1970: ts)
+            }
+        }
+        else if let commentElement = response.element(forName: "feed")?.element(forName: "comment") {
+            let ts = commentElement.attributeDoubleValue(forName: "timestamp")
+            if ts > 0 {
+                timestamp = Date(timeIntervalSince1970: ts)
+            }
         }
         self.completion(.success(timestamp))
     }

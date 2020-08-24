@@ -44,7 +44,7 @@ class XMPPMediaUploadURLRequest: XMPPRequest {
     }
 }
 
-class XMPPRetractItemRequest: XMPPRequest {
+class XMPPRetractItemRequestOld: XMPPRequest {
 
     private let completion: XMPPRequestCompletion
 
@@ -57,10 +57,36 @@ class XMPPRetractItemRequest: XMPPRequest {
             pubsub.addChild({
                 let retract = XMPPElement(name: "retract")
                 retract.addAttribute(withName: "node", stringValue: "feed-\(feedOwnerId)")
-                retract.addChild(feedItem.xmppElement(withData: false))
+                retract.addChild(feedItem.oldFormatXmppElement(withData: false))
                 return retract
             }())
             return pubsub
+        }())
+        super.init(iq: iq)
+    }
+
+    override func didFinish(with response: XMPPIQ) {
+        self.completion(.success(()))
+    }
+
+    override func didFail(with error: Error) {
+        self.completion(.failure(error))
+    }
+}
+
+class XMPPRetractItemRequest: XMPPRequest {
+
+    private let completion: XMPPRequestCompletion
+
+    init<T>(feedItem: T, completion: @escaping XMPPRequestCompletion) where T: FeedItemProtocol {
+        self.completion = completion
+
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
+        iq.addChild({
+            let feedElement = XMPPElement(name: "feed", xmlns: "halloapp:feed")
+            feedElement.addAttribute(withName: "action", stringValue: "retract")
+            feedElement.addChild(feedItem.xmppElement(withData: false))
+            return feedElement
         }())
         super.init(iq: iq)
     }

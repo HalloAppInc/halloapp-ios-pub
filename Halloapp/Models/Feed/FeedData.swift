@@ -880,7 +880,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         dispatchGroup.notify(queue: .main) {
             var notifications: [UNMutableNotificationContent] = []
             comments.filter{ !commentIdsToFilterOut.contains($0.id) && self.isCommentEligibleForLocalNotification($0) }.forEach { (comment) in
-                let protoContainer = comment.protoContainer(withData: true)
+                let protoContainer = comment.protoContainer
                 let protobufData = try? protoContainer.serializedData()
                 let metadata = NotificationUtility.Metadata(contentId: comment.id, contentType: .comment, data: protobufData, fromId: comment.userId)
 
@@ -925,7 +925,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         dispatchGroup.notify(queue: .main) {
             var notifications: [UNMutableNotificationContent] = []
             feedPosts.filter({ !postIdsToFilterOut.contains($0.id) }).forEach { (feedPost) in
-                let protoContainer = feedPost.protoContainer(withData: true)
+                let protoContainer = feedPost.protoContainer
                 let protobufData = try? protoContainer.serializedData()
                 let metadata = NotificationUtility.Metadata(contentId: feedPost.id, contentType: .feedpost, data: protobufData, fromId: feedPost.userId)
 
@@ -1067,7 +1067,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(self.viewContext)
 
         // Request to retract.
-        let request = XMPPRetractItemRequest(feedItem: feedPost, feedOwnerId: feedPost.userId) { (result) in
+        let completion: XMPPRequestCompletion = { (result) in
             switch result {
             case .success:
                 self.processPostRetract(postId) {}
@@ -1078,7 +1078,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
         }
-        self.xmppController.enqueue(request: request)
+        let request: XMPPRequest
+        if ServerProperties.isInternalUser {
+            request = XMPPRetractItemRequest(feedItem: feedPost, completion: completion)
+        } else {
+            request = XMPPRetractItemRequestOld(feedItem: feedPost, feedOwnerId: feedPost.userId, completion: completion)
+        }
+        xmppController.enqueue(request: request)
     }
 
     func retract(comment: FeedPostComment) {
@@ -1089,7 +1095,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(self.viewContext)
 
         // Request to retract.
-        let request = XMPPRetractItemRequest(feedItem: comment, feedOwnerId: comment.post.userId) { (result) in
+        let completion: XMPPRequestCompletion = { (result) in
             switch result {
             case .success:
                 self.processCommentRetract(commentId) {}
@@ -1100,7 +1106,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
         }
-        self.xmppController.enqueue(request: request)
+        let request: XMPPRequest
+        if ServerProperties.isInternalUser {
+            request = XMPPRetractItemRequest(feedItem: comment, completion: completion)
+        } else {
+            request = XMPPRetractItemRequestOld(feedItem: comment, feedOwnerId: comment.post.userId, completion: completion)
+        }
+        xmppController.enqueue(request: request)
     }
 
     // MARK: Read Receipts
@@ -1456,7 +1468,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func send(comment: FeedPostComment) {
         let commentId = comment.id
-        let request = XMPPPostItemRequest(feedItem: comment, feedOwnerId: comment.post.userId) { (result) in
+        let completion: XMPPPostItemRequestCompletion = { (result) in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPostComment(with: commentId) { (feedComment) in
@@ -1472,6 +1484,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
         }
+        let request: XMPPRequest
+        if ServerProperties.isInternalUser {
+            request = XMPPPostItemRequest(feedItem: comment, completion: completion)
+        } else {
+            request = XMPPPostItemRequestOld(feedItem: comment, feedOwnerId: comment.post.userId, completion: completion)
+        }
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
@@ -1481,7 +1499,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func send(post: FeedPost) {
         let postId = post.id
-        let request = XMPPPostItemRequest(feedItem: post, feedOwnerId: post.userId) { (result) in
+        let completion: XMPPPostItemRequestCompletion = { (result) in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPost(with: postId) { (feedPost) in
@@ -1496,6 +1514,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedPost.status = .sendError
                 }
             }
+        }
+        let request: XMPPRequest
+        if ServerProperties.isInternalUser {
+            request = XMPPPostItemRequest(feedItem: post, completion: completion)
+        } else {
+            request = XMPPPostItemRequestOld(feedItem: post, feedOwnerId: post.userId, completion: completion)
         }
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
