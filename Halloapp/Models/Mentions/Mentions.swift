@@ -103,6 +103,34 @@ public struct MentionInput {
         selectedRange = NSRange(location: newCursorPosition, length: 0)
     }
 
+    public func rangeOfMentionCandidateAtCurrentPosition() -> Range<String.Index>? {
+        guard selectedRange.length == 0 else { return nil }
+        guard let cursorPosition = Range(selectedRange, in: text)?.lowerBound else { return nil }
+
+        // Range from most recent @ to current cursor position (not including any whitespace characters)
+        let possibleCharacterRange: Range<String.Index>? = {
+            var currentPosition = cursorPosition
+            while currentPosition > text.startIndex {
+                currentPosition = text.index(before: currentPosition)
+                if text[currentPosition] == "@" {
+                    return currentPosition..<cursorPosition
+                } else if text[currentPosition].isWhitespace {
+                    return nil
+                }
+            }
+            return nil
+        }()
+
+        guard let characterRange = possibleCharacterRange,
+            impactedMentionRanges(in: NSRange(characterRange, in: text)).isEmpty else
+        {
+            // Return nil if no range is found or it overlaps existing mentions
+            return nil
+        }
+
+        return characterRange
+    }
+
     private mutating func applyOffsetToMentions(_ offset: Int, from location: Int) {
         // Shift mentions when we make edits earlier in the text
         mentions = Dictionary(uniqueKeysWithValues: mentions.map { (range, userID) in

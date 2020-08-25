@@ -24,7 +24,7 @@ class MentionInputTests: XCTestCase {
         return MentionInput(
             text: text,
             mentions: mentions,
-            selectedRange: selectedRange ?? NSRange(location: text.count, length: 0))
+            selectedRange: selectedRange ?? NSRange(location: (text as NSString).length, length: 0))
     }
 
     func testAddMentionToEmptyInput() throws {
@@ -98,5 +98,60 @@ class MentionInputTests: XCTestCase {
         // Multiple intersections
         XCTAssert(input.impactedMentionRanges(in: input.text.utf16Extent).sorted { $0.location < $1.location } == [aliceRange, bobRange])
         XCTAssert(input.impactedMentionRanges(in: NSRange(location: 3, length: 8)).sorted { $0.location < $1.location } == [aliceRange, bobRange])
+    }
+
+    func testRangeOfMentionCandidate() throws {
+        var input = makeInput(text: "@@Alice@🇺🇸🤞🏻@Bob \n日本語＠ガーレト　فرسی @Carol", mentions: [:], selectedRange: nil)
+
+        let firstIndex = input.text.startIndex
+        let secondIndex = input.text.index(after: firstIndex)
+        let thirdIndex = input.text.index(after: secondIndex)
+
+        // Returns nil if cursor is at start of text
+        input.selectedRange = NSRange(location: 0, length: 0)
+        XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == nil)
+
+        // "@|@": Only includes characters before the cursor
+        input.selectedRange = NSRange(location: 1, length: 0)
+        XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == firstIndex..<secondIndex)
+
+        // "@[@]": Returns nil if selection has non-zero length
+        input.selectedRange = NSRange(location: 1, length: 1)
+        XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == nil)
+
+        // "@@|": Only includes most recent "@"
+        input.selectedRange = NSRange(location: 2, length: 0)
+        XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == secondIndex..<thirdIndex)
+
+        // Helper to update selectedRange (UTF-16) so we can test conversion to String.Index (encoding agnostic)
+        let moveCursorToEndOfSubstring: (String) -> Void = { substring in
+            let utf16range = (input.text as NSString).range(of: substring)
+            input.selectedRange = NSRange(location: NSMaxRange(utf16range), length: 0)
+        }
+
+        // Range is returned if no mentions overlap
+        moveCursorToEndOfSubstring("@Alic")
+        XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == input.text.range(of: "@Alic"))
+
+        // Returns nil if there is an overlapping mention
+        input.mentions[(input.text as NSString).range(of: "@Ali")] = "AA"
+        XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == nil)
+
+        // Returns nil if the cursor is contained in an existing mention
+        moveCursorToEndOfSubstring("@Al")
+        XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == nil)
+
+        // Range is correct following complex emoji
+        moveCursorToEndOfSubstring("@Bob")
+        XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == input.text.range(of: "@Bob"))
+
+        // Range is correct following CJK characters
+        moveCursorToEndOfSubstring("@ガー")
+        XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == input.text.range(of: "@ガー"))
+
+        // Range is correct following RTL characters
+        moveCursorToEndOfSubstring("@Carol")
+        XCTAssert(input.rangeOfMentionCandidateAtCurrentPosition() == input.text.range(of: "@Carol"))
+
     }
 }

@@ -6,6 +6,7 @@
 //  Copyright © 2020 Hallo App, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Foundation
 
 public typealias MentionRangeMap = [NSRange: UserID]
@@ -61,6 +62,10 @@ public struct MentionText {
         // NB: We replace mention placeholders with usernames in reverse order so we don't change indices
         let reverseOrderedMentions = mentions.sorted { $0.key > $1.key }
         for (index, userID) in reverseOrderedMentions {
+            guard index < mutableString.length else {
+                DDLogError("MentionText/expandedText/error invalid index \(index) for \(mutableString.length) length string")
+                continue
+            }
 
             let replacementString = NSAttributedString(
                 string: "@\(nameProvider(userID))",

@@ -394,9 +394,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     
     private func updateMentionPickerContent() {
 
-        let mentionableUsers = fetchMentionPickerContent(
-            for: textView.text,
-            selectedRange: textView.selectedRange)
+        let mentionableUsers = fetchMentionPickerContent(for: textView.mentionInput)
 
         self.mentionPicker.items = mentionableUsers
         self.mentionPicker.isHidden = mentionableUsers.isEmpty
@@ -422,31 +420,23 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }
     
     private func acceptMentionPickerItem(_ item: MentionableUser) {
-
-        guard let currentWordRange = text.rangeOfWord(at: textView.selectedRange.location) else {
+        let input = textView.mentionInput
+        guard let mentionCandidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
             // For now we assume there is a word to replace (but in theory we could just insert at point)
             return
         }
 
-        textView.addMention(name: item.fullName, userID: item.userID, in: currentWordRange)
+        let utf16Range = NSRange(mentionCandidateRange, in: text)
+        textView.addMention(name: item.fullName, userID: item.userID, in: utf16Range)
         self.updateMentionPickerContent()
     }
     
-    private func fetchMentionPickerContent(for input: String?, selectedRange: NSRange) -> [MentionableUser] {
-        guard let input = input,
-            let currentWordRange = input.rangeOfWord(at: selectedRange.location),
-            !textView.mentions.keys.contains(where: { currentWordRange.overlaps($0) }),
-            selectedRange.length == 0 else
-        {
+    private func fetchMentionPickerContent(for input: MentionInput) -> [MentionableUser] {
+        guard let mentionCandidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
             return []
         }
-
-        let currentWord = (input as NSString).substring(with: currentWordRange)
-        guard currentWord.hasPrefix("@") else {
-            return []
-        }
-
-        let trimmedInput = String(currentWord.dropFirst())
+        let mentionCandidate = input.text[mentionCandidateRange]
+        let trimmedInput = String(mentionCandidate.dropFirst())
         return delegate?.commentInputView(self, possibleMentionsForInput: trimmedInput) ?? []
     }
 

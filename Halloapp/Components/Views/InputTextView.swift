@@ -34,6 +34,10 @@ class InputTextView: UITextView, UITextViewDelegate {
     private var lastReportedHeight: CGFloat
     private(set) var mentions = MentionRangeMap()
 
+    var mentionInput: MentionInput {
+        MentionInput(text: text, mentions: mentions, selectedRange: selectedRange)
+    }
+
     required init(frame: CGRect) {
         lastReportedHeight = frame.height
 
@@ -55,9 +59,9 @@ class InputTextView: UITextView, UITextViewDelegate {
     }
 
     func addMention(name: String, userID: UserID, in range: NSRange) {
-        var mentionInput = MentionInput(text: text, mentions: mentions, selectedRange: selectedRange)
-        mentionInput.addMention(name: name, userID: userID, in: range)
-        update(from: mentionInput)
+        var input = mentionInput
+        input.addMention(name: name, userID: userID, in: range)
+        update(from: input)
     }
 
     func resetMentions() {

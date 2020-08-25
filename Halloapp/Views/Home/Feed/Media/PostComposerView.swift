@@ -525,40 +525,33 @@ fileprivate struct TextView: UIViewRepresentable {
         }()
 
         private func updateMentionPickerContent() {
-            let mentionableUsers = fetchMentionPickerContent(
-                for: parent.input.value.text,
-                selectedRange: parent.input.value.selectedRange)
+            let mentionableUsers = fetchMentionPickerContent(for: parent.input.value)
 
             mentionPicker.items = mentionableUsers
             mentionPicker.isHidden = mentionableUsers.isEmpty
         }
 
         private func acceptMentionPickerItem(_ item: MentionableUser) {
-            guard let currentWordRange = parent.input.value.text.rangeOfWord(at: parent.input.value.selectedRange.location) else {
+            let input = parent.input.value
+            guard let mentionCandidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
+                // For now we assume there is a word to replace (but in theory we could just insert at point)
                 return
             }
+
+            let utf16Range = NSRange(mentionCandidateRange, in: input.text)
             parent.pendingMention = PendingMention(
                 name: item.fullName,
                 userID: item.userID,
-                range: currentWordRange)
+                range: utf16Range)
             updateMentionPickerContent()
         }
 
-        private func fetchMentionPickerContent(for input: String?, selectedRange: NSRange) -> [MentionableUser] {
-            guard let input = input,
-                let currentWordRange = input.rangeOfWord(at: selectedRange.location),
-                !parent.input.value.mentions.keys.contains(where: { currentWordRange.overlaps($0) }),
-                selectedRange.length == 0 else
-            {
+        private func fetchMentionPickerContent(for input: MentionInput) -> [MentionableUser] {
+            guard let mentionCandidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
                 return []
             }
-
-            let currentWord = (input as NSString).substring(with: currentWordRange)
-            guard currentWord.hasPrefix("@") else {
-                return []
-            }
-
-            let trimmedInput = String(currentWord.dropFirst())
+            let mentionCandidate = input.text[mentionCandidateRange]
+            let trimmedInput = String(mentionCandidate.dropFirst())
             return mentionableUsers.filter {
                 Mentions.isPotentialMatch(fullName: $0.fullName, input: trimmedInput)
             }
