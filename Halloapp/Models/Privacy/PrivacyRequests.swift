@@ -19,6 +19,7 @@ fileprivate struct XMPPConstants {
 
     // Attribute names
     static let typeAttribute = "type"
+    static let hashAttribute = "hash"
     static let activeTypeAttribute = "active_type"
 }
 
@@ -119,6 +120,7 @@ extension PrivacyList: XMPPElementRepresentable {
         get {
             let listElement = XMPPElement(name: XMPPConstants.listElement, xmlns: XMPPConstants.xmlns)
             listElement.addAttribute(withName: XMPPConstants.typeAttribute, stringValue: type.rawValue)
+            listElement.addAttribute(withName: XMPPConstants.hashAttribute, stringValue: hash)
             for item in items {
                 if item.state == .added || item.state == .deleted {
                     let itemElement = XMPPElement(name: XMPPConstants.itemElement, stringValue: item.userId)

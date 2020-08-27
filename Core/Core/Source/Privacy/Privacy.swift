@@ -26,6 +26,17 @@ public protocol PrivacyListProtocol {
     var type: PrivacyListType { get }
 
     var userIds: [UserID] { get }
+
+    var hash: String { get }
+}
+
+public extension PrivacyListProtocol {
+
+    var hash: String {
+        let string = userIds.map({ "," + $0 }).joined()
+        let hash = string.sha256()?.base64urlEncodedString()
+        return hash!
+    }
 }
 
 
@@ -106,7 +117,7 @@ extension PrivacyList: Codable {
 
 extension PrivacyList: PrivacyListProtocol {
     public var userIds: [UserID] {
-        items.filter({ $0.state != .deleted }).map({ $0.userId })
+        items.filter({ $0.state != .deleted }).map({ $0.userId }).sorted()
     }
 }
 
