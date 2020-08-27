@@ -108,6 +108,20 @@ open class ContactStore {
 
     // MARK: Fetching contacts
 
+    public func allRegisteredContactIDs() -> [UserID] {
+        let fetchRequst = NSFetchRequest<NSDictionary>(entityName: "ABContact")
+        fetchRequst.predicate = NSPredicate(format: "userId != nil", ABContact.Status.in.rawValue)
+        fetchRequst.propertiesToFetch = [ "userId" ]
+        fetchRequst.resultType = .dictionaryResultType
+        do {
+            let allContacts = try self.persistentContainer.viewContext.fetch(fetchRequst)
+            return allContacts.compactMap { $0["userId"] as? UserID }
+        }
+        catch {
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+    }
+
     public func allInNetworkContactIDs() -> [UserID] {
         let fetchRequst = NSFetchRequest<NSDictionary>(entityName: "ABContact")
         fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
