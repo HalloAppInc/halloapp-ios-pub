@@ -38,7 +38,7 @@ struct TableViewCellChevron: View {
 }
 
 struct SettingsView: View {
-    @ObservedObject private var privacySettings = MainAppContext.shared.xmppController.privacySettings
+    @ObservedObject private var privacySettings = MainAppContext.shared.privacySettings
     @ObservedObject private var userData = MainAppContext.shared.userData
     @ObservedObject private var inviteManager = InviteManager.shared
 
@@ -105,7 +105,7 @@ struct SettingsView: View {
                             Text(self.privacySettings.shortFeedSetting).foregroundColor(.secondary)
                         }
                     }
-                    .disabled(!self.privacySettings.isLoaded)
+                    .disabled(!self.privacySettings.isDownloaded)
 
                     // Blocked Contacts
                     Button(action: { self.isBlockedListPresented = true }) {
@@ -116,9 +116,9 @@ struct SettingsView: View {
                             TableViewCellChevron()
                         }
                     }
-                    .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
+                    .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
                     .sheet(isPresented: self.$isBlockedListPresented) {
-                        PrivacyListView(self.privacySettings.blocked!, dismissAction: { self.isBlockedListPresented = false })
+                        PrivacyListView(self.privacySettings.blocked, dismissAction: { self.isBlockedListPresented = false })
                             .environmentObject(self.privacySettings)
                             .edgesIgnoringSafeArea(.bottom)
                     }
@@ -180,7 +180,6 @@ struct SettingsView: View {
             }
         }
         .onAppear(perform: {
-            self.privacySettings.downloadListsIfNecessary()
             self.inviteManager.requestInvitesIfNecessary()
         })
         .onDisappear(perform: {

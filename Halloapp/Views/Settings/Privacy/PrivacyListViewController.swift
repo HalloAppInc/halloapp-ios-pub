@@ -9,7 +9,7 @@
 import Core
 import UIKit
 
-class PrivacyListEntry: NSObject {
+class PrivacyListTableRow: NSObject {
     let userId: UserID
     let name: String?
     let phoneNumber: String?
@@ -32,9 +32,9 @@ class PrivacyListEntry: NSObject {
 class PrivacyListTableViewController: UITableViewController {
     static private let cellReuseIdentifier = "ContactCell"
 
-    var contacts: [PrivacyListEntry]
+    var contacts: [PrivacyListTableRow]
 
-    init(contacts: [PrivacyListEntry]) {
+    init(contacts: [PrivacyListTableRow]) {
         self.contacts = contacts
         super.init(style: .plain)
     }
@@ -78,7 +78,7 @@ class PrivacyListTableViewController: UITableViewController {
 
 class PrivacyListSearchResultsViewController: PrivacyListTableViewController {
 
-    override var contacts: [PrivacyListEntry] {
+    override var contacts: [PrivacyListTableRow] {
         didSet {
             if isViewLoaded {
                 tableView.reloadData()
@@ -98,18 +98,18 @@ class PrivacyListViewController: PrivacyListTableViewController {
         self.privacyList = privacyList
         self.privacySettings = settings
 
-        let selectedContactIds = Set(privacyList.items.map({ $0.userId }))
+        let selectedContactIds = Set(privacyList.userIds)
 
         // Load all device contacts, making them unique and removing self.
         let selfUserId = MainAppContext.shared.userData.userId
         var uniqueUserIds = Set<UserID>()
-        var contacts = [PrivacyListEntry]()
+        var contacts = [PrivacyListTableRow]()
         for contact in MainAppContext.shared.contactStore.allRegisteredContacts(sorted: true) {
             guard let userId = contact.userId else { continue }
             guard !uniqueUserIds.contains(userId) else { continue }
             guard userId != selfUserId else { continue }
 
-            contacts.append(PrivacyListEntry(contact: contact))
+            contacts.append(PrivacyListTableRow(contact: contact))
             
             uniqueUserIds.insert(contact.userId!)
         }
@@ -118,7 +118,7 @@ class PrivacyListViewController: PrivacyListTableViewController {
             entry.isSelected = selectedContactIds.contains(entry.userId)
         }
         // Append contacts that aren't in user's address book (if any).
-        contacts.append(contentsOf: selectedContactIds.subtracting(uniqueUserIds).map({ PrivacyListEntry(userId: $0, isSelected: true) }))
+        contacts.append(contentsOf: selectedContactIds.subtracting(uniqueUserIds).map({ PrivacyListTableRow(userId: $0, isSelected: true) }))
         super.init(contacts: contacts)
     }
 
@@ -224,7 +224,7 @@ fileprivate class PrivacyListTableViewCell: ContactTableViewCell {
         selectionStyle = .none
     }
 
-    func configure(withListEntry listEntry: PrivacyListEntry) {
+    func configure(withListEntry listEntry: PrivacyListTableRow) {
         accessoryView = checkMark
         nameLabel.text = listEntry.name ?? MainAppContext.shared.contactStore.fullName(for: listEntry.userId)
         subtitleLabel.text = listEntry.phoneNumber

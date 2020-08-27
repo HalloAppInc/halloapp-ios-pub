@@ -8,55 +8,26 @@
 
 import Combine
 import Core
-import Foundation
 import XMPPFramework
 
-class PrivacyListItem: Codable {
 
-    /**
-     Raw value can be used as a value for `type` attribute on `privacy_list`.
-     */
-    enum State: String, Codable {
-        case active  = ""        // in sync with the server
-        case added   = "add"     // added on the client, not synced with server
-        case deleted = "delete"  // deleted on the client, not synced with server
+final class PrivacyListAllContacts: PrivacyListProtocol {
+    init() {}
+
+    var type: PrivacyListType {
+        .all
     }
 
-    let userId: UserID
-    var state: State = .active
-
-    init(userId: UserID, state: State = .active) {
-        self.userId = userId
-        self.state = state
+    var userIds: [UserID] {
+        []
     }
 }
 
-/**
- Raw value can be used as a value for `type` attribute on `privacy_list`.
- */
-enum PrivacyListType: String {
-    case all       = "all"
-    case whitelist = "only"
-    case blacklist = "except"
-    case muted     = "mute"
-    case blocked   = "block"
-}
 
-class PrivacyList {
+extension PrivacyList {
 
-    let type: PrivacyListType
-
-    private(set) var items: [PrivacyListItem] = []
-
-    private(set) var hasChanges = false
-
-    var canBeSetAsActiveList: Bool {
+    var canBeSetAsFeedAudience: Bool {
         get { type == .all || type == .blacklist || type == .whitelist }
-    }
-
-    init(type: PrivacyListType, items: [PrivacyListItem]) {
-        self.type = type
-        self.items = items
     }
 
     func update<T>(with userIds: T) where T: Collection, T.Element == UserID {
@@ -67,7 +38,7 @@ class PrivacyList {
         for item in items {
             if !updatedUserIds.contains(item.userId) {
                 item.state = .deleted
-                hasChanges = true
+                state = .needsUpstreamSync
             }
         }
 
@@ -75,8 +46,17 @@ class PrivacyList {
         let newItems = updatedUserIds.subtracting(previousUserIds).map({ PrivacyListItem(userId: $0, state: .added) })
         if !newItems.isEmpty {
             items.append(contentsOf: newItems)
-            hasChanges = true
+            state = .needsUpstreamSync
         }
+
+        save()
+    }
+
+    func set(userIds: [UserID]) {
+        items = userIds.map({ PrivacyListItem(userId: $0) })
+        state = .inSync
+
+        save()
     }
 
     func commitChanges() {
@@ -94,27 +74,30 @@ class PrivacyList {
             }
         }
         items.remove(atOffsets: itemIndexesToDelete)
-        hasChanges = false
+
+        state = .inSync
+
+        save()
     }
 
-    func revertChanges() {
-        var itemIndexesToDelete = IndexSet()
-        for (itemIndex, item) in items.enumerated() {
-            switch item.state {
-            case .added:
-                itemIndexesToDelete.update(with: itemIndex)
+    private func save() {
+        assert(state != .unknown)
 
-            case .deleted:
-                item.state = .active
+        // Prepare directory.
+        let directoryUrl = fileUrl.deletingLastPathComponent()
+        try? FileManager.default.createDirectory(at: directoryUrl, withIntermediateDirectories: true)
 
-            default:
-                break
-            }
+        do {
+            let jsonData = try JSONEncoder().encode(self)
+            try jsonData.write(to: fileUrl)
+            DDLogInfo("privacy/list/\(type)/saved to \(fileUrl.path)")
         }
-        items.remove(atOffsets: itemIndexesToDelete)
-        hasChanges = false
+        catch {
+            DDLogError("privacy/list/\(type)/write-error \(error)")
+        }
     }
 
+    // MARK: UI Support
     static func name(forPrivacyListType privacyListType: PrivacyListType) -> String {
         switch privacyListType {
         case .all:
@@ -129,40 +112,53 @@ class PrivacyList {
             return "Blocked"
         }
     }
+
 }
 
-class PrivacySettings: ObservableObject {
+
+class PrivacySettings: Core.PrivacySettings, ObservableObject {
+
+    private struct Constants {
+        static let SettingLoading = "..."
+    }
 
     private let xmppController: XMPPControllerMain
+    private var didConnectCancellable: AnyCancellable!
 
     init(xmppController: XMPPControllerMain) {
         self.xmppController = xmppController
-
-        loadMutedList()
-
-        if mutedListState == .unknown {
-            xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
-                self.downloadListsIfNecessary()
-            }
-        } else if mutedListState == .needsUpload {
-            xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
-                self.upload(privacyList: self.muted!)
-            }
+        super.init()
+        didConnectCancellable = xmppController.didConnect.sink { [weak self] in
+            guard let self = self else { return }
+            self.syncListsIfNecessary()
         }
     }
 
-    private static let settingLoading = "..."
+    override func loadSettings() {
+        super.loadSettings()
+
+        reloadFeedSettingValue()
+        reloadMuteSettingValue()
+        reloadBlockedSettingValue()
+
+        validateState()
+    }
 
     /**
      - returns:
      `true` if privacy settings have been loaded from the server and are ready to be displayed in the UI.
      */
-    @Published private(set) var isLoaded: Bool = false
+    @Published private(set) var isDownloaded: Bool = false
     /**
      - returns:
      `true` if privacy list being uploaded or feed privacy setting is being updated on the server.
      */
     @Published private(set) var isSyncing: Bool = false
+    private var numberOfPendingRequests = 0 {
+        didSet {
+            isSyncing = numberOfPendingRequests > 0
+        }
+    }
 
     @Published private(set) var privacyListSyncError: String? = nil
 
@@ -172,35 +168,18 @@ class PrivacySettings: ObservableObject {
 
     // MARK: Feed
 
-    @Published private(set) var shortFeedSetting: String = settingLoading
-    @Published private(set) var longFeedSetting: String = settingLoading
+    @Published private(set) var shortFeedSetting: String = Constants.SettingLoading
+    @Published private(set) var longFeedSetting: String = Constants.SettingLoading
 
-    private(set) var whitelist: PrivacyList? = nil {
+    override var activeType: PrivacyListType? {
         didSet {
-            if activeType == .whitelist {
-                reloadFeedSettingValue()
-            }
-        }
-    }
-
-    private(set) var blacklist: PrivacyList? = nil {
-        didSet {
-            if activeType == .blacklist {
-                reloadFeedSettingValue()
-            }
-        }
-    }
-
-    private(set) var activeType: PrivacyListType? = nil {
-        didSet {
-            DDLogInfo("privacy/change-active From [\(oldValue?.rawValue ?? "none")] to [\(activeType?.rawValue ?? "none")]")
             reloadFeedSettingValue()
         }
     }
 
     private func reloadFeedSettingValue() {
         guard let activeType = activeType else {
-            shortFeedSetting = Self.settingLoading
+            shortFeedSetting = Constants.SettingLoading
             return
         }
         switch activeType {
@@ -209,22 +188,22 @@ class PrivacySettings: ObservableObject {
             longFeedSetting = shortFeedSetting
 
         case .whitelist:
-            if let whitelist = whitelist {
-                let filteredList = whitelist.items.filter({ $0.state != .deleted })
-                shortFeedSetting = "\(filteredList.count) Selected"
-                longFeedSetting = "\(filteredList.count) Contacts Selected"
+            if whitelist.isLoaded {
+                let userCount = whitelist.userIds.count
+                shortFeedSetting = "\(userCount) Selected"
+                longFeedSetting = "\(userCount) Contacts Selected"
             } else {
-                shortFeedSetting = Self.settingLoading
+                shortFeedSetting = Constants.SettingLoading
                 longFeedSetting = shortFeedSetting
             }
 
         case .blacklist:
-            if let blacklist = blacklist {
-                let filteredList = blacklist.items.filter({ $0.state != .deleted })
-                shortFeedSetting = "\(filteredList.count) Excluded"
-                longFeedSetting = "\(filteredList.count) Contacts Excluded"
+            if blacklist.isLoaded {
+                let userCount = blacklist.userIds.count
+                shortFeedSetting = "\(userCount) Excluded"
+                longFeedSetting = "\(userCount) Contacts Excluded"
             } else {
-                shortFeedSetting = Self.settingLoading
+                shortFeedSetting = Constants.SettingLoading
                 longFeedSetting = shortFeedSetting
             }
 
@@ -235,192 +214,156 @@ class PrivacySettings: ObservableObject {
 
     // MARK: Muted
 
-    private enum MutedListState: Int {
-        case unknown = 0     // needs to be queried from the server
-        case inSync = 1      // saved locally, uploaded to the server
-        case needsUpload = 2 // needs to be uploaded to the server
-    }
-
-    private var mutedListState: MutedListState {
-        get {
-            MutedListState(rawValue: UserDefaults.standard.integer(forKey: "PrivacyMutedListState")) ?? .unknown
-        }
-        set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: "PrivacyMutedListState")
-        }
-    }
-
-    @Published private(set) var mutedSetting: String = settingLoading
-
-    let mutedContactsChanged = PassthroughSubject<Void, Never>()
-
-    var mutedContactIds: [UserID] {
-        get {
-            guard let muted = muted else {
-                return []
-            }
-            return muted.items.filter({ $0.state != .deleted }).map({ $0.userId })
-        }
-    }
-
-    private(set) var muted: PrivacyList? = nil {
-        didSet {
-            reloadMuteSettingValue()
-            mutedContactsChanged.send()
-        }
-    }
+    @Published private(set) var mutedSetting: String = Constants.SettingLoading
 
     private func reloadMuteSettingValue() {
-        if let list = muted {
-            mutedSetting = settingValueText(forListItems: list.items)
+        if muted.isLoaded {
+            mutedSetting = Self.settingValueText(forPrivacyList: muted)
         } else {
-            mutedSetting = Self.settingLoading
-        }
-    }
-
-    private let mutedListFileURL = MainAppContext.documentsDirectoryURL.appendingPathComponent("MutedList.json")
-
-    private func loadMutedList() {
-        guard let jsonData = try? Data(contentsOf: mutedListFileURL) else {
-            DDLogError("privacy/muted-list/read-error File does not exist.")
-            mutedListState = .unknown
-            return
-        }
-        do {
-            let listItems = try JSONDecoder().decode([PrivacyListItem].self, from: jsonData)
-            self.muted = PrivacyList(type: .muted, items: listItems)
-            DDLogInfo("privacy/muted-list/loaded \(listItems.count) contacts")
-        }
-        catch {
-            DDLogError("privacy/muted-list/read-error \(error)")
-            try? FileManager.default.removeItem(at: mutedListFileURL)
-            mutedListState = .unknown
-        }
-    }
-
-    private func writeMutedList() {
-        guard let mutedList = muted else { return }
-        do {
-            let jsonData = try JSONEncoder().encode(mutedList.items)
-            try jsonData.write(to: mutedListFileURL)
-            DDLogInfo("privacy/muted-list/saved to \(mutedListFileURL.path)")
-        }
-        catch {
-            DDLogError("privacy/muted-list/write-error \(error)")
+            mutedSetting = Constants.SettingLoading
         }
     }
 
     // MARK: Blocked
 
-    @Published private(set) var blockedSetting: String = settingLoading
-
-    private(set) var blocked: PrivacyList? = nil {
-        didSet {
-            reloadBlockedSettingValue()
-        }
-    }
+    @Published private(set) var blockedSetting: String = Constants.SettingLoading
 
     private func reloadBlockedSettingValue() {
-        if let list = blocked {
-            blockedSetting = settingValueText(forListItems: list.items)
+        if blocked.isLoaded {
+            blockedSetting = Self.settingValueText(forPrivacyList: blocked)
         } else {
-            blockedSetting = Self.settingLoading
+            blockedSetting = Constants.SettingLoading
         }
     }
 
     // MARK: Loading & Resetting
 
-    func downloadListsIfNecessary() {
-        guard !isLoaded else { return }
+    private func validateState() {
+        guard activeType != nil else {
+            isDownloaded = false
+            return
+        }
 
-        DDLogInfo("privacy/download-lists")
+        guard whitelist.isLoaded && blacklist.isLoaded && muted.isLoaded && blocked.isLoaded else {
+            isDownloaded = false
+            return
+        }
+        isDownloaded = true
+    }
+
+    private func syncListsIfNecessary() {
+        self.downloadListsIfNecessary()
+        self.uploadListsIfNecessary()
+    }
+
+    private func downloadListsIfNecessary() {
+        guard !isDownloaded else { return }
 
         privacyListSyncError = nil
 
-        let requestMutedList = mutedListState == .unknown
-        let request = XMPPGetPrivacyListsRequest(includeMuted: requestMutedList) { (result) in
+        var listTypes = [PrivacyListType]()
+        if whitelist.state == .needsDownstreamSync {
+            listTypes.append(.whitelist)
+        }
+        if blacklist.state == .needsDownstreamSync {
+            listTypes.append(.blacklist)
+        }
+        if muted.state == .needsDownstreamSync {
+            listTypes.append(.muted)
+        }
+        if blocked.state == .needsDownstreamSync {
+            listTypes.append(.blocked)
+        }
+
+        guard !listTypes.isEmpty || activeType == nil else {
+            return
+        }
+
+        DDLogInfo("privacy/download-lists")
+        let request = XMPPGetPrivacyListsRequest(listTypes) { (result) in
             switch result {
             case .success(let (lists, activeType)):
                 DDLogInfo("privacy/download-lists/complete \(lists.count) lists")
                 self.process(lists: lists, activeType: activeType)
 
             case .failure(let error):
-                DDLogError("privacy/download-lists/error \(String(describing: error))")
-                self.reset()
+                DDLogError("privacy/download-lists/error \(error)")
                 self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
             }
         }
         xmppController.enqueue(request: request)
     }
 
+    private func uploadListsIfNecessary() {
+        // Sending all | blacklist | whitelist sets them active on the server,
+        // so only send if those lists are currently selected.
+        if activeType == .whitelist && whitelist.state == .needsUpstreamSync {
+            upload(privacyList: whitelist)
+        } else if activeType == .blacklist && blacklist.state == .needsUpstreamSync {
+            upload(privacyList: blacklist)
+        }
+
+        // Muted is sent to the server as a backup.
+        if muted.state == .needsUpstreamSync {
+            upload(privacyList: muted)
+        }
+
+        if blocked.state == .needsUpstreamSync {
+            upload(privacyList: blocked)
+        }
+    }
+
     private func upload(privacyList: PrivacyList) {
-        isSyncing = true
+        numberOfPendingRequests += 1
         privacyListSyncError = nil
-        
+
         DDLogInfo("privacy/upload-list/\(privacyList.type)")
 
-        let previousFeedSetting = activeType!
+        let previousSetting = activeType!
         let request = XMPPSendPrivacyListRequest(privacyList: privacyList) { (result) in
             switch result {
             case .success:
                 DDLogInfo("privacy/upload-list/\(privacyList.type)/complete")
 
                 privacyList.commitChanges()
-
-                if privacyList.type == .muted {
-                    self.mutedListState = .inSync
-                    self.writeMutedList()
-                }
-
-                if privacyList.canBeSetAsActiveList {
+                if privacyList.canBeSetAsFeedAudience {
                     self.activeType = privacyList.type
                 }
 
             case .failure(let error):
                 DDLogError("privacy/upload-list/\(privacyList.type)/error \(error)")
 
-                if privacyList.type == .muted {
-                    // 'Muted' list uses server as a backup - just try re-uploading next time.
-                } else {
-                    privacyList.revertChanges()
-                }
-
-                if privacyList.canBeSetAsActiveList {
-                    self.activeType = previousFeedSetting
-                }
-
-                self.updateSettingValue(forPrivacyList: privacyList)
-
+                self.activeType = previousSetting
                 self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
             }
-            self.isSyncing = false
+            self.numberOfPendingRequests -= 1
         }
         xmppController.enqueue(request: request)
     }
 
-    private func process(lists: [PrivacyList], activeType: PrivacyListType) {
+    private func process(lists: [PrivacyListProtocol], activeType: PrivacyListType) {
         // Feed
-        if let whitelist = lists.first(where: { $0.type == .whitelist }) {
-            self.whitelist = whitelist
+        if let serverList = lists.first(where: { $0.type == .whitelist }) {
+            whitelist.set(userIds: serverList.userIds)
         }
-        if let blacklist = lists.first(where: { $0.type == .blacklist }) {
-            self.blacklist = blacklist
+        if let serverList = lists.first(where: { $0.type == .blacklist }) {
+            blacklist.set(userIds: serverList.userIds)
         }
         self.activeType = activeType
 
         // Muted
-        if let muted = lists.first(where: { $0.type == .muted }) {
-            self.muted = muted
-            mutedListState = .inSync
-            writeMutedList()
+        if let serverList = lists.first(where: { $0.type == .muted }) {
+            muted.set(userIds: serverList.userIds)
+            reloadMuteSettingValue()
         }
 
         // Blocked
-        if let blocked = lists.first(where: { $0.type == .blocked }) {
-            self.blocked = blocked
+        if let serverList = lists.first(where: { $0.type == .blocked }) {
+            blocked.set(userIds: serverList.userIds)
+            reloadBlockedSettingValue()
         }
 
-        isLoaded = true
+        validateState()
     }
 
     func update<T>(privacyList: PrivacyList, with userIds: T) where T: Collection, T.Element == UserID {
@@ -428,39 +371,43 @@ class PrivacySettings: ObservableObject {
 
         privacyList.update(with: userIds)
 
-        // 'Muted' list needs to be saved locally and then uploaded (as a backup).
-        if privacyList.type == .muted && privacyList.hasChanges {
-            mutedListState = .needsUpload
-            writeMutedList()
-            mutedContactsChanged.send()
-        }
-
-        if privacyList.hasChanges || privacyList.canBeSetAsActiveList {
+        if privacyList.state == .needsUpstreamSync || privacyList.canBeSetAsFeedAudience {
             updateSettingValue(forPrivacyList: privacyList)
             upload(privacyList: privacyList)
         }
     }
 
     func setFeedSettingToAllContacts() {
-        upload(privacyList: PrivacyList(type: .all, items: []))
-    }
+        numberOfPendingRequests += 1
+        privacyListSyncError = nil
 
-    private func reset() {
-        activeType = nil
-        whitelist = nil
-        blacklist = nil
-        blocked = nil
+        DDLogInfo("privacy/set-list/all")
 
-        isLoaded = false
+        let previousSetting = activeType!
+        let request = XMPPSendPrivacyListRequest(privacyList: PrivacyListAllContacts()) { (result) in
+            switch result {
+            case .success:
+                DDLogInfo("privacy/set-list/all/complete")
+                self.activeType = .all
+
+            case .failure(let error):
+                DDLogError("privacy/set-list/all/error \(error)")
+
+                self.activeType = previousSetting
+                self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
+            }
+            self.numberOfPendingRequests -= 1
+        }
+        xmppController.enqueue(request: request)
     }
 
     // MARK: Utility
 
-    private func settingValueText(forListItems listItems: [PrivacyListItem]) -> String {
-        let filteredItems = listItems.filter({ $0.state != .deleted })
-        if filteredItems.count > 1 {
-            return "\(filteredItems.count) Contacts"
-        } else if filteredItems.count > 0 {
+    private static func settingValueText(forPrivacyList privacyList: PrivacyListProtocol) -> String {
+        let userCount = privacyList.userIds.count
+        if userCount > 1 {
+            return "\(userCount) Contacts"
+        } else if userCount > 0 {
             return "1 Contact"
         } else {
             return "None"

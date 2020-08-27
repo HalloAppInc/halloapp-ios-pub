@@ -40,13 +40,6 @@ class FeedViewController: FeedTableViewController {
 
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: notificationButton)
 
-        let privacySettings = MainAppContext.shared.xmppController.privacySettings!
-        cancellables.insert(
-            privacySettings.mutedContactsChanged.sink { [weak self] in
-                guard let self = self else { return }
-                self.reloadTableView()
-        })
-
         cancellables.insert(
             MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] (feedPost) in
                 guard let self = self else { return }
@@ -92,11 +85,7 @@ class FeedViewController: FeedTableViewController {
 
     override var fetchRequest: NSFetchRequest<FeedPost> {
         get {
-            let mutedUserIds = MainAppContext.shared.xmppController.privacySettings.mutedContactIds
             let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            if !mutedUserIds.isEmpty {
-                fetchRequest.predicate = NSPredicate(format: "NOT (userId IN %@)", mutedUserIds)
-            }
             fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
             return fetchRequest
         }

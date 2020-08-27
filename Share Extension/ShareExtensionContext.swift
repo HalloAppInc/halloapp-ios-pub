@@ -11,8 +11,10 @@ import Core
 import Foundation
 
 class ShareExtensionContext: AppExtensionContext {
+
     // MARK: Global objects
     private(set) var dataStore: ShareExtensionDataStore!
+    private(set) var privacySettings: PrivacySettings!
     
     public var shareExtensionIsActive = false
 
@@ -25,6 +27,7 @@ class ShareExtensionContext: AppExtensionContext {
     required init(xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
         super.init(xmppControllerClass: xmppControllerClass, contactStoreClass: contactStoreClass)
         dataStore = ShareExtensionDataStore(xmppController: xmppController)
+        privacySettings = PrivacySettings()
     }
 
 }

@@ -51,9 +51,6 @@ class XMPPControllerMain: XMPPController {
     let didGetAck = PassthroughSubject<XMPPAck, Never>()
     let didGetPresence = PassthroughSubject<XMPPPresence, Never>()
 
-    // MARK: Privacy
-    private(set) var privacySettings: PrivacySettings!
-
     private var cancellableSet: Set<AnyCancellable> = []
 
     required init(userData: UserData) {
@@ -75,8 +72,6 @@ class XMPPControllerMain: XMPPController {
                 self.xmppStream.disconnect() // this is only necessary when manually logging out from a developer menu.
                 self.xmppStream.myJID = nil
             })
-
-        privacySettings = PrivacySettings(xmppController: self)
     }
 
     // MARK: Push token

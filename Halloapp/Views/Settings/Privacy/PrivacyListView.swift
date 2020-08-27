@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Core
 import SwiftUI
 
 struct PrivacyListView: UIViewControllerRepresentable {
@@ -30,11 +31,4 @@ struct PrivacyListView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }
 
-}
-
-struct PrivacyListView_Previews: PreviewProvider {
-    static var previews: some View {
-        PrivacyListView(PrivacyList(type: .all, items: [ PrivacyListItem(userId: "1000000000408049639") ]),
-                        dismissAction: {})
-    }
 }

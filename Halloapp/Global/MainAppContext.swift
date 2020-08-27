@@ -24,6 +24,7 @@ class MainAppContext: AppContext {
     private(set) var chatData: ChatData!
     private(set) var keyData: KeyData!
     private(set) var syncManager: SyncManager!
+    private(set) var privacySettings: PrivacySettings!
     
     let didTapNotification = PassthroughSubject<NotificationUtility.Metadata, Never>()
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
@@ -94,6 +95,7 @@ class MainAppContext: AppContext {
         syncManager = SyncManager(contactStore: contactStore, xmppController: xmppController, userData: userData)
         avatarStore = AvatarStore()
         xmppController.avatarDelegate = avatarStore
+        privacySettings = PrivacySettings(xmppController: xmppController)
     }
     
     private var mergingSharedData = false

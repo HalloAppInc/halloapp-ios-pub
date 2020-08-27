@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Core
 import SwiftUI
 
 struct FeedPrivacyView: View {
@@ -46,7 +47,7 @@ struct FeedPrivacyView: View {
                             Spacer()
                         }
                     }
-                    .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
+                    .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
 
                     Button(action: { self.isBlacklistScreenPresented = true }) {
                         HStack {
@@ -65,9 +66,9 @@ struct FeedPrivacyView: View {
                             Spacer()
                         }
                     }
-                    .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
+                    .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
                     .sheet(isPresented: self.$isBlacklistScreenPresented) {
-                        PrivacyListView(self.privacySettings.blacklist!, dismissAction: { self.isBlacklistScreenPresented = false })
+                        PrivacyListView(self.privacySettings.blacklist, dismissAction: { self.isBlacklistScreenPresented = false })
                             .environmentObject(self.privacySettings)
                             .edgesIgnoringSafeArea(.bottom)
                     }
@@ -89,9 +90,9 @@ struct FeedPrivacyView: View {
                             Spacer()
                         }
                     }
-                    .disabled(!self.privacySettings.isLoaded || self.privacySettings.isSyncing)
+                    .disabled(!self.privacySettings.isDownloaded || self.privacySettings.isSyncing)
                     .sheet(isPresented: self.$isWhitelistScreenPresented) {
-                        PrivacyListView(self.privacySettings.whitelist!, dismissAction: { self.isWhitelistScreenPresented = false })
+                        PrivacyListView(self.privacySettings.whitelist, dismissAction: { self.isWhitelistScreenPresented = false })
                             .environmentObject(self.privacySettings)
                             .edgesIgnoringSafeArea(.bottom)
                     }

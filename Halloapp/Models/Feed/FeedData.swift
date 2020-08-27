@@ -17,9 +17,9 @@ import XMPPFramework
 
 class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate, XMPPControllerFeedDelegate {
 
-    private var userData: UserData
-    private var contactStore: ContactStoreMain
-    private var xmppController: XMPPControllerMain
+    private let userData: UserData
+    private let contactStore: ContactStoreMain
+    private let xmppController: XMPPControllerMain
 
     private var cancellableSet: Set<AnyCancellable> = []
 

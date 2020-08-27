@@ -42,6 +42,8 @@
 		68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8124D22E5500F40F1F /* NSRange.swift */; };
 		68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */; };
 		68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */; };
+		7605EA1F24F475A800CAD9AB /* Privacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7605EA1E24F475A800CAD9AB /* Privacy.swift */; };
+		762EE69B24F62886008765A5 /* XMPPElementRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */; };
 		7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7656F93124BCE66500F00AF7 /* LogFileManager.swift */; };
 		76608ECD24EC2B5100DD61C3 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608ECC24EC2B5100DD61C3 /* Chat.swift */; };
 		768123BD2485D9C7008C5216 /* Core.h in Headers */ = {isa = PBXBuildFile; fileRef = 768123BB2485D9C7008C5216 /* Core.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -127,6 +129,8 @@
 		68A64E8124D22E5500F40F1F /* NSRange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSRange.swift; sourceTree = "<group>"; };
 		68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		7605EA1E24F475A800CAD9AB /* Privacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privacy.swift; sourceTree = "<group>"; };
+		762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPElementRepresentable.swift; sourceTree = "<group>"; };
 		7656F93124BCE66500F00AF7 /* LogFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileManager.swift; sourceTree = "<group>"; };
 		76608ECC24EC2B5100DD61C3 /* Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chat.swift; sourceTree = "<group>"; };
 		768123B82485D9C7008C5216 /* Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -247,6 +251,14 @@
 			path = Mentions;
 			sourceTree = "<group>";
 		};
+		7605EA1D24F4759400CAD9AB /* Privacy */ = {
+			isa = PBXGroup;
+			children = (
+				7605EA1E24F475A800CAD9AB /* Privacy.swift */,
+			);
+			path = Privacy;
+			sourceTree = "<group>";
+		};
 		76608ECB24EC2B2100DD61C3 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
@@ -286,15 +298,16 @@
 		768123CF2485DA8B008C5216 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				688D8A1C24ED976900258BB9 /* Mentions */,
-				EAAE7B2E24DBD47800946B77 /* Keys */,
 				246A8B7824902A2200CE0429 /* Avatars */,
 				76608ECB24EC2B2100DD61C3 /* Chat */,
 				768123F224860FF3008C5216 /* Contacts */,
 				7681241C2486C133008C5216 /* Extensions */,
 				768124112486191A008C5216 /* Feed */,
 				768123D52485DC0B008C5216 /* Global */,
+				EAAE7B2E24DBD47800946B77 /* Keys */,
 				768123D02485DB8D008C5216 /* Logging */,
+				688D8A1C24ED976900258BB9 /* Mentions */,
+				7605EA1D24F4759400CAD9AB /* Privacy */,
 				76812415248619BB008C5216 /* Proto */,
 				2490289924C5DDBD0019C4D5 /* ShareExtension */,
 				768123FC248612A9008C5216 /* XMPP */,
@@ -341,6 +354,7 @@
 				76812407248614DC008C5216 /* Requests */,
 				768123FF24861481008C5216 /* XMPPAck.swift */,
 				768123FD248612E7008C5216 /* XMPPController.swift */,
+				762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */,
 				7681240124861487008C5216 /* XMPPError.swift */,
 				76812403248614BA008C5216 /* XMPPFeed.swift */,
 				76812404248614BA008C5216 /* XMPPReceipt.swift */,
@@ -588,6 +602,7 @@
 				768123F824861068008C5216 /* Contacts.xcdatamodeld in Sources */,
 				249028A324C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift in Sources */,
 				76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */,
+				7605EA1F24F475A800CAD9AB /* Privacy.swift in Sources */,
 				768123F124860F67008C5216 /* UserData.swift in Sources */,
 				682F79EC24F72F630084AF42 /* group_stanzas.pb.swift in Sources */,
 				246A8B8224902BA600CE0429 /* Avatar+CoreDataProperties.swift in Sources */,
@@ -619,6 +634,7 @@
 				249028A024C5DFDE0019C4D5 /* Media+CoreDataClass.swift in Sources */,
 				7681241F2486C178008C5216 /* String.swift in Sources */,
 				76812405248614BA008C5216 /* XMPPFeed.swift in Sources */,
+				762EE69B24F62886008765A5 /* XMPPElementRepresentable.swift in Sources */,
 				EAAE7B4F24DD2C3000946B77 /* OneTimePreKey+CoreDataClass.swift in Sources */,
 				76C7429C24A1597000C7D945 /* MediaCrypter.swift in Sources */,
 				EAAE7B4A24DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift in Sources */,
