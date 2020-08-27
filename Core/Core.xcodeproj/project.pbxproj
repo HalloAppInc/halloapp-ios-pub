@@ -70,6 +70,7 @@
 		76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76925CFC24872E85008333FA /* UserData.xcdatamodeld */; };
 		76C7429624A155E900C7D945 /* FeedDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C7429524A155E900C7D945 /* FeedDownloadManager.swift */; };
 		76C7429C24A1597000C7D945 /* MediaCrypter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C7429B24A1597000C7D945 /* MediaCrypter.swift */; };
+		76E00DF124F786A100E06252 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E00DF024F786A100E06252 /* Data.swift */; };
 		76E5152F24A1761E003F1273 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 76E5152E24A1761E003F1273 /* Alamofire */; };
 		76E5153824A18171003F1273 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E5153724A18171003F1273 /* Digest.swift */; };
 		76F45E0024D226D300EFA301 /* ServerProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F45DFF24D226D300EFA301 /* ServerProperties.swift */; };
@@ -156,6 +157,7 @@
 		76925CFD24872E85008333FA /* Halloapp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Halloapp.xcdatamodel; sourceTree = "<group>"; };
 		76C7429524A155E900C7D945 /* FeedDownloadManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeedDownloadManager.swift; sourceTree = "<group>"; };
 		76C7429B24A1597000C7D945 /* MediaCrypter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaCrypter.swift; sourceTree = "<group>"; };
+		76E00DF024F786A100E06252 /* Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
 		76E5153524A180B9003F1273 /* CryptoKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoKit.framework; path = System/Library/Frameworks/CryptoKit.framework; sourceTree = SDKROOT; };
 		76E5153724A18171003F1273 /* Digest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Digest.swift; sourceTree = "<group>"; };
 		76F45DFF24D226D300EFA301 /* ServerProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProperties.swift; sourceTree = "<group>"; };
@@ -412,6 +414,7 @@
 				76925CF924871506008333FA /* UserDefaults.swift */,
 				68A64E7F24D2128300F40F1F /* NSAttributedString.swift */,
 				68A64E8124D22E5500F40F1F /* NSRange.swift */,
+				76E00DF024F786A100E06252 /* Data.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -578,6 +581,7 @@
 				768123D72485DC4F008C5216 /* AppContext.swift in Sources */,
 				EAAE7B5124DD2C3000946B77 /* MessageKey+CoreDataClass.swift in Sources */,
 				EAAE7B5024DD2C3000946B77 /* OneTimePreKey+CoreDataProperties.swift in Sources */,
+				76E00DF124F786A100E06252 /* Data.swift in Sources */,
 				2490287524C524250019C4D5 /* XMPPCommonRequests.swift in Sources */,
 				EAAE7B3924DCDEBB00946B77 /* KeyStore.swift in Sources */,
 				682F79E724F72F630084AF42 /* privacy_list.pb.swift in Sources */,
