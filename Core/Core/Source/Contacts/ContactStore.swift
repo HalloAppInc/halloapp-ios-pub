@@ -108,7 +108,7 @@ open class ContactStore {
 
     // MARK: Fetching contacts
 
-    public func allRegisteredContactIDs() -> [UserID] {
+    public func allInNetworkContactIDs() -> [UserID] {
         let fetchRequst = NSFetchRequest<NSDictionary>(entityName: "ABContact")
         fetchRequst.predicate = NSPredicate(format: "statusValue == %d", ABContact.Status.in.rawValue)
         fetchRequst.propertiesToFetch = [ "userId" ]

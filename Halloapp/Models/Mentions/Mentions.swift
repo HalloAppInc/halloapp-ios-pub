@@ -15,7 +15,7 @@ public struct MentionableUser: Hashable {
 
 public final class Mentions {
     public static func mentionableUsersForNewPost() -> [MentionableUser] {
-        let allContactIDs = Set(MainAppContext.shared.contactStore.allRegisteredContactIDs())
+        let allContactIDs = Set(MainAppContext.shared.contactStore.allInNetworkContactIDs())
 
         return MainAppContext.shared.contactStore.fullNames(forUserIds: allContactIDs)
             .map { MentionableUser(userID: $0.key, fullName: $0.value) }
@@ -32,7 +32,7 @@ public final class Mentions {
             contactSet.insert(post.userId)
         } else {
             // Otherwise we can mention everyone in our friends since they should be able to see our post
-            contactSet.formUnion(MainAppContext.shared.contactStore.allRegisteredContactIDs())
+            contactSet.formUnion(MainAppContext.shared.contactStore.allInNetworkContactIDs())
         }
 
         // Allow mentioning every mention from the post
