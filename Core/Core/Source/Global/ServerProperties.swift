@@ -14,7 +14,7 @@ public struct ServerProperties {
     // MARK: Keys
 
     private enum Key: String {
-        case internalUser = "internal"
+        case internalUser = "dev"
         case groups
         case maxGroupSize = "max_group_size"
     }
