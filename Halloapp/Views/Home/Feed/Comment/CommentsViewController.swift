@@ -678,7 +678,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPostId) else { return }
 
         let parentCommentId = replyContext?.parentCommentId
-        MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: parentCommentId)
+        commentToScrollTo = MainAppContext.shared.feedData.post(comment: text, to: feedDataItem, replyingTo: parentCommentId)
 
         replyContext = nil
         commentsInputView.clear()

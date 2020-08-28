@@ -1394,7 +1394,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         uploadMediaAndSend(feedPost: feedPost)
     }
 
-    func post(comment: MentionText, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostCommentID? = nil) {
+    @discardableResult
+    func post(comment: MentionText, to feedItem: FeedDataItem, replyingTo parentCommentId: FeedPostCommentID? = nil) -> FeedPostCommentID {
         let commentId: FeedPostCommentID = UUID().uuidString
 
         // Create and save FeedPostComment
@@ -1434,6 +1435,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Now send data over the wire.
         self.send(comment: feedComment)
+
+        return commentId
     }
 
     func retryPosting(postId: FeedPostID) {
