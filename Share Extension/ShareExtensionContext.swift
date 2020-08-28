@@ -27,7 +27,7 @@ class ShareExtensionContext: AppExtensionContext {
     required init(xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
         super.init(xmppControllerClass: xmppControllerClass, contactStoreClass: contactStoreClass)
         dataStore = ShareExtensionDataStore(xmppController: xmppController)
-        privacySettings = PrivacySettings()
+        privacySettings = PrivacySettings(contactStore: contactStore)
     }
 
 }

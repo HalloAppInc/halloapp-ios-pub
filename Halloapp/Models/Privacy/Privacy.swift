@@ -125,9 +125,9 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
     private let xmppController: XMPPControllerMain
     private var didConnectCancellable: AnyCancellable!
 
-    init(xmppController: XMPPControllerMain) {
+    init(contactStore: ContactStore, xmppController: XMPPControllerMain) {
         self.xmppController = xmppController
-        super.init()
+        super.init(contactStore: contactStore)
         didConnectCancellable = xmppController.didConnect.sink { [weak self] in
             guard let self = self else { return }
             self.syncListsIfNecessary()

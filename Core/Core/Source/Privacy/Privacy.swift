@@ -128,12 +128,15 @@ open class PrivacySettings {
         static let UserDefaultsKeyActiveListType = "FeedPrivacySetting"
     }
 
+    private let contactStore: ContactStore
+
     public private(set) var whitelist: PrivacyList!
     public private(set) var blacklist: PrivacyList!
     public private(set) var muted: PrivacyList!
     public private(set) var blocked: PrivacyList!
 
-    public init() {
+    public init(contactStore: ContactStore) {
+        self.contactStore = contactStore
         DispatchQueue.main.async {
             self.loadSettings()
         }
