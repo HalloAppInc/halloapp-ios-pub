@@ -24,7 +24,13 @@ public final class UserData: ObservableObject {
 
     public var useTestServer: Bool {
         get {
-            UserDefaults.shared.bool(forKey: "UseTestServer")
+            #if DEBUG
+            if UserDefaults.shared.value(forKey: "UseTestServer") == nil {
+                // Debug builds should default to test server
+                return true
+            }
+            #endif
+            return UserDefaults.shared.bool(forKey: "UseTestServer")
         }
         set {
             UserDefaults.shared.set(newValue, forKey: "UseTestServer")
