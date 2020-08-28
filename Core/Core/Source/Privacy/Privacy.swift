@@ -33,7 +33,7 @@ public protocol PrivacyListProtocol {
 public extension PrivacyListProtocol {
 
     var hash: String {
-        let string = userIds.map({ "," + $0 }).joined()
+        let string = userIds.sorted().map({ "," + $0 }).joined()
         let hash = string.sha256()?.base64urlEncodedString()
         return hash!
     }
@@ -117,7 +117,7 @@ extension PrivacyList: Codable {
 
 extension PrivacyList: PrivacyListProtocol {
     public var userIds: [UserID] {
-        items.filter({ $0.state != .deleted }).map({ $0.userId }).sorted()
+        items.filter({ $0.state != .deleted }).map({ $0.userId })
     }
 }
 
