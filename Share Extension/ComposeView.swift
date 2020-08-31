@@ -120,12 +120,14 @@ class ComposeViewController: SLComposeServiceViewController {
                 }
                 mediaCount += 1
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.propertyList.rawValue) {
+                itemLoadingGroup.enter()
                 loadWebpage(itemProvider) { (_) in
                     itemLoadingGroup.leave()
                 }
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.text.rawValue) {
                 // No need to handle public.plain-text for now
             } else if itemProvider.hasItemConformingToTypeIdentifier(AttachmentType.url.rawValue) {
+                itemLoadingGroup.enter()
                 loadURL(itemProvider) { (_) in
                     itemLoadingGroup.leave()
                 }
