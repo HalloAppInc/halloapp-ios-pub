@@ -753,40 +753,24 @@ fileprivate struct MediaEditView : View {
     @State private var showDiscardSheet = false
     
     var topBar: some View {
-        ZStack {
-            HStack {
-                Button(action: { self.showDiscardSheet = true }) {
-                    Image(systemName: "xmark")
-                        .foregroundColor(.white)
-                        .imageScale(.large)
-                        .accessibility(label: Text("Close"))
-                        .padding()
-                }
-                .actionSheet(isPresented: $showDiscardSheet) {
-                    ActionSheet(
-                        title: Text("Would you like to discard your edits?"),
-                        message: nil,
-                        buttons: [.destructive(Text("Discard")) { self.complete?([], -1, true) }, .cancel()]
-                    )
-                }
-                
-                Spacer()
-                
-                Button(action: { self.selected.reset() }) {
-                    Text("Reset")
-                        .foregroundColor(.white)
-                        .padding()
-                }
+        HStack {
+            Button(action: { self.showDiscardSheet = true }) {
+                Image(systemName: "xmark")
+                    .foregroundColor(.white)
+                    .font(.system(size: 22, weight: .medium))
+                    .accessibility(label: Text("Close"))
+                    .padding()
+            }
+            .actionSheet(isPresented: $showDiscardSheet) {
+                ActionSheet(
+                    title: Text("Would you like to discard your edits?"),
+                    message: nil,
+                    buttons: [.destructive(Text("Discard")) { self.complete?([], -1, true) }, .cancel()]
+                )
             }
             
-            Text("Edit")
-                .fontWeight(.medium)
-                .foregroundColor(.white)
-        }
-    }
-    
-    var bottomBar: some View {
-        HStack {
+            Spacer()
+            
             Button(action: {
                 self.media.removeAll { $0 === self.selected }
                 
@@ -816,6 +800,16 @@ fileprivate struct MediaEditView : View {
                     .foregroundColor(.white)
                     .imageScale(.large)
                     .accessibility(label: Text("Flip"))
+                    .padding()
+            }
+        }
+    }
+    
+    var bottomBar: some View {
+        HStack {
+            Button(action: { self.selected.reset() }) {
+                Text("Reset")
+                    .foregroundColor(.white)
                     .padding()
             }
             
@@ -855,18 +849,20 @@ fileprivate struct MediaEditView : View {
                 .edgesIgnoringSafeArea(.top)
                 .frame(height: -10)
             
-            ZStack {
+            
+            
+            
+            VStack {
+                topBar
+                
                 CropImage(media: selected)
                 
-                VStack {
-                    topBar
-                    Spacer()
-                    previews
-                    bottomBar
-                    Spacer()
-                        .frame(height: 30)
-                }
+                previews
+                bottomBar
+                Spacer()
+                    .frame(height: 30)
             }
+            
         }
         .background(Color.black)
         .edgesIgnoringSafeArea(.bottom)
