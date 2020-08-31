@@ -25,4 +25,8 @@ extension UIColor {
     class var separator: UIColor {
         get { UIColor(named: "Separator")! }
     }
+
+    class var cameraButton: UIColor {
+        get { UIColor(named: "CameraButton")! }
+    }
 }
