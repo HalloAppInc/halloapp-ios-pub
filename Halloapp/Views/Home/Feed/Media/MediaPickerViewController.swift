@@ -5,6 +5,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import AVKit
 import Core
 import Foundation
 import Photos
@@ -31,6 +32,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private var transitionLayout: UICollectionViewTransitionLayout?
     private var initialTransitionVelocity: CGFloat = 0
     private var transitionState: TransitionState = .ready
+    private var preview: UIView?
     
     init(didFinish: @escaping MediaPickerViewControllerCallback) {
         self.didFinish = didFinish
@@ -51,7 +53,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         dataSource = makeDataSource(collectionView)
         dataSource.apply(makeSnapshot())
 
-        self.view.addSubview(collectionView!)
+        self.view.addSubview(collectionView)
 
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
@@ -61,6 +63,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         ])
         
         setupZoom()
+        setupPreviews()
     }
     
     private func fetchAssets(album: PHAssetCollection? = nil) {
@@ -181,6 +184,121 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                 collectionView.finishInteractiveTransition()
             }
         }
+    }
+    
+    private var imagePreviewWidthConstraint: NSLayoutConstraint!
+    private var imagePreviewHeightConstraint: NSLayoutConstraint!
+    
+    private func setupPreviews() {
+        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.onDisplayPreview(sender:)))
+        collectionView.addGestureRecognizer(longPressRecognizer)
+    }
+    
+    @objc func onDisplayPreview(sender: UILongPressGestureRecognizer) {
+        if sender.state == .began {
+            let p = sender.location(in: collectionView)
+            guard let indexPath = collectionView.indexPathForItem(at: p) else { return }
+            guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
+            guard item.type == .asset else { return }
+            guard let asset = item.asset else { return }
+            guard self.preview == nil else { return }
+            
+            let manager = PHImageManager.default()
+            
+            if asset.mediaType == .image {
+                let maxSize = CGSize(width: UIScreen.main.bounds.width - 40, height: UIScreen.main.bounds.height - 40)
+                let options = PHImageRequestOptions()
+                options.isSynchronous = true
+                
+                manager.requestImage(for: asset, targetSize: maxSize, contentMode: .aspectFit, options: options) {[weak self] image, _ in
+                    guard let self = self else { return }
+                    guard let image = image else { return }
+                    guard self.preview == nil else { return }
+                    
+                    self.makeImagePreview(image)
+                    self.showPreview()
+                }
+            } else if asset.mediaType == .video {
+                let options = PHVideoRequestOptions()
+                options.isNetworkAccessAllowed = true
+                
+                manager.requestPlayerItem(forVideo: asset, options: options) {[weak self] playerItem, _ in
+                    guard let self = self else { return }
+                    guard let playerItem = playerItem else { return }
+                    guard self.preview == nil else { return }
+                    
+                    self.makeVideoPreview(playerItem)
+                    self.showPreview()
+                }
+            }
+        } else if self.preview != nil && sender.state == .ended {
+            hidePreview()
+        }
+    }
+    
+    private func makeImagePreview(_ image: UIImage) {
+        let content = UIView()
+        content.translatesAutoresizingMaskIntoConstraints = false
+        content.backgroundColor = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.4)
+        self.view.addSubview(content)
+        
+        let iView = UIImageView()
+        iView.translatesAutoresizingMaskIntoConstraints = false
+        iView.contentMode = .scaleAspectFit
+        iView.layer.cornerRadius = 15
+        iView.clipsToBounds = true
+        iView.image = image
+        content.addSubview(iView)
+        
+        self.preview = content
+
+        NSLayoutConstraint.activate([
+            content.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
+            content.leftAnchor.constraint(equalTo: self.view.leftAnchor),
+            content.rightAnchor.constraint(equalTo: self.view.rightAnchor),
+            content.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            iView.centerXAnchor.constraint(equalTo: content.centerXAnchor),
+            iView.centerYAnchor.constraint(equalTo: content.centerYAnchor),
+            iView.widthAnchor.constraint(equalToConstant: image.size.width),
+            iView.heightAnchor.constraint(equalToConstant: image.size.height),
+        ])
+    }
+    
+    private func makeVideoPreview(_ item: AVPlayerItem) {
+        let content = UIView()
+        content.backgroundColor = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.4)
+        content.frame = self.view.bounds
+        
+        let player = AVPlayer(playerItem: item)
+        let playerView = PlayerPreviewView()
+        playerView.player = player
+        playerView.frame = self.view.bounds.insetBy(dx: 40, dy: 40)
+        content.addSubview(playerView)
+        
+        player.play()
+        
+        self.preview = content
+        self.view.addSubview(content)
+    }
+    
+    private func showPreview() {
+        guard let preview = self.preview else { return }
+        
+        preview.alpha = 0
+        UIView.animate(withDuration: 0.3) {
+            preview.alpha = 1
+        }
+    }
+    
+    private func hidePreview() {
+        guard let preview = self.preview else { return }
+        self.preview = nil
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            preview.alpha = 0
+        }, completion: { finished in
+            preview.removeFromSuperview()
+        })
     }
     
     private func makeCollectionView(layout: UICollectionViewFlowLayout) -> UICollectionView {
@@ -522,6 +640,43 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             
             self.updateNavigationBarButtons()
         })
+    }
+}
+
+class PlayerPreviewView: UIView {
+    var player: AVPlayer? {
+        get {
+            return playerLayer.player
+        }
+        set {
+            playerLayer.player = newValue
+            playerLayer.player?.currentItem?.addObserver(self, forKeyPath: "status", options: [], context: nil)
+        }
+    }
+    
+    var playerLayer: AVPlayerLayer {
+        return layer as! AVPlayerLayer
+    }
+    
+    // Override UIView property
+    override static var layerClass: AnyClass {
+        return AVPlayerLayer.self
+    }
+    
+    private func makeVideoRounded() {
+        let maskLayer = CAShapeLayer()
+        maskLayer.path = UIBezierPath(roundedRect: playerLayer.videoRect, cornerRadius: 15).cgPath
+        playerLayer.mask = maskLayer
+    }
+    
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "status" {
+            guard let status = playerLayer.player?.currentItem?.status, status == .readyToPlay else { return }
+            makeVideoRounded()
+            return
+        }
+        
+        super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
     }
 }
 
