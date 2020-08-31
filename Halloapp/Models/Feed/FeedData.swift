@@ -1191,7 +1191,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
     
     func seenByUsers(for feedPost: FeedPost) -> [FeedPostReceipt] {
-        let allContacts = contactStore.allRegisteredContacts(sorted: true)
+        let allContacts = contactStore.allRegisteredContacts(sorted: false)
         
         // Contacts that have seen the post go into the first section.
         var users = [FeedPostReceipt]()

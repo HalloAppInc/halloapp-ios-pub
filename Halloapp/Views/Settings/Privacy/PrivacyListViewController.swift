@@ -104,7 +104,7 @@ class PrivacyListViewController: PrivacyListTableViewController {
         let selfUserId = MainAppContext.shared.userData.userId
         var uniqueUserIds = Set<UserID>()
         var contacts = [PrivacyListTableRow]()
-        for contact in MainAppContext.shared.contactStore.allRegisteredContacts(sorted: true) {
+        for contact in MainAppContext.shared.contactStore.allInNetworkContacts(sorted: true) {
             guard let userId = contact.userId else { continue }
             guard !uniqueUserIds.contains(userId) else { continue }
             guard userId != selfUserId else { continue }

@@ -187,7 +187,7 @@ class ChatData: ObservableObject, XMPPControllerChatDelegate {
     
     func populateThreadsWithSymmetricContacts() {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let contacts = AppContext.shared.contactStore.allRegisteredContacts(sorted: true)
+            let contacts = AppContext.shared.contactStore.allInNetworkContacts(sorted: true)
             for contact in contacts {
                 guard let userId = contact.userId else { continue }
                 if let chatThread = self.chatThread(chatWithUserId: userId) {

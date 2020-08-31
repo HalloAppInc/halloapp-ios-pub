@@ -36,7 +36,7 @@ class DestinationViewController: UITableViewController {
     
     override init(style: UITableView.Style) {
         avatarStore = AvatarStore()
-        contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: true)
+        contacts = ShareExtensionContext.shared.contactStore.allInNetworkContacts(sorted: true)
 
         super.init(style: style)
     }

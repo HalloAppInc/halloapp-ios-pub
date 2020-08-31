@@ -194,7 +194,7 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
     }
 
     private func reloadData(from feedPost: FeedPost) {
-        let allContacts = AppContext.shared.contactStore.allRegisteredContacts(sorted: true)
+        let allContacts = AppContext.shared.contactStore.allInNetworkContacts(sorted: true)
         let seenRows: [FeedPostReceipt] = MainAppContext.shared.feedData.seenByUsers(for: feedPost)
 
         var addedUserIds = Set(seenRows.map(\.userId))

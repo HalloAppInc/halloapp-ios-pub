@@ -771,7 +771,6 @@ class ContactStoreMain: ContactStore {
         }
     }
 
-
     private func resetStatusForAllContacts() {
         DDLogWarn("contacts/reset-status")
         self.performOnBackgroundContextAndWait { managedObjectContext in
