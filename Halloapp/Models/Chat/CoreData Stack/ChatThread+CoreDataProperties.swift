@@ -7,8 +7,9 @@
 //
 //
 
-import Foundation
+import Core
 import CoreData
+import Foundation
 
 extension ChatThread {
 
@@ -31,9 +32,12 @@ extension ChatThread {
         return NSFetchRequest<ChatThread>(entityName: "ChatThread")
     }
 
-    @NSManaged var title: String?
+    @NSManaged private var typeValue: Int16
     
-    @NSManaged var chatWithUserId: String
+    @NSManaged var groupId: GroupID?
+    @NSManaged var chatWithUserId: UserID?
+    
+    @NSManaged var title: String?
     @NSManaged var unreadCount: Int32
     
     @NSManaged var lastMsgId: String?
@@ -42,6 +46,15 @@ extension ChatThread {
     @NSManaged var lastMsgText: String?
     @NSManaged private var lastMsgMediaTypeValue: Int16
     @NSManaged var lastMsgTimestamp: Date?
+    
+    var type: ChatType {
+        get {
+            return ChatType(rawValue: self.typeValue)!
+        }
+        set {
+            self.typeValue = newValue.rawValue
+        }
+    }
     
     var lastMsgStatus: LastMsgStatus {
         get {

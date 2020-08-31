@@ -10,6 +10,7 @@ import Core
 import UIKit
 import XMPPFramework
 
+
 struct XMPPChatMessage {
     let id: String
     let fromUserId: UserID
@@ -41,7 +42,7 @@ struct XMPPChatMedia {
         self.key = chatMedia.key
         self.sha256 = chatMedia.sha256
     }
-
+    
     init?(urlElement: XMLElement) {
         guard let typeStr = urlElement.attributeStringValue(forName: "type") else { return nil }
         guard let type: ChatMessageMediaType = {

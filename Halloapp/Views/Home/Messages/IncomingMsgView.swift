@@ -14,9 +14,8 @@ protocol IncomingMsgViewDelegate: AnyObject {
 }
 
 class IncomingMsgView: UIView, ChatMediaSliderDelegate {
-    
     var currentPage: Int = 0
-    
+
     func chatMediaSlider(_ view: ChatMediaSlider, currentPage: Int) {
         self.currentPage = currentPage
         MainAppContext.shared.chatData.currentPage = self.currentPage
@@ -47,6 +46,85 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         self.mainView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
     }
 
+    private lazy var mainView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.bubbleRow, self.timeRow ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .vertical
+        view.alignment = .leading
+        view.spacing = 0
+        
+        return view
+    }()
+    
+    private lazy var bubbleRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.nameRow, self.quotedRow, self.textRow ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .vertical
+        view.spacing = 0
+        
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.backgroundColor = .systemGray5
+        subView.layer.cornerRadius = 20
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        view.insertSubview(subView, at: 0)
+
+        return view
+    }()
+    
+    // MARK: Name Row
+    private lazy var nameRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.nameLabel ])
+        view.axis = .vertical
+        view.spacing = 0
+        view.layoutMargins = UIEdgeInsets(top: 5, left: 20, bottom: 3, right: 15)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true
+        return view
+    }()
+    
+    private lazy var nameLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        
+        label.font = UIFont.systemFont(ofSize: 13)
+        label.textColor = .secondaryLabel
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        return label
+    }()
+    
+    private lazy var timeRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.timeLabel ])
+        view.axis = .vertical
+        view.spacing = 0
+        view.layoutMargins = UIEdgeInsets(top: 1, left: 20, bottom: 0, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var timeLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        
+        label.font = UIFont.systemFont(ofSize: 12)
+        label.textColor = .secondaryLabel
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        return label
+    }()
+    
+
+    
     // MARK: Quoted
     
     private lazy var quotedNameLabel: UILabel = {
@@ -157,7 +235,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         textView.translatesAutoresizingMaskIntoConstraints = false
         textView.isScrollEnabled = false
         textView.isEditable = false
-        textView.isSelectable = true
+        textView.isSelectable = false
         textView.isUserInteractionEnabled = true
         textView.dataDetectorTypes = .link
         textView.textContainerInset = UIEdgeInsets.zero
@@ -178,91 +256,57 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         return view
     }()
     
-    private lazy var bubbleRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.quotedRow, self.textRow ])
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.axis = .vertical
-        view.spacing = 0
-        
-        let subView = UIView(frame: view.bounds)
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        subView.backgroundColor = .systemGray5
-        subView.layer.cornerRadius = 20
-        subView.layer.masksToBounds = true
-        subView.clipsToBounds = true
-        view.insertSubview(subView, at: 0)
 
-        return view
-    }()
-    
-    private lazy var timeLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        
-        label.font = UIFont.systemFont(ofSize: 12)
-        label.textColor = .secondaryLabel
-        
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        return label
-    }()
-    
-    private lazy var timeRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.timeLabel ])
-        view.axis = .vertical
-        view.spacing = 0
-        view.layoutMargins = UIEdgeInsets(top: 1, left: 20, bottom: 0, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
 
-    private lazy var mainView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.bubbleRow, self.timeRow ])
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.axis = .vertical
-        view.alignment = .leading
-        view.spacing = 0
-        
-        return view
-    }()
+
     
     // MARK: Updates
 
-    func updateWith(chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
+    func updateWithChatMessage(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
+        let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, feedPostMediaIndex: Int(chatMessage.feedPostMediaIndex))
+        updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
+                   isQuotedMessage: isQuotedMessage,
+                   text: chatMessage.text,
+                   media: chatMessage.media,
+                   timestamp: chatMessage.timestamp)
+    }
+    
+    func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool) {
         
-        if isPreviousMsgSameSender {
-            self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
-        } else {
-            self.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 0, right: 0)
+        nameLabel.text = AppContext.shared.contactStore.fullName(for: chatGroupMessage.userId)
+        if nameLabel.text == "Unknown Contact" {
+            nameLabel.text = "~\(chatGroupMessage.name ?? "Unknown Contact")"
         }
+        nameRow.isHidden = false
         
-        // text
-        let text = chatMessage.text ?? ""
-        if text.count <= 3 && text.containsOnlyEmoji {
-            self.textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
-        }
-        self.textView.text = text
-        
+        updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
+                   isQuotedMessage: false,
+                   text: chatGroupMessage.text,
+                   media: chatGroupMessage.media,
+                   timestamp: chatGroupMessage.timestamp)
+    }
+    
+    func updateQuoted(chatQuoted: ChatQuoted?, feedPostMediaIndex: Int) -> Bool {
+
         var isQuotedMessage = false
         
-        // quoted
-        if let quoted = chatMessage.quoted {
+        if let quoted = chatQuoted {
             isQuotedMessage = true
             if let userId = quoted.userId {
                 self.quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
             }
             self.quotedTextLabel.text = quoted.text ?? ""
-            
+
+            // TODO: need to optimize
             if let media = quoted.media {
 
-                if let med = media.first(where: { $0.order == chatMessage.feedPostMediaIndex }) {
+                if let med = media.first(where: { $0.order == feedPostMediaIndex }) {
                     let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
 
-                    if let image = UIImage(contentsOfFile: fileURL.path) {
-                        self.quotedImageView.image = image
+                    if med.type == .image {
+                        if let image = UIImage(contentsOfFile: fileURL.path) {
+                            self.quotedImageView.image = image
+                        }
                     } else if med.type == .video {
                         if let image = VideoUtils.videoPreviewImage(url: fileURL, size: nil) {
                             self.quotedImageView.image = image
@@ -276,14 +320,34 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
 
                     self.quotedImageView.isHidden = false
                 }
+
             }
             
             self.quotedTextVStack.isHidden = false
             self.quotedRow.isHidden = false
         }
         
+        return isQuotedMessage
+    }
+    
+    
+    func updateWith(isPreviousMsgSameSender: Bool, isQuotedMessage: Bool, text: String?, media: Set<ChatMedia>?, timestamp: Date?) {
+        
+        if isPreviousMsgSameSender {
+            self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        } else {
+            self.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 0, right: 0)
+        }
+        
+        // text
+        let text = text ?? ""
+        if text.count <= 3 && text.containsOnlyEmoji {
+            self.textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+        }
+        self.textView.text = text
+        
         // media
-        if let media = chatMessage.media {
+        if let media = media {
             
             if self.textView.text == "" {
                 self.textView.isHidden = true
@@ -338,7 +402,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         }
         
         // time
-        if let timestamp = chatMessage.timestamp {
+        if let timestamp = timestamp {
             self.timeLabel.text = timestamp.chatTimestamp()
         }
     }

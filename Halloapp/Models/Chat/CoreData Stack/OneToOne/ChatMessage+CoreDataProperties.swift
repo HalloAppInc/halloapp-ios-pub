@@ -72,4 +72,11 @@ extension ChatMessage {
         }
     }
 
+    public var orderedMedia: [ChatMedia] {
+        get {
+            guard let media = self.media else { return [] }
+            return media.sorted { $0.order < $1.order }
+        }
+    }
+    
 }

@@ -107,6 +107,7 @@ public class AvatarView: UIView {
     
     public func prepareForReuse() {
         avatarUpdatingCancellable?.cancel()
+        avatar.image = AvatarView.defaultImage
     }
     
     public func resetImage() {

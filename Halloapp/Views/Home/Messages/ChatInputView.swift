@@ -210,7 +210,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }()
 
     private var textViewContainerHeightConstraint: NSLayoutConstraint?
-    private var postButtonsContainerWidthConstraint: NSLayoutConstraint?
     
     private lazy var textView: UITextView = {
         let view = UITextView()
@@ -221,16 +220,18 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         view.textContainerInset.left = 8
         view.textContainerInset.right = 8
         view.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        view.tintColor = .lavaOrange
+        view.tintColor = UIColor.systemBlue
 
         return view
     }()
     
     private lazy var textViewContainer: UIView = {
         let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = UIColor.systemBackground
         view.addSubview(self.textView)
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return view
     }()
     
@@ -239,51 +240,56 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         button.setImage(UIImage(systemName: "photo.fill"), for: .normal)
         button.addTarget(self, action: #selector(self.postMediaButtonClicked), for: .touchUpInside)
         button.isEnabled = true
-        button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
+        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.tintColor = UIColor.systemGray
         
         button.translatesAutoresizingMaskIntoConstraints = false
-
+        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         return button
     }()
     
     private lazy var postButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
+        button.setImage(UIImage(named: "Send"), for: .normal)
         button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
         button.isEnabled = false
         
-        // gotcha: keep insets at 6 or higher to have a bigger hit area,
-        // rotating image by 45 degree is problematic so perhaps getting a pre-rotated custom icon is better
-        button.contentEdgeInsets = UIEdgeInsets(top: 6, left: 6, bottom: 6, right: 6)
+        // insets at 5 or higher to have a bigger hit area
+        button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-        button.tintColor = .lavaOrange
-        button.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi / 4))
-        
+        button.tintColor = UIColor.systemBlue
+
         button.layer.zPosition = -10
-        
         button.backgroundColor = UIColor.clear
-        
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         
+        button.widthAnchor.constraint(equalToConstant: 35).isActive = true
+   
         return button
     }()
     
     private lazy var postButtonsContainer: UIStackView = {
         let view = UIStackView(arrangedSubviews: [self.postMediaButton, self.postButton])
-        view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .horizontal
+        view.spacing = 10
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        view.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         return view
     }()
     
     private lazy var textInputRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [self.textViewContainer, self.postButtonsContainer])
-        view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .horizontal
         view.alignment = .trailing
-        
         view.spacing = 0
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return view
     }()
     
@@ -336,9 +342,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         self.textInputRow.trailingAnchor.constraint(equalTo: self.vStack.trailingAnchor).isActive = true
       
         self.postButtonsContainer.trailingAnchor.constraint(equalTo: textInputRow.trailingAnchor).isActive = true
-        
-        self.postButtonsContainerWidthConstraint = self.postButtonsContainer.widthAnchor.constraint(equalToConstant: 80)
-        self.postButtonsContainerWidthConstraint?.isActive = true
         
         self.contentView.addArrangedSubview(self.vStack)
         
@@ -534,9 +537,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
         self.postButton.isEnabled = !self.text.isEmpty
         self.postMediaButton.isHidden = !self.text.isEmpty
-
-        self.postButtonsContainerWidthConstraint?.constant = self.text.isEmpty ? 80 : 40
-        self.postButtonsContainerWidthConstraint?.isActive = true
         
         if self.textView.contentSize.height >= 115 {
             self.textViewContainerHeightConstraint?.constant = 115

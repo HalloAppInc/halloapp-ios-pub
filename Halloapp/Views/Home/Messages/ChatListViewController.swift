@@ -143,7 +143,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
                 NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
                 NSSortDescriptor(key: "title", ascending: true)
             ]
-            fetchRequest.predicate = NSPredicate(format: "chatWithUserId != nil")
+            fetchRequest.predicate = NSPredicate(format: "groupId != nil || chatWithUserId != nil")
             
             return fetchRequest
         }
@@ -273,7 +273,17 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let chatThread = fetchedResultsController?.object(at: indexPath) {
-            self.navigationController?.pushViewController(ChatViewController(for: chatThread.chatWithUserId, with: nil, at: 0), animated: true)
+            if chatThread.type == .oneToOne {
+                guard let chatWithUserId = chatThread.chatWithUserId else { return }
+                let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
+                vc.hidesBottomBarWhenPushed = true
+                self.navigationController?.pushViewController(vc, animated: true)
+            } else {
+                guard let groupId = chatThread.groupId else { return }
+                let vc = ChatGroupViewController(for: groupId)
+                vc.hidesBottomBarWhenPushed = true
+                self.navigationController?.pushViewController(vc, animated: true)
+            }
         }
     }
     
@@ -285,7 +295,13 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
             uiAlert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { action in
 
                 if let chatThread = self.fetchedResultsController?.object(at: indexPath) {
-                    MainAppContext.shared.chatData.deleteChat(chatThreadId: chatThread.chatWithUserId)
+                    if chatThread.type == .oneToOne {
+                        guard let chatWithUserId = chatThread.chatWithUserId else { return }
+                        MainAppContext.shared.chatData.deleteChat(chatThreadId: chatWithUserId)
+                    } else {
+                        guard let groupId = chatThread.groupId else { return }
+                        MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId)
+                    }
                 }
                 
                 
@@ -347,7 +363,12 @@ fileprivate class ChatListViewCell: UITableViewCell {
     }
 
     public func configure(with chatThread: ChatThread) {
-        self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId)
+        
+        if chatThread.type == .oneToOne {
+            self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId ?? "")
+        } else {
+            self.nameLabel.text = chatThread.title
+        }
 
         switch chatThread.lastMsgStatus {
         case .seen:
@@ -403,13 +424,47 @@ fileprivate class ChatListViewCell: UITableViewCell {
             self.timeLabel.text = timestamp.chatListTimestamp()
         }
         
-        avatarColumn.configure(with: chatThread.chatWithUserId, using: MainAppContext.shared.avatarStore)
+        if chatThread.type == .oneToOne {
+            avatarColumn.configure(with: chatThread.chatWithUserId ?? "", using: MainAppContext.shared.avatarStore)
+        }
     }
+    
+    private func setup() {
+        self.backgroundColor = .clear
+        
+        self.avatarColumn.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize).isActive = true
+        self.avatarColumn.heightAnchor.constraint(equalTo: self.avatarColumn.widthAnchor).isActive = true
+        
+        self.contentView.addSubview(mainRow)
+        mainRow.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        mainRow.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
+        mainRow.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
+        mainRow.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+    }
+    
+    private lazy var mainRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [self.avatarColumn, self.textColumn])
+        view.axis = .horizontal
+        view.alignment = .center
+        view.spacing = 10
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
     
     // MARK: Avatar Column
     
     private lazy var avatarColumn: AvatarView = {
         return AvatarView()
+    }()
+    
+    private lazy var textColumn: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [self.nameRow, self.lastMsgRow])
+        view.axis = .vertical
+        view.spacing = 2
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
     
     // MARK: Text Column
@@ -420,6 +475,7 @@ fileprivate class ChatListViewCell: UITableViewCell {
         label.font = UIFont.preferredFont(forTextStyle: .headline)
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return label
     }()
     
@@ -431,7 +487,7 @@ fileprivate class ChatListViewCell: UITableViewCell {
         label.textColor = .secondaryLabel
         
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         return label
     }()
@@ -501,7 +557,7 @@ fileprivate class ChatListViewCell: UITableViewCell {
         view.isUserInteractionEnabled = false
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .systemBlue
-        view.contentEdgeInsets = UIEdgeInsets(top: 1, left: 6, bottom: 1, right: 6)
+        view.contentEdgeInsets = UIEdgeInsets(top: 1, left: 6.7, bottom: 1, right: 6.7)
         view.titleLabel?.font = UIFont.preferredFont(forTextStyle: .subheadline)
         view.tintColor = UIColor.systemGray6
         view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -545,35 +601,4 @@ fileprivate class ChatListViewCell: UITableViewCell {
         return view
     }()
         
-    private lazy var textColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [self.nameRow, self.lastMsgRow])
-        view.axis = .vertical
-        view.spacing = 2
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private lazy var mainRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [self.avatarColumn, self.textColumn])
-        view.axis = .horizontal
-        view.alignment = .center
-        view.spacing = 10
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    private func setup() {
-        self.backgroundColor = .clear
-        
-        self.avatarColumn.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize).isActive = true
-        self.avatarColumn.heightAnchor.constraint(equalTo: self.avatarColumn.widthAnchor).isActive = true
-        
-        self.contentView.addSubview(mainRow)
-        mainRow.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        mainRow.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
-        mainRow.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
-        mainRow.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-    }
 }

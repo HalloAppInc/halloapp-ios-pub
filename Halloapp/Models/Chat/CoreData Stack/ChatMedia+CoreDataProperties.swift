@@ -43,9 +43,12 @@ extension ChatMedia {
     
     @NSManaged var typeValue: Int16
     @NSManaged var relativeFilePath: String?
+
     @NSManaged var url: URL?
     @NSManaged var uploadUrl: URL?
-    @NSManaged var message: ChatMessage
+    @NSManaged var message: ChatMessage?
+    @NSManaged var groupMessage: ChatGroupMessage?
+
     @NSManaged private var incomingStatusValue: Int16
     @NSManaged private var outgoingStatusValue: Int16
     @NSManaged var numTries: Int16

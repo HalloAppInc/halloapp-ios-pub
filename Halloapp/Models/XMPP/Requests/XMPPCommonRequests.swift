@@ -150,3 +150,32 @@ class XMPPQueryAvatarRequest: XMPPRequest {
         self.completion(.success(avatarId))
     }
 }
+
+class XMPPClientVersionRequest : XMPPRequest {
+    typealias RequestCompletion = (XMPPIQ?, Error?) -> Void
+    let completion: RequestCompletion
+
+    init(completion: @escaping RequestCompletion) {
+        self.completion = completion
+        let iq = XMPPIQ(iqType: .get, to: XMPPJID(string: "s.halloapp.net"))
+        iq.addChild({
+            let clientVersion = XMLElement(name: "client_version", xmlns: "halloapp:client:version")
+            clientVersion.addChild({
+                let appVersion = AppContext.appVersionForXMPP
+                let userAgent = NSString(string: "HalloApp/iOS\(appVersion)")
+                let version = XMPPElement(name: "version", stringValue: String(userAgent))
+                return version
+            }())
+            return clientVersion
+        }())
+        super.init(iq: iq)
+    }
+
+    override func didFinish(with response: XMPPIQ) {
+        self.completion(response, nil)
+    }
+
+    override func didFail(with error: Error) {
+        self.completion(nil, error)
+    }
+}

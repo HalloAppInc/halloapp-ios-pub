@@ -1,9 +1,11 @@
 //
+//  GroupChatViewController.swift
 //  HalloApp
 //
-//  Created by Tony Jiang on 4/10/20.
+//  Created by Tony Jiang on 8/21/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
+
 
 import AVFoundation
 import CocoaLumberjack
@@ -15,46 +17,32 @@ import UIKit
 import SwiftUI
 import YPImagePicker
 
-extension ChatViewController: MessageComposerViewDelegate {
-    func messageComposerView(_ messageComposerView: MessageComposerView, text: String, media: [PendingMedia]) {
-        self.sendMessage(text: text, media: media)
-    }
-}
-
-class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDelegate, NSFetchedResultsControllerDelegate {
+class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputViewDelegate, NSFetchedResultsControllerDelegate {
     
-    private var fromUserId: String?
-    private var feedPostId: FeedPostID?
-    private var feedPostMediaIndex: Int32 = 0
+    private var groupId: GroupID
     
-    private var fetchedResultsController: NSFetchedResultsController<ChatMessage>?
-    private var dataSource: UITableViewDiffableDataSource<Int, ChatMessage>?
+    private var fetchedResultsController: NSFetchedResultsController<ChatGroupMessage>?
+    private var dataSource: UITableViewDiffableDataSource<Int, ChatGroupMessage>?
     
-    private var trackedChatMessages: [String: TrackedChatMessage] = [:]
+    private var trackedChatGroupMessages: [String: TrackedChatGroupMessage] = [:]
 
     static private let sectionMain = 0
-    static private let incomingMsgCellReuseIdentifier = "IncomingMsgCell"
-    static private let outgoingMsgCellReuseIdentifier = "OutgoingMsgCell"
+    static private let inboundMsgCellReuseIdentifier = "InboundMsgCell"
+    static private let outboundMsgCellReuseIdentifier = "OutboundMsgCell"
     
     private var cancellableSet: Set<AnyCancellable> = []
     
     // MARK: Lifecycle
     
-    init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
-        DDLogDebug("ChatViewController/init/\(fromUserId) [\(AppContext.shared.contactStore.fullName(for: fromUserId))]")
-        self.fromUserId = fromUserId
-        self.feedPostId = feedPostId
-        self.feedPostMediaIndex = feedPostMediaIndex
+    init(for groupId: String) {
+        DDLogDebug("GroupChatViewController/init/\(groupId)")
+        self.groupId = groupId
         super.init(nibName: nil, bundle: nil)
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
     
     override func viewDidLoad() {
-        guard self.fromUserId != nil else { return }
-
         super.viewDidLoad()
         
         let appearance = UINavigationBarAppearance()
@@ -71,7 +59,8 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
         self.titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        titleView.update(with: self.fromUserId!, status: UserPresenceType.none, lastSeen: nil)
+        titleView.update(with: self.groupId)
+        titleView.delegate = self
         
         self.view.addSubview(self.tableView)
         self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
@@ -83,78 +72,81 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         self.tableView.tableHeaderView = nil
         self.tableView.tableFooterView = nil
         
-        self.dataSource = UITableViewDiffableDataSource<Int, ChatMessage>(tableView: self.tableView) { [weak self] tableView, indexPath, chatMessage in
+        self.dataSource = UITableViewDiffableDataSource<Int, ChatGroupMessage>(tableView: self.tableView) { [weak self] tableView, indexPath, chatGroupMessage in
             guard let self = self else { return nil }
             
-            self.trackedChatMessages[chatMessage.id] = TrackedChatMessage(with: chatMessage)
+            self.trackedChatGroupMessages[chatGroupMessage.id] = TrackedChatGroupMessage(with: chatGroupMessage)
             
             var isPreviousMsgSameSender = false
 
-            if chatMessage.fromUserId == MainAppContext.shared.userData.userId {
-                if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.outgoingMsgCellReuseIdentifier, for: indexPath) as? OutgoingMsgCell {
+            // outbound cell
+            if chatGroupMessage.userId == MainAppContext.shared.userData.userId {
+                if let cell = tableView.dequeueReusableCell(withIdentifier: ChatGroupViewController.outboundMsgCellReuseIdentifier, for: indexPath) as? OutboundMsgCell {
 
                     let previousRow = indexPath.row - 1
 
                     if previousRow >= 0 {
                         let previousIndexPath = IndexPath(row: previousRow, section: indexPath.section)
 
-                        if let previousChatMessage = self.fetchedResultsController?.object(at: previousIndexPath) {
-                            if previousChatMessage.fromUserId == chatMessage.fromUserId {
+                        if let previousChatGroupMessage = self.fetchedResultsController?.object(at: previousIndexPath) {
+                            if previousChatGroupMessage.userId == chatGroupMessage.userId {
                                 isPreviousMsgSameSender = true
                             }
                         }
                     }
 
-                    cell.update(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
+                    cell.update(with: chatGroupMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
                     cell.backgroundColor = UIColor.systemGray6
 
-                    if (chatMessage.media != nil) || (chatMessage.quoted != nil && chatMessage.quoted?.media != nil) {
+                    if chatGroupMessage.media != nil {
                         cell.previewAction = { [weak self] previewType, mediaIndex in
                             guard let self = self else { return }
-                            self.showPreviewView(previewType: previewType, media: chatMessage.orderedMedia, quotedMedia: chatMessage.quoted?.orderedMedia, mediaIndex: mediaIndex)
+                            self.showPreviewView(previewType: previewType, media: chatGroupMessage.orderedMedia, quotedMedia: [], mediaIndex: mediaIndex)
                         }
                     }
                     
+                    cell.delegate = self
                     return cell
                 }
             }
 
-            let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.incomingMsgCellReuseIdentifier, for: indexPath) as! IncomingMsgCell
+            // inbound cell
+            let cell = tableView.dequeueReusableCell(withIdentifier: ChatGroupViewController.inboundMsgCellReuseIdentifier, for: indexPath) as! InboundMsgCell
 
             let previousRow = indexPath.row - 1
 
             if previousRow >= 0 {
                 let previousIndexPath = IndexPath(row: previousRow, section: indexPath.section)
 
-                if let previousChatMessage = self.fetchedResultsController?.object(at: previousIndexPath) {
-                    if previousChatMessage.fromUserId == chatMessage.fromUserId {
+                if let previousChatGroupMessage = self.fetchedResultsController?.object(at: previousIndexPath) {
+                    if previousChatGroupMessage.userId == chatGroupMessage.userId {
                         isPreviousMsgSameSender = true
                     }
                 }
             }
 
-            cell.update(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
+            cell.update(with: chatGroupMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
             cell.backgroundColor = UIColor.systemGray6
 
-            if (chatMessage.media != nil) || (chatMessage.quoted != nil && chatMessage.quoted?.media != nil) {
+            if chatGroupMessage.media != nil {
                 cell.previewAction = { [weak self] previewType, mediaIndex in
                     guard let self = self else { return }
-                    self.showPreviewView(previewType: previewType, media: chatMessage.orderedMedia, quotedMedia: chatMessage.quoted?.orderedMedia, mediaIndex: mediaIndex)
+                    self.showPreviewView(previewType: previewType, media: chatGroupMessage.orderedMedia, quotedMedia: [], mediaIndex: mediaIndex)
                 }
             }
 
             return cell
         }
 
-        let fetchRequest: NSFetchRequest<ChatMessage> = ChatMessage.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "(fromUserId = %@ AND toUserId = %@) || (toUserId = %@ && fromUserId = %@)", self.fromUserId!, MainAppContext.shared.userData.userId, self.fromUserId!, AppContext.shared.userData.userId)
+        let fetchRequest: NSFetchRequest<ChatGroupMessage> = ChatGroupMessage.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "groupId = %@", self.groupId)
         fetchRequest.sortDescriptors = [
-            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true),
-            NSSortDescriptor(keyPath: \ChatMessage.id, ascending: true) // if timestamps are the same, break tie
+            NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true),
+            NSSortDescriptor(keyPath: \ChatGroupMessage.id, ascending: true) // if timestamps are the same, break tie
         ]
         
         self.fetchedResultsController =
-            NSFetchedResultsController<ChatMessage>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext,
+            NSFetchedResultsController<ChatGroupMessage>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext,
                                                         sectionNameKeyPath: nil, cacheName: nil)
         self.fetchedResultsController?.delegate = self
         do {
@@ -168,26 +160,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard(_:)))
         self.view.addGestureRecognizer(tapGesture)
-        
-        if let feedPostId = self.feedPostId {
-            if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-                if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
-                    self.chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: mediaItem.type, mediaUrl: mediaItem.relativeFilePath)
-                } else {
-                    self.chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: nil, mediaUrl: nil)
-                }
-            }
-        }
-        
-        self.cancellableSet.insert(
-            MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in
-                DDLogInfo("ChatViewController/didGetCurrentChatPresence")
-                guard let self = self else { return }
-                guard let userId = self.fromUserId else { return }
-                self.titleView.update(with: userId, status: status, lastSeen: ts)
-            }
-        )
-
+                
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -205,27 +178,27 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if let chatWithUserId = self.fromUserId {
-            MainAppContext.shared.chatData.markThreadAsRead(type: .oneToOne, for: chatWithUserId)
-            MainAppContext.shared.chatData.updateUnreadThreadCount()
-            MainAppContext.shared.chatData.updateUnreadMessageCount()
-            MainAppContext.shared.chatData.subscribeToPresence(to: chatWithUserId)
-            MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
-        }
+        
+        MainAppContext.shared.chatData.markThreadAsRead(type: .group, for: groupId)
+        MainAppContext.shared.chatData.updateUnreadThreadCount()
+        MainAppContext.shared.chatData.setCurrentlyChattingInGroup(for: groupId)
+
+        MainAppContext.shared.chatData.getGroupInfo(groupId: groupId)
+        
         self.chatInputView.didAppear(in: self)
         
-        NotificationUtility.removeDelivered(forType: .chat, withFromId: self.fromUserId!)
+//        NotificationUtility.removeDelivered(forType: .chat, withFromId: self.fromUserId!)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
-        MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
+        MainAppContext.shared.chatData.setCurrentlyChattingInGroup(for: nil)
         self.chatInputView.willDisappear(in: self)
     }
     
     deinit {
-        DDLogDebug("ChatViewController/deinit/\(fromUserId ?? "")")
+        DDLogDebug("ChatGroupViewController/deinit/\(groupId)")
     }
     
     // MARK:
@@ -236,7 +209,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         navigationController.modalPresentationStyle = .overFullScreen
         navigationController.modalTransitionStyle = .crossDissolve
         self.present(navigationController, animated: true)
-        
+
 //        self.navigationController?.pushViewController(MediaPreviewController(for: chatMessage), animated: false)
     }
     
@@ -254,8 +227,8 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         tableView.contentInsetAdjustmentBehavior = .scrollableAxes
         tableView.keyboardDismissMode = .interactive
         tableView.preservesSuperviewLayoutMargins = true
-        tableView.register(IncomingMsgCell.self, forCellReuseIdentifier: ChatViewController.incomingMsgCellReuseIdentifier)
-        tableView.register(OutgoingMsgCell.self, forCellReuseIdentifier: ChatViewController.outgoingMsgCellReuseIdentifier)
+        tableView.register(InboundMsgCell.self, forCellReuseIdentifier: ChatGroupViewController.inboundMsgCellReuseIdentifier)
+        tableView.register(OutboundMsgCell.self, forCellReuseIdentifier: ChatGroupViewController.outboundMsgCellReuseIdentifier)
         tableView.delegate = self
         return tableView
     }()
@@ -263,34 +236,31 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     // MARK: Tableview Delegates
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else { return }
+        guard let chatGroupMessage = self.fetchedResultsController?.object(at: indexPath) else { return }
+
         let height = Int(cell.bounds.height)
        
-        if chatMessage.cellHeight != height {
-            DDLogDebug("ChatViewController/updateCellHeight/\(chatMessage.id) from \(chatMessage.cellHeight) to \(height)")
-            MainAppContext.shared.chatData.updateChatMessageCellHeight(for: chatMessage.id, with: height)
+        if chatGroupMessage.cellHeight != height {
+            DDLogDebug("ChatGroupViewController/updateCellHeight/\(chatGroupMessage.id) from \(chatGroupMessage.cellHeight) to \(height)")
+            MainAppContext.shared.chatData.updateChatGroupMessageCellHeight(for: chatGroupMessage.id, with: height)
         }
     }
     
     func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-        guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else { return 50 }
+        
+        guard let chatGroupMessage = self.fetchedResultsController?.object(at: indexPath) else { return 50 }
 
-        if chatMessage.cellHeight != 0 {
-            return CGFloat(chatMessage.cellHeight)
+        if chatGroupMessage.cellHeight != 0 {
+            return CGFloat(chatGroupMessage.cellHeight)
         }
         
         let result:CGFloat = 50
-//        if chatMessage.quoted != nil {
+
+//        if chatGroupMessage.media != nil {
 //            result += 100
 //        }
-//
-//        if chatMessage.media != nil {
-//            if !chatMessage.media!.isEmpty {
-//                result += 30
-//            }
-//        }
 
-//        DDLogDebug("ChatViewController/estimateCellHeight/\(chatMessage.id)")
+        DDLogDebug("ChatGroupViewController/estimatedCellHeight/\(chatGroupMessage.id) \(result)")
         return result
     }
     
@@ -299,37 +269,37 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     private var shouldScrollToBottom = true
     private var skipDataUpdate = false
     
-    private func isCellHeightUpdate(for chatMessage: ChatMessage) -> Bool {
-        guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return false }
-        if trackedChatMessage.cellHeight != chatMessage.cellHeight {
+    private func isCellHeightUpdate(for chatGroupMessage: ChatGroupMessage) -> Bool {
+        guard let trackedChatGroupMessage = self.trackedChatGroupMessages[chatGroupMessage.id] else { return false }
+        if trackedChatGroupMessage.cellHeight != chatGroupMessage.cellHeight {
             return true
         }
         return false
     }
     
-    private func isOutgoingMessageStatusUpdate(for chatMessage: ChatMessage) -> Bool {
-        guard chatMessage.fromUserId == MainAppContext.shared.userData.userId else { return false }
-        guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return false }
-        if trackedChatMessage.outgoingStatus != chatMessage.outgoingStatus {
+    private func isOutgoingGroupMessageStatusUpdate(for chatGroupMessage: ChatGroupMessage) -> Bool {
+        guard chatGroupMessage.userId == MainAppContext.shared.userData.userId else { return false }
+        guard let trackedChatGroupMessage = self.trackedChatGroupMessages[chatGroupMessage.id] else { return false }
+        if trackedChatGroupMessage.outboundStatus != chatGroupMessage.outboundStatus {
             return true
         }
         return false
     }
     
-    private func findUpdatedMedia(for chatMessage: ChatMessage) -> ChatMedia? {
-        guard chatMessage.fromUserId != MainAppContext.shared.userData.userId else { return nil }
-        guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return nil }
-        guard let media = chatMessage.media else { return nil }
+    private func findUpdatedMedia(for chatGroupMessage: ChatGroupMessage) -> ChatMedia? {
+        guard chatGroupMessage.userId != MainAppContext.shared.userData.userId else { return nil }
+        guard let trackedChatGroupMessage = self.trackedChatGroupMessages[chatGroupMessage.id] else { return nil }
+        guard let media = chatGroupMessage.media else { return nil }
         for med in media {
             guard med.relativeFilePath != nil else { continue }
-            if trackedChatMessage.media[Int(med.order)].relativeFilePath == nil {
+            if trackedChatGroupMessage.media[Int(med.order)].relativeFilePath == nil {
                 return med
             }
         }
         return nil
     }
     
-    private func updateCellMedia(for cell: IncomingMsgCell, with med: ChatMedia) {
+    private func updateCellMedia(for cell: InboundMsgCell, with med: ChatMedia) {
         guard let relativeFilePath = med.relativeFilePath else { return }
         var img: UIImage?
         let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
@@ -351,28 +321,28 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         
         switch type {
         case .update:
-            DDLogDebug("ChatViewController/frc/update")
+            DDLogDebug("ChatGroupViewController/frc/update")
             self.skipDataUpdate = true
-            guard let chatMessage = anObject as? ChatMessage else { break }
-            
-            if isOutgoingMessageStatusUpdate(for: chatMessage) {
-                DDLogDebug("ChatViewController/frc/update/outgoingMessageStatusChange")
+            guard let chatGroupMessage = anObject as? ChatGroupMessage else { break }
+
+            if isOutgoingGroupMessageStatusUpdate(for: chatGroupMessage) {
+                DDLogDebug("ChatGroupViewController/frc/update/outgoingGroupMessageStatusChange")
                 self.skipDataUpdate = false
             }
-            
+
             // incoming messages media changes, update directly
-            if let updatedChatMedia = findUpdatedMedia(for: chatMessage) {
-                guard let cell = self.tableView.cellForRow(at: indexPath!) as? IncomingMsgCell else { break }
-                DDLogDebug("ChatViewController/frc/update-cell-directly/updatedMedia")
+            if let updatedChatMedia = findUpdatedMedia(for: chatGroupMessage) {
+                guard let cell = self.tableView.cellForRow(at: indexPath!) as? InboundMsgCell else { break }
+                DDLogDebug("ChatGroupViewController/frc/update-cell-directly/updatedMedia")
                 self.updateCellMedia(for: cell, with: updatedChatMedia)
             }
         case .insert:
-            DDLogDebug("ChatViewController/frc/insert")
+            DDLogDebug("ChatGroupViewController/frc/insert")
             self.shouldScrollToBottom = true
         case .move:
-            DDLogDebug("ChatViewController/frc/move")
+            DDLogDebug("ChatGroupViewController/frc/move")
         case .delete:
-            DDLogDebug("ChatViewController/frc/delete")
+            DDLogDebug("ChatGroupViewController/frc/delete")
         default:
             break
         }
@@ -381,7 +351,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         
         if self.skipDataUpdate {
-            DDLogDebug("ChatViewController/frc/update/skipDataUpdate")
+            DDLogDebug("ChatGroupViewController/frc/update/skipDataUpdate")
             self.skipDataUpdate = false
             return
         }
@@ -397,18 +367,18 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }
 
     func updateData(animatingDifferences: Bool = true) {
-        guard let chatMessages = self.fetchedResultsController?.fetchedObjects else { return}
+        guard let chatGroupMessages = self.fetchedResultsController?.fetchedObjects else { return}
 
-        var diffableDataSourceSnapshot = NSDiffableDataSourceSnapshot<Int, ChatMessage>()
-        diffableDataSourceSnapshot.appendSections([ ChatViewController.sectionMain ])
-        diffableDataSourceSnapshot.appendItems(chatMessages)
+        var diffableDataSourceSnapshot = NSDiffableDataSourceSnapshot<Int, ChatGroupMessage>()
+        diffableDataSourceSnapshot.appendSections([ ChatGroupViewController.sectionMain ])
+        diffableDataSourceSnapshot.appendItems(chatGroupMessages)
         self.dataSource?.apply(diffableDataSourceSnapshot, animatingDifferences: animatingDifferences)
     }
 
     private func scrollToBottom(_ animated: Bool = true) {
         if let dataSnapshot = self.dataSource?.snapshot() {
-            let numberOfRows = dataSnapshot.numberOfItems(inSection: ChatViewController.sectionMain)
-            let indexPath = IndexPath(row: numberOfRows - 1, section: ChatViewController.sectionMain)
+            let numberOfRows = dataSnapshot.numberOfItems(inSection: ChatGroupViewController.sectionMain)
+            let indexPath = IndexPath(row: numberOfRows - 1, section: ChatGroupViewController.sectionMain)
             self.tableView.scrollToRow(at: indexPath, at: .none, animated: animated)
         }
     }
@@ -482,28 +452,22 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }
 
     func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
-        self.sendMessage(text: text, media: [])
+        self.sendGroupMessage(text: text, media: [])
     }
     
-    func sendMessage(text: String, media: [PendingMedia]) {
-        guard let sendToUserId = self.fromUserId else { return }
+    func sendGroupMessage(text: String, media: [PendingMedia]) {
+     
+        MainAppContext.shared.chatData.sendGroupMessage(toGroupId: groupId, text: text, media: media)
         
-        MainAppContext.shared.chatData.sendMessage(toUserId: sendToUserId, text: text, media: media, feedPostId: self.feedPostId, feedPostMediaIndex: self.feedPostMediaIndex)
-        
-        self.chatInputView.closeQuoteFeedPanel()
-        
-        self.feedPostId = nil
-        self.feedPostMediaIndex = 0
         self.chatInputView.text = ""
+    }
+    
+    // TODO: move chatInputViewCloseQuotePanel to a separate protocol
+    func chatInputViewCloseQuotePanel(_ inputView: ChatInputView) {
     }
     
     func chatInputView(_ inputView: ChatInputView) {
         self.presentPhotoLibraryPicker()
-    }
-    
-    func chatInputViewCloseQuotePanel(_ inputView: ChatInputView) {
-        self.feedPostId = nil
-        self.feedPostMediaIndex = 0
     }
     
     private func presentPhotoLibraryPicker() {
@@ -615,7 +579,33 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }
 }
 
-fileprivate struct TrackedChatMedia {
+
+
+extension ChatGroupViewController: TitleViewDelegate {
+    fileprivate func titleView(_ titleView: TitleView) {
+        let vc = GroupInfoViewController(for: groupId)
+        vc.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(vc, animated: true)
+    }
+}
+
+extension ChatGroupViewController: OutboundMsgCellDelegate {
+    
+    func outboundMsgCell(_ outboundMsgCell: OutboundMsgCell, didLongPressOn msgId: String) {
+
+
+    }
+    
+
+}
+
+extension ChatGroupViewController: MessageComposerViewDelegate {
+    func messageComposerView(_ messageComposerView: MessageComposerView, text: String, media: [PendingMedia]) {
+        self.sendGroupMessage(text: text, media: media)
+    }
+}
+
+fileprivate struct TrackedChatGroupMedia {
     let relativeFilePath: String?
     let order: Int
 
@@ -625,20 +615,20 @@ fileprivate struct TrackedChatMedia {
     }
 }
 
-fileprivate struct TrackedChatMessage {
+fileprivate struct TrackedChatGroupMessage {
     let id: String
     let cellHeight: Int
-    let outgoingStatus: ChatMessage.OutgoingStatus
-    var media: [TrackedChatMedia] = []
+    let outboundStatus: ChatGroupMessage.OutboundStatus
+    var media: [TrackedChatGroupMedia] = []
 
-    init(with chatMessage: ChatMessage) {
-        self.id = chatMessage.id
-        self.cellHeight = Int(chatMessage.cellHeight)
-        self.outgoingStatus = chatMessage.outgoingStatus
+    init(with chatGroupMessage: ChatGroupMessage) {
+        self.id = chatGroupMessage.id
+        self.cellHeight = Int(chatGroupMessage.cellHeight)
+        self.outboundStatus = chatGroupMessage.outboundStatus
 
-        if let media = chatMessage.media {
+        if let media = chatGroupMessage.media {
             for med in media {
-                self.media.append(TrackedChatMedia(with: med))
+                self.media.append(TrackedChatGroupMedia(with: med))
             }
         }
         self.media.sort {
@@ -647,17 +637,56 @@ fileprivate struct TrackedChatMessage {
     }
 }
 
+fileprivate protocol TitleViewDelegate: AnyObject {
+    func titleView(_ titleView: TitleView)
+}
+
 fileprivate class TitleView: UIView {
+    
+    weak var delegate: TitleViewDelegate?
+    
     override init(frame: CGRect){
         super.init(frame: frame)
         setup()
     }
 
-    required init?(coder aDecoder: NSCoder){
-        super.init(coder: aDecoder)
-        setup()
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
+
+    func update(with groupId: String) {
+        if let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+            self.nameLabel.text = chatGroup.name
+        }
+        
+        //        contactImageView.configure(with: fromUserId, using: MainAppContext.shared.avatarStore)
     }
 
+    private func setup() {
+        let imageSize: CGFloat = 40.0
+        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
+        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
+        
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
+        spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
+
+        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.nameColumn, spacer ])
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        hStack.axis = .horizontal
+        hStack.alignment = .leading
+        hStack.spacing = 10
+
+        self.addSubview(hStack)
+        hStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
+        hStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
+        hStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoGroupInfo(_:)))
+        isUserInteractionEnabled = true
+        addGestureRecognizer(tapGesture)
+    }
+    
     private lazy var contactImageView: AvatarView = {
         return AvatarView()
     }()
@@ -689,52 +718,12 @@ fileprivate class TitleView: UIView {
         return view
     }()
     
-    private func setup() {
-        let imageSize: CGFloat = 40.0
-        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
-        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
-        
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
-        spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-
-        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.nameColumn, spacer ])
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.axis = .horizontal
-        hStack.alignment = .leading
-        hStack.spacing = 10
-
-        self.addSubview(hStack)
-        hStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
+    @objc func gotoGroupInfo(_ sender: UIView) {
+        self.delegate?.titleView(self)
     }
-
-    func update(with fromUserId: String, status: UserPresenceType, lastSeen: Date?) {
-        self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: fromUserId)
-        
-        switch status {
-        case .away:
-            if let lastSeen = lastSeen {
-                self.lastSeenLabel.text = lastSeen.lastSeenTimestamp()
-                self.lastSeenLabel.isHidden = false
-            }
-        case .available:
-            self.lastSeenLabel.isHidden = false
-            self.lastSeenLabel.text = "online"
-        default:
-            self.lastSeenLabel.isHidden = true
-            self.lastSeenLabel.text = ""
-        }
-        
-        contactImageView.configure(with: fromUserId, using: MainAppContext.shared.avatarStore)
-    }
-    
 }
 
-class IncomingMsgCell: UITableViewCell, IncomingMsgViewDelegate {
+class InboundMsgCell: UITableViewCell, IncomingMsgViewDelegate {
 
     var previewAction: ((_ previewType: MediaPreviewController.PreviewType, _ mediaIndex: Int) -> ())?
     
@@ -777,8 +766,8 @@ class IncomingMsgCell: UITableViewCell, IncomingMsgViewDelegate {
         return view
     }()
     
-    func update(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
-        self.incomingMsgView.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
+    func update(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool) {
+        self.incomingMsgView.updateWithChatGroupMessage(with: chatGroupMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
     }
     
     func updateMedia(_ sliderMedia: SliderMedia) {
@@ -794,10 +783,18 @@ class IncomingMsgCell: UITableViewCell, IncomingMsgViewDelegate {
     }
 }
 
-class OutgoingMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
 
+protocol OutboundMsgCellDelegate: AnyObject {
+    func outboundMsgCell(_ outboundMsgCell: OutboundMsgCell, didLongPressOn msgId: String)
+}
+
+class OutboundMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
+
+    weak var delegate: OutboundMsgCellDelegate?
+    
     var previewAction: ((_ previewType: MediaPreviewController.PreviewType, _ mediaIndex: Int) -> ())?
-
+    var msgId: String?
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
@@ -810,6 +807,7 @@ class OutgoingMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        self.msgId = nil
         self.outgoingMsgView.reset()
     }
 
@@ -829,16 +827,30 @@ class OutgoingMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
         self.outgoingMsgView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
         self.outgoingMsgView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(UIScreen.main.bounds.width * 0.8).rounded()).isActive = true
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoMsgInfo(_:)))
+        outgoingMsgView.isUserInteractionEnabled = true
+        outgoingMsgView.addGestureRecognizer(tapGesture)
+        
     }
 
+    @objc func gotoMsgInfo(_ sender: UIView) {
+        guard let messageId = msgId else { return }
+        self.delegate?.outboundMsgCell(self, didLongPressOn: messageId)
+        
+
+        
+    }
+    
     private lazy var outgoingMsgView: OutgoingMsgView = {
         let view = OutgoingMsgView()
         view.delegate = self
         return view
     }()
     
-    func update(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
-        self.outgoingMsgView.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
+    func update(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool) {
+        self.msgId = chatGroupMessage.id
+        self.outgoingMsgView.updateWithChatGroupMessage(with: chatGroupMessage, isPreviousMsgSameSender: isPreviousMsgSameSender)
     }
     
     // MARK: OutgoingMsgView Delegates

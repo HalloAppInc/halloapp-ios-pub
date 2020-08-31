@@ -23,6 +23,8 @@ protocol XMPPControllerFeedDelegate: AnyObject {
 protocol XMPPControllerChatDelegate: AnyObject {
     func xmppController(_ xmppController: XMPPController, didReceiveMessageReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?)
     func xmppController(_ xmppController: XMPPController, didSendMessageReceipt receipt: XMPPReceipt)
+    func xmppController(_ xmppController: XMPPController, didReceiveGroupMessage item: XMLElement)
+    func xmppController(_ xmppController: XMPPController, didReceiveGroupChatMessage item: XMLElement)
 }
 
 protocol XMPPControllerKeyDelegate: AnyObject {
@@ -359,12 +361,6 @@ class XMPPControllerMain: XMPPController {
             return
         }
 
-        if message.element(forName: "chat") != nil {
-            self.didGetNewChatMessage.send(message)
-            self.sendAck(for: message)
-            return
-        }
-        
         if let avatarElement = message.element(forName: "avatar") {
             if let delegate = self.avatarDelegate {
                 delegate.xmppController(self, didReceiveAvatar: avatarElement)
@@ -376,6 +372,28 @@ class XMPPControllerMain: XMPPController {
         if let whisperMessageElement = message.element(forName: "whisper_keys") {
             if let delegate = self.keyDelegate {
                 delegate.xmppController(self, didReceiveWhisperMessage: whisperMessageElement)
+            }
+            self.sendAck(for: message)
+            return
+        }
+        
+        if message.element(forName: "chat") != nil {
+            self.didGetNewChatMessage.send(message)
+            self.sendAck(for: message)
+            return
+        }
+        
+        if message.element(forName: "group_chat") != nil {
+            if let delegate = self.chatDelegate {
+                delegate.xmppController(self, didReceiveGroupChatMessage: message)
+            }
+            self.sendAck(for: message)
+            return
+        }
+        
+        if let groupElement = message.element(forName: "group") {
+            if let delegate = self.chatDelegate {
+                delegate.xmppController(self, didReceiveGroupMessage: groupElement)
             }
             self.sendAck(for: message)
             return

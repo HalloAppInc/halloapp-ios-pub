@@ -35,7 +35,7 @@ class HomeViewController: UITabBarController {
         appearance.stackedLayoutAppearance.normal.badgePositionAdjustment = UIOffset(horizontal: 0, vertical: 10 + Self.tabBarItemImageInsets.top)
         self.tabBar.standardAppearance = appearance
         self.updateTabBarBackgroundEffect()
-
+        
         self.viewControllers = [
             feedNavigationController(),
             chatNavigationController(),
@@ -50,6 +50,14 @@ class HomeViewController: UITabBarController {
         UINavigationBar.appearance().backgroundColor = .feedBackground
         UISearchBar.appearance().backgroundColor = .feedBackground
 
+        self.cancellableSet.insert(
+            MainAppContext.shared.xmppController.didConnect.sink {
+                if (UIApplication.shared.applicationState == .active) {
+                    self.checkClientVersionExpiration()
+                }
+            }
+        )
+        
         self.cancellableSet.insert(
             MainAppContext.shared.chatData.didChangeUnreadThreadCount.sink { [weak self] (count) in
                 guard let self = self else { return }
@@ -118,6 +126,36 @@ class HomeViewController: UITabBarController {
         return navigationController
     }
 
+    private func checkClientVersionExpiration() {
+        let request = XMPPClientVersionRequest() { (iq, error) in
+            guard let iq = iq else { return }
+            guard let clientVersion = iq.element(forName: "client_version") else { return }
+            guard let secondsLeft = clientVersion.element(forName: "seconds_left") else { return }
+            let numSecondsLeft = secondsLeft.stringValueAsInt()
+            let numDaysLeft = numSecondsLeft/86400
+            if numDaysLeft < 10 {
+                let isExpired = numDaysLeft <= 0
+                let alert = UIAlertController(title: "", message: "\(numDaysLeft) This beta version is out of date\nPlease install the latest version of HalloApp via TestFlight", preferredStyle: UIAlertController.Style.alert)
+                let updateAction = UIAlertAction(title: "Update", style: .default, handler: { action in
+                    if let customAppURL = URL(string: "itms-beta://"){
+                        if UIApplication.shared.canOpenURL(customAppURL) {
+                            UIApplication.shared.open(customAppURL, options: [:], completionHandler: nil)
+                        }
+                    }
+                })
+                let dismissAction = UIAlertAction(title: isExpired ? "Exit" : "Dismiss", style: .default, handler: { action in
+                    if isExpired {
+                        exit(0)
+                    }
+                })
+                alert.addAction(updateAction)
+                alert.addAction(dismissAction)
+                self.present(alert, animated: true, completion: nil)
+            }
+        }
+        MainAppContext.shared.xmppController.enqueue(request: request)
+    }
+    
     private func updateChatNavigationControllerBadge(_ count: Int) {
         DispatchQueue.main.async {
             if let controller = self.viewControllers?[1] {

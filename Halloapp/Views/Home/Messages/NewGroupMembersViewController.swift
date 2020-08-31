@@ -1,5 +1,4 @@
 //
-//  NewMessageViewController.swift
 //  HalloApp
 //
 //  Created by Tony Jiang on 4/29/20.
@@ -14,125 +13,107 @@ import Foundation
 import UIKit
 import SwiftUI
 
-fileprivate struct Constants {
-    static let cellReuseIdentifier = "NewMessageViewCell"
+protocol NewGroupMembersViewControllerDelegate: AnyObject {
+    func newGroupMembersViewController(_ inputView: NewGroupMembersViewController, selected: [UserID])
 }
 
-protocol NewMessageViewControllerDelegate: AnyObject {
-    func newMessageViewController(_ newMessageViewController: NewMessageViewController, chatWithUserId: String)
-}
-
-fileprivate class ContactsSearchResultsController: UITableViewController {
-
-    var contacts: [ABContact] = [] {
-        didSet {
-            if self.isViewLoaded {
-                self.tableView.reloadData()
-            }
-        }
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        self.tableView.separatorStyle = .none
-        self.tableView.backgroundColor = UIColor.systemGray6
-        self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
-    }
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return contacts.count
-    }
-
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
-        cell.configure(with: contacts[indexPath.row])
-        return cell
-    }
-}
-
-
-
-class NewMessageViewController: UITableViewController, NSFetchedResultsControllerDelegate {
-
-    weak var delegate: NewMessageViewControllerDelegate?
-
+class NewGroupMembersViewController: UITableViewController, NSFetchedResultsControllerDelegate {
+    
+    weak var delegate: NewGroupMembersViewControllerDelegate?
+    
+    let cellReuseIdentifier = "NewGroupMembersViewCell"
+    
     private var fetchedResultsController: NSFetchedResultsController<ABContact>?
 
     private var searchController: UISearchController!
-    private var searchResultsController: ContactsSearchResultsController!
-
+   
+    var isSearchBarEmpty: Bool {
+      return searchController.searchBar.text?.isEmpty ?? true
+    }
+    var isFiltering: Bool {
+      return searchController.isActive && !isSearchBarEmpty
+    }
+    private var filteredContacts: [ABContact] = []
+    
     private var trackedContacts: [String:TrackedContact] = [:]
 
-    init() {
+    private var selectedMembers: [UserID] = []
+    
+    private var alreadyHaveMembers: Bool = false
+    private var currentMembers: [UserID] = []
+    
+    init(currentMembers: [UserID] = []) {
+        self.currentMembers = currentMembers
+        self.alreadyHaveMembers = self.currentMembers.count > 0 ? true : false
         super.init(style: .plain)
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
-        DDLogInfo("NewMessageViewController/viewDidLoad")
+        DDLogInfo("NewGroupMembersViewController/viewDidLoad")
 
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
-
-        self.navigationItem.title = "New Chat"
-
+        if alreadyHaveMembers {
+            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", style: .plain, target: self, action: #selector(addAction))
+        } else {
+            self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
+            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .plain, target: self, action: #selector(nextAction))
+        }
+        self.navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
+        self.navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
+        
+        self.navigationItem.title = "Add Members"
         self.navigationItem.standardAppearance = .transparentAppearance
         self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
 
+        let backButton = UIBarButtonItem(title: "Back", style: .plain, target: nil, action: nil)
+        navigationItem.backBarButtonItem = backButton
+
+        
         self.tableView.separatorStyle = .none
         self.tableView.backgroundColor = UIColor.systemGray6
-        self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+        self.tableView.register(NewGroupMembersViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         
-        searchResultsController = ContactsSearchResultsController(style: .plain)
-        searchController = UISearchController(searchResultsController: searchResultsController)
+        searchController = UISearchController(searchResultsController: nil)
         searchController.delegate = self
         searchController.searchResultsUpdater = self
         searchController.searchBar.autocapitalizationType = .none
-        
+        searchController.obscuresBackgroundDuringPresentation = false
         searchController.definesPresentationContext = true
         
         self.navigationItem.searchController = searchController
         self.navigationItem.hidesSearchBarWhenScrolling = false
         
-        let newMessageHeaderView = NewMessageHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 35))
-        newMessageHeaderView.isHidden = true
         
+        let newGroupMembersHeaderView = NewGroupMembersHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 0))
         //        headerView.configure(withPost: feedPost)
         //        headerView.textLabel.delegate = self
         //        headerView.profilePictureButton.addTarget(self, action: #selector(showUserFeedForPostAuthor), for: .touchUpInside)
         
-        if ServerProperties.isInternalUser || ServerProperties.isGroupsEnabled {
-            newMessageHeaderView.isHidden = false
-        }
-        
-        newMessageHeaderView.delegate = self
-        tableView.tableHeaderView = newMessageHeaderView
+        newGroupMembersHeaderView.delegate = self
+        tableView.tableHeaderView = newGroupMembersHeaderView
         
         self.setupFetchedResultsController()
+        
+        
+        
     }
 
     // MARK: Appearance
 
     override func viewWillAppear(_ animated: Bool) {
-        DDLogInfo("NewMessageViewController/viewWillAppear")
+        DDLogInfo("NewGroupMembersViewController/viewWillAppear")
         super.viewWillAppear(animated)
 //        self.tableView.reloadData()
     }
 
     override func viewDidAppear(_ animated: Bool) {
-        DDLogInfo("NewMessageViewController/viewDidAppear")
+        DDLogInfo("NewGroupMembersViewController/viewDidAppear")
         super.viewDidAppear(animated)
     }
 
     deinit {
-        DDLogDebug("NewMessageViewController/deinit ")
+        DDLogDebug("NewGroupMembersViewController/deinit ")
     }
 
     // MARK: Top Nav Button Actions
@@ -140,7 +121,18 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     @objc private func cancelAction() {
         self.dismiss(animated: true)
     }
+    
+    @objc private func nextAction() {
+        let controller = CreateGroupViewController(selectedMembers: selectedMembers)
+        self.navigationController?.pushViewController(controller, animated: true)
+    }
 
+    @objc private func addAction() {
+        self.navigationController?.popViewController(animated: true)
+        self.delegate?.newGroupMembersViewController(self, selected: selectedMembers)
+    }
+    
+    
     // MARK: Customization
 
     public var fetchRequest: NSFetchRequest<ABContact> {
@@ -180,7 +172,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         reloadTableViewInDidChangeContent = false
         trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
-        DDLogDebug("NewMessageView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+        DDLogDebug("NewGroupMembersView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
             self.tableView.beginUpdates()
         }
@@ -190,7 +182,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         switch type {
         case .insert:
             guard let indexPath = newIndexPath, let abContact = anObject as? ABContact else { break }
-            DDLogDebug("NewMessageView/frc/insert [\(abContact)] at [\(indexPath)]")
+            DDLogDebug("NewGroupMembersView/frc/insert [\(abContact)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.insertRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -199,7 +191,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
         case .delete:
             guard let indexPath = indexPath, let abContact = anObject as? ABContact else { break }
-            DDLogDebug("NewMessageView/frc/delete [\(abContact)] at [\(indexPath)]")
+            DDLogDebug("NewGroupMembersView/frc/delete [\(abContact)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -208,7 +200,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let abContact = anObject as? ABContact else { break }
-            DDLogDebug("NewMessageView/frc/move [\(abContact)] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            DDLogDebug("NewGroupMembersView/frc/move [\(abContact)] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
             } else {
@@ -217,7 +209,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
         case .update:
             guard let indexPath = indexPath, let abContact = anObject as? ABContact else { return }
-            DDLogDebug("NewMessageView/frc/update [\(abContact)] at [\(indexPath)]")
+            DDLogDebug("NewGroupMembersView/frc/update [\(abContact)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 self.tableView.reloadRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -230,7 +222,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("NewMessageView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        DDLogDebug("NewGroupMembersView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
         if trackPerRowFRCChanges {
             self.tableView.endUpdates()
         } else if reloadTableViewInDidChangeContent {
@@ -246,69 +238,120 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let sections = self.fetchedResultsController?.sections else { return 0 }
+        if isFiltering {
+          return filteredContacts.count
+        }
         return sections[section].numberOfObjects
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
-        if let abContact = fetchedResultsController?.object(at: indexPath) {
-            cell.configure(with: abContact)
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! NewGroupMembersViewCell
+
+        let abContact: ABContact?
+        
+        if isFiltering {
+            abContact = filteredContacts[indexPath.row]
+        } else {
+            abContact = fetchedResultsController?.object(at: indexPath)
         }
+
+        if let abContact = abContact {
+            
+            if let userId = abContact.userId {
+                
+
+                
+                cell.configure(with: abContact)
+                
+                let isSelected = selectedMembers.contains(userId)
+                cell.setContact(selected: isSelected, animated: true)
+                
+            }
+        }
+        
+        
+        
         return cell
     }
 
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         var contact: ABContact?
-        if tableView == self.tableView {
-            contact = self.fetchedResultsController?.object(at: indexPath)
+        
+        if isFiltering {
+            contact = filteredContacts[indexPath.row]
         } else {
-            contact = searchResultsController.contacts[indexPath.row]
+            contact = fetchedResultsController?.object(at: indexPath)
         }
         if let contact = contact, self.isDuplicate(contact) {
             return 0
         }
+        
+        
+        guard let userId = contact?.userId else { return 0 }
+        if currentMembers.contains(userId) {
+            return 0
+        }
+        
         return UITableView.automaticDimension
     }
 
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         var contact: ABContact?
-        if tableView == self.tableView {
-            contact = self.fetchedResultsController?.object(at: indexPath)
+
+        if isFiltering {
+            contact = filteredContacts[indexPath.row]
         } else {
-            contact = searchResultsController.contacts[indexPath.row]
+            contact = fetchedResultsController?.object(at: indexPath)
         }
         if let contact = contact, self.isDuplicate(contact) {
             cell.isHidden = true
         }
+        
+        guard let userId = contact?.userId else { return }
+        if currentMembers.contains(userId) {
+            cell.isHidden = true
+        }
     }
 
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let delegate = delegate else {
-            tableView.deselectRow(at: indexPath, animated: true)
-            return
-        }
-
-        var userId: UserID?
-        if tableView == self.tableView {
-            userId = fetchedResultsController?.object(at: indexPath).userId
+        guard let cell = tableView.cellForRow(at: indexPath) as? NewGroupMembersViewCell else { return }
+//        guard let contact = fetchedResultsController?.object(at: indexPath) else { return }
+        let abContact: ABContact?
+        cell.selectionStyle = .none
+        
+        if isFiltering {
+            abContact = filteredContacts[indexPath.row]
         } else {
-            userId = searchResultsController.contacts[indexPath.row].userId
+            abContact = fetchedResultsController?.object(at: indexPath)
         }
-
-        if let userId = userId {
-            if searchController.isActive {
-                searchController.dismiss(animated: false) {
-                    delegate.newMessageViewController(self, chatWithUserId: userId)
-                }
-            } else {
-                delegate.newMessageViewController(self, chatWithUserId: userId)
-
+        
+        guard let contact = abContact else { return }
+        
+        var isSelected = false
+        guard let userId = contact.userId else { return }
+        if !selectedMembers.contains(userId) {
+            
+            guard selectedMembers.count + currentMembers.count < ServerProperties.maxGroupSize else {
+                let alert = UIAlertController(title: "", message: "The max group size is \(ServerProperties.maxGroupSize)", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+                self.present(alert, animated: true)
+                return
             }
+            
+            selectedMembers.append(userId)
+            isSelected = true
         } else {
-            tableView.deselectRow(at: indexPath, animated: true)
+            selectedMembers.removeAll(where: {$0 == userId})
         }
-    }
+        cell.setContact(selected: isSelected, animated: true)
+        tableView.deselectRow(at: indexPath, animated: true)
+        navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
 
+        searchController.isActive = false
+        searchController.searchBar.text = ""
+    }
+    
     func isDuplicate(_ abContact: ABContact) -> Bool {
         var result = false
         guard let identifier = abContact.identifier else { return result }
@@ -330,7 +373,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
 }
 
-extension NewMessageViewController: UISearchControllerDelegate {
+extension NewGroupMembersViewController: UISearchControllerDelegate {
 
     func willPresentSearchController(_ searchController: UISearchController) {
         if let resultsController = searchController.searchResultsController as? UITableViewController {
@@ -339,12 +382,10 @@ extension NewMessageViewController: UISearchControllerDelegate {
     }
 }
 
-extension NewMessageViewController: UISearchResultsUpdating {
-
+extension NewGroupMembersViewController: UISearchResultsUpdating {
+    
     func updateSearchResults(for searchController: UISearchController) {
-        guard let resultsController = searchController.searchResultsController as? ContactsSearchResultsController else { return }
         guard let allContacts = fetchedResultsController?.fetchedObjects else { return }
-
         let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
         let searchItems = strippedString.components(separatedBy: " ")
 
@@ -357,13 +398,15 @@ extension NewMessageViewController: UISearchResultsUpdating {
         }
 
         let finalCompoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: andPredicates)
-        resultsController.contacts = allContacts.filter { finalCompoundPredicate.evaluate(with: $0) }
+
+        filteredContacts = allContacts.filter { finalCompoundPredicate.evaluate(with: $0) }
+        tableView.reloadData()
     }
 }
 
-extension NewMessageViewController: NewMessageHeaderViewDelegate {
-    func newMessageHeaderView(_ newMessageHeaderView: NewMessageHeaderView) {
-        self.navigationController?.pushViewController(NewGroupMembersViewController(), animated: true)
+extension NewGroupMembersViewController: NewGroupMembersHeaderViewDelegate {
+    func newGroupMembersHeaderView(_ newGroupMembersHeaderView: NewGroupMembersHeaderView) {
+        //TODO: for removal of selected members
     }
 }
 
@@ -378,13 +421,13 @@ fileprivate struct TrackedContact {
     }
 }
 
-protocol NewMessageHeaderViewDelegate: AnyObject {
-    func newMessageHeaderView(_ newMessageHeaderView: NewMessageHeaderView)
+protocol NewGroupMembersHeaderViewDelegate: AnyObject {
+    func newGroupMembersHeaderView(_ newGroupMembersHeaderView: NewGroupMembersHeaderView)
 }
 
-class NewMessageHeaderView: UIView {
+class NewGroupMembersHeaderView: UIView {
 
-    weak var delegate: NewMessageHeaderViewDelegate?
+    weak var delegate: NewGroupMembersHeaderViewDelegate?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -401,7 +444,7 @@ class NewMessageHeaderView: UIView {
         label.font = UIFont.preferredFont(forTextStyle: .body)
         label.textColor = .systemBlue
         label.textAlignment = .right
-        label.text = "New Group"
+        label.text = ""
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.openNewGroupView(_:)))
         label.isUserInteractionEnabled = true
@@ -430,11 +473,12 @@ class NewMessageHeaderView: UIView {
     }
     
     @objc func openNewGroupView (_ sender: UITapGestureRecognizer) {
-        self.delegate?.newMessageHeaderView(self)
+        self.delegate?.newGroupMembersHeaderView(self)
     }
 }
 
-fileprivate class NewMessageViewCell: UITableViewCell {
+fileprivate class NewGroupMembersViewCell: UITableViewCell {
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
@@ -482,7 +526,44 @@ fileprivate class NewMessageViewCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    
+    private let checkMark: UIImageView = {
+        let view = UIImageView(image: UIImage(systemName: "circle")?.withRenderingMode(.alwaysTemplate))
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.widthAnchor.constraint(equalToConstant: 28).isActive = true
+        view.heightAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+        
+        view.tintColor = .systemGray
+        return view
+    }()
+    
+    private(set) var isContactSelected: Bool = false
 
+    func setContact(selected: Bool, animated: Bool = false) {
+    
+        
+        guard selected != isContactSelected else { return }
+
+        isContactSelected = selected
+
+        let image = isContactSelected ? UIImage(systemName: "checkmark.circle.fill") : UIImage(systemName: "circle")
+        
+        checkMark.image = image?.withRenderingMode(.alwaysTemplate)
+  
+        checkMark.tintColor =  isContactSelected ? UIColor.systemBlue : UIColor.systemGray
+        
+        if animated {
+            checkMark.layer.add({
+                let transition = CATransition()
+                transition.duration = 0.2
+                transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                transition.type = .fade
+                return transition
+            }(), forKey: nil)
+        }
+    }
+    
     private func setup() {
         let vStack = UIStackView(arrangedSubviews: [self.nameLabel, self.lastMessageLabel])
         vStack.translatesAutoresizingMaskIntoConstraints = false
@@ -493,11 +574,16 @@ fileprivate class NewMessageViewCell: UITableViewCell {
         self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
         self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
 
-        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, vStack ])
+
+        
+        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, vStack, self.checkMark ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
+        hStack.alignment = .center
         hStack.spacing = 10
-
+        
+ 
+    
         self.contentView.addSubview(hStack)
         // Priority is lower than "required" because cell's height might be 0 (duplicate contacts).
         self.contentView.addConstraint({

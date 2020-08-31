@@ -143,7 +143,7 @@ class OutgoingMsgView: UIView {
         textView.translatesAutoresizingMaskIntoConstraints = false
         textView.isScrollEnabled = false
         textView.isEditable = false
-        textView.isSelectable = true
+        textView.isSelectable = false
         textView.isUserInteractionEnabled = true
         textView.dataDetectorTypes = .link
         textView.textContainerInset = UIEdgeInsets.zero
@@ -273,17 +273,31 @@ class OutgoingMsgView: UIView {
     
     // MARK: Update
     
-    func updateWith(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
-        if isPreviousMsgSameSender {
-            self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
-        } else {
-            self.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 0, right: 0)
-        }
+    func updateWithChatMessage(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
+        let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, feedPostMediaIndex: Int(chatMessage.feedPostMediaIndex))
+        updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
+                   isQuotedMessage: isQuotedMessage,
+                   text: chatMessage.text,
+                   media: chatMessage.media,
+                   timestamp: chatMessage.timestamp)
         
+        updateChatMessageOutboundStatus(chatMessage.outgoingStatus)
+    }
+    
+    func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool) {
+        updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
+                   isQuotedMessage: false,
+                   text: chatGroupMessage.text,
+                   media: chatGroupMessage.media,
+                   timestamp: chatGroupMessage.timestamp)
+        updateChatGroupMessageOutboundStatus(chatGroupMessage.outboundStatus)
+    }
+    
+    func updateQuoted(chatQuoted: ChatQuoted?, feedPostMediaIndex: Int) -> Bool {
+
         var isQuotedMessage = false
         
-        // quoted
-        if let quoted = chatMessage.quoted {
+        if let quoted = chatQuoted {
             isQuotedMessage = true
             if let userId = quoted.userId {
                 self.quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
@@ -293,7 +307,7 @@ class OutgoingMsgView: UIView {
             // TODO: need to optimize
             if let media = quoted.media {
 
-                if let med = media.first(where: { $0.order == chatMessage.feedPostMediaIndex }) {
+                if let med = media.first(where: { $0.order == feedPostMediaIndex }) {
                     let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
 
                     if med.type == .image {
@@ -320,8 +334,18 @@ class OutgoingMsgView: UIView {
             self.quotedRow.isHidden = false
         }
         
+        return isQuotedMessage
+    }
+    
+    func updateWith(isPreviousMsgSameSender: Bool, isQuotedMessage: Bool, text: String?, media: Set<ChatMedia>?, timestamp: Date?) {
+        if isPreviousMsgSameSender {
+            self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        } else {
+            self.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 0, right: 0)
+        }
+        
         // media
-        if let media = chatMessage.media {
+        if let media = media {
             
             self.mediaImageView.reset()
             
@@ -370,14 +394,21 @@ class OutgoingMsgView: UIView {
         }
         
         // text
-        let text = chatMessage.text ?? ""
+        let text = text ?? ""
         if text.count <= 3 && text.containsOnlyEmoji {
             self.textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
         }
         self.textView.text = text
         
+        // time
+        if let timestamp = timestamp {
+            self.timeLabel.text = timestamp.chatTimestamp()
+        }
+    }
+    
+    func updateChatMessageOutboundStatus(_ outboundStatus: ChatMessage.OutgoingStatus) {
         // ticks
-        switch chatMessage.outgoingStatus {
+        switch outboundStatus {
         case .seen:
             self.sentTickImageView.isHidden = true
             self.sentTickImageView.tintColor = UIColor.systemBlue
@@ -399,13 +430,34 @@ class OutgoingMsgView: UIView {
             self.deliveredTickImageView.isHidden = true
             self.deliveredTickImageView.tintColor = UIColor.systemGray3
         }
-
-        // time
-        if let timestamp = chatMessage.timestamp {
-            self.timeLabel.text = timestamp.chatTimestamp()
+    }
+    
+    func updateChatGroupMessageOutboundStatus(_ outboundStatus: ChatGroupMessage.OutboundStatus) {
+        // ticks
+        switch outboundStatus {
+        case .seen:
+            self.sentTickImageView.isHidden = true
+            self.sentTickImageView.tintColor = UIColor.systemBlue
+            self.deliveredTickImageView.isHidden = false
+            self.deliveredTickImageView.tintColor = UIColor.systemBlue
+        case .delivered:
+            self.sentTickImageView.isHidden = true
+            self.sentTickImageView.tintColor = UIColor.systemGray3
+            self.deliveredTickImageView.isHidden = false
+            self.deliveredTickImageView.tintColor = UIColor.systemGray3
+        case .sentOut:
+            self.sentTickImageView.isHidden = false
+            self.sentTickImageView.tintColor = UIColor.systemGray3
+            self.deliveredTickImageView.isHidden = true
+            self.deliveredTickImageView.tintColor = UIColor.systemGray3
+        default:
+            self.sentTickImageView.isHidden = true
+            self.sentTickImageView.tintColor = UIColor.systemGray3
+            self.deliveredTickImageView.isHidden = true
+            self.deliveredTickImageView.tintColor = UIColor.systemGray3
         }
     }
-
+    
     // MARK: Reuse
     
     func reset() {

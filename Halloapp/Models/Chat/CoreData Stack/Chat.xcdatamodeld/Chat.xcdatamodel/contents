@@ -1,5 +1,40 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19G2021" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="ChatGroup" representedClassName="ChatGroup" syncable="YES">
+        <attribute name="avatar" optional="YES" attributeType="String"/>
+        <attribute name="desc" optional="YES" attributeType="String"/>
+        <attribute name="groupId" optional="YES" attributeType="String"/>
+        <attribute name="maxSize" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="members" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatGroupMember" inverseName="group" inverseEntity="ChatGroupMember"/>
+    </entity>
+    <entity name="ChatGroupMember" representedClassName="ChatGroupMember" syncable="YES">
+        <attribute name="groupId" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="userId" optional="YES" attributeType="String"/>
+        <relationship name="group" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatGroup" inverseName="members" inverseEntity="ChatGroup"/>
+    </entity>
+    <entity name="ChatGroupMessage" representedClassName="ChatGroupMessage" syncable="YES">
+        <attribute name="cellHeight" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="groupId" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="inboundStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="outboundStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userId" optional="YES" attributeType="String"/>
+        <relationship name="info" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatGroupMessageInfo" inverseName="groupMessage" inverseEntity="ChatGroupMessageInfo"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMedia" inverseName="groupMessage" inverseEntity="ChatMedia"/>
+    </entity>
+    <entity name="ChatGroupMessageInfo" representedClassName="ChatGroupMessageInfo" syncable="YES">
+        <attribute name="chatGroupMessageId" optional="YES" attributeType="String"/>
+        <attribute name="outboundStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="userId" optional="YES" attributeType="String"/>
+        <relationship name="groupMessage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatGroupMessage" inverseName="info" inverseEntity="ChatGroupMessage"/>
+    </entity>
     <entity name="ChatMedia" representedClassName="ChatMedia" syncable="YES">
         <attribute name="height" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="incomingStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -13,7 +48,8 @@
         <attribute name="uploadUrl" optional="YES" attributeType="URI"/>
         <attribute name="url" optional="YES" attributeType="URI"/>
         <attribute name="width" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <relationship name="message" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="media" inverseEntity="ChatMessage"/>
+        <relationship name="groupMessage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatGroupMessage" inverseName="media" inverseEntity="ChatGroupMessage"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatMessage" inverseName="media" inverseEntity="ChatMessage"/>
     </entity>
     <entity name="ChatMessage" representedClassName="ChatMessage" syncable="YES">
         <attribute name="cellHeight" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -48,6 +84,7 @@
     </entity>
     <entity name="ChatThread" representedClassName="ChatThread" syncable="YES">
         <attribute name="chatWithUserId" optional="YES" attributeType="String"/>
+        <attribute name="groupId" optional="YES" attributeType="String"/>
         <attribute name="lastMsgId" optional="YES" attributeType="String"/>
         <attribute name="lastMsgMediaTypeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="lastMsgStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -55,13 +92,18 @@
         <attribute name="lastMsgTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="lastMsgUserId" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="unreadCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <elements>
-        <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="238"/>
+        <element name="ChatGroup" positionX="-45" positionY="135" width="128" height="133"/>
+        <element name="ChatGroupMember" positionX="-36" positionY="144" width="128" height="118"/>
+        <element name="ChatGroupMessage" positionX="-27" positionY="153" width="128" height="208"/>
+        <element name="ChatGroupMessageInfo" positionX="-18" positionY="162" width="128" height="118"/>
+        <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="253"/>
         <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="253"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="118"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="133"/>
-        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="178"/>
+        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="208"/>
     </elements>
 </model>
