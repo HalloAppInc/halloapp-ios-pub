@@ -1198,6 +1198,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         
         if let seenReceipts = feedPost.info?.receipts {
             for (userId, receipt) in seenReceipts {
+                guard let seenDate = receipt.seenDate else { continue }
+
                 var contactName: String?, phoneNumber: String?
                 if let contact = allContacts.first(where: { $0.userId == userId }) {
                     contactName = contact.fullName
@@ -1206,7 +1208,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 if contactName == nil {
                     contactName = contactStore.fullName(for: userId)
                 }
-                users.append(FeedPostReceipt(userId: userId, type: .seen, contactName: contactName!, phoneNumber: phoneNumber, timestamp: receipt.seenDate!))
+                users.append(FeedPostReceipt(userId: userId, type: .seen, contactName: contactName!, phoneNumber: phoneNumber, timestamp: seenDate))
             }
         }
         users.sort(by: { $0.timestamp > $1.timestamp })
@@ -1391,6 +1393,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/new-post/copy-media/error [\(error)]")
             }
         }
+
+        // Save current audience in FeedPostInfo.
+        let postAudience = try! MainAppContext.shared.privacySettings.currentFeedAudience()
+        let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
+            receipts[userId] = Receipt()
+        }
+        let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
+        feedPostInfo.privacyListType = postAudience.privacyListType
+        feedPostInfo.receipts = receipts
+        feedPost.info = feedPostInfo
+
         save(managedObjectContext)
 
         uploadMediaAndSend(feedPost: feedPost)
@@ -1486,7 +1499,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         let request: XMPPRequest
         if ServerProperties.isInternalUser {
-            request = XMPPPostItemRequest(feedItem: comment, completion: completion)
+            request = XMPPPostItemRequest(feedPostComment: comment, completion: completion)
         } else {
             request = XMPPPostItemRequestOld(feedItem: comment, feedOwnerId: comment.post.userId, completion: completion)
         }
@@ -1516,8 +1529,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
         let request: XMPPRequest
-        if ServerProperties.isInternalUser {
-            request = XMPPPostItemRequest(feedItem: post, completion: completion)
+        if let audience = post.audience, ServerProperties.isInternalUser {
+            request = XMPPPostItemRequest(feedPost: post, audience: audience, completion: completion)
         } else {
             request = XMPPPostItemRequestOld(feedItem: post, feedOwnerId: post.userId, completion: completion)
         }
@@ -1668,7 +1681,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedPost.text = post.text
                 feedPost.status = post.status == .sent ? .sent : .sendError
                 feedPost.timestamp = post.timestamp
-                
+
+                // Post Audience
+                if let audience = post.audience {
+                    let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
+                    feedPostInfo.privacyListType = audience.privacyListType
+                    feedPostInfo.receipts = audience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
+                        receipts[userId] = Receipt()
+                    }
+                    feedPost.info = feedPostInfo
+                }
+
+                // Media
                 post.media?.forEach { (media) in
                     DDLogDebug("FeedData/mergeSharedData/post/\(postId)/add-media [\(media)]")
 

@@ -194,7 +194,14 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
     }
 
     private func reloadData(from feedPost: FeedPost) {
-        let allContacts = AppContext.shared.contactStore.allInNetworkContacts(sorted: true)
+        let allContacts: [ABContact]
+        // Only use userIds from receipts if privacy list was actually saved into feedPost.info.
+        if let receiptUserIds = feedPost.info?.receipts?.keys, feedPost.info?.privacyListType != nil {
+            allContacts = MainAppContext.shared.contactStore.sortedContacts(withUserIds: Array(receiptUserIds))
+        } else {
+            allContacts = MainAppContext.shared.contactStore.allInNetworkContacts(sorted: true)
+        }
+
         let seenRows: [FeedPostReceipt] = MainAppContext.shared.feedData.seenByUsers(for: feedPost)
 
         var addedUserIds = Set(seenRows.map(\.userId))

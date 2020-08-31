@@ -31,6 +31,13 @@ extension SharedFeedPost {
     @NSManaged public var timestamp: Date
     @NSManaged public var userId: UserID
     @NSManaged public var media: Set<SharedMedia>?
+    @NSManaged private var privacyListTypeValue: String?
+    @NSManaged public var audienceUserIds: [UserID]?
+
+    public var privacyListType: PrivacyListType? {
+        get { PrivacyListType(rawValue: privacyListTypeValue ?? "") }
+        set { privacyListTypeValue = newValue?.rawValue }
+    }
 
     public var status: Status {
         get {
@@ -40,6 +47,13 @@ extension SharedFeedPost {
             self.statusValue = newValue.rawValue
         }
     }
+
+    public var audience: FeedAudience? {
+        guard let privacyListType = privacyListType else { return nil }
+        guard let userIds = audienceUserIds else { return nil }
+        return FeedAudience(privacyListType: privacyListType, userIds: Set(userIds))
+    }
+
 }
 
 // MARK: Generated accessors for media

@@ -40,6 +40,17 @@ public extension PrivacyListProtocol {
 }
 
 
+public struct FeedAudience {
+    public let privacyListType: PrivacyListType
+    public let userIds: Set<UserID>
+
+    public init(privacyListType: PrivacyListType, userIds: Set<UserID>) {
+        self.privacyListType = privacyListType
+        self.userIds = userIds
+    }
+}
+
+
 public final class PrivacyListItem: Codable {
 
     /**
@@ -121,6 +132,12 @@ extension PrivacyList: PrivacyListProtocol {
     }
 }
 
+enum PrivacySettingsError: Error {
+    case currentSettingUnknown
+    case currentListUnavailable
+    case contactsNotReady
+}
+
 
 open class PrivacySettings {
 
@@ -162,5 +179,31 @@ open class PrivacySettings {
                 AppContext.shared.userDefaults.set(listType.rawValue, forKey: Core.PrivacySettings.Constants.UserDefaultsKeyActiveListType)
             }
         }
+    }
+
+    public func currentFeedAudience() throws -> FeedAudience {
+        guard let selectedListType = activeType else { throw PrivacySettingsError.currentSettingUnknown }
+        if selectedListType == .whitelist {
+            guard whitelist.isLoaded else { throw PrivacySettingsError.currentListUnavailable }
+        }
+        if selectedListType == .blacklist {
+            guard blacklist.isLoaded else { throw PrivacySettingsError.currentListUnavailable }
+        }
+
+        let allContacts = Set(contactStore.allRegisteredContactIDs())
+
+        var results: Set<UserID>
+        if selectedListType == .whitelist {
+            results = allContacts.intersection(whitelist.userIds)
+        } else if selectedListType == .blacklist {
+            results = allContacts.subtracting(blacklist.userIds)
+        } else {
+            results = allContacts
+        }
+        if blocked.isLoaded {
+            results.subtract(blocked.userIds)
+        }
+
+        return FeedAudience(privacyListType: selectedListType, userIds: results)
     }
 }

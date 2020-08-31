@@ -53,6 +53,12 @@ extension FeedPost {
             return self.status == .retracted || self.status == .retracting
         }
     }
+
+    var audience: FeedAudience? {
+        guard let privacyListType = info?.privacyListType else { return nil }
+        guard let receipts = info?.receipts else { return nil }
+        return FeedAudience(privacyListType: privacyListType, userIds: Set(receipts.keys))
+    }
 }
 
 extension FeedPost: FeedPostProtocol {

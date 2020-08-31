@@ -590,6 +590,23 @@ class ContactStoreMain: ContactStore {
         return (contacts, inserted)
     }
 
+    // MARK: Fetching
+
+    func sortedContacts(withUserIds userIds: [UserID]) -> [ABContact] {
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userId in %@", userIds)
+        fetchRequest.returnsObjectsAsFaults = false
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
+
+        do {
+            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
+            return contacts
+        }
+        catch {
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+    }
+
     // MARK: Server Sync
 
     func contactsFor(fullSync: Bool) -> [ABContact] {

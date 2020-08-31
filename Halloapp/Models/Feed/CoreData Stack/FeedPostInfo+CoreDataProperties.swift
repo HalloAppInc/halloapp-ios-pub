@@ -20,10 +20,16 @@ extension FeedPostInfo {
 
     @NSManaged private var receiptInfo: Any?
     @NSManaged private var post: FeedPost?
+    @NSManaged private var privacyListTypeValue: String?
 
     var receipts: [UserID : Receipt]? {
         get { receiptInfo as? [ UserID : Receipt ] }
         set { receiptInfo = newValue }
+    }
+
+    var privacyListType: PrivacyListType? {
+        get { PrivacyListType(rawValue: privacyListTypeValue ?? "") }
+        set { privacyListTypeValue = newValue?.rawValue }
     }
 
 }

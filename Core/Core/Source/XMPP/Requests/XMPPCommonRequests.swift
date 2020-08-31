@@ -11,6 +11,20 @@ import XMPPFramework
 
 public typealias XMPPPostItemRequestCompletion = (Result<Date?, Error>) -> Void
 
+extension FeedAudience: XMPPElementRepresentable {
+
+    public var xmppElement: XMPPElement {
+        get {
+            let audienceElement = XMPPElement(name: "audience_list")
+            audienceElement.addAttribute(withName: "type", stringValue: privacyListType.rawValue)
+            for userId in userIds {
+                audienceElement.addChild(XMPPElement(name: "uid", stringValue: userId))
+            }
+            return audienceElement
+        }
+    }
+}
+
 public class XMPPPostItemRequestOld: XMPPRequest {
     
     private let completion: XMPPPostItemRequestCompletion
@@ -49,14 +63,28 @@ public class XMPPPostItemRequest: XMPPRequest {
 
     private let completion: XMPPPostItemRequestCompletion
 
-    public init<T>(feedItem: T, completion: @escaping XMPPPostItemRequestCompletion) where T: FeedItemProtocol {
+    public init<T>(feedPost: T, audience: FeedAudience, completion: @escaping XMPPPostItemRequestCompletion) where T: FeedPostProtocol {
         self.completion = completion
         
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
         iq.addChild({
             let feedElement = XMPPElement(name: "feed", xmlns: "halloapp:feed")
             feedElement.addAttribute(withName: "action", stringValue: "publish")
-            feedElement.addChild(feedItem.xmppElement(withData: true))
+            feedElement.addChild(audience.xmppElement)
+            feedElement.addChild(feedPost.xmppElement(withData: true))
+            return feedElement
+        }())
+        super.init(iq: iq)
+    }
+
+    public init<T>(feedPostComment: T, completion: @escaping XMPPPostItemRequestCompletion) where T: FeedCommentProtocol {
+        self.completion = completion
+
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
+        iq.addChild({
+            let feedElement = XMPPElement(name: "feed", xmlns: "halloapp:feed")
+            feedElement.addAttribute(withName: "action", stringValue: "publish")
+            feedElement.addChild(feedPostComment.xmppElement(withData: true))
             return feedElement
         }())
         super.init(iq: iq)

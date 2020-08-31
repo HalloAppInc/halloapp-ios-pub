@@ -101,7 +101,11 @@ class ShareExtensionDataStore: SharedDataStore {
             attach(media: mediaItem, to: .post(feedPost), using: managedObjectContext)
         }
         feedPost.media?.forEach({ $0.status = .uploading })
-        
+
+        let postAudience = try! ShareExtensionContext.shared.privacySettings.currentFeedAudience()
+        feedPost.privacyListType = postAudience.privacyListType
+        feedPost.audienceUserIds = Array(postAudience.userIds)
+
         save(managedObjectContext)
 
         // 2. Upload any media if necesary.
@@ -125,7 +129,8 @@ class ShareExtensionDataStore: SharedDataStore {
 
         DDLogError("SharedDataStore/post/\(feedPost.id)/send")
 
-        let request = XMPPPostItemRequest(feedItem: feedPost) { (result) in
+        let postAudience = feedPost.audience!
+        let request = XMPPPostItemRequest(feedPost: feedPost, audience: postAudience) { (result) in
             switch result {
             case .success(let timestamp):
                 DDLogError("SharedDataStore/post/\(feedPost.id)/send/complete")
