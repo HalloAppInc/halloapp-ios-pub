@@ -835,6 +835,7 @@ fileprivate class FeedItemHeaderView: UIView {
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.spacing = 8
         hStack.axis = .horizontal
+        hStack.alignment = .firstBaseline
         self.addSubview(hStack)
         hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
