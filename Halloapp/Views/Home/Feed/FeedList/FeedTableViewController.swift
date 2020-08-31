@@ -821,26 +821,32 @@ fileprivate class FeedItemHeaderView: UIView {
         }()
         label.textColor = .tertiaryLabel
         label.textAlignment = .natural
+        label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .horizontal) // higher than contact name
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
     private func setupView() {
-        self.isUserInteractionEnabled = true
-        
-        self.contactImageView.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
+        isUserInteractionEnabled = true
 
-        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.nameLabel, self.timestampLabel ])
+        addSubview(contactImageView)
+
+        let hStack = UIStackView(arrangedSubviews: [ nameLabel, timestampLabel ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.spacing = 8
         hStack.axis = .horizontal
         hStack.alignment = .firstBaseline
-        self.addSubview(hStack)
-        hStack.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
-        hStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        addSubview(hStack)
+
+        contactImageView.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        contactImageView.heightAnchor.constraint(equalTo: contactImageView.widthAnchor).isActive = true
+        contactImageView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
+        contactImageView.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
+        contactImageView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        hStack.leadingAnchor.constraint(equalToSystemSpacingAfter: contactImageView.trailingAnchor, multiplier: 1).isActive = true
+        hStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
+        hStack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
     }
 
     func configure(with post: FeedPost) {
