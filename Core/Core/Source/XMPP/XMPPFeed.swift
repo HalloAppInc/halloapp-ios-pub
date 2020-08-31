@@ -51,6 +51,7 @@ public extension FeedCommentProtocol {
         let commentElement = XMPPElement(name: "comment")
         commentElement.addAttribute(withName: "id", stringValue: id)
         commentElement.addAttribute(withName: "post_id", stringValue: feedPostId)
+        commentElement.addAttribute(withName: "post_uid", stringValue: feedPostUserId)
         if let parentCommentId = parentId {
             commentElement.addAttribute(withName: "parent_comment_id", stringValue: parentCommentId)
         }
@@ -178,6 +179,7 @@ public struct XMPPComment: FeedCommentProtocol {
 
     // MARK: FeedComment
     public let feedPostId: FeedPostID
+    public let feedPostUserId: UserID
     public let parentId: FeedPostCommentID?
     public let text: String
     public var orderedMentions: [FeedMentionProtocol] {
@@ -194,6 +196,7 @@ public struct XMPPComment: FeedCommentProtocol {
     public init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id"),
             let postId = item.attributeStringValue(forName: "post_id"),
+            let postUserId = item.attributeStringValue(forName: "post_uid"),
             let userId = item.attributeStringValue(forName: "publisher_uid"),
             let protoContainer = Proto_Container.feedItemContainer(from: item), protoContainer.hasComment else { return nil }
 
@@ -205,6 +208,7 @@ public struct XMPPComment: FeedCommentProtocol {
         self.id = id
         self.userId = userId
         self.feedPostId = postId
+        self.feedPostUserId = postUserId
         self.parentId = item.attributeStringValue(forName: "parent_comment_id")
         self.text = protoComment.text
         self.mentions = protoComment.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }

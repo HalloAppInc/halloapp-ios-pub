@@ -236,6 +236,8 @@ public protocol FeedCommentProtocol: FeedItemProtocol {
 
     var feedPostId: String { get }
 
+    var feedPostUserId: UserID { get }
+
     var parentId: String? { get }
 }
 
