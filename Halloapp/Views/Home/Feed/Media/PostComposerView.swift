@@ -306,7 +306,7 @@ fileprivate struct PostComposerView: View {
                 Text(mediaCount > 0 ? "Write a description" : "Write a post")
                     .font(Font(PostComposerLayoutConstants.getFontSize(
                         textSize: inputToPost.value.text.count, isPostWithMedia: mediaCount > 0)))
-                    .foregroundColor(colorScheme == .light ? Color.black.opacity(0.5) : Color.white.opacity(0.5))
+                    .foregroundColor(Color.primary.opacity(0.5))
                     .padding(.top, 8)
                     .padding(.leading, 4)
                     .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260), alignment: .topLeading)
