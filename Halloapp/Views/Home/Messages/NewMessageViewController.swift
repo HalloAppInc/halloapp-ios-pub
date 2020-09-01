@@ -447,14 +447,14 @@ fileprivate class NewMessageViewCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.isHidden = false
 
+        isHidden = false
         contactImageView.prepareForReuse()
     }
 
     public func configure(with abContact: ABContact) {
-        self.nameLabel.text = abContact.fullName
-        self.lastMessageLabel.text = abContact.phoneNumber
+        nameLabel.text = abContact.fullName
+        lastMessageLabel.text = abContact.phoneNumber
 
         if let userId = abContact.userId {
             contactImageView.configure(with: userId, using: MainAppContext.shared.avatarStore)
@@ -462,7 +462,9 @@ fileprivate class NewMessageViewCell: UITableViewCell {
     }
 
     private lazy var contactImageView: AvatarView = {
-        return AvatarView()
+        let imageView = AvatarView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
     }()
 
     private lazy var nameLabel: UILabel = {
@@ -484,31 +486,39 @@ fileprivate class NewMessageViewCell: UITableViewCell {
     }()
 
     private func setup() {
-        let vStack = UIStackView(arrangedSubviews: [self.nameLabel, self.lastMessageLabel])
+        let vStack = UIStackView(arrangedSubviews: [ nameLabel, lastMessageLabel ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.alignment = .leading
         vStack.axis = .vertical
-        vStack.spacing = 2
+        vStack.spacing = 4
 
-        let imageSize: CGFloat = 40.0
-        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
-        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
+        contentView.addSubview(contactImageView)
+        contentView.addSubview(vStack)
 
-        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, vStack ])
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.axis = .horizontal
-        hStack.spacing = 10
+        contentView.addConstraints([
+            contactImageView.widthAnchor.constraint(equalToConstant: 40),
+            contactImageView.heightAnchor.constraint(equalTo: contactImageView.widthAnchor),
+            contactImageView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            contactImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
 
-        self.contentView.addSubview(hStack)
+            vStack.leadingAnchor.constraint(equalToSystemSpacingAfter: contactImageView.trailingAnchor, multiplier: 2),
+            vStack.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
+            vStack.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor),
+            vStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor)
+        ])
+
         // Priority is lower than "required" because cell's height might be 0 (duplicate contacts).
-        self.contentView.addConstraint({
-            let constraint = hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor)
+        contentView.addConstraint({
+            let constraint = contactImageView.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor)
             constraint.priority = .defaultHigh
             return constraint
             }())
-        hStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        contentView.addConstraint({
+            let constraint = vStack.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor)
+            constraint.priority = .defaultHigh
+            return constraint
+            }())
 
-        self.backgroundColor = .clear
+        backgroundColor = .clear
     }
 }
