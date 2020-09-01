@@ -100,7 +100,7 @@ struct SettingsView: View {
                     // Feed
                     NavigationLink(destination: FeedPrivacyView().environmentObject(self.privacySettings)) {
                         HStack {
-                            Text("Feed")
+                            Text("Posts")
                             Spacer()
                             Text(self.privacySettings.shortFeedSetting).foregroundColor(.secondary)
                         }
@@ -120,19 +120,6 @@ struct SettingsView: View {
                     .sheet(isPresented: self.$isBlockedListPresented) {
                         PrivacyListView(self.privacySettings.blocked, dismissAction: { self.isBlockedListPresented = false })
                             .environmentObject(self.privacySettings)
-                            .edgesIgnoringSafeArea(.bottom)
-                    }
-
-                    // Privacy Policy
-                    Button(action: { self.isTOSPagePresented = true }) {
-                        HStack {
-                            Text("Terms and Privacy Policy")
-                            Spacer()
-                            TableViewCellChevron()
-                        }
-                    }
-                    .sheet(isPresented: self.$isTOSPagePresented) {
-                        SafariView(url: URL(string: "https://www.halloapp.com/")!)
                             .edgesIgnoringSafeArea(.bottom)
                     }
                 }
@@ -159,6 +146,19 @@ struct SettingsView: View {
                         .sheet(isPresented: self.$isShowingMailView) {
                             MailView(result: self.$mailViewResult)
                         }
+                    }
+
+                    // Privacy Policy
+                    Button(action: { self.isTOSPagePresented = true }) {
+                        HStack {
+                            Text("Terms & Privacy Policy")
+                            Spacer()
+                            TableViewCellChevron()
+                        }
+                    }
+                    .sheet(isPresented: self.$isTOSPagePresented) {
+                        SafariView(url: URL(string: "https://www.halloapp.com/")!)
+                            .edgesIgnoringSafeArea(.bottom)
                     }
 
                     // Invite Friends

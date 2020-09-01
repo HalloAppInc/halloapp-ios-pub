@@ -184,7 +184,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         }
         switch activeType {
         case .all:
-            shortFeedSetting = "My Contacts"
+            shortFeedSetting = "My Phone Contacts"
             longFeedSetting = shortFeedSetting
 
         case .whitelist:
