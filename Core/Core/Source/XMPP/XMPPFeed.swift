@@ -195,7 +195,6 @@ public struct XMPPComment: FeedCommentProtocol {
      */
     public init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id"),
-            let postId = item.attributeStringValue(forName: "post_id"),
             let userId = item.attributeStringValue(forName: "publisher_uid"),
             let protoContainer = Proto_Container.feedItemContainer(from: item), protoContainer.hasComment else { return nil }
 
@@ -204,10 +203,17 @@ public struct XMPPComment: FeedCommentProtocol {
 
         let protoComment = protoContainer.comment
 
+        // Parsing "post_id" and "parent_comment_id" is temporary and needed for posts sent using old API.
+        let postId = item.attributeStringValue(forName: "post_id") ?? protoComment.feedPostID
+        guard !postId.isEmpty else {
+            return nil
+        }
+        let parentCommentId = item.attributeStringValue(forName: "parent_comment_id") ?? protoComment.parentCommentID
+
         self.id = id
         self.userId = userId
         self.feedPostId = postId
-        self.parentId = item.attributeStringValue(forName: "parent_comment_id")
+        self.parentId = parentCommentId.isEmpty ? nil : parentCommentId
         self.text = protoComment.text
         self.mentions = protoComment.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
         self.timestamp = Date(timeIntervalSince1970: timestamp)
