@@ -140,7 +140,12 @@ class PostComposerViewController: UIViewController {
     }
 
     private func backAction() {
-        navigationController?.popViewController(animated: true)
+        if showCancelButton {
+            imageServer.cancel()
+            finish()
+        } else {
+            navigationController?.popViewController(animated: true)
+        }
     }
 
     private func setShareVisibility(_ visibility: Bool) {
@@ -301,7 +306,7 @@ fileprivate struct PostComposerView: View {
                 Text(mediaCount > 0 ? "Write a description" : "Write a post")
                     .font(Font(PostComposerLayoutConstants.getFontSize(
                         textSize: inputToPost.value.text.count, isPostWithMedia: mediaCount > 0)))
-                    .foregroundColor(Color.black.opacity(0.5))
+                    .foregroundColor(Color.primary.opacity(0.5))
                     .padding(.top, 8)
                     .padding(.leading, 4)
                     .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260), alignment: .topLeading)
@@ -363,6 +368,7 @@ fileprivate struct PostComposerView: View {
                     .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
                     .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
                 }
+                .frame(minHeight: geometry.size.height - self.keyboardHeight)
             }
             .background(Color.feedBackground)
             .padding(.bottom, self.keyboardHeight)
