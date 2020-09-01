@@ -130,6 +130,7 @@
 		76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FEB24122EF900F49CA4 /* Feed.xcdatamodeld */; };
 		76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FF52412E6E700F49CA4 /* ContactStore.swift */; };
 		76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */; };
+		76E00DF624FEC4A800E06252 /* UserProfileTableHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E00DF324FEC2FC00E06252 /* UserProfileTableHeaderView.swift */; };
 		76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
 		EA0B9917249C1FFB00B05094 /* Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0B9916249C1FFB00B05094 /* Character.swift */; };
@@ -315,7 +316,7 @@
 		761BD0FB24B3D75800B567F6 /* InviteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InviteManager.swift; path = HalloApp/Models/Invites/InviteManager.swift; sourceTree = SOURCE_ROOT; };
 		761BD0FD24B3EE0A00B567F6 /* InvitePeopleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InvitePeopleView.swift; path = HalloApp/Models/Invites/InvitePeopleView.swift; sourceTree = SOURCE_ROOT; };
 		761BD0FF24B4291200B567F6 /* InvitePeopleTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InvitePeopleTableViewController.swift; path = HalloApp/Models/Invites/InvitePeopleTableViewController.swift; sourceTree = SOURCE_ROOT; };
-		761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeveloperMenuView.swift; path = HalloApp/Views/Home/Profile/DeveloperMenuView.swift; sourceTree = SOURCE_ROOT; };
+		761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeveloperMenuView.swift; path = Halloapp/Views/Settings/DeveloperMenuView.swift; sourceTree = SOURCE_ROOT; };
 		761C6167242D89F90028AE19 /* TextLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TextLabel.swift; path = HalloApp/Components/Views/TextLabel.swift; sourceTree = SOURCE_ROOT; };
 		761EE21D24B5135400B30632 /* MFMessageComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MFMessageComposeView.swift; path = HalloApp/Components/Views/MFMessageComposeView.swift; sourceTree = SOURCE_ROOT; };
 		7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CircularProgressView.swift; path = HalloApp/Components/Views/CircularProgressView.swift; sourceTree = SOURCE_ROOT; };
@@ -393,6 +394,7 @@
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
 		76DF9FF52412E6E700F49CA4 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
 		76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPContactSyncRequest.swift; sourceTree = "<group>"; };
+		76E00DF324FEC2FC00E06252 /* UserProfileTableHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserProfileTableHeaderView.swift; path = Halloapp/Views/Home/Feed/User/UserProfileTableHeaderView.swift; sourceTree = SOURCE_ROOT; };
 		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.debug.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.debug.xcconfig"; sourceTree = "<group>"; };
 		A55A3CED55D1C1A5A07E9733 /* Pods-Shared Extension.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shared Extension.external beta.xcconfig"; path = "Target Support Files/Pods-Shared Extension/Pods-Shared Extension.external beta.xcconfig"; sourceTree = "<group>"; };
@@ -594,7 +596,10 @@
 		6829F78524D0A61100207F6B /* User */ = {
 			isa = PBXGroup;
 			children = (
+				243CC625248005EC00B4794F /* ProfileEditView.swift */,
+				EA454B63234E769F002B960D /* ProfileViewController.swift */,
 				6829F78624D0A62800207F6B /* UserFeedViewController.swift */,
+				76E00DF324FEC2FC00E06252 /* UserProfileTableHeaderView.swift */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -685,6 +690,7 @@
 			isa = PBXGroup;
 			children = (
 				764AB42224A71D3D00D4E354 /* Privacy */,
+				761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */,
 				EAB03B7A2400517500643EB6 /* MailView.swift */,
 				764AB41C24A6BF2800D4E354 /* SettingsView.swift */,
 			);
@@ -866,16 +872,6 @@
 			path = Messages;
 			sourceTree = "<group>";
 		};
-		EA38843623A15D4800E8BF92 /* Profile */ = {
-			isa = PBXGroup;
-			children = (
-				EA454B63234E769F002B960D /* ProfileViewController.swift */,
-				243CC625248005EC00B4794F /* ProfileEditView.swift */,
-				761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */,
-			);
-			path = Profile;
-			sourceTree = "<group>";
-		};
 		EA5414D423EE164C00390EF6 /* Media */ = {
 			isa = PBXGroup;
 			children = (
@@ -978,9 +974,8 @@
 			children = (
 				EA38843423A15C9D00E8BF92 /* Feed */,
 				EA38843523A15D2C00E8BF92 /* Messages */,
-				EA38843623A15D4800E8BF92 /* Profile */,
-				762EDBDC244E5A7800986617 /* HomeViewController.swift */,
 				685B76CB24E4A37600BF666A /* FloatingMenu.swift */,
+				762EDBDC244E5A7800986617 /* HomeViewController.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -1638,6 +1633,7 @@
 				766492252450E04D009BC368 /* BadgeView.swift in Sources */,
 				7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */,
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
+				76E00DF624FEC4A800E06252 /* UserProfileTableHeaderView.swift in Sources */,
 				68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */,
 				76538093243D4B33000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */,
 				76C2D1F924AA6B9700930320 /* PrivacyListViewController.swift in Sources */,
