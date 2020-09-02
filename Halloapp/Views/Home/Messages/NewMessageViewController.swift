@@ -36,7 +36,7 @@ fileprivate class ContactsSearchResultsController: UITableViewController {
         super.viewDidLoad()
 
         self.tableView.separatorStyle = .none
-        self.tableView.backgroundColor = UIColor.systemGray6
+        self.tableView.backgroundColor = .feedBackground
         self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
     }
 
@@ -61,12 +61,12 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
     weak var delegate: NewMessageViewControllerDelegate?
 
-    private var fetchedResultsController: NSFetchedResultsController<ABContact>?
+    private var fetchedResultsController: NSFetchedResultsController<ABContact>!
 
     private var searchController: UISearchController!
     private var searchResultsController: ContactsSearchResultsController!
 
-    private var trackedContacts: [String:TrackedContact] = [:]
+    private var trackedContacts: [String: TrackedContact] = [:]
 
     init() {
         super.init(style: .plain)
@@ -79,43 +79,33 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     override func viewDidLoad() {
         DDLogInfo("NewMessageViewController/viewDidLoad")
 
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
+        navigationItem.title = "New Chat"
+        navigationItem.standardAppearance = .opaqueAppearance
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
 
-        self.navigationItem.title = "New Chat"
+        setupFetchedResultsController()
 
-        self.navigationItem.standardAppearance = .transparentAppearance
-        self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
-
-        self.tableView.separatorStyle = .none
-        self.tableView.backgroundColor = UIColor.systemGray6
-        self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+        tableView.separatorStyle = .none
+        tableView.backgroundColor = .feedBackground
+        tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
         
         searchResultsController = ContactsSearchResultsController(style: .plain)
         searchController = UISearchController(searchResultsController: searchResultsController)
         searchController.delegate = self
         searchController.searchResultsUpdater = self
         searchController.searchBar.autocapitalizationType = .none
-        
         searchController.definesPresentationContext = true
         
-        self.navigationItem.searchController = searchController
-        self.navigationItem.hidesSearchBarWhenScrolling = false
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
         
         let newMessageHeaderView = NewMessageHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 35))
         newMessageHeaderView.isHidden = true
-        
-        //        headerView.configure(withPost: feedPost)
-        //        headerView.textLabel.delegate = self
-        //        headerView.profilePictureButton.addTarget(self, action: #selector(showUserFeedForPostAuthor), for: .touchUpInside)
-        
         if ServerProperties.isInternalUser || ServerProperties.isGroupsEnabled {
             newMessageHeaderView.isHidden = false
         }
-        
         newMessageHeaderView.delegate = self
         tableView.tableHeaderView = newMessageHeaderView
-        
-        self.setupFetchedResultsController()
     }
 
     // MARK: Appearance
@@ -123,7 +113,6 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("NewMessageViewController/viewWillAppear")
         super.viewWillAppear(animated)
-//        self.tableView.reloadData()
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -138,32 +127,28 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     // MARK: Top Nav Button Actions
 
     @objc private func cancelAction() {
-        self.dismiss(animated: true)
+        dismiss(animated: true)
     }
 
     // MARK: Customization
 
-    public var fetchRequest: NSFetchRequest<ABContact> {
-        get {
-            let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
-            fetchRequest.sortDescriptors = [
-                NSSortDescriptor(keyPath: \ABContact.fullName, ascending: true)
-            ]
-            fetchRequest.predicate = NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
-            return fetchRequest
-        }
+    private var fetchRequest: NSFetchRequest<ABContact> {
+        let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ABContact.fullName, ascending: true)
+        ]
+        fetchRequest.predicate = NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
+        return fetchRequest
     }
 
     // MARK: Fetched Results Controller
 
     private var trackPerRowFRCChanges = false
 
-    private var reloadTableViewInDidChangeContent = false
-
     private func setupFetchedResultsController() {
-        self.fetchedResultsController = self.newFetchedResultsController()
+        fetchedResultsController = newFetchedResultsController()
         do {
-            try self.fetchedResultsController?.performFetch()
+            try fetchedResultsController.performFetch()
         } catch {
             fatalError("Failed to fetch feed items \(error)")
         }
@@ -171,18 +156,19 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
     private func newFetchedResultsController() -> NSFetchedResultsController<ABContact> {
         // Setup fetched results controller the old way because it allows granular control over UI update operations.
-        let fetchedResultsController = NSFetchedResultsController<ABContact>(fetchRequest: self.fetchRequest, managedObjectContext: AppContext.shared.contactStore.viewContext,
-                                                                            sectionNameKeyPath: nil, cacheName: nil)
+        let fetchedResultsController = NSFetchedResultsController<ABContact>(fetchRequest: fetchRequest,
+                                                                             managedObjectContext: AppContext.shared.contactStore.viewContext,
+                                                                             sectionNameKeyPath: nil,
+                                                                             cacheName: nil)
         fetchedResultsController.delegate = self
         return fetchedResultsController
     }
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        reloadTableViewInDidChangeContent = false
-        trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
+        trackPerRowFRCChanges = view.window != nil && UIApplication.shared.applicationState == .active
         DDLogDebug("NewMessageView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
-            self.tableView.beginUpdates()
+            tableView.beginUpdates()
         }
     }
 
@@ -192,36 +178,28 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
             guard let indexPath = newIndexPath, let abContact = anObject as? ABContact else { break }
             DDLogDebug("NewMessageView/frc/insert [\(abContact)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.insertRows(at: [ indexPath ], with: .automatic)
-            } else {
-                reloadTableViewInDidChangeContent = true
+                tableView.insertRows(at: [ indexPath ], with: .automatic)
             }
 
         case .delete:
             guard let indexPath = indexPath, let abContact = anObject as? ABContact else { break }
             DDLogDebug("NewMessageView/frc/delete [\(abContact)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
-            } else {
-                reloadTableViewInDidChangeContent = true
+                tableView.deleteRows(at: [ indexPath ], with: .automatic)
             }
 
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let abContact = anObject as? ABContact else { break }
             DDLogDebug("NewMessageView/frc/move [\(abContact)] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
-            } else {
-                reloadTableViewInDidChangeContent = true
+                tableView.moveRow(at: fromIndexPath, to: toIndexPath)
             }
 
         case .update:
             guard let indexPath = indexPath, let abContact = anObject as? ABContact else { return }
             DDLogDebug("NewMessageView/frc/update [\(abContact)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.reloadRows(at: [ indexPath ], with: .automatic)
-            } else {
-                reloadTableViewInDidChangeContent = true
+                tableView.reloadRows(at: [ indexPath ], with: .automatic)
             }
 
         default:
@@ -230,54 +208,54 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("NewMessageView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        DDLogDebug("NewMessageView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
-            self.tableView.endUpdates()
-        } else if reloadTableViewInDidChangeContent {
-            self.tableView.reloadData()
+            tableView.endUpdates()
+        } else {
+            tableView.reloadData()
         }
     }
 
     // MARK: UITableView Delegates
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return self.fetchedResultsController?.sections?.count ?? 0
+        return fetchedResultsController.sections?.count ?? 0
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let sections = self.fetchedResultsController?.sections else { return 0 }
+        guard let sections = fetchedResultsController?.sections else {
+            return 0
+        }
         return sections[section].numberOfObjects
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
-        if let abContact = fetchedResultsController?.object(at: indexPath) {
-            cell.configure(with: abContact)
-        }
+        cell.configure(with: fetchedResultsController.object(at: indexPath))
         return cell
     }
 
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        var contact: ABContact?
+        var contact: ABContact
         if tableView == self.tableView {
-            contact = self.fetchedResultsController?.object(at: indexPath)
+            contact = fetchedResultsController.object(at: indexPath)
         } else {
             contact = searchResultsController.contacts[indexPath.row]
         }
-        if let contact = contact, self.isDuplicate(contact) {
+        guard !isDuplicate(contact) else {
             return 0
         }
         return UITableView.automaticDimension
     }
 
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        var contact: ABContact?
+        var contact: ABContact
         if tableView == self.tableView {
-            contact = self.fetchedResultsController?.object(at: indexPath)
+            contact = fetchedResultsController.object(at: indexPath)
         } else {
             contact = searchResultsController.contacts[indexPath.row]
         }
-        if let contact = contact, self.isDuplicate(contact) {
+        if isDuplicate(contact) {
             cell.isHidden = true
         }
     }
@@ -290,7 +268,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
         var userId: UserID?
         if tableView == self.tableView {
-            userId = fetchedResultsController?.object(at: indexPath).userId
+            userId = fetchedResultsController.object(at: indexPath).userId
         } else {
             userId = searchResultsController.contacts[indexPath.row].userId
         }
@@ -310,22 +288,23 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     func isDuplicate(_ abContact: ABContact) -> Bool {
-        var result = false
-        guard let identifier = abContact.identifier else { return result }
-        guard let normalizedPhoneNumber = abContact.normalizedPhoneNumber else { return result }
-        if self.trackedContacts[identifier] == nil {
+        guard let identifier = abContact.identifier else {
+            return false
+        }
+        guard let normalizedPhoneNumber = abContact.normalizedPhoneNumber else {
+            return false
+        }
+        if trackedContacts[identifier] == nil {
             var trackedContact = TrackedContact(with: abContact)
-            for (_, con) in self.trackedContacts {
+            for (_, con) in trackedContacts {
                 if con.normalizedPhone == normalizedPhoneNumber {
                     trackedContact.isDuplicate = true
                     break
                 }
             }
-            self.trackedContacts[identifier] = trackedContact
+            trackedContacts[identifier] = trackedContact
         }
-        guard let isDuplicate = self.trackedContacts[identifier]?.isDuplicate else { return result }
-        result = isDuplicate
-        return result
+        return trackedContacts[identifier]?.isDuplicate ?? false
     }
 
 }
@@ -373,8 +352,8 @@ fileprivate struct TrackedContact {
     var isDuplicate: Bool = false
 
     init(with abContact: ABContact) {
-        self.id = abContact.identifier
-        self.normalizedPhone = abContact.normalizedPhoneNumber
+        id = abContact.identifier
+        normalizedPhone = abContact.normalizedPhoneNumber
     }
 }
 
@@ -421,7 +400,7 @@ class NewMessageHeaderView: UIView {
         self.preservesSuperviewLayoutMargins = true
 
         vStack.addArrangedSubview(textLabel)
-        self.addSubview(vStack)
+        addSubview(vStack)
 
         vStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
         vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
