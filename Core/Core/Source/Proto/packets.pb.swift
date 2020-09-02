@@ -29,9 +29,13 @@ public struct PBchat {
 
   public var payload: Data = SwiftProtobuf.Internal.emptyData
 
+  public var encPayload: Data = SwiftProtobuf.Internal.emptyData
+
   /// Temporarily added two payloads: one is for unecrypted and the other is encrypted.
   /// Clients currently send both of them at times.
-  public var encPayload: Data = SwiftProtobuf.Internal.emptyData
+  public var publicKey: Data = SwiftProtobuf.Internal.emptyData
+
+  public var oneTimePreKeyID: Int64 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -42,6 +46,20 @@ public struct PBping {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct PBname {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var uid: Int64 = 0
+
+  public var name: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -194,6 +212,14 @@ public struct PBiq_payload {
     set {_uniqueStorage()._content = .clientLog(newValue)}
   }
 
+  public var name: PBname {
+    get {
+      if case .name(let v)? = _storage._content {return v}
+      return PBname()
+    }
+    set {_uniqueStorage()._content = .name(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Content: Equatable {
@@ -214,6 +240,7 @@ public struct PBiq_payload {
     case groupStanza(PBgroup_stanza)
     case groupsStanza(PBgroups_stanza)
     case clientLog(PBclient_log)
+    case name(PBname)
 
   #if !swift(>=4.1)
     public static func ==(lhs: PBiq_payload.OneOf_Content, rhs: PBiq_payload.OneOf_Content) -> Bool {
@@ -235,6 +262,7 @@ public struct PBiq_payload {
       case (.groupStanza(let l), .groupStanza(let r)): return l == r
       case (.groupsStanza(let l), .groupsStanza(let r)): return l == r
       case (.clientLog(let l), .clientLog(let r)): return l == r
+      case (.name(let l), .name(let r)): return l == r
       default: return false
       }
     }
@@ -341,6 +369,14 @@ public struct PBmsg_payload {
     set {content = .groupChat(newValue)}
   }
 
+  public var name: PBname {
+    get {
+      if case .name(let v)? = content {return v}
+      return PBname()
+    }
+    set {content = .name(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Content: Equatable {
@@ -355,6 +391,7 @@ public struct PBmsg_payload {
     case contactHash(PBcontact_hash)
     case groupStanza(PBgroup_stanza)
     case groupChat(PBgroup_chat)
+    case name(PBname)
 
   #if !swift(>=4.1)
     public static func ==(lhs: PBmsg_payload.OneOf_Content, rhs: PBmsg_payload.OneOf_Content) -> Bool {
@@ -370,6 +407,7 @@ public struct PBmsg_payload {
       case (.contactHash(let l), .contactHash(let r)): return l == r
       case (.groupStanza(let l), .groupStanza(let r)): return l == r
       case (.groupChat(let l), .groupChat(let r)): return l == r
+      case (.name(let l), .name(let r)): return l == r
       default: return false
       }
     }
@@ -459,7 +497,7 @@ public struct PBha_message {
 
   public var id: String = String()
 
-  public var type: PBha_message.TypeEnum = .chat
+  public var type: PBha_message.TypeEnum = .normal
 
   public var toUid: Int64 = 0
 
@@ -478,35 +516,37 @@ public struct PBha_message {
 
   public enum TypeEnum: SwiftProtobuf.Enum {
     public typealias RawValue = Int
-    case chat // = 0
+    case normal // = 0
     case error // = 1
     case groupchat // = 2
     case headline // = 3
-    case normal // = 4
+
+    /// Not used yet.
+    case chat // = 4
     case UNRECOGNIZED(Int)
 
     public init() {
-      self = .chat
+      self = .normal
     }
 
     public init?(rawValue: Int) {
       switch rawValue {
-      case 0: self = .chat
+      case 0: self = .normal
       case 1: self = .error
       case 2: self = .groupchat
       case 3: self = .headline
-      case 4: self = .normal
+      case 4: self = .chat
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
 
     public var rawValue: Int {
       switch self {
-      case .chat: return 0
+      case .normal: return 0
       case .error: return 1
       case .groupchat: return 2
       case .headline: return 3
-      case .normal: return 4
+      case .chat: return 4
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -523,11 +563,11 @@ public struct PBha_message {
 extension PBha_message.TypeEnum: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
   public static var allCases: [PBha_message.TypeEnum] = [
-    .chat,
+    .normal,
     .error,
     .groupchat,
     .headline,
-    .normal,
+    .chat,
   ]
 }
 
@@ -594,6 +634,100 @@ extension PBha_presence.TypeEnum: CaseIterable {
     .away,
     .subscribe,
     .unsubscribe,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct PBha_chat_state {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var type: PBha_chat_state.TypeEnum = .available
+
+  public var threadID: String = String()
+
+  public var threadType: PBha_chat_state.ThreadType = .chat
+
+  public var fromUid: Int64 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum TypeEnum: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case available // = 0
+    case typing // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .available
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .available
+      case 1: self = .typing
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .available: return 0
+      case .typing: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public enum ThreadType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case chat // = 0
+    case groupChat // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .chat
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .chat
+      case 1: self = .groupChat
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .chat: return 0
+      case .groupChat: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension PBha_chat_state.TypeEnum: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [PBha_chat_state.TypeEnum] = [
+    .available,
+    .typing,
+  ]
+}
+
+extension PBha_chat_state.ThreadType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [PBha_chat_state.ThreadType] = [
+    .chat,
+    .groupChat,
   ]
 }
 
@@ -672,6 +806,14 @@ public struct PBpacket {
     set {stanza = .error(newValue)}
   }
 
+  public var chatState: PBha_chat_state {
+    get {
+      if case .chatState(let v)? = stanza {return v}
+      return PBha_chat_state()
+    }
+    set {stanza = .chatState(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Stanza: Equatable {
@@ -680,6 +822,7 @@ public struct PBpacket {
     case ack(PBha_ack)
     case presence(PBha_presence)
     case error(PBha_error)
+    case chatState(PBha_chat_state)
 
   #if !swift(>=4.1)
     public static func ==(lhs: PBpacket.OneOf_Stanza, rhs: PBpacket.OneOf_Stanza) -> Bool {
@@ -689,6 +832,7 @@ public struct PBpacket {
       case (.ack(let l), .ack(let r)): return l == r
       case (.presence(let l), .presence(let r)): return l == r
       case (.error(let l), .error(let r)): return l == r
+      case (.chatState(let l), .chatState(let r)): return l == r
       default: return false
       }
     }
@@ -706,6 +850,8 @@ extension PBchat: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     1: .same(proto: "timestamp"),
     2: .same(proto: "payload"),
     3: .standard(proto: "enc_payload"),
+    4: .standard(proto: "public_key"),
+    5: .standard(proto: "one_time_pre_key_id"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -714,6 +860,8 @@ extension PBchat: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
       case 1: try decoder.decodeSingularInt64Field(value: &self.timestamp)
       case 2: try decoder.decodeSingularBytesField(value: &self.payload)
       case 3: try decoder.decodeSingularBytesField(value: &self.encPayload)
+      case 4: try decoder.decodeSingularBytesField(value: &self.publicKey)
+      case 5: try decoder.decodeSingularInt64Field(value: &self.oneTimePreKeyID)
       default: break
       }
     }
@@ -729,6 +877,12 @@ extension PBchat: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     if !self.encPayload.isEmpty {
       try visitor.visitSingularBytesField(value: self.encPayload, fieldNumber: 3)
     }
+    if !self.publicKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.publicKey, fieldNumber: 4)
+    }
+    if self.oneTimePreKeyID != 0 {
+      try visitor.visitSingularInt64Field(value: self.oneTimePreKeyID, fieldNumber: 5)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -736,6 +890,8 @@ extension PBchat: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     if lhs.timestamp != rhs.timestamp {return false}
     if lhs.payload != rhs.payload {return false}
     if lhs.encPayload != rhs.encPayload {return false}
+    if lhs.publicKey != rhs.publicKey {return false}
+    if lhs.oneTimePreKeyID != rhs.oneTimePreKeyID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -755,6 +911,41 @@ extension PBping: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
   }
 
   public static func ==(lhs: PBping, rhs: PBping) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension PBname: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "name"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "uid"),
+    2: .same(proto: "name"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularInt64Field(value: &self.uid)
+      case 2: try decoder.decodeSingularStringField(value: &self.name)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.uid != 0 {
+      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: PBname, rhs: PBname) -> Bool {
+    if lhs.uid != rhs.uid {return false}
+    if lhs.name != rhs.name {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -780,6 +971,7 @@ extension PBiq_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     15: .standard(proto: "group_stanza"),
     16: .standard(proto: "groups_stanza"),
     17: .standard(proto: "client_log"),
+    18: .same(proto: "name"),
   ]
 
   fileprivate class _StorageClass {
@@ -942,6 +1134,14 @@ extension PBiq_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
           }
           try decoder.decodeSingularMessageField(value: &v)
           if let v = v {_storage._content = .clientLog(v)}
+        case 18:
+          var v: PBname?
+          if let current = _storage._content {
+            try decoder.handleConflictingOneOf()
+            if case .name(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._content = .name(v)}
         default: break
         }
       }
@@ -985,6 +1185,8 @@ extension PBiq_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
         try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
       case .clientLog(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
+      case .name(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
       case nil: break
       }
     }
@@ -1020,6 +1222,7 @@ extension PBmsg_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     9: .standard(proto: "contact_hash"),
     10: .standard(proto: "group_stanza"),
     11: .standard(proto: "group_chat"),
+    12: .same(proto: "name"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1113,6 +1316,14 @@ extension PBmsg_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.content = .groupChat(v)}
+      case 12:
+        var v: PBname?
+        if let current = self.content {
+          try decoder.handleConflictingOneOf()
+          if case .name(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.content = .name(v)}
       default: break
       }
     }
@@ -1142,6 +1353,8 @@ extension PBmsg_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
       try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
     case .groupChat(let v)?:
       try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
+    case .name(let v)?:
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -1231,7 +1444,7 @@ extension PBha_message: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     if !self.id.isEmpty {
       try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
     }
-    if self.type != .chat {
+    if self.type != .normal {
       try visitor.visitSingularEnumField(value: self.type, fieldNumber: 2)
     }
     if self.toUid != 0 {
@@ -1259,11 +1472,11 @@ extension PBha_message: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
 
 extension PBha_message.TypeEnum: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "chat"),
+    0: .same(proto: "normal"),
     1: .same(proto: "error"),
     2: .same(proto: "groupchat"),
     3: .same(proto: "headline"),
-    4: .same(proto: "normal"),
+    4: .same(proto: "chat"),
   ]
 }
 
@@ -1320,6 +1533,67 @@ extension PBha_presence.TypeEnum: SwiftProtobuf._ProtoNameProviding {
     1: .same(proto: "away"),
     2: .same(proto: "subscribe"),
     3: .same(proto: "unsubscribe"),
+  ]
+}
+
+extension PBha_chat_state: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "ha_chat_state"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "type"),
+    2: .standard(proto: "thread_id"),
+    3: .standard(proto: "thread_type"),
+    4: .standard(proto: "from_uid"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularEnumField(value: &self.type)
+      case 2: try decoder.decodeSingularStringField(value: &self.threadID)
+      case 3: try decoder.decodeSingularEnumField(value: &self.threadType)
+      case 4: try decoder.decodeSingularInt64Field(value: &self.fromUid)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.type != .available {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 1)
+    }
+    if !self.threadID.isEmpty {
+      try visitor.visitSingularStringField(value: self.threadID, fieldNumber: 2)
+    }
+    if self.threadType != .chat {
+      try visitor.visitSingularEnumField(value: self.threadType, fieldNumber: 3)
+    }
+    if self.fromUid != 0 {
+      try visitor.visitSingularInt64Field(value: self.fromUid, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: PBha_chat_state, rhs: PBha_chat_state) -> Bool {
+    if lhs.type != rhs.type {return false}
+    if lhs.threadID != rhs.threadID {return false}
+    if lhs.threadType != rhs.threadType {return false}
+    if lhs.fromUid != rhs.fromUid {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension PBha_chat_state.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "available"),
+    1: .same(proto: "typing"),
+  ]
+}
+
+extension PBha_chat_state.ThreadType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "chat"),
+    1: .same(proto: "group_chat"),
   ]
 }
 
@@ -1395,6 +1669,7 @@ extension PBpacket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
     3: .same(proto: "ack"),
     4: .same(proto: "presence"),
     5: .same(proto: "error"),
+    6: .standard(proto: "chat_state"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1440,6 +1715,14 @@ extension PBpacket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.stanza = .error(v)}
+      case 6:
+        var v: PBha_chat_state?
+        if let current = self.stanza {
+          try decoder.handleConflictingOneOf()
+          if case .chatState(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.stanza = .chatState(v)}
       default: break
       }
     }
@@ -1457,6 +1740,8 @@ extension PBpacket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     case .error(let v)?:
       try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    case .chatState(let v)?:
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)

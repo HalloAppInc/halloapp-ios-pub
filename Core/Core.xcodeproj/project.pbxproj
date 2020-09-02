@@ -36,6 +36,7 @@
 		682F79EE24F72F630084AF42 /* contact.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E124F72F630084AF42 /* contact.pb.swift */; };
 		682F79EF24F72F630084AF42 /* packets.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E224F72F630084AF42 /* packets.pb.swift */; };
 		682F79F024F72F630084AF42 /* whisper_keys.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E324F72F630084AF42 /* whisper_keys.pb.swift */; };
+		6888CBC8250034A00049FF0E /* cert.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBC72500349F0049FF0E /* cert.pb.swift */; };
 		688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1D24ED979400258BB9 /* MentionText.swift */; };
 		688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */; };
 		68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E7F24D2128300F40F1F /* NSAttributedString.swift */; };
@@ -124,6 +125,7 @@
 		682F79E124F72F630084AF42 /* contact.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = contact.pb.swift; sourceTree = "<group>"; };
 		682F79E224F72F630084AF42 /* packets.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = packets.pb.swift; sourceTree = "<group>"; };
 		682F79E324F72F630084AF42 /* whisper_keys.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = whisper_keys.pb.swift; sourceTree = "<group>"; };
+		6888CBC72500349F0049FF0E /* cert.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = cert.pb.swift; sourceTree = "<group>"; };
 		688D8A1D24ED979400258BB9 /* MentionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MentionText.swift; sourceTree = "<group>"; };
 		688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Proto+Mentions.swift"; sourceTree = "<group>"; };
 		68A64E7F24D2128300F40F1F /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
@@ -387,6 +389,7 @@
 		76812415248619BB008C5216 /* Proto */ = {
 			isa = PBXGroup;
 			children = (
+				6888CBC72500349F0049FF0E /* cert.pb.swift */,
 				682F79D724F72F620084AF42 /* avatar.pb.swift */,
 				682F79D924F72F620084AF42 /* client_info.pb.swift */,
 				682F79DD24F72F630084AF42 /* client_log.pb.swift */,
@@ -624,6 +627,7 @@
 				76E5153824A18171003F1273 /* Digest.swift in Sources */,
 				24AA69D924DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift in Sources */,
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
+				6888CBC8250034A00049FF0E /* cert.pb.swift in Sources */,
 				EAAE7B3E24DD04ED00946B77 /* XMPPWhisper.swift in Sources */,
 				682F79EE24F72F630084AF42 /* contact.pb.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
