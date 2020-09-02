@@ -68,9 +68,9 @@ final class UserProfileTableHeaderView: UIView {
         contactImageView.widthAnchor.constraint(equalTo: contactImageView.heightAnchor).isActive = true
     }
 
-    func updateMyProfile() {
+    func updateMyProfile(name: String) {
         contactImageView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
-        nameLabel.text = MainAppContext.shared.userData.name
+        nameLabel.text = name
     }
 
     func updateProfile(userID: UserID) {

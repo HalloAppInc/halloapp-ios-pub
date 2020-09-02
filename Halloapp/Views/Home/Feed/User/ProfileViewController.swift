@@ -14,6 +14,8 @@ import UIKit
 
 class ProfileViewController: FeedTableViewController {
 
+    private var cancellables = Set<AnyCancellable>()
+
     // MARK: View Controller
 
     override func viewDidLoad() {
@@ -34,8 +36,13 @@ class ProfileViewController: FeedTableViewController {
 
         let tableWidth = view.frame.width
         let headerView = UserProfileTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
-        headerView.frame.size.height = headerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
         tableView.tableHeaderView = headerView
+
+        cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
+            guard let self = self else { return }
+            headerView.updateMyProfile(name: userName)
+            self.view.setNeedsLayout()
+        }))
         
         let headerTapGesture = UITapGestureRecognizer(target: self, action: #selector(presentProfileEditScreen))
         headerView.addGestureRecognizer(headerTapGesture)
@@ -48,10 +55,6 @@ class ProfileViewController: FeedTableViewController {
         // These titles aren't reset when the SwiftUI views are dismissed, so we need to manually update the title
         // here or the tab bar will show the wrong title when it reappears.
         navigationController?.title = title
-
-        if let tableHeaderView = tableView.tableHeaderView as? UserProfileTableHeaderView {
-            tableHeaderView.updateMyProfile()
-        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -59,7 +62,9 @@ class ProfileViewController: FeedTableViewController {
 
         // Update header's height: necessary when user changes text size setting.
         if let headerView = tableView.tableHeaderView {
-            let headerViewHeight = headerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
+            var targetSize = UIView.layoutFittingCompressedSize
+            targetSize.width = tableView.bounds.width
+            let headerViewHeight = headerView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel).height
             if headerView.bounds.height != headerViewHeight {
                 headerView.bounds.size.height = headerViewHeight
                 tableView.tableHeaderView = headerView

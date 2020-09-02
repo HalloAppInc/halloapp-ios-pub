@@ -17,6 +17,8 @@ public final class UserData: ObservableObject {
     public let didLogIn = PassthroughSubject<Void, Never>()
     public let didLogOff = PassthroughSubject<Void, Never>()
 
+    public let userNamePublisher: CurrentValueSubject<String, Never>
+
     /**
      Value is derived from presence of saved userId/password pair.
      */
@@ -42,7 +44,11 @@ public final class UserData: ObservableObject {
     // Entered by user.
     public var countryCode = "1"
     public var phoneInput = ""
-    public var name = ""
+    public var name = "" {
+        didSet {
+            userNamePublisher.send(name)
+        }
+    }
 
     // Provided by the server.
     public var normalizedPhoneNumber: String = ""
@@ -85,6 +91,7 @@ public final class UserData: ObservableObject {
             self.password = user.password ?? ""
             self.name = user.name ?? ""
         }
+        userNamePublisher = CurrentValueSubject(name)
         if !self.userId.isEmpty && !self.password.isEmpty {
             self.isLoggedIn = true
         }

@@ -34,7 +34,6 @@ class UserFeedViewController: FeedTableViewController {
         let tableWidth = view.frame.width
         let headerView = UserProfileTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
         headerView.displayName = false
-        headerView.frame.size.height = headerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
         tableView.tableHeaderView = headerView
     }
 
@@ -51,7 +50,9 @@ class UserFeedViewController: FeedTableViewController {
 
         // Update header's height: necessary when user changes text size setting.
         if let headerView = tableView.tableHeaderView {
-            let headerViewHeight = headerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
+            var targetSize = UIView.layoutFittingCompressedSize
+            targetSize.width = tableView.bounds.width
+            let headerViewHeight = headerView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel).height
             if headerView.bounds.height != headerViewHeight {
                 headerView.bounds.size.height = headerViewHeight
                 tableView.tableHeaderView = headerView
