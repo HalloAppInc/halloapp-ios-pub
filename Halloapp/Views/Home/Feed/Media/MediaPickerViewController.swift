@@ -26,13 +26,14 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     fileprivate var selected = [PickerItem]()
     
     private let didFinish: MediaPickerViewControllerCallback
-    private var assets: PHFetchResult<PHAsset>?
+    private let snapshotManager = MediaPickerSnapshotManager()
     private var dataSource: UICollectionViewDiffableDataSource<Int, PickerItem>!
     private var collectionView: UICollectionView!
     private var transitionLayout: UICollectionViewTransitionLayout?
     private var initialTransitionVelocity: CGFloat = 0
     private var transitionState: TransitionState = .ready
     private var preview: UIView?
+    private var updatingSnapshot = false
     
     init(didFinish: @escaping MediaPickerViewControllerCallback) {
         self.didFinish = didFinish
@@ -47,12 +48,9 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         super.viewDidLoad()
         
         setupNavigationBar()
-        fetchAssets()
-
         collectionView = makeCollectionView(layout: makeLayout())
         dataSource = makeDataSource(collectionView)
-        dataSource.apply(makeSnapshot())
-
+        
         self.view.addSubview(collectionView)
 
         NSLayoutConstraint.activate([
@@ -64,6 +62,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         
         setupZoom()
         setupPreviews()
+        
+        fetchAssets()
     }
     
     private func fetchAssets(album: PHAssetCollection? = nil) {
@@ -74,7 +74,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             PHPhotoLibrary.requestAuthorization { status in
                 DispatchQueue.main.async {
                     self.fetchAssets()
-                    self.dataSource.apply(self.makeSnapshot())
                 }
             }
             return
@@ -87,13 +86,23 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             return
         }
         
-        let options = PHFetchOptions()
-        options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-        
-        if let album = album {
-            assets = PHAsset.fetchAssets(in: album, options: options)
-        } else {
-            assets = PHAsset.fetchAssets(with: options)
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            
+            let options = PHFetchOptions()
+            options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+            
+            if let album = album {
+                self.snapshotManager.reset(with: PHAsset.fetchAssets(in: album, options: options))
+            } else {
+                self.snapshotManager.reset(with: PHAsset.fetchAssets(with: options))
+            }
+            
+            let snapshot = self.snapshotManager.next()
+            
+            DispatchQueue.main.async {
+                self.dataSource.apply(snapshot)
+            }
         }
     }
     
@@ -185,9 +194,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             }
         }
     }
-    
-    private var imagePreviewWidthConstraint: NSLayoutConstraint!
-    private var imagePreviewHeightConstraint: NSLayoutConstraint!
     
     private func setupPreviews() {
         let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.onDisplayPreview(sender:)))
@@ -355,106 +361,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         return source
     }
     
-    private func makeSnapshot() -> NSDiffableDataSourceSnapshot<Int, PickerItem> {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, PickerItem>()
-        guard let assets = assets else { return snapshot }
-        guard assets.count > 0 else { return snapshot }
-        
-        let formatDay = DateFormatter()
-        formatDay.locale = Locale.current
-        formatDay.setLocalizedDateFormatFromTemplate("EEEE, MMM d")
-        
-        let formatDayYear = DateFormatter()
-        formatDayYear.locale = Locale.current
-        formatDayYear.setLocalizedDateFormatFromTemplate("EEEE, MMM d, YYYY")
-        
-        let formatMonth = DateFormatter()
-        formatMonth.locale = Locale.current
-        formatMonth.setLocalizedDateFormatFromTemplate("MMMM")
-        
-        let formatMonthYear = DateFormatter()
-        formatMonthYear.locale = Locale.current
-        formatMonthYear.setLocalizedDateFormatFromTemplate("MMMM YYYY")
-        
-        let thisYear = Calendar.current.component(.year, from: Date())
-        var currentYear = -1
-        var currentDay = -1
-        var currentMonth = -1
-        var itemsInMonth = 0
-        var itemsInDay = 0
-        
-        snapshot.appendSections([0])
-        for i in 0..<assets.count {
-            guard let date = assets[i].creationDate else { continue }
-            
-            let year = Calendar.current.component(.year, from: date)
-            let month = Calendar.current.component(.month, from: date)
-            let day = Calendar.current.component(.day, from: date)
-            
-            if year != currentYear || month != currentMonth {
-                if (itemsInDay % 4) > 0 {
-                    snapshot.appendItems(placeholders(type: .placeholderDay, count: 4 - itemsInDay % 4, indexInMonth: itemsInMonth, indexInDay: itemsInDay))
-                }
-                
-                if (itemsInMonth % 5) > 0 {
-                    snapshot.appendItems(placeholders(type: .placeholderMonth, count: 5 - itemsInMonth % 5, indexInMonth: itemsInMonth, indexInDay: itemsInDay))
-                }
-                
-                itemsInMonth = 0
-                itemsInDay = 0
-                if thisYear == currentYear {
-                    snapshot.appendItems([
-                        PickerItem(type: .month, label: formatMonth.string(from: date)),
-                        PickerItem(type: .day, label: formatDay.string(from: date)),
-                    ])
-                } else {
-                    snapshot.appendItems([
-                        PickerItem(type: .month, label: formatMonthYear.string(from: date)),
-                        PickerItem(type: .day, label: formatDayYear.string(from: date)),
-                    ])
-                }
-            } else if day != currentDay {
-                if (itemsInDay % 4) > 0 {
-                    snapshot.appendItems(placeholders(type: .placeholderDay, count: 4 - itemsInDay % 4, indexInMonth: itemsInMonth, indexInDay: itemsInDay))
-                }
-
-                let itemsInLastBlock = itemsInDay % 5
-                if itemsInLastBlock == 1 {
-                    snapshot.appendItems(placeholders(type: .placeholderDayLarge, count: 1, indexInMonth: itemsInMonth, indexInDay: itemsInDay))
-                } else if 2 < itemsInLastBlock {
-                    snapshot.appendItems(placeholders(type: .placeholderDayLarge, count: 5 - itemsInLastBlock, indexInMonth: itemsInMonth, indexInDay: itemsInDay))
-                }
-                
-                itemsInDay = 0
-                if thisYear == currentYear {
-                    snapshot.appendItems([PickerItem(type: .day, label: formatDay.string(from: date))])
-                } else {
-                    snapshot.appendItems([PickerItem(type: .day, label: formatDayYear.string(from: date))])
-                }
-            }
-
-            snapshot.appendItems([PickerItem(asset: assets[i], indexInMonth: itemsInMonth, indexInDay: itemsInDay)])
-            itemsInMonth += 1
-            itemsInDay += 1
-            
-            currentYear = year
-            currentMonth = month
-            currentDay = day
-        }
-        
-        return snapshot
-    }
-    
-    private func placeholders(type: PickerItemType, count: Int, indexInMonth: Int, indexInDay: Int) -> [PickerItem] {
-        var result = [PickerItem]()
-        
-        for j in 0..<count {
-            result.append(PickerItem(type: type, indexInMonth: indexInMonth + j, indexInDay: indexInDay + j))
-        }
-        
-        return result
-    }
-    
     @objc private func nextAction() {
         guard selected.count > 0 else { return }
         
@@ -545,10 +451,30 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             
             if !cancel {
                 self.fetchAssets(album: album)
-                self.dataSource.apply(self.makeSnapshot())
             }
         }
         self.present(controller, animated: true)
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard !updatingSnapshot else { return }
+        guard let row = collectionView.indexPathsForVisibleItems.last?.row else { return }
+        guard dataSource.snapshot().numberOfItems > 0 else { return }
+        
+        
+        if (Float(row) / Float(dataSource.snapshot().numberOfItems)) > 0.4 {
+            updatingSnapshot = true
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                guard let self = self else { return }
+                
+                let snapshot = self.snapshotManager.next()
+                
+                DispatchQueue.main.async {
+                    self.updatingSnapshot = false
+                    self.dataSource.apply(snapshot)
+                }
+            }
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -685,11 +611,11 @@ fileprivate protocol PickerViewCellDelegate: class {
     var selected: [PickerItem] {get}
 }
 
-fileprivate enum PickerItemType {
+enum PickerItemType {
     case asset, day, month, placeholderMonth, placeholderDay, placeholderDayLarge
 }
 
-fileprivate struct PickerItem: Hashable {
+struct PickerItem: Hashable {
     let indexInMonth: Int
     let indexInDay: Int
     let type: PickerItemType

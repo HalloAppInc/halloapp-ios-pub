@@ -199,6 +199,7 @@
 		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
 		F5E5842640950E619AA50E59 /* Pods_HalloAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6B5578700125D5FF5728637 /* Pods_HalloAppTests.framework */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
+		F851E9512500E47300BC0FAA /* MediaPickerSnapshotManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */; };
 		F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F878427B24F6C0FB0040B723 /* MediaAlbumsViewController.swift */; };
 		F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
 /* End PBXBuildFile section */
@@ -484,6 +485,7 @@
 		EAF3A1E42334192000805FF9 /* HalloappUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloappUITests.swift; sourceTree = "<group>"; };
 		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
+		F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerSnapshotManager.swift; sourceTree = "<group>"; };
 		F878427B24F6C0FB0040B723 /* MediaAlbumsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAlbumsViewController.swift; sourceTree = "<group>"; };
 		F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaEditViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -911,6 +913,7 @@
 				EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */,
 				F878427B24F6C0FB0040B723 /* MediaAlbumsViewController.swift */,
 				F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */,
+				F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */,
 				F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */,
 				EA0C315623EB97C800016EDB /* PostComposerView.swift */,
 				681E0DA924C8E0190073A03E /* NewPostViewController.swift */,
@@ -1681,6 +1684,7 @@
 				76E00DF624FEC4A800E06252 /* UserProfileTableHeaderView.swift in Sources */,
 				68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */,
 				76538093243D4B33000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */,
+				F851E9512500E47300BC0FAA /* MediaPickerSnapshotManager.swift in Sources */,
 				76C2D1F924AA6B9700930320 /* PrivacyListViewController.swift in Sources */,
 				76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */,
 				EA220B7424D0E77D00C44CE7 /* XMPPWhisperRequests.swift in Sources */,
