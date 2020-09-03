@@ -121,6 +121,7 @@
 		76A92444244E659600794859 /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92443244E659600794859 /* FeedViewController.swift */; };
 		76A92449244EBCB600794859 /* ShapeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92448244EBCB600794859 /* ShapeView.swift */; };
 		76A9244B244EC49000794859 /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A9244A244EC49000794859 /* UIView.swift */; };
+		76B5B524250086330055E712 /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
 		76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CD62429331D007435AC /* CommentsViewController.swift */; };
 		76B95CDE24295AB5007435AC /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CDD24295AB5007435AC /* CommentView.swift */; };
 		76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE3242A7A3F007435AC /* CommentInputView.swift */; };
@@ -1522,6 +1523,7 @@
 				24009EBA24BE3FA200155DE2 /* DestinationView.swift in Sources */,
 				24009E9124B66E6800155DE2 /* XMPPController.swift in Sources */,
 				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
+				76B5B524250086330055E712 /* UIColor.swift in Sources */,
 				2446D68B24CF732B005BAD3C /* ShareExtensionDataStore.swift in Sources */,
 				24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */,
 				2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */,

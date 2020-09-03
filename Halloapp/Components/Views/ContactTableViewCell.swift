@@ -26,10 +26,40 @@ class ContactTableViewCell: UITableViewCell {
     }()
 
     private var profilePictureSizeConstraint: NSLayoutConstraint!
+    private var profilePictureVisibleConstraints: [NSLayoutConstraint]!
+    private var profilePictureHiddenConstraints: [NSLayoutConstraint]!
 
     var profilePictureSize: CGFloat = 30 {
         didSet {
             profilePictureSizeConstraint.constant = profilePictureSize
+        }
+    }
+
+    struct Options: OptionSet {
+        let rawValue: Int
+
+        static let hasImage = Options(rawValue: 1 << 0)
+        static let hasCheckmark = Options(rawValue: 1 << 1)
+    }
+    var options: Options = [ .hasImage ] {
+        didSet {
+            if options.contains(.hasImage) {
+                contactImage.isHidden = false
+                contentView.removeConstraints(profilePictureHiddenConstraints)
+                contentView.addConstraints(profilePictureVisibleConstraints)
+            } else {
+                contactImage.isHidden = true
+                contentView.removeConstraints(profilePictureVisibleConstraints)
+                contentView.addConstraints(profilePictureHiddenConstraints)
+            }
+
+            if options.contains(.hasCheckmark) {
+                selectionStyle = .none
+                accessoryView = checkMark
+            } else {
+                selectionStyle = .default
+                accessoryView = nil
+            }
         }
     }
     
@@ -45,10 +75,24 @@ class ContactTableViewCell: UITableViewCell {
     let subtitleLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = .preferredFont(forTextStyle: .subheadline)
+        label.font = .preferredFont(forTextStyle: .footnote)
         label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+
+    private static var checkmarkUnchecked: UIImage {
+        UIImage(systemName: "circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate)
+    }
+
+    private static var checkmarkChecked: UIImage {
+        UIImage(systemName: "checkmark.circle.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate)
+    }
+
+    private lazy var checkMark: UIImageView = {
+        let imageView = UIImageView(image: ContactTableViewCell.checkmarkUnchecked)
+        imageView.tintColor = .lavaOrange
+        return imageView
     }()
 
     private var vStack: UIStackView!
@@ -65,34 +109,82 @@ class ContactTableViewCell: UITableViewCell {
 
     private func commonInit() {
         contentView.addSubview(contactImage)
-        contactImage.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        contactImage.centerYAnchor.constraint(equalTo: contentView.layoutMarginsGuide.centerYAnchor).isActive = true
-        profilePictureSizeConstraint = contactImage.heightAnchor.constraint(equalToConstant: profilePictureSize)
-        profilePictureSizeConstraint.isActive = true
-        contactImage.heightAnchor.constraint(equalTo: contactImage.widthAnchor).isActive = true
 
         vStack = UIStackView(arrangedSubviews: [ nameLabel, subtitleLabel ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
-        vStack.spacing = 4
         contentView.addSubview(vStack)
-        vStack.constrainMargins([ .top, .trailing, .bottom ], to: contentView)
-        vStack.leadingAnchor.constraint(equalToSystemSpacingAfter: contactImage.trailingAnchor, multiplier: 1).isActive = true
+
+        profilePictureSizeConstraint = contactImage.heightAnchor.constraint(equalToConstant: profilePictureSize)
+
+        profilePictureVisibleConstraints = [
+            vStack.leadingAnchor.constraint(equalTo: contactImage.trailingAnchor, constant: 10)
+        ]
+
+        profilePictureHiddenConstraints = [
+            vStack.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor)
+        ]
+
+        contentView.addConstraints([
+            profilePictureSizeConstraint,
+            contactImage.heightAnchor.constraint(equalTo: contactImage.widthAnchor),
+            contactImage.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            contactImage.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+
+            vStack.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor),
+            vStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor)
+        ])
+
+        if options.contains(.hasImage) {
+            contentView.addConstraints(profilePictureVisibleConstraints)
+        } else {
+            contentView.addConstraints(profilePictureHiddenConstraints)
+        }
+
+        // Priority is lower than "required" because cell's height might be 0 (duplicate contacts).
+        contentView.addConstraint({
+            let constraint = contactImage.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8)
+            constraint.priority = .defaultHigh
+            return constraint
+            }())
+        contentView.addConstraint({
+            let constraint = vStack.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor)
+            constraint.priority = .defaultHigh
+            return constraint
+            }())
+    }
+
+    private(set) var isContactSelected: Bool = false
+
+    func setContact(selected: Bool, animated: Bool = false) {
+        guard options.contains(.hasCheckmark) else { return }
+
+        isContactSelected = selected
+        checkMark.image = isContactSelected ? Self.checkmarkChecked : Self.checkmarkUnchecked
+        if animated {
+            checkMark.layer.add({
+                let transition = CATransition()
+                transition.duration = 0.2
+                transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                transition.type = .fade
+                return transition
+            }(), forKey: nil)
+        }
     }
 
     override func prepareForReuse() {
+        super.prepareForReuse()
         contactImage.prepareForReuse()
-        accessoryView = nil
-        nameLabel.text = ""
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        let labelSpacing: CGFloat = subtitleLabel.text?.isEmpty ?? true ? 0 : 4
+        let labelSpacing: CGFloat = subtitleLabel.text?.isEmpty ?? true ? 0 : 3 // matches UITableViewCell's spacing
         if vStack.spacing != labelSpacing {
             vStack.spacing = labelSpacing
         }
     }
 
 }
+

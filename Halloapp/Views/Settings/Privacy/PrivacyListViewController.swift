@@ -45,7 +45,7 @@ class PrivacyListTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.register(PrivacyListTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
+        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
     }
 
     // MARK: - Table view data source
@@ -59,7 +59,7 @@ class PrivacyListTableViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! PrivacyListTableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
         let listEntry = contacts[indexPath.row]
         cell.configure(withListEntry: listEntry)
         cell.setContact(selected: listEntry.isSelected)
@@ -67,7 +67,7 @@ class PrivacyListTableViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let cell = tableView.cellForRow(at: indexPath) as? PrivacyListTableViewCell else { return }
+        guard let cell = tableView.cellForRow(at: indexPath) as? ContactTableViewCell else { return }
         let listEntry = contacts[indexPath.row]
         listEntry.isSelected = !listEntry.isSelected
         cell.setContact(selected: listEntry.isSelected, animated: true)
@@ -194,57 +194,11 @@ extension PrivacyListViewController: UISearchResultsUpdating {
     }
 }
 
-fileprivate class PrivacyListTableViewCell: ContactTableViewCell {
-
-    private static var checkmarkUnchecked: UIImage {
-        get { UIImage(systemName: "circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate) }
-    }
-
-    private static var checkmarkChecked: UIImage {
-        get { UIImage(systemName: "checkmark.circle.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate) }
-    }
-
-    private let checkMark: UIImageView = {
-        let imageView = UIImageView(image: PrivacyListTableViewCell.checkmarkUnchecked)
-        imageView.tintColor = .lavaOrange
-        return imageView
-    }()
-
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: .default, reuseIdentifier: reuseIdentifier)
-        commonInit()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        commonInit()
-    }
-
-    private func commonInit() {
-        selectionStyle = .none
-    }
+private extension ContactTableViewCell {
 
     func configure(withListEntry listEntry: PrivacyListTableRow) {
-        accessoryView = checkMark
+        options.insert(.hasCheckmark)
         nameLabel.text = listEntry.name ?? MainAppContext.shared.contactStore.fullName(for: listEntry.userId)
         subtitleLabel.text = listEntry.phoneNumber
     }
-
-    var userId: UserID?
-    private(set) var isContactSelected: Bool = false
-
-    func setContact(selected: Bool, animated: Bool = false) {
-        isContactSelected = selected
-        checkMark.image = isContactSelected ? Self.checkmarkChecked : Self.checkmarkUnchecked
-        if animated {
-            checkMark.layer.add({
-                let transition = CATransition()
-                transition.duration = 0.2
-                transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-                transition.type = .fade
-                return transition
-            }(), forKey: nil)
-        }
-    }
-
 }

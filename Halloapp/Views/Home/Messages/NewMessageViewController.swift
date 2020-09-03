@@ -35,9 +35,8 @@ fileprivate class ContactsSearchResultsController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.tableView.separatorStyle = .none
-        self.tableView.backgroundColor = .feedBackground
-        self.tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+        tableView.backgroundColor = .feedBackground
+        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -49,7 +48,7 @@ fileprivate class ContactsSearchResultsController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
         cell.configure(with: contacts[indexPath.row])
         return cell
     }
@@ -85,9 +84,8 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
 
         setupFetchedResultsController()
 
-        tableView.separatorStyle = .none
         tableView.backgroundColor = .feedBackground
-        tableView.register(NewMessageViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
         
         searchResultsController = ContactsSearchResultsController(style: .plain)
         searchController = UISearchController(searchResultsController: searchResultsController)
@@ -230,7 +228,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! NewMessageViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
         cell.configure(with: fetchedResultsController.object(at: indexPath))
         return cell
     }
@@ -413,91 +411,13 @@ class NewMessageHeaderView: UIView {
     }
 }
 
-fileprivate class NewMessageViewCell: UITableViewCell {
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setup()
-    }
+private extension ContactTableViewCell {
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-
-        isHidden = false
-        contactImageView.prepareForReuse()
-    }
-
-    public func configure(with abContact: ABContact) {
+    func configure(with abContact: ABContact) {
         nameLabel.text = abContact.fullName
-        lastMessageLabel.text = abContact.phoneNumber
-
+        subtitleLabel.text = abContact.phoneNumber
         if let userId = abContact.userId {
-            contactImageView.configure(with: userId, using: MainAppContext.shared.avatarStore)
+            contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
         }
-    }
-
-    private lazy var contactImageView: AvatarView = {
-        let imageView = AvatarView()
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
-    }()
-
-    private lazy var nameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = .label
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    private lazy var lastMessageLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        label.textColor = .secondaryLabel
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    private func setup() {
-        let vStack = UIStackView(arrangedSubviews: [ nameLabel, lastMessageLabel ])
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.alignment = .leading
-        vStack.axis = .vertical
-        vStack.spacing = 4
-
-        contentView.addSubview(contactImageView)
-        contentView.addSubview(vStack)
-
-        contentView.addConstraints([
-            contactImageView.widthAnchor.constraint(equalToConstant: 40),
-            contactImageView.heightAnchor.constraint(equalTo: contactImageView.widthAnchor),
-            contactImageView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            contactImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-
-            vStack.leadingAnchor.constraint(equalToSystemSpacingAfter: contactImageView.trailingAnchor, multiplier: 2),
-            vStack.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
-            vStack.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor),
-            vStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor)
-        ])
-
-        // Priority is lower than "required" because cell's height might be 0 (duplicate contacts).
-        contentView.addConstraint({
-            let constraint = contactImageView.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor)
-            constraint.priority = .defaultHigh
-            return constraint
-            }())
-        contentView.addConstraint({
-            let constraint = vStack.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor)
-            constraint.priority = .defaultHigh
-            return constraint
-            }())
-
-        backgroundColor = .clear
     }
 }

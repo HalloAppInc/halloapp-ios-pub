@@ -14,17 +14,16 @@ fileprivate struct Constants {
     static let cellReuseIdentifier = "inviteContactCell"
 }
 
-fileprivate extension UITableViewCell {
+private extension ContactTableViewCell {
 
     func configure(withContact contact: ABContact) {
+        options.remove(.hasImage)
+
         let isUserAlready = contact.status == .in
         selectionStyle = isUserAlready ? .none : .default
-        textLabel?.text = contact.fullName
-        textLabel?.textColor = isUserAlready ? .secondaryLabel : .label
-        textLabel?.font = .preferredFont(forTextStyle: .headline)
-        detailTextLabel?.text = isUserAlready ? "Already a HalloApp user" : contact.phoneNumber
-        detailTextLabel?.textColor = .secondaryLabel
-        detailTextLabel?.font = .preferredFont(forTextStyle: .subheadline)
+        nameLabel.text = contact.fullName
+        nameLabel.textColor = isUserAlready ? .secondaryLabel : .label
+        subtitleLabel.text = isUserAlready ? "Already a HalloApp user" : contact.phoneNumber
     }
 }
 
@@ -47,7 +46,9 @@ fileprivate class InvitePeopleResultsController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .feedBackground
+
+        tableView.backgroundColor = .feedBackground
+        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -60,10 +61,7 @@ fileprivate class InvitePeopleResultsController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let contact = contacts[indexPath.row]
-        var cell: UITableViewCell! = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier)
-        if cell == nil {
-            cell = UITableViewCell(style: .subtitle, reuseIdentifier: Constants.cellReuseIdentifier)
-        }
+        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
         cell.configure(withContact: contact)
         return cell
     }
@@ -95,13 +93,11 @@ class InvitePeopleTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .feedBackground
+        tableView.backgroundColor = .feedBackground
+        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
 
-        dataSource = UITableViewDiffableDataSource<TableSection, ABContact>(tableView: self.tableView) { (tableView, indexPath, contact) in
-            var cell: UITableViewCell! = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier)
-            if cell == nil {
-                cell = UITableViewCell(style: .subtitle, reuseIdentifier: Constants.cellReuseIdentifier)
-            }
+        dataSource = UITableViewDiffableDataSource<TableSection, ABContact>(tableView: tableView) { (tableView, indexPath, contact) in
+            let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
             cell.configure(withContact: contact)
             return cell
         }

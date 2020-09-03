@@ -63,16 +63,13 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
         self.navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
         
         self.navigationItem.title = "Add Members"
-        self.navigationItem.standardAppearance = .transparentAppearance
-        self.navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
+        self.navigationItem.standardAppearance = .opaqueAppearance
 
         let backButton = UIBarButtonItem(title: "Back", style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem = backButton
 
-        
-        self.tableView.separatorStyle = .none
-        self.tableView.backgroundColor = UIColor.systemGray6
-        self.tableView.register(NewGroupMembersViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
+        self.tableView.backgroundColor = .feedBackground
+        self.tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         
         searchController = UISearchController(searchResultsController: nil)
         searchController.delegate = self
@@ -245,7 +242,7 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! NewGroupMembersViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
 
         let abContact: ABContact?
         
@@ -315,11 +312,9 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
 
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let cell = tableView.cellForRow(at: indexPath) as? NewGroupMembersViewCell else { return }
+        guard let cell = tableView.cellForRow(at: indexPath) as? ContactTableViewCell else { return }
 //        guard let contact = fetchedResultsController?.object(at: indexPath) else { return }
         let abContact: ABContact?
-        cell.selectionStyle = .none
-        
         if isFiltering {
             abContact = filteredContacts[indexPath.row]
         } else {
@@ -477,124 +472,16 @@ class NewGroupMembersHeaderView: UIView {
     }
 }
 
-fileprivate class NewGroupMembersViewCell: UITableViewCell {
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setup()
-    }
+private extension ContactTableViewCell {
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
-    }
+    func configure(with abContact: ABContact) {
+        options.insert(.hasCheckmark)
 
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        self.isHidden = false
-
-        contactImageView.prepareForReuse()
-    }
-
-    public func configure(with abContact: ABContact) {
-        self.nameLabel.text = abContact.fullName
-        self.lastMessageLabel.text = abContact.phoneNumber
+        nameLabel.text = abContact.fullName
+        subtitleLabel.text = abContact.phoneNumber
 
         if let userId = abContact.userId {
-            contactImageView.configure(with: userId, using: MainAppContext.shared.avatarStore)
+            contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
         }
-    }
-
-    private lazy var contactImageView: AvatarView = {
-        return AvatarView()
-    }()
-
-    private lazy var nameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = .label
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    private lazy var lastMessageLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        label.textColor = .secondaryLabel
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let checkMark: UIImageView = {
-        let view = UIImageView(image: UIImage(systemName: "circle")?.withRenderingMode(.alwaysTemplate))
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.widthAnchor.constraint(equalToConstant: 28).isActive = true
-        view.heightAnchor.constraint(equalTo: view.widthAnchor).isActive = true
-        
-        view.tintColor = .systemGray
-        return view
-    }()
-    
-    private(set) var isContactSelected: Bool = false
-
-    func setContact(selected: Bool, animated: Bool = false) {
-    
-        
-        guard selected != isContactSelected else { return }
-
-        isContactSelected = selected
-
-        let image = isContactSelected ? UIImage(systemName: "checkmark.circle.fill") : UIImage(systemName: "circle")
-        
-        checkMark.image = image?.withRenderingMode(.alwaysTemplate)
-  
-        checkMark.tintColor =  isContactSelected ? UIColor.systemBlue : UIColor.systemGray
-        
-        if animated {
-            checkMark.layer.add({
-                let transition = CATransition()
-                transition.duration = 0.2
-                transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-                transition.type = .fade
-                return transition
-            }(), forKey: nil)
-        }
-    }
-    
-    private func setup() {
-        let vStack = UIStackView(arrangedSubviews: [self.nameLabel, self.lastMessageLabel])
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        vStack.spacing = 2
-
-        let imageSize: CGFloat = 40.0
-        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
-        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
-
-
-        
-        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, vStack, self.checkMark ])
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.axis = .horizontal
-        hStack.alignment = .center
-        hStack.spacing = 10
-        
- 
-    
-        self.contentView.addSubview(hStack)
-        // Priority is lower than "required" because cell's height might be 0 (duplicate contacts).
-        self.contentView.addConstraint({
-            let constraint = hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor)
-            constraint.priority = .defaultHigh
-            return constraint
-            }())
-        hStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-
-        self.backgroundColor = .clear
     }
 }
