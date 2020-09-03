@@ -10,7 +10,6 @@ import CocoaLumberjack
 import Combine
 import Core
 import CoreData
-import SwiftUI
 import UIKit
 
 // MARK: Constraint Constants
@@ -42,37 +41,36 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
         installLargeTitleUsingGothamFont()
         installFloatingActionMenu()
-        self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationItem.standardAppearance = .opaqueAppearance
         
-        self.navigationItem.standardAppearance = .opaqueAppearance
-        
-        self.tableView.backgroundColor = .feedBackground
-        self.tableView.separatorStyle = .none
-        self.tableView.allowsSelection = true
-        self.tableView.register(ChatListViewCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
+        tableView.backgroundColor = .feedBackground
+        tableView.separatorStyle = .none
+        tableView.register(ChatListTableViewCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
 
-        self.setupFetchedResultsController()
+        setupFetchedResultsController()
         
         // When the user was on this view
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
-                guard metadata.contentType == .chat else { return }
                 guard let self = self else { return }
+                guard metadata.contentType == .chat else { return }
                 self.processNotification(metadata: metadata)
             }
         )
 
         // When the user was not on this view, and HomeView sends user to here
         if let metadata = NotificationUtility.Metadata.fromUserDefaults(), metadata.contentType == .chat {
-            self.processNotification(metadata: metadata)
+            processNotification(metadata: metadata)
         }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("ChatListViewController/viewWillAppear")
         super.viewWillAppear(animated)
-        self.tableView.reloadData()
-        self.populateWithSymmetricContacts()
+
+        tableView.reloadData()
+        populateWithSymmetricContacts()
 
         // Floating menu is hidden while our view is obscured
         floatingMenu.isHidden = false
@@ -98,9 +96,9 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     }
     
     func scrollToTop(animated: Bool) {
-        guard let firstSection = self.fetchedResultsController?.sections?.first else { return }
+        guard let firstSection = fetchedResultsController?.sections?.first else { return }
         if firstSection.numberOfObjects > 0 {
-            self.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
+            tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
         }
     }
     
@@ -129,22 +127,19 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     private func showContacts() {
         let controller = NewMessageViewController()
         controller.delegate = self
-        self.present(UINavigationController(rootViewController: controller), animated: true)
+        present(UINavigationController(rootViewController: controller), animated: true)
     }
     
     // MARK: Fetched Results Controller
     
     public var fetchRequest: NSFetchRequest<ChatThread> {
-        get {
-            let fetchRequest = NSFetchRequest<ChatThread>(entityName: "ChatThread")
-            fetchRequest.sortDescriptors = [
-                NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
-                NSSortDescriptor(key: "title", ascending: true)
-            ]
-            fetchRequest.predicate = NSPredicate(format: "groupId != nil || chatWithUserId != nil")
-            
-            return fetchRequest
-        }
+        let fetchRequest = NSFetchRequest<ChatThread>(entityName: "ChatThread")
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
+            NSSortDescriptor(key: "title", ascending: true)
+        ]
+        fetchRequest.predicate = NSPredicate(format: "groupId != nil || chatWithUserId != nil")
+        return fetchRequest
     }
 
     private var trackPerRowFRCChanges = false
@@ -152,18 +147,20 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     private var reloadTableViewInDidChangeContent = false
 
     private func setupFetchedResultsController() {
-        self.fetchedResultsController = self.newFetchedResultsController()
+        fetchedResultsController = createFetchedResultsController()
         do {
-            try self.fetchedResultsController?.performFetch()
+            try fetchedResultsController?.performFetch()
         } catch {
             fatalError("Failed to fetch feed items \(error)")
         }
     }
 
-    private func newFetchedResultsController() -> NSFetchedResultsController<ChatThread> {
+    private func createFetchedResultsController() -> NSFetchedResultsController<ChatThread> {
         // Setup fetched results controller the old way because it allows granular control over UI update operations.
-        let fetchedResultsController = NSFetchedResultsController<ChatThread>(fetchRequest: self.fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext,
-                                                                            sectionNameKeyPath: nil, cacheName: nil)
+        let fetchedResultsController = NSFetchedResultsController<ChatThread>(fetchRequest: fetchRequest,
+                                                                              managedObjectContext: MainAppContext.shared.chatData.viewContext,
+                                                                              sectionNameKeyPath: nil,
+                                                                              cacheName: nil)
         fetchedResultsController.delegate = self
         return fetchedResultsController
     }
@@ -173,7 +170,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
         DDLogDebug("ChatListView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
-            self.tableView.beginUpdates()
+            tableView.beginUpdates()
         }
     }
 
@@ -183,7 +180,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
             guard let indexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
             DDLogDebug("ChatListView/frc/insert [\(chatThread)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.insertRows(at: [ indexPath ], with: .automatic)
+                tableView.insertRows(at: [ indexPath ], with: .automatic)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -192,7 +189,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { break }
             DDLogDebug("ChatListView/frc/delete [\(chatThread)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.deleteRows(at: [ indexPath ], with: .left)
+                tableView.deleteRows(at: [ indexPath ], with: .left)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -201,7 +198,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
             DDLogDebug("ChatListView/frc/move [\(chatThread)] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
+                tableView.moveRow(at: fromIndexPath, to: toIndexPath)
                 reloadTableViewInDidChangeContent = true
             } else {
                 reloadTableViewInDidChangeContent = true
@@ -211,7 +208,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { return }
             DDLogDebug("ChatListView/frc/update [\(chatThread)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.reloadRows(at: [ indexPath ], with: .automatic)
+                tableView.reloadRows(at: [ indexPath ], with: .automatic)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -224,45 +221,41 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("ChatListView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
         if trackPerRowFRCChanges {
-            self.tableView.endUpdates()
+            tableView.endUpdates()
         }
         if reloadTableViewInDidChangeContent {
-            self.tableView.reloadData()
+            tableView.reloadData()
         }
     }
 
-    private var timeIntervalToCheck: TimeInterval = 60
     private var lastCheckedForNewContacts: Date?
     
     private func populateWithSymmetricContacts() {
-        var isTimeToCheck = false
-        if let lastCheckedForNewContacts = self.lastCheckedForNewContacts {
-            isTimeToCheck = Date().timeIntervalSince(lastCheckedForNewContacts) >= self.timeIntervalToCheck
-        } else {
-            isTimeToCheck = true
+        var isTimeToCheck = true
+        if let lastCheckedForNewContacts = lastCheckedForNewContacts {
+            isTimeToCheck = abs(lastCheckedForNewContacts.timeIntervalSinceNow) >= Date.minutes(1)
         }
 
         if isTimeToCheck {
             DDLogDebug("ChatList/populateWithSymmetricContacts")
             MainAppContext.shared.chatData.populateThreadsWithSymmetricContacts()
-            self.lastCheckedForNewContacts = Date()
+            lastCheckedForNewContacts = Date()
         }
     }
     
     // MARK: UITableView Delegates
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return self.fetchedResultsController?.sections?.count ?? 0
+        return fetchedResultsController?.sections?.count ?? 0
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let sections = self.fetchedResultsController?.sections else { return 0 }
+        guard let sections = fetchedResultsController?.sections else { return 0 }
         return sections[section].numberOfObjects
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ChatListViewCell
-        
+        let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ChatListTableViewCell
         if let chatThread = fetchedResultsController?.object(at: indexPath) {
             cell.configure(with: chatThread)
         }
@@ -270,28 +263,27 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if let chatThread = fetchedResultsController?.object(at: indexPath) {
-            if chatThread.type == .oneToOne {
-                guard let chatWithUserId = chatThread.chatWithUserId else { return }
-                let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
-                vc.hidesBottomBarWhenPushed = true
-                self.navigationController?.pushViewController(vc, animated: true)
-            } else {
-                guard let groupId = chatThread.groupId else { return }
-                let vc = ChatGroupViewController(for: groupId)
-                vc.hidesBottomBarWhenPushed = true
-                self.navigationController?.pushViewController(vc, animated: true)
-            }
+        guard let chatThread = fetchedResultsController?.object(at: indexPath) else {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
+        }
+        if chatThread.type == .oneToOne {
+            guard let chatWithUserId = chatThread.chatWithUserId else { return }
+            let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
+            vc.hidesBottomBarWhenPushed = true
+            navigationController?.pushViewController(vc, animated: true)
+        } else {
+            guard let groupId = chatThread.groupId else { return }
+            let vc = ChatGroupViewController(for: groupId)
+            vc.hidesBottomBarWhenPushed = true
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == .delete) {
-            let uiAlert = UIAlertController(title: "Delete", message: "Are you sure you want to delete this chat?", preferredStyle: UIAlertController.Style.alert)
-            self.present(uiAlert, animated: true, completion: nil)
-
-            uiAlert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { action in
-
+            let actionSheet = UIAlertController(title: "Are you sure you want to delete this chat?", message: nil, preferredStyle: .actionSheet)
+            actionSheet.addAction(UIAlertAction(title: "Delete Chat", style: .destructive) { action in
                 if let chatThread = self.fetchedResultsController?.object(at: indexPath) {
                     if chatThread.type == .oneToOne {
                         guard let chatWithUserId = chatThread.chatWithUserId else { return }
@@ -301,11 +293,9 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
                         MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId)
                     }
                 }
-                
-                
-            }))
-
-            uiAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            })
+            actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            present(actionSheet, animated: true)
         }
     }
 
@@ -323,15 +313,16 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         // If the user tapped on a notification, move to the chat view
         DDLogInfo("ChatListViewController/notification/open-chat \(metadata.fromId)")
 
-        self.navigationController?.popToRootViewController(animated: false)
-        self.navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
+        navigationController?.popToRootViewController(animated: false)
+        navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
 
         metadata.removeFromUserDefaults()
     }
 }
 
 
-fileprivate class ChatListViewCell: UITableViewCell {
+private class ChatListTableViewCell: UITableViewCell {
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
@@ -344,283 +335,226 @@ fileprivate class ChatListViewCell: UITableViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.nameLabel.text = nil
-        
-        self.sentTickView.isHidden = true
-        self.deliveredTicksView.isHidden = true
-        
-        self.chatGroupUserNameLabel.isHidden = true
-        
-        self.lastMsgMediaPhotoIcon.isHidden = true
-        self.lastMsgMediaVideoIcon.isHidden = true
 
-        self.lastMsgLabel.text = nil
+        nameLabel.text = nil
+        timeLabel.text = nil
+        lastMsgLabel.text = nil
+        unreadCountView.isHidden = true
         
-        self.timeLabel.text = nil
-        self.unreadNumButton.isHidden = true
-        
-        avatarColumn.prepareForReuse()
+        avatarView.prepareForReuse()
     }
 
-    public func configure(with chatThread: ChatThread) {
-        
-        if chatThread.type == .oneToOne {
-            nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId ?? "")
-            chatGroupUserNameLabel.isHidden = true
-        } else {
-            nameLabel.text = chatThread.title
-            if let lastUserId = chatThread.lastMsgUserId {
-                if lastUserId != MainAppContext.shared.userData.userId {
-                    chatGroupUserNameLabel.text = MainAppContext.shared.contactStore.fullName(for: lastUserId) + ":"
-                    chatGroupUserNameLabel.isHidden = false
-                }
+    private func lastMessageText(for chatThread: ChatThread) -> NSAttributedString {
+
+        let textColor = UIColor.secondaryLabel
+        let font = UIFont.preferredFont(forTextStyle: .footnote)
+
+        var contactNamePart = ""
+        if chatThread.type == .group {
+            if let userId = chatThread.lastMsgUserId, userId != MainAppContext.shared.userData.userId {
+                contactNamePart = MainAppContext.shared.contactStore.fullName(for: userId) + ": "
             }
         }
 
-        switch chatThread.lastMsgStatus {
-        case .seen:
-            self.sentTickView.isHidden = true
-            self.sentTickView.tintColor = UIColor.systemBlue
-            self.deliveredTicksView.isHidden = false
-            self.deliveredTicksView.tintColor = UIColor.systemBlue
-        case .delivered:
-            self.sentTickView.isHidden = true
-            self.sentTickView.tintColor = UIColor.systemGray3
-            self.deliveredTicksView.isHidden = false
-            self.deliveredTicksView.tintColor = UIColor.systemGray3
-        case .sentOut:
-            self.sentTickView.isHidden = false
-            self.sentTickView.tintColor = UIColor.systemGray3
-            self.deliveredTicksView.isHidden = true
-            self.deliveredTicksView.tintColor = UIColor.systemGray3
+        var messageText = chatThread.lastMsgText ?? ""
+        var mediaIcon: UIImage?
+        switch chatThread.lastMsgMediaType {
+        case .image:
+            mediaIcon = UIImage(systemName: "photo")
+            if messageText.isEmpty {
+                messageText = "Photo"
+            }
+
+        case .video:
+            mediaIcon = UIImage(systemName: "video.fill")
+            if messageText.isEmpty {
+                messageText = "Video"
+            }
+
         default:
-            self.sentTickView.isHidden = true
-            self.sentTickView.tintColor = UIColor.systemGray3
-            self.deliveredTicksView.isHidden = true
-            self.deliveredTicksView.tintColor = UIColor.systemGray3
+            break
         }
+
+        let messageStatusIcon: UIImage? = {
+            switch chatThread.lastMsgStatus {
+            case .seen:
+                return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemBlue)
+
+            case .delivered:
+                return UIImage(named: "CheckmarkDouble")?.withTintColor(textColor)
+
+            case .sentOut:
+                return UIImage(named: "CheckmarkSingle")?.withTintColor(textColor)
+
+            default:
+                return nil
+            }
+        }()
+
+        let result = NSMutableAttributedString(string: contactNamePart)
+
+        if let mediaIcon = mediaIcon {
+            result.append(NSAttributedString(attachment: NSTextAttachment(image: mediaIcon)))
+            result.append(NSAttributedString(string: " "))
+        }
+
+        if let messageStatusIcon = messageStatusIcon {
+            let imageSize = messageStatusIcon.size
+            let scale = font.capHeight / imageSize.height
+
+            let iconAttachment = NSTextAttachment(image: messageStatusIcon)
+            iconAttachment.bounds.size = CGSize(width: ceil(imageSize.width * scale), height: ceil(imageSize.height * scale))
+
+            result.append(NSAttributedString(attachment: iconAttachment))
+            result.append(NSAttributedString(string: " "))
+        }
+
+        result.append(NSAttributedString(string: messageText))
+
+        result.addAttributes([ .font: font, .foregroundColor: textColor ],
+                             range: NSRange(location: 0, length: result.length))
+        if !contactNamePart.isEmpty {
+            // Note that the assumption is that we are using system font for the rest of the text.
+            let participantNameFont = UIFont.systemFont(ofSize: font.pointSize, weight: .medium)
+            result.addAttribute(.font, value: participantNameFont, range: NSRange(location: 0, length: contactNamePart.count))
+        }
+
+        return result
+    }
+
+    func configure(with chatThread: ChatThread) {
         
-        if chatThread.lastMsgMediaType == .image {
-            self.lastMsgMediaPhotoIcon.isHidden = false
-            self.lastMsgMediaVideoIcon.isHidden = true
-            self.lastMsgLabel.text = "Photo"
-        } else if chatThread.lastMsgMediaType == .video {
-            self.lastMsgMediaPhotoIcon.isHidden = true
-            self.lastMsgMediaVideoIcon.isHidden = false
-            self.lastMsgLabel.text = "Video"
+        if chatThread.type == .oneToOne {
+            nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId ?? "")
         } else {
-            self.lastMsgMediaPhotoIcon.isHidden = true
-            self.lastMsgMediaVideoIcon.isHidden = true
-            self.lastMsgLabel.text = nil
+            nameLabel.text = chatThread.title
         }
-        
-        if chatThread.lastMsgText != nil && chatThread.lastMsgText != "" {
-            self.lastMsgLabel.text = chatThread.lastMsgText
-        }
-        
+
+        lastMsgLabel.attributedText = lastMessageText(for: chatThread)
+
         if chatThread.unreadCount == 0 {
-            self.unreadNumButton.isHidden = true
-            self.timeLabel.textColor = .secondaryLabel
+            unreadCountView.isHidden = true
+            timeLabel.textColor = .secondaryLabel
         } else {
-            self.unreadNumButton.isHidden = false
-            self.unreadNumButton.setTitle(String(chatThread.unreadCount), for: .normal)
-            self.timeLabel.textColor = .systemBlue
+            unreadCountView.isHidden = false
+            unreadCountView.label.text = String(chatThread.unreadCount)
+            timeLabel.textColor = .systemBlue
         }
         
         if let timestamp = chatThread.lastMsgTimestamp {
-            self.timeLabel.text = timestamp.chatListTimestamp()
+            timeLabel.text = timestamp.chatListTimestamp()
         }
         
         if chatThread.type == .oneToOne {
-            avatarColumn.configure(with: chatThread.chatWithUserId ?? "", using: MainAppContext.shared.avatarStore)
+            avatarView.configure(with: chatThread.chatWithUserId ?? "", using: MainAppContext.shared.avatarStore)
         }
     }
     
     private func setup() {
-        self.backgroundColor = .clear
-        
-        self.avatarColumn.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize).isActive = true
-        self.avatarColumn.heightAnchor.constraint(equalTo: self.avatarColumn.widthAnchor).isActive = true
-        
-        self.contentView.addSubview(mainRow)
-        mainRow.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        mainRow.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
-        mainRow.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
-        mainRow.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        backgroundColor = .clear
+
+        contentView.addSubview(avatarView)
+
+        let topRow = UIStackView(arrangedSubviews: [ nameLabel, timeLabel ])
+        topRow.axis = .horizontal
+        topRow.alignment = .firstBaseline
+        topRow.spacing = 8
+
+        let bottomRow = UIStackView(arrangedSubviews: [ lastMsgLabel, unreadCountView ])
+        bottomRow.axis = .horizontal
+        bottomRow.alignment = .center // This works as long as unread label and last message text have the same font.
+        bottomRow.spacing = 8
+
+        let vStack = UIStackView(arrangedSubviews: [ topRow, bottomRow ])
+        vStack.axis = .vertical
+        vStack.spacing = 4
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(vStack)
+
+        contentView.addConstraints([
+            avatarView.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize),
+            avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor),
+            avatarView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            avatarView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            avatarView.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8),
+
+            vStack.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 10),
+            vStack.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
+            vStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            vStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor)
+        ])
     }
-    
-    private lazy var mainRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [self.avatarColumn, self.textColumn])
-        view.axis = .horizontal
-        view.alignment = .center
-        view.spacing = 10
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    // MARK: Avatar Column
-    
-    private lazy var avatarColumn: AvatarView = {
+
+    private lazy var avatarView: AvatarView = {
         return AvatarView()
     }()
-    
-    private lazy var textColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [self.nameRow, self.lastMsgRow])
-        view.axis = .vertical
-        view.spacing = 2
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    // MARK: Text Column
-    
-    private lazy var chatGroupUserNameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        label.textColor = .secondaryLabel
-        
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        label.isHidden = true
-        return label
-    }()
-    
+
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
         label.textColor = .label
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         return label
     }()
     
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        label.font = .preferredFont(forTextStyle: .caption1)
         label.textColor = .secondaryLabel
-        
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh + 50, for: .horizontal)
         return label
     }()
-    
-    private lazy var sentTickView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "CheckmarkSingle")?.withRenderingMode(.alwaysTemplate))
-        imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = UIColor.systemGray3
-        
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        imageView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        imageView.isHidden = true
-        return imageView
-    }()
-    
-    private lazy var deliveredTicksView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "CheckmarkDouble")?.withRenderingMode(.alwaysTemplate))
-        imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = UIColor.systemGray3
-        
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        imageView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        imageView.isHidden = true
-        return imageView
-    }()
-    
-    private lazy var lastMsgMediaPhotoIcon: UIImageView = {
-        let view = UIImageView(image: UIImage(systemName: "photo"))
-        view.tintColor = UIColor.systemGray
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        view.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        
-        view.isHidden = true
-        return view
-    }()
-        
-    private lazy var lastMsgMediaVideoIcon: UIImageView = {
-        let view = UIImageView(image: UIImage(systemName: "video.fill"))
-        view.tintColor = UIColor.systemGray
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        view.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        
-        view.isHidden = true
-        return view
-    }()
-    
+
     private lazy var lastMsgLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        label.textColor = .secondaryLabel
-        
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         return label
     }()
     
-    private lazy var unreadNumButton: UIButton = {
-        let view = UIButton()
-        view.isUserInteractionEnabled = false
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .systemBlue
-        view.contentEdgeInsets = UIEdgeInsets(top: 1, left: 6.7, bottom: 1, right: 6.7)
-        view.titleLabel?.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        view.tintColor = UIColor.systemGray6
-        view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        view.layer.cornerRadius = 10
-        view.clipsToBounds = true
-        view.isHidden = true
-        
-        view.widthAnchor.constraint(greaterThanOrEqualToConstant: 15.0).isActive = true
+    private lazy var unreadCountView: UnreadBadgeView = {
+        let view = UnreadBadgeView(frame: .zero)
+        view.label.font = .preferredFont(forTextStyle: .footnote)
         return view
     }()
     
-    private lazy var lastMsgRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [
-            self.sentTickView,
-            self.deliveredTicksView,
-            self.chatGroupUserNameLabel,
-            self.lastMsgMediaPhotoIcon,
-            self.lastMsgMediaVideoIcon,
-            self.lastMsgLabel,
-            self.unreadNumButton])
-        view.axis = .horizontal
-        view.alignment = .center
-        view.spacing = 10
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        self.lastMsgMediaPhotoIcon.heightAnchor.constraint(equalTo: self.lastMsgLabel.heightAnchor).isActive = true
-        self.lastMsgMediaVideoIcon.heightAnchor.constraint(equalTo: self.lastMsgLabel.heightAnchor).isActive = true
-        
-        self.sentTickView.heightAnchor.constraint(equalTo: self.lastMsgLabel.heightAnchor).isActive = true
-        self.deliveredTicksView.heightAnchor.constraint(equalTo: self.lastMsgLabel.heightAnchor).isActive = true
-        
-        return view
-    }()
-    
-    private lazy var nameRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [self.nameLabel, self.timeLabel])
-        view.axis = .horizontal
-        view.alignment = .leading
-        view.spacing = 5
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-        
+}
+
+private class UnreadBadgeView: UIView {
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        commonInit()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        commonInit()
+    }
+
+    var label: UILabel!
+
+    private func commonInit() {
+        backgroundColor = .clear
+        layoutMargins = UIEdgeInsets(top: 1, left: 1, bottom: 1, right: 1)
+
+        let backgroundView = PillView()
+        backgroundView.fillColor = .systemBlue
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(backgroundView)
+        backgroundView.constrain(to: self)
+
+        label = UILabel()
+        label.textAlignment = .center
+        label.textColor = .white
+        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        label.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(label)
+        label.widthAnchor.constraint(greaterThanOrEqualTo: label.heightAnchor, multiplier: 1).isActive = true
+        label.constrainMargins(to: self)
+    }
 }
