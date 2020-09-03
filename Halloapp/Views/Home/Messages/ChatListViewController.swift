@@ -35,9 +35,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         self.title = title
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
         DDLogInfo("ChatListViewController/viewDidLoad")
@@ -351,6 +349,8 @@ fileprivate class ChatListViewCell: UITableViewCell {
         self.sentTickView.isHidden = true
         self.deliveredTicksView.isHidden = true
         
+        self.chatGroupUserNameLabel.isHidden = true
+        
         self.lastMsgMediaPhotoIcon.isHidden = true
         self.lastMsgMediaVideoIcon.isHidden = true
 
@@ -365,9 +365,16 @@ fileprivate class ChatListViewCell: UITableViewCell {
     public func configure(with chatThread: ChatThread) {
         
         if chatThread.type == .oneToOne {
-            self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId ?? "")
+            nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId ?? "")
+            chatGroupUserNameLabel.isHidden = true
         } else {
-            self.nameLabel.text = chatThread.title
+            nameLabel.text = chatThread.title
+            if let lastUserId = chatThread.lastMsgUserId {
+                if lastUserId != MainAppContext.shared.userData.userId {
+                    chatGroupUserNameLabel.text = MainAppContext.shared.contactStore.fullName(for: lastUserId) + ":"
+                    chatGroupUserNameLabel.isHidden = false
+                }
+            }
         }
 
         switch chatThread.lastMsgStatus {
@@ -469,6 +476,19 @@ fileprivate class ChatListViewCell: UITableViewCell {
     
     // MARK: Text Column
     
+    private lazy var chatGroupUserNameLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        label.textColor = .secondaryLabel
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        label.isHidden = true
+        return label
+    }()
+    
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
@@ -476,6 +496,7 @@ fileprivate class ChatListViewCell: UITableViewCell {
         label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         return label
     }()
     
@@ -573,6 +594,7 @@ fileprivate class ChatListViewCell: UITableViewCell {
         let view = UIStackView(arrangedSubviews: [
             self.sentTickView,
             self.deliveredTicksView,
+            self.chatGroupUserNameLabel,
             self.lastMsgMediaPhotoIcon,
             self.lastMsgMediaVideoIcon,
             self.lastMsgLabel,

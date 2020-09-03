@@ -48,9 +48,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         super.init(nibName: nil, bundle: nil)
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
     
     override func viewDidLoad() {
         guard self.fromUserId != nil else { return }
@@ -675,7 +673,7 @@ fileprivate class TitleView: UIView {
         let label = UILabel()
         label.numberOfLines = 1
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = .secondaryLabel
         label.isHidden = true
         return label

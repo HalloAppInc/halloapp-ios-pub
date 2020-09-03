@@ -1524,12 +1524,13 @@ extension ChatData {
         self.xmppController.enqueue(request: request)
     }
     
-    public func getGroupInfo(groupId: GroupID) {
+    public func getAndSyncGroup(groupId: GroupID) {
+        DDLogDebug("ChatData/group/getAndSyncGroupInfo/group \(groupId)")
         let request = XMPPGroupGetInfoRequest(groupId: groupId) { [weak self] (response, error) in
             guard let self = self else { return }
             if error == nil {
                 
-                self.syncGroupInfo(xml: response)
+                self.syncGroup(xml: response)
                 
             } else {
                 DDLogDebug("ChatData/group/getGroupInfo/error \(error!)")
@@ -1540,10 +1541,10 @@ extension ChatData {
         self.xmppController.enqueue(request: request)
     }
     
-    public func modifyGroupMembers(groupId: GroupID, selected: [UserID], action: ChatGroupMemberAction, completion: @escaping GroupActionCompletion) {
-        let request = XMPPGroupModifyMembersRequest(groupId: groupId, members: selected, action: action) { (response, error) in
+    public func modifyGroup(for groupId: GroupID, with members: [UserID], groupAction: ChatGroupAction, action: ChatGroupMemberAction, completion: @escaping GroupActionCompletion) {
+        let request = XMPPGroupModifyRequest(groupId: groupId, members: members, groupAction: groupAction, action: action) { (response, error) in
             if error != nil {
-                DDLogDebug("ChatData/group/modifyMembers/error \(error!)")
+                DDLogDebug("ChatData/group/modify/error \(error!)")
             }
             completion(error)
         }
@@ -1551,7 +1552,24 @@ extension ChatData {
         self.xmppController.enqueue(request: request)
     }
     
-    func syncGroupInfo(xml: XMLElement?) {
+    func syncGroupIfNeeded(for groupId: GroupID) {
+        guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil else { return }
+        guard let chatGroup = chatGroup(groupId: groupId) else { return }
+        var shouldSync = false
+    
+        if let lastSync = chatGroup.lastSync {
+            if let diff = Calendar.current.dateComponents([.hour], from: lastSync, to: Date()).hour, diff > 24 {
+                shouldSync = true
+            }
+        } else {
+            shouldSync = true
+        }
+        if shouldSync {
+            MainAppContext.shared.chatData.getAndSyncGroup(groupId: groupId)
+        }
+    }
+    
+    func syncGroup(xml: XMLElement?) {
         DDLogInfo("ChatData/group/syncGroupInfo")
         guard let xmlElement = xml else { return }
         guard let groupEl = xmlElement.element(forName: "group") else { return }
@@ -1561,8 +1579,9 @@ extension ChatData {
         }
     
         self.updateChatGroup(with: xmppGroup.groupId) { [weak self] (chatGroup) in
-        
             guard let self = self else { return }
+            chatGroup.lastSync = Date()
+            
             if chatGroup.name != xmppGroup.name {
                 chatGroup.name = xmppGroup.name
             }
@@ -1941,7 +1960,12 @@ extension ChatData {
                 DDLogInfo("ChatData/group/delete-messages/begin count=[\(chatGroupMessages.count)]")
                 chatGroupMessages.forEach {
                     self.deleteGroupMedia(in: $0)
-                    //TODO: need to delete message receipts also
+                    
+                    // delete message receipts
+                    $0.info?.forEach { info in
+                        managedObjectContext.delete(info)
+                    }
+                    
                     managedObjectContext.delete($0)
                 }
             }
@@ -2006,6 +2030,7 @@ extension ChatData {
         }
         
         var isCurrentlyChattingInGroup = false
+        var groupExist = true
         
         if let currentlyChattingInGroup = self.currentlyChattingInGroup {
             if xmppChatGroupMessage.groupId == currentlyChattingInGroup {
@@ -2016,6 +2041,7 @@ extension ChatData {
         // if group doesn't exist yet, add
         if chatGroup(groupId: xmppChatGroupMessage.groupId, in: managedObjectContext) == nil {
             DDLogDebug("ChatData/group/processInboundChatGroupMessage/group not exist yet [\(xmppChatGroupMessage.groupId)]")
+            groupExist = false
             let chatGroup = NSEntityDescription.insertNewObject(forEntityName: ChatGroup.entity().name!, into: managedObjectContext) as! ChatGroup
             chatGroup.groupId = xmppChatGroupMessage.groupId
             if let groupName = xmppChatGroupMessage.groupName {
@@ -2065,20 +2091,12 @@ extension ChatData {
             chatMedia.sha256 = xmppMedia.sha256
             chatMedia.groupMessage = chatGroupMessage
         }
-        
-        var lastMsgText: String = ""
-        if chatGroupMessage.userId != MainAppContext.shared.userData.userId {
-            let senderName = MainAppContext.shared.contactStore.fullName(for: chatGroupMessage.userId)
-            lastMsgText += senderName
-            lastMsgText += ": "
-        }
-        lastMsgText += chatGroupMessage.text ?? ""
-        
+                
         // Update Chat Thread
         if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
             chatThread.lastMsgId = chatGroupMessage.id
             chatThread.lastMsgUserId = chatGroupMessage.userId
-            chatThread.lastMsgText = lastMsgText
+            chatThread.lastMsgText = chatGroupMessage.text
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .none
             chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
@@ -2092,14 +2110,18 @@ extension ChatData {
             }
             chatThread.lastMsgId = chatGroupMessage.id
             chatThread.lastMsgUserId = chatGroupMessage.userId
-            chatThread.lastMsgText = lastMsgText
+            chatThread.lastMsgText = chatGroupMessage.text
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .none
             chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
             chatThread.unreadCount = 1
         }
         
-        self.save(managedObjectContext)
+        save(managedObjectContext)
+        
+        if !groupExist {
+            getAndSyncGroup(groupId: xmppChatGroupMessage.groupId)
+        }
         
         if isCurrentlyChattingInGroup && isAppActive {
             self.sendSeenGroupReceipt(for: chatGroupMessage)
@@ -2120,12 +2142,16 @@ extension ChatData {
 
     private func processInboundGroupMessageReceipt(with receipt: XMPPReceipt, for groupId: GroupID) {
         let messageId = receipt.itemId
+        guard let receiptTimestamp = receipt.timestamp else { return }
+        
   
         if receipt.type == .delivery {
             updateChatGroupMessageInfo(with: messageId, userId: receipt.userId) { [weak self] (chatGroupMessageInfo) in
                 guard let self = self else { return }
                 if chatGroupMessageInfo.outboundStatus == .none {
                     chatGroupMessageInfo.outboundStatus = .delivered
+                    
+                    chatGroupMessageInfo.timestamp = receiptTimestamp
                 }
                 
                 let msg = chatGroupMessageInfo.groupMessage
@@ -2151,6 +2177,7 @@ extension ChatData {
                 guard let self = self else { return }
                 if (chatGroupMessageInfo.outboundStatus == .none || chatGroupMessageInfo.outboundStatus == .delivered) {
                     chatGroupMessageInfo.outboundStatus = .seen
+                    chatGroupMessageInfo.timestamp = receiptTimestamp
                 }
                 
                 let msg = chatGroupMessageInfo.groupMessage
@@ -2192,11 +2219,10 @@ extension ChatData {
             processGroupCreateAction(xmppGroup: xmppGroup, in: managedObjectContext)
         case .leave:
             processGroupLeaveAction(xmppGroup: xmppGroup, in: managedObjectContext)
-        case .modifyMembers:
+        case .modifyMembers, .modifyAdmins:
             processGroupModifyMembersAction(xmppGroup: xmppGroup, in: managedObjectContext)
         default: break
         }
-        
         
         self.save(managedObjectContext)
     }
@@ -2229,40 +2255,54 @@ extension ChatData {
     }
 
     private func processGroupLeaveAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
-        guard self.chatGroup(groupId: xmppGroup.groupId, in: managedObjectContext) != nil else {
-            DDLogError("ChatData/group/processGroupLeaveAction/group does not exist [\(xmppGroup.groupId)]")
-            return
-        }
+        
+        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
         
         for (_, xmppGroupMember) in xmppGroup.members.enumerated() {
             DDLogDebug("ChatData/group/process/new/add-member [\(xmppGroupMember.userId)]")
             guard xmppGroupMember.action == .leave else { continue }
             deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
+            
             //TODO: record as system message
-            //TODO: refresh group members list because admins might've changed
+            
+            if xmppGroupMember.userId != MainAppContext.shared.userData.userId {
+                getAndSyncGroup(groupId: xmppGroup.groupId)
+            }
         }
+    
     }
 
     private func processGroupModifyMembersAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
         DDLogDebug("ChatData/group/processGroupModifyMembersAction")
-        let chatGroup = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
         
+        var syncGroup = false
         for (_, xmppGroupMember) in xmppGroup.members.enumerated() {
             DDLogDebug("ChatData/group/process/modifyMembers [\(xmppGroupMember.userId)]")
             
-            if xmppGroupMember.action == .add {
-             
-                processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
-
-            } else if xmppGroupMember.action == .remove {
+            if xmppGroupMember.action == .remove {
                 deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
+
+                // if user is removed, there's no need to sync up group
+                if xmppGroupMember.userId != MainAppContext.shared.userData.userId {
+                    syncGroup = true
+                }
+            } else {
+                syncGroup = true
             }
             
+//            if xmppGroupMember.action == .add {
+//                processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+//            } else if xmppGroupMember.action == .remove {
+//                deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
+//            }
+            
             //TODO: record as system message
-            //TODO: refresh group members list because admins might've changed
             
         }
-        
+        if syncGroup {
+            getAndSyncGroup(groupId: xmppGroup.groupId)
+        }
     }
     
     private func processGroupCreateIfNotExist(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) -> ChatGroup {
@@ -2315,7 +2355,6 @@ extension ChatData {
             member.group = chatGroup
         }
     }
-    
 }
 
 

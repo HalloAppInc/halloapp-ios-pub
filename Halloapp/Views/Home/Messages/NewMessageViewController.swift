@@ -71,9 +71,7 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         super.init(style: .plain)
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
         DDLogInfo("NewMessageViewController/viewDidLoad")

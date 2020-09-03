@@ -34,9 +34,7 @@ class MediaPreviewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
         DDLogInfo("MediaPreviewController/viewDidLoad")

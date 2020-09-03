@@ -54,12 +54,12 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         groupInfoHeaderView.isHidden = true
         tableView.tableHeaderView = groupInfoHeaderView
         
-        if let chatGroupMember = MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) {
-            if chatGroupMember.type == .admin {
-                isAdmin = true
-                groupInfoHeaderView.isHidden = false
-            }
-        }
+//        if let chatGroupMember = MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) {
+//            if chatGroupMember.type == .admin {
+//                isAdmin = true
+//                groupInfoHeaderView.isHidden = false
+//            }
+//        }
         
         let groupInfoFooterView = GroupInfoFooterView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 35))
         groupInfoFooterView.delegate = self
@@ -209,31 +209,66 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard isAdmin else { return }
         guard let chatGroupMember = fetchedResultsController?.object(at: indexPath) else { return }
+        guard chatGroupMember.userId != MainAppContext.shared.userData.userId else { return }
         
         let userName = MainAppContext.shared.contactStore.fullName(for: chatGroupMember.userId)
-        let selectedMember = [chatGroupMember.userId]
+        let selectedMembers = [chatGroupMember.userId]
         
-        let actionSheet = UIAlertController(title: nil, message: "Remove \(userName)?", preferredStyle: .actionSheet)
-         actionSheet.addAction(UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
+        let actionSheet = UIAlertController(title: "\(userName)", message: nil, preferredStyle: .actionSheet)
+
+        if chatGroupMember.type == .admin {
+            actionSheet.addAction(UIAlertAction(title: "Demote", style: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                
+                MainAppContext.shared.chatData.modifyGroup(for: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.demote) { error in
+                    //            guard let self = self else { return }
+                }
+            })
+        } else {
+            actionSheet.addAction(UIAlertAction(title: "Promote to admin", style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                
+                MainAppContext.shared.chatData.modifyGroup(for: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.promote) { error in
+                    //            guard let self = self else { return }
+                }
+            })
+        }
+        actionSheet.addAction(UIAlertAction(title: "Remove", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
-            MainAppContext.shared.chatData.modifyGroupMembers(groupId: self.groupId, selected: selectedMember, action: ChatGroupMemberAction.remove) { error in
+            
+            MainAppContext.shared.chatData.modifyGroup(for: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.remove) { error in
                 //            guard let self = self else { return }
             }
-         })
-         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-         self.present(actionSheet, animated: true)
+            
+        })
+        
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        self.present(actionSheet, animated: true)
 
   
     }
     
     func checkIfMember() {
-        //TODO: can be reduced to just checking fetchedlist
-        let view = self.tableView.tableFooterView as! GroupInfoFooterView
-        if MainAppContext.shared.chatData.chatGroupMember(groupId: self.groupId, memberUserId: AppContext.shared.userData.userId) == nil {
-            view.setIsMember(false)
+
+        let headerView = self.tableView.tableHeaderView as! GroupInfoHeaderView
+        let footerView = self.tableView.tableFooterView as! GroupInfoFooterView
+                
+        if let chatGroupMember = MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) {
+            if chatGroupMember.type == .admin {
+                isAdmin = true
+                headerView.isHidden = false
+                footerView.setIsMember(true)
+            } else if chatGroupMember.type == .member {
+                isAdmin = false
+                headerView.isHidden = true
+                footerView.setIsMember(true)
+            }
         } else {
-            view.setIsMember(true)
+            isAdmin = false
+            headerView.isHidden = true
+            footerView.setIsMember(false)
         }
+        
     }
     
 }
@@ -270,7 +305,7 @@ extension GroupInfoViewController: GroupInfoFooterViewDelegate {
 
 extension GroupInfoViewController: NewGroupMembersViewControllerDelegate {
     func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, selected selectedMembers: [UserID]) {
-        MainAppContext.shared.chatData.modifyGroupMembers(groupId: groupId, selected: selectedMembers, action: ChatGroupMemberAction.add) { error in
+        MainAppContext.shared.chatData.modifyGroup(for: groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.add) { error in
 //            guard let self = self else { return }
         }
     }
@@ -413,7 +448,8 @@ fileprivate class GroupMemberViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         self.isHidden = false
-
+        nameLabel.text = ""
+        roleLabel.text = ""
         contactImageView.prepareForReuse()
     }
     

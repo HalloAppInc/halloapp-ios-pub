@@ -37,10 +37,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         setupView()
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupView()
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     func willAppear(in viewController: UIViewController) {
         self.setInputViewWidth(viewController.view.bounds.size.width)

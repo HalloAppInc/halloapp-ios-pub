@@ -4,6 +4,7 @@
         <attribute name="avatar" optional="YES" attributeType="String"/>
         <attribute name="desc" optional="YES" attributeType="String"/>
         <attribute name="groupId" optional="YES" attributeType="String"/>
+        <attribute name="lastSync" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="maxSize" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="members" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatGroupMember" inverseName="group" inverseEntity="ChatGroupMember"/>
@@ -96,7 +97,7 @@
         <attribute name="unreadCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <elements>
-        <element name="ChatGroup" positionX="-45" positionY="135" width="128" height="133"/>
+        <element name="ChatGroup" positionX="-45" positionY="135" width="128" height="148"/>
         <element name="ChatGroupMember" positionX="-36" positionY="144" width="128" height="118"/>
         <element name="ChatGroupMessage" positionX="-27" positionY="153" width="128" height="208"/>
         <element name="ChatGroupMessageInfo" positionX="-18" positionY="162" width="128" height="118"/>

@@ -97,18 +97,18 @@ class XMPPGroupLeaveRequest : XMPPRequest {
 }
 
 
-class XMPPGroupModifyMembersRequest : XMPPRequest {
+class XMPPGroupModifyRequest : XMPPRequest {
     typealias XMPPGroupRequestCompletion = (XMLElement?, Error?) -> Void
     let completion: XMPPGroupRequestCompletion
 
-    init(groupId: GroupID, members: [UserID], action: ChatGroupMemberAction, completion: @escaping XMPPGroupRequestCompletion) {
+    init(groupId: GroupID, members: [UserID], groupAction: ChatGroupAction, action: ChatGroupMemberAction, completion: @escaping XMPPGroupRequestCompletion) {
         self.completion = completion
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "s.halloapp.net"))
                 
         iq.addChild({
             let group = XMLElement(name: "group", xmlns: "halloapp:groups")
             group.addAttribute(withName: "gid", stringValue: groupId)
-            group.addAttribute(withName: "action", stringValue: "modify_members")
+            group.addAttribute(withName: "action", stringValue: groupAction.rawValue)
 
             for memberId in members {
                 let memberEl = XMLElement(name: "member")
@@ -130,3 +130,4 @@ class XMPPGroupModifyMembersRequest : XMPPRequest {
         self.completion(nil, error)
     }
 }
+

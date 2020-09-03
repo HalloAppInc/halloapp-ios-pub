@@ -148,6 +148,7 @@
 		EA35857A2450BE3300E6E8AB /* ChatInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3585752450BE3300E6E8AB /* ChatInputView.swift */; };
 		EA35857C2450BE3300E6E8AB /* IncomingMsgView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3585772450BE3300E6E8AB /* IncomingMsgView.swift */; };
 		EA35857D2450BE3300E6E8AB /* OutgoingMsgView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3585782450BE3300E6E8AB /* OutgoingMsgView.swift */; };
+		EA36B5F024FDB83700A7E4CE /* MessageSeenByViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */; };
 		EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* ProfileViewController.swift */; };
 		EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */; };
 		EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713223EB7DB3008C2E44 /* FeedMedia.swift */; };
@@ -423,6 +424,7 @@
 		EA3585752450BE3300E6E8AB /* ChatInputView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatInputView.swift; sourceTree = "<group>"; };
 		EA3585772450BE3300E6E8AB /* IncomingMsgView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IncomingMsgView.swift; sourceTree = "<group>"; };
 		EA3585782450BE3300E6E8AB /* OutgoingMsgView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OutgoingMsgView.swift; sourceTree = "<group>"; };
+		EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSeenByViewController.swift; sourceTree = "<group>"; };
 		EA454B63234E769F002B960D /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataItem.swift; sourceTree = "<group>"; };
 		EA45713223EB7DB3008C2E44 /* FeedMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMedia.swift; sourceTree = "<group>"; };
@@ -872,7 +874,7 @@
 				EA3585772450BE3300E6E8AB /* IncomingMsgView.swift */,
 				EA3585782450BE3300E6E8AB /* OutgoingMsgView.swift */,
 				EA3585752450BE3300E6E8AB /* ChatInputView.swift */,
-				EA25178E246B693B00CE24C0 /* MediaPreviewController.swift */,
+				EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */,
 			);
 			path = Messages;
 			sourceTree = "<group>";
@@ -1050,6 +1052,7 @@
 			isa = PBXGroup;
 			children = (
 				EAD476CF2457B09600EF8591 /* MessageComposerView.swift */,
+				EA25178E246B693B00CE24C0 /* MediaPreviewController.swift */,
 			);
 			path = Media;
 			sourceTree = "<group>";
@@ -1656,6 +1659,7 @@
 				762EDBDD244E5A7800986617 /* HomeViewController.swift in Sources */,
 				764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */,
 				764AB41F24A6C5F300D4E354 /* Color.swift in Sources */,
+				EA36B5F024FDB83700A7E4CE /* MessageSeenByViewController.swift in Sources */,
 				EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */,
 				EA35857C2450BE3300E6E8AB /* IncomingMsgView.swift in Sources */,
 				764AB42124A7188600D4E354 /* FeedPrivacyView.swift in Sources */,

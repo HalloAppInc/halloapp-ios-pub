@@ -16,7 +16,7 @@ protocol OutgoingMsgViewDelegate: AnyObject {
 class OutgoingMsgView: UIView {
     
     weak var delegate: OutgoingMsgViewDelegate?
-    
+ 
     // MARK: Lifecycle
     
     override init(frame: CGRect) {
@@ -24,37 +24,83 @@ class OutgoingMsgView: UIView {
         setup()
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
+
+    private func setup() {
+        backgroundColor = .clear
+        layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        addSubview(mainView)
+        
+        mainView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
+        mainView.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
+        mainView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
+        mainView.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor).isActive = true
     }
     
-    private func setup() {
-        self.backgroundColor = .clear
-        self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
-        self.addSubview(self.mainView)
+    private lazy var mainView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ bubbleRow, timeRow ])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .vertical
+        view.alignment = .trailing
+        view.spacing = 0
         
-        self.mainView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-        self.mainView.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        self.mainView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
-        self.mainView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
-    }
+        return view
+    }()
+    
+    private lazy var bubbleRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.quotedRow, self.textRow ])
+        view.axis = .vertical
+        view.spacing = 0
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        let subView = UIView(frame: view.bounds)
+        subView.layer.cornerRadius = 20
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        subView.backgroundColor = UIColor.lavaOrange.withAlphaComponent(0.1)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(subView, at: 0)
+
+        return view
+    }()
     
     // MARK: Quoted Row
     
+    private lazy var quotedRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ self.quotedTextVStack, self.quotedImageView ])
+        view.axis = .horizontal
+        view.spacing = 10
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.backgroundColor = .white
+        subView.layer.cornerRadius = 20
+        subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        
+        view.insertSubview(subView, at: 0)
+        view.isHidden = true
+        
+        return view
+    }()
+    
     private lazy var quotedNameLabel: UILabel = {
         let label = UILabel()
-        label.textColor = UIColor.label
         label.numberOfLines = 1
         label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.textColor = .darkText
         return label
     }()
     
     private lazy var quotedTextLabel: UILabel = {
         let label = UILabel()
-        label.textColor = UIColor.secondaryLabel
         label.numberOfLines = 2
         label.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        label.textColor = .darkText
         return label
     }()
     
@@ -83,29 +129,6 @@ class OutgoingMsgView: UIView {
         view.isUserInteractionEnabled = true
         view.addGestureRecognizer(tapGesture)
         return view
-    }()
-    
-    private lazy var quotedRow: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [ self.quotedTextVStack, self.quotedImageView ])
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-
-        stackView.axis = .horizontal
-        stackView.spacing = 10
-
-        stackView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-        stackView.isLayoutMarginsRelativeArrangement = true
-        
-        let subView = UIView(frame: stackView.bounds)
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        subView.backgroundColor = .systemGray5
-        subView.layer.cornerRadius = 20
-        subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        subView.layer.masksToBounds = true
-        subView.clipsToBounds = true
-        stackView.insertSubview(subView, at: 0)
-        stackView.isHidden = true
-        
-        return stackView
     }()
     
     // MARK: Media Row
@@ -140,15 +163,16 @@ class OutgoingMsgView: UIView {
     
     private lazy var textView: UITextView = {
         let textView = UITextView()
-        textView.translatesAutoresizingMaskIntoConstraints = false
         textView.isScrollEnabled = false
         textView.isEditable = false
         textView.isSelectable = false
         textView.isUserInteractionEnabled = true
         textView.dataDetectorTypes = .link
         textView.textContainerInset = UIEdgeInsets.zero
+        textView.backgroundColor = .clear
         textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
         textView.tintColor = UIColor.link
+        textView.translatesAutoresizingMaskIntoConstraints = false
         return textView
     }()
     
@@ -180,21 +204,23 @@ class OutgoingMsgView: UIView {
         
     private lazy var sentTickStack: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ self.sentTickImageView ])
-        view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .vertical
         view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 2, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         view.spacing = 0
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
     private lazy var deliveredTickStack: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ self.deliveredTickImageView ])
-        view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .vertical
         view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 2, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         view.spacing = 0
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
             
@@ -220,22 +246,7 @@ class OutgoingMsgView: UIView {
         return view
     }()
     
-    private lazy var bubbleRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.quotedRow, self.textRow ])
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.axis = .vertical
-        view.spacing = 0
-        
-        let subView = UIView(frame: view.bounds)
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        subView.backgroundColor = .systemBackground
-        subView.layer.cornerRadius = 20
-        subView.layer.masksToBounds = true
-        subView.clipsToBounds = true
-        view.insertSubview(subView, at: 0)
 
-        return view
-    }()
     
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
@@ -261,15 +272,7 @@ class OutgoingMsgView: UIView {
         return view
     }()
     
-    private lazy var mainView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.bubbleRow, self.timeRow ])
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.axis = .vertical
-        view.alignment = .trailing
-        view.spacing = 0
-        
-        return view
-    }()
+
     
     // MARK: Update
     

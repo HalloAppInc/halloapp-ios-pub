@@ -6,7 +6,6 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-
 import AVFoundation
 import CocoaLumberjack
 import Combine
@@ -34,6 +33,8 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
     
     // MARK: Lifecycle
     
+
+    
     init(for groupId: String) {
         DDLogDebug("GroupChatViewController/init/\(groupId)")
         self.groupId = groupId
@@ -44,7 +45,7 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         let appearance = UINavigationBarAppearance()
         appearance.backgroundColor = UIColor.systemGray6
         appearance.shadowColor = .clear
@@ -182,12 +183,13 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
         MainAppContext.shared.chatData.markThreadAsRead(type: .group, for: groupId)
         MainAppContext.shared.chatData.updateUnreadThreadCount()
         MainAppContext.shared.chatData.setCurrentlyChattingInGroup(for: groupId)
+        MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
 
-        MainAppContext.shared.chatData.getGroupInfo(groupId: groupId)
-        
-        self.chatInputView.didAppear(in: self)
+        chatInputView.didAppear(in: self)
         
 //        NotificationUtility.removeDelivered(forType: .chat, withFromId: self.fromUserId!)
+        
+        // TODO: group info should be sync-ed just in case every so often
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -593,7 +595,16 @@ extension ChatGroupViewController: OutboundMsgCellDelegate {
     
     func outboundMsgCell(_ outboundMsgCell: OutboundMsgCell, didLongPressOn msgId: String) {
 
+        let actionSheet = UIAlertController(title: nil, message: "", preferredStyle: .actionSheet)
+         actionSheet.addAction(UIAlertAction(title: "Info", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
 
+            let messageSeenByViewController = MessageSeenByViewController(chatGroupMessageId: msgId)
+            self.present(UINavigationController(rootViewController: messageSeenByViewController), animated: true)
+         })
+         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+         self.present(actionSheet, animated: true)
+        
     }
     
 
@@ -704,7 +715,7 @@ fileprivate class TitleView: UIView {
         let label = UILabel()
         label.numberOfLines = 1
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = .secondaryLabel
         label.isHidden = true
         return label
@@ -834,14 +845,6 @@ class OutboundMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
         
     }
 
-    @objc func gotoMsgInfo(_ sender: UIView) {
-        guard let messageId = msgId else { return }
-        self.delegate?.outboundMsgCell(self, didLongPressOn: messageId)
-        
-
-        
-    }
-    
     private lazy var outgoingMsgView: OutgoingMsgView = {
         let view = OutgoingMsgView()
         view.delegate = self
@@ -861,4 +864,11 @@ class OutboundMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
         }
     }
     
+    @objc func gotoMsgInfo(_ sender: UIView) {
+        guard let messageId = msgId else { return }
+        self.delegate?.outboundMsgCell(self, didLongPressOn: messageId)
+    }
+    
 }
+
+

@@ -9,10 +9,11 @@ import Core
 import Foundation
 import XMPPFramework
 
-enum ChatGroupAction: Int {
-    case create = 0
-    case leave = 1
-    case modifyMembers = 2
+enum ChatGroupAction: String {
+    case create = "create"
+    case leave = "leave"
+    case modifyMembers = "modify_members"
+    case modifyAdmins = "modify_admins"
 }
 
 enum ChatGroupMemberType: Int {
@@ -23,6 +24,7 @@ enum ChatGroupMemberType: Int {
 enum ChatGroupMemberAction: String {
     case add = "add"
     case promote = "promote"
+    case demote = "demote"
     case remove = "remove"
     case leave = "leave"
     
@@ -37,6 +39,7 @@ struct XMPPGroup {
     let avatar: String? = nil
     let members: [XMPPGroupMember]
 
+    // inbound
     init?(itemElement item: XMLElement) {
         self.sender = item.attributeStringValue(forName: "sender")
         self.senderName = item.attributeStringValue(forName: "sender_name")
@@ -50,6 +53,7 @@ struct XMPPGroup {
             case "create": return .create
             case "leave": return .leave
             case "modify_members": return .modifyMembers
+            case "modify_admins": return .modifyAdmins
             default: return nil
             }}()
         
@@ -69,6 +73,7 @@ struct XMPPGroupMember {
     
     let action: ChatGroupMemberAction? // does not need to be recorded in db
     
+    // inbound
     init?(xmlElement: XMLElement) {
         guard let userId = xmlElement.attributeStringValue(forName: "uid") else { return nil }
         let name = xmlElement.attributeStringValue(forName: "name")
@@ -87,6 +92,7 @@ struct XMPPGroupMember {
             switch actionStr {
             case "add": return .add
             case "promote": return .promote
+            case "demote": return .demote
             case "remove": return .remove
             case "leave": return .leave
             default: return nil
