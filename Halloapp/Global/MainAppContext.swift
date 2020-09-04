@@ -35,6 +35,10 @@ class MainAppContext: AppContext {
         }
     }
 
+    var service: HalloService {
+        xmppController
+    }
+
     override var contactStore: ContactStoreMain {
         get {
             super.contactStore as! ContactStoreMain
@@ -92,7 +96,7 @@ class MainAppContext: AppContext {
         feedData = FeedData(xmppController: xmppController, contactStore: contactStore, userData: userData)
         chatData = ChatData(xmppController: xmppController, userData: userData)
         keyData = KeyData(xmppController: xmppController, userData: userData, keyStore: keyStore)
-        syncManager = SyncManager(contactStore: contactStore, xmppController: xmppController, userData: userData)
+        syncManager = SyncManager(contactStore: contactStore, service: xmppController, userData: userData)
         avatarStore = AvatarStore()
         xmppController.avatarDelegate = avatarStore
         privacySettings = PrivacySettings(contactStore: contactStore, xmppController: xmppController)

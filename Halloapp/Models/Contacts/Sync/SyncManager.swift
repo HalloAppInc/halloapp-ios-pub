@@ -38,20 +38,20 @@ class SyncManager {
     private var cancellableSet: Set<AnyCancellable> = []
 
     private let contactStore: ContactStoreMain
-    private let xmppController: XMPPControllerMain
+    private let service: HalloService
 
     private static let UDDisabledAddressBookSynced = "isabledAddressBookSynced"
 
-    init(contactStore: ContactStoreMain, xmppController: XMPPControllerMain, userData: UserData) {
+    init(contactStore: ContactStoreMain, service: HalloService, userData: UserData) {
         self.contactStore = contactStore
-        self.xmppController = xmppController
+        self.service = service
 
         self.fullSyncTimer = DispatchSource.makeTimerSource(queue: self.queue)
         self.fullSyncTimer.setEventHandler {
             self.runFullSyncIfNecessary()
         }
 
-        self.cancellableSet.insert(self.xmppController.didConnect.sink {
+        self.cancellableSet.insert(self.service.didConnect.sink {
             self.queue.async {
                 self.runSyncIfNecessary()
             }
@@ -188,7 +188,7 @@ class SyncManager {
         }
 
         // Must be connected.
-        guard self.xmppController.isConnected else {
+        guard self.service.isConnected else {
             return .failure(.notAllowed)
         }
 

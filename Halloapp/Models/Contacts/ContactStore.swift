@@ -264,14 +264,14 @@ class ContactStoreMain: ContactStore {
     private var syncWillBeEnabled = false
     
     func enableContactSync() {
-        let xmppController = MainAppContext.shared.xmppController
+        let service = MainAppContext.shared.service
         let syncManager = MainAppContext.shared.syncManager!
-        if xmppController.isConnected {
+        if service.isConnected {
             syncManager.enableSync()
         } else if (!self.syncWillBeEnabled) {
             self.syncWillBeEnabled = true
             cancellableSet.insert(
-                xmppController.didConnect.sink {
+                service.didConnect.sink {
                     syncManager.enableSync()
                     self.syncWillBeEnabled = false
                 }

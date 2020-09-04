@@ -8,7 +8,6 @@
 
 import CocoaLumberjack
 import Foundation
-import XMPPFramework
 
 /**
  Defines what gets sent during sync session.
@@ -82,7 +81,7 @@ class SyncSession {
             let contactsToSend = self.contacts[range]
             let requestType: ContactSyncRequestType = self.syncMode == .full ? .full : .delta
             let batchIndex = self.batchIndex
-            let request = XMPPContactSyncRequest(with: contactsToSend, type: requestType, syncID: self.syncID,
+            MainAppContext.shared.service.syncContacts(with: contactsToSend, type: requestType, syncID: self.syncID,
                                                  batchIndex: batchIndex, isLastBatch: isLastBatch) { (result) in
                 DDLogInfo("sync-session/\(self.syncMode)/request/end/batch/\(batchIndex)")
                 switch result {
@@ -98,8 +97,6 @@ class SyncSession {
 
             self.contacts.removeSubrange(range)
             self.batchIndex += 1
-
-            MainAppContext.shared.xmppController.enqueue(request: request)
 
             return
         }
