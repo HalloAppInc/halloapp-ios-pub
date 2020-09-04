@@ -114,10 +114,6 @@ fileprivate struct CameraView: View {
 
     private let plainButtonStyle = PlainButtonStyle()
 
-    private static func getButtonColor(_ scheme: ColorScheme) -> Color {
-        return scheme == .light ? CameraViewLayoutConstants.buttonColorDark : .white
-    }
-
     private func getCameraControllerHeight(_ width: CGFloat) -> CGFloat {
         return ((width - 4 * CameraViewLayoutConstants.horizontalPadding) * 4 / 3).rounded()
     }
@@ -184,7 +180,6 @@ fileprivate struct CameraView: View {
     }
 
     private func captureOn() {
-        DDLogInfo("CameraView/captureOff: shouldRecordVideo = true")
         cameraState.shouldRecordVideo = true
 
         withAnimation {
@@ -194,26 +189,22 @@ fileprivate struct CameraView: View {
 
     private func captureOff() {
         if cameraState.shouldRecordVideo {
-            DDLogInfo("CameraView/captureOff: shouldRecordVideo = false")
             cameraState.shouldRecordVideo = false
             withAnimation {
                 captureButtonColor = .cameraButton
             }
 
         } else {
-            DDLogInfo("CameraView/captureOff: shouldTakePhoto: true")
             cameraState.shouldTakePhoto = true
         }
     }
 
     private func toggleFlash() {
         cameraState.shouldUseFlashlight = !cameraState.shouldUseFlashlight
-        DDLogInfo("CameraView/toggleFlash: \(cameraState.shouldUseFlashlight)")
     }
 
     private func flipCamera() {
         cameraState.shouldUseBackCamera = !cameraState.shouldUseBackCamera
-        DDLogInfo("CameraView/flipCamera: \(cameraState.shouldUseBackCamera)")
     }
 
 }
@@ -234,7 +225,6 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
     var isTakingPhoto = GenericObservable(false)
 
     func makeUIViewController(context: Context) -> CameraController {
-        DDLogInfo("CameraControllerRepresentable/makeUIViewController")
         let controller = CameraController(cameraDelegate: context.coordinator)
         let tappedGesture =
             UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped))
@@ -366,9 +356,6 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
                     try FileManager.default.removeItem(at: CameraControllerRepresentable.videoPendingURL)
                 }
                 try FileManager.default.moveItem(at: outputFileURL, to: CameraControllerRepresentable.videoPendingURL)
-                if FileManager.default.fileExists(atPath: outputFileURL.path) {
-                    DDLogInfo("CameraControllerRepresentable/Coordinator/fileOutput: interesting")
-                }
             } catch {
                 DDLogError("CameraControllerRepresentable/Coordinator/fileOutput: could not copy to \(CameraControllerRepresentable.videoPendingURL)")
                 return showCameraFailureAlert(mediaType: .video)
