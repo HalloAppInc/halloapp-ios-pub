@@ -95,7 +95,7 @@ class MainAppContext: AppContext {
 
         feedData = FeedData(xmppController: xmppController, contactStore: contactStore, userData: userData)
         chatData = ChatData(xmppController: xmppController, userData: userData)
-        keyData = KeyData(xmppController: xmppController, userData: userData, keyStore: keyStore)
+        keyData = KeyData(service: xmppController, userData: userData, keyStore: keyStore)
         syncManager = SyncManager(contactStore: contactStore, service: xmppController, userData: userData)
         avatarStore = AvatarStore()
         xmppController.avatarDelegate = avatarStore

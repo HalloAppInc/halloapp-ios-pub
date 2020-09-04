@@ -18,19 +18,19 @@ class KeyData {
     let thresholdToUploadMoreOTPKeys: Int32 = 5
     
     private var userData: UserData
-    private var xmppController: XMPPControllerMain
+    private var service: HalloService
     
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var keyStore: KeyStore
     
-    init(xmppController: XMPPControllerMain, userData: UserData, keyStore: KeyStore) {
-        self.xmppController = xmppController
+    init(service: HalloService, userData: UserData, keyStore: KeyStore) {
+        self.service = service
         self.userData = userData
         self.keyStore = keyStore
-        self.xmppController.keyDelegate = self
+        self.service.keyDelegate = self
         self.cancellableSet.insert(
-            self.xmppController.didConnect.sink { [weak self] in
+            self.service.didConnect.sink { [weak self] in
                 DDLogInfo("KeyData/onConnect")
                 guard let self = self else { return }
                 self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
@@ -76,8 +76,9 @@ class KeyData {
             oneTime: generatedOTPKeys.keys
         )
 
-        let request = XMPPWhisperUploadRequest(keyBundle: keyBundle) { (error) in
-            if error == nil {
+        service.uploadWhisperKeyBundle(keyBundle) { result in
+            switch result {
+            case .success:
                 self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
                     DDLogDebug("KeyData/uploadWhisperKeyBundle/save/new")
                     let userKeyBundle = NSEntityDescription.insertNewObject(forEntityName: UserKeyBundle.entity().name!, into: managedObjectContext) as! UserKeyBundle
@@ -111,11 +112,10 @@ class KeyData {
                     
                     self.keyStore.deleteAllMessageKeyBundles()
                 }
-            } else {
-                DDLogInfo("KeyData/uploadWhisperKeyBundle/save/error")
+            case .failure(let error):
+                DDLogInfo("KeyData/uploadWhisperKeyBundle/save/error \(error)")
             }
         }
-        self.xmppController.enqueue(request: request)
     }
     
     private func uploadMoreOneTimePreKeys() {
@@ -131,9 +131,10 @@ class KeyData {
             let whisperKeyBundle = XMPPWhisperKey(
                 oneTime: generatedOTPKeys.keys
             )
-            
-            let request = XMPPWhisperAddOneTimeKeysRequest(whisperKeyBundle: whisperKeyBundle) { (error) in
-                if error == nil {
+
+            self.service.requestAddOneTimeKeys(whisperKeyBundle) { result in
+                switch result {
+                case .success:
                     DDLogDebug("KeyData/uploadMoreOneTimePreKeys/save")
                     userKeyBundle.oneTimePreKeysCounter = generatedOTPKeys.counter
 
@@ -149,28 +150,23 @@ class KeyData {
                         oneTimeKey.userKeyBundle = userKeyBundle
                     }
                     self.keyStore.save(managedObjectContext)
-                } else {
-                    DDLogInfo("KeyData/uploadMoreOneTimePreKeys/save/error")
+                case .failure(let error):
+                    DDLogInfo("KeyData/uploadMoreOneTimePreKeys/save/error \(error)")
                 }
             }
-            self.xmppController.enqueue(request: request)
         }
     }
 
     public func getWhisperCountOfOneTimeKeys() {
         DDLogInfo("keyData/getWhisperCountOfOneTimeKeys")
-        let request = XMPPWhisperGetCountOfOneTimeKeysRequest() { (response, error) in
-            if error == nil {
-                guard let whisperKeys = response?.element(forName: "whisper_keys") else { return }
-
-                //gotcha: there's no type although server doc say there is a type of normal
-                guard let otpKeyCount = whisperKeys.element(forName: "otp_key_count") else { return }
-                let otpKeyCountNum = otpKeyCount.stringValueAsInt()
+        service.requestCountOfOneTimeKeys() { result in
+            switch result {
+            case .success(let otpKeyCountNum):
                 self.uploadMoreOTPKeysIfNeeded(currentNum: otpKeyCountNum)
-            } else {
+            case .failure(let error):
+                DDLogError("KeyData/getWhisperCountOfOneTimeKeys/error \(error)")
             }
         }
-        self.xmppController.enqueue(request: request)
     }
     
     func uploadMoreOTPKeysIfNeeded(currentNum: Int32) {
@@ -235,19 +231,15 @@ extension KeyData {
                 group.leave()
                 
             } else {
-                let request = XMPPWhisperGetBundleRequest(targetUserId: userId) { (response, error) in
-                    if error == nil {
-                        if let response = response {
-                            if let keys = XMPPWhisperKey(itemElement: response) {
-                                keyBundle = self.keyStore.initiateSessionSetup(for: userId, with: keys)
-                            }
-                        }
-                    } else {
-                        DDLogInfo("KeyData/wrapMessage/error")
+                self.service.requestWhisperKeyBundle(userID: userId) { result in
+                    switch result {
+                    case .success(let keys):
+                        keyBundle = self.keyStore.initiateSessionSetup(for: userId, with: keys)
+                    case .failure(let error):
+                        DDLogInfo("KeyData/wrapMessage/error \(error)")
                     }
                     group.leave()
                 }
-                self.xmppController.enqueue(request: request)
             }
         }
         
@@ -305,19 +297,13 @@ extension KeyData {
     
 }
 
-extension KeyData: XMPPControllerKeyDelegate {
-    public func xmppController(_ xmppController: XMPPController, didReceiveWhisperMessage item: XMLElement) {
-        DDLogInfo("KeyData/didReceiveWhisperMessage \(item)")
-        guard let whisperType = item.attributeStringValue(forName: "type") else { return }
-
-        if whisperType == "update" {
-            DDLogInfo("KeyData/didReceiveWhisperMessage/type \(whisperType)")
-            guard let uid = item.attributeStringValue(forName: "uid") else { return }
+extension KeyData: HalloKeyDelegate {
+    public func halloService(_ halloService: HalloService, didReceiveWhisperMessage message: WhisperMessage) {
+        DDLogInfo("KeyData/didReceiveWhisperMessage \(message)")
+        switch message {
+        case .update(let uid):
             self.keyStore.deleteMessageKeyBundles(for: uid)
-        } else if whisperType == "normal" {
-            DDLogInfo("KeyData/didReceiveWhisperMessage/type \(whisperType)")
-            guard let otpKeyCount = item.element(forName: "otp_key_count") else { return }
-            let otpKeyCountNum = otpKeyCount.stringValueAsInt()
+        case .normal(let otpKeyCountNum):
             self.uploadMoreOTPKeysIfNeeded(currentNum: otpKeyCountNum)
         }
     }

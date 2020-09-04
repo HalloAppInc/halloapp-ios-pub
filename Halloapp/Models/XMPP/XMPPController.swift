@@ -47,7 +47,7 @@ class XMPPControllerMain: XMPPController {
     let didGetNewChatMessage = PassthroughSubject<XMPPMessage, Never>()
 
     // MARK: Key
-    weak var keyDelegate: XMPPControllerKeyDelegate?
+    weak var keyDelegate: HalloKeyDelegate?
     
     // MARK: Misc
     let didGetAck = PassthroughSubject<XMPPAck, Never>()
@@ -373,8 +373,10 @@ class XMPPControllerMain: XMPPController {
         }
         
         if let whisperMessageElement = message.element(forName: "whisper_keys") {
-            if let delegate = self.keyDelegate {
-                delegate.xmppController(self, didReceiveWhisperMessage: whisperMessageElement)
+            if let whisperMessage = WhisperMessage(whisperMessageElement) {
+                keyDelegate?.halloService(self, didReceiveWhisperMessage: whisperMessage)
+            } else {
+                DDLogError("XMPPController/didReceive/error could not read whisper message")
             }
             self.sendAck(for: message)
             return

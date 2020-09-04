@@ -20,7 +20,7 @@ protocol HalloService: CoreService {
     // TODO: Add these back in once they're migrated to protocol
     //var chatDelegate: HalloChatDelegate? { get set }
     //var feedDelegate: HalloFeedDelegate? { get set }
-    //var keyDelegate: HalloKeyDelegate? { get set }
+    var keyDelegate: HalloKeyDelegate? { get set }
 
     // MARK: Profile
     func sendCurrentUserNameIfPossible()
