@@ -807,7 +807,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
             image.transform = CGAffineTransform.identity
             
             self.indicator.layer.borderColor = CGColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.7)
-            self.indicator.backgroundColor = .none
+            self.indicator.backgroundColor = .clear
             self.indicator.text = ""
         }
         
