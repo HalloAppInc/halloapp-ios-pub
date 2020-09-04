@@ -967,6 +967,11 @@ fileprivate class FeedItemFooterView: UIView {
             set { progressView.progress = newValue }
         }
 
+        var indeterminateProgressText: String? {
+            get { textLabel.text }
+            set { textLabel.text = newValue }
+        }
+
         lazy private var progressView = UIProgressView(progressViewStyle: .default)
         lazy private var textLabel: UILabel = {
             let label = UILabel()
@@ -1010,6 +1015,7 @@ fileprivate class FeedItemFooterView: UIView {
         case normal
         case ownPost
         case sending
+        case retracting
         case error
     }
 
@@ -1098,6 +1104,7 @@ fileprivate class FeedItemFooterView: UIView {
         switch post.status {
         case .sending: return .sending
         case .sendError: return .error
+        case .retracting: return .retracting
         default: return post.userId == MainAppContext.shared.userData.userId ? .ownPost : .normal
         }
     }
@@ -1107,9 +1114,9 @@ fileprivate class FeedItemFooterView: UIView {
 
         let state = Self.state(for: post)
 
-        buttonStack.isHidden = state == .sending || state == .error
+        buttonStack.isHidden = state == .sending || state == .error || state == .retracting
         if buttonStack.isHidden {
-            if state == .sending {
+            if state == .sending || state == .retracting {
                 showProgressView()
                 hideErrorView()
 
@@ -1130,6 +1137,7 @@ fileprivate class FeedItemFooterView: UIView {
                     }
                 } else {
                     progressView.isIndeterminate = true
+                    progressView.indeterminateProgressText = state == .sending ? "Posting..." : "Deleting..."
                 }
             } else {
                 showSendErrorView()

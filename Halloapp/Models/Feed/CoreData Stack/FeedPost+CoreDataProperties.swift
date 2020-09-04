@@ -50,7 +50,7 @@ extension FeedPost {
 
     var isPostRetracted: Bool {
         get {
-            return self.status == .retracted || self.status == .retracting
+            return self.status == .retracted
         }
     }
 
