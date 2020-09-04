@@ -713,7 +713,7 @@ fileprivate class FeedItemContentView: UIView {
             DDLogInfo("FeedTableViewCell/content-view/reuse-media post=[\(post.id)]")
         }
 
-        let postContainsMedia = !feedDataItem.media.isEmpty
+        let postContainsMedia = !feedDataItem.media.isEmpty && !post.isPostRetracted
         if postContainsMedia && !reuseMediaView {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
             var mediaViewConfiguration = MediaCarouselViewConfiguration.default
