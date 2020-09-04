@@ -1019,7 +1019,7 @@ fileprivate class FeedItemFooterView: UIView {
         let button = ButtonWithBadge(type: .system)
         button.setTitle("Comment", for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
-        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 21)
         button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
         button.contentEdgeInsets.bottom = 9
@@ -1034,7 +1034,7 @@ fileprivate class FeedItemFooterView: UIView {
         let button = UIButton(type: .system)
         button.setTitle("Message", for: .normal)
         button.setImage(UIImage(named: "FeedPostMessage"), for: .normal)
-        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 21)
         button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
         button.contentEdgeInsets.bottom = 9

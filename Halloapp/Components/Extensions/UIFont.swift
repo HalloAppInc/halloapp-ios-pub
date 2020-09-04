@@ -39,4 +39,9 @@ extension UIFont {
         let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style)
         return UIFontMetrics(forTextStyle: style).scaledFont(for: UIFont.gothamFont(ofSize: fontDescriptor.pointSize, weight: weight))
     }
+
+    class func gothamFont(forTextStyle style: UIFont.TextStyle, weight: UIFont.Weight = .regular, maximumPointSize: CGFloat) -> UIFont {
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style)
+        return UIFontMetrics(forTextStyle: style).scaledFont(for: UIFont.gothamFont(ofSize: fontDescriptor.pointSize, weight: weight), maximumPointSize: maximumPointSize)
+    }
 }
