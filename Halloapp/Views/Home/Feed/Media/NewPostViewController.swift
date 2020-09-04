@@ -73,7 +73,6 @@ final class NewPostViewController: UIViewController {
         case .library:
             return makeMediaPickerViewControllerNew()
         case .camera:
-            //return makeCameraViewController()
             return UINavigationController(rootViewController: makeNewCameraViewController())
         case .noMedia:
             return UINavigationController(rootViewController: makeComposerViewController())

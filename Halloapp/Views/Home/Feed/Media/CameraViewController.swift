@@ -18,6 +18,18 @@ fileprivate class GenericObservable<T>: ObservableObject {
     @Published var value: T
 }
 
+fileprivate class CameraStateModel: ObservableObject {
+    @Published var shouldTakePhoto = false
+    @Published var shouldRecordVideo = false
+    @Published var shouldUseBackCamera = true
+    @Published var shouldUseFlashlight = false
+}
+
+fileprivate class AlertStateModel: ObservableObject {
+    @Published var showAlert = false
+    @Published var alertMessage = ""
+}
+
 class CameraViewController: UIViewController {
     private var showCancelButton = false
     private let didFinish: () -> Void
@@ -94,13 +106,10 @@ fileprivate struct CameraView: View {
     let didPickImage: DidPickImageCallback
     let didPickVideo: DidPickVideoCallback
     let goBack: () -> Void
+
     @Environment(\.colorScheme) var colorScheme
-    @ObservedObject var shouldTakePhoto = GenericObservable(false)
-    @ObservedObject var shouldRecordVideo = GenericObservable(false)
-    @ObservedObject var shouldUseBackCamera = GenericObservable(true)
-    @ObservedObject var shouldUseFlashlight = GenericObservable(true)
-    @ObservedObject var showAlert = GenericObservable(false)
-    @ObservedObject var alertMessage = GenericObservable("")
+    @ObservedObject var cameraState = CameraStateModel()
+    @ObservedObject var alertState = AlertStateModel()
     @State var captureButtonColor = Color.cameraButton
 
     private let plainButtonStyle = PlainButtonStyle()
@@ -113,6 +122,34 @@ fileprivate struct CameraView: View {
         return ((width - 4 * CameraViewLayoutConstants.horizontalPadding) * 4 / 3).rounded()
     }
 
+    var controls: some View {
+        return HStack {
+            Spacer()
+            Button(action: self.toggleFlash) {
+                Image("CameraFlashOff").foregroundColor(.cameraButton)
+            }
+            Spacer()
+
+            Button(action: self.captureOff) {
+                Circle()
+                    .strokeBorder(self.captureButtonColor, lineWidth: CameraViewLayoutConstants.captureButtonStroke)
+                    .frame(width: CameraViewLayoutConstants.captureButtonSize, height: CameraViewLayoutConstants.captureButtonSize)
+            }
+            .buttonStyle(self.plainButtonStyle)
+            .simultaneousGesture(LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+                self.captureOn()
+            })
+
+            Spacer()
+            Button(action: self.flipCamera) {
+                Image("CameraFlip").foregroundColor(.cameraButton)
+            }
+            Spacer()
+        }
+        .padding(.top, CameraViewLayoutConstants.captureButtonPaddingTop)
+        .padding(.bottom, CameraViewLayoutConstants.captureButtonPaddingBotom)
+    }
+
     var body: some View {
         return GeometryReader { geometry in
             VStack {
@@ -121,40 +158,13 @@ fileprivate struct CameraView: View {
                         didPickImage: self.didPickImage,
                         didPickVideo: self.didPickVideo,
                         goBack: self.goBack,
-                        shouldTakePhoto: self.shouldTakePhoto,
-                        shouldRecordVideo: self.shouldRecordVideo,
-                        shouldUseBackCamera: self.shouldUseBackCamera,
-                        shouldUseFlashlight: self.shouldUseFlashlight,
-                        showAlert: self.showAlert,
-                        alertMessage: self.alertMessage)
+                        cameraState: self.cameraState,
+                        alertState: self.alertState)
                     .frame(maxWidth: .infinity, maxHeight: self.getCameraControllerHeight(geometry.size.width))
                     .padding(.horizontal, CameraViewLayoutConstants.horizontalPadding)
                     .padding(.vertical, CameraViewLayoutConstants.verticalPadding)
-                    HStack {
-                        Spacer()
-                        Button(action: self.toggleFlash) {
-                            Image("CameraFlashOff").foregroundColor(.cameraButton)
-                        }
-                        Spacer()
 
-                        Button(action: self.captureOff) {
-                            Circle()
-                                .strokeBorder(self.captureButtonColor, lineWidth: CameraViewLayoutConstants.captureButtonStroke)
-                                .frame(width: CameraViewLayoutConstants.captureButtonSize, height: CameraViewLayoutConstants.captureButtonSize)
-                        }
-                        .buttonStyle(self.plainButtonStyle)
-                        .simultaneousGesture(LongPressGesture(minimumDuration: 0.5).onEnded { _ in
-                            self.captureOn()
-                        })
-
-                        Spacer()
-                        Button(action: self.flipCamera) {
-                            Image("CameraFlip").foregroundColor(.cameraButton)
-                        }
-                        Spacer()
-                    }
-                    .padding(.top, CameraViewLayoutConstants.captureButtonPaddingTop)
-                    .padding(.bottom, CameraViewLayoutConstants.captureButtonPaddingBotom)
+                    self.controls
                 }
                 .frame(maxWidth: .infinity)
                 .background(
@@ -163,8 +173,8 @@ fileprivate struct CameraView: View {
                         .shadow(color: Color.black.opacity(self.colorScheme == .dark ? 0 : 0.08), radius: 8, y: 8))
                 .padding(.horizontal, CameraViewLayoutConstants.horizontalPadding)
                 .padding(.vertical, CameraViewLayoutConstants.verticalPadding)
-                .alert(isPresented: self.$showAlert.value) {
-                    Alert(title: Text(self.alertMessage.value))
+                .alert(isPresented: self.$alertState.showAlert) {
+                    Alert(title: Text(self.alertState.alertMessage))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -175,53 +185,51 @@ fileprivate struct CameraView: View {
 
     private func captureOn() {
         DDLogInfo("CameraView/captureOff: shouldRecordVideo = true")
-        self.shouldRecordVideo.value = true
+        cameraState.shouldRecordVideo = true
 
         withAnimation {
-            self.captureButtonColor = .lavaOrange
+            captureButtonColor = .lavaOrange
         }
     }
 
     private func captureOff() {
-        if self.shouldRecordVideo.value {
+        if cameraState.shouldRecordVideo {
             DDLogInfo("CameraView/captureOff: shouldRecordVideo = false")
-            shouldRecordVideo.value = false
+            cameraState.shouldRecordVideo = false
             withAnimation {
-                self.captureButtonColor = .cameraButton
+                captureButtonColor = .cameraButton
             }
 
         } else {
             DDLogInfo("CameraView/captureOff: shouldTakePhoto: true")
-            shouldTakePhoto.value = true
+            cameraState.shouldTakePhoto = true
         }
     }
 
     private func toggleFlash() {
-        shouldUseFlashlight.value = !shouldUseFlashlight.value
-        DDLogInfo("CameraView/toggleFlash: \(shouldUseFlashlight.value)")
+        cameraState.shouldUseFlashlight = !cameraState.shouldUseFlashlight
+        DDLogInfo("CameraView/toggleFlash: \(cameraState.shouldUseFlashlight)")
     }
 
     private func flipCamera() {
-        shouldUseBackCamera.value = !shouldUseBackCamera.value
-        DDLogInfo("CameraView/flipCamera: \(shouldUseBackCamera.value)")
+        cameraState.shouldUseBackCamera = !cameraState.shouldUseBackCamera
+        DDLogInfo("CameraView/flipCamera: \(cameraState.shouldUseBackCamera)")
     }
+
 }
 
 fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
-    private static let videoOutputURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp_camera_video.mov")
-    private static let videoPendingURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("pending_camera_video.mov")
+    private static let videoOutputURL =
+        URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp_camera_video.mov")
+    private static let videoPendingURL =
+        URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("pending_camera_video.mov")
 
     let didPickImage: DidPickImageCallback
     let didPickVideo: DidPickVideoCallback
     let goBack: () -> Void
 
-    @ObservedObject var shouldTakePhoto: GenericObservable<Bool>
-    @ObservedObject var shouldRecordVideo: GenericObservable<Bool>
-    @ObservedObject var shouldUseBackCamera: GenericObservable<Bool>
-    var shouldUseFlashlight: GenericObservable<Bool>
-    var showAlert: GenericObservable<Bool>
-    var alertMessage: GenericObservable<String>
-
+    @ObservedObject var cameraState: CameraStateModel
+    var alertState: AlertStateModel
     @ObservedObject var focusPoint = GenericObservable<CGPoint?>(nil)
     var isTakingPhoto = GenericObservable(false)
 
@@ -240,20 +248,20 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
     }
 
     func updateUIViewController(_ cameraController: CameraController, context: Context) {
-        if context.coordinator.parent.shouldUseBackCamera.value != cameraController.isUsingBackCamera {
-            cameraController.switchCamera(context.coordinator.parent.shouldUseBackCamera.value)
+        if context.coordinator.parent.cameraState.shouldUseBackCamera != cameraController.isUsingBackCamera {
+            cameraController.switchCamera(context.coordinator.parent.cameraState.shouldUseBackCamera)
         }
-        if !context.coordinator.parent.shouldRecordVideo.value &&
-            context.coordinator.parent.shouldTakePhoto.value &&
+        if !context.coordinator.parent.cameraState.shouldRecordVideo &&
+            context.coordinator.parent.cameraState.shouldTakePhoto &&
             !context.coordinator.parent.isTakingPhoto.value {
 
             context.coordinator.parent.isTakingPhoto.value = true
-            cameraController.takePhoto(context.coordinator.parent.shouldUseFlashlight.value)
+            cameraController.takePhoto(context.coordinator.parent.cameraState.shouldUseFlashlight)
         }
-        if !context.coordinator.parent.shouldTakePhoto.value &&
-            cameraController.isRecordingMovie != context.coordinator.parent.shouldRecordVideo.value {
+        if !context.coordinator.parent.cameraState.shouldTakePhoto &&
+            cameraController.isRecordingMovie != context.coordinator.parent.cameraState.shouldRecordVideo {
 
-            if context.coordinator.parent.shouldRecordVideo.value {
+            if context.coordinator.parent.cameraState.shouldRecordVideo {
                 cameraController.startRecordingVideo(CameraControllerRepresentable.videoOutputURL)
             } else {
                 cameraController.stopRecordingVideo()
@@ -283,8 +291,9 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
 
         private func showCameraFailureAlert(mediaType: MediaType) {
             DispatchQueue.main.async {
-                self.parent.showAlert.value = true
-                self.parent.alertMessage.value = mediaType == .photo ? "Could not take a photo" : "Could not record a video"
+                self.parent.alertState.showAlert = true
+                self.parent.alertState.alertMessage =
+                    mediaType == .photo ? "Could not take a photo" : "Could not record a video"
             }
         }
 
@@ -293,7 +302,7 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
         }
 
         @objc func doubleTapped(gesture:UITapGestureRecognizer) {
-            self.parent.shouldUseBackCamera.value = !self.parent.shouldUseBackCamera.value
+            self.parent.cameraState.shouldUseBackCamera = !self.parent.cameraState.shouldUseBackCamera
         }
 
         func goBack() {
@@ -306,7 +315,7 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
             defer {
                 DispatchQueue.main.async {
                     self.parent.isTakingPhoto.value = false
-                    self.parent.shouldTakePhoto.value = false
+                    self.parent.cameraState.shouldTakePhoto = false
                 }
             }
 
@@ -330,13 +339,15 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
             }
         }
 
-        func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
+        func fileOutput(_ output: AVCaptureFileOutput,
+                        didFinishRecordingTo outputFileURL: URL,
+                        from connections: [AVCaptureConnection], error: Error?) {
             DDLogInfo("CameraControllerRepresentable/Coordinator/fileOutput")
 
             defer {
                 DispatchQueue.main.async {
-                    if self.parent.shouldRecordVideo.value {
-                        self.parent.shouldRecordVideo.value = false
+                    if self.parent.cameraState.shouldRecordVideo {
+                        self.parent.cameraState.shouldRecordVideo = false
                     }
                 }
             }

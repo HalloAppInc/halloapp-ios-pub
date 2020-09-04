@@ -53,7 +53,7 @@ class CameraController: UIViewController {
 
     private let cameraDelegate: CameraDelegate
 
-    private var captureSession: AVCaptureSession!
+    private var captureSession: AVCaptureSession?
     private var previewLayer: AVCaptureVideoPreviewLayer?
 
     private var backCamera: AVCaptureDevice?
@@ -68,11 +68,8 @@ class CameraController: UIViewController {
     private var movieOutput: AVCaptureMovieFileOutput?
 
     private var videoTimeout: DispatchWorkItem?
+    private(set) var isRecordingMovie =  false
     private(set) var isUsingBackCamera = true
-
-    var isRecordingMovie: Bool {
-        return movieOutput != nil && movieOutput!.isRecording
-    }
 
     private static func checkCapturePermissions(type: AVMediaType, permissionHandler: @escaping (Bool) -> Void) {
         switch AVCaptureDevice.authorizationStatus(for: type) {
@@ -112,6 +109,12 @@ class CameraController: UIViewController {
         checkVideoPermissions()
     }
 
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        previewLayer?.removeFromSuperlayer()
+        captureSession?.stopRunning()
+    }
+
     private func showPermissionDeniedAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self] _ in
@@ -148,35 +151,34 @@ class CameraController: UIViewController {
         }
     }
 
-    private func setCapturePreviewLayer() {
-        previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+    private func setCapturePreviewLayer(_ session: AVCaptureSession) {
+        previewLayer = AVCaptureVideoPreviewLayer(session: session)
         view.layer.addSublayer(previewLayer!)
         previewLayer!.frame = view.layer.frame
     }
 
     private func setupAndStartCaptureSession() {
-        self.captureSession = AVCaptureSession()
-
         DispatchQueue.global(qos: .userInitiated).async{
-            self.captureSession.beginConfiguration()
+            let session = AVCaptureSession()
+            session.beginConfiguration()
 
-            if self.captureSession.canSetSessionPreset(.photo) {
-                self.captureSession.sessionPreset = .photo
+            if session.canSetSessionPreset(.photo) {
+                session.sessionPreset = .photo
             }
-            self.captureSession.automaticallyConfiguresCaptureDeviceForWideColor = true
+            session.automaticallyConfiguresCaptureDeviceForWideColor = true
 
             do {
-                try self.setupInput()
+                try self.setupInput(session)
 
                 DispatchQueue.main.async {
-                    DDLogInfo("CameraController: setupAndStartCaptureSession")
-                    self.setCapturePreviewLayer()
+                    self.setCapturePreviewLayer(session)
                 }
 
-                try self.setupOutput()
+                try self.setupOutput(session)
 
-                self.captureSession.commitConfiguration()
-                self.captureSession.startRunning()
+                session.commitConfiguration()
+                session.startRunning()
+                self.captureSession = session
             } catch {
                 DDLogError("CameraController/setupAndStartCaptureSession: \(error)")
 
@@ -221,7 +223,7 @@ class CameraController: UIViewController {
         }
     }
     
-    private func setupInput() throws {
+    private func setupInput(_ session: AVCaptureSession) throws {
         if let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
             backCamera = device
             setFocusAndExposure(camera: backCamera!)
@@ -243,28 +245,28 @@ class CameraController: UIViewController {
         }
 
         try backInput = AVCaptureDeviceInput(device: backCamera!)
-        if !captureSession.canAddInput(backInput!) {
+        if !session.canAddInput(backInput!) {
             throw CameraInitError.cannotAddBackInput
         }
 
         try frontInput = AVCaptureDeviceInput(device: frontCamera!)
-        if !captureSession.canAddInput(frontInput!) {
+        if !session.canAddInput(frontInput!) {
             throw CameraInitError.cannotAddFrontInput
         }
 
         try audioInput = AVCaptureDeviceInput(device: microphone!)
-        if !captureSession.canAddInput(audioInput!) {
+        if !session.canAddInput(audioInput!) {
             throw CameraInitError.cannotAddAudioInput
         }
 
-        captureSession.addInput(isUsingBackCamera ? backInput! : frontInput!)
-        captureSession.addInput(audioInput!)
+        session.addInput(isUsingBackCamera ? backInput! : frontInput!)
+        session.addInput(audioInput!)
     }
 
-    private func setupOutput() throws {
+    private func setupOutput(_ session: AVCaptureSession) throws {
         let photoCaptureOutput = AVCapturePhotoOutput()
-        if captureSession.canAddOutput(photoCaptureOutput) {
-            captureSession.addOutput(photoCaptureOutput)
+        if session.canAddOutput(photoCaptureOutput) {
+            session.addOutput(photoCaptureOutput)
         } else {
             throw CameraInitError.cannotAddPhotoOutput
         }
@@ -272,8 +274,8 @@ class CameraController: UIViewController {
         photoOutput = photoCaptureOutput
 
         let movieCaptureOutput = AVCaptureMovieFileOutput()
-        if captureSession.canAddOutput(movieCaptureOutput) {
-            captureSession.addOutput(movieCaptureOutput)
+        if session.canAddOutput(movieCaptureOutput) {
+            session.addOutput(movieCaptureOutput)
         } else {
             throw CameraInitError.cannotAddMovieOutput
         }
@@ -282,11 +284,12 @@ class CameraController: UIViewController {
     }
 
     public func switchCamera(_ useBackCamera: Bool) {
-        guard let backInput = backInput else { return }
-        guard let frontInput = frontInput else { return }
+        guard let captureSession = captureSession,
+            let backInput = backInput,
+            let frontInput = frontInput else { return }
 
         if useBackCamera != isUsingBackCamera {
-            DDLogError("CameraController/switchCamera")
+            DDLogInfo("CameraController/switchCamera")
             captureSession.beginConfiguration()
 
             captureSession.removeInput(isUsingBackCamera ? backInput : frontInput)
@@ -305,12 +308,12 @@ class CameraController: UIViewController {
     }
 
     public func focusOnPoint(_ point: CGPoint) {
-        guard let backCamera = backCamera else { return }
-        guard let frontCamera = frontCamera else { return }
-        guard let previewLayer = previewLayer else { return }
+        guard let backCamera = backCamera,
+            let frontCamera = frontCamera,
+            let previewLayer = previewLayer else { return }
 
         let convertedPoint = previewLayer.captureDevicePointConverted(fromLayerPoint: point)
-        DDLogError("CameraController/focusOnPoint \(convertedPoint)")
+        DDLogInfo("CameraController/focusOnPoint \(convertedPoint)")
         setFocusAndExposure(camera: isUsingBackCamera ? backCamera : frontCamera, point: convertedPoint)
     }
 
@@ -326,7 +329,8 @@ class CameraController: UIViewController {
     public func startRecordingVideo(_ to: URL) {
         guard let movieOutput = movieOutput else { return }
 
-        if !movieOutput.isRecording {
+        if !isRecordingMovie {
+            isRecordingMovie = true
             DDLogInfo("CameraController/startRecordingVideo")
             AudioServicesPlaySystemSound(1117)
             movieOutput.startRecording(to: to, recordingDelegate: cameraDelegate)
@@ -340,7 +344,8 @@ class CameraController: UIViewController {
 
         videoTimeout?.cancel()
         videoTimeout = nil
-        if movieOutput.isRecording {
+        if isRecordingMovie {
+            isRecordingMovie = false
             DDLogInfo("CameraController/stopRecordingVideo")
             movieOutput.stopRecording()
             AudioServicesPlaySystemSound(1118)
