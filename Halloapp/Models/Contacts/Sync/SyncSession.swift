@@ -22,6 +22,11 @@ enum SyncMode {
     case full
 }
 
+enum ContactSyncRequestType: String, RawRepresentable {
+    case full
+    case delta
+}
+
 class SyncSession {
     typealias Completion = ([XMPPContact]?, Error?) -> Void
 
@@ -75,7 +80,7 @@ class SyncSession {
                 isLastBatch = range.count == self.contacts.count
             }
             let contactsToSend = self.contacts[range]
-            let requestType: XMPPContactSyncRequest.RequestType = self.syncMode == .full ? .full : .delta
+            let requestType: ContactSyncRequestType = self.syncMode == .full ? .full : .delta
             let batchIndex = self.batchIndex
             let request = XMPPContactSyncRequest(with: contactsToSend, type: requestType, syncID: self.syncID,
                                                  batchIndex: batchIndex, isLastBatch: isLastBatch) { (result) in

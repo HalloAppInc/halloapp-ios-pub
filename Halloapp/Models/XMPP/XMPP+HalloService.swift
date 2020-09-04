@@ -1,0 +1,125 @@
+//
+//  XMPP+HalloService.swift
+//  HalloApp
+//
+//  Created by Garrett on 8/18/20.
+//  Copyright © 2020 Halloapp, Inc. All rights reserved.
+//
+
+import Core
+import XMPPFramework
+
+enum XMPPControllerError: Error {
+    case responseMissingKeyCount
+    case responseMissingKeys
+}
+
+extension XMPPControllerMain: HalloService {
+    public func retractFeedItem(_ feedItem: FeedItemProtocol, ownerID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        if ServerProperties.isInternalUser {
+            enqueue(request: XMPPRetractItemRequest(feedItem: feedItem, completion: completion))
+        } else {
+            enqueue(request: XMPPRetractItemRequestOld(feedItem: feedItem, feedOwnerId: ownerID, completion: completion))
+        }
+    }
+
+    public func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: XMPPWhisperUploadRequest(keyBundle: bundle) { error in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        })
+    }
+
+    public func requestAddOneTimeKeys(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: XMPPWhisperAddOneTimeKeysRequest(whisperKeyBundle: bundle) { error in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        })
+    }
+
+    public func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>) {
+        enqueue(request: XMPPWhisperGetCountOfOneTimeKeysRequest() { (iq, error) in
+            if let whisperKeys = iq?.element(forName: "whisper_keys"), let keyCount = whisperKeys.element(forName: "otp_key_count")?.stringValueAsInt() {
+                completion(.success(keyCount))
+            } else {
+                completion(.failure(error ?? XMPPControllerError.responseMissingKeyCount))
+            }
+        })
+    }
+
+    public func requestWhisperKeyBundle(userID: UserID, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>) {
+        enqueue(request: XMPPWhisperGetBundleRequest(targetUserId: userID) { (iq, error) in
+            if let iq = iq, let keys = WhisperKeyBundle(itemElement: iq) {
+                completion(.success(keys))
+            } else {
+                completion(.failure(error ?? XMPPControllerError.responseMissingKeys))
+            }
+        })
+
+    }
+
+    public func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID) {
+        // todo: should timestamp always be nil? saw a comment about server adding timestamp...
+        let receipt = XMPPReceipt(
+            itemId: itemID,
+            userId: fromUserID,
+            type: type,
+            timestamp: nil,
+            thread: thread)
+        sendSeenReceipt(receipt, to: toUserID)
+    }
+    
+    func sendPrivacyList(_ privacyList: PrivacyList, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: XMPPSendPrivacyListRequest(privacyList: privacyList, completion: completion))
+    }
+
+    func getPrivacyLists(_ listTypes: [PrivacyListType], completion: @escaping ServiceRequestCompletion<([PrivacyListProtocol], PrivacyListType)>) {
+        enqueue(request: XMPPGetPrivacyListsRequest(listTypes, completion: completion))
+    }
+
+    public func requestInviteAllowance(completion: @escaping ServiceRequestCompletion<(Int, Date)>) {
+        enqueue(request: XMPPGetInviteAllowanceRequest(completion: completion))
+    }
+
+    func sendInvites(phoneNumbers: [ABContact.NormalizedPhoneNumber], completion: @escaping ServiceRequestCompletion<InviteResponse>) {
+        enqueue(request: XMPPRegisterInvitesRequest(phoneNumbers: phoneNumbers, completion: completion))
+    }
+
+    func syncContacts<T>(with contacts: T, type: ContactSyncRequestType, syncID: String, batchIndex: Int?, isLastBatch: Bool?, completion: @escaping ServiceRequestCompletion<[HalloContact]>) where T : Sequence, T.Element == HalloContact {
+        enqueue(request: XMPPContactSyncRequest(
+            with: contacts,
+            type: type,
+            syncID: syncID,
+            batchIndex: batchIndex,
+            isLastBatch: isLastBatch,
+            completion: completion))
+    }
+
+    func setAPNSToken(_ token: String?) {
+        apnsToken = token
+    }
+
+    func sendPresenceIfPossible(_ presenceType: PresenceType) {
+        guard isConnected else { return }
+        DDLogInfo("ChatData/sendPresence \(presenceType.rawValue)")
+        let xmppJID = XMPPJID(user: userData.userId, domain: "s.halloapp.net", resource: nil)
+        let xmppPresence = XMPPPresence(type: presenceType.rawValue, to: xmppJID)
+        xmppStream.send(xmppPresence)
+    }
+
+    func subscribeToPresenceIfPossible(to userID: UserID) -> Bool {
+        guard isConnected else { return false }
+        DDLogDebug("ChatData/subscribeToPresence [\(userID)]")
+        let message = XMPPElement(name: "presence")
+        message.addAttribute(withName: "to", stringValue: "\(userID)@s.halloapp.net")
+        message.addAttribute(withName: "type", stringValue: "subscribe")
+        xmppStream.send(message)
+        return true
+    }
+}

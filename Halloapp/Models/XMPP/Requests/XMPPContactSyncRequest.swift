@@ -10,6 +10,8 @@ import Core
 import Foundation
 import XMPPFramework
 
+typealias HalloContact = XMPPContact
+
 struct XMPPContact {
     private(set) var userid: String?
     private(set) var normalized: String?
@@ -17,6 +19,15 @@ struct XMPPContact {
     private(set) var avatarid: AvatarID?
     var raw: String?
     var isDeletedContact: Bool = false
+
+    /** Use to process protobuf server responses */
+    init?(_ pbContact: PBcontact) {
+        userid = String(pbContact.uid)
+        normalized = pbContact.normalized
+        registered = (pbContact.role == .friends)
+        raw = pbContact.raw
+        avatarid = pbContact.avatarID
+    }
 
     /**
      Initialize with data from an xml element.
@@ -102,16 +113,11 @@ fileprivate let xmppNamespaceContacts = "halloapp:user:contacts"
 
 class XMPPContactSyncRequest: XMPPRequest {
 
-    enum RequestType: String, RawRepresentable {
-        case full
-        case delta
-    }
-
     typealias XMPPContactListRequestCompletion = (Result<[XMPPContact], Error>) -> Void
 
     private let completion: XMPPContactListRequestCompletion
 
-    init<T: Sequence>(with contacts: T, type: RequestType, syncID: String, batchIndex: Int? = nil, isLastBatch: Bool? = nil,
+    init<T: Sequence>(with contacts: T, type: ContactSyncRequestType, syncID: String, batchIndex: Int? = nil, isLastBatch: Bool? = nil,
                       completion: @escaping XMPPContactListRequestCompletion) where T.Iterator.Element == XMPPContact {
         self.completion = completion
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))

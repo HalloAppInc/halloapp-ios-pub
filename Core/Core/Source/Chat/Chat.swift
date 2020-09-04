@@ -24,6 +24,8 @@ public protocol ChatMessageProtocol {
     var orderedMedia: [ChatMediaProtocol] { get }
     var feedPostId: FeedPostID? { get }
     var feedPostMediaIndex: Int32 { get }
+
+    var timeIntervalSince1970: TimeInterval? { get }
 }
 
 public extension ChatMessageProtocol {

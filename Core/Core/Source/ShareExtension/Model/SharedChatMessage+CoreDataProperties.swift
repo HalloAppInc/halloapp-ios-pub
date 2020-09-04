@@ -72,6 +72,8 @@ extension SharedChatMessage: ChatMessageProtocol {
     public var feedPostMediaIndex: Int32 {
         0
     }
-    
 
+    public var timeIntervalSince1970: TimeInterval? {
+        timestamp.timeIntervalSince1970
+    }
 }

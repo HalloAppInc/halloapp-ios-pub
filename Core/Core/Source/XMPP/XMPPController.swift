@@ -15,17 +15,9 @@ public protocol XMPPControllerAvatarDelegate: AnyObject {
     func xmppController(_ xmppController: XMPPController, didReceiveAvatar item: XMLElement)
 }
 
-
 open class XMPPController: NSObject, ObservableObject {
     // MARK: Avatar
     public weak var avatarDelegate: XMPPControllerAvatarDelegate?
-
-    public enum ConnectionState {
-        case notConnected
-        case connecting
-        case connected
-        case disconnecting
-    }
 
     private class ConnectionStateCallback {
         let state: ConnectionState

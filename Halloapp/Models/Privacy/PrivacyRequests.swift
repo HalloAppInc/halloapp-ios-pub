@@ -23,11 +23,13 @@ fileprivate struct XMPPConstants {
     static let activeTypeAttribute = "active_type"
 }
 
+typealias HalloPrivacyList = XMPPPrivacyList
+
 struct XMPPPrivacyList: PrivacyListProtocol {
     let type: PrivacyListType
     let userIds: [UserID]
 
-    private init(type: PrivacyListType, userIds: [UserID]) {
+    init(type: PrivacyListType, userIds: [UserID]) {
         self.type = type
         self.userIds = userIds
     }
@@ -140,6 +142,134 @@ extension PrivacyListAllContacts: XMPPElementRepresentable {
             let listElement = XMPPElement(name: XMPPConstants.listElement, xmlns: XMPPConstants.xmlns)
             listElement.addAttribute(withName: XMPPConstants.typeAttribute, stringValue: type.rawValue)
             return listElement
+        }
+    }
+}
+
+class ProtoGetPrivacyListsRequest: ProtoRequest {
+
+    private let completion: ServiceRequestCompletion<([PrivacyListProtocol], PrivacyListType)>
+
+    init(listTypes: [PrivacyListType], completion: @escaping ServiceRequestCompletion<([PrivacyListProtocol], PrivacyListType)>) {
+        self.completion = completion
+
+        var privacyLists = PBprivacy_lists()
+        privacyLists.lists = listTypes.map { listType in
+            var list = PBprivacy_list()
+            list.type = .init(listType)
+            return list
+        }
+
+        let packet = PBpacket.iqPacket(type: .get, payload: .privacyLists(privacyLists))
+
+        super.init(packet: packet, id: packet.iq.id)
+    }
+
+    override func didFinish(with response: PBpacket) {
+
+        let pbPrivacyLists = response.iq.payload.privacyLists
+        let lists: [PrivacyListProtocol] = pbPrivacyLists.lists.compactMap { pbList in
+            guard let listType = pbList.type.privacyListType else {
+                DDLogError("ProtoGetPrivacyListsRequest/didFinish/error unknown list type \(pbList.type)")
+                return nil
+            }
+            return HalloPrivacyList(type: listType, userIds: pbList.uidElements.map { UserID($0.uid) })
+        }
+        let activeType: PrivacyListType? = {
+            switch pbPrivacyLists.activeType {
+            case .all:
+                return .all
+            case .block:
+                return .blocked
+            case .except:
+                return .blacklist
+            case .UNRECOGNIZED:
+                return nil
+            }
+        }()
+
+        if let activeType = activeType {
+            completion(.success((lists, activeType)))
+        } else {
+            DDLogError("ProtoGetPrivacyListsRequest/didFinish/error unknown active type")
+            completion(.failure(ProtoServiceError.unexpectedResponseFormat))
+        }
+    }
+
+    override func didFail(with error: Error) {
+        completion(.failure(error))
+    }
+}
+
+class ProtoSendPrivacyListRequest: ProtoRequest {
+
+    private let completion: ServiceRequestCompletion<Void>
+
+    init(privacyList: PrivacyList, completion: @escaping ServiceRequestCompletion<Void>) {
+        self.completion = completion
+
+        var list = PBprivacy_list()
+        list.type = PBprivacy_list.TypeEnum(privacyList.type)
+        list.uidElements = privacyList.items.compactMap { item in
+            guard let uid = Int64(item.userId) else {
+                DDLogError("ProtoSendPrivacyListRequest/error invalid userID \(item.userId)")
+                return nil
+            }
+            var element = PBuid_element()
+            element.uid = uid
+            switch item.state {
+            case .added:
+                element.action = .add
+            case .deleted:
+                element.action = .delete
+            default:
+                return nil
+            }
+            return element
+        }
+
+        let packet = PBpacket.iqPacket(type: .set, payload: .privacyList(list))
+        super.init(packet: packet, id: packet.iq.id)
+    }
+
+    override func didFinish(with response: PBpacket) {
+        completion(.success(()))
+    }
+
+    override func didFail(with error: Error) {
+        completion(.failure(error))
+    }
+}
+
+extension PBuid_element.Action {
+    var privacyListItemState: PrivacyListItem.State? {
+        switch self {
+        case .add: return .added
+        case .delete: return .deleted
+        case .UNRECOGNIZED: return nil
+        }
+    }
+}
+
+extension PBprivacy_list.TypeEnum {
+    init(_ privacyListType: PrivacyListType) {
+        switch privacyListType {
+        case .all: self = .all
+        case .whitelist: self = .only
+        case .blacklist: self = .except
+        case .muted: self = .mute
+        case .blocked: self = .block
+        }
+    }
+
+    var privacyListType: PrivacyListType? {
+        switch self {
+        case .all: return .all
+        case .block: return .blocked
+        case .except: return .blacklist
+        case .only: return .whitelist
+        case .mute: return .muted
+        case .UNRECOGNIZED: return nil
         }
     }
 }

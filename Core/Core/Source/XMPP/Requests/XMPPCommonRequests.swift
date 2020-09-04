@@ -25,11 +25,41 @@ extension FeedAudience: XMPPElementRepresentable {
     }
 }
 
+public class XMPPMediaUploadURLRequest: XMPPRequest {
+
+    public typealias XMPPMediaUploadURLRequestCompletion = (Result<MediaURL, Error>) -> Void
+
+    private let completion: XMPPMediaUploadURLRequestCompletion
+
+    public init(completion: @escaping XMPPMediaUploadURLRequestCompletion) {
+        self.completion = completion
+        let iq = XMPPIQ(iqType: .get, to: XMPPJID(string: XMPPIQDefaultTo))
+        iq.addChild(XMPPElement(name: "upload_media", xmlns: "ns:upload_media"))
+        super.init(iq: iq)
+    }
+
+    public override func didFinish(with response: XMPPIQ) {
+        if let mediaURLs = response.childElement?.element(forName: "media_urls") {
+            if let get = mediaURLs.attributeStringValue(forName: "get"), let put = mediaURLs.attributeStringValue(forName: "put") {
+                if let getURL = URL(string: get), let putURL = URL(string: put) {
+                    self.completion(.success(MediaURL(get: getURL, put: putURL)))
+                    return
+                }
+            }
+        }
+        self.completion(.failure(XMPPError.malformed))
+    }
+
+    public override func didFail(with error: Error) {
+        self.completion(.failure(error))
+    }
+}
+
 public class XMPPPostItemRequestOld: XMPPRequest {
     
     private let completion: XMPPPostItemRequestCompletion
 
-    public init<T>(feedItem: T, feedOwnerId: UserID, completion: @escaping XMPPPostItemRequestCompletion) where T: FeedItemProtocol {
+    public init(feedItem: FeedItemProtocol, feedOwnerId: UserID, completion: @escaping XMPPPostItemRequestCompletion) {
         self.completion = completion
         
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"))
@@ -63,7 +93,7 @@ public class XMPPPostItemRequest: XMPPRequest {
 
     private let completion: XMPPPostItemRequestCompletion
 
-    public init<T>(feedPost: T, audience: FeedAudience, completion: @escaping XMPPPostItemRequestCompletion) where T: FeedPostProtocol {
+    public init(feedPost: FeedPostProtocol, audience: FeedAudience, completion: @escaping XMPPPostItemRequestCompletion){
         self.completion = completion
         
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
@@ -77,7 +107,7 @@ public class XMPPPostItemRequest: XMPPRequest {
         super.init(iq: iq)
     }
 
-    public init<T>(feedPostComment: T, completion: @escaping XMPPPostItemRequestCompletion) where T: FeedCommentProtocol {
+    public init(feedPostComment: FeedCommentProtocol, completion: @escaping XMPPPostItemRequestCompletion) {
         self.completion = completion
 
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))

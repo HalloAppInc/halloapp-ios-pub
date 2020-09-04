@@ -33,8 +33,12 @@
 		6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */; };
 		6829F78324CFA41F00207F6B /* FeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */; };
 		6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F78624D0A62800207F6B /* UserFeedViewController.swift */; };
+		6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4F924FEE97800A9C202 /* HalloService.swift */; };
+		6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FB24FEE97800A9C202 /* ProtoService.swift */; };
+		6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */; };
 		685B76C124E262AF00BF666A /* MentionInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76BF24E262AF00BF666A /* MentionInputTests.swift */; };
 		685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76CB24E4A37600BF666A /* FloatingMenu.swift */; };
+		6888CBC125001D0C0049FF0E /* XMPP+HalloService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBBF25001D0C0049FF0E /* XMPP+HalloService.swift */; };
 		68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8D24D33DEF00F40F1F /* Mentions.swift */; };
 		68A64E9224D33E0F00F40F1F /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
 		761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
@@ -307,8 +311,12 @@
 		6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6829F78624D0A62800207F6B /* UserFeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFeedViewController.swift; sourceTree = "<group>"; };
+		6832F4F924FEE97800A9C202 /* HalloService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HalloService.swift; sourceTree = "<group>"; };
+		6832F4FB24FEE97800A9C202 /* ProtoService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoService.swift; sourceTree = "<group>"; };
+		6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequests.swift; sourceTree = "<group>"; };
 		685B76BF24E262AF00BF666A /* MentionInputTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MentionInputTests.swift; sourceTree = "<group>"; };
 		685B76CB24E4A37600BF666A /* FloatingMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingMenu.swift; sourceTree = "<group>"; };
+		6888CBBF25001D0C0049FF0E /* XMPP+HalloService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XMPP+HalloService.swift"; sourceTree = "<group>"; };
 		68A64E8D24D33DEF00F40F1F /* Mentions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mentions.swift; sourceTree = "<group>"; };
 		68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MentionPickerView.swift; sourceTree = "<group>"; };
 		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
@@ -632,6 +640,7 @@
 		761B3950241AF01E00858251 /* Requests */ = {
 			isa = PBXGroup;
 			children = (
+				6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */,
 				761B3953241C38A300858251 /* XMPPCommonRequests.swift */,
 				76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */,
 				EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */,
@@ -819,6 +828,7 @@
 		76DFA0012419560300F49CA4 /* XMPP */ = {
 			isa = PBXGroup;
 			children = (
+				6888CBBF25001D0C0049FF0E /* XMPP+HalloService.swift */,
 				761B3950241AF01E00858251 /* Requests */,
 				7681241824861C5D008C5216 /* XMPPController.swift */,
 			);
@@ -859,6 +869,8 @@
 		EA3861EB23342C3800705943 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				6832F4F924FEE97800A9C202 /* HalloService.swift */,
+				6832F4FB24FEE97800A9C202 /* ProtoService.swift */,
 				EA35856A2450BE2900E6E8AB /* Chat */,
 				EA5414DA23EE1D6900390EF6 /* Contacts */,
 				EA5414D923EE1D2B00390EF6 /* Feed */,
@@ -1614,6 +1626,7 @@
 				768123A42485C56E008C5216 /* MainAppContext.swift in Sources */,
 				EAD476F62458F03700EF8591 /* ChatMessage+CoreDataClass.swift in Sources */,
 				761C6168242D89F90028AE19 /* TextLabel.swift in Sources */,
+				6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */,
 				EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */,
 				EAA424FC24ECF1480025CBBE /* ChatGroupMessage+CoreDataClass.swift in Sources */,
 				EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */,
@@ -1635,6 +1648,7 @@
 				761905A32459EB07008FC600 /* InputTextView.swift in Sources */,
 				EA0B9919249C205E00B05094 /* String.swift in Sources */,
 				76407DFC245CBAD40031F96A /* PhoneInputViewController.swift in Sources */,
+				6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */,
 				763B42AC243274F400FF0E82 /* FeedTableViewController.swift in Sources */,
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
 				764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */,
@@ -1680,6 +1694,7 @@
 				685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */,
 				766492252450E04D009BC368 /* BadgeView.swift in Sources */,
 				7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */,
+				6888CBC125001D0C0049FF0E /* XMPP+HalloService.swift in Sources */,
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
 				76E00DF624FEC4A800E06252 /* UserProfileTableHeaderView.swift in Sources */,
 				68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */,
@@ -1699,6 +1714,7 @@
 				EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */,
 				EA35857C2450BE3300E6E8AB /* IncomingMsgView.swift in Sources */,
 				764AB42124A7188600D4E354 /* FeedPrivacyView.swift in Sources */,
+				6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */,
 				76649227245119F2009BC368 /* FeedNotifications.swift in Sources */,
 				EAA4250524F0DE360025CBBE /* ChatGroupViewController.swift in Sources */,
 				EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */,

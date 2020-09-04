@@ -8,6 +8,24 @@
 import Foundation
 import XMPPFramework
 
+public typealias WhisperKeyBundle = XMPPWhisperKey
+
+public enum WhisperMessage {
+    case normal(keyCount: Int32)
+    case update(userID: UserID)
+
+    public init?(_ item: DDXMLElement) {
+        guard let whisperType = item.attributeStringValue(forName: "type") else { return nil }
+        if let uid = item.attributeStringValue(forName: "uid"), whisperType == "update" {
+            self = .update(userID: uid)
+        } else if let otpKeyCount = item.element(forName: "otp_key_count"), whisperType == "normal" {
+            self = .normal(keyCount: otpKeyCount.stringValueAsInt())
+        } else {
+            return nil
+        }
+    }
+}
+
 class XMPPWhisperUploadRequest : XMPPRequest {
     typealias XMPPWhisperRequestCompletion = (Error?) -> Void
     let completion: XMPPWhisperRequestCompletion

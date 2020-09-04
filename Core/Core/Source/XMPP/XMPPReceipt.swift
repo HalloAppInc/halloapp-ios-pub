@@ -9,6 +9,8 @@
 import Foundation
 import XMPPFramework
 
+public typealias HalloReceipt = XMPPReceipt
+
 public struct XMPPReceipt: Equatable {
 
     public enum `Type` {

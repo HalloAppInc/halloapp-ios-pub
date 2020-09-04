@@ -10,45 +10,11 @@ import Core
 import Foundation
 import XMPPFramework
 
-struct MediaURL {
-    var get: URL, put: URL
-}
-
-class XMPPMediaUploadURLRequest: XMPPRequest {
-
-    typealias XMPPMediaUploadURLRequestCompletion = (Result<MediaURL, Error>) -> Void
-
-    private let completion: XMPPMediaUploadURLRequestCompletion
-
-    init(completion: @escaping XMPPMediaUploadURLRequestCompletion) {
-        self.completion = completion
-        let iq = XMPPIQ(iqType: .get, to: XMPPJID(string: XMPPIQDefaultTo))
-        iq.addChild(XMPPElement(name: "upload_media", xmlns: "ns:upload_media"))
-        super.init(iq: iq)
-    }
-
-    override func didFinish(with response: XMPPIQ) {
-        if let mediaURLs = response.childElement?.element(forName: "media_urls") {
-            if let get = mediaURLs.attributeStringValue(forName: "get"), let put = mediaURLs.attributeStringValue(forName: "put") {
-                if let getURL = URL(string: get), let putURL = URL(string: put) {
-                    self.completion(.success(MediaURL(get: getURL, put: putURL)))
-                    return
-                }
-            }
-        }
-        self.completion(.failure(XMPPError.malformed))
-    }
-
-    override func didFail(with error: Error) {
-        self.completion(.failure(error))
-    }
-}
-
 class XMPPRetractItemRequestOld: XMPPRequest {
 
     private let completion: XMPPRequestCompletion
 
-    init<T>(feedItem: T, feedOwnerId: UserID, completion: @escaping XMPPRequestCompletion) where T: FeedItemProtocol {
+    init(feedItem: FeedItemProtocol, feedOwnerId: UserID, completion: @escaping XMPPRequestCompletion) {
         self.completion = completion
 
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"))
@@ -78,7 +44,7 @@ class XMPPRetractItemRequest: XMPPRequest {
 
     private let completion: XMPPRequestCompletion
 
-    init<T>(feedItem: T, completion: @escaping XMPPRequestCompletion) where T: FeedItemProtocol {
+    init(feedItem: FeedItemProtocol, completion: @escaping XMPPRequestCompletion) {
         self.completion = completion
 
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))

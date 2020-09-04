@@ -26,6 +26,10 @@ extension XMPPChatMessage: ChatMessageProtocol {
     var orderedMedia: [ChatMediaProtocol] {
         media
     }
+
+    var timeIntervalSince1970: TimeInterval? {
+        timestamp
+    }
 }
 
 struct XMPPChatMedia {

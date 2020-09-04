@@ -49,6 +49,8 @@ public protocol FeedItemProtocol {
     var protoMessage: SwiftProtobuf.Message { get }
 
     func xmppElement(withData: Bool) -> XMPPElement
+
+    func protoFeedItem(withData: Bool) -> PBfeed_item.OneOf_Item
 }
 
 public extension FeedItemProtocol {
@@ -187,6 +189,22 @@ public class PendingMedia {
     }
 }
 
+public struct MediaURL {
+    public var get: URL
+    public var put: URL
+
+    public init(get: URL, put: URL) {
+        self.get = get
+        self.put = put
+    }
+}
+
+// MARK: FeedElement
+
+public enum FeedElement {
+    case post(FeedPostProtocol)
+    case comment(FeedCommentProtocol, publisherName: String?)
+}
 
 // MARK: Feed Post
 
@@ -223,6 +241,20 @@ public extension FeedPostProtocol {
             post.media = orderedMedia.compactMap{ $0.protoMessage }
             return post
         }
+    }
+
+    func protoFeedItem(withData: Bool) -> PBfeed_item.OneOf_Item {
+        var post = PBpost()
+
+        if let uid = Int64(userId) {
+            post.uid = uid
+        }
+        post.id = id
+        post.timestamp = Int64(timestamp.timeIntervalSince1970)
+        if let payload = try? oldFormatProtoContainer(withData: true).serializedData() {
+            post.payload = payload
+        }
+        return .post(post)
     }
 }
 
@@ -267,5 +299,20 @@ public extension FeedCommentProtocol {
             comment.mentions = orderedMentions.map { $0.protoMention }
             return comment
         }
+    }
+
+    func protoFeedItem(withData: Bool) -> PBfeed_item.OneOf_Item {
+        var comment = PBcomment()
+        comment.id = id
+        if let parentID = parentId {
+            comment.parentCommentID = parentID
+        }
+        comment.postID = feedPostId
+        comment.timestamp = Int64(timestamp.timeIntervalSince1970)
+        if let payload = try? oldFormatProtoContainer(withData: true).serializedData() {
+            comment.payload = payload
+        }
+
+        return .comment(comment)
     }
 }

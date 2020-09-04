@@ -24,8 +24,13 @@ public final class UserData: ObservableObject {
      */
     @Published public var isLoggedIn = false
 
+    public var useProtobuf = false
+
     public var useTestServer: Bool {
         get {
+            if useProtobuf {
+                return true
+            }
             #if DEBUG
             if UserDefaults.shared.value(forKey: "UseTestServer") == nil {
                 // Debug builds should default to test server
@@ -66,6 +71,10 @@ public final class UserData: ObservableObject {
         get {
             self.useTestServer ? "s-test.halloapp.net" : "s.halloapp.net"
         }
+    }
+
+    public var hostPort: UInt16 {
+        useProtobuf ? 5210 : 5222
     }
 
     public var formattedPhoneNumber: String {

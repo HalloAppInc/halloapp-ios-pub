@@ -9,6 +9,10 @@ import Combine
 import Core
 import XMPPFramework
 
+typealias ChatAck = (id: String, timestamp: Date?)
+
+typealias ChatPresenceInfo = (userID: UserID, presence: UserPresenceType?, lastSeen: Date?)
+
 typealias ChatMessageID = String
 typealias ChatGroupMessageID = String
 typealias GroupID = String

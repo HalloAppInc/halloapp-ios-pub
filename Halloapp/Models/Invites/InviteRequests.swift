@@ -27,6 +27,8 @@ fileprivate struct XMPPConstants {
     }
 }
 
+typealias InviteResponse = (results: [String: InviteResult], count: Int, refreshDate: Date)
+
 enum InviteResult {
     enum FailureReason: String {
         case invalidNumber = "invalid_number"
@@ -68,7 +70,7 @@ class XMPPGetInviteAllowanceRequest: XMPPRequest {
 
 class XMPPRegisterInvitesRequest: XMPPRequest {
 
-    typealias XMPPRegisterInvitesRequestCompletion = (Result<([String: InviteResult], Int, Date), Error>) -> Void
+    typealias XMPPRegisterInvitesRequestCompletion = (Result<InviteResponse, Error>) -> Void
 
     private let completion: XMPPRegisterInvitesRequestCompletion
 
@@ -109,6 +111,53 @@ class XMPPRegisterInvitesRequest: XMPPRequest {
             }
         }
         completion(.success((results, invitesLeft, Date(timeIntervalSinceNow: timeUntilRefresh))))
+    }
+
+    override func didFail(with error: Error) {
+        completion(.failure(error))
+    }
+
+}
+
+class ProtoGetInviteAllowanceRequest: ProtoRequest {
+
+    private let completion: ServiceRequestCompletion<(Int, Date)>
+
+    init(completion: @escaping ServiceRequestCompletion<(Int, Date)>) {
+        self.completion = completion
+
+        // TODO (waiting for schema)
+        let packet = PBpacket.iqPacketWithID()
+
+        super.init(packet: packet, id: packet.iq.id)
+    }
+
+    override func didFinish(with response: PBpacket) {
+        completion(.failure(ProtoServiceError.unimplemented))
+    }
+
+    override func didFail(with error: Error) {
+        completion(.failure(error))
+    }
+    
+}
+
+
+class ProtoRegisterInvitesRequest: ProtoRequest {
+
+    private let completion: ServiceRequestCompletion<InviteResponse>
+
+    init(phoneNumbers: [ABContact.NormalizedPhoneNumber], completion: @escaping ServiceRequestCompletion<InviteResponse>) {
+        self.completion = completion
+
+        // TODO (waiting for schema)
+        let packet = PBpacket.iqPacketWithID()
+
+        super.init(packet: packet, id: packet.iq.id)
+    }
+
+    override func didFinish(with response: PBpacket) {
+        completion(.failure(ProtoServiceError.unimplemented))
     }
 
     override func didFail(with error: Error) {

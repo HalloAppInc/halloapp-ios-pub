@@ -36,6 +36,14 @@
 		682F79EF24F72F630084AF42 /* packets.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E224F72F630084AF42 /* packets.pb.swift */; };
 		682F79F024F72F630084AF42 /* whisper_keys.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E324F72F630084AF42 /* whisper_keys.pb.swift */; };
 		6888CBC8250034A00049FF0E /* cert.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBC72500349F0049FF0E /* cert.pb.swift */; };
+		6832F50124FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50024FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift */; };
+		6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50224FEE9CB00A9C202 /* CoreService.swift */; };
+		6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */; };
+		6832F50A24FEE9DF00A9C202 /* ProtoWhisperRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */; };
+		6832F50B24FEE9DF00A9C202 /* ProtoStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50624FEE9DF00A9C202 /* ProtoStream.swift */; };
+		6832F50C24FEE9DF00A9C202 /* ProtoServiceCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */; };
+		6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */; };
+		6888CBBE25001CFF0049FF0E /* XMPP+CoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */; };
 		688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1D24ED979400258BB9 /* MentionText.swift */; };
 		688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */; };
 		68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E7F24D2128300F40F1F /* NSAttributedString.swift */; };
@@ -124,6 +132,14 @@
 		682F79E224F72F630084AF42 /* packets.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = packets.pb.swift; sourceTree = "<group>"; };
 		682F79E324F72F630084AF42 /* whisper_keys.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = whisper_keys.pb.swift; sourceTree = "<group>"; };
 		6888CBC72500349F0049FF0E /* cert.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = cert.pb.swift; sourceTree = "<group>"; };
+		6832F50024FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ChatMessageProtocol+Encryption.swift"; sourceTree = "<group>"; };
+		6832F50224FEE9CB00A9C202 /* CoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreService.swift; sourceTree = "<group>"; };
+		6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequest.swift; sourceTree = "<group>"; };
+		6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoWhisperRequests.swift; sourceTree = "<group>"; };
+		6832F50624FEE9DF00A9C202 /* ProtoStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoStream.swift; sourceTree = "<group>"; };
+		6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoServiceCore.swift; sourceTree = "<group>"; };
+		6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoCommonRequests.swift; sourceTree = "<group>"; };
+		6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XMPP+CoreService.swift"; sourceTree = "<group>"; };
 		688D8A1D24ED979400258BB9 /* MentionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MentionText.swift; sourceTree = "<group>"; };
 		688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Proto+Mentions.swift"; sourceTree = "<group>"; };
 		68A64E7F24D2128300F40F1F /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
@@ -264,6 +280,7 @@
 		76608ECB24EC2B2100DD61C3 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
+				6832F50024FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift */,
 				76608ECC24EC2B5100DD61C3 /* Chat.swift */,
 			);
 			path = Chat;
@@ -300,6 +317,7 @@
 		768123CF2485DA8B008C5216 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				6832F50224FEE9CB00A9C202 /* CoreService.swift */,
 				246A8B7824902A2200CE0429 /* Avatars */,
 				76608ECB24EC2B2100DD61C3 /* Chat */,
 				768123F224860FF3008C5216 /* Contacts */,
@@ -352,6 +370,7 @@
 		768123FC248612A9008C5216 /* XMPP */ = {
 			isa = PBXGroup;
 			children = (
+				6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */,
 				76812407248614DC008C5216 /* Requests */,
 				768123FF24861481008C5216 /* XMPPAck.swift */,
 				768123FD248612E7008C5216 /* XMPPController.swift */,
@@ -387,6 +406,11 @@
 			isa = PBXGroup;
 			children = (
 				6888CBC72500349F0049FF0E /* cert.pb.swift */,
+				6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */,
+				6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */,
+				6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */,
+				6832F50624FEE9DF00A9C202 /* ProtoStream.swift */,
+				6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */,
 				682F79D724F72F620084AF42 /* avatar.pb.swift */,
 				682F79D924F72F620084AF42 /* client_info.pb.swift */,
 				682F79DD24F72F630084AF42 /* client_log.pb.swift */,
@@ -588,14 +612,17 @@
 				76F45E0024D226D300EFA301 /* ServerProperties.swift in Sources */,
 				246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */,
 				68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */,
+				6832F50A24FEE9DF00A9C202 /* ProtoWhisperRequests.swift in Sources */,
 				682F79EA24F72F630084AF42 /* client_log.pb.swift in Sources */,
 				76812409248614F1008C5216 /* XMPPRequest.swift in Sources */,
 				EAAE7B4B24DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift in Sources */,
+				6888CBBE25001CFF0049FF0E /* XMPP+CoreService.swift in Sources */,
 				768123FE248612E7008C5216 /* XMPPController.swift in Sources */,
 				249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */,
 				682F79E424F72F630084AF42 /* avatar.pb.swift in Sources */,
 				682F79E824F72F630084AF42 /* ha_auth.pb.swift in Sources */,
 				7681240224861487008C5216 /* XMPPError.swift in Sources */,
+				6832F50124FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift in Sources */,
 				768123F924861068008C5216 /* ABContact+CoreDataClass.swift in Sources */,
 				2490287924C525030019C4D5 /* UIImage.swift in Sources */,
 				68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */,
@@ -606,6 +633,7 @@
 				249028A324C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift in Sources */,
 				76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */,
 				7605EA1F24F475A800CAD9AB /* Privacy.swift in Sources */,
+				6832F50C24FEE9DF00A9C202 /* ProtoServiceCore.swift in Sources */,
 				768123F124860F67008C5216 /* UserData.swift in Sources */,
 				682F79EC24F72F630084AF42 /* group_stanzas.pb.swift in Sources */,
 				246A8B8224902BA600CE0429 /* Avatar+CoreDataProperties.swift in Sources */,
@@ -616,6 +644,8 @@
 				7681240024861481008C5216 /* XMPPAck.swift in Sources */,
 				EAAE7B4C24DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift in Sources */,
 				76812406248614BA008C5216 /* XMPPReceipt.swift in Sources */,
+				6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */,
+				6832F50B24FEE9DF00A9C202 /* ProtoStream.swift in Sources */,
 				76812417248619BB008C5216 /* schema.pb.swift in Sources */,
 				682F79ED24F72F630084AF42 /* receipts.pb.swift in Sources */,
 				768123D32485DBE2008C5216 /* LogFormatter.swift in Sources */,
@@ -624,6 +654,7 @@
 				24AA69D924DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift in Sources */,
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
 				6888CBC8250034A00049FF0E /* cert.pb.swift in Sources */,
+				6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */,
 				EAAE7B3E24DD04ED00946B77 /* XMPPWhisper.swift in Sources */,
 				682F79EE24F72F630084AF42 /* contact.pb.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
@@ -636,6 +667,7 @@
 				682F79F024F72F630084AF42 /* whisper_keys.pb.swift in Sources */,
 				76C7429624A155E900C7D945 /* FeedDownloadManager.swift in Sources */,
 				249028A024C5DFDE0019C4D5 /* Media+CoreDataClass.swift in Sources */,
+				6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */,
 				7681241F2486C178008C5216 /* String.swift in Sources */,
 				76812405248614BA008C5216 /* XMPPFeed.swift in Sources */,
 				762EE69B24F62886008765A5 /* XMPPElementRepresentable.swift in Sources */,
