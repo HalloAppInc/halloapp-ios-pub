@@ -206,6 +206,11 @@ public enum FeedElement {
     case comment(FeedCommentProtocol, publisherName: String?)
 }
 
+public enum FeedRetract {
+    case post(FeedPostID)
+    case comment(FeedPostCommentID)
+}
+
 // MARK: Feed Post
 
 public protocol FeedPostProtocol: FeedItemProtocol {

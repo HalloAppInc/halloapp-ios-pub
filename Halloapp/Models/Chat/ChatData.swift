@@ -71,7 +71,7 @@ class ChatData: ObservableObject {
         
         self.xmppController = xmppController
         self.userData = userData
-        self.mediaUploader = MediaUploader(xmppController: xmppController)
+        self.mediaUploader = MediaUploader(service: xmppController)
 
         xmppController.chatDelegate = self
 

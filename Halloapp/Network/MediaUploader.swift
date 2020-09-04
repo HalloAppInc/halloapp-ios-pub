@@ -93,13 +93,13 @@ final class MediaUploader {
         }
     }
 
-    private let xmppController: XMPPController
+    private let service: CoreService
 
     // Resolves relative media file path to file url.
     var resolveMediaPath: ((String) -> (URL))!
 
-    init(xmppController: XMPPController) {
-        self.xmppController = xmppController
+    init(service: CoreService) {
+        self.service = service
     }
 
     // MARK: Task Management
@@ -172,8 +172,9 @@ final class MediaUploader {
             startUpload(forTask: task, to: uploadUrl)
         } else {
             // Request URLs first.
-            let request = XMPPMediaUploadURLRequest { [weak task] (result) in
-                guard let task = task, !task.isCanceled else { return }
+            let fileSize = (try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+            service.requestMediaUploadURL(size: fileSize) { result in
+                guard !task.isCanceled else { return }
 
                 switch result {
                 case .success(let mediaURLs):
@@ -183,13 +184,6 @@ final class MediaUploader {
                 case .failure(let error):
                     self.fail(task: task, withError: error)
                 }
-            }
-            // Wait until connected to request URLs. User meanwhile can cancel posting.
-            xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) { [weak task] in
-                guard let task = task, !task.isCanceled else {
-                    return
-                }
-                self.xmppController.enqueue(request: request)
             }
         }
     }

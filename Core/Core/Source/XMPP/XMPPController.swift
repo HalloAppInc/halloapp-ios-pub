@@ -136,9 +136,11 @@ open class XMPPController: NSObject, ObservableObject {
     // MARK: Acks
 
     public func sendAck(for message: XMPPMessage) {
-        if let ack = XMPPAck.ack(for: message) {
-            DDLogDebug("connection/send-ack id=[\(ack.id)] to=[\(ack.to)] from=[\(ack.from)]")
-            self.xmppStream.send(ack.xmlElement)
+        DispatchQueue.main.async {
+            if let ack = XMPPAck.ack(for: message) {
+                DDLogDebug("connection/send-ack id=[\(ack.id)] to=[\(ack.to)] from=[\(ack.from)]")
+                self.xmppStream.send(ack.xmlElement)
+            }
         }
     }
 

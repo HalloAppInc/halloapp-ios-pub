@@ -93,7 +93,7 @@ class MainAppContext: AppContext {
         // This is needed to encode/decode protobuf in FeedPostInfo.
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
 
-        feedData = FeedData(xmppController: xmppController, contactStore: contactStore, userData: userData)
+        feedData = FeedData(service: xmppController, contactStore: contactStore, userData: userData)
         chatData = ChatData(xmppController: xmppController, userData: userData)
         keyData = KeyData(service: xmppController, userData: userData, keyStore: keyStore)
         syncManager = SyncManager(contactStore: contactStore, service: xmppController, userData: userData)

@@ -13,13 +13,6 @@ import Foundation
 import SwiftUI
 import XMPPFramework
 
-protocol XMPPControllerFeedDelegate: AnyObject {
-    func xmppController(_ xmppController: XMPPController, didReceiveFeedElements elements: [XMLElement], in xmppMessage: XMPPMessage?)
-    func xmppController(_ xmppController: XMPPController, didReceiveFeedRetractElements elements: [XMLElement], in xmppMessage: XMPPMessage?)
-    func xmppController(_ xmppController: XMPPController, didReceiveFeedReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?)
-    func xmppController(_ xmppController: XMPPController, didSendFeedReceipt receipt: XMPPReceipt)
-}
-
 protocol XMPPControllerChatDelegate: AnyObject {
     func xmppController(_ xmppController: XMPPController, didReceiveMessageReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?)
     func xmppController(_ xmppController: XMPPController, didSendMessageReceipt receipt: XMPPReceipt)
@@ -40,7 +33,7 @@ class XMPPControllerMain: XMPPController {
     private let xmppPubSub = XMPPPubSub(serviceJID: XMPPJID(string: "pubsub.s.halloapp.net"))
 
     // MARK: Feed
-    weak var feedDelegate: XMPPControllerFeedDelegate?
+    weak var feedDelegate: HalloFeedDelegate?
 
     // MARK: Chat
     weak var chatDelegate: XMPPControllerChatDelegate?
@@ -319,9 +312,9 @@ class XMPPControllerMain: XMPPController {
             postsAndComments.append(contentsOf: feed.elements(forName: "comment"))
 
             if action == "publish" || action == "share" {
-                delegate.xmppController(self, didReceiveFeedElements: postsAndComments, in: message)
+                delegate.halloService(self, didReceiveFeedItems: postsAndComments.compactMap { FeedElement($0) }, ack: { self.sendAck(for: message) })
             } else if action == "retract" {
-                delegate.xmppController(self, didReceiveFeedRetractElements: postsAndComments, in: message)
+                delegate.halloService(self, didReceiveFeedRetracts: postsAndComments.compactMap { FeedRetract($0) }, ack: { self.sendAck(for: message) })
             } else {
                 sendAck(for: message)
             }
@@ -345,7 +338,7 @@ class XMPPControllerMain: XMPPController {
             switch readReceipt.thread {
             case .feed:
                 if let delegate = self.feedDelegate {
-                    delegate.xmppController(self, didReceiveFeedReceipt: readReceipt, in: message)
+                    delegate.halloService(self, didReceiveFeedReceipt: readReceipt, ack: { self.sendAck(for: message) })
                 } else {
                     self.sendAck(for: message)
                 }
@@ -418,7 +411,7 @@ class XMPPControllerMain: XMPPController {
 
             if case .feed = receipt.thread {
                 if let delegate = self.feedDelegate {
-                    delegate.xmppController(self, didSendFeedReceipt: receipt)
+                    delegate.halloService(self, didSendFeedReceipt: receipt)
                 }
             } else {
                 if let delegate = self.chatDelegate {

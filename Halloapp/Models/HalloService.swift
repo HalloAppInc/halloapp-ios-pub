@@ -19,7 +19,7 @@ protocol HalloService: CoreService {
     // MARK: Delegates
     // TODO: Add these back in once they're migrated to protocol
     //var chatDelegate: HalloChatDelegate? { get set }
-    //var feedDelegate: HalloFeedDelegate? { get set }
+    var feedDelegate: HalloFeedDelegate? { get set }
     var keyDelegate: HalloKeyDelegate? { get set }
 
     // MARK: Profile
@@ -68,7 +68,7 @@ protocol HalloService: CoreService {
 
 protocol HalloFeedDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didReceiveFeedItems items: [FeedElement], ack: (() -> Void)?)
-    func halloService(_ halloService: HalloService, didReceiveFeedRetracts items: [FeedElement], ack: (() -> Void)?)
+    func halloService(_ halloService: HalloService, didReceiveFeedRetracts items: [FeedRetract], ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didReceiveFeedReceipt receipt: HalloReceipt, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt)
 }

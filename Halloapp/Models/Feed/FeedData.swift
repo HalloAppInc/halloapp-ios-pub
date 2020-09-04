@@ -10,16 +10,15 @@ import AVKit
 import CocoaLumberjack
 import Combine
 import Core
+import CoreData
 import Foundation
 import SwiftUI
-import XMPPFramework
 
-
-class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate, XMPPControllerFeedDelegate {
+class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate, HalloFeedDelegate {
 
     private let userData: UserData
     private let contactStore: ContactStoreMain
-    private let xmppController: XMPPControllerMain
+    private var service: HalloService
 
     private var cancellableSet: Set<AnyCancellable> = []
 
@@ -37,15 +36,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     let mediaUploader: MediaUploader
 
-    init(xmppController: XMPPControllerMain, contactStore: ContactStoreMain, userData: UserData) {
-        self.xmppController = xmppController
+    init(service: HalloService, contactStore: ContactStoreMain, userData: UserData) {
+        self.service = service
         self.contactStore = contactStore
         self.userData = userData
-        self.mediaUploader = MediaUploader(xmppController: xmppController)
+        self.mediaUploader = MediaUploader(service: service)
 
         super.init()
 
-        self.xmppController.feedDelegate = self
+        self.service.feedDelegate = self
         mediaUploader.resolveMediaPath = { (relativePath) in
             return MainAppContext.mediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
         }
@@ -59,7 +58,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // when app resumes, xmpp reconnects, feed should try uploading any pending again
         self.cancellableSet.insert(
-            self.xmppController.didConnect.sink {
+            self.service.didConnect.sink {
                 DDLogInfo("Feed: Got event for didConnect")
 
                 self.deleteExpiredPosts()
@@ -428,7 +427,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     let didReceiveFeedPostComment = PassthroughSubject<FeedPostComment, Never>()
 
-    @discardableResult private func process(posts xmppPosts: [XMPPFeedPost], using managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
+    @discardableResult private func process(posts xmppPosts: [FeedPostProtocol], using managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
         guard !xmppPosts.isEmpty else { return [] }
 
         let postIds = Set(xmppPosts.map{ $0.id })
@@ -457,7 +456,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             var mentions = Set<FeedMention>()
-            for xmppMention in xmppPost.mentions {
+            for xmppMention in xmppPost.orderedMentions {
                 let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
                 mention.index = xmppMention.index
                 mention.userID = xmppMention.userID
@@ -467,7 +466,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.mentions = mentions
 
             // Process post media
-            for (index, xmppMedia) in xmppPost.media.enumerated() {
+            for (index, xmppMedia) in xmppPost.orderedMedia.enumerated() {
                 DDLogDebug("FeedData/process-posts/new/add-media [\(xmppMedia.url!)]")
                 let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
                 switch xmppMedia.type {
@@ -515,7 +514,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newPosts
     }
 
-    @discardableResult private func process(comments xmppComments: [XMPPComment], using managedObjectContext: NSManagedObjectContext) -> [FeedPostComment] {
+    @discardableResult private func process(comments xmppComments: [FeedCommentProtocol], using managedObjectContext: NSManagedObjectContext) -> [FeedPostComment] {
         guard !xmppComments.isEmpty else { return [] }
 
         let feedPostIds = Set(xmppComments.map{ $0.feedPostId })
@@ -523,7 +522,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let commentIds = Set(xmppComments.map{ $0.id }).union(Set(xmppComments.compactMap{ $0.parentId }))
         var comments = self.feedComments(with: commentIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         var ignoredCommentIds: Set<String> = []
-        var xmppCommentsMutable = [XMPPComment](xmppComments)
+        var xmppCommentsMutable = [FeedCommentProtocol](xmppComments)
         var newComments: [FeedPostComment] = []
         var duplicateCount = 0, numRuns = 0
         while !xmppCommentsMutable.isEmpty && numRuns < 100 {
@@ -578,7 +577,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 comment.timestamp = xmppComment.timestamp
 
                 var mentions = Set<FeedMention>()
-                for xmppMention in xmppComment.mentions {
+                for xmppMention in xmppComment.orderedMentions {
                     let mention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
                     mention.index = xmppMention.index
                     mention.userID = xmppMention.userID
@@ -621,25 +620,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newComments
     }
 
-    func xmppController(_ xmppController: XMPPController, didReceiveFeedElements elements: [XMLElement], in xmppMessage: XMPPMessage?) {
-        var feedPosts = [XMPPFeedPost]()
-        var comments = [XMPPComment]()
+    func halloService(_ halloService: HalloService, didReceiveFeedItems items: [FeedElement], ack: (() -> Void)?) {
+        var feedPosts = [FeedPostProtocol]()
+        var comments = [FeedCommentProtocol]()
         var contactNames = [UserID:String]()
 
-        for element in elements {
-            guard let elementName = element.name else { continue }
-
-            if elementName == "post" {
-                if let feedPost = XMPPFeedPost(itemElement: element) {
-                    feedPosts.append(feedPost)
-                }
-            } else if elementName == "comment" {
-                if let comment = XMPPComment(itemElement: element) {
-                    comments.append(comment)
-
-                    if let contactName = element.attributeStringValue(forName: "publisher_name") {
-                        contactNames[comment.userId] = contactName
-                    }
+        for item in items {
+            switch item {
+            case .post(let post):
+                feedPosts.append(post)
+            case .comment(let comment, let name):
+                comments.append(comment)
+                if let name = name {
+                    contactNames[comment.userId] = name
                 }
             }
         }
@@ -655,11 +648,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let comments = self.process(comments: comments, using: managedObjectContext)
             self.generateNotifications(for: comments, using: managedObjectContext)
 
-            if let message = xmppMessage {
-                DispatchQueue.main.async {
-                    xmppController.sendAck(for: message)
-                }
-            }
+            ack?()
         }
     }
 
@@ -1025,33 +1014,28 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func xmppController(_ xmppController: XMPPController, didReceiveFeedRetractElements elements: [XMLElement], in xmppMessage: XMPPMessage?) {
+    func halloService(_ halloService: HalloService, didReceiveFeedRetracts items: [FeedRetract], ack: (() -> Void)?) {
         /**
          Example:
          <retract timestamp="1587161372" publisher="1000000000354803885@s.halloapp.net/android" type="feedpost" id="b2d888ecfe2343d9916173f2f416f4ae"><entry xmlns="http://halloapp.com/published-entry"><feedpost/><s1>CgA=</s1></entry></retract>
          */
         let processingGroup = DispatchGroup()
-        for element in elements {
-            guard let elementName = element.name,
-                let itemId = element.attributeStringValue(forName: "id") else { continue }
+        for item in items {
+            switch item {
+            case .post(let postID):
+                processingGroup.enter()
+                self.processPostRetract(postID) {
+                    processingGroup.leave()
+                }
+            case .comment(let commentID):
+                processingGroup.enter()
+                self.processCommentRetract(commentID) {
+                    processingGroup.leave()
+                }
+            }
+        }
 
-            if elementName == "post" {
-                processingGroup.enter()
-                self.processPostRetract(itemId) {
-                    processingGroup.leave()
-                }
-            } else if elementName == "comment" {
-                processingGroup.enter()
-                self.processCommentRetract(itemId) {
-                    processingGroup.leave()
-                }
-            }
-        }
-        processingGroup.notify(queue: DispatchQueue.main) {
-            if let message = xmppMessage {
-                xmppController.sendAck(for: message)
-            }
-        }
+        ack?()
     }
 
     func retract(post feedPost: FeedPost) {
@@ -1062,7 +1046,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(self.viewContext)
 
         // Request to retract.
-        let completion: XMPPRequestCompletion = { (result) in
+        service.retractFeedItem(feedPost, ownerID: feedPost.userId) { result in
             switch result {
             case .success:
                 self.processPostRetract(postId) {}
@@ -1073,13 +1057,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
         }
-        let request: XMPPRequest
-        if ServerProperties.isInternalUser {
-            request = XMPPRetractItemRequest(feedItem: feedPost, completion: completion)
-        } else {
-            request = XMPPRetractItemRequestOld(feedItem: feedPost, feedOwnerId: feedPost.userId, completion: completion)
-        }
-        xmppController.enqueue(request: request)
     }
 
     func retract(comment: FeedPostComment) {
@@ -1090,7 +1067,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(self.viewContext)
 
         // Request to retract.
-        let completion: XMPPRequestCompletion = { (result) in
+        service.retractFeedItem(comment, ownerID: comment.post.userId) { result in
             switch result {
             case .success:
                 self.processCommentRetract(commentId) {}
@@ -1101,25 +1078,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
         }
-        let request: XMPPRequest
-        if ServerProperties.isInternalUser {
-            request = XMPPRetractItemRequest(feedItem: comment, completion: completion)
-        } else {
-            request = XMPPRetractItemRequestOld(feedItem: comment, feedOwnerId: comment.post.userId, completion: completion)
-        }
-        xmppController.enqueue(request: request)
     }
 
     // MARK: Read Receipts
 
-    func xmppController(_ xmppController: XMPPController, didReceiveFeedReceipt xmppReceipt: XMPPReceipt, in xmppMessage: XMPPMessage?) {
-        DDLogInfo("FeedData/seen-receipt/incoming itemId=[\(xmppReceipt.itemId)]")
+    func halloService(_ halloService: HalloService, didReceiveFeedReceipt receipt: HalloReceipt, ack: (() -> Void)?) {
+        DDLogInfo("FeedData/seen-receipt/incoming itemId=[\(receipt.itemId)]")
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            guard let feedPost = self.feedPost(with: xmppReceipt.itemId, in: managedObjectContext) else {
-                DDLogError("FeedData/seen-receipt/missing-post [\(xmppReceipt.itemId)]")
-                if let message = xmppMessage {
-                    xmppController.sendAck(for: message)
-                }
+            guard let feedPost = self.feedPost(with: receipt.itemId, in: managedObjectContext) else {
+                DDLogError("FeedData/seen-receipt/missing-post [\(receipt.itemId)]")
+                ack?()
                 return
             }
             feedPost.willChangeValue(forKey: "info")
@@ -1127,11 +1095,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedPost.info = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as? FeedPostInfo
             }
             var receipts = feedPost.info!.receipts ?? [:]
-            if receipts[xmppReceipt.userId] == nil {
-                receipts[xmppReceipt.userId] = Receipt()
+            if receipts[receipt.userId] == nil {
+                receipts[receipt.userId] = Receipt()
             }
-            receipts[xmppReceipt.userId]!.seenDate = xmppReceipt.timestamp
-            DDLogInfo("FeedData/seen-receipt/update  userId=[\(xmppReceipt.userId)]  ts=[\(xmppReceipt.timestamp!)]  itemId=[\(xmppReceipt.itemId)]")
+            receipts[receipt.userId]!.seenDate = receipt.timestamp
+            DDLogInfo("FeedData/seen-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
             feedPost.info!.receipts = receipts
             feedPost.didChangeValue(forKey: "info")
 
@@ -1139,9 +1107,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.save(managedObjectContext)
             }
 
-            if let message = xmppMessage {
-                xmppController.sendAck(for: message)
-            }
+            ack?()
         }
     }
 
@@ -1165,7 +1131,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return
         }
         feedPost.status = .seenSending
-        self.xmppController.sendSeenReceipt(XMPPReceipt.seenReceipt(for: feedPost), to: feedPost.userId)
+        service.sendReceipt(itemID: feedPost.id, thread: .feed, type: .read, fromUserID: userData.userId, toUserID: feedPost.userId)
     }
 
     func sendSeenReceiptIfNecessary(for feedPost: FeedPost) {
@@ -1177,7 +1143,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func xmppController(_ xmppController: XMPPController, didSendFeedReceipt receipt: XMPPReceipt) {
+    func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt) {
         self.updateFeedPost(with: receipt.itemId) { (feedPost) in
             if !feedPost.isPostRetracted {
                 feedPost.status = .seen
@@ -1476,7 +1442,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func send(comment: FeedPostComment) {
         let commentId = comment.id
-        let completion: XMPPPostItemRequestCompletion = { (result) in
+        service.publishComment(comment, feedOwnerID: comment.post.userId) { result in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPostComment(with: commentId) { (feedComment) in
@@ -1492,22 +1458,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             }
         }
-        let request: XMPPRequest
-        if ServerProperties.isInternalUser {
-            request = XMPPPostItemRequest(feedPostComment: comment, completion: completion)
-        } else {
-            request = XMPPPostItemRequestOld(feedItem: comment, feedOwnerId: comment.post.userId, completion: completion)
-        }
-        // Request will fail immediately if we're not connected, therefore delay sending until connected.
-        ///TODO: add option of canceling posting.
-        xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            self.xmppController.enqueue(request: request)
-        }
     }
 
     private func send(post: FeedPost) {
         let postId = post.id
-        let completion: XMPPPostItemRequestCompletion = { (result) in
+        service.publishPost(post, audience: post.audience) { result in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPost(with: postId) { (feedPost) in
@@ -1522,17 +1477,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedPost.status = .sendError
                 }
             }
-        }
-        let request: XMPPRequest
-        if let audience = post.audience, ServerProperties.isInternalUser {
-            request = XMPPPostItemRequest(feedPost: post, audience: audience, completion: completion)
-        } else {
-            request = XMPPPostItemRequestOld(feedItem: post, feedOwnerId: post.userId, completion: completion)
-        }
-        // Request will fail immediately if we're not connected, therefore delay sending until connected.
-        ///TODO: add option of canceling posting.
-        xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            self.xmppController.enqueue(request: request)
         }
     }
 

@@ -21,7 +21,7 @@ class ShareExtensionDataStore: SharedDataStore {
 
     init(xmppController: XMPPController) {
         self.xmppController = xmppController
-        mediaUploader = MediaUploader(xmppController: xmppController)
+        mediaUploader = MediaUploader(service: xmppController)
         super.init()
         mediaUploader.resolveMediaPath = { (relativeMediaPath) in
             return Self.fileURL(forRelativeFilePath: relativeMediaPath)
