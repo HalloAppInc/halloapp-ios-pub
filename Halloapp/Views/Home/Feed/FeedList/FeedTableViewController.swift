@@ -792,6 +792,8 @@ fileprivate class FeedItemHeaderView: UIView {
 
     var showUserAction: (() -> ())? = nil
 
+    private var contentSizeCategoryDidChangeCancellable: AnyCancellable!
+
     private lazy var contactImageView: AvatarView = {
         let avatarView = AvatarView()
         avatarView.isUserInteractionEnabled = true
@@ -834,7 +836,7 @@ fileprivate class FeedItemHeaderView: UIView {
         let hStack = UIStackView(arrangedSubviews: [ nameLabel, timestampLabel ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.spacing = 8
-        hStack.axis = .horizontal
+        hStack.axis = UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory ? .vertical : .horizontal
         hStack.alignment = .firstBaseline
         addSubview(hStack)
 
@@ -847,6 +849,17 @@ fileprivate class FeedItemHeaderView: UIView {
         hStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
         hStack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
+
+        contentSizeCategoryDidChangeCancellable = NotificationCenter.default
+            .publisher(for: UIContentSizeCategory.didChangeNotification)
+            .compactMap { $0.userInfo?[UIContentSizeCategory.newValueUserInfoKey] as? UIContentSizeCategory }
+            .sink { category in
+                if category.isAccessibilityCategory {
+                    hStack.axis = .vertical
+                } else {
+                    hStack.axis = .horizontal
+                }
+        }
     }
 
     func configure(with post: FeedPost) {
