@@ -328,7 +328,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         DDLogInfo("appdelegate/notifications/user-response/\(response.actionIdentifier) UserInfo=\(response.notification.request.content.userInfo)")
 
         if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
-            if let metadata = NotificationUtility.Metadata(fromResponse: response) {
+            if let metadata = NotificationMetadata(notificationResponse: response) {
                 DDLogInfo("appdelegate/notifications/user-response MetaData=\(metadata)")
                 metadata.saveToUserDefaults()
                 MainAppContext.shared.didTapNotification.send(metadata)

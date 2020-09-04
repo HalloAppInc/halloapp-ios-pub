@@ -1,0 +1,143 @@
+//
+//  NotificationMetadata.swift
+//  HalloApp
+//
+//  Created by Igor Solomennikov on 9/3/20.
+//  Copyright © 2020 Halloapp, Inc. All rights reserved.
+//
+
+import CocoaLumberjack
+import Core
+import UserNotifications
+
+public enum NotificationContentType: String, RawRepresentable {
+    case chat
+    case comment
+    case feedpost
+}
+
+class NotificationMetadata {
+
+    static let userInfoKey = "metadata"
+    static let userDefaultsKey = "tap-notification-metadata"
+
+    private struct Keys {
+        static let contentId = "content-id"
+        static let contentType = "content-type"
+        static let data = "data"
+        static let fromId = "from-id"
+    }
+
+    /*
+     The meaning of contentId depends on contentType.
+     For chat, contentId refers to ChatMessage.id.
+     For feedpost, contentId refers to FeedPost.id
+     For comment, contentId refers to FeedPostComment.id.
+     */
+    let contentId: String
+    let contentType: NotificationContentType
+    let data: Data?
+    let fromId: UserID
+
+    var rawData: [String: String] {
+        return [
+            Keys.contentId: contentId,
+            Keys.contentType: contentType.rawValue,
+            Keys.data: data?.base64EncodedString() ?? "",
+            Keys.fromId: fromId
+        ]
+    }
+
+    var protoContainer: Proto_Container? {
+        guard let protobufData = data else { return nil }
+        do {
+            return try Proto_Container(serializedData: protobufData)
+        }
+        catch {
+            DDLogError("NotificationMetadata/protobuf/error Invalid protobuf. \(error)")
+        }
+        return nil
+    }
+
+    /**
+     Lightweight parsing of metadata attached to a notification.
+
+     - returns: Identifier and type of the content that given notification is for.
+     */
+    static func parseIds(from request: UNNotificationRequest) -> (String, NotificationContentType)? {
+        guard let metadata = request.content.userInfo[Self.userInfoKey] as? [String: String] else { return nil }
+        if let contentId = metadata[Keys.contentId], let contentType = NotificationContentType(rawValue: metadata[Keys.contentType] ?? "") {
+            return (contentId, contentType)
+        }
+        return nil
+    }
+
+    private init?(rawMetadata: Any) {
+        guard let metadata = rawMetadata as? [String: String] else {
+            DDLogError("NotificationMetadata/init/error Can't convert metadata to [String: String]. Metadata: [\(rawMetadata)]")
+            return nil
+        }
+
+        if let contentId = metadata[Keys.contentId] {
+            self.contentId = contentId
+        } else {
+            DDLogError("NotificationMetadata/init/error Missing ContentId")
+            return nil
+        }
+
+        guard let contentType = NotificationContentType(rawValue: metadata[Keys.contentType] ?? "") else {
+            DDLogError("NotificationMetadata/init/error Unsupported ContentType \(String(describing: metadata[Keys.contentType]))")
+            return nil
+        }
+
+        self.contentType = contentType
+
+        if let fromId = metadata[Keys.fromId] {
+            self.fromId = fromId
+        } else {
+            DDLogError("NotificationMetadata/init/error Missing fromId")
+            return nil
+        }
+
+        if let base64Data = metadata[Keys.data] {
+            self.data = Data(base64Encoded: base64Data)
+        } else {
+            DDLogError("NotificationMetadata/init/error Missing Data")
+            return nil
+        }
+    }
+
+    init(contentId: String, contentType: NotificationContentType, data: Data?, fromId: UserID) {
+        self.contentId = contentId
+        self.contentType = contentType
+        self.data = data
+        self.fromId = fromId
+    }
+
+    convenience init?(notificationRequest: UNNotificationRequest) {
+        DDLogDebug("NotificationMetadata/init request=\(notificationRequest)")
+        guard let metadata = notificationRequest.content.userInfo[Self.userInfoKey] else { return nil }
+        self.init(rawMetadata: metadata)
+    }
+
+    convenience init?(notificationResponse: UNNotificationResponse) {
+        DDLogDebug("NotificationMetadata/init response=\(notificationResponse)")
+        guard let metadata = notificationResponse.notification.request.content.userInfo[Self.userInfoKey] else { return nil }
+        self.init(rawMetadata: metadata)
+    }
+
+    static func fromUserDefaults() -> NotificationMetadata? {
+        guard let metadata = UserDefaults.standard.object(forKey: Self.userDefaultsKey) else { return nil }
+        return NotificationMetadata(rawMetadata: metadata)
+    }
+
+    func saveToUserDefaults() {
+        DDLogDebug("NotificationMetadata/saveToUserDefaults")
+        UserDefaults.standard.set(self.rawData, forKey: Self.userDefaultsKey)
+    }
+
+    func removeFromUserDefaults() {
+        DDLogDebug("NotificationMetadata/removeFromUserDefaults")
+        UserDefaults.standard.removeObject(forKey: Self.userDefaultsKey)
+    }
+}

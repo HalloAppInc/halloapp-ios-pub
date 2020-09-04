@@ -26,7 +26,7 @@ class MainAppContext: AppContext {
     private(set) var syncManager: SyncManager!
     private(set) var privacySettings: PrivacySettings!
     
-    let didTapNotification = PassthroughSubject<NotificationUtility.Metadata, Never>()
+    let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
 
     override var xmppController: XMPPControllerMain {

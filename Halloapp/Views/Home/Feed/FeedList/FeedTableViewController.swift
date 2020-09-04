@@ -359,7 +359,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             // • remove notifications for the post
             if UIApplication.shared.applicationState == .active {
                 MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
-                NotificationUtility.removeDelivered(forType: .feedpost, withContentId: feedPost.id)
+                UNUserNotificationCenter.current().removeDeliveredNotifications(forType: .feedpost, contentId: feedPost.id)
             }
         }
     }

@@ -57,7 +57,7 @@ class FeedViewController: FeedTableViewController {
         })
 
         // When the user was not on this view, and HomeView sends user to here
-        if let metadata = NotificationUtility.Metadata.fromUserDefaults()  {
+        if let metadata = NotificationMetadata.fromUserDefaults()  {
             self.processNotification(metadata: metadata)
         }
     }
@@ -154,7 +154,7 @@ class FeedViewController: FeedTableViewController {
         }
     }
 
-    private func processNotification(metadata: NotificationUtility.Metadata) {
+    private func processNotification(metadata: NotificationMetadata) {
         guard metadata.contentType == .comment || metadata.contentType == .feedpost else {
             return
         }

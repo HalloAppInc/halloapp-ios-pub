@@ -831,7 +831,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 $0.read = true
                 
                 if let commentId = $0.commentId {
-                    NotificationUtility.removeDelivered(forType: .comment, withContentId: commentId)
+                    UNUserNotificationCenter.current().removeDeliveredNotifications(forType: .comment, contentId: commentId)
                 }
             }
             self.save(managedObjectContext)
@@ -872,7 +872,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         let dispatchGroup = DispatchGroup()
         dispatchGroup.enter()
-        NotificationUtility.getContentIdsForDeliveredNotifications(ofType: .comment) { (commentIds) in
+        UNUserNotificationCenter.current().getContentIdsForDeliveredNotifications(ofType: .comment) { (commentIds) in
             commentIdsToFilterOut = commentIds
             dispatchGroup.leave()
         }
@@ -882,18 +882,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             comments.filter{ !commentIdsToFilterOut.contains($0.id) && self.isCommentEligibleForLocalNotification($0) }.forEach { (comment) in
                 let protoContainer = comment.protoContainer
                 let protobufData = try? protoContainer.serializedData()
-                let metadata = NotificationUtility.Metadata(contentId: comment.id, contentType: .comment, data: protobufData, fromId: comment.userId)
+                let metadata = NotificationMetadata(contentId: comment.id, contentType: .comment, data: protobufData, fromId: comment.userId)
 
                 let notification = UNMutableNotificationContent()
                 notification.title = contactNames[comment.userId] ?? "Unknown Contact"
-                NotificationUtility.populate(
-                    notification: notification,
-                    withDataFrom: protoContainer,
-                    mentionNameProvider: { userID in
-                        self.contactStore.mentionName(
-                            for: userID,
-                            pushedName: protoContainer.mentionPushName(for: userID)) })
-                notification.userInfo[NotificationUtility.Metadata.userInfoKey] = metadata.rawData
+                notification.populate(withDataFrom: protoContainer, mentionNameProvider: { userID in
+                    self.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
+                })
+                notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
 
                 notifications.append(notification)
             }
@@ -917,7 +913,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         let dispatchGroup = DispatchGroup()
         dispatchGroup.enter()
-        NotificationUtility.getContentIdsForDeliveredNotifications(ofType: .feedpost) { (feedPostIds) in
+        UNUserNotificationCenter.current().getContentIdsForDeliveredNotifications(ofType: .feedpost) { (feedPostIds) in
             postIdsToFilterOut = feedPostIds
             dispatchGroup.leave()
         }
@@ -927,19 +923,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPosts.filter({ !postIdsToFilterOut.contains($0.id) }).forEach { (feedPost) in
                 let protoContainer = feedPost.protoContainer
                 let protobufData = try? protoContainer.serializedData()
-                let metadata = NotificationUtility.Metadata(contentId: feedPost.id, contentType: .feedpost, data: protobufData, fromId: feedPost.userId)
+                let metadata = NotificationMetadata(contentId: feedPost.id, contentType: .feedpost, data: protobufData, fromId: feedPost.userId)
 
                 let notification = UNMutableNotificationContent()
                 notification.title = contactNames[feedPost.userId] ?? "Unknown Contact"
-                NotificationUtility.populate(
-                    notification: notification,
-                    withDataFrom: protoContainer,
-                    mentionNameProvider: { userID in
-                        self.contactStore.mentionName(
-                            for: userID,
-                            pushedName: protoContainer.mentionPushName(for: userID)) })
-
-                notification.userInfo[NotificationUtility.Metadata.userInfoKey] = metadata.rawData
+                notification.populate(withDataFrom: protoContainer, mentionNameProvider: { userID in
+                    self.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
+                })
+                notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
 
                 notifications.append(notification)
             }

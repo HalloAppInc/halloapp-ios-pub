@@ -179,3 +179,38 @@ class XMPPClientVersionRequest : XMPPRequest {
         self.completion(nil, error)
     }
 }
+
+class XMPPSendPushConfigRequest: XMPPRequest {
+
+    private let completion: XMPPRequestCompletion
+
+//    <iq to='s.halloapp.net' type='set' id='Xndak' from='1000000000000000001@s.halloapp.net' >
+//      <notification_prefs xmlns='halloapp:push:notifications'>
+//       <push_pref name="post">true</push_pref>
+//      </notification_prefs>
+//    </iq>
+
+    init(config: [String: Bool], completion: @escaping XMPPRequestCompletion) {
+        self.completion = completion
+
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
+        iq.addChild({
+            let prefsElement = XMPPElement(name: "notification_prefs", xmlns: "halloapp:push:notifications")
+            config.forEach { (key, value) in
+                let item = XMPPElement(name: "push_pref", stringValue: String(value))
+                item.addAttribute(withName: "name", stringValue: "key")
+                prefsElement.addChild(item)
+            }
+            return prefsElement
+            }())
+        super.init(iq: iq)
+    }
+
+    override func didFinish(with response: XMPPIQ) {
+        self.completion(.success(()))
+    }
+
+    override func didFail(with error: Error) {
+        self.completion(.failure(error))
+    }
+}

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		246A8B71248FEC9400CE0429 /* NotificationUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B70248FEC9400CE0429 /* NotificationUtility.swift */; };
 		246A8B7B24902A3E00CE0429 /* Avatars.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B7924902A3E00CE0429 /* Avatars.xcdatamodeld */; };
 		246A8B8224902BA600CE0429 /* Avatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B8024902BA600CE0429 /* Avatar+CoreDataProperties.swift */; };
 		246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B8124902BA600CE0429 /* Avatar+CoreDataClass.swift */; };
@@ -93,7 +92,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		246A8B70248FEC9400CE0429 /* NotificationUtility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationUtility.swift; sourceTree = "<group>"; };
 		246A8B7A24902A3E00CE0429 /* Avatars.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Avatars.xcdatamodel; sourceTree = "<group>"; };
 		246A8B8024902BA600CE0429 /* Avatar+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Avatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		246A8B8124902BA600CE0429 /* Avatar+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Avatar+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -333,7 +331,6 @@
 			children = (
 				768123D62485DC4F008C5216 /* AppContext.swift */,
 				76C7429B24A1597000C7D945 /* MediaCrypter.swift */,
-				246A8B70248FEC9400CE0429 /* NotificationUtility.swift */,
 				768123F024860F67008C5216 /* UserData.swift */,
 				76925CFC24872E85008333FA /* UserData.xcdatamodeld */,
 				76F45DFF24D226D300EFA301 /* ServerProperties.swift */,
@@ -603,7 +600,6 @@
 				2490287924C525030019C4D5 /* UIImage.swift in Sources */,
 				68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */,
 				688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */,
-				246A8B71248FEC9400CE0429 /* NotificationUtility.swift in Sources */,
 				24D743C724AEA821001111BF /* AvatarView.swift in Sources */,
 				682F79E924F72F630084AF42 /* media_upload.pb.swift in Sources */,
 				768123F824861068008C5216 /* Contacts.xcdatamodeld in Sources */,

@@ -60,7 +60,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         )
 
         // When the user was not on this view, and HomeView sends user to here
-        if let metadata = NotificationUtility.Metadata.fromUserDefaults(), metadata.contentType == .chat {
+        if let metadata = NotificationMetadata.fromUserDefaults(), metadata.contentType == .chat {
             processNotification(metadata: metadata)
         }
     }
@@ -309,7 +309,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     
     // MARK: Tap Notification
     
-    private func processNotification(metadata: NotificationUtility.Metadata) {
+    private func processNotification(metadata: NotificationMetadata) {
         // If the user tapped on a notification, move to the chat view
         DDLogInfo("ChatListViewController/notification/open-chat \(metadata.fromId)")
 

@@ -36,7 +36,7 @@ class NotificationService: UNNotificationServiceExtension {
         self.bestAttemptContent = bestAttemptContent
         self.contentHandler = contentHandler
         
-        guard let metadata = NotificationUtility.Metadata(fromRequest: request) else {
+        guard let metadata = NotificationMetadata(notificationRequest: request) else {
             DDLogError("didReceiveRequest/error Invalid metadata. \(request.content.userInfo)")
             contentHandler(bestAttemptContent)
             return
@@ -50,13 +50,9 @@ class NotificationService: UNNotificationServiceExtension {
         // Populate notification body.
         var invokeHandler = true
         if let protoContainer = metadata.protoContainer {
-            NotificationUtility.populate(
-                notification: bestAttemptContent,
-                withDataFrom: protoContainer,
-                mentionNameProvider: { userID in
-                    AppExtensionContext.shared.contactStore.mentionName(
-                        for: userID,
-                        pushedName: protoContainer.mentionPushName(for: userID)) })
+            bestAttemptContent.populate(withDataFrom: protoContainer, mentionNameProvider: { userID in
+                AppExtensionContext.shared.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
+            })
             if protoContainer.hasPost && !protoContainer.post.media.isEmpty {
                 invokeHandler = !startDownloading(media: protoContainer.post.media, containerId: metadata.contentId)
             } else if protoContainer.hasChatMessage && !protoContainer.chatMessage.media.isEmpty {

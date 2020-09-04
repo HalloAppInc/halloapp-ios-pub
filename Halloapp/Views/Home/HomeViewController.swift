@@ -80,7 +80,7 @@ class HomeViewController: UITabBarController {
         })
         
         // When the app just started (had been force-quit before)
-        if let metadata = NotificationUtility.Metadata.fromUserDefaults() {
+        if let metadata = NotificationMetadata.fromUserDefaults() {
             self.processNotification(metadata: metadata)
         }
     }
@@ -164,7 +164,7 @@ class HomeViewController: UITabBarController {
         }
     }
     
-    private func processNotification(metadata: NotificationUtility.Metadata) {
+    private func processNotification(metadata: NotificationMetadata) {
         // If the user tapped on a notification, switch to feed or chat tab
         switch metadata.contentType {
         case .chat:
