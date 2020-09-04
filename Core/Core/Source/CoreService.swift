@@ -48,8 +48,7 @@ public protocol CoreService {
     func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?)
 
     // MARK: Delegates
-    // TODO: Restore this once we migrate AvatarStore to protocol
-    // var avatarDelegate: ServiceAvatarDelegate? { get set }
+    var avatarDelegate: ServiceAvatarDelegate? { get set }
 }
 
 public protocol ServiceAvatarDelegate: AnyObject {

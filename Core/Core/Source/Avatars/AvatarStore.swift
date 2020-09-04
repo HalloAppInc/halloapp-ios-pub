@@ -16,7 +16,7 @@ import XMPPFramework
 
 public typealias AvatarID = String
 
-public class AvatarStore: XMPPControllerAvatarDelegate {
+public class AvatarStore: ServiceAvatarDelegate {
     public static let avatarSize = 256
     public static let avatarCDNUrl = "https://avatar-cdn.halloapp.net/"
     
@@ -249,17 +249,12 @@ public class AvatarStore: XMPPControllerAvatarDelegate {
         DDLogInfo("AvatarStore/updateAvatarId relativeFilePath for user \(userId) has been changed to \(relativeFilePath)")
     }
     
-    public func xmppController(_ xmppController: XMPPController, didReceiveAvatar item: XMLElement) {
-        DDLogInfo("AvatarStore/didReceiveAvatar \(item)")
-        
-        guard let userId = item.attributeStringValue(forName: "userid"), let avatarId = item.attributeStringValue(forName: "id") else {
-            DDLogError("AvatarStore/didReceiveAvatar/error userId or avatarId is nil")
-            return
-        }
-        
+    public func service(_ service: CoreService, didReceiveAvatarInfo avatarInfo: AvatarInfo) {
+        DDLogInfo("AvatarStore/didReceiveAvatar \(avatarInfo)")
+
         let managedObjectContext = self.persistentContainer.viewContext
         
-        save(avatarId: avatarId, forUserId: userId, using: managedObjectContext)
+        save(avatarId: avatarInfo.avatarID, forUserId: avatarInfo.userID, using: managedObjectContext)
     }
     
     public func processContactSync(_ avatarDict: [UserID: AvatarID]) {

@@ -363,8 +363,10 @@ class XMPPControllerMain: XMPPController {
         }
 
         if let avatarElement = message.element(forName: "avatar") {
-            if let delegate = self.avatarDelegate {
-                delegate.xmppController(self, didReceiveAvatar: avatarElement)
+            if let avatarID = avatarElement.attributeStringValue(forName: "id"), let userID = avatarElement.attributeStringValue(forName: "userid") {
+                avatarDelegate?.service(self, didReceiveAvatarInfo: (userID: userID, avatarID: avatarID))
+            } else {
+                DDLogError("XMPPController/didReceive/error avatar missing ID or userID")
             }
             self.sendAck(for: message)
             return
