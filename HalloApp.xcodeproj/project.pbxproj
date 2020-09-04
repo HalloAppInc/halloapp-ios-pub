@@ -126,6 +126,7 @@
 		76B5B52D2501EE790055E712 /* NotificationMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B5B52B2501EE790055E712 /* NotificationMetadata.swift */; };
 		76B5B52F2501EEBE0055E712 /* UNExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B5B52E2501EEBE0055E712 /* UNExtensions.swift */; };
 		76B5B5302501EEBE0055E712 /* UNExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B5B52E2501EEBE0055E712 /* UNExtensions.swift */; };
+		76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B5B5312501F1700055E712 /* NotificationSettings.swift */; };
 		76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CD62429331D007435AC /* CommentsViewController.swift */; };
 		76B95CDE24295AB5007435AC /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CDD24295AB5007435AC /* CommentView.swift */; };
 		76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE3242A7A3F007435AC /* CommentInputView.swift */; };
@@ -396,6 +397,7 @@
 		76A9244A244EC49000794859 /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIView.swift; path = HalloApp/Components/Extensions/UIView.swift; sourceTree = SOURCE_ROOT; };
 		76B5B52B2501EE790055E712 /* NotificationMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationMetadata.swift; path = HalloApp/Source/Notifications/NotificationMetadata.swift; sourceTree = SOURCE_ROOT; };
 		76B5B52E2501EEBE0055E712 /* UNExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UNExtensions.swift; path = HalloApp/Source/Notifications/UNExtensions.swift; sourceTree = SOURCE_ROOT; };
+		76B5B5312501F1700055E712 /* NotificationSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationSettings.swift; path = HalloApp/Source/Notifications/NotificationSettings.swift; sourceTree = SOURCE_ROOT; };
 		76B95CD62429331D007435AC /* CommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsViewController.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsViewController.swift; sourceTree = SOURCE_ROOT; };
 		76B95CDD24295AB5007435AC /* CommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CE3242A7A3F007435AC /* CommentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentInputView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentInputView.swift; sourceTree = SOURCE_ROOT; };
@@ -770,6 +772,7 @@
 			children = (
 				76B5B52B2501EE790055E712 /* NotificationMetadata.swift */,
 				76B5B52E2501EEBE0055E712 /* UNExtensions.swift */,
+				76B5B5312501F1700055E712 /* NotificationSettings.swift */,
 			);
 			path = Notifications;
 			sourceTree = "<group>";
@@ -1649,6 +1652,7 @@
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
+				76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */,
 				EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */,
 				761BD0FA24B3C6B800B567F6 /* InviteRequests.swift in Sources */,
 				EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */,

@@ -190,7 +190,7 @@ class XMPPSendPushConfigRequest: XMPPRequest {
 //      </notification_prefs>
 //    </iq>
 
-    init(config: [String: Bool], completion: @escaping XMPPRequestCompletion) {
+    init(config: [NotificationSettings.ConfigKey: Bool], completion: @escaping XMPPRequestCompletion) {
         self.completion = completion
 
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
@@ -198,7 +198,7 @@ class XMPPSendPushConfigRequest: XMPPRequest {
             let prefsElement = XMPPElement(name: "notification_prefs", xmlns: "halloapp:push:notifications")
             config.forEach { (key, value) in
                 let item = XMPPElement(name: "push_pref", stringValue: String(value))
-                item.addAttribute(withName: "name", stringValue: "key")
+                item.addAttribute(withName: "name", stringValue: key.rawValue)
                 prefsElement.addChild(item)
             }
             return prefsElement

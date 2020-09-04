@@ -504,7 +504,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // Show local notifications if necessary.
-            self.presentLocalNotifications(forFeedPosts: feedPosts)
+            if NotificationSettings.current.isPostsEnabled {
+                self.presentLocalNotifications(forFeedPosts: feedPosts)
+            }
 
             // Notify about new posts all interested parties.
             feedPosts.forEach({ self.didReceiveFeedPost.send($0) })
@@ -608,8 +610,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let feedPostComments = commentObjectIDs.compactMap{ try? managedObjectContext.existingObject(with: $0) as? FeedPostComment }
 
             // Show local notifications.
-            self.presentLocalNotifications(forComments: feedPostComments)
-
+            if NotificationSettings.current.isCommentsEnabled {
+                self.presentLocalNotifications(forComments: feedPostComments)
+            }
+            
             // Notify about new comments all interested parties.
             feedPostComments.forEach({ self.didReceiveFeedPostComment.send($0) })
         }

@@ -41,6 +41,7 @@ struct SettingsView: View {
     @ObservedObject private var privacySettings = MainAppContext.shared.privacySettings
     @ObservedObject private var userData = MainAppContext.shared.userData
     @ObservedObject private var inviteManager = InviteManager.shared
+    @ObservedObject private var notificationSettings = NotificationSettings.current
 
     @State private var isShowingMailView = false
     @State private var mailViewResult: Result<MFMailComposeResult, Error>? = nil
@@ -88,11 +89,9 @@ struct SettingsView: View {
 
                 // Notifications
                 Section(header: Text("Notifications".uppercased())) {
-                    Toggle("Posts", isOn: .constant(true))
-                        .disabled(true)
+                    Toggle("Posts", isOn: $notificationSettings.isPostsEnabled)
 
-                    Toggle("Comments", isOn: .constant(true))
-                        .disabled(true)
+                    Toggle("Comments", isOn: $notificationSettings.isCommentsEnabled)
                 }
 
                 // Privacy

@@ -276,6 +276,7 @@ class XMPPControllerMain: XMPPController {
         resendAllPendingReceipts()
         queryAvatarForCurrentUserIfNecessary()
         requestServerPropertiesIfNecessary()
+        NotificationSettings.current.sendConfigIfNecessary(using: self)
     }
 
     override func didReceive(message: XMPPMessage) {
