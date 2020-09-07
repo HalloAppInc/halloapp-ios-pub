@@ -41,7 +41,7 @@ class InviteManager: ObservableObject {
         DDLogInfo("invite-manager/fetch-request/start")
         self.fetchError = false
 
-        let request = XMPPGetInviteAllowanceRequest { (result) in
+        MainAppContext.shared.service.requestInviteAllowance { result in
             switch result {
             case .success(let (inviteCount, refreshDate)):
                 DDLogInfo("invite-manager/fetch-request/complete Count: [\(inviteCount)] Refresh Date: [\(refreshDate)]")
@@ -57,7 +57,6 @@ class InviteManager: ObservableObject {
                 self.fetchError = true
             }
         }
-        MainAppContext.shared.xmppController.enqueue(request: request)
     }
 
     func redeemInviteForSelectedContact(presentErrorAlert: Binding<Bool>, presentShareSheet: Binding<Bool>) {
@@ -70,7 +69,7 @@ class InviteManager: ObservableObject {
         self.redeemInProgress = true
 
         let phoneNumber = "+\(contact.normalizedPhoneNumber!)"
-        let request = XMPPRegisterInvitesRequest(phoneNumbers: [ phoneNumber ]) { (result) in
+        MainAppContext.shared.service.sendInvites(phoneNumbers: [phoneNumber]) { result in
             self.redeemInProgress = false
 
             switch result {
@@ -96,7 +95,6 @@ class InviteManager: ObservableObject {
                 presentErrorAlert.wrappedValue = true
             }
         }
-        MainAppContext.shared.xmppController.enqueue(request: request)
     }
 
     // MARK: Store & load data
