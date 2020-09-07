@@ -64,6 +64,9 @@ protocol HalloService: CoreService {
     var hasValidAPNSPushToken: Bool { get }
     func setAPNSToken(_ token: String?)
     func sendCurrentAPNSTokenIfPossible()
+
+    // MARK: Client version
+    func checkVersionExpiration(completion: @escaping ServiceRequestCompletion<TimeInterval>)
 }
 
 protocol HalloFeedDelegate: AnyObject {

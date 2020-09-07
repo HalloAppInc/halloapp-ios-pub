@@ -263,3 +263,28 @@ class ProtoSendNameRequest: ProtoRequest {
         self.completion(.failure(error))
     }
 }
+
+class ProtoClientVersionCheck: ProtoRequest {
+
+    private let completion: ServiceRequestCompletion<TimeInterval>
+
+    init(version: String, completion: @escaping ServiceRequestCompletion<TimeInterval>) {
+        self.completion = completion
+
+        var clientVersion = PBclient_version()
+        clientVersion.version = "HalloApp/iOS\(version)"
+        let packet = PBpacket.iqPacket(type: .get, payload: .clientVersion(clientVersion))
+
+        super.init(packet: packet, id: packet.iq.id)
+    }
+
+    override func didFinish(with response: PBpacket) {
+        let expiresInSeconds = response.iq.payload.clientVersion.expiresInSeconds
+        completion(.success(TimeInterval(expiresInSeconds)))
+    }
+
+    override func didFail(with error: Error) {
+        completion(.failure(error))
+    }
+
+}

@@ -122,4 +122,16 @@ extension XMPPControllerMain: HalloService {
         xmppStream.send(message)
         return true
     }
+
+    func checkVersionExpiration(completion: @escaping ServiceRequestCompletion<TimeInterval>) {
+        enqueue(request: XMPPClientVersionRequest() { (iq, error) in
+            guard let clientVersion = iq?.element(forName: "client_version"),
+                let secondsLeft = clientVersion.element(forName: "seconds_left") else
+            {
+                completion(.failure(error ?? XMPPError.malformed))
+                return
+            }
+            completion(.success(TimeInterval(secondsLeft.stringValueAsInt())))
+        })
+    }
 }

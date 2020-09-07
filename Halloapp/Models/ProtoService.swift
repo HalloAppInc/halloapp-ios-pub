@@ -215,4 +215,8 @@ extension ProtoService: HalloService {
             DDLogInfo("proto/push-token/could-not-send")
         }
     }
+
+    func checkVersionExpiration(completion: @escaping ServiceRequestCompletion<TimeInterval>) {
+        enqueue(request: ProtoClientVersionCheck(version: AppContext.appVersionForXMPP, completion: completion))
+    }
 }

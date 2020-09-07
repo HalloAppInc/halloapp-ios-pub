@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Combine
 import Contacts
 import ContactsUI
@@ -127,11 +128,11 @@ class HomeViewController: UITabBarController {
     }
 
     private func checkClientVersionExpiration() {
-        let request = XMPPClientVersionRequest() { (iq, error) in
-            guard let iq = iq else { return }
-            guard let clientVersion = iq.element(forName: "client_version") else { return }
-            guard let secondsLeft = clientVersion.element(forName: "seconds_left") else { return }
-            let numSecondsLeft = secondsLeft.stringValueAsInt()
+        MainAppContext.shared.service.checkVersionExpiration { result in
+            guard case .success(let numSecondsLeft) = result else {
+                DDLogError("Client version check did not return expiration")
+                return
+            }
             let numDaysLeft = numSecondsLeft/86400
             if numDaysLeft < 10 {
                 let isExpired = numDaysLeft <= 0
@@ -153,7 +154,6 @@ class HomeViewController: UITabBarController {
                 self.present(alert, animated: true, completion: nil)
             }
         }
-        MainAppContext.shared.xmppController.enqueue(request: request)
     }
     
     private func updateChatNavigationControllerBadge(_ count: Int) {
