@@ -12,7 +12,7 @@ import XMPPFramework
 public final class ProtoStream: XMPPStream {
     /**
      This is a temporary solution. I can't get access to multicastDelegate in XMPPStream,
-     so I use xmppController here to get access to the delegate.
+     so I use protoService here to get access to the delegate.
      */
     public weak var protoService: ProtoServiceCore?
 

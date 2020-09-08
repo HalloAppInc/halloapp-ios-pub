@@ -45,7 +45,7 @@ class ComposeViewController: SLComposeServiceViewController {
     private let imageServer = ImageServer()
     private var mediaToSend = [PendingMedia]()
     private var dataStore: ShareExtensionDataStore!
-    private var xmppController: XMPPController!
+    private var service: CoreService!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -58,7 +58,7 @@ class ComposeViewController: SLComposeServiceViewController {
         
         initAppContext(ShareExtensionContext.self, xmppControllerClass: XMPPControllerShareExtension.self, contactStoreClass: ContactStore.self)
         dataStore = ShareExtensionContext.shared.dataStore
-        xmppController = ShareExtensionContext.shared.xmppController
+        service = ShareExtensionContext.shared.xmppController
 
         /*
          If the user switches from the host app (the app that starts the share extension request)
@@ -69,7 +69,7 @@ class ComposeViewController: SLComposeServiceViewController {
         NotificationCenter.default.addObserver(forName: .NSExtensionHostWillEnterForeground, object: nil, queue: nil) { [weak self] _ in
             guard let self = self else { return }
             ShareExtensionContext.shared.shareExtensionIsActive = true
-            self.xmppController.startConnectingIfNecessary()
+            self.service.startConnectingIfNecessary()
         }
         
         NotificationCenter.default.addObserver(forName: .NSExtensionHostDidEnterBackground, object: nil, queue: nil) { _ in
@@ -95,7 +95,7 @@ class ComposeViewController: SLComposeServiceViewController {
         }
 
         ShareExtensionContext.shared.shareExtensionIsActive = true
-        xmppController.startConnectingIfNecessary()
+        service.startConnectingIfNecessary()
         
         DDLogInfo("Start loading attachments")
         
@@ -147,7 +147,7 @@ class ComposeViewController: SLComposeServiceViewController {
     override func didSelectPost() {
         ///TODO: Show progress indicator and disable UI.
 
-        xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
+        service.execute(whenConnectionStateIs: .connected, onQueue: .main) {
             self.startSending()
         }
     }
@@ -159,7 +159,7 @@ class ComposeViewController: SLComposeServiceViewController {
         ///TODO: delete saved data
 
         ShareExtensionContext.shared.shareExtensionIsActive = false
-        xmppController.disconnect()
+        service.disconnect()
         
         super.didSelectCancel()
     }
@@ -203,7 +203,7 @@ class ComposeViewController: SLComposeServiceViewController {
                 switch result {
                 case .success(_):
                     ShareExtensionContext.shared.shareExtensionIsActive = false
-                    self.xmppController.disconnect()
+                    self.service.disconnect()
                     super.didSelectPost()
 
                 case .failure(_):
@@ -211,7 +211,7 @@ class ComposeViewController: SLComposeServiceViewController {
                         // This is rare
                         // The ComposeView already disappeared, we cannot go back
                         ShareExtensionContext.shared.shareExtensionIsActive = false
-                        self.xmppController.disconnect()
+                        self.service.disconnect()
                         super.didSelectCancel()
                     }
                 }
@@ -222,13 +222,13 @@ class ComposeViewController: SLComposeServiceViewController {
                 switch result {
                 case .success(_):
                     ShareExtensionContext.shared.shareExtensionIsActive = false
-                    self.xmppController.disconnect()
+                    self.service.disconnect()
                     super.didSelectPost()
 
                 case .failure(_):
                     // This should never happen
                     ShareExtensionContext.shared.shareExtensionIsActive = false
-                    self.xmppController.disconnect()
+                    self.service.disconnect()
                     super.didSelectCancel()
                 }
             }

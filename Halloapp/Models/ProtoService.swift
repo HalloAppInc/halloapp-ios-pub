@@ -74,7 +74,7 @@ final class ProtoService: ProtoServiceCore {
 
         let userAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: self.userData.userId)
         guard userAvatar.isEmpty || userAvatar.data != nil else {
-            DDLogError("XMPPController/resendAvatarIfNecessary/upload/error avatar data is not ready")
+            DDLogError("ProtoService/resendAvatarIfNecessary/upload/error avatar data is not ready")
             return
         }
 
@@ -82,16 +82,16 @@ final class ProtoService: ProtoServiceCore {
         enqueue(request: ProtoUpdateAvatarRequest(data: userAvatar.data) { result in
             switch result {
             case .success(let avatarID):
-                DDLogInfo("XMPPController/resendAvatarIfNecessary avatar has been \(logAction)")
+                DDLogInfo("ProtoService/resendAvatarIfNecessary avatar has been \(logAction)")
                 UserDefaults.standard.set(false, forKey: AvatarStore.Keys.userDefaultsUpload)
 
                 if let avatarID = avatarID {
-                    DDLogInfo("XMPPController/resendAvatarIfNecessary received new avatarID [\(avatarID)]")
+                    DDLogInfo("ProtoService/resendAvatarIfNecessary received new avatarID [\(avatarID)]")
                     MainAppContext.shared.avatarStore.update(avatarId: avatarID, forUserId: self.userData.userId)
                 }
 
             case .failure(let error):
-                DDLogError("XMPPController/resendAvatarIfNecessary/error avatar not \(logAction): \(error)")
+                DDLogError("ProtoService/resendAvatarIfNecessary/error avatar not \(logAction): \(error)")
             }
         })
     }

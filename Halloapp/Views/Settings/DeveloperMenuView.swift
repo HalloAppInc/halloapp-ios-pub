@@ -15,7 +15,7 @@ struct DeveloperMenuView: View {
     var dismiss: (() -> ())?
 
     private let userData = MainAppContext.shared.userData
-    private let xmppController = MainAppContext.shared.xmppController
+    private let service = MainAppContext.shared.service
 
     var body: some View {
         VStack {
@@ -71,8 +71,8 @@ struct DeveloperMenuView: View {
                 Button(action: {
                     self.useTestServer = !self.useTestServer
                     self.userData.useTestServer = self.useTestServer
-                    self.xmppController.disconnectImmediately()
-                    self.xmppController.connect()
+                    self.service.disconnectImmediately()
+                    self.service.connect()
 
                 }) {
                     Text("Use Dev Server \(self.useTestServer ? "👍" : "👎")")

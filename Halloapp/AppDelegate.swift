@@ -60,7 +60,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     public func checkNotificationsAuthorizationStatus() {
         // Do not allow to ask about access to notifications until user is done with Contacts access prompt.
         guard !ContactStore.contactsAccessRequestNecessary else { return }
-        guard self.needsAPNSToken || !MainAppContext.shared.xmppController.hasValidAPNSPushToken else { return }
+        guard self.needsAPNSToken || !MainAppContext.shared.service.hasValidAPNSPushToken else { return }
         guard UIApplication.shared.applicationState != .background else { return }
 
         DDLogInfo("appdelegate/notifications/authorization/request")
@@ -77,15 +77,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DDLogInfo("appdelegate/notifications/push-token/success [\(tokenString)]")
 
         self.needsAPNSToken = false
-        MainAppContext.shared.xmppController.apnsToken = tokenString
-        MainAppContext.shared.xmppController.sendCurrentAPNSTokenIfPossible()
+        MainAppContext.shared.service.setAPNSToken(tokenString)
+        MainAppContext.shared.service.sendCurrentAPNSTokenIfPossible()
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         DDLogError("appdelegate/notifications/push-token/error [\(error)]")
 
         self.needsAPNSToken = false
-        MainAppContext.shared.xmppController.apnsToken = nil
+        MainAppContext.shared.service.setAPNSToken(nil)
     }
 
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
@@ -100,9 +100,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         MainAppContext.shared.mergeSharedData()
 
-        let xmppController = MainAppContext.shared.xmppController
-        xmppController.startConnectingIfNecessary()
-        xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
+        let service = MainAppContext.shared.service
+        service.startConnectingIfNecessary()
+        service.execute(whenConnectionStateIs: .connected, onQueue: .main) {
             // App was opened while connection attempt was in progress - end task and do nothing else.
             guard application.applicationState == .background else {
                 DDLogWarn("application/background-push Connected while in foreground")
@@ -118,10 +118,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 // Make sure to check if the app is still backgrounded.
                 if application.applicationState == .background {
                     DDLogInfo("application/background-push/disconnect")
-                    xmppController.disconnect()
+                    service.disconnect()
 
                     // Finish bg task once we're disconnected.
-                    xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
+                    service.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
                         DDLogInfo("application/background-push/complete")
                         completionHandler(.newData)
                     }
@@ -206,9 +206,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         MainAppContext.shared.mergeSharedData()
 
         let application = UIApplication.shared
-        let xmppController = MainAppContext.shared.xmppController
-        xmppController.startConnectingIfNecessary()
-        xmppController.execute(whenConnectionStateIs: .connected, onQueue: .main) {
+        let service = MainAppContext.shared.service
+        service.startConnectingIfNecessary()
+        service.execute(whenConnectionStateIs: .connected, onQueue: .main) {
             // App was opened while connection attempt was in progress - end task and do nothing else.
             guard application.applicationState == .background else {
                 DDLogWarn("application/bg-feed-refresh Connected while in foreground")
@@ -224,10 +224,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 // Make sure to check if the app is still backgrounded.
                 if application.applicationState == .background {
                     DDLogInfo("application/bg-feed-refresh/disconnect")
-                    xmppController.disconnect()
+                    service.disconnect()
 
                     // Finish bg task once we're disconnected.
-                    xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
+                    service.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
                         DDLogInfo("application/bg-feed-refresh/complete")
                         task.setTaskCompleted(success: true)
                     }
@@ -269,19 +269,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             fatalError("Disconnect timer is not nil")
         }
 
-        let xmppController = AppContext.shared.xmppController
-        guard !xmppController.isDisconnected else {
+        let service = MainAppContext.shared.service
+        guard !service.isDisconnected else {
             DDLogWarn("appdelegate/bg-task Skipped - not connected to the server")
             return
         }
 
         backgroundTaskIdentifier = UIApplication.shared.beginBackgroundTask(withName: "close-connection") {
-            DDLogWarn("appdelegate/bg-task Expiration handler. Connection state: [\(xmppController.connectionState)]")
+            DDLogWarn("appdelegate/bg-task Expiration handler. Connection state: [\(service.connectionState)]")
             if self.disconnectTimer != nil {
                 self.disconnectTimer?.cancel()
                 self.disconnectTimer = nil
             }
-            xmppController.disconnectImmediately()
+            service.disconnectImmediately()
             self.backgroundTaskIdentifier = .invalid
         }
         guard backgroundTaskIdentifier != .invalid else {
@@ -291,18 +291,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DDLogDebug("appdelegate/bg-task Created with identifier:[\(backgroundTaskIdentifier)]")
 
         disconnectTimer = createDisconnectTimer()
-        xmppController.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
+        service.execute(whenConnectionStateIs: .notConnected, onQueue: .main) {
             self.endBackgroundConnectionTask()
         }
     }
 
     private func disconnectAndEndBackgroundTask() {
-        let xmppController = MainAppContext.shared.xmppController
+        let service = MainAppContext.shared.service
 
-        DDLogInfo("appdelegate/bg-task Disconnect timer fired. Connection state: [\(xmppController.connectionState)]")
+        DDLogInfo("appdelegate/bg-task Disconnect timer fired. Connection state: [\(service.connectionState)]")
 
         disconnectTimer = nil
-        AppContext.shared.xmppController.disconnect()
+        MainAppContext.shared.service.disconnect()
     }
 
     func endBackgroundConnectionTask() {

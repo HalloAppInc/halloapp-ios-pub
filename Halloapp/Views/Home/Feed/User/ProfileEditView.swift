@@ -83,7 +83,7 @@ struct ProfileEditView: View {
 
                         MainAppContext.shared.avatarStore.save(avatarId: "", forUserId: MainAppContext.shared.userData.userId)
 
-                        MainAppContext.shared.xmppController.sendCurrentAvatarIfPossible()
+                        MainAppContext.shared.service.sendCurrentAvatarIfPossible()
                     }),
                     .cancel({
                         self.showingImageMenu = true
@@ -100,7 +100,7 @@ struct ProfileEditView: View {
                     MainAppContext.shared.userData.name = self.profileName
                     MainAppContext.shared.userData.save()
 
-                    MainAppContext.shared.xmppController.sendCurrentUserNameIfPossible()
+                    MainAppContext.shared.service.sendCurrentUserNameIfPossible()
                 }
                 if self.dismiss != nil {
                     self.dismiss!()
@@ -128,7 +128,7 @@ struct ProfileEditView: View {
         
         MainAppContext.shared.avatarStore.save(image:resizedImage, forUserId: MainAppContext.shared.userData.userId, avatarId: "self")
         
-        MainAppContext.shared.xmppController.sendCurrentAvatarIfPossible()
+        MainAppContext.shared.service.sendCurrentAvatarIfPossible()
     }
 }
 

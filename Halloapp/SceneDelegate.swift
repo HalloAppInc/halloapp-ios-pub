@@ -109,7 +109,7 @@ extension SceneDelegate: UIWindowSceneDelegate {
         // Need to tell XMPPStream to start connecting every time app is foregrounded
         // because XMPPReconnect won't keep the connection alive unless stream has authenticated
         // at least once since initialization time.
-        MainAppContext.shared.xmppController.startConnectingIfNecessary()
+        MainAppContext.shared.service.startConnectingIfNecessary()
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {

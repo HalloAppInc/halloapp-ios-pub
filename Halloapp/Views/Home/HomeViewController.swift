@@ -52,7 +52,7 @@ class HomeViewController: UITabBarController {
         UISearchBar.appearance().backgroundColor = .feedBackground
 
         self.cancellableSet.insert(
-            MainAppContext.shared.xmppController.didConnect.sink {
+            MainAppContext.shared.service.didConnect.sink {
                 if (UIApplication.shared.applicationState == .active) {
                     self.checkClientVersionExpiration()
                 }
