@@ -219,4 +219,8 @@ extension ProtoService: HalloService {
     func checkVersionExpiration(completion: @escaping ServiceRequestCompletion<TimeInterval>) {
         enqueue(request: ProtoClientVersionCheck(version: AppContext.appVersionForXMPP, completion: completion))
     }
+
+    func getServerProperties(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>) {
+        enqueue(request: ProtoGetServerPropertiesRequest(completion: completion))
+    }
 }

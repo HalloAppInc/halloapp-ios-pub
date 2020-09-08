@@ -114,11 +114,10 @@ public class ProtoMediaUploadURLRequest: ProtoRequest {
 }
 
 public class ProtoGetServerPropertiesRequest: ProtoRequest {
-    public typealias ServerPropsResponse = (String, [String:String])
 
-    private let completion: ServiceRequestCompletion<ServerPropsResponse>
+    private let completion: ServiceRequestCompletion<ServerPropertiesResponse>
 
-    public init(completion: @escaping ServiceRequestCompletion<ServerPropsResponse>) {
+    public init(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>) {
         self.completion = completion
 
         // TODO (waiting for schema)

@@ -134,4 +134,8 @@ extension XMPPControllerMain: HalloService {
             completion(.success(TimeInterval(secondsLeft.stringValueAsInt())))
         })
     }
+
+    func getServerProperties(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>) {
+        enqueue(request: XMPPGetServerPropertiesRequest(completion: completion))
+    }
 }

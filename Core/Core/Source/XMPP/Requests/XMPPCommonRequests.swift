@@ -143,7 +143,7 @@ public class XMPPPostItemRequest: XMPPRequest {
 }
 
 public class XMPPGetServerPropertiesRequest: XMPPRequest {
-    public typealias Completion = (Result<(String, [String:String]), Error>) -> ()
+    public typealias Completion = (Result<ServerPropertiesResponse, Error>) -> ()
 
     private static let xmlns = "halloapp:props"
 

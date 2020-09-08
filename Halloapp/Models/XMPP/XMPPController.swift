@@ -242,7 +242,7 @@ class XMPPControllerMain: XMPPController {
             return
         }
         DDLogInfo("xmpp/serverprops/request")
-        let request = XMPPGetServerPropertiesRequest { (result) in
+        getServerProperties { (result) in
             switch result {
             case .success(let (version, properties)):
                 DDLogDebug("xmpp/serverprops/request/success version=[\(version)]")
@@ -252,7 +252,6 @@ class XMPPControllerMain: XMPPController {
                 DDLogError("xmpp/serverprops/request/error [\(error)]")
             }
         }
-        self.enqueue(request: request)
     }
 
     // MARK: XMPPController Overrides

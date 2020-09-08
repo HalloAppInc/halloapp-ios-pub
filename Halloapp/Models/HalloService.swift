@@ -67,6 +67,7 @@ protocol HalloService: CoreService {
 
     // MARK: Client version
     func checkVersionExpiration(completion: @escaping ServiceRequestCompletion<TimeInterval>)
+    func getServerProperties(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>)
 }
 
 protocol HalloFeedDelegate: AnyObject {

@@ -19,9 +19,9 @@ public enum ConnectionState {
 public typealias ServiceRequestCompletion<T> = (Result<T, Error>) -> Void
 
 public typealias AvatarInfo = (userID: UserID, avatarID: AvatarID)
-
 public typealias EncryptedData = (data: Data?, identityKey: Data?, oneTimeKeyId: Int32)
 public typealias EncryptOperation = (_ data: Data, _ completion: @escaping (EncryptedData) -> Void) -> Void
+public typealias ServerPropertiesResponse = (version: String, properties: [String: String])
 
 /// Core aspects of the service available in extensions
 public protocol CoreService {
