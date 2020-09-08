@@ -197,10 +197,15 @@ final class FloatingMenu: UIView {
 
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let hitTargets: [UIView] = isCollapsed ? [permanentButton] : orderedButtons
-        return hitTargets.reduce(nil) { hitView, target in
+        let result: UIView? = hitTargets.reduce(nil) { hitView, target in
             let convertedPoint = self.convert(point, to: target)
             return hitView ?? target.hitTest(convertedPoint, with: event)
         }
+        if result == nil {
+            // Collapse menu if user interacts with view below
+            setState(.collapsed, animated: true)
+        }
+        return result
     }
 
     enum State {
