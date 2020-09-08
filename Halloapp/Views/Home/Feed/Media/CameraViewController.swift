@@ -69,10 +69,7 @@ class CameraViewController: UIViewController {
         addChild(cameraViewController)
         view.addSubview(cameraViewController.view)
         cameraViewController.view.translatesAutoresizingMaskIntoConstraints = false
-        cameraViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        cameraViewController.view.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        cameraViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        cameraViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        cameraViewController.view.constrain(to: view)
         cameraViewController.didMove(toParent: self)
     }
 
@@ -336,9 +333,7 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
 
             defer {
                 DispatchQueue.main.async {
-                    if self.parent.cameraState.shouldRecordVideo {
-                        self.parent.cameraState.shouldRecordVideo = false
-                    }
+                    self.parent.cameraState.shouldRecordVideo = false
                 }
             }
 

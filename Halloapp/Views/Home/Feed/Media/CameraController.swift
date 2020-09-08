@@ -200,22 +200,22 @@ class CameraController: UIViewController {
         connection?.isVideoMirrored = !isUsingBackCamera
     }
 
-    private func setFocusAndExposure(camera: AVCaptureDevice, point: CGPoint = CGPoint(x: 0.5, y: 0.5)) {
+    private func setFocusAndExposure(camera: AVCaptureDevice, point: CGPoint? = nil) {
         do {
             try camera.lockForConfiguration()
             if camera.isFocusModeSupported(.continuousAutoFocus) {
                 camera.focusMode = .continuousAutoFocus
             }
-            if camera.isFocusPointOfInterestSupported {
+            if point != nil && camera.isFocusPointOfInterestSupported {
                 camera.focusMode = .autoFocus
-                camera.focusPointOfInterest = point
+                camera.focusPointOfInterest = point!
             }
             if camera.isExposureModeSupported(.continuousAutoExposure) {
                 camera.exposureMode = .continuousAutoExposure
             }
-            if camera.isExposurePointOfInterestSupported {
+            if point != nil && camera.isExposurePointOfInterestSupported {
                 camera.exposureMode = .autoExpose
-                camera.exposurePointOfInterest = point
+                camera.exposurePointOfInterest = point!
             }
             camera.unlockForConfiguration()
         } catch {
@@ -283,6 +283,17 @@ class CameraController: UIViewController {
         movieOutput = movieCaptureOutput
     }
 
+    private func setVideoTimeout() {
+        clearVieoTimeout()
+        videoTimeout = DispatchWorkItem { [weak self] in self?.stopRecordingVideo() }
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + CameraController.maxVideoTimespan, execute: videoTimeout!)
+    }
+
+    private func clearVieoTimeout() {
+        videoTimeout?.cancel()
+        videoTimeout = nil
+    }
+
     public func switchCamera(_ useBackCamera: Bool) {
         guard let captureSession = captureSession,
             let backInput = backInput,
@@ -334,16 +345,14 @@ class CameraController: UIViewController {
             DDLogInfo("CameraController/startRecordingVideo")
             AudioServicesPlaySystemSound(1117)
             movieOutput.startRecording(to: to, recordingDelegate: cameraDelegate)
-            videoTimeout = DispatchWorkItem { [weak self] in self?.stopRecordingVideo() }
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + CameraController.maxVideoTimespan, execute: videoTimeout!)
+            setVideoTimeout()
         }
     }
 
     public func stopRecordingVideo() {
         guard let movieOutput = movieOutput else { return }
 
-        videoTimeout?.cancel()
-        videoTimeout = nil
+        clearVieoTimeout()
         if isRecordingMovie {
             isRecordingMovie = false
             DDLogInfo("CameraController/stopRecordingVideo")
