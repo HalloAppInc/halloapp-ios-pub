@@ -44,6 +44,7 @@ final class ProtoPushTokenRequest: ProtoRequest {
 
         var pushToken = PBpush_token()
         pushToken.token = token
+        pushToken.os = .ios
 
         var pushRegister = PBpush_register()
         pushRegister.pushToken = pushToken
