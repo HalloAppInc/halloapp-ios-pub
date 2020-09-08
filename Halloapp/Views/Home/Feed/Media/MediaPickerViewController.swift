@@ -310,7 +310,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private func makeCollectionView(layout: UICollectionViewFlowLayout) -> UICollectionView {
         let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: layout)
         collectionView.delegate = self
-        collectionView.backgroundColor = .white
+        collectionView.backgroundColor = .clear
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.allowsMultipleSelection = true
         collectionView.register(AssetViewCell.self, forCellWithReuseIdentifier: AssetViewCell.reuseIdentifier)
