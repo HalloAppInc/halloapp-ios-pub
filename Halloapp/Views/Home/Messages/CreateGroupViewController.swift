@@ -73,19 +73,20 @@ class CreateGroupViewController: UIViewController {
     private func createAction() {
         navigationItem.rightBarButtonItem?.isEnabled = false
         
-        MainAppContext.shared.chatData.createGroup(name: textView.text, members: selectedMembers) { [weak self] error in
+        MainAppContext.shared.service.createGroup(name: textView.text, members: selectedMembers) { [weak self] result in
             guard let self = self else { return }
-            
-            if error == nil {
-                
+
+            switch result {
+            case .success:
                 self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
-                
-            } else {
+            case .failure(let error):
+                DDLogError("CreateGroupViewController/createAction/error \(error)")
                 let alert = UIAlertController(title: "No Internet Connection", message: "Please check if you have internet connectivity, then try again.", preferredStyle: UIAlertController.Style.alert)
                 alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
                 self.present(alert, animated: true, completion: nil)
-                
+
                 self.navigationItem.rightBarButtonItem?.isEnabled = true
+
             }
         }
 

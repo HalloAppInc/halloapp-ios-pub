@@ -198,38 +198,44 @@ class KeyData {
 }
 
 extension KeyData {
-    public func wrapMessage(for userId: String, unencrypted: Data, completion: @escaping (Data?, Data?, Int32) -> Void) {
+    public func encryptOperation(for userID: UserID) -> EncryptOperation {
+        return { data, completion in
+            self.wrapMessage(for: userID, unencrypted: data, completion: completion)
+        }
+    }
+
+    public func wrapMessage(for userId: String, unencrypted: Data, completion: @escaping (EncryptedData) -> Void) {
         DDLogInfo("KeyData/wrapMessage")
         var keyBundle: KeyBundle? = nil
         let group = DispatchGroup()
         group.enter()
-        
+
         self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
             if let savedMessageKeyBundle = self.keyStore.messageKeyBundle(for: userId) {
-                
+
                 keyBundle = KeyBundle(userId: savedMessageKeyBundle.userId,
                                       inboundIdentityPublicEdKey: savedMessageKeyBundle.inboundIdentityPublicEdKey!,
-                                      
+
                                       inboundEphemeralPublicKey: savedMessageKeyBundle.inboundEphemeralPublicKey,
                                       inboundEphemeralKeyId: savedMessageKeyBundle.inboundEphemeralKeyId,
                                       inboundChainKey: savedMessageKeyBundle.inboundChainKey,
                                       inboundPreviousChainLength: savedMessageKeyBundle.inboundPreviousChainLength,
                                       inboundChainIndex: savedMessageKeyBundle.inboundChainIndex,
-    
+
                                       rootKey: savedMessageKeyBundle.rootKey,
-                                      
+
                                       outboundEphemeralPrivateKey: savedMessageKeyBundle.outboundEphemeralPrivateKey,
                                       outboundEphemeralPublicKey: savedMessageKeyBundle.outboundEphemeralPublicKey,
                                       outboundEphemeralKeyId: savedMessageKeyBundle.outboundEphemeralKeyId,
                                       outboundChainKey: savedMessageKeyBundle.outboundChainKey,
                                       outboundPreviousChainLength: savedMessageKeyBundle.outboundPreviousChainLength,
                                       outboundChainIndex: savedMessageKeyBundle.outboundChainIndex,
-                                      
+
                                       outboundIdentityPublicEdKey: savedMessageKeyBundle.outboundIdentityPublicEdKey,
                                       outboundOneTimePreKeyId: savedMessageKeyBundle.outboundOneTimePreKeyId)
-                
+
                 group.leave()
-                
+
             } else {
                 self.service.requestWhisperKeyBundle(userID: userId) { result in
                     switch result {
@@ -242,7 +248,7 @@ extension KeyData {
                 }
             }
         }
-        
+
         group.notify(queue: self.keyStore.backgroundProcessingQueue) {
             var encryptedData: Data? = nil, identityKey: Data? = nil, oneTimeKey: Int32 = 0
             if let keyBundle = keyBundle {
@@ -252,31 +258,31 @@ extension KeyData {
                     oneTimeKey = keyBundle.outboundOneTimePreKeyId
                 }
             }
-            completion(encryptedData, identityKey, oneTimeKey)
+            completion((encryptedData, identityKey, oneTimeKey))
         }
     }
-    
+
     public func unwrapMessage(for userId: String, from entry: XMLElement) -> Data? {
-        
+
         guard let enc = entry.element(forName: "enc") else { return nil }
         guard enc.stringValue != nil else { return nil }
-        
+
         var keyBundle: KeyBundle? = nil
         var isNewReceiveSession = false
-        
+
         if let messageKeyBundle = self.keyStore.messageKeyBundle(for: userId) {
-            
+
             keyBundle = KeyBundle(userId: messageKeyBundle.userId,
                                   inboundIdentityPublicEdKey: messageKeyBundle.inboundIdentityPublicEdKey!,
-                                  
+
                                   inboundEphemeralPublicKey: messageKeyBundle.inboundEphemeralPublicKey,
                                   inboundEphemeralKeyId: messageKeyBundle.inboundEphemeralKeyId,
                                   inboundChainKey: messageKeyBundle.inboundChainKey,
                                   inboundPreviousChainLength: messageKeyBundle.inboundPreviousChainLength,
                                   inboundChainIndex: messageKeyBundle.inboundChainIndex,
-                                  
+
                                   rootKey: messageKeyBundle.rootKey,
-                                  
+
                                   outboundEphemeralPrivateKey: messageKeyBundle.outboundEphemeralPrivateKey,
                                   outboundEphemeralPublicKey: messageKeyBundle.outboundEphemeralPublicKey,
                                   outboundEphemeralKeyId: messageKeyBundle.outboundEphemeralKeyId,
@@ -287,14 +293,14 @@ extension KeyData {
             keyBundle = self.keyStore.receiveSessionSetup(for: userId, from: entry)
             isNewReceiveSession = true
         }
-        
+
         if let keyBundle = keyBundle {
             return self.keyStore.decryptMessage(for: userId, from: entry, keyBundle: keyBundle, isNewReceiveSession: isNewReceiveSession)
         }
-        
+
         return nil
     }
-    
+
 }
 
 extension KeyData: HalloKeyDelegate {

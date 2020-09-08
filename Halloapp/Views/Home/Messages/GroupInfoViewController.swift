@@ -220,7 +220,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             actionSheet.addAction(UIAlertAction(title: "Demote", style: .destructive) { [weak self] _ in
                 guard let self = self else { return }
                 
-                MainAppContext.shared.chatData.modifyGroup(for: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.demote) { error in
+                MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.demote) { result in
                     //            guard let self = self else { return }
                 }
             })
@@ -228,7 +228,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             actionSheet.addAction(UIAlertAction(title: "Promote to admin", style: .default) { [weak self] _ in
                 guard let self = self else { return }
                 
-                MainAppContext.shared.chatData.modifyGroup(for: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.promote) { error in
+                MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.promote) { result in
                     //            guard let self = self else { return }
                 }
             })
@@ -236,7 +236,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         actionSheet.addAction(UIAlertAction(title: "Remove", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
             
-            MainAppContext.shared.chatData.modifyGroup(for: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.remove) { error in
+            MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.remove) { result in
                 //            guard let self = self else { return }
             }
             
@@ -296,7 +296,7 @@ extension GroupInfoViewController: GroupInfoFooterViewDelegate {
         let actionSheet = UIAlertController(title: nil, message: "Leave \"\(group.name)\"?", preferredStyle: .actionSheet)
          actionSheet.addAction(UIAlertAction(title: "Yes", style: .destructive) { [weak self] _ in
             guard let self = self else { return }
-            MainAppContext.shared.chatData.leaveGroup(groupId: self.groupId) { error in }
+            MainAppContext.shared.service.leaveGroup(groupID: self.groupId) { result in }
          })
          actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
          self.present(actionSheet, animated: true)
@@ -305,7 +305,7 @@ extension GroupInfoViewController: GroupInfoFooterViewDelegate {
 
 extension GroupInfoViewController: NewGroupMembersViewControllerDelegate {
     func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, selected selectedMembers: [UserID]) {
-        MainAppContext.shared.chatData.modifyGroup(for: groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.add) { error in
+        MainAppContext.shared.service.modifyGroup(groupID: groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.add) { result in
 //            guard let self = self else { return }
         }
     }

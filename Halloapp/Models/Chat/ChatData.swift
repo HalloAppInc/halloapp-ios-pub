@@ -11,7 +11,7 @@ import XMPPFramework
 
 typealias ChatAck = (id: String, timestamp: Date?)
 
-typealias ChatPresenceInfo = (userID: UserID, presence: UserPresenceType?, lastSeen: Date?)
+typealias ChatPresenceInfo = (userID: UserID, presence: PresenceType?, lastSeen: Date?)
 
 typealias ChatMessageID = String
 typealias ChatGroupMessageID = String
@@ -38,7 +38,7 @@ class ChatData: ObservableObject {
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
     private let userData: UserData
-    private let xmppController: XMPPControllerMain
+    private var service: HalloService
     private let mediaUploader: MediaUploader
     private var cancellableSet: Set<AnyCancellable> = []
     
@@ -67,13 +67,13 @@ class ChatData: ObservableObject {
     private var currentlyDownloading: [URL] = [] // TODO: not currently used, re-evaluate if it's needed
     private let maxTries: Int = 10
 
-    init(xmppController: XMPPControllerMain, userData: UserData) {
+    init(service: HalloService, userData: UserData) {
         
-        self.xmppController = xmppController
+        self.service = service
         self.userData = userData
-        self.mediaUploader = MediaUploader(service: xmppController)
+        self.mediaUploader = MediaUploader(service: service)
 
-        xmppController.chatDelegate = self
+        self.service.chatDelegate = self
 
         mediaUploader.resolveMediaPath = { relativePath in
             return MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
@@ -83,7 +83,7 @@ class ChatData: ObservableObject {
         self.migrateReceiverStatusChatMessages()
         
         self.cancellableSet.insert(
-            xmppController.didGetAck.sink { [weak self] xmppAck in
+            service.didGetChatAck.sink { [weak self] xmppAck in
                 DDLogInfo("ChatData/gotAck \(xmppAck)")
                 guard let self = self else { return }
                 self.processIncomingChatAck(xmppAck)
@@ -91,22 +91,19 @@ class ChatData: ObservableObject {
         )
         
         self.cancellableSet.insert(
-            xmppController.didGetNewChatMessage.sink { [weak self] xmppMessage in
-                if xmppMessage.element(forName: "chat") != nil {
-                    DDLogInfo("ChatData/newMsg \(xmppMessage)")
-                    guard let self = self else { return }
-                    self.processIncomingXMPPChatMessage(xmppMessage)
-                }
+            service.didGetNewChatMessage.sink { [weak self] xmppMessage in
+                DDLogInfo("ChatData/newMsg \(xmppMessage)")
+                self?.processIncomingXMPPChatMessage(xmppMessage)
             }
         )
         
         self.cancellableSet.insert(
-            self.xmppController.didConnect.sink {
+            self.service.didConnect.sink {
                 DDLogInfo("ChatData/onConnect")
                 
                 if (UIApplication.shared.applicationState == .active) {
                     DDLogInfo("ChatData/onConnect/sendPresence")
-                    self.sendPresence(type: "available")
+                    self.sendPresence(type: .available)
                     
                     if let currentUser = self.currentlyChattingWithUserId {
                         if !self.isSubscribedToCurrentUser {
@@ -125,9 +122,9 @@ class ChatData: ObservableObject {
                     var timeDelay = 0.0
                     pendingOutgoingChatMessages.forEach {
                         DDLogInfo("ChatData/onConnect/processPending/chatMessages \($0.id)")
-                        let xmppChatMessage = XMPPChatMessage(chatMessage: $0).xmppElement
+                        let xmppChatMessage = XMPPChatMessage(chatMessage: $0)
                         self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) {
-                            MainAppContext.shared.xmppController.xmppStream.send(xmppChatMessage)
+                            MainAppContext.shared.service.sendChatMessage(xmppChatMessage, encryption: nil)
                         }
                         timeDelay += 1.0
                     }
@@ -149,7 +146,7 @@ class ChatData: ObservableObject {
         )
         
         self.cancellableSet.insert(
-            xmppController.didGetPresence.sink { [weak self] xmppPresence in
+            service.didGetPresence.sink { [weak self] xmppPresence in
                 DDLogInfo("ChatData/gotPresence \(xmppPresence)")
                 guard let self = self else { return }
                 self.processIncomingPresence(xmppPresence)
@@ -162,7 +159,7 @@ class ChatData: ObservableObject {
         self.cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] notification in
                 guard let self = self else { return }
-                self.sendPresence(type: "available")
+                self.sendPresence(type: .available)
                 if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
                     self.performSeriallyOnBackgroundContext { (managedObjectContext) in
                         self.markSeenMessages(type: .oneToOne, for: currentlyChattingWithUserId, in: managedObjectContext)
@@ -175,7 +172,7 @@ class ChatData: ObservableObject {
         self.cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] notification in
                 guard let self = self else { return }
-                self.sendPresence(type: "away")
+                self.sendPresence(type: .away)
             }
         )
         
@@ -486,7 +483,7 @@ class ChatData: ObservableObject {
     
     // MARK: Process Inbound Acks
     
-    private func processIncomingChatAck(_ xmppChatAck: XMPPAck) {
+    private func processIncomingChatAck(_ xmppChatAck: ChatAck) {
         var isGroupMessage: Bool = true
         self.updateChatMessage(with: xmppChatAck.id) { (chatMessage) in
             DDLogError("ChatData/processAck/chatMessage/ [\(xmppChatAck.id)]")
@@ -631,12 +628,22 @@ class ChatData: ObservableObject {
     
     func sendSeenReceipt(for chatMessage: ChatMessage) {
         DDLogInfo("ChatData/sendSeenReceipt \(chatMessage.id)")
-        self.xmppController.sendSeenReceipt(XMPPReceipt.seenReceipt(for: chatMessage), to: chatMessage.fromUserId)
+        service.sendReceipt(
+            itemID: chatMessage.id,
+            thread: .none,
+            type: .read,
+            fromUserID: userData.userId,
+            toUserID: chatMessage.fromUserId)
     }
     
     func sendSeenGroupReceipt(for chatGroupMessage: ChatGroupMessage) {
         DDLogInfo("ChatData/sendSeenGroupReceipt \(chatGroupMessage.id)")
-        self.xmppController.sendSeenReceipt(XMPPReceipt.seenReceipt(for: chatGroupMessage), to: chatGroupMessage.userId)
+        service.sendReceipt(
+            itemID: chatGroupMessage.id,
+            thread: .group(chatGroupMessage.groupId),
+            type: .read,
+            fromUserID: userData.userId,
+            toUserID: chatGroupMessage.userId)
     }
     
     // MARK: Share Extension Merge Data
@@ -1054,9 +1061,7 @@ extension ChatData {
 
     private func send(message: ChatMessage) {
         let xmppMessage = XMPPChatMessage(chatMessage: message)
-        xmppMessage.encryptXMPPElement { xmppElement in
-            self.xmppController.xmppStream.send(xmppElement)
-        }
+        service.sendChatMessage(xmppMessage, encryption: MainAppContext.shared.keyData.encryptOperation(for: message.toUserId))
     }
     
     // MARK: 1-1 Core Data Fetching
@@ -1134,22 +1139,11 @@ extension ChatData {
         return self.chatGroupMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
 
-    
-
-    
     func subscribeToPresence(to chatWithUserId: String) {
-        guard AppContext.shared.xmppController.isConnected else { return }
         guard !self.isSubscribedToCurrentUser else { return }
-        self.isSubscribedToCurrentUser = true
-        DDLogDebug("ChatData/subscribeToPresence [\(chatWithUserId)]")
-        let message = XMPPElement(name: "presence")
-        message.addAttribute(withName: "to", stringValue: "\(chatWithUserId)@s.halloapp.net")
-        message.addAttribute(withName: "type", stringValue: "subscribe")
-        MainAppContext.shared.xmppController.xmppStream.send(message)
+        self.isSubscribedToCurrentUser = service.subscribeToPresenceIfPossible(to: chatWithUserId)
     }
-    
 
-    
     func migrateSenderStatusChatMessages() {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             
@@ -1284,20 +1278,15 @@ extension ChatData {
 
     // MARK: 1-1 Process Inbound Messages
     
-    private func processIncomingXMPPChatMessage(_ chatMessageEl: XMLElement) {
-        guard let xmppChatMessage = XMPPChatMessage(itemElement: chatMessageEl) else {
-            DDLogError("Invalid chatMessage: [\(chatMessageEl)]")
-            return
-        }
-        
+    private func processIncomingXMPPChatMessage(_ chatMessage: ChatMessageProtocol) {
         let isAppActive = UIApplication.shared.applicationState == .active
         
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            self.processIncomingChatMessage(xmppChatMessage: xmppChatMessage, using: managedObjectContext, isAppActive: isAppActive)
+            self.processIncomingChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
         }
     }
     
-    private func processIncomingChatMessage(xmppChatMessage: XMPPChatMessage, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
+    private func processIncomingChatMessage(xmppChatMessage: ChatMessageProtocol, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
         
         guard self.chatMessage(with: xmppChatMessage.id, in: managedObjectContext) == nil else {
             DDLogError("ChatData/process/already-exists [\(xmppChatMessage.id)]")
@@ -1324,7 +1313,7 @@ extension ChatData {
         chatMessage.incomingStatus = .none
         chatMessage.outgoingStatus = .none
         
-        if let ts = xmppChatMessage.timestamp {
+        if let ts = xmppChatMessage.timeIntervalSince1970 {
             chatMessage.timestamp = Date(timeIntervalSince1970: ts)
         } else {
             chatMessage.timestamp = Date()
@@ -1333,13 +1322,13 @@ extension ChatData {
         var lastMsgMediaType: ChatThread.LastMsgMediaType = .none // going with the first media found
         
         // Process chat media
-        for (index, xmppMedia) in xmppChatMessage.media.enumerated() {
+        for (index, xmppMedia) in xmppChatMessage.orderedMedia.enumerated() {
             guard let downloadUrl = xmppMedia.url else { continue }
             
             DDLogDebug("ChatData/process/new/add-media [\(downloadUrl)]")
             let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
-            
-            switch xmppMedia.type {
+
+            switch xmppMedia.mediaType {
             case .image:
                 chatMedia.type = .image
                 if lastMsgMediaType == .none {
@@ -1466,35 +1455,30 @@ extension ChatData {
 
     // MARK: 1-1 Presence
     
-    private func sendPresence(type: String) {
-        guard AppContext.shared.xmppController.isConnected else { return }
-        DDLogInfo("ChatData/sendPresence \(type)")
-        let xmppJID = XMPPJID(user: userData.userId, domain: "s.halloapp.net", resource: nil)
-        let xmppPresence = XMPPPresence(type: type, to: xmppJID)
-        MainAppContext.shared.xmppController.xmppStream.send(xmppPresence)
+    private func sendPresence(type: PresenceType) {
+        MainAppContext.shared.service.sendPresenceIfPossible(type)
     }
     
     // MARK: 1-1 Process Inbound Presence
     
-    private func processIncomingPresence(_ xmppPresence: XMPPPresence) {
-        guard let fromUserId = xmppPresence.from?.user else { return }
+    private func processIncomingPresence(_ presenceInfo: ChatPresenceInfo) {
 
         var presenceStatus = UserPresenceType.none
         var presenceLastSeen: Date?
         
-        if let status = xmppPresence.type {
-            if status == "away" {
+        if let status = presenceInfo.presence {
+            if status == .away {
                 presenceStatus = UserPresenceType.away
-                presenceLastSeen = Date(timeIntervalSince1970: xmppPresence.attributeDoubleValue(forName: "last_seen"))
-            } else if status == "available" {
+                presenceLastSeen = presenceInfo.lastSeen
+            } else if status == .available {
                 presenceStatus = UserPresenceType.available
-                presenceLastSeen = Date(timeIntervalSince1970: xmppPresence.attributeDoubleValue(forName: "last_seen"))
+                presenceLastSeen = presenceInfo.lastSeen
             }
         }
                 
         // notify chatViewController
         guard let currentlyChattingWithUserId = self.currentlyChattingWithUserId else { return }
-        guard currentlyChattingWithUserId == fromUserId else { return }
+        guard currentlyChattingWithUserId == presenceInfo.userID else { return }
         self.didGetCurrentChatPresence.send((presenceStatus, presenceLastSeen))
     }
         
@@ -1507,53 +1491,16 @@ extension ChatData {
     
     // MARK: Group Actions
     
-    public func createGroup(name: String, members: [UserID], completion: @escaping GroupActionCompletion) {
-        let request = XMPPGroupCreateRequest(name: name, members: members) { (response, error) in
-            if error != nil {
-                DDLogDebug("ChatData/group/createGroup/error \(error!)")
-            }
-            completion(error)
-        }
-
-        self.xmppController.enqueue(request: request)
-    }
-    
-    public func leaveGroup(groupId: GroupID, completion: @escaping GroupActionCompletion) {
-        let request = XMPPGroupLeaveRequest(groupId: groupId) { (response, error) in
-            if error != nil {
-                DDLogDebug("ChatData/group/leaveGroup/error \(error!)")
-            }
-            completion(error)
-        }
-        self.xmppController.enqueue(request: request)
-    }
-    
     public func getAndSyncGroup(groupId: GroupID) {
         DDLogDebug("ChatData/group/getAndSyncGroupInfo/group \(groupId)")
-        let request = XMPPGroupGetInfoRequest(groupId: groupId) { [weak self] (response, error) in
-            guard let self = self else { return }
-            if error == nil {
-                
-                self.syncGroup(xml: response)
-                
-            } else {
-                DDLogDebug("ChatData/group/getGroupInfo/error \(error!)")
+        service.getGroupInfo(groupID: groupId) { [weak self] result in
+            switch result {
+            case .success(let group):
+                self?.syncGroup(group)
+            case .failure(let error):
+                DDLogError("ChatData/group/getGroupInfo/error \(error)")
             }
-       
         }
-
-        self.xmppController.enqueue(request: request)
-    }
-    
-    public func modifyGroup(for groupId: GroupID, with members: [UserID], groupAction: ChatGroupAction, action: ChatGroupMemberAction, completion: @escaping GroupActionCompletion) {
-        let request = XMPPGroupModifyRequest(groupId: groupId, members: members, groupAction: groupAction, action: action) { (response, error) in
-            if error != nil {
-                DDLogDebug("ChatData/group/modify/error \(error!)")
-            }
-            completion(error)
-        }
-
-        self.xmppController.enqueue(request: request)
     }
     
     func syncGroupIfNeeded(for groupId: GroupID) {
@@ -1573,14 +1520,8 @@ extension ChatData {
         }
     }
     
-    func syncGroup(xml: XMLElement?) {
+    func syncGroup(_ xmppGroup: XMPPGroup) {
         DDLogInfo("ChatData/group/syncGroupInfo")
-        guard let xmlElement = xml else { return }
-        guard let groupEl = xmlElement.element(forName: "group") else { return }
-        guard let xmppGroup = XMPPGroup(itemElement: groupEl) else {
-            DDLogError("ChatData/syncGroupInfo/Invalid group: [\(groupEl)]")
-            return
-        }
     
         self.updateChatGroup(with: xmppGroup.groupId) { [weak self] (chatGroup) in
             guard let self = self else { return }
@@ -1781,9 +1722,7 @@ extension ChatData {
     
     private func sendGroup(groupMessage: ChatGroupMessage) {
         let xmppGroupMessage = XMPPChatGroupMessage(chatGroupMessage: groupMessage)
-        
-        self.xmppController.xmppStream.send(xmppGroupMessage.xmppElement)
-        
+        service.sendGroupChatMessage(xmppGroupMessage) { _ in }
     }
 
     // MARK: Group Core Data Fetching
@@ -2206,14 +2145,9 @@ extension ChatData {
     
     // MARK: Group Process Inbound Actions
 
-    private func processIncomingXMPPGroup(_ xmlElement: XMLElement) {
-        guard let xmppGroup = XMPPGroup(itemElement: xmlElement) else {
-            DDLogError("ChatData/processingIncomingXMPPGroup/Invalid group: [\(xmlElement)]")
-            return
-        }
-        
+    private func processIncomingXMPPGroup(_ group: XMPPGroup) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            self.processIncomingGroup(xmppGroup: xmppGroup, using: managedObjectContext)
+            self.processIncomingGroup(xmppGroup: group, using: managedObjectContext)
         }
     }
     
@@ -2362,11 +2296,11 @@ extension ChatData {
 }
 
 
-extension ChatData: XMPPControllerChatDelegate {
+extension ChatData: HalloChatDelegate {
 
     // MARK: XMPP Chat Delegates
     
-    func xmppController(_ xmppController: XMPPController, didReceiveMessageReceipt receipt: XMPPReceipt, in xmppMessage: XMPPMessage?) {
+    func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?) {
         DDLogDebug("ChatData/didReceiveMessageReceipt [\(receipt.itemId)]")
         
         switch receipt.thread {
@@ -2379,12 +2313,10 @@ extension ChatData: XMPPControllerChatDelegate {
         default: break
         }
 
-        if let message = xmppMessage {
-            xmppController.sendAck(for: message)
-        }
+        ack?()
     }
-    
-    func xmppController(_ xmppController: XMPPController, didSendMessageReceipt receipt: XMPPReceipt) {
+
+    func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt) {
         switch receipt.thread {
         case .none:
             self.updateChatMessage(with: receipt.itemId) { (chatMessage) in
@@ -2404,21 +2336,16 @@ extension ChatData: XMPPControllerChatDelegate {
         }
     }
     
-    func xmppController(_ xmppController: XMPPController, didReceiveGroupChatMessage item: XMLElement) {
-        guard let xmppChatGroupMessage = XMPPChatGroupMessage(itemElement: item) else {
-            DDLogError("ChatData/processingIncomingXMPPChatGroupMessage/Invalid message: [\(item)]")
-            return
-        }
-        
+    func halloService(_ halloService: HalloService, didReceiveGroupChatMessage message: HalloGroupChatMessage) {
         let isAppActive = UIApplication.shared.applicationState == .active
         
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            self.processInboundChatGroupMessage(xmppChatGroupMessage: xmppChatGroupMessage, using: managedObjectContext, isAppActive: isAppActive)
+            self.processInboundChatGroupMessage(xmppChatGroupMessage: message, using: managedObjectContext, isAppActive: isAppActive)
         }
     }
-    
-    func xmppController(_ xmppController: XMPPController, didReceiveGroupMessage item: XMLElement) {
-        processIncomingXMPPGroup(item)
+
+    func halloService(_ halloService: HalloService, didReceiveGroupMessage group: HalloGroup) {
+        processIncomingXMPPGroup(group)
     }
 }
 
@@ -2486,33 +2413,6 @@ extension XMPPChatMessage {
         
         self.timestamp = chat.attributeDoubleValue(forName: "timestamp")
     }
-    
-    func encryptXMPPElement(completion: @escaping (XMPPElement) -> Void) {
-        let element = self.xmppElement
-        guard let chat = element.element(forName: "chat") else { return }
-        
-        guard let s1 = chat.element(forName: "s1") else { return }
-        guard let encStringValue = s1.stringValue else { return }
-        
-        guard let unencryptedData = Data(base64Encoded: encStringValue, options: .ignoreUnknownCharacters) else { return }
-        
-        MainAppContext.shared.keyData.wrapMessage(for: self.toUserId, unencrypted: unencryptedData) { (data, identityKey, oneTimeKeyId) in
-            if let data = data {
-//                chat.remove(forName: "s1")
-                chat.addChild({
-                    let enc = XMPPElement(name: "enc", stringValue: data.base64EncodedString())
-                    if let identityKey = identityKey {
-                        enc.addAttribute(withName: "identity_key", stringValue: identityKey.base64EncodedString())
-                        if oneTimeKeyId >= 0 {
-                            enc.addAttribute(withName: "one_time_pre_key_id", stringValue: String(oneTimeKeyId))
-                        }
-                    }
-                    return enc
-                    }())
-            }
-            return completion(element)
-        }
-    }
 }
 
 
@@ -2526,17 +2426,5 @@ extension Proto_Container {
             DDLogError("xmpp/chatmessage/unwrapMessage/invalid-protobuf")
         }
         return nil
-    }
-}
-
-extension XMPPReceipt {
-    static func seenReceipt(for chatMessage: ChatMessage) -> XMPPReceipt {
-        return XMPPReceipt(itemId: chatMessage.id, userId: chatMessage.fromUserId, type: .read, timestamp: nil, thread: .none)
-    }
-}
-
-extension XMPPReceipt {
-    static func seenReceipt(for chatGroupMessage: ChatGroupMessage) -> XMPPReceipt {
-        return XMPPReceipt(itemId: chatGroupMessage.id, userId: chatGroupMessage.userId, type: .read, timestamp: nil, thread: .group(chatGroupMessage.groupId))
     }
 }

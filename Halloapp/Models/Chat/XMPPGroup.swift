@@ -9,6 +9,9 @@ import Core
 import Foundation
 import XMPPFramework
 
+typealias HalloGroup = XMPPGroup
+typealias HalloGroupChatMessage = XMPPChatGroupMessage
+
 enum ChatGroupAction: String {
     case create = "create"
     case leave = "leave"

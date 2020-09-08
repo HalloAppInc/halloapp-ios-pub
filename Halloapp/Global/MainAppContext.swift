@@ -94,7 +94,7 @@ class MainAppContext: AppContext {
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
 
         feedData = FeedData(service: xmppController, contactStore: contactStore, userData: userData)
-        chatData = ChatData(xmppController: xmppController, userData: userData)
+        chatData = ChatData(service: xmppController, userData: userData)
         keyData = KeyData(service: xmppController, userData: userData, keyStore: keyStore)
         syncManager = SyncManager(contactStore: contactStore, service: xmppController, userData: userData)
         avatarStore = AvatarStore()

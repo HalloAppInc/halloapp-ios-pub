@@ -223,4 +223,24 @@ extension ProtoService: HalloService {
     func getServerProperties(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>) {
         enqueue(request: ProtoGetServerPropertiesRequest(completion: completion))
     }
+
+    func sendGroupChatMessage(_ message: HalloGroupChatMessage, completion: @escaping ServiceRequestCompletion<Void>) {
+        completion(.failure(ProtoServiceError.unimplemented))
+    }
+
+    func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>) {
+        completion(.failure(ProtoServiceError.unimplemented))
+    }
+
+    func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>) {
+        completion(.failure(ProtoServiceError.unimplemented))
+    }
+
+    func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>) {
+        completion(.failure(ProtoServiceError.unimplemented))
+    }
+    func modifyGroup(groupID: GroupID, with members: [UserID], groupAction: ChatGroupAction,
+                     action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>) {
+        completion(.failure(ProtoServiceError.unimplemented))
+    }
 }

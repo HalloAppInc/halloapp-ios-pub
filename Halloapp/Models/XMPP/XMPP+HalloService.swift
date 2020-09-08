@@ -138,4 +138,49 @@ extension XMPPControllerMain: HalloService {
     func getServerProperties(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>) {
         enqueue(request: XMPPGetServerPropertiesRequest(completion: completion))
     }
+
+    func sendGroupChatMessage(_ message: XMPPChatGroupMessage, completion: @escaping ServiceRequestCompletion<Void>) {
+        xmppStream.send(message.xmppElement)
+    }
+
+    func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: XMPPGroupCreateRequest(name: name, members: members) { (_, error) in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        })
+    }
+
+    func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: XMPPGroupLeaveRequest(groupId: groupID) { (_, error) in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        })
+    }
+
+    func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>) {
+        enqueue(request: XMPPGroupGetInfoRequest(groupId: groupID) { (xml, error) in
+            if let xml = xml, let group = XMPPGroup(itemElement: xml) {
+                completion(.success(group))
+            } else {
+                completion(.failure(error ?? XMPPError.malformed))
+            }
+        })
+    }
+    func modifyGroup(groupID: GroupID, with members: [UserID], groupAction: ChatGroupAction,
+                     action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>)
+    {
+        enqueue(request: XMPPGroupModifyRequest(groupId: groupID, members: members, groupAction: groupAction, action: action) { (_, error) in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        })
+    }
 }

@@ -36,15 +36,15 @@ class XMPPControllerMain: XMPPController {
     weak var feedDelegate: HalloFeedDelegate?
 
     // MARK: Chat
-    weak var chatDelegate: XMPPControllerChatDelegate?
-    let didGetNewChatMessage = PassthroughSubject<XMPPMessage, Never>()
+    weak var chatDelegate: HalloChatDelegate?
+    let didGetNewChatMessage = PassthroughSubject<ChatMessageProtocol, Never>()
 
     // MARK: Key
     weak var keyDelegate: HalloKeyDelegate?
     
     // MARK: Misc
-    let didGetAck = PassthroughSubject<XMPPAck, Never>()
-    let didGetPresence = PassthroughSubject<XMPPPresence, Never>()
+    let didGetChatAck = PassthroughSubject<ChatAck, Never>()
+    let didGetPresence = PassthroughSubject<ChatPresenceInfo, Never>()
 
     private var cancellableSet: Set<AnyCancellable> = []
 
@@ -325,7 +325,7 @@ class XMPPControllerMain: XMPPController {
 
             // Feed doesn't have delivery receipts.
             if let delegate = self.chatDelegate {
-                delegate.xmppController(self, didReceiveMessageReceipt: deliveryReceipt, in: message)
+                delegate.halloService(self, didReceiveMessageReceipt: deliveryReceipt, ack: { self.sendAck(for: message) })
             } else {
                 self.sendAck(for: message)
             }
@@ -345,7 +345,7 @@ class XMPPControllerMain: XMPPController {
 
             case .group(_), .none:
                 if let delegate = self.chatDelegate {
-                    delegate.xmppController(self, didReceiveMessageReceipt: readReceipt, in: message)
+                    delegate.halloService(self, didReceiveMessageReceipt: readReceipt, ack: { self.sendAck(for: message) })
                 } else {
                     self.sendAck(for: message)
                 }
@@ -374,23 +374,33 @@ class XMPPControllerMain: XMPPController {
             return
         }
         
-        if message.element(forName: "chat") != nil {
-            self.didGetNewChatMessage.send(message)
+        if let _ = message.element(forName: "chat") {
+            // NB: We pass the parent element into the initializer in order to retain the ID
+            if let chatMessage = XMPPChatMessage(itemElement: message) {
+                self.didGetNewChatMessage.send(chatMessage)
+            } else {
+                DDLogError("XMPPController/didReceive/error could not read chat message")
+            }
             self.sendAck(for: message)
             return
         }
         
-        if message.element(forName: "group_chat") != nil {
-            if let delegate = self.chatDelegate {
-                delegate.xmppController(self, didReceiveGroupChatMessage: message)
+        if let _ = message.element(forName: "group_chat") {
+            // NB: We pass the parent element into the initializer in order to retain the ID
+            if let groupChatMessage = XMPPChatGroupMessage(itemElement: message) {
+                chatDelegate?.halloService(self, didReceiveGroupChatMessage: groupChatMessage)
+            } else {
+                DDLogError("XMPPController/didReceive/error could not read group chat message")
             }
             self.sendAck(for: message)
             return
         }
         
         if let groupElement = message.element(forName: "group") {
-            if let delegate = self.chatDelegate {
-                delegate.xmppController(self, didReceiveGroupMessage: groupElement)
+            if let group = XMPPGroup(itemElement: groupElement) {
+                chatDelegate?.halloService(self, didReceiveGroupMessage: group)
+            } else {
+                DDLogError("XMPPController/didReceive/error could not read group message")
             }
             self.sendAck(for: message)
             return
@@ -414,18 +424,22 @@ class XMPPControllerMain: XMPPController {
                 }
             } else {
                 if let delegate = self.chatDelegate {
-                    delegate.xmppController(self, didSendMessageReceipt: receipt)
+                    delegate.halloService(self, didSendMessageReceipt: receipt)
                 }
             }
             return
         }
 
         // Message acks.
-        self.didGetAck.send(ack)
+        self.didGetChatAck.send((id: ack.id, timestamp: ack.timestamp))
     }
 
     override func didReceive(presence: XMPPPresence) {
-        self.didGetPresence.send(presence)
+        guard let fromUserID = presence.from?.user else { return }
+        self.didGetPresence.send((
+            userID: fromUserID,
+            presence: PresenceType(rawValue: presence.type ?? ""),
+            lastSeen: Date(timeIntervalSince1970: presence.attributeDoubleValue(forName: "last_seen"))))
     }
 
     // MARK: XMPPReconnectDelegate

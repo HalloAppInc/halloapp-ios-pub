@@ -17,8 +17,7 @@ public enum PresenceType: String {
 protocol HalloService: CoreService {
 
     // MARK: Delegates
-    // TODO: Add these back in once they're migrated to protocol
-    //var chatDelegate: HalloChatDelegate? { get set }
+    var chatDelegate: HalloChatDelegate? { get set }
     var feedDelegate: HalloFeedDelegate? { get set }
     var keyDelegate: HalloKeyDelegate? { get set }
 
@@ -39,11 +38,18 @@ protocol HalloService: CoreService {
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID)
 
     // MARK: Chat
-    // TODO: Add these back in once we migrate chat to protocols
-    //var didGetNewChatMessage: PassthroughSubject<ChatMessageProtocol, Never> { get }
-    //var didGetChatAck: PassthroughSubject<ChatAck, Never> { get }
-    //var didGetPresence: PassthroughSubject<ChatPresenceInfo, Never> { get }
+    var didGetNewChatMessage: PassthroughSubject<ChatMessageProtocol, Never> { get }
+    var didGetChatAck: PassthroughSubject<ChatAck, Never> { get }
+    var didGetPresence: PassthroughSubject<ChatPresenceInfo, Never> { get }
     func sendPresenceIfPossible(_ presenceType: PresenceType)
+
+    // MARK: Groups
+    func sendGroupChatMessage(_ message: HalloGroupChatMessage, completion: @escaping ServiceRequestCompletion<Void>)
+    func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>)
+    func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>)
+    func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>)
+    func modifyGroup(groupID: GroupID, with members: [UserID], groupAction: ChatGroupAction,
+                     action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>)
 
     @discardableResult
     func subscribeToPresenceIfPossible(to userID: UserID) -> Bool
@@ -80,6 +86,8 @@ protocol HalloFeedDelegate: AnyObject {
 protocol HalloChatDelegate: AnyObject {
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt)
+    func halloService(_ halloService: HalloService, didReceiveGroupChatMessage message: HalloGroupChatMessage)
+    func halloService(_ halloService: HalloService, didReceiveGroupMessage group: HalloGroup)
 }
 
 protocol HalloKeyDelegate: AnyObject {
