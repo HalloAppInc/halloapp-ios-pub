@@ -12,6 +12,7 @@ import Core
 import Photos
 import UIKit
 import YPImagePicker
+import SwiftUI
 
 enum NewPostMediaSource {
     case library
@@ -29,6 +30,9 @@ struct NewPostState {
         return mediaSource != .library
     }
 }
+
+typealias DidPickImageCallback = (UIImage) -> Void
+typealias DidPickVideoCallback = (URL) -> Void
 
 final class NewPostViewController: UIViewController {
 
@@ -69,7 +73,7 @@ final class NewPostViewController: UIViewController {
         case .library:
             return makeMediaPickerViewControllerNew()
         case .camera:
-            return makeCameraViewController()
+            return UINavigationController(rootViewController: makeNewCameraViewController())
         case .noMedia:
             return UINavigationController(rootViewController: makeComposerViewController())
         }
@@ -82,6 +86,15 @@ final class NewPostViewController: UIViewController {
             showCancelButton: state.isPostComposerCancellable,
             willDismissWithInput: { [weak self] input in self?.state.pendingInput = input },
             didFinish: { [weak self] in self?.didFinish() })
+    }
+
+    private func makeNewCameraViewController() -> UIViewController {
+        return CameraViewController(
+            showCancelButton: state.isPostComposerCancellable,
+            didFinish: { [weak self] in self?.didFinish() },
+            didPickImage: { [weak self] uiImage in self?.onImagePicked(uiImage) },
+            didPickVideo: { [weak self] videoURL in self?.onVideoPicked(videoURL) }
+        )
     }
 
     private func makeCameraViewController() -> UINavigationController {
@@ -197,6 +210,31 @@ final class NewPostViewController: UIViewController {
         }
         
         return UINavigationController(rootViewController: pickerController)
+    }
+
+    private func onImagePicked(_ uiImage: UIImage) {
+        var pendingMedia = [PendingMedia]()
+        let normalizedImage = uiImage.correctlyOrientedImage()
+        let mediaToPost = PendingMedia(type: .image)
+        mediaToPost.image = normalizedImage
+        mediaToPost.size = normalizedImage.size
+        pendingMedia.append(mediaToPost)
+        state.pendingMedia = pendingMedia
+        didFinishPickingMedia()
+    }
+
+    private func onVideoPicked(_ videoURL: URL) {
+        var pendingMedia = [PendingMedia]()
+        let mediaToPost = PendingMedia(type: .video)
+        mediaToPost.videoURL = videoURL
+
+        if let videoSize = VideoUtils.resolutionForLocalVideo(url: videoURL) {
+            mediaToPost.size = videoSize
+            DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
+        }
+        pendingMedia.append(mediaToPost)
+        state.pendingMedia = pendingMedia
+        didFinishPickingMedia()
     }
 }
 

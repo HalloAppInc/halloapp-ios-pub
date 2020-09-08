@@ -20,4 +20,8 @@ extension Color {
     static var separator: Color {
         get { Color("Separator") }
     }
+
+    static var cameraButton: Color {
+        get { Color("CameraButton") }
+    }
 }
