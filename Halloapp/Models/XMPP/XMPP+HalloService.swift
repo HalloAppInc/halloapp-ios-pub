@@ -169,7 +169,7 @@ extension XMPPControllerMain: HalloService {
 
     func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>) {
         enqueue(request: XMPPGroupGetInfoRequest(groupId: groupID) { (xml, error) in
-            if let xml = xml, let group = XMPPGroup(itemElement: xml) {
+            if let xml = xml, let groupEl = xml.element(forName: "group"), let group = XMPPGroup(itemElement: groupEl) {
                 completion(.success(group))
             } else {
                 completion(.failure(error ?? XMPPError.malformed))

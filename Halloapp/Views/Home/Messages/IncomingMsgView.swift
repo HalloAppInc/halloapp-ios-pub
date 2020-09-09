@@ -44,21 +44,24 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         mainView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
         mainView.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
-        mainView.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor).isActive = true
+        let mainViewBottomConstraint = mainView.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor)
+        
+        // lower the priority so nested stackviews can be hidden without conflicts
+        mainViewBottomConstraint.priority = UILayoutPriority(rawValue: 999)
+        mainViewBottomConstraint.isActive = true
     }
 
     private lazy var mainView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.bubbleRow, self.timeRow ])
-        view.translatesAutoresizingMaskIntoConstraints = false
+        let view = UIStackView(arrangedSubviews: [ bubbleRow, timeRow ])
         view.axis = .vertical
         view.alignment = .leading
         view.spacing = 0
-        
+        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
     private lazy var bubbleRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.nameRow, self.quotedRow, self.textRow ])
+        let view = UIStackView(arrangedSubviews: [ nameRow, quotedRow, textRow ])
         view.axis = .vertical
         view.spacing = 0
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -70,6 +73,8 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
         view.insertSubview(subView, at: 0)
+        
+        textRow.widthAnchor.constraint(greaterThanOrEqualToConstant: 40).isActive = true
 
         return view
     }()
@@ -377,9 +382,8 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         let text = text ?? ""
         if text.count <= 3 && text.containsOnlyEmoji {
             textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
-        } else if text.count == 1 {
-            textView.textContainer.lineFragmentPadding = 10
         }
+        
         self.textView.text = text
         
         

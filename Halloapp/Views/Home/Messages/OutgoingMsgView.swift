@@ -37,7 +37,10 @@ class OutgoingMsgView: UIView {
         mainView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
         mainView.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
-        mainView.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor).isActive = true
+        let mainViewBottomConstraint = mainView.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor)
+        
+        mainViewBottomConstraint.priority = UILayoutPriority(rawValue: 999)
+        mainViewBottomConstraint.isActive = true
     }
     
     private lazy var mainView: UIStackView = {
@@ -51,7 +54,7 @@ class OutgoingMsgView: UIView {
     }()
     
     private lazy var bubbleRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.quotedRow, self.textRow ])
+        let view = UIStackView(arrangedSubviews: [ quotedRow, textRow ])
         view.axis = .vertical
         view.spacing = 0
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -245,7 +248,7 @@ class OutgoingMsgView: UIView {
         let view = UIStackView(arrangedSubviews: [ spacer, self.textStackView, self.sentTickStack, self.deliveredTickStack ])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .horizontal
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 10)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         view.isLayoutMarginsRelativeArrangement = true
         view.alignment = .bottom
         view.spacing = 1
