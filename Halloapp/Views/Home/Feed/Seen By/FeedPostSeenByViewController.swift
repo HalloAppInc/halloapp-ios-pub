@@ -173,7 +173,7 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
             return "Viewed by"
 
         case .delivered:
-            return "Delivered to"
+            return "Sent to"
         }
     }
 

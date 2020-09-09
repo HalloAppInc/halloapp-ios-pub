@@ -112,7 +112,7 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
             return "Viewed by"
 
         case .delivered:
-            return "Delivered to"
+            return "Sent to"
         }
     }
 
