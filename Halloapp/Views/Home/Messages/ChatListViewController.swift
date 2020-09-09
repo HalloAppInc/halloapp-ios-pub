@@ -518,6 +518,7 @@ private class ChatListTableViewCell: UITableViewCell {
     private lazy var unreadCountView: UnreadBadgeView = {
         let view = UnreadBadgeView(frame: .zero)
         view.label.font = .preferredFont(forTextStyle: .footnote)
+        view.widthAnchor.constraint(greaterThanOrEqualToConstant: 18).isActive = true
         return view
     }()
     

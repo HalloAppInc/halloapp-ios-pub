@@ -284,23 +284,18 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
     }
 
     func isDuplicate(_ abContact: ABContact) -> Bool {
-        guard let identifier = abContact.identifier else {
-            return false
-        }
-        guard let normalizedPhoneNumber = abContact.normalizedPhoneNumber else {
-            return false
-        }
-        if trackedContacts[identifier] == nil {
+        guard let identifier = abContact.identifier else { return false }
+        guard let phoneNumber = abContact.phoneNumber else { return false }
+        guard let normalizedPhoneNumber = abContact.normalizedPhoneNumber else { return false }
+        let id = "\(identifier)-\(phoneNumber)"
+        if trackedContacts[id] == nil {
             var trackedContact = TrackedContact(with: abContact)
-            for (_, con) in trackedContacts {
-                if con.normalizedPhone == normalizedPhoneNumber {
-                    trackedContact.isDuplicate = true
-                    break
-                }
+            if trackedContacts.keys.first(where: { trackedContacts[$0]?.normalizedPhone == normalizedPhoneNumber }) != nil {
+                trackedContact.isDuplicate = true
             }
-            trackedContacts[identifier] = trackedContact
+            trackedContacts[id] = trackedContact
         }
-        return trackedContacts[identifier]?.isDuplicate ?? false
+        return trackedContacts[id]?.isDuplicate ?? false
     }
 
 }
@@ -343,12 +338,10 @@ extension NewMessageViewController: NewMessageHeaderViewDelegate {
 }
 
 fileprivate struct TrackedContact {
-    let id: String?
     let normalizedPhone: String?
     var isDuplicate: Bool = false
 
     init(with abContact: ABContact) {
-        id = abContact.identifier
         normalizedPhone = abContact.normalizedPhoneNumber
     }
 }

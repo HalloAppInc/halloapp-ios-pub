@@ -5,9 +5,12 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import AVKit
 import Core
 import UIKit
+
+fileprivate struct Constants {
+    static let TextFontStyle: UIFont.TextStyle = .subheadline
+}
 
 protocol OutgoingMsgViewDelegate: AnyObject {
     func outgoingMsgView(_ outgoingMsgView: OutgoingMsgView, previewType: MediaPreviewController.PreviewType, mediaIndex: Int)
@@ -28,7 +31,7 @@ class OutgoingMsgView: UIView {
 
     private func setup() {
         backgroundColor = .clear
-        layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        layoutMargins = UIEdgeInsets(top: 3, left: 0, bottom: 0, right: 0)
         addSubview(mainView)
         
         mainView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
@@ -52,7 +55,7 @@ class OutgoingMsgView: UIView {
         view.axis = .vertical
         view.spacing = 0
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         let subView = UIView(frame: view.bounds)
         subView.layer.cornerRadius = 20
         subView.layer.masksToBounds = true
@@ -60,7 +63,7 @@ class OutgoingMsgView: UIView {
         subView.backgroundColor = UIColor.lavaOrange.withAlphaComponent(0.1)
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(subView, at: 0)
-
+        
         return view
     }()
     
@@ -88,33 +91,44 @@ class OutgoingMsgView: UIView {
         return view
     }()
     
-    private lazy var quotedNameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = .darkText
-        return label
-    }()
-    
-    private lazy var quotedTextLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 2
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        label.textColor = .darkText
-        return label
-    }()
-    
     private lazy var quotedTextVStack: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ self.quotedNameLabel, self.quotedTextLabel, spacer ])
+        let view = UIStackView(arrangedSubviews: [ self.quotedNameLabel, self.quotedTextView, spacer ])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         view.axis = .vertical
         view.spacing = 3
         view.isHidden = true
+        return view
+    }()
+    
+    private lazy var quotedNameLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
+        let boldFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
+        label.font = boldFont
+        label.textColor = .darkText
+        return label
+    }()
+        
+    private lazy var quotedTextView: UITextView = {
+        let view = UITextView()
+        view.isScrollEnabled = false
+        view.isEditable = false
+        view.isSelectable = true
+        view.isUserInteractionEnabled = true
+        view.dataDetectorTypes = .link
+        view.textContainerInset = UIEdgeInsets.zero
+        view.textContainer.lineFragmentPadding = 0
+        view.backgroundColor = .clear
+        view.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
+        view.textColor = .darkText
+        view.tintColor = UIColor.link
+        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
@@ -165,12 +179,12 @@ class OutgoingMsgView: UIView {
         let textView = UITextView()
         textView.isScrollEnabled = false
         textView.isEditable = false
-        textView.isSelectable = false
+        textView.isSelectable = true
         textView.isUserInteractionEnabled = true
         textView.dataDetectorTypes = .link
         textView.textContainerInset = UIEdgeInsets.zero
         textView.backgroundColor = .clear
-        textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
         textView.tintColor = UIColor.link
         textView.translatesAutoresizingMaskIntoConstraints = false
         return textView
@@ -262,10 +276,10 @@ class OutgoingMsgView: UIView {
     }()
     
     private lazy var timeRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.timeLabel ])
+        let view = UIStackView(arrangedSubviews: [ timeLabel ])
         view.axis = .vertical
         view.spacing = 0
-        view.layoutMargins = UIEdgeInsets(top: 1, left: 0, bottom: 0, right: 10)
+        view.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 10, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -276,9 +290,11 @@ class OutgoingMsgView: UIView {
     
     // MARK: Update
     
-    func updateWithChatMessage(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool) {
+    func updateWithChatMessage(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
         let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, feedPostMediaIndex: Int(chatMessage.feedPostMediaIndex))
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
+                   isNextMsgSameSender: isNextMsgSameSender,
+                   isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
                    text: chatMessage.text,
                    media: chatMessage.media,
@@ -287,8 +303,10 @@ class OutgoingMsgView: UIView {
         updateChatMessageOutboundStatus(chatMessage.outgoingStatus)
     }
     
-    func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool) {
+    func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
+                   isNextMsgSameSender: isNextMsgSameSender,
+                   isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: false,
                    text: chatGroupMessage.text,
                    media: chatGroupMessage.media,
@@ -303,9 +321,9 @@ class OutgoingMsgView: UIView {
         if let quoted = chatQuoted {
             isQuotedMessage = true
             if let userId = quoted.userId {
-                self.quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
+                quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
             }
-            self.quotedTextLabel.text = quoted.text ?? ""
+            quotedTextView.text = quoted.text ?? ""
 
             // TODO: need to optimize
             if let media = quoted.media {
@@ -315,36 +333,41 @@ class OutgoingMsgView: UIView {
 
                     if med.type == .image {
                         if let image = UIImage(contentsOfFile: fileURL.path) {
-                            self.quotedImageView.image = image
+                            quotedImageView.image = image
                         }
                     } else if med.type == .video {
                         if let image = VideoUtils.videoPreviewImage(url: fileURL, size: nil) {
-                            self.quotedImageView.image = image
+                            quotedImageView.image = image
                         }
                     }
 
                     let imageSize: CGFloat = 80.0
 
                     NSLayoutConstraint(item: self.quotedImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
-                    NSLayoutConstraint(item: self.quotedImageView, attribute: .height, relatedBy: .equal, toItem: self.quotedImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
+                    NSLayoutConstraint(item: self.quotedImageView, attribute: .height, relatedBy: .equal, toItem: quotedImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
 
-                    self.quotedImageView.isHidden = false
+                    quotedImageView.isHidden = false
                 }
 
             }
             
-            self.quotedTextVStack.isHidden = false
-            self.quotedRow.isHidden = false
+            quotedTextVStack.isHidden = false
+            quotedRow.isHidden = false
         }
         
         return isQuotedMessage
     }
     
-    func updateWith(isPreviousMsgSameSender: Bool, isQuotedMessage: Bool, text: String?, media: Set<ChatMedia>?, timestamp: Date?) {
-        if isPreviousMsgSameSender {
-            self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, media: Set<ChatMedia>?, timestamp: Date?) {
+
+        if isNextMsgSameSender {
+            timeRow.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 3, right: 0)
         } else {
-            self.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 0, right: 0)
+            timeRow.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 10, right: 0)
+        }
+        
+        if isNextMsgSameTime {
+            timeRow.isHidden = true
         }
         
         // media
@@ -464,28 +487,29 @@ class OutgoingMsgView: UIView {
     // MARK: Reuse
     
     func reset() {
-        self.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
+        quotedNameLabel.text = ""
+        quotedTextView.text = ""
+        quotedTextVStack.isHidden = true
+        quotedImageView.isHidden = true
+        quotedRow.isHidden = true
         
-        self.quotedNameLabel.text = ""
-        self.quotedTextLabel.text = ""
-        self.quotedTextVStack.isHidden = true
-        self.quotedImageView.isHidden = true
-        self.quotedRow.isHidden = true
+        mediaImageView.reset()
+        mediaImageView.removeConstraints(mediaImageView.constraints)
+        mediaRow.isHidden = true
+        mediaRow.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        mediaImageView.isHidden = true
         
-        self.mediaImageView.reset()
-        self.mediaImageView.removeConstraints(mediaImageView.constraints)
-        self.mediaRow.isHidden = true
-        self.mediaRow.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        self.mediaImageView.isHidden = true
+        textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
+        textView.text = ""
+        sentTickImageView.isHidden = true
+        sentTickImageView.tintColor = UIColor.systemGray3
+        deliveredTickImageView.isHidden = true
+        deliveredTickImageView.tintColor = UIColor.systemGray3
         
-        self.textView.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        self.textView.text = ""
-        self.sentTickImageView.isHidden = true
-        self.sentTickImageView.tintColor = UIColor.systemGray3
-        self.deliveredTickImageView.isHidden = true
-        self.deliveredTickImageView.tintColor = UIColor.systemGray3
-        
-        self.timeLabel.text = nil
+        timeRow.isHidden = false
+        timeRow.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 10, right: 0)
+        timeLabel.isHidden = false
+        timeLabel.text = nil
     }
     
     func preferredSize(for media: [ChatMedia]) -> CGSize {

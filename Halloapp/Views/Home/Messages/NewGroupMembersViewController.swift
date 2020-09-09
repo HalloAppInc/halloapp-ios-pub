@@ -6,12 +6,9 @@
 //
 
 import CocoaLumberjack
-import Combine
 import Core
 import CoreData
-import Foundation
 import UIKit
-import SwiftUI
 
 protocol NewGroupMembersViewControllerDelegate: AnyObject {
     func newGroupMembersViewController(_ inputView: NewGroupMembersViewController, selected: [UserID])
@@ -253,21 +250,12 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
         }
 
         if let abContact = abContact {
-            
             if let userId = abContact.userId {
-                
-
-                
                 cell.configure(with: abContact)
-                
                 let isSelected = selectedMembers.contains(userId)
                 cell.setContact(selected: isSelected, animated: true)
-                
             }
         }
-        
-        
-        
         return cell
     }
 
@@ -282,7 +270,6 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
         if let contact = contact, self.isDuplicate(contact) {
             return 0
         }
-        
         
         guard let userId = contact?.userId else { return 0 }
         if currentMembers.contains(userId) {
@@ -348,24 +335,19 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
     }
     
     func isDuplicate(_ abContact: ABContact) -> Bool {
-        var result = false
-        guard let identifier = abContact.identifier else { return result }
-        guard let normalizedPhoneNumber = abContact.normalizedPhoneNumber else { return result }
-        if self.trackedContacts[identifier] == nil {
+        guard let identifier = abContact.identifier else { return false }
+        guard let phoneNumber = abContact.phoneNumber else { return false }
+        guard let normalizedPhoneNumber = abContact.normalizedPhoneNumber else { return false }
+        let id = "\(identifier)-\(phoneNumber)" // account for contacts that have multiple registered numbers
+        if trackedContacts[id] == nil {
             var trackedContact = TrackedContact(with: abContact)
-            for (_, con) in self.trackedContacts {
-                if con.normalizedPhone == normalizedPhoneNumber {
-                    trackedContact.isDuplicate = true
-                    break
-                }
+            if trackedContacts.keys.first(where: { trackedContacts[$0]?.normalizedPhone == normalizedPhoneNumber }) != nil {
+                trackedContact.isDuplicate = true
             }
-            self.trackedContacts[identifier] = trackedContact
+            trackedContacts[id] = trackedContact
         }
-        guard let isDuplicate = self.trackedContacts[identifier]?.isDuplicate else { return result }
-        result = isDuplicate
-        return result
+        return trackedContacts[id]?.isDuplicate ?? false
     }
-
 }
 
 extension NewGroupMembersViewController: UISearchControllerDelegate {
@@ -406,13 +388,11 @@ extension NewGroupMembersViewController: NewGroupMembersHeaderViewDelegate {
 }
 
 fileprivate struct TrackedContact {
-    let id: String?
     let normalizedPhone: String?
     var isDuplicate: Bool = false
 
     init(with abContact: ABContact) {
-        self.id = abContact.identifier
-        self.normalizedPhone = abContact.normalizedPhoneNumber
+        normalizedPhone = abContact.normalizedPhoneNumber
     }
 }
 
@@ -421,7 +401,6 @@ protocol NewGroupMembersHeaderViewDelegate: AnyObject {
 }
 
 class NewGroupMembersHeaderView: UIView {
-
     weak var delegate: NewGroupMembersHeaderViewDelegate?
     
     override init(frame: CGRect) {
@@ -429,11 +408,17 @@ class NewGroupMembersHeaderView: UIView {
         setup()
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
+    private func setup() {
+        preservesSuperviewLayoutMargins = true
+
+        vStack.addArrangedSubview(textLabel)
+        addSubview(vStack)
+
+        vStack.constrain(to: self)
+    }
+    
     private lazy var textLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.preferredFont(forTextStyle: .body)
@@ -455,18 +440,6 @@ class NewGroupMembersHeaderView: UIView {
         return vStack
     }()
 
-    private func setup() {
-        self.preservesSuperviewLayoutMargins = true
-
-        vStack.addArrangedSubview(textLabel)
-        self.addSubview(vStack)
-
-        vStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-        vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
-    }
-    
     @objc func openNewGroupView (_ sender: UITapGestureRecognizer) {
         self.delegate?.newGroupMembersHeaderView(self)
     }
