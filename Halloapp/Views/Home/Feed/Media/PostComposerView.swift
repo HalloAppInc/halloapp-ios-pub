@@ -36,7 +36,7 @@ class PostComposerViewController: UIViewController {
     private var shouldAutoPlay = GenericObservable(false)
     private var postComposerView: PostComposerView?
     private var shareButton: UIBarButtonItem!
-    private let didFinish: (() -> Void)
+    private let didFinish: ((Bool, [PendingMedia]) -> Void)
     private let willDismissWithInput: ((MentionInput) -> Void)?
 
     init(
@@ -44,7 +44,7 @@ class PostComposerViewController: UIViewController {
         initialInput: MentionInput,
         showCancelButton: Bool,
         willDismissWithInput: ((MentionInput) -> Void)? = nil,
-        didFinish: @escaping () -> Void)
+        didFinish: @escaping (Bool, [PendingMedia]) -> Void)
     {
         self.mediaItems.value = media
         self.showCancelButton = showCancelButton
@@ -63,7 +63,10 @@ class PostComposerViewController: UIViewController {
 
         navigationItem.title = "New Post"
         if showCancelButton {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
+            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(backAction))
+        } else {
+            let icon = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
+            self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: icon, style: .plain, target: self, action: #selector(backAction))
         }
         shareButton = UIBarButtonItem(title: "Share", style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
@@ -124,28 +127,18 @@ class PostComposerViewController: UIViewController {
         }
     }
 
-    private func finish() {
-        didFinish()
-    }
-
-    @objc private func cancelAction() {
-        imageServer.cancel()
-        finish()
-    }
-
     @objc private func shareAction() {
         let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
         MainAppContext.shared.feedData.post(text: mentionText, media: mediaItems.value)
-        finish()
+        didFinish(false, [])
     }
 
-    private func backAction() {
+    @objc private func backAction() {
         if showCancelButton {
             imageServer.cancel()
-            finish()
-        } else {
-            navigationController?.popViewController(animated: true)
         }
+        
+        didFinish(true, self.mediaItems.value)
     }
 
     private func setShareVisibility(_ visibility: Bool) {

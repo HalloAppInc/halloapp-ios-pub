@@ -7,6 +7,7 @@
 //
 
 import CoreGraphics
+import Photos
 import SwiftProtobuf
 import XMPPFramework
 import UIKit
@@ -171,6 +172,7 @@ public class PendingMedia {
     public var fileURL: URL?
     public var encryptedFileUrl: URL?
     public var error: Error?
+    public var asset: PHAsset?
     
     public var edit: PendingMediaEdit?
 

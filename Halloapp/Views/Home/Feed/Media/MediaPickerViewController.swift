@@ -23,7 +23,7 @@ typealias MediaPickerViewControllerCallback = (MediaPickerViewController, [Pendi
 
 class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PickerViewCellDelegate {
     fileprivate var mode: MediaPickerMode = .day
-    fileprivate var selected = [PickerItem]()
+    fileprivate var selected = [PHAsset]()
     
     private let didFinish: MediaPickerViewControllerCallback
     private let snapshotManager = MediaPickerSnapshotManager()
@@ -37,6 +37,13 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     
     init(didFinish: @escaping MediaPickerViewControllerCallback) {
         self.didFinish = didFinish
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    init(selected: [PendingMedia], didFinish: @escaping MediaPickerViewControllerCallback) {
+        self.selected.append(contentsOf: selected.filter { $0.asset != nil }.map { $0.asset! })
+        self.didFinish = didFinish
+        
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -123,6 +130,18 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         
         titleBtn.titleLabel?.font = UIFont.gothamFont(ofSize: 17, weight: .medium)
         self.navigationItem.titleView = titleBtn
+        
+        updateNavigationBarButtons()
+    }
+    
+    public func reset(selected: [PendingMedia]) {
+        self.selected.removeAll()
+        self.selected.append(contentsOf: selected.filter { $0.asset != nil }.map { $0.asset! })
+        
+        for cell in collectionView.visibleCells {
+            guard let cell = cell as? AssetViewCell else { continue }
+            cell.prepare()
+        }
         
         updateNavigationBarButtons()
     }
@@ -310,7 +329,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private func makeCollectionView(layout: UICollectionViewFlowLayout) -> UICollectionView {
         let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: layout)
         collectionView.delegate = self
-        collectionView.backgroundColor = .clear
+        collectionView.backgroundColor = .systemBackground
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.allowsMultipleSelection = true
         collectionView.register(AssetViewCell.self, forCellWithReuseIdentifier: AssetViewCell.reuseIdentifier)
@@ -372,14 +391,14 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             guard let self = self else { return }
             
             for i in 0..<self.selected.count {
-                guard let asset = self.selected[i].asset else { continue }
+                let asset = self.selected[i]
                 
                 switch asset.mediaType {
                 case .image:
                     let media = PendingMedia(type: .image)
+                    media.asset = asset
                     media.order = i + 1
                     media.size = CGSize(width: asset.pixelWidth, height: asset.pixelHeight)
-                    
                     
                     let options = PHImageRequestOptions()
                     options.isSynchronous = true
@@ -393,6 +412,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     result.append(media)
                 case .video:
                     let media = PendingMedia(type: .video)
+                    media.asset = asset
                     media.order = i + 1
                     
                     let options = PHVideoRequestOptions()
@@ -425,11 +445,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     
     @objc private func cancelAction() {
         if selected.count > 0 {
-            for item in selected {
-                guard let indexPath = dataSource.indexPath(for: item) else { continue }
-                collectionView.deselectItem(at: indexPath, animated: false)
-            }
-            
             selected.removeAll()
             
             for cell in collectionView.visibleCells {
@@ -508,21 +523,25 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
-        let isAsset = (collectionView.cellForItem(at: indexPath) as? AssetViewCell) != nil
+        guard let cell = collectionView.cellForItem(at: indexPath) as? AssetViewCell else { return false }
+        guard let asset = cell.item?.asset else { return false }
         
-        if isAsset && selected.count >= 10 {
+        if selected.count >= 10 {
             let alert = UIAlertController(title: "Maximum photos selected", message: "You can select up to 10 photos", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             self.present(alert, animated: true)
         }
         
-        return isAsset && selected.count < 10
+        if selected.contains(asset) {
+            deselect(collectionView, cell: cell, asset: asset)
+        } else {
+            select(collectionView, cell: cell, asset: asset)
+        }
+        
+        return false
     }
     
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let cell =  collectionView.cellForItem(at: indexPath) as? AssetViewCell else { return }
-        guard let item = cell.item else { return }
-        
+    private func select(_ collectionView: UICollectionView, cell: AssetViewCell, asset: PHAsset) {
         UIView.animateKeyframes(withDuration: 0.3, delay: 0, options: [], animations: {
             UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.2, animations: {
                 cell.image.layer.cornerRadius = 15
@@ -534,16 +553,13 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             })
         }, completion: { [weak self] finished in
             guard let self = self else { return }
-            self.selected.append(item)
+            self.selected.append(asset)
             cell.prepare()
             self.updateNavigationBarButtons()
         })
     }
     
-    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
-        guard let cell =  collectionView.cellForItem(at: indexPath) as? AssetViewCell else { return }
-        guard let item = cell.item else { return }
-        
+    private func deselect(_ collectionView: UICollectionView, cell: AssetViewCell, asset: PHAsset) {
         UIView.animateKeyframes(withDuration: 0.3, delay: 0, options: [], animations: {
             UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.2, animations: {
                 cell.image.layer.cornerRadius = 0
@@ -555,7 +571,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             })
         }, completion: { [weak self] finished in
             guard let self = self else { return }
-            guard let idx = self.selected.firstIndex(of: item) else { return }
+            guard let idx = self.selected.firstIndex(of: asset) else { return }
             
             self.selected.remove(at: idx)
             
@@ -608,7 +624,7 @@ class PlayerPreviewView: UIView {
 
 fileprivate protocol PickerViewCellDelegate: class {
     var mode: MediaPickerMode {get}
-    var selected: [PickerItem] {get}
+    var selected: [PHAsset] {get}
 }
 
 enum PickerItemType {
@@ -795,7 +811,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         
         NSLayoutConstraint.activate(activeConstraints)
         
-        if let item = item, let idx = delegate?.selected.firstIndex(of: item) {
+        if let asset = item?.asset, let idx = delegate?.selected.firstIndex(of: asset) {
             image.layer.cornerRadius = 15
             image.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
             

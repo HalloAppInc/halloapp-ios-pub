@@ -85,7 +85,16 @@ final class NewPostViewController: UIViewController {
             initialInput: state.pendingInput,
             showCancelButton: state.isPostComposerCancellable,
             willDismissWithInput: { [weak self] input in self?.state.pendingInput = input },
-            didFinish: { [weak self] in self?.didFinish() })
+            didFinish: { [weak self] back, media in
+                if back {
+                    self?.containedNavigationController.popViewController(animated: true)
+                    
+                    guard let picker = self?.containedNavigationController.topViewController as? MediaPickerViewController else { return }
+                    picker.reset(selected: media)
+                } else {
+                    self?.didFinish()
+                }
+            })
     }
 
     private func makeNewCameraViewController() -> UIViewController {

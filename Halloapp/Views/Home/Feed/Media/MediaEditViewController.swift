@@ -86,9 +86,9 @@ fileprivate class MediaEdit : ObservableObject {
     @Published var scale: CGFloat = 1.0
     @Published var offset = CGPoint.zero
     
-    let type :FeedMediaType
+    let type: FeedMediaType
+    let media: PendingMedia
     
-    private let media: PendingMedia
     private var original: UIImage?
     private var numberOfRotations = 0
     private var hFlipped = false
@@ -744,12 +744,30 @@ fileprivate struct CropImage: View {
     }
 }
 
+fileprivate struct Picker: UIViewControllerRepresentable {
+    typealias UIViewControllerType = UINavigationController
+    
+    @State var media: [MediaEdit]
+    let complete: ([PendingMedia], Bool) -> Void
+    
+    func makeUIViewController(context: Context) -> UINavigationController {
+        let controller = MediaPickerViewController(selected: media.map { $0.media }) { controller, media, cancel in
+            self.complete(media, cancel)
+        }
+        
+        return UINavigationController(rootViewController: controller)
+    }
+    
+    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
+    }
+}
 
 fileprivate struct MediaEditView : View {
     @State var media: [MediaEdit]
     @State var selected: MediaEdit
     var complete: (([MediaEdit], Int, Bool) -> Void)?
     
+    @State private var showPicker = false
     @State private var showDiscardSheet = false
     
     var topBar: some View {
@@ -827,9 +845,55 @@ fileprivate struct MediaEditView : View {
         }
     }
     
+    var addMoreButton: some View {
+        Button(action: { self.showPicker = true }) {
+            Image(systemName: "plus.circle.fill")
+                .foregroundColor(.white)
+                .imageScale(.large)
+                .accessibility(label: Text("More"))
+                .padding()
+        }
+        .sheet(isPresented: $showPicker) {
+            Picker(media: self.media) { newMedia, cancel in
+                self.showPicker = false
+                guard !cancel else { return }
+                
+                var isItemSelected = false
+                var items = [MediaEdit]()
+                
+                outer: for m in newMedia {
+                    for item in self.media {
+                        if item.media.asset == m.asset {
+                            items.append(item)
+                            
+                            if item === self.selected {
+                                isItemSelected = true
+                            }
+                            
+                            continue outer
+                        }
+                    }
+                    
+                    items.append(MediaEdit(media: m))
+                }
+                
+                self.media.removeAll()
+                self.media.append(contentsOf: items)
+                
+                if !isItemSelected {
+                    if let item = MediaEditViewController.firstImage(items: items) {
+                        self.selected = item
+                    } else {
+                        self.complete?([], -1, false)
+                    }
+                }
+            }
+        }
+    }
+    
     var previews: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(alignment: .top, spacing: 0) {
+            HStack(alignment: .center, spacing: 0) {
                 ForEach(0..<media.count, id: \.self) { i in
                     Preview(media: self.media[i], selected: self.selected === self.media[i])
                     .onTapGesture {
@@ -837,6 +901,11 @@ fileprivate struct MediaEditView : View {
                             self.selected = self.media[i]
                         }
                     }
+                }
+                
+                // effectively display the button only when the initial selection was also from picker
+                if media.allSatisfy { $0.media.asset != nil } {
+                    addMoreButton
                 }
             }
         }
@@ -848,9 +917,6 @@ fileprivate struct MediaEditView : View {
                 .foregroundColor(.black)
                 .edgesIgnoringSafeArea(.top)
                 .frame(height: -10)
-            
-            
-            
             
             VStack {
                 topBar
