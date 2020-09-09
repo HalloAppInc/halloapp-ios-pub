@@ -6,6 +6,7 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Combine
 import Core
 import CoreData
@@ -22,6 +23,7 @@ class ProfileViewController: FeedTableViewController {
         super.viewDidLoad()
 
         installLargeTitleUsingGothamFont()
+        installFloatingActionMenu()
 
         var rightBarButtonItems = [ UIBarButtonItem(image: UIImage(named: "NavbarSettings"), style: .plain, target: self, action: #selector(presentSettingsScreen)) ]
         #if DEBUG
@@ -51,10 +53,21 @@ class ProfileViewController: FeedTableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
+        // Floating menu is hidden while our view is obscured
+        floatingMenu.isHidden = false
+
         // This VC pushes SwiftUI views that hide the tab bar and use `navigationBarTitle` to display custom titles.
         // These titles aren't reset when the SwiftUI views are dismissed, so we need to manually update the title
         // here or the tab bar will show the wrong title when it reappears.
         navigationController?.title = title
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        // Floating menu is in the navigation controller's view so we have to hide it
+        floatingMenu.setState(.collapsed, animated: true)
+        floatingMenu.isHidden = true
     }
 
     override func viewDidLayoutSubviews() {
@@ -89,6 +102,51 @@ class ProfileViewController: FeedTableViewController {
         var profileEditView = ProfileEditView()
         profileEditView.dismiss = { self.dismiss(animated: true) }
         present(UIHostingController(rootView: NavigationView(content: { profileEditView } )), animated: true)
+    }
+
+
+    // MARK: New post
+
+    private lazy var floatingMenu: FloatingMenu = {
+        FloatingMenu(
+            permanentButton: .rotatingToggleButton(
+                collapsedIconTemplate: UIImage(named: "icon_fab_compose_post")?.withRenderingMode(.alwaysTemplate),
+                expandedRotation: 45),
+            expandedButtons: [
+                .standardActionButton(
+                    iconTemplate: UIImage(named: "icon_fab_compose_image")?.withRenderingMode(.alwaysTemplate),
+                    accessibilityLabel: "Photo",
+                    action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
+                .standardActionButton(
+                    iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
+                    accessibilityLabel: "Camera",
+                    action: { [weak self] in self?.presentNewPostViewController(source: .camera) }),
+                .standardActionButton(
+                    iconTemplate: UIImage(named: "icon_fab_compose_text")?.withRenderingMode(.alwaysTemplate),
+                    accessibilityLabel: "Text",
+                    action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
+            ]
+        )
+    }()
+
+    private func installFloatingActionMenu() {
+        // Install in NavigationController's view because our own view is a table view (complicates position and z-ordering)
+        guard let container = navigationController?.view else {
+            DDLogError("Cannot install FAB on profile without navigation controller")
+            return
+        }
+
+        floatingMenu.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(floatingMenu)
+        floatingMenu.constrain(to: container)
+    }
+
+    private func presentNewPostViewController(source: NewPostMediaSource) {
+        let newPostViewController = NewPostViewController(source: source) {
+            self.dismiss(animated: true)
+        }
+        newPostViewController.modalPresentationStyle = .fullScreen
+        present(newPostViewController, animated: true)
     }
 
     // MARK: FeedTableViewController
