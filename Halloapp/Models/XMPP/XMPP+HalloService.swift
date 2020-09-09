@@ -23,6 +23,10 @@ extension XMPPControllerMain: HalloService {
         }
     }
 
+    public func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: XMPPSharePostsRequest(feedPostIds: postIds, userId: userId, completion: completion))
+    }
+
     public func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: XMPPWhisperUploadRequest(keyBundle: bundle) { error in
             if let error = error {

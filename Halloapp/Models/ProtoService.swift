@@ -119,6 +119,10 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoRetractItemRequest(feedItem: feedItem, feedOwnerId: ownerID, completion: completion))
     }
 
+    func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+
+    }
+
     func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoWhisperUploadRequest(keyBundle: bundle, completion: completion))
     }
