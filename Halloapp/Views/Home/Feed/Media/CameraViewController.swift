@@ -23,6 +23,7 @@ fileprivate class CameraStateModel: ObservableObject {
     @Published var shouldRecordVideo = false
     @Published var shouldUseBackCamera = true
     @Published var shouldUseFlashlight = false
+    @Published var orientation = UIDevice.current.orientation
 }
 
 fileprivate class AlertStateModel: ObservableObject {
@@ -160,7 +161,6 @@ fileprivate struct CameraView: View {
     @ObservedObject var cameraState = CameraStateModel()
     @ObservedObject var alertState = AlertStateModel()
     @State var captureButtonColor = Color.cameraButton
-    @State var orientation = UIDevice.current.orientation
 
     private let plainButtonStyle = PlainButtonStyle()
     private let orientationPublisher = NotificationCenter.default
@@ -182,7 +182,7 @@ fileprivate struct CameraView: View {
             Button(action: self.toggleFlash) {
                 Image("CameraFlashOff")
                     .foregroundColor(.cameraButton)
-                    .rotationEffect(CameraView.getIconRotation(orientation))
+                    .rotationEffect(CameraView.getIconRotation(cameraState.orientation))
             }
             Spacer()
 
@@ -200,7 +200,7 @@ fileprivate struct CameraView: View {
             Button(action: self.flipCamera) {
                 Image("CameraFlip")
                     .foregroundColor(.cameraButton)
-                    .rotationEffect(CameraView.getIconRotation(orientation))
+                    .rotationEffect(CameraView.getIconRotation(cameraState.orientation))
             }
             Spacer()
         }
@@ -239,7 +239,7 @@ fileprivate struct CameraView: View {
             .background(Color.feedBackground)
             .edgesIgnoringSafeArea(.bottom)
             .onReceive(self.orientationPublisher) { orientation in
-                self.orientation = orientation
+                self.cameraState.orientation = orientation
                 self.onOrientationChange(orientation)
             }
         }
@@ -291,7 +291,9 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
     var isTakingPhoto = GenericObservable(false)
 
     func makeUIViewController(context: Context) -> CameraController {
-        let controller = CameraController(cameraDelegate: context.coordinator)
+        let controller = CameraController(
+            cameraDelegate: context.coordinator,
+            orientation: context.coordinator.parent.cameraState.orientation)
         let tappedGesture =
             UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped))
         tappedGesture.numberOfTapsRequired = 1
@@ -306,6 +308,9 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
     func updateUIViewController(_ cameraController: CameraController, context: Context) {
         if context.coordinator.parent.cameraState.shouldUseBackCamera != cameraController.isUsingBackCamera {
             cameraController.switchCamera(context.coordinator.parent.cameraState.shouldUseBackCamera)
+        }
+        if context.coordinator.parent.cameraState.orientation != cameraController.orientation {
+            cameraController.setOrientation(context.coordinator.parent.cameraState.orientation)
         }
         if !context.coordinator.parent.cameraState.shouldRecordVideo &&
             context.coordinator.parent.cameraState.shouldTakePhoto &&
