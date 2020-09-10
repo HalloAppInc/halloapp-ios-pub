@@ -18,17 +18,16 @@ private enum MentionPickerViewSection: CaseIterable {
 
 final class MentionPickerView: UIView {
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(avatarStore: AvatarStore) {
+        self.avatarStore = avatarStore
+        super.init(frame: .zero)
         setupView()
     }
 
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupView()
+        fatalError("init(coder:) has not been implemented")
     }
-    
-    
+
     override func layoutSubviews() {
         if itemWidth != bounds.width {
             itemWidth = bounds.width
@@ -67,7 +66,7 @@ final class MentionPickerView: UIView {
     
     // MARK: Private
 
-    private let avatarStore = MainAppContext.shared.avatarStore
+    private let avatarStore: AvatarStore
 
     private lazy var collectionView: UICollectionView = {
         return UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())

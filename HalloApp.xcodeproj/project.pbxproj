@@ -44,6 +44,7 @@
 		6888CBEE250197A10049FF0E /* FeedElement+XMPP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBEC250197A10049FF0E /* FeedElement+XMPP.swift */; };
 		68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8D24D33DEF00F40F1F /* Mentions.swift */; };
 		68A64E9224D33E0F00F40F1F /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
+		68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
 		761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */; };
 		761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
 		761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C4245D32C200DD9D1A /* UIDevice.swift */; };
@@ -1573,6 +1574,7 @@
 				76C64E0E24E5AD85007C0F6F /* MediaUploader.swift in Sources */,
 				24009EB824BE399F00155DE2 /* ComposeView.swift in Sources */,
 				76936FB824F03C37006DBC2D /* UIView.swift in Sources */,
+				68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */,
 				2446D68024CB5840005BAD3C /* XMPPFeedRequests.swift in Sources */,
 				24009EBA24BE3FA200155DE2 /* DestinationView.swift in Sources */,
 				24009E9124B66E6800155DE2 /* XMPPController.swift in Sources */,

@@ -514,7 +514,7 @@ fileprivate struct TextView: UIViewRepresentable {
         // MARK: Mentions
 
         lazy var mentionPicker: MentionPickerView = {
-            let picker = MentionPickerView()
+            let picker = MentionPickerView(avatarStore: MainAppContext.shared.avatarStore)
             picker.cornerRadius = 10
             picker.borderColor = .systemGray
             picker.borderWidth = 1

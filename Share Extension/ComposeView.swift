@@ -33,7 +33,13 @@ class ComposeViewController: SLComposeServiceViewController {
     }
     
     private var destination: ShareDestination = .post {
-        didSet { reloadConfigurationItems() }
+        didSet {
+            reloadConfigurationItems()
+
+            // Update mention picker since it's not relevant for 1-1 messages.
+            // Do not clear existing mentions (in case they switch back to post later)
+            updateMentionPickerContent()
+        }
     }
     private var hasMedia = false {
         didSet { validateContent() }
@@ -74,6 +80,11 @@ class ComposeViewController: SLComposeServiceViewController {
         
         NotificationCenter.default.addObserver(forName: .NSExtensionHostDidEnterBackground, object: nil, queue: nil) { _ in
             ShareExtensionContext.shared.shareExtensionIsActive = false
+        }
+
+        if ServerProperties.isInternalUser {
+            textView.inputAccessoryView = mentionPicker
+            textView.delegate = self
         }
     }
     
@@ -186,7 +197,7 @@ class ComposeViewController: SLComposeServiceViewController {
         }
         
         destinationItem.tapHandler = {
-            let destinationVC = DestinationViewController(style: .insetGrouped)
+            let destinationVC = DestinationViewController(style: .insetGrouped, avatarStore: self.avatarStore)
             destinationVC.delegate = self
             self.pushConfigurationViewController(destinationVC)
         }
@@ -194,12 +205,78 @@ class ComposeViewController: SLComposeServiceViewController {
         return [destinationItem]
     }
 
+    private let avatarStore = AvatarStore()
+    private(set) var mentions = MentionRangeMap()
+
+    var mentionInput: MentionInput {
+        MentionInput(text: textView.text, mentions: mentions, selectedRange: textView.selectedRange)
+    }
+
+    private lazy var mentionPicker: MentionPickerView = {
+        let picker = MentionPickerView(avatarStore: avatarStore)
+        picker.cornerRadius = 10
+        picker.borderColor = .systemGray
+        picker.borderWidth = 1
+        picker.clipsToBounds = true
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.isHidden = true // Hide until content is set
+        picker.didSelectItem = { [weak self] item in self?.acceptMentionPickerItem(item) }
+        picker.heightAnchor.constraint(lessThanOrEqualToConstant: 120).isActive = true
+        return picker
+    }()
+
+    private lazy var mentionableUsers: [MentionableUser] = {
+        return Mentions.mentionableUsersForNewPost()
+    }()
+
+    private func updateMentionPickerContent() {
+        let mentionableUsers = fetchMentionPickerContent(for: mentionInput)
+
+        mentionPicker.items = mentionableUsers
+        mentionPicker.isHidden = mentionableUsers.isEmpty
+    }
+
+    private func acceptMentionPickerItem(_ item: MentionableUser) {
+        var input = mentionInput
+        guard let mentionCandidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
+            // For now we assume there is a word to replace (but in theory we could just insert at point)
+            return
+        }
+
+        let utf16Range = NSRange(mentionCandidateRange, in: input.text)
+        input.addMention(name: item.fullName, userID: item.userID, in: utf16Range)
+        textView.text = input.text
+        textView.selectedRange = input.selectedRange
+        mentions = input.mentions
+
+        updateMentionPickerContent()
+    }
+
+    private func fetchMentionPickerContent(for input: MentionInput) -> [MentionableUser] {
+        guard let mentionCandidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
+            return []
+        }
+        if case .contact = destination {
+            // Do not show mention picker for 1-1 messages.
+            return []
+        }
+        let mentionCandidate = input.text[mentionCandidateRange]
+        let trimmedInput = String(mentionCandidate.dropFirst())
+        return mentionableUsers.filter {
+            Mentions.isPotentialMatch(fullName: $0.fullName, input: trimmedInput)
+        }
+    }
+
     private func startSending() {
-        let text = contentText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let plainText = mentionInput.text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let mentionText = MentionText(
+            expandedText: mentionInput.text,
+            mentionRanges: mentionInput.mentions).trimmed()
 
         switch destination {
         case .post:
-            dataStore.post(text: text, media: mediaToSend) { (result) in
+            dataStore.post(text: mentionText, media: mediaToSend) { (result) in
                 switch result {
                 case .success(_):
                     ShareExtensionContext.shared.shareExtensionIsActive = false
@@ -218,7 +295,7 @@ class ComposeViewController: SLComposeServiceViewController {
             }
 
         case .contact(let userId, _):
-            dataStore.send(to: userId, text: text, media: mediaToSend) { (result) in
+            dataStore.send(to: userId, text: plainText, media: mediaToSend) { (result) in
                 switch result {
                 case .success(_):
                     ShareExtensionContext.shared.shareExtensionIsActive = false
@@ -392,5 +469,40 @@ extension ComposeViewController: ShareDestinationDelegate {
     func setDestination(to newDestination: ShareDestination) {
         destination = newDestination
         popConfigurationViewController()
+    }
+}
+
+extension ComposeViewController {
+
+    override func textViewDidChange(_ textView: UITextView) {
+        self.updateMentionPickerContent()
+    }
+
+    override func textViewDidChangeSelection(_ textView: UITextView) {
+        self.updateMentionPickerContent()
+    }
+
+    override func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+
+        var input = mentionInput
+
+        // Treat mentions atomically (editing any part of the mention should remove the whole thing)
+        let rangeIncludingImpactedMentions = input
+            .impactedMentionRanges(in: range)
+            .reduce(range) { range, mention in NSUnionRange(range, mention) }
+
+        input.changeText(in: rangeIncludingImpactedMentions, to: text)
+
+        if range == rangeIncludingImpactedMentions {
+            // Update mentions and return true so UITextView can update text without breaking IME
+            mentions = input.mentions
+            return true
+        } else {
+            // Update content ourselves and return false so UITextView doesn't issue conflicting update
+            textView.text = input.text
+            textView.selectedRange = input.selectedRange
+            mentions = input.mentions
+            return false
+        }
     }
 }

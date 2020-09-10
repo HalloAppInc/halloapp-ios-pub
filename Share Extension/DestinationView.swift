@@ -34,8 +34,8 @@ class DestinationViewController: UITableViewController {
     
     public var delegate: ShareDestinationDelegate?
     
-    override init(style: UITableView.Style) {
-        avatarStore = AvatarStore()
+    init(style: UITableView.Style, avatarStore: AvatarStore) {
+        self.avatarStore = avatarStore
         contacts = ShareExtensionContext.shared.contactStore.allInNetworkContacts(sorted: true)
 
         super.init(style: style)

@@ -84,7 +84,7 @@ class ShareExtensionDataStore: SharedDataStore {
 
     public typealias SharePostCompletion = (Result<FeedPostID, Error>) -> ()
     
-    func post(text: String, media: [PendingMedia], completion: @escaping SharePostCompletion) {
+    func post(text: MentionText, media: [PendingMedia], completion: @escaping SharePostCompletion) {
         let postId: FeedPostID = UUID().uuidString
         DDLogInfo("SharedDataStore/post/\(postId)/created")
 
@@ -92,10 +92,21 @@ class ShareExtensionDataStore: SharedDataStore {
         let managedObjectContext = persistentContainer.viewContext
         let feedPost = NSEntityDescription.insertNewObject(forEntityName: SharedFeedPost.entity().name!, into: managedObjectContext) as! SharedFeedPost
         feedPost.id = postId
-        feedPost.text = text
+        feedPost.text = text.collapsedText
         feedPost.timestamp = Date()
         feedPost.userId = AppContext.shared.userData.userId
         feedPost.status = .none
+
+        // Add mentions
+        var mentionSet = Set<SharedFeedMention>()
+        for (index, userID) in text.mentions {
+            let feedMention = NSEntityDescription.insertNewObject(forEntityName: SharedFeedMention.entity().name!, into: managedObjectContext) as! SharedFeedMention
+            feedMention.index = index
+            feedMention.userID = userID
+            feedMention.name = AppContext.shared.contactStore.pushNames[userID] ?? ""
+            mentionSet.insert(feedMention)
+        }
+        feedPost.mentions = mentionSet
         
         media.forEach { (mediaItem) in
             attach(media: mediaItem, to: .post(feedPost), using: managedObjectContext)

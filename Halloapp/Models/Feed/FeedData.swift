@@ -1693,6 +1693,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 feedPost.status = post.status == .sent ? .sent : .sendError
                 feedPost.timestamp = post.timestamp
 
+                // Mentions
+                var mentionSet = Set<FeedMention>()
+                for mention in post.mentions ?? [] {
+                    let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+                    feedMention.index = mention.index
+                    feedMention.userID = mention.userID
+                    feedMention.name = mention.name
+                    mentionSet.insert(feedMention)
+                }
+                feedPost.mentions = mentionSet
+
                 // Post Audience
                 if let audience = post.audience {
                     let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
