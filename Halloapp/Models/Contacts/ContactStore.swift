@@ -118,6 +118,8 @@ class ContactStoreMain: ContactStore {
     private let contactSerialQueue = DispatchQueue(label: "com.halloapp.contacts")
     private var cancellableSet: Set<AnyCancellable> = []
 
+    let didDiscoverNewUsers = PassthroughSubject<[UserID], Never>()
+
     // MARK: Init
 
     required init(userData: UserData) {
@@ -655,7 +657,11 @@ class ContactStoreMain: ContactStore {
         return Dictionary(grouping: contacts, by: { $0.normalizedPhoneNumber! })
     }
 
-    private func update(contacts: [ABContact], with xmppContact: XMPPContact) {
+    /**
+     - returns: Contacts whose status has been changed to "in".
+     */
+    private func update(contacts: [ABContact], with xmppContact: XMPPContact) -> [ABContact] {
+        var newUsers: [ABContact] = []
         let newStatus: ABContact.Status = xmppContact.registered ? .in : (xmppContact.normalized == nil ? .invalid : .out)
         if newStatus == .invalid {
             DDLogInfo("contacts/sync/process-results/invalid [\(xmppContact.raw!)]")
@@ -668,6 +674,7 @@ class ContactStoreMain: ContactStore {
 
                 if newStatus == .in {
                     DDLogInfo("contacts/sync/process-results/new-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
+                    newUsers.append(abContact)
                 } else if previousStatus == .in && newStatus == .out {
                     DDLogInfo("contacts/sync/process-results/delete-user [\(xmppContact.normalized!)]:[\(abContact.fullName ?? "<<NO NAME>>")]")
                 }
@@ -695,17 +702,23 @@ class ContactStoreMain: ContactStore {
                 abContact.userId = xmppContact.userid
             }
         }
+        return newUsers
+    }
+
+    private func notifyAboutNewUsers(_ userIds: [UserID]) {
+        self.didDiscoverNewUsers.send(userIds)
     }
 
     func processSync(results: [XMPPContact], isFullSync: Bool, using managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("contacts/sync/process-results/start")
-        let startTime = Date()
 
-        let allPhoneNumbers = results.map{ $0.raw! } // none must not be empty
-        let phoneNumberToContactsMap = self.contactsMatching(phoneNumbers: allPhoneNumbers, in: managedObjectContext)
+        let startTime = Date()
+        var discoveredUsers: [ABContact] = []
+        let phoneNumberToContactsMap = contactsMatching(phoneNumbers: results.map{ $0.raw! }, in: managedObjectContext)
         for xmppContact in results {
-            if let contacts = phoneNumberToContactsMap[xmppContact.raw!] {
-                self.update(contacts: contacts, with: xmppContact)
+            if let matchingContacts = phoneNumberToContactsMap[xmppContact.raw!], !matchingContacts.isEmpty {
+                let contacts = update(contacts: matchingContacts, with: xmppContact)
+                discoveredUsers.append(contentsOf: contacts)
             }
         }
 
@@ -717,10 +730,17 @@ class ContactStoreMain: ContactStore {
             DDLogError("contacts/sync/process-results/save-error error=[\(error)]")
         }
 
-        let initialSyncCompleted = self.databaseMetadata?[ContactsStoreMetadataContactsSynced] as? Bool
-        if !(initialSyncCompleted ?? false) {
-            self.mutateDatabaseMetadata { (metadata) in
+        let initialSyncCompleted = databaseMetadata?[ContactsStoreMetadataContactsSynced] as? Bool ?? false
+        if !initialSyncCompleted {
+            mutateDatabaseMetadata { (metadata) in
                 metadata[ContactsStoreMetadataContactsSynced] = true
+            }
+        } else {
+            let userIdsToSharePostsWith = discoveredUsers.compactMap({ $0.userId })
+            if !userIdsToSharePostsWith.isEmpty {
+                DispatchQueue.main.async {
+                    self.notifyAboutNewUsers(userIdsToSharePostsWith)
+                }
             }
         }
 
@@ -736,10 +756,12 @@ class ContactStoreMain: ContactStore {
             DDLogInfo("contacts/notification/process/empty")
             return
         }
+        var discoveredUsers: [ABContact] = []
         let phoneNumberToContactsMap = self.contactsMatching(normalizedPhoneNumbers: allNormalizedPhoneNumbers, in: managedObjectContext)
         for xmppContact in xmppContacts {
-            if let contacts = phoneNumberToContactsMap[xmppContact.normalized!] {
-                self.update(contacts: contacts, with: xmppContact)
+            if let matchingContacts = phoneNumberToContactsMap[xmppContact.normalized!], !matchingContacts.isEmpty {
+                let contacts = update(contacts: matchingContacts, with: xmppContact)
+                discoveredUsers.append(contentsOf: contacts)
             }
         }
         DDLogInfo("contacts/notification/process/will-save")
@@ -748,6 +770,13 @@ class ContactStoreMain: ContactStore {
             DDLogInfo("contacts/notification/process/did-save")
         } catch {
             DDLogError("contacts/snotification/process/save-error error=[\(error)]")
+        }
+
+        let userIdsToSharePostsWith = discoveredUsers.compactMap({ $0.userId })
+        if !userIdsToSharePostsWith.isEmpty {
+            DispatchQueue.main.async {
+                self.notifyAboutNewUsers(userIdsToSharePostsWith)
+            }
         }
     }
 

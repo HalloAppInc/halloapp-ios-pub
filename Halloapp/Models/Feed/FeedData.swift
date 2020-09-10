@@ -57,7 +57,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         // when app resumes, xmpp reconnects, feed should try uploading any pending again
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             self.service.didConnect.sink {
                 DDLogInfo("Feed: Got event for didConnect")
 
@@ -66,11 +66,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.resendPendingReadReceipts()
             })
         
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             self.userData.didLogOff.sink {
                 DDLogInfo("Unloading feed data. \(self.feedDataItems.count) posts")
 
                 self.destroyStore()
+            })
+
+        cancellableSet.insert(
+            self.contactStore.didDiscoverNewUsers.sink { (userIds) in
+                userIds.forEach({ self.sharePastPostsWith(userId: $0) })
             })
 
         self.fetchFeedPosts()
@@ -1476,6 +1481,49 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.updateFeedPost(with: postId) { (feedPost) in
                     feedPost.status = .sendError
                 }
+            }
+        }
+    }
+
+    func sharePastPostsWith(userId: UserID) {
+        guard !MainAppContext.shared.privacySettings.blocked.userIds.contains(userId) else {
+            DDLogInfo("FeedData/share-posts/\(userId) User is blocked")
+            return
+        }
+
+        let predicate = NSPredicate(format: "statusValue == %d AND timestamp > %@", FeedPost.Status.sent.rawValue, NSDate(timeIntervalSinceNow: -Date.days(7)))
+        let posts = feedPosts(predicate: predicate, in: viewContext)
+
+        var postsToShare: [FeedPost] = []
+        for post in posts {
+            guard let audience = post.audience else { continue }
+            switch audience.privacyListType {
+            case .all:
+                postsToShare.append(post)
+
+            case .whitelist, .blacklist:
+                if audience.userIds.contains(userId) {
+                    postsToShare.append(post)
+                }
+
+            default:
+                break
+            }
+        }
+
+        guard !postsToShare.isEmpty else {
+            DDLogWarn("FeedData/share-posts/\(userId) No posts to share")
+            return
+        }
+
+        DDLogInfo("FeedData/share-posts/\(userId) Sending \(postsToShare.count) posts")
+        service.sharePosts(postIds: postsToShare.map({ $0.id }), with: userId) { (result) in
+            switch result {
+            case .success(_):
+                DDLogInfo("FeedData/share-posts/\(userId)/success")
+
+            case .failure(let error):
+                DDLogError("FeedData/share-posts/\(userId)/error [\(error)]")
             }
         }
     }
