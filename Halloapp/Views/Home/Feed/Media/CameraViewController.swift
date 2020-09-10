@@ -30,11 +30,28 @@ fileprivate class AlertStateModel: ObservableObject {
     @Published var alertMessage = ""
 }
 
+fileprivate struct CameraViewLayoutConstants {
+    static let barButtonSize: CGFloat = 24
+    static let horizontalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
+    static let verticalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
+    static let backgroundRadius: CGFloat = 20
+    static let imageRadius: CGFloat = 15
+    static let captureButtonSize: CGFloat = 73
+    static let captureButtonStroke: CGFloat = 9
+    static let captureButtonPaddingTop: CGFloat = 16
+    static let captureButtonPaddingBotom: CGFloat = 30
+
+    static let buttonColorDark = Color(.sRGB, white: 0.176)
+}
+
 class CameraViewController: UIViewController {
     private var showCancelButton = false
     private let didFinish: () -> Void
     private let didPickImage: DidPickImageCallback
     private let didPickVideo: DidPickVideoCallback
+
+    private var defaultBackButton: UIBarButtonItem?
+    private var landscapeBackButton: UIBarButtonItem?
 
     init(showCancelButton: Bool,
          didFinish: @escaping () -> Void,
@@ -55,15 +72,19 @@ class CameraViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.title = "Camera"
-        if showCancelButton {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarBack"), style: .plain, target: self, action: #selector(cancelAction))
-        }
+        setupBarButtons()
+        setTitle(orientation: UIDevice.current.orientation)
+        setBackBarButton(orientation: UIDevice.current.orientation)
 
         let cameraView = CameraView(
             didPickImage: didPickImage,
             didPickVideo: didPickVideo,
-            goBack: { [weak self] in self?.backAction() })
+            goBack: { [weak self] in self?.backAction() },
+            onOrientationChange: { [weak self] orientation in
+                self?.setTitle(orientation: orientation)
+                self?.setBackBarButton(orientation: orientation)
+            }
+        )
 
         let cameraViewController = UIHostingController(rootView: cameraView)
         addChild(cameraViewController)
@@ -84,42 +105,84 @@ class CameraViewController: UIViewController {
             navigationController?.popViewController(animated: true)
         }
     }
-}
 
-fileprivate struct CameraViewLayoutConstants {
-    static let horizontalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
-    static let verticalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
-    static let backgroundRadius: CGFloat = 20
-    static let imageRadius: CGFloat = 15
-    static let captureButtonSize: CGFloat = 73
-    static let captureButtonStroke: CGFloat = 9
-    static let captureButtonPaddingTop: CGFloat = 16
-    static let captureButtonPaddingBotom: CGFloat = 30
+    private func setupBarButtons() {
+        let defaultBackImage = UIImage(named: "NavbarBack")
+        let landscapeBackImage = defaultBackImage?.cgImage != nil ?
+            UIImage(cgImage: defaultBackImage!.cgImage!, scale: 1.0, orientation: .right) : nil
 
-    static let buttonColorDark = Color(.sRGB, white: 0.176)
+        let landscapeButton = UIButton(type: .system)
+        landscapeButton.setImage(landscapeBackImage, for: .normal)
+        landscapeButton.addTarget(self, action: #selector(cancelAction), for: .touchUpInside)
+
+        defaultBackButton = UIBarButtonItem(
+            image: defaultBackImage, style: .plain, target: self, action: #selector(cancelAction))
+        let barButton = UIBarButtonItem(customView: landscapeButton)
+        barButton.customView?.translatesAutoresizingMaskIntoConstraints = false
+        barButton.customView?.heightAnchor.constraint(
+            equalToConstant: CameraViewLayoutConstants.barButtonSize).isActive = true
+        barButton.customView?.widthAnchor.constraint(
+            equalToConstant: CameraViewLayoutConstants.barButtonSize).isActive = true
+        landscapeBackButton = barButton
+    }
+
+    private func setTitle(orientation: UIDeviceOrientation) {
+        if orientation.isLandscape {
+            navigationItem.title = nil
+        } else {
+            navigationItem.title = "Camera"
+        }
+    }
+
+    private func setBackBarButton(orientation: UIDeviceOrientation) {
+        guard let defaultBackButton = defaultBackButton,
+            let landscapeBackButton = landscapeBackButton else { return }
+
+        if showCancelButton {
+            if orientation.isLandscape {
+                navigationItem.leftBarButtonItem = nil
+                navigationItem.rightBarButtonItem = landscapeBackButton
+            } else {
+                navigationItem.leftBarButtonItem = defaultBackButton
+                navigationItem.rightBarButtonItem = nil
+            }
+        }
+    }
 }
 
 fileprivate struct CameraView: View {
     let didPickImage: DidPickImageCallback
     let didPickVideo: DidPickVideoCallback
     let goBack: () -> Void
+    let onOrientationChange: (UIDeviceOrientation) -> Void
 
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject var cameraState = CameraStateModel()
     @ObservedObject var alertState = AlertStateModel()
     @State var captureButtonColor = Color.cameraButton
+    @State var orientation = UIDevice.current.orientation
 
     private let plainButtonStyle = PlainButtonStyle()
+    private let orientationPublisher = NotificationCenter.default
+        .publisher(for: UIDevice.orientationDidChangeNotification)
+        .map { _ in UIDevice.current.orientation }
+        .eraseToAnyPublisher()
 
-    private func getCameraControllerHeight(_ width: CGFloat) -> CGFloat {
+    private static func getCameraControllerHeight(_ width: CGFloat) -> CGFloat {
         return ((width - 4 * CameraViewLayoutConstants.horizontalPadding) * 4 / 3).rounded()
+    }
+
+    private static func getIconRotation(_ orientation: UIDeviceOrientation) -> Angle {
+        return Angle(degrees: orientation.isLandscape ? 90 : 0)
     }
 
     var controls: some View {
         return HStack {
             Spacer()
             Button(action: self.toggleFlash) {
-                Image("CameraFlashOff").foregroundColor(.cameraButton)
+                Image("CameraFlashOff")
+                    .foregroundColor(.cameraButton)
+                    .rotationEffect(CameraView.getIconRotation(orientation))
             }
             Spacer()
 
@@ -135,7 +198,9 @@ fileprivate struct CameraView: View {
 
             Spacer()
             Button(action: self.flipCamera) {
-                Image("CameraFlip").foregroundColor(.cameraButton)
+                Image("CameraFlip")
+                    .foregroundColor(.cameraButton)
+                    .rotationEffect(CameraView.getIconRotation(orientation))
             }
             Spacer()
         }
@@ -153,7 +218,7 @@ fileprivate struct CameraView: View {
                         goBack: self.goBack,
                         cameraState: self.cameraState,
                         alertState: self.alertState)
-                    .frame(maxWidth: .infinity, maxHeight: self.getCameraControllerHeight(geometry.size.width))
+                    .frame(maxWidth: .infinity, maxHeight: CameraView.getCameraControllerHeight(geometry.size.width))
                     .padding(.horizontal, CameraViewLayoutConstants.horizontalPadding)
                     .padding(.vertical, CameraViewLayoutConstants.verticalPadding)
 
@@ -173,6 +238,10 @@ fileprivate struct CameraView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.feedBackground)
             .edgesIgnoringSafeArea(.bottom)
+            .onReceive(self.orientationPublisher) { orientation in
+                self.orientation = orientation
+                self.onOrientationChange(orientation)
+            }
         }
     }
 
