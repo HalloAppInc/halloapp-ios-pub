@@ -35,7 +35,6 @@
 		682F79EE24F72F630084AF42 /* contact.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E124F72F630084AF42 /* contact.pb.swift */; };
 		682F79EF24F72F630084AF42 /* packets.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E224F72F630084AF42 /* packets.pb.swift */; };
 		682F79F024F72F630084AF42 /* whisper_keys.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E324F72F630084AF42 /* whisper_keys.pb.swift */; };
-		6888CBC8250034A00049FF0E /* cert.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBC72500349F0049FF0E /* cert.pb.swift */; };
 		6832F50124FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50024FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift */; };
 		6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50224FEE9CB00A9C202 /* CoreService.swift */; };
 		6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */; };
@@ -44,6 +43,7 @@
 		6832F50C24FEE9DF00A9C202 /* ProtoServiceCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */; };
 		6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */; };
 		6888CBBE25001CFF0049FF0E /* XMPP+CoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */; };
+		6888CBC8250034A00049FF0E /* cert.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBC72500349F0049FF0E /* cert.pb.swift */; };
 		688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1D24ED979400258BB9 /* MentionText.swift */; };
 		688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */; };
 		68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E7F24D2128300F40F1F /* NSAttributedString.swift */; };
@@ -132,7 +132,6 @@
 		682F79E124F72F630084AF42 /* contact.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = contact.pb.swift; sourceTree = "<group>"; };
 		682F79E224F72F630084AF42 /* packets.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = packets.pb.swift; sourceTree = "<group>"; };
 		682F79E324F72F630084AF42 /* whisper_keys.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = whisper_keys.pb.swift; sourceTree = "<group>"; };
-		6888CBC72500349F0049FF0E /* cert.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = cert.pb.swift; sourceTree = "<group>"; };
 		6832F50024FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ChatMessageProtocol+Encryption.swift"; sourceTree = "<group>"; };
 		6832F50224FEE9CB00A9C202 /* CoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreService.swift; sourceTree = "<group>"; };
 		6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequest.swift; sourceTree = "<group>"; };
@@ -141,6 +140,7 @@
 		6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoServiceCore.swift; sourceTree = "<group>"; };
 		6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoCommonRequests.swift; sourceTree = "<group>"; };
 		6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XMPP+CoreService.swift"; sourceTree = "<group>"; };
+		6888CBC72500349F0049FF0E /* cert.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = cert.pb.swift; sourceTree = "<group>"; };
 		688D8A1D24ED979400258BB9 /* MentionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MentionText.swift; sourceTree = "<group>"; };
 		688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Proto+Mentions.swift"; sourceTree = "<group>"; };
 		68A64E7F24D2128300F40F1F /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
@@ -821,7 +821,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 57;
+				CURRENT_PROJECT_VERSION = 58;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -851,7 +851,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 57;
+				CURRENT_PROJECT_VERSION = 58;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -939,7 +939,7 @@
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 57;
+				CURRENT_PROJECT_VERSION = 58;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 5M78D698HF;
 				DYLIB_COMPATIBILITY_VERSION = 1;
