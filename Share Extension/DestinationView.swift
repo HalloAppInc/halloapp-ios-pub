@@ -36,7 +36,7 @@ class DestinationViewController: UITableViewController {
     
     init(style: UITableView.Style, avatarStore: AvatarStore) {
         self.avatarStore = avatarStore
-        contacts = ShareExtensionContext.shared.contactStore.allInNetworkContacts(sorted: true)
+        contacts = ShareExtensionContext.shared.contactStore.allRegisteredContacts(sorted: true)
 
         super.init(style: style)
     }
