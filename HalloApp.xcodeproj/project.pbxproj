@@ -23,7 +23,7 @@
 		2446D68124CB5867005BAD3C /* VideoUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D67B24CB54F8005BAD3C /* VideoUtils.swift */; };
 		2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681242C2486EAC2008C5216 /* AppExtensionContext.swift */; };
 		2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
-		2446D68B24CF732B005BAD3C /* ShareExtensionDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D68A24CF732B005BAD3C /* ShareExtensionDataStore.swift */; };
+		2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2446D68A24CF732B005BAD3C /* DataStore.swift */; };
 		24AA69D324DCC1B500ED65CE /* XMPPChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */; };
 		24AA69DC24DDC6DA00ED65CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF3A1C82334192000805FF9 /* Assets.xcassets */; };
 		24D743E024B3D199001111BF /* Share Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 24D743D624B3D199001111BF /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -304,7 +304,7 @@
 		2446D66824C7E48E005BAD3C /* ExtensionPreprocessing.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = ExtensionPreprocessing.js; sourceTree = "<group>"; };
 		2446D67B24CB54F8005BAD3C /* VideoUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoUtils.swift; sourceTree = "<group>"; };
 		2446D67D24CB558F005BAD3C /* ImageServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageServer.swift; sourceTree = "<group>"; };
-		2446D68A24CF732B005BAD3C /* ShareExtensionDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionDataStore.swift; sourceTree = "<group>"; };
+		2446D68A24CF732B005BAD3C /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
 		24AA69D224DCC1B500ED65CE /* XMPPChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPChatMessage.swift; sourceTree = "<group>"; };
 		24D743D624B3D199001111BF /* Share Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Share Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24D743DD24B3D199001111BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -588,13 +588,13 @@
 		24D743D724B3D199001111BF /* Share Extension */ = {
 			isa = PBXGroup;
 			children = (
-				24009E8F24B6690E00155DE2 /* Share Extension.entitlements */,
 				24009EB724BE399F00155DE2 /* ComposeView.swift */,
+				2446D68A24CF732B005BAD3C /* DataStore.swift */,
 				24009EB924BE3FA200155DE2 /* DestinationView.swift */,
 				2446D66824C7E48E005BAD3C /* ExtensionPreprocessing.js */,
 				24D743DD24B3D199001111BF /* Info.plist */,
+				24009E8F24B6690E00155DE2 /* Share Extension.entitlements */,
 				24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */,
-				2446D68A24CF732B005BAD3C /* ShareExtensionDataStore.swift */,
 				24009E9024B66E6800155DE2 /* XMPPController.swift */,
 			);
 			path = "Share Extension";
@@ -1580,7 +1580,7 @@
 				24009E9124B66E6800155DE2 /* XMPPController.swift in Sources */,
 				2446D68624CB6DA9005BAD3C /* ContactTableViewCell.swift in Sources */,
 				76B5B524250086330055E712 /* UIColor.swift in Sources */,
-				2446D68B24CF732B005BAD3C /* ShareExtensionDataStore.swift in Sources */,
+				2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */,
 				24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */,
 				2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */,
 			);

@@ -1741,7 +1741,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedMedia.post = feedPost
 
                     let pendingMedia = PendingMedia(type: feedMedia.type)
-                    pendingMedia.fileURL = SharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath)
+                    pendingMedia.fileURL = sharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath)
                     if feedMedia.status != .uploaded {
                         // Only copy encrypted file if media failed to upload so that upload could be retried.
                         pendingMedia.encryptedFileUrl = pendingMedia.fileURL!.appendingPathExtension("enc")

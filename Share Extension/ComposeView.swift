@@ -50,7 +50,7 @@ class ComposeViewController: SLComposeServiceViewController {
 
     private let imageServer = ImageServer()
     private var mediaToSend = [PendingMedia]()
-    private var dataStore: ShareExtensionDataStore!
+    private var dataStore: DataStore!
     private var service: CoreService!
     
     override func viewDidLoad() {

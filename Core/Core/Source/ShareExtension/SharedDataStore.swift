@@ -8,13 +8,6 @@
 
 import CocoaLumberjack
 import CoreData
-import UIKit
-import XMPPFramework
-
-public enum MediaType: Int {
-    case image = 0
-    case video = 1
-}
 
 open class SharedDataStore {
 
@@ -22,23 +15,20 @@ open class SharedDataStore {
         case post(SharedFeedPost)
         case message(SharedChatMessage)
     }
-    
-    private class var persistentStoreURL: URL {
-        get {
-            return AppContext.sharedDirectoryURL.appendingPathComponent("share-extension.sqlite")
-        }
+
+    // MARK: Customization Points
+    class var persistentStoreURL: URL {
+        fatalError("Must implement in a subclass")
     }
     
-    public class var dataDirectoryURL: URL {
-        get {
-            return AppContext.sharedDirectoryURL.appendingPathComponent("ShareExtension")
-        }
+    class var dataDirectoryURL: URL {
+        fatalError("Must implement in a subclass")
     }
-    
-    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.share-extension")
-    
-    public let persistentContainer: NSPersistentContainer = {
-        let storeDescription = NSPersistentStoreDescription(url: SharedDataStore.persistentStoreURL)
+
+    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.data-store")
+
+    public final lazy var persistentContainer: NSPersistentContainer! = {
+        let storeDescription = NSPersistentStoreDescription(url: Self.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
         storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
@@ -55,19 +45,27 @@ open class SharedDataStore {
         return container
     }()
     
-    public static func fileURL(forRelativeFilePath relativePath: String) -> URL {
+    public final func fileURL(forRelativeFilePath relativePath: String) -> URL {
         return Self.dataDirectoryURL.appendingPathComponent(relativePath)
     }
 
-    public static func relativeFilePath(forFilename filename: String, mediaType: FeedMediaType) -> String {
+    public final class func relativeFilePath(forFilename filename: String, mediaType: FeedMediaType) -> String {
         // No intermediate directories needed.
         let fileExtension = FeedDownloadManager.fileExtension(forMediaType: mediaType)
         return "\(filename).\(fileExtension)"
     }
 
-    public init() {}
-    
-    public func save(_ managedObjectContext: NSManagedObjectContext) {
+    public final class func preparePathForWriting(_ fileURL: URL) {
+        let directoryURL = fileURL.deletingLastPathComponent()
+        do {
+            try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
+        }
+        catch {
+            DDLogError("SharedDataStore/prepare-path/error \(error)")
+        }
+    }
+
+    public final func save(_ managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("SharedDataStore/will-save")
         do {
             try managedObjectContext.save()
@@ -77,59 +75,16 @@ open class SharedDataStore {
         }
     }
     
-    public func attach(media: PendingMedia, to target: PostOrMessage, using managedObjectContext: NSManagedObjectContext) {
-        DDLogInfo("SharedDataStore/attach-media [\(media.fileURL!)]")
-        
-        let feedMedia = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
-        feedMedia.type = media.type
-        feedMedia.url = media.url
-        feedMedia.uploadUrl = media.uploadUrl
-        feedMedia.size = media.size!
-        feedMedia.key = media.key!
-        feedMedia.sha256 = media.sha256!
-        feedMedia.order = Int16(media.order)
-        
-        switch target {
-        case .post(let feedPost):
-            feedMedia.post = feedPost
-        case .message(let chatMessage):
-            feedMedia.message = chatMessage
-        }
-        
-        let relativeFilePath = Self.relativeFilePath(forFilename: UUID().uuidString, mediaType: media.type)
-
-        do {
-            let destinationUrl = Self.fileURL(forRelativeFilePath: relativeFilePath)
-
-            // Copy unencrypted media file.
-            if let sourceUrl = media.fileURL {
-                try FileManager.default.createDirectory(at: Self.dataDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-                try FileManager.default.copyItem(at: sourceUrl, to: destinationUrl)
-                DDLogDebug("SharedDataStore/attach-media/ copied [\(sourceUrl)] to [\(destinationUrl)]")
-
-                feedMedia.relativeFilePath = relativeFilePath
-            }
-
-            // Copy encrypted media file.
-            // Encrypted media would be saved at the same file path with an additional ".enc" appended.
-            if let sourceUrl = media.encryptedFileUrl {
-                let encryptedDestinationUrl = destinationUrl.appendingPathExtension("enc")
-                try FileManager.default.copyItem(at: sourceUrl, to: encryptedDestinationUrl)
-                DDLogDebug("SharedDataStore/attach-media/ copied [\(sourceUrl)] to [\(encryptedDestinationUrl)]")
-            }
-        } catch {
-            DDLogError("SharedDataStore/attach-media/error [\(error)]")
-        }
-    }
-    
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         self.backgroundProcessingQueue.async {
             let managedObjectContext = self.persistentContainer.newBackgroundContext()
             managedObjectContext.performAndWait { block(managedObjectContext) }
         }
     }
+
+    // MARK: Fetching Data
     
-    public func posts() -> [SharedFeedPost] {
+    public final func posts() -> [SharedFeedPost] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedFeedPost> = SharedFeedPost.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedFeedPost.timestamp, ascending: false)]
@@ -143,7 +98,7 @@ open class SharedDataStore {
         }
     }
     
-    public func messages() -> [SharedChatMessage] {
+    public final func messages() -> [SharedChatMessage] {
         let managedObjectContext = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<SharedChatMessage> = SharedChatMessage.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \SharedChatMessage.timestamp, ascending: false)]
@@ -156,8 +111,10 @@ open class SharedDataStore {
             fatalError("Failed to fetch shared messages.")
         }
     }
+
+    // MARK: Deleting Data
     
-    public func delete(posts: [SharedFeedPost], completion: @escaping (() -> Void)) {
+    public final func delete(posts: [SharedFeedPost], completion: @escaping (() -> Void)) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
             let posts = posts.compactMap({ managedObjectContext.object(with: $0.objectID) as? SharedFeedPost })
 
@@ -176,7 +133,7 @@ open class SharedDataStore {
         }
     }
 
-    public func delete(messages: [SharedChatMessage], completion: @escaping (() -> Void)) {
+    public final func delete(messages: [SharedChatMessage], completion: @escaping (() -> Void)) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
             let messages = messages.compactMap({ managedObjectContext.object(with: $0.objectID) as? SharedChatMessage })
 
@@ -197,7 +154,7 @@ open class SharedDataStore {
 
     private func deleteFiles(forMedia mediaItems: [SharedMedia]) {
         mediaItems.forEach { (mediaItem) in
-            let fileUrl = Self.fileURL(forRelativeFilePath: mediaItem.relativeFilePath)
+            let fileUrl = fileURL(forRelativeFilePath: mediaItem.relativeFilePath)
             do {
                 try FileManager.default.removeItem(at: fileUrl)
                 DDLogInfo("SharedDataStore/delete-media [\(fileUrl)]")
@@ -209,4 +166,17 @@ open class SharedDataStore {
             } catch {}
         }
     }
+}
+
+open class ShareExtensionDataStore: SharedDataStore {
+
+    override class var persistentStoreURL: URL {
+        AppContext.sharedDirectoryURL.appendingPathComponent("share-extension.sqlite")
+    }
+
+    override class var dataDirectoryURL: URL {
+        AppContext.sharedDirectoryURL.appendingPathComponent("ShareExtension")
+    }
+
+    public override init() {}
 }

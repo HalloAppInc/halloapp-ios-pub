@@ -111,7 +111,7 @@ class MainAppContext: AppContext {
         DDLogInfo("MainAppContext/mergeSharedData/start")
         
         let mergeGroup = DispatchGroup()
-        let sharedDataStore = SharedDataStore()
+        let sharedDataStore = ShareExtensionDataStore()
         
         mergeGroup.enter()
         feedData.mergeSharedData(using: sharedDataStore) {

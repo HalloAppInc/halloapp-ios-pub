@@ -1,5 +1,5 @@
 //
-//  ShareExtensionDataStore.swift
+//  DataStore.swift
 //  Share Extension
 //
 //  Created by Alan Luo on 7/27/20.
@@ -14,7 +14,7 @@ enum ShareExtensionError: Error {
     case mediaUploadFailed
 }
 
-class ShareExtensionDataStore: SharedDataStore {
+class DataStore: ShareExtensionDataStore {
 
     private let xmppController: XMPPController
     private let mediaUploader: MediaUploader
@@ -23,8 +23,8 @@ class ShareExtensionDataStore: SharedDataStore {
         self.xmppController = xmppController
         mediaUploader = MediaUploader(service: xmppController)
         super.init()
-        mediaUploader.resolveMediaPath = { (relativeMediaPath) in
-            return Self.fileURL(forRelativeFilePath: relativeMediaPath)
+        mediaUploader.resolveMediaPath = { [weak self] (relativeMediaPath) in
+            return self!.fileURL(forRelativeFilePath: relativeMediaPath)
         }
     }
 
@@ -79,6 +79,51 @@ class ShareExtensionDataStore: SharedDataStore {
             }
             DDLogInfo("SharedDataStore/upload-media/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
             completion(numberOfFailedUploads == 0)
+        }
+    }
+
+    private func attach(media: PendingMedia, to target: PostOrMessage, using managedObjectContext: NSManagedObjectContext) {
+        DDLogInfo("SharedDataStore/attach-media [\(media.fileURL!)]")
+
+        let feedMedia = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+        feedMedia.type = media.type
+        feedMedia.url = media.url
+        feedMedia.uploadUrl = media.uploadUrl
+        feedMedia.size = media.size!
+        feedMedia.key = media.key!
+        feedMedia.sha256 = media.sha256!
+        feedMedia.order = Int16(media.order)
+
+        switch target {
+        case .post(let feedPost):
+            feedMedia.post = feedPost
+        case .message(let chatMessage):
+            feedMedia.message = chatMessage
+        }
+
+        let relativeFilePath = Self.relativeFilePath(forFilename: UUID().uuidString, mediaType: media.type)
+
+        do {
+            let destinationUrl = fileURL(forRelativeFilePath: relativeFilePath)
+            Self.preparePathForWriting(destinationUrl)
+
+            // Copy unencrypted media file.
+            if let sourceUrl = media.fileURL {
+                try FileManager.default.copyItem(at: sourceUrl, to: destinationUrl)
+                DDLogDebug("SharedDataStore/attach-media/ copied [\(sourceUrl)] to [\(destinationUrl)]")
+
+                feedMedia.relativeFilePath = relativeFilePath
+            }
+
+            // Copy encrypted media file.
+            // Encrypted media would be saved at the same file path with an additional ".enc" appended.
+            if let sourceUrl = media.encryptedFileUrl {
+                let encryptedDestinationUrl = destinationUrl.appendingPathExtension("enc")
+                try FileManager.default.copyItem(at: sourceUrl, to: encryptedDestinationUrl)
+                DDLogDebug("SharedDataStore/attach-media/ copied [\(sourceUrl)] to [\(encryptedDestinationUrl)]")
+            }
+        } catch {
+            DDLogError("SharedDataStore/attach-media/error [\(error)]")
         }
     }
 

@@ -715,7 +715,7 @@ class ChatData: ObservableObject {
                     chatMedia.message = chatMessage
 
                     do {
-                        let sourceUrl = SharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath)
+                        let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath)
                         let encryptedFileUrl = chatMedia.outgoingStatus != .uploaded ? sourceUrl.appendingPathExtension("enc") : nil
                         try self.copyFiles(toChatMedia: chatMedia, fileUrl: sourceUrl, encryptedFileUrl: encryptedFileUrl)
                     } catch {
