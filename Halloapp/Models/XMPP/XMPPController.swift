@@ -302,6 +302,19 @@ class XMPPControllerMain: XMPPController {
             return
         }
 
+        // Contact push name change notification
+        if let nameElement = message.element(forName: "name"), nameElement.xmlns() == "halloapp:users:name" {
+            guard let userId = nameElement.attributeStringValue(forName: "uid"),
+                let name = nameElement.stringValue, !name.isEmpty else {
+                sendAck(for: message)
+                return
+            }
+
+            MainAppContext.shared.contactStore.addPushNames([ userId: name ])
+            sendAck(for: message)
+            return
+        }
+
         // Feed Items
         if let feed = message.element(forName: "feed"), feed.xmlns() == "halloapp:feed",
             let action = feed.attributeStringValue(forName: "action"),
