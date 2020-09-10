@@ -1280,7 +1280,7 @@ fileprivate class FacePileView: UIControl {
                 avatarView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
             } else {
                 let previousView = self.avatarViews[index - 1]
-                avatarView.trailingAnchor.constraint(equalTo: previousView.centerXAnchor).isActive = true
+                avatarView.trailingAnchor.constraint(equalTo: previousView.centerXAnchor, constant: -3).isActive = true
             }
             
             avatarView.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
