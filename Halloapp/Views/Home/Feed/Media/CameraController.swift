@@ -67,6 +67,7 @@ class CameraController: UIViewController {
     private var photoOutput: AVCapturePhotoOutput?
     private var movieOutput: AVCaptureMovieFileOutput?
 
+    private(set) var orientation: UIDeviceOrientation
     private var videoTimeout: DispatchWorkItem?
     private(set) var isRecordingMovie =  false
     private(set) var isUsingBackCamera = true
@@ -89,8 +90,9 @@ class CameraController: UIViewController {
         }
     }
 
-    init(cameraDelegate: CameraDelegate) {
+    init(cameraDelegate: CameraDelegate, orientation: UIDeviceOrientation) {
         self.cameraDelegate = cameraDelegate
+        self.orientation = orientation
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -196,8 +198,14 @@ class CameraController: UIViewController {
 
     private func configureVideoOutput(_ output: AVCaptureOutput) {
         let connection = output.connection(with: .video)
-        connection?.videoOrientation = .portrait
-        connection?.isVideoMirrored = !isUsingBackCamera
+        // NOTE(VL): Do we need to support .landscapeLeft or .portraitUpsideDown?
+        // Discuss and change if needed.
+        if connection?.isVideoOrientationSupported ?? false {
+            connection?.videoOrientation = orientation.isPortrait ? .portrait : .landscapeRight
+        }
+        if connection?.isVideoMirroringSupported ?? false {
+            connection?.isVideoMirrored = !isUsingBackCamera
+        }
     }
 
     private func setFocusAndExposure(camera: AVCaptureDevice, point: CGPoint? = nil) {
@@ -294,10 +302,29 @@ class CameraController: UIViewController {
         videoTimeout = nil
     }
 
+    public func setOrientation(_ orientation: UIDeviceOrientation) {
+        let didOrientationChange = self.orientation.isPortrait != orientation.isPortrait
+        self.orientation = orientation
+
+        guard let captureSession = captureSession,
+            let photoOutput = photoOutput,
+            let movieOutput = movieOutput else { return }
+
+        if didOrientationChange {
+            DDLogInfo("CameraController/setOrientation")
+            captureSession.beginConfiguration()
+            configureVideoOutput(photoOutput)
+            configureVideoOutput(movieOutput)
+            captureSession.commitConfiguration()
+        }
+    }
+
     public func switchCamera(_ useBackCamera: Bool) {
         guard let captureSession = captureSession,
             let backInput = backInput,
-            let frontInput = frontInput else { return }
+            let frontInput = frontInput,
+            let photoOutput = photoOutput,
+            let movieOutput = movieOutput else { return }
 
         if useBackCamera != isUsingBackCamera {
             DDLogInfo("CameraController/switchCamera")
@@ -307,12 +334,8 @@ class CameraController: UIViewController {
             captureSession.addInput(isUsingBackCamera ? frontInput : backInput)
             isUsingBackCamera = !isUsingBackCamera
 
-            if photoOutput != nil {
-                configureVideoOutput(photoOutput!)
-            }
-            if movieOutput != nil {
-                configureVideoOutput(movieOutput!)
-            }
+            configureVideoOutput(photoOutput)
+            configureVideoOutput(movieOutput)
 
             captureSession.commitConfiguration()
         }
