@@ -102,10 +102,8 @@ class PostComposerViewController: UIViewController {
         addChild(postComposerViewController)
         view.addSubview(postComposerViewController.view)
         postComposerViewController.view.translatesAutoresizingMaskIntoConstraints = false
-        postComposerViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        postComposerViewController.view.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        postComposerViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        postComposerViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        postComposerViewController.view.backgroundColor = .feedBackground
+        postComposerViewController.view.constrain(to: view)
         postComposerViewController.didMove(toParent: self)
     }
 
