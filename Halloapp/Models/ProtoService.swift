@@ -233,18 +233,23 @@ extension ProtoService: HalloService {
     }
 
     func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>) {
-        completion(.failure(ProtoServiceError.unimplemented))
+        enqueue(request: ProtoGroupCreateRequest(name: name, members: members, completion: completion))
     }
 
     func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>) {
-        completion(.failure(ProtoServiceError.unimplemented))
+        enqueue(request: ProtoGroupLeaveRequest(groupID: groupID, completion: completion))
     }
 
     func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>) {
-        completion(.failure(ProtoServiceError.unimplemented))
+        enqueue(request: ProtoGroupInfoRequest(groupID: groupID, completion: completion))
     }
     func modifyGroup(groupID: GroupID, with members: [UserID], groupAction: ChatGroupAction,
                      action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>) {
-        completion(.failure(ProtoServiceError.unimplemented))
+        enqueue(request: ProtoGroupModifyRequest(
+            groupID: groupID,
+            members: members,
+            groupAction: groupAction,
+            action: action,
+            completion: completion))
     }
 }

@@ -10,37 +10,51 @@ import Core
 import Foundation
 import XMPPFramework
 
-final class ProtoUpdateAvatarRequest: ProtoRequest {
-    private let completion: ServiceRequestCompletion<String?>
+class ProtoStandardRequest<T>: ProtoRequest {
 
-    init(data: Data?, completion: @escaping ServiceRequestCompletion<String?>) {
+    /// Transform response packet into preferred format
+    private let transform: (PBpacket) -> Result<T, Error>
+
+    /// Handle transformed response
+    private let completion: ServiceRequestCompletion<T>
+
+    init(packet: PBpacket, transform: @escaping (PBpacket) -> Result<T, Error>, completion: @escaping ServiceRequestCompletion<T> ) {
+        self.transform = transform
         self.completion = completion
+        super.init(packet: packet, id: packet.requestID ?? UUID().uuidString)
+    }
+
+    override func didFinish(with response: PBpacket) {
+        switch transform(response) {
+        case .success(let output):
+            completion(.success(output))
+        case .failure(let error):
+            completion(.failure(error))
+        }
+    }
+
+    override func didFail(with error: Error) {
+        completion(.failure(error))
+    }
+}
+
+final class ProtoUpdateAvatarRequest: ProtoStandardRequest<String?> {
+    init(data: Data?, completion: @escaping ServiceRequestCompletion<String?>) {
 
         var uploadAvatar = PBupload_avatar()
         if let data = data {
             uploadAvatar.data = data
         }
 
-        let packet = PBpacket.iqPacket(type: .set, payload: .uploadAvatar(uploadAvatar))
-
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    override func didFinish(with packet: PBpacket) {
-        let avatarID = packet.iq.payload.avatar.id
-        completion(.success(avatarID))
-    }
-
-    override func didFail(with error: Error) {
-        self.completion(.failure(error))
+        super.init(
+            packet: PBpacket.iqPacket(type: .set, payload: .uploadAvatar(uploadAvatar)),
+            transform: { .success($0.iq.payload.avatar.id) },
+            completion: completion)
     }
 }
 
-final class ProtoPushTokenRequest: ProtoRequest {
-    private let completion: ServiceRequestCompletion<Void>
-
+final class ProtoPushTokenRequest: ProtoStandardRequest<Void> {
     init(token: String, completion: @escaping ServiceRequestCompletion<Void>) {
-        self.completion = completion
 
         var pushToken = PBpush_token()
         pushToken.token = token
@@ -49,48 +63,28 @@ final class ProtoPushTokenRequest: ProtoRequest {
         var pushRegister = PBpush_register()
         pushRegister.pushToken = pushToken
 
-        let packet = PBpacket.iqPacket(type: .set, payload: .pushRegister(pushRegister))
-
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    override func didFinish(with response: PBpacket) {
-        self.completion(.success(()))
-    }
-
-    override func didFail(with error: Error) {
-        self.completion(.failure(error))
+        super.init(
+            packet: PBpacket.iqPacket(type: .set, payload: .pushRegister(pushRegister)),
+            transform: { _ in .success(()) },
+            completion: completion)
     }
 }
 
-final class ProtoRetractItemRequest: ProtoRequest {
-    private let completion: ServiceRequestCompletion<Void>
-
+final class ProtoRetractItemRequest: ProtoStandardRequest<Void> {
     init(feedItem: FeedItemProtocol, feedOwnerId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        self.completion = completion
 
         var pbFeedItem = PBfeed_item()
         pbFeedItem.item = feedItem.protoFeedItem(withData: false)
         pbFeedItem.action = .retract
 
-        let packet = PBpacket.iqPacket(type: .set, payload: .feedItem(pbFeedItem))
-
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    override func didFinish(with response: PBpacket) {
-        self.completion(.success(()))
-    }
-
-    override func didFail(with error: Error) {
-        self.completion(.failure(error))
+        super.init(
+            packet: PBpacket.iqPacket(type: .set, payload: .feedItem(pbFeedItem)),
+            transform: { _ in .success(()) },
+            completion: completion)
     }
 }
 
-final class ProtoContactSyncRequest: ProtoRequest {
-
-    private let completion: ServiceRequestCompletion<[HalloContact]>
-
+final class ProtoContactSyncRequest: ProtoStandardRequest<[HalloContact]> {
     init<T: Sequence>(
         with contacts: T,
         type: ContactSyncRequestType,
@@ -99,7 +93,6 @@ final class ProtoContactSyncRequest: ProtoRequest {
         isLastBatch: Bool? = nil,
         completion: @escaping ServiceRequestCompletion<[HalloContact]>) where T.Iterator.Element == HalloContact
     {
-        self.completion = completion
 
         var contactList = PBcontact_list()
         contactList.type = {
@@ -126,26 +119,17 @@ final class ProtoContactSyncRequest: ProtoRequest {
             return pbContact
         }
 
-        let packet = PBpacket.iqPacket(type: .set, payload: .contactList(contactList))
-
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    override func didFinish(with response: PBpacket) {
-        let contacts = response.iq.payload.contactList.contacts
-        self.completion(.success(contacts.compactMap { HalloContact($0) }))
-    }
-
-    override func didFail(with error: Error) {
-        self.completion(.failure(error))
+        super.init(
+            packet: PBpacket.iqPacket(type: .set, payload: .contactList(contactList)),
+            transform: {
+                let contacts = $0.iq.payload.contactList.contacts
+                return .success(contacts.compactMap { HalloContact($0) }) },
+            completion: completion)
     }
 }
 
-final class ProtoPresenceSubscribeRequest: ProtoRequest {
-    private let completion: ServiceRequestCompletion<Void>
-
+final class ProtoPresenceSubscribeRequest: ProtoStandardRequest<Void> {
     init(userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        self.completion = completion
 
         var presence = PBha_presence()
         presence.id = UUID().uuidString
@@ -157,23 +141,12 @@ final class ProtoPresenceSubscribeRequest: ProtoRequest {
         var packet = PBpacket()
         packet.presence = presence
 
-        super.init(packet: packet, id: packet.presence.id)
-    }
-
-    override func didFinish(with response: PBpacket) {
-        completion(.success(()))
-    }
-
-    override func didFail(with error: Error) {
-        completion(.failure(error))
+        super.init(packet: packet, transform: { _ in .success(())}, completion: completion)
     }
 }
 
-final class ProtoPresenceUpdate: ProtoRequest {
-    private let completion: ServiceRequestCompletion<Void>
-
+final class ProtoPresenceUpdate: ProtoStandardRequest<Void> {
     init(status: PresenceType, completion: @escaping ServiceRequestCompletion<Void>) {
-        self.completion = completion
 
         var presence = PBha_presence()
         presence.id = UUID().uuidString
@@ -192,21 +165,11 @@ final class ProtoPresenceUpdate: ProtoRequest {
         var packet = PBpacket()
         packet.presence = presence
 
-        super.init(packet: packet, id: packet.presence.id)
-    }
-
-    override func didFinish(with response: PBpacket) {
-        completion(.success(()))
-    }
-
-    override func didFail(with error: Error) {
-        completion(.failure(error))
+        super.init(packet: packet, transform: { _ in .success(()) }, completion: completion)
     }
 }
 
-final class ProtoSendReceipt: ProtoRequest {
-    let completion: ServiceRequestCompletion<Void>
-
+final class ProtoSendReceipt: ProtoStandardRequest<Void> {
     init(
         itemID: String,
         thread: HalloReceipt.Thread,
@@ -215,8 +178,6 @@ final class ProtoSendReceipt: ProtoRequest {
         toUserID: UserID,
         completion: @escaping ServiceRequestCompletion<Void>)
     {
-        self.completion = completion
-
         let payloadContent: PBmsg_payload.OneOf_Content = {
             switch type {
             case .delivery:
@@ -239,53 +200,130 @@ final class ProtoSendReceipt: ProtoRequest {
         var packet = PBpacket()
         packet.msg.payload.content = payloadContent
 
-        super.init(packet: packet, id: packet.msg.id)
+        super.init(packet: packet, transform: { _ in .success(()) }, completion: completion)
     }
 }
 
-class ProtoSendNameRequest: ProtoRequest {
-    private let completion: ServiceRequestCompletion<Void>
-
+class ProtoSendNameRequest: ProtoStandardRequest<Void> {
     init(name: String, completion: @escaping ServiceRequestCompletion<Void>) {
-        self.completion = completion
+
         var pbName = PBname()
         pbName.name = name
 
-        let packet = PBpacket.iqPacket(type: .set, payload: .name(pbName))
-
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    override func didFinish(with response: PBpacket) {
-        self.completion(.success(()))
-    }
-
-    override func didFail(with error: Error) {
-        self.completion(.failure(error))
+        super.init(
+            packet: PBpacket.iqPacket(type: .set, payload: .name(pbName)),
+            transform: { _ in .success(()) },
+            completion: completion)
     }
 }
 
-class ProtoClientVersionCheck: ProtoRequest {
-
-    private let completion: ServiceRequestCompletion<TimeInterval>
-
+class ProtoClientVersionCheck: ProtoStandardRequest<TimeInterval> {
     init(version: String, completion: @escaping ServiceRequestCompletion<TimeInterval>) {
-        self.completion = completion
 
         var clientVersion = PBclient_version()
         clientVersion.version = "HalloApp/iOS\(version)"
-        let packet = PBpacket.iqPacket(type: .get, payload: .clientVersion(clientVersion))
 
-        super.init(packet: packet, id: packet.iq.id)
+        super.init(
+            packet: PBpacket.iqPacket(type: .get, payload: .clientVersion(clientVersion)),
+            transform: {
+                let expiresInSeconds = $0.iq.payload.clientVersion.expiresInSeconds
+                return .success(TimeInterval(expiresInSeconds)) },
+            completion: completion)
     }
+}
 
-    override func didFinish(with response: PBpacket) {
-        let expiresInSeconds = response.iq.payload.clientVersion.expiresInSeconds
-        completion(.success(TimeInterval(expiresInSeconds)))
+class ProtoGroupCreateRequest: ProtoStandardRequest<Void> {
+    init(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>) {
+
+        var group = PBgroup_stanza()
+        group.action = .create
+        group.name = name
+        group.members = members.compactMap { PBgroup_member(userID: $0) }
+
+        super.init(
+            packet: PBpacket.iqPacket(type: .set, payload: .groupStanza(group)),
+            transform: { _ in .success(()) },
+            completion: completion)
     }
+}
 
-    override func didFail(with error: Error) {
-        completion(.failure(error))
+class ProtoGroupInfoRequest: ProtoStandardRequest<HalloGroup> {
+    init(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>) {
+
+        var group = PBgroup_stanza()
+        group.gid = groupID
+        group.action = .get
+
+        super.init(
+            packet: PBpacket.iqPacket(type: .get, payload: .groupStanza(group)),
+            transform: {
+                guard let group = HalloGroup(protoGroup: $0.iq.payload.groupStanza) else {
+                    return .failure(ProtoServiceError.unexpectedResponseFormat)
+                }
+                return .success(group) },
+            completion: completion)
     }
+}
 
+class ProtoGroupLeaveRequest: ProtoStandardRequest<Void> {
+    init(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>) {
+
+        var group = PBgroup_stanza()
+        group.gid = groupID
+        group.action = .leave
+
+        super.init(
+            packet: PBpacket.iqPacket(type: .set, payload: .groupStanza(group)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
+
+class ProtoGroupModifyRequest: ProtoStandardRequest<Void> {
+    init(groupID: GroupID, members: [UserID], groupAction: ChatGroupAction, action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>) {
+
+        var group = PBgroup_stanza()
+        group.gid = groupID
+        group.action = .init(groupAction)
+        group.members = members.compactMap { PBgroup_member(userID: $0, action: .init(action)) }
+
+        super.init(
+            packet: PBpacket.iqPacket(type: .set, payload: .groupStanza(group)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
+
+extension PBgroup_stanza.Action {
+    init(_ groupAction: ChatGroupAction) {
+        switch groupAction {
+        case .modifyAdmins: self = .modifyAdmins
+        case .modifyMembers: self = .modifyMembers
+        case .create: self = .create
+        case .leave: self = .leave
+        }
+    }
+}
+
+extension PBgroup_member {
+    init?(userID: UserID, action: Action? = nil) {
+        guard let uid = Int64(userID) else { return nil }
+        self.init()
+        self.uid = uid
+        if let action = action {
+            self.action = action
+        }
+    }
+}
+
+extension PBgroup_member.Action {
+    init(_ memberAction: ChatGroupMemberAction) {
+        switch memberAction {
+        case .add: self = .add
+        case .demote: self = .demote
+        case .leave: self = .leave
+        case .promote: self = .promote
+        case .remove: self = .remove
+        }
+    }
 }

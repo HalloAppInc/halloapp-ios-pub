@@ -67,6 +67,30 @@ struct XMPPGroup {
         self.name = name
         self.action = action
     }
+
+    init?(protoGroup: PBgroup_stanza) {
+        self.sender = String(protoGroup.senderUid)
+        self.senderName = protoGroup.senderName
+        self.groupId = protoGroup.gid
+        self.name = protoGroup.name
+        self.members = protoGroup.members.compactMap { XMPPGroupMember(protoMember: $0) }
+        // TODO: Which of these actions do we expect to exist?
+        self.action = {
+            switch protoGroup.action {
+            case .set: return nil
+            case .get: return nil
+            case .create: return .create
+            case .delete: return nil
+            case .leave: return .leave
+            case .changeAvatar: return nil
+            case .changeName: return nil
+            case .modifyAdmins: return .modifyAdmins
+            case .modifyMembers: return .modifyMembers
+            case .autoPromoteAdmins: return nil
+            case .UNRECOGNIZED(_): return nil
+            }
+        }()
+    }
 }
 
 struct XMPPGroupMember {
@@ -105,6 +129,30 @@ struct XMPPGroupMember {
         self.name = name
         self.type = type
         self.action = action
+    }
+
+    init?(protoMember: PBgroup_member) {
+        self.userId = String(protoMember.uid)
+        self.name = protoMember.name
+
+        self.action = {
+            switch protoMember.action {
+            case .add: return .add
+            case .remove: return .remove
+            case .promote: return .promote
+            case .demote: return .demote
+            case .leave: return .leave
+            case .UNRECOGNIZED(_): return nil
+            }
+        }()
+
+        self.type = {
+            switch protoMember.type {
+            case .member: return .member
+            case .admin: return .admin
+            case .UNRECOGNIZED(_): return nil
+            }
+        }()
     }
 }
 
