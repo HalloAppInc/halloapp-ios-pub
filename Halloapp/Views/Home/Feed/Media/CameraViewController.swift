@@ -73,16 +73,16 @@ class CameraViewController: UIViewController {
         super.viewDidLoad()
 
         setupBarButtons()
-        setTitle(UIDevice.current.orientation)
-        setBackBarButton(UIDevice.current.orientation)
+        setTitle(orientation: UIDevice.current.orientation)
+        setBackBarButton(orientation: UIDevice.current.orientation)
 
         let cameraView = CameraView(
             didPickImage: didPickImage,
             didPickVideo: didPickVideo,
             goBack: { [weak self] in self?.backAction() },
             onOrientationChange: { [weak self] orientation in
-                self?.setTitle(orientation)
-                self?.setBackBarButton(orientation)
+                self?.setTitle(orientation: orientation)
+                self?.setBackBarButton(orientation: orientation)
             }
         )
 
@@ -126,7 +126,7 @@ class CameraViewController: UIViewController {
         landscapeBackButton = barButton
     }
 
-    private func setTitle(_ orientation: UIDeviceOrientation) {
+    private func setTitle(orientation: UIDeviceOrientation) {
         if orientation.isLandscape {
             navigationItem.title = nil
         } else {
@@ -134,7 +134,7 @@ class CameraViewController: UIViewController {
         }
     }
 
-    private func setBackBarButton(_ orientation: UIDeviceOrientation) {
+    private func setBackBarButton(orientation: UIDeviceOrientation) {
         guard let defaultBackButton = defaultBackButton,
             let landscapeBackButton = landscapeBackButton else { return }
 
