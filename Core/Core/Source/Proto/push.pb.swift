@@ -99,6 +99,72 @@ public struct PBpush_register {
   fileprivate var _pushToken: PBpush_token? = nil
 }
 
+public struct PBpush_pref {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var name: PBpush_pref.Name = .post
+
+  public var value: Bool = false
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum Name: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case post // = 0
+    case comment // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .post
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .post
+      case 1: self = .comment
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .post: return 0
+      case .comment: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension PBpush_pref.Name: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [PBpush_pref.Name] = [
+    .post,
+    .comment,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct PBnotification_prefs {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var pushPrefs: [PBpush_pref] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 extension PBpush_token: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -168,6 +234,77 @@ extension PBpush_register: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
 
   public static func ==(lhs: PBpush_register, rhs: PBpush_register) -> Bool {
     if lhs._pushToken != rhs._pushToken {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension PBpush_pref: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "push_pref"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "name"),
+    2: .same(proto: "value"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularEnumField(value: &self.name)
+      case 2: try decoder.decodeSingularBoolField(value: &self.value)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.name != .post {
+      try visitor.visitSingularEnumField(value: self.name, fieldNumber: 1)
+    }
+    if self.value != false {
+      try visitor.visitSingularBoolField(value: self.value, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: PBpush_pref, rhs: PBpush_pref) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.value != rhs.value {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension PBpush_pref.Name: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "post"),
+    1: .same(proto: "comment"),
+  ]
+}
+
+extension PBnotification_prefs: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "notification_prefs"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "push_prefs"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeRepeatedMessageField(value: &self.pushPrefs)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.pushPrefs.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.pushPrefs, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: PBnotification_prefs, rhs: PBnotification_prefs) -> Bool {
+    if lhs.pushPrefs != rhs.pushPrefs {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

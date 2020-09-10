@@ -67,6 +67,8 @@ public struct PBauth_result {
 
   public var reason: String = String()
 
+  public var propsHash: Data = SwiftProtobuf.Internal.emptyData
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -132,6 +134,7 @@ extension PBauth_result: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "result"),
     2: .same(proto: "reason"),
+    3: .standard(proto: "props_hash"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -139,6 +142,7 @@ extension PBauth_result: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
       switch fieldNumber {
       case 1: try decoder.decodeSingularStringField(value: &self.result)
       case 2: try decoder.decodeSingularStringField(value: &self.reason)
+      case 3: try decoder.decodeSingularBytesField(value: &self.propsHash)
       default: break
       }
     }
@@ -151,12 +155,16 @@ extension PBauth_result: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     if !self.reason.isEmpty {
       try visitor.visitSingularStringField(value: self.reason, fieldNumber: 2)
     }
+    if !self.propsHash.isEmpty {
+      try visitor.visitSingularBytesField(value: self.propsHash, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: PBauth_result, rhs: PBauth_result) -> Bool {
     if lhs.result != rhs.result {return false}
     if lhs.reason != rhs.reason {return false}
+    if lhs.propsHash != rhs.propsHash {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

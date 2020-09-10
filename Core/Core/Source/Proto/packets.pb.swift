@@ -52,6 +52,18 @@ public struct PBping {
   public init() {}
 }
 
+public struct PBerror {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var reason: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct PBname {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -220,6 +232,46 @@ public struct PBiq_payload {
     set {_uniqueStorage()._content = .name(newValue)}
   }
 
+  public var error: PBerror {
+    get {
+      if case .error(let v)? = _storage._content {return v}
+      return PBerror()
+    }
+    set {_uniqueStorage()._content = .error(newValue)}
+  }
+
+  public var props: PBprops {
+    get {
+      if case .props(let v)? = _storage._content {return v}
+      return PBprops()
+    }
+    set {_uniqueStorage()._content = .props(newValue)}
+  }
+
+  public var invitesRequest: PBinvites_request {
+    get {
+      if case .invitesRequest(let v)? = _storage._content {return v}
+      return PBinvites_request()
+    }
+    set {_uniqueStorage()._content = .invitesRequest(newValue)}
+  }
+
+  public var invitesResponse: PBinvites_response {
+    get {
+      if case .invitesResponse(let v)? = _storage._content {return v}
+      return PBinvites_response()
+    }
+    set {_uniqueStorage()._content = .invitesResponse(newValue)}
+  }
+
+  public var notificationPrefs: PBnotification_prefs {
+    get {
+      if case .notificationPrefs(let v)? = _storage._content {return v}
+      return PBnotification_prefs()
+    }
+    set {_uniqueStorage()._content = .notificationPrefs(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Content: Equatable {
@@ -241,6 +293,11 @@ public struct PBiq_payload {
     case groupsStanza(PBgroups_stanza)
     case clientLog(PBclient_log)
     case name(PBname)
+    case error(PBerror)
+    case props(PBprops)
+    case invitesRequest(PBinvites_request)
+    case invitesResponse(PBinvites_response)
+    case notificationPrefs(PBnotification_prefs)
 
   #if !swift(>=4.1)
     public static func ==(lhs: PBiq_payload.OneOf_Content, rhs: PBiq_payload.OneOf_Content) -> Bool {
@@ -263,6 +320,11 @@ public struct PBiq_payload {
       case (.groupsStanza(let l), .groupsStanza(let r)): return l == r
       case (.clientLog(let l), .clientLog(let r)): return l == r
       case (.name(let l), .name(let r)): return l == r
+      case (.error(let l), .error(let r)): return l == r
+      case (.props(let l), .props(let r)): return l == r
+      case (.invitesRequest(let l), .invitesRequest(let r)): return l == r
+      case (.invitesResponse(let l), .invitesResponse(let r)): return l == r
+      case (.notificationPrefs(let l), .notificationPrefs(let r)): return l == r
       default: return false
       }
     }
@@ -377,6 +439,14 @@ public struct PBmsg_payload {
     set {content = .name(newValue)}
   }
 
+  public var error: PBerror {
+    get {
+      if case .error(let v)? = content {return v}
+      return PBerror()
+    }
+    set {content = .error(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Content: Equatable {
@@ -392,6 +462,7 @@ public struct PBmsg_payload {
     case groupStanza(PBgroup_stanza)
     case groupChat(PBgroup_chat)
     case name(PBname)
+    case error(PBerror)
 
   #if !swift(>=4.1)
     public static func ==(lhs: PBmsg_payload.OneOf_Content, rhs: PBmsg_payload.OneOf_Content) -> Bool {
@@ -408,6 +479,7 @@ public struct PBmsg_payload {
       case (.groupStanza(let l), .groupStanza(let r)): return l == r
       case (.groupChat(let l), .groupChat(let r)): return l == r
       case (.name(let l), .name(let r)): return l == r
+      case (.error(let l), .error(let r)): return l == r
       default: return false
       }
     }
@@ -916,6 +988,35 @@ extension PBping: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
   }
 }
 
+extension PBerror: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "error"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "reason"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularStringField(value: &self.reason)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: PBerror, rhs: PBerror) -> Bool {
+    if lhs.reason != rhs.reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension PBname: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = "name"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -972,6 +1073,11 @@ extension PBiq_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     16: .standard(proto: "groups_stanza"),
     17: .standard(proto: "client_log"),
     18: .same(proto: "name"),
+    19: .same(proto: "error"),
+    20: .same(proto: "props"),
+    21: .standard(proto: "invites_request"),
+    22: .standard(proto: "invites_response"),
+    23: .standard(proto: "notification_prefs"),
   ]
 
   fileprivate class _StorageClass {
@@ -1142,6 +1248,46 @@ extension PBiq_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
           }
           try decoder.decodeSingularMessageField(value: &v)
           if let v = v {_storage._content = .name(v)}
+        case 19:
+          var v: PBerror?
+          if let current = _storage._content {
+            try decoder.handleConflictingOneOf()
+            if case .error(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._content = .error(v)}
+        case 20:
+          var v: PBprops?
+          if let current = _storage._content {
+            try decoder.handleConflictingOneOf()
+            if case .props(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._content = .props(v)}
+        case 21:
+          var v: PBinvites_request?
+          if let current = _storage._content {
+            try decoder.handleConflictingOneOf()
+            if case .invitesRequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._content = .invitesRequest(v)}
+        case 22:
+          var v: PBinvites_response?
+          if let current = _storage._content {
+            try decoder.handleConflictingOneOf()
+            if case .invitesResponse(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._content = .invitesResponse(v)}
+        case 23:
+          var v: PBnotification_prefs?
+          if let current = _storage._content {
+            try decoder.handleConflictingOneOf()
+            if case .notificationPrefs(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._content = .notificationPrefs(v)}
         default: break
         }
       }
@@ -1187,6 +1333,16 @@ extension PBiq_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
         try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
       case .name(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
+      case .error(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
+      case .props(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
+      case .invitesRequest(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 21)
+      case .invitesResponse(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
+      case .notificationPrefs(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 23)
       case nil: break
       }
     }
@@ -1223,6 +1379,7 @@ extension PBmsg_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     10: .standard(proto: "group_stanza"),
     11: .standard(proto: "group_chat"),
     12: .same(proto: "name"),
+    13: .same(proto: "error"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1324,6 +1481,14 @@ extension PBmsg_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.content = .name(v)}
+      case 13:
+        var v: PBerror?
+        if let current = self.content {
+          try decoder.handleConflictingOneOf()
+          if case .error(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.content = .error(v)}
       default: break
       }
     }
@@ -1355,6 +1520,8 @@ extension PBmsg_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
       try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
     case .name(let v)?:
       try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
+    case .error(let v)?:
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
