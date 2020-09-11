@@ -10,19 +10,50 @@ import Combine
 import Core
 import XMPPFramework
 
+public enum PrivacyListItemUpdateAction: String, RawRepresentable {
+    case add
+    case delete
+}
 
-final class PrivacyListAllContacts: PrivacyListProtocol {
+public protocol PrivacyListUpdateProtocol {
+    var type: PrivacyListType { get }
+    var updates: [UserID: PrivacyListItemUpdateAction] { get }
+
+    /// Hash of the final list with updates applied
+    var resultHash: String? { get }
+}
+
+extension PrivacyList: PrivacyListUpdateProtocol {
+    public var updates: [UserID : PrivacyListItemUpdateAction] {
+        Dictionary(uniqueKeysWithValues: items.compactMap { item in
+            switch item.state {
+            case .added: return (item.userId, .add)
+            case .deleted: return (item.userId, .delete)
+            case .active: return nil
+            }
+        })
+    }
+    public var resultHash: String? {
+        hash
+    }
+}
+
+final class PrivacyListAllContacts: PrivacyListUpdateProtocol {
+
     init() {}
 
     var type: PrivacyListType {
         .all
     }
 
-    var userIds: [UserID] {
-        []
+    var updates: [UserID : PrivacyListItemUpdateAction] {
+        [:]
+    }
+
+    var resultHash: String? {
+        nil
     }
 }
-
 
 extension PrivacyList {
 
@@ -122,13 +153,13 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         static let SettingLoading = "..."
     }
 
-    private let xmppController: XMPPControllerMain
+    private let service: HalloService
     private var didConnectCancellable: AnyCancellable!
 
-    init(contactStore: ContactStore, xmppController: XMPPControllerMain) {
-        self.xmppController = xmppController
+    init(contactStore: ContactStore, service: HalloService) {
+        self.service = service
         super.init(contactStore: contactStore)
-        didConnectCancellable = xmppController.didConnect.sink { [weak self] in
+        didConnectCancellable = service.didConnect.sink { [weak self] in
             guard let self = self else { return }
             self.syncListsIfNecessary()
         }
@@ -280,7 +311,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         }
 
         DDLogInfo("privacy/download-lists")
-        let request = XMPPGetPrivacyListsRequest(listTypes) { (result) in
+        service.getPrivacyLists(listTypes) { result in
             switch result {
             case .success(let (lists, activeType)):
                 DDLogInfo("privacy/download-lists/complete \(lists.count) lists")
@@ -291,7 +322,6 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
                 self.privacyListSyncError = "Failed to sync privacy settings. Please try again later."
             }
         }
-        xmppController.enqueue(request: request)
     }
 
     private func uploadListsIfNecessary() {
@@ -320,7 +350,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         DDLogInfo("privacy/upload-list/\(privacyList.type)")
 
         let previousSetting = activeType!
-        let request = XMPPSendPrivacyListRequest(privacyList: privacyList) { (result) in
+        service.updatePrivacyList(privacyList) { result in
             switch result {
             case .success:
                 DDLogInfo("privacy/upload-list/\(privacyList.type)/complete")
@@ -338,7 +368,6 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
             }
             self.numberOfPendingRequests -= 1
         }
-        xmppController.enqueue(request: request)
     }
 
     private func process(lists: [PrivacyListProtocol], activeType: PrivacyListType) {
@@ -384,7 +413,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         DDLogInfo("privacy/set-list/all")
 
         let previousSetting = activeType!
-        let request = XMPPSendPrivacyListRequest(privacyList: PrivacyListAllContacts()) { (result) in
+        service.updatePrivacyList(PrivacyListAllContacts()) { result in
             switch result {
             case .success:
                 DDLogInfo("privacy/set-list/all/complete")
@@ -398,7 +427,6 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
             }
             self.numberOfPendingRequests -= 1
         }
-        xmppController.enqueue(request: request)
     }
 
     // MARK: Utility

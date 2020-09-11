@@ -99,7 +99,7 @@ class MainAppContext: AppContext {
         syncManager = SyncManager(contactStore: contactStore, service: xmppController, userData: userData)
         avatarStore = AvatarStore()
         xmppController.avatarDelegate = avatarStore
-        privacySettings = PrivacySettings(contactStore: contactStore, xmppController: xmppController)
+        privacySettings = PrivacySettings(contactStore: contactStore, service: xmppController)
     }
     
     private var mergingSharedData = false

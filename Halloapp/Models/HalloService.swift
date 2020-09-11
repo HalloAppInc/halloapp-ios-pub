@@ -64,7 +64,7 @@ protocol HalloService: CoreService {
                                    completion: @escaping ServiceRequestCompletion<[HalloContact]>) where T.Element == HalloContact
 
     // MARK: Privacy
-    func sendPrivacyList(_ privacyList: PrivacyList, completion: @escaping ServiceRequestCompletion<Void>)
+    func updatePrivacyList(_ update: PrivacyListUpdateProtocol, completion: @escaping ServiceRequestCompletion<Void>)
     func getPrivacyLists(_ listTypes: [PrivacyListType], completion: @escaping ServiceRequestCompletion<([PrivacyListProtocol], PrivacyListType)>)
 
     // MARK: APNS

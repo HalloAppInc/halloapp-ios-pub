@@ -57,7 +57,7 @@ class XMPPSendPrivacyListRequest: XMPPRequest {
 
     private let completion: XMPPRequestCompletion
 
-    init<T>(privacyList: T, completion: @escaping XMPPRequestCompletion) where T: PrivacyListProtocol, T: XMPPElementRepresentable {
+    init(privacyList: PrivacyListUpdateProtocol, completion: @escaping XMPPRequestCompletion) {
         self.completion = completion
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
         iq.addChild(privacyList.xmppElement)
@@ -116,31 +116,20 @@ class XMPPGetPrivacyListsRequest: XMPPRequest {
     }
 }
 
-extension PrivacyList: XMPPElementRepresentable {
+extension PrivacyListUpdateProtocol {
 
     public var xmppElement: XMPPElement {
         get {
             let listElement = XMPPElement(name: XMPPConstants.listElement, xmlns: XMPPConstants.xmlns)
             listElement.addAttribute(withName: XMPPConstants.typeAttribute, stringValue: type.rawValue)
-            listElement.addAttribute(withName: XMPPConstants.hashAttribute, stringValue: hash)
-            for item in items {
-                if item.state == .added || item.state == .deleted {
-                    let itemElement = XMPPElement(name: XMPPConstants.itemElement, stringValue: item.userId)
-                    itemElement.addAttribute(withName: XMPPConstants.typeAttribute, stringValue: item.state.rawValue)
-                    listElement.addChild(itemElement)
-                }
+            if let hash = resultHash {
+                listElement.addAttribute(withName: XMPPConstants.hashAttribute, stringValue: hash)
             }
-            return listElement
-        }
-    }
-}
-
-extension PrivacyListAllContacts: XMPPElementRepresentable {
-
-    var xmppElement: XMPPElement {
-        get {
-            let listElement = XMPPElement(name: XMPPConstants.listElement, xmlns: XMPPConstants.xmlns)
-            listElement.addAttribute(withName: XMPPConstants.typeAttribute, stringValue: type.rawValue)
+            for (user, action) in updates {
+                let itemElement = XMPPElement(name: XMPPConstants.itemElement, stringValue: user)
+                itemElement.addAttribute(withName: XMPPConstants.typeAttribute, stringValue: action.rawValue)
+                listElement.addChild(itemElement)
+            }
             return listElement
         }
     }
@@ -201,43 +190,31 @@ class ProtoGetPrivacyListsRequest: ProtoRequest {
     }
 }
 
-class ProtoSendPrivacyListRequest: ProtoRequest {
-
-    private let completion: ServiceRequestCompletion<Void>
-
-    init(privacyList: PrivacyList, completion: @escaping ServiceRequestCompletion<Void>) {
-        self.completion = completion
+class ProtoUpdatePrivacyListRequest: ProtoStandardRequest<Void> {
+    init(update: PrivacyListUpdateProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
 
         var list = PBprivacy_list()
-        list.type = PBprivacy_list.TypeEnum(privacyList.type)
-        list.uidElements = privacyList.items.compactMap { item in
-            guard let uid = Int64(item.userId) else {
-                DDLogError("ProtoSendPrivacyListRequest/error invalid userID \(item.userId)")
+        list.type = PBprivacy_list.TypeEnum(update.type)
+        list.uidElements = update.updates.compactMap { (userID, action) in
+            guard let uid = Int64(userID) else {
+                DDLogError("ProtoUpdatePrivacyListRequest/error invalid userID \(userID)")
                 return nil
             }
             var element = PBuid_element()
             element.uid = uid
-            switch item.state {
-            case .added:
-                element.action = .add
-            case .deleted:
-                element.action = .delete
-            default:
-                return nil
-            }
+            element.action = {
+                switch action {
+                case .add: return .add
+                case .delete: return .delete
+                }
+            }()
             return element
         }
 
-        let packet = PBpacket.iqPacket(type: .set, payload: .privacyList(list))
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    override func didFinish(with response: PBpacket) {
-        completion(.success(()))
-    }
-
-    override func didFail(with error: Error) {
-        completion(.failure(error))
+        super.init(
+            packet: PBpacket.iqPacket(type: .set, payload: .privacyList(list)),
+            transform: { _ in .success(()) },
+            completion: completion)
     }
 }
 

@@ -75,8 +75,8 @@ extension XMPPControllerMain: HalloService {
         sendSeenReceipt(receipt, to: toUserID)
     }
     
-    func sendPrivacyList(_ privacyList: PrivacyList, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: XMPPSendPrivacyListRequest(privacyList: privacyList, completion: completion))
+    func updatePrivacyList(_ update: PrivacyListUpdateProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: XMPPSendPrivacyListRequest(privacyList: update, completion: completion))
     }
 
     func getPrivacyLists(_ listTypes: [PrivacyListType], completion: @escaping ServiceRequestCompletion<([PrivacyListProtocol], PrivacyListType)>) {
