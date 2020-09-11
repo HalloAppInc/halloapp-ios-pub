@@ -71,7 +71,7 @@ final class ProtoPushTokenRequest: ProtoStandardRequest<Void> {
 }
 
 final class ProtoRetractItemRequest: ProtoStandardRequest<Void> {
-    init(feedItem: FeedItemProtocol, feedOwnerId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+    init(feedItem: FeedItemProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
 
         var pbFeedItem = PBfeed_item()
         pbFeedItem.item = feedItem.protoFeedItem(withData: false)

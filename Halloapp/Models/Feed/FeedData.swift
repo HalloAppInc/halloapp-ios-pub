@@ -1051,7 +1051,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(self.viewContext)
 
         // Request to retract.
-        service.retractFeedItem(feedPost, ownerID: feedPost.userId) { result in
+        service.retractFeedItem(feedPost) { result in
             switch result {
             case .success:
                 self.processPostRetract(postId) {}
@@ -1072,7 +1072,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(self.viewContext)
 
         // Request to retract.
-        service.retractFeedItem(comment, ownerID: comment.post.userId) { result in
+        service.retractFeedItem(comment) { result in
             switch result {
             case .success:
                 self.processCommentRetract(commentId) {}
@@ -1447,7 +1447,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func send(comment: FeedPostComment) {
         let commentId = comment.id
-        service.publishComment(comment, feedOwnerID: comment.post.userId) { result in
+        service.publishComment(comment) { result in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPostComment(with: commentId) { (feedComment) in
@@ -1466,8 +1466,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func send(post: FeedPost) {
+        guard let postAudience = post.audience else {
+            DDLogError("FeedData/send-post/\(post.id) No audience set")
+            post.status = .sendError
+            save(post.managedObjectContext!)
+            return
+        }
+
         let postId = post.id
-        service.publishPost(post, audience: post.audience) { result in
+        service.publishPost(post, audience: postAudience) { result in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPost(with: postId) { (feedPost) in

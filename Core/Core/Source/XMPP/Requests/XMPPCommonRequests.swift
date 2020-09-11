@@ -55,40 +55,6 @@ public class XMPPMediaUploadURLRequest: XMPPRequest {
     }
 }
 
-public class XMPPPostItemRequestOld: XMPPRequest {
-    
-    private let completion: XMPPPostItemRequestCompletion
-
-    public init(feedItem: FeedItemProtocol, feedOwnerId: UserID, completion: @escaping XMPPPostItemRequestCompletion) {
-        self.completion = completion
-        
-        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: "pubsub.s.halloapp.net"))
-        iq.addChild({
-            let pubsub = XMPPElement(name: "pubsub", xmlns: "http://jabber.org/protocol/pubsub")
-            pubsub.addChild({
-                let publish = XMPPElement(name: "publish")
-                publish.addAttribute(withName: "node", stringValue: "feed-\(feedOwnerId)")
-                publish.addChild(feedItem.oldFormatXmppElement(withData: true))
-                return publish
-            }())
-            return pubsub
-        }())
-        super.init(iq: iq)
-    }
-
-    public override func didFinish(with response: XMPPIQ) {
-        var timestamp: Date?
-        if let ts: TimeInterval = response.element(forName: "pubsub")?.element(forName: "publish")?.element(forName: "item")?.attributeDoubleValue(forName: "timestamp") {
-            timestamp = Date(timeIntervalSince1970: ts)
-        }
-        self.completion(.success(timestamp))
-    }
-
-    public override func didFail(with error: Error) {
-        self.completion(.failure(error))
-    }
-}
-
 public class XMPPPostItemRequest: XMPPRequest {
 
     private let completion: XMPPPostItemRequestCompletion

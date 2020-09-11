@@ -15,12 +15,8 @@ enum XMPPControllerError: Error {
 }
 
 extension XMPPControllerMain: HalloService {
-    public func retractFeedItem(_ feedItem: FeedItemProtocol, ownerID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        if ServerProperties.isInternalUser {
-            enqueue(request: XMPPRetractItemRequest(feedItem: feedItem, completion: completion))
-        } else {
-            enqueue(request: XMPPRetractItemRequestOld(feedItem: feedItem, feedOwnerId: ownerID, completion: completion))
-        }
+    public func retractFeedItem(_ feedItem: FeedItemProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: XMPPRetractItemRequest(feedItem: feedItem, completion: completion))
     }
 
     public func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {

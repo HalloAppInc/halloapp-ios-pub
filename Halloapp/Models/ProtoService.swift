@@ -115,8 +115,8 @@ extension ProtoService: HalloService {
         }
     }
 
-    func retractFeedItem(_ feedItem: FeedItemProtocol, ownerID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoRetractItemRequest(feedItem: feedItem, feedOwnerId: ownerID, completion: completion))
+    func retractFeedItem(_ feedItem: FeedItemProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoRetractItemRequest(feedItem: feedItem, completion: completion))
     }
 
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {

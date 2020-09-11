@@ -26,7 +26,7 @@ protocol HalloService: CoreService {
     func sendCurrentAvatarIfPossible()
 
     // MARK: Feed requests
-    func retractFeedItem(_ feedItem: FeedItemProtocol, ownerID: UserID, completion: @escaping ServiceRequestCompletion<Void>)
+    func retractFeedItem(_ feedItem: FeedItemProtocol, completion: @escaping ServiceRequestCompletion<Void>)
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Key requests

@@ -39,10 +39,8 @@ public protocol CoreService {
 
     // MARK: Feed
     func requestMediaUploadURL(size: Int, completion: @escaping ServiceRequestCompletion<MediaURL>)
-    // NB: Audience is only optional while the old feed API is still in use
-    func publishPost(_ post: FeedPostProtocol, audience: FeedAudience?, completion: @escaping ServiceRequestCompletion<Date?>)
-    // NB: feedOwnerID is only required while the old feed API is still in use
-    func publishComment(_ comment: FeedCommentProtocol, feedOwnerID: UserID, completion: @escaping ServiceRequestCompletion<Date?>)
+    func publishPost(_ post: FeedPostProtocol, audience: FeedAudience, completion: @escaping ServiceRequestCompletion<Date?>)
+    func publishComment(_ comment: FeedCommentProtocol, completion: @escaping ServiceRequestCompletion<Date?>)
 
     // MARK: Chat
     func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?)

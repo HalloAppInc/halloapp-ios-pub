@@ -358,11 +358,7 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func publishPost(_ post: FeedPostProtocol, audience: FeedAudience?, completion: @escaping ServiceRequestCompletion<Date?>) {
-        guard let audience = audience else {
-            DDLogError("ProtoServiceCore/publishFeedPost/error Audience is required")
-            return
-        }
+    public func publishPost(_ post: FeedPostProtocol, audience: FeedAudience, completion: @escaping ServiceRequestCompletion<Date?>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
@@ -370,7 +366,7 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func publishComment(_ comment: FeedCommentProtocol, feedOwnerID: UserID, completion: @escaping ServiceRequestCompletion<Date?>) {
+    public func publishComment(_ comment: FeedCommentProtocol, completion: @escaping ServiceRequestCompletion<Date?>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {

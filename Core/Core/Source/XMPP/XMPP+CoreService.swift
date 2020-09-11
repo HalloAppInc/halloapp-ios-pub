@@ -27,26 +27,16 @@ extension XMPPController: CoreService {
         }
     }
 
-    public func publishPost(_ post: FeedPostProtocol, audience: FeedAudience?, completion: @escaping ServiceRequestCompletion<Date?>) {
-        let request: XMPPRequest
-        if let audience = audience, ServerProperties.isInternalUser {
-            request = XMPPPostItemRequest(feedPost: post, audience: audience, completion: completion)
-        } else {
-            request = XMPPPostItemRequestOld(feedItem: post, feedOwnerId: post.userId, completion: completion)
-        }
+    public func publishPost(_ post: FeedPostProtocol, audience: FeedAudience, completion: @escaping ServiceRequestCompletion<Date?>) {
+        let request = XMPPPostItemRequest(feedPost: post, audience: audience, completion: completion)
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
             self.enqueue(request: request)
         }
     }
 
-    public func publishComment(_ comment: FeedCommentProtocol, feedOwnerID: UserID, completion: @escaping ServiceRequestCompletion<Date?>) {
-        let request: XMPPRequest
-        if ServerProperties.isInternalUser {
-            request = XMPPPostItemRequest(feedPostComment: comment, completion: completion)
-        } else {
-            request = XMPPPostItemRequestOld(feedItem: comment, feedOwnerId: feedOwnerID, completion: completion)
-        }
+    public func publishComment(_ comment: FeedCommentProtocol, completion: @escaping ServiceRequestCompletion<Date?>) {
+        let request = XMPPPostItemRequest(feedPostComment: comment, completion: completion)
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
             self.enqueue(request: request)
