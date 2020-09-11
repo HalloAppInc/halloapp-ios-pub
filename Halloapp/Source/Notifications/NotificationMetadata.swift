@@ -26,6 +26,7 @@ class NotificationMetadata {
         static let contentType = "content-type"
         static let data = "data"
         static let fromId = "from-id"
+        static let timestamp = "timestamp"
     }
 
     /*
@@ -37,15 +38,24 @@ class NotificationMetadata {
     let contentId: String
     let contentType: NotificationContentType
     let data: Data?
+    let timestamp: Date?
     let fromId: UserID
 
     var rawData: [String: String] {
-        return [
-            Keys.contentId: contentId,
-            Keys.contentType: contentType.rawValue,
-            Keys.data: data?.base64EncodedString() ?? "",
-            Keys.fromId: fromId
-        ]
+        get {
+            var result: [String: String] = [
+                Keys.contentId: contentId,
+                Keys.contentType: contentType.rawValue,
+                Keys.fromId: fromId
+            ]
+            if let data = data {
+                result[Keys.data] = data.base64EncodedString()
+            }
+            if let timestamp = timestamp {
+                result[Keys.timestamp] = String(timestamp.timeIntervalSince1970)
+            }
+            return result
+        }
     }
 
     var protoContainer: Proto_Container? {
@@ -105,12 +115,19 @@ class NotificationMetadata {
             DDLogError("NotificationMetadata/init/error Missing Data")
             return nil
         }
+
+        if let timestamp = TimeInterval(metadata[Keys.timestamp] ?? "") {
+            self.timestamp = Date(timeIntervalSince1970: timestamp)
+        } else {
+            self.timestamp = nil
+        }
     }
 
-    init(contentId: String, contentType: NotificationContentType, data: Data?, fromId: UserID) {
+    init(contentId: String, contentType: NotificationContentType, data: Data?, timestamp: Date?, fromId: UserID) {
         self.contentId = contentId
         self.contentType = contentType
         self.data = data
+        self.timestamp = timestamp
         self.fromId = fromId
     }
 

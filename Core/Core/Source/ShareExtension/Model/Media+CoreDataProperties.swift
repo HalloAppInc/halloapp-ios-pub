@@ -21,6 +21,7 @@ extension SharedMedia {
         case uploading = 1
         case uploaded = 2
         case error = 3
+        case downloaded = 4
     }
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<SharedMedia> {
@@ -61,7 +62,7 @@ extension SharedMedia {
 
     @NSManaged public var key: String
     @NSManaged public var order: Int16
-    @NSManaged public var relativeFilePath: String
+    @NSManaged public var relativeFilePath: String?
     @NSManaged public var sha256: String
     @NSManaged public var url: URL?
     @NSManaged public var uploadUrl: URL?

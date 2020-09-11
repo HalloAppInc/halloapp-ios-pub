@@ -6,10 +6,7 @@
 //
 //
 
-import Foundation
 import CoreData
-import SwiftProtobuf
-
 
 extension SharedFeedPost {
     public enum Status: Int16 {
@@ -41,10 +38,10 @@ extension SharedFeedPost {
 
     public var status: Status {
         get {
-            return Status(rawValue: self.statusValue)!
+            return Status(rawValue: statusValue)!
         }
         set {
-            self.statusValue = newValue.rawValue
+            statusValue = newValue.rawValue
         }
     }
 
@@ -81,7 +78,7 @@ extension SharedFeedPost: FeedItemProtocol {
 
 extension SharedFeedPost: FeedPostProtocol {
     public var orderedMentions: [FeedMentionProtocol] {
-        guard let mentions = self.mentions else { return [] }
+        guard let mentions = mentions else { return [] }
         return mentions.sorted { $0.index < $1.index }
     }
 

@@ -29,7 +29,7 @@
         <attribute name="height" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="key" attributeType="String"/>
         <attribute name="order" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="relativeFilePath" attributeType="String"/>
+        <attribute name="relativeFilePath" optional="YES" attributeType="String"/>
         <attribute name="sha256" attributeType="String"/>
         <attribute name="statusValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="typeValue" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>

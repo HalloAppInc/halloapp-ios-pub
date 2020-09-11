@@ -268,7 +268,7 @@ class DataStore: ShareExtensionDataStore {
 extension SharedMedia: MediaUploadable {
 
     var encryptedFilePath: String? {
-        return relativeFilePath.appending(".enc")
+        return relativeFilePath?.appending(".enc")
     }
 
     var index: Int {

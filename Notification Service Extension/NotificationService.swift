@@ -11,10 +11,11 @@ import CocoaLumberjack
 import Core
 import UserNotifications
 
-class NotificationService: UNNotificationServiceExtension {
+class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDelegate  {
 
-    var contentHandler: ((UNNotificationContent) -> Void)?
-    var bestAttemptContent: UNMutableNotificationContent?
+    var contentHandler: ((UNNotificationContent) -> Void)!
+    var bestAttemptContent: UNMutableNotificationContent!
+    private lazy var dataStore = DataStore()
 
     private lazy var downloadManager: FeedDownloadManager = {
         let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
@@ -28,12 +29,12 @@ class NotificationService: UNNotificationServiceExtension {
 
         DDLogInfo("didReceiveRequest/begin \(request)")
 
-        guard let bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent) else {
+        guard let content = (request.content.mutableCopy() as? UNMutableNotificationContent) else {
             contentHandler(request.content)
             return
         }
 
-        self.bestAttemptContent = bestAttemptContent
+        bestAttemptContent = content
         self.contentHandler = contentHandler
         
         guard let metadata = NotificationMetadata(notificationRequest: request) else {
@@ -42,83 +43,106 @@ class NotificationService: UNNotificationServiceExtension {
             return
         }
 
-        // Contact name goes as title.
-        let contactName = AppExtensionContext.shared.contactStore.fullName(for: metadata.fromId)
+        // Populate contact name early because `userId` is stored outside of protobuf container (which isn't guaranteed).
+        let userId = metadata.fromId
+        let contactName = AppExtensionContext.shared.contactStore.fullName(for: userId)
         bestAttemptContent.title = contactName
         DDLogVerbose("didReceiveRequest/ Got contact name: \(contactName)")
 
-        // Populate notification body.
-        var invokeHandler = true
-        if let protoContainer = metadata.protoContainer {
-            bestAttemptContent.populate(withDataFrom: protoContainer, mentionNameProvider: { userID in
-                AppExtensionContext.shared.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
-            })
-            if protoContainer.hasPost && !protoContainer.post.media.isEmpty {
-                invokeHandler = !startDownloading(media: protoContainer.post.media, containerId: metadata.contentId)
-            } else if protoContainer.hasChatMessage && !protoContainer.chatMessage.media.isEmpty {
-                invokeHandler = !startDownloading(media: protoContainer.chatMessage.media, containerId: metadata.contentId)
-            }
-        } else {
+        guard let protoContainer = metadata.protoContainer else {
             DDLogError("didReceiveRequest/error Invalid protobuf.")
+            contentHandler(bestAttemptContent)
+            return
         }
 
+        // Populate notification body.
+        bestAttemptContent.populate(withDataFrom: protoContainer, mentionNameProvider: { userID in
+            AppExtensionContext.shared.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
+        })
+
+        var invokeHandler = true
+        if protoContainer.hasPost {
+            let feedPost = dataStore.save(protoPost: protoContainer.post, notificationMetadata: metadata)
+            if let firstMediaItem = feedPost.orderedMedia.first as? SharedMedia {
+                let downloadTask = startDownloading(media: firstMediaItem)
+                downloadTask?.feedMediaObjectId = firstMediaItem.objectID
+                invokeHandler = downloadTask == nil
+            }
+        } else if protoContainer.hasChatMessage {
+            let messageId = metadata.contentId
+            if let chatMedia = protoContainer.chatMessage.media.first,
+                let xmppMedia = XMPPFeedMedia(id: "\(messageId)", protoMedia: chatMedia) {
+                let downloadTask = startDownloading(media: xmppMedia)
+                invokeHandler = downloadTask == nil
+            }
+        }
+
+        // Invoke completion handler now if there was nothing to download.
         if invokeHandler {
             DDLogInfo("Invoking completion handler now")
             contentHandler(bestAttemptContent)
         }
     }
 
-
-    private var downloadTasks = [ FeedDownloadManager.Task ]()
     /**
-     - returns:
-     True if at least one download has been started.
+      iOS doesn't show more than one attachment and therefore for now only download the first media from the post.
+
+     - returns: Download task if download has started.
      */
-    private func startDownloading(media: [ Proto_Media ], containerId: String) -> Bool {
-        let xmppMediaObjects = media.enumerated().compactMap { XMPPFeedMedia(id: "\(containerId)-\($0)", protoMedia: $1) }
-        guard !xmppMediaObjects.isEmpty else {
-            DDLogInfo("media/empty")
-            return false
+    private func startDownloading(media: FeedMediaProtocol) -> FeedDownloadManager.Task? {
+        let (taskAdded, task) = downloadManager.downloadMedia(for: media)
+        if taskAdded {
+            DDLogInfo("media/download/started \(task.id)")
+            return task
         }
-        DDLogInfo("media/ \(xmppMediaObjects.count) objects")
-        for xmppMedia in xmppMediaObjects {
-            let (taskAdded, task) = downloadManager.downloadMedia(for: xmppMedia)
-            if taskAdded {
-                DDLogInfo("media/download/start \(task.id)")
-
-                downloadTasks.append(task)
-
-                // iOS doesn't show more than one attachment and therefore for now
-                // only download the first media from the post.
-                // Later, when we add support for using data downloaded by Notification Service Extension
-                // in the main app we might start downloading all attachments.
-                break
-            }
-        }
-        return !downloadTasks.isEmpty
+        return nil
     }
 
-    private func addNotificationAttachments() {
-        guard let bestAttemptContent = bestAttemptContent else { return }
-        var attachments = [UNNotificationAttachment]()
-        for task in downloadTasks {
-            guard task.completed else { continue }
+    func feedDownloadManager(_ downloadManager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
+        DDLogInfo("media/download/finished \(task.id)")
 
-            // Populate
-            if task.error == nil {
-                do {
-                    let fileURL = downloadManager.fileURL(forRelativeFilePath: task.decryptedFilePath!)
-                    let attachment = try UNNotificationAttachment(identifier: task.id, url: fileURL, options: nil)
-                    attachments.append(attachment)
-                }
-                catch {
-                    // TODO: Log
-                }
-            } else {
-                // TODO: Log
+        if let error = task.error {
+            DDLogError("media/download/error \(error)")
+            DDLogInfo("Invoking completion handler now")
+            contentHandler(bestAttemptContent)
+            return
+        }
+
+        let fileURL = downloadManager.fileURL(forRelativeFilePath: task.decryptedFilePath!)
+
+        // Attach media to notification.
+        do {
+            let attachment = try UNNotificationAttachment(identifier: task.id, url: fileURL, options: nil)
+            bestAttemptContent.attachments = [attachment]
+        }
+        catch {
+            DDLogError("media/attachment-create/error \(error)")
+        }
+
+        // Copy downloaded media to shared file storage and update db with path to the media.
+        if let objectId = task.feedMediaObjectId,
+           let feedMediaItem = try? dataStore.sharedMediaObject(forObjectId: objectId) {
+
+            let filename = fileURL.deletingPathExtension().lastPathComponent
+            let relativeFilePath = SharedDataStore.relativeFilePath(forFilename: filename, mediaType: feedMediaItem.type)
+            do {
+                let destinationUrl = dataStore.fileURL(forRelativeFilePath: relativeFilePath)
+                SharedDataStore.preparePathForWriting(destinationUrl)
+
+                try FileManager.default.copyItem(at: fileURL, to: destinationUrl)
+                DDLogDebug("SharedDataStore/attach-media/ copied [\(fileURL)] to [\(destinationUrl)]")
+
+                feedMediaItem.relativeFilePath = relativeFilePath
+                feedMediaItem.status = .downloaded
+                dataStore.save(feedMediaItem.managedObjectContext!)
+            }
+            catch {
+                DDLogError("media/copy-media/error [\(error)]")
             }
         }
-        bestAttemptContent.attachments = attachments
+
+        DDLogInfo("Invoking completion handler now")
+        contentHandler(bestAttemptContent)
     }
 
     override func serviceExtensionTimeWillExpire() {
@@ -127,28 +151,8 @@ class NotificationService: UNNotificationServiceExtension {
         if let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent {
             DDLogWarn("timeWillExpire")
             DDLogInfo("Invoking completion handler now")
-            // Use whatever finished downloading.
-            addNotificationAttachments()
             contentHandler(bestAttemptContent)
         }
     }
 
-}
-
-extension NotificationService: FeedDownloadManagerDelegate {
-
-    func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task) {
-        guard let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent else {
-            return
-        }
-
-        DDLogInfo("media/download/finished \(task.id)")
-
-        // Present notification when all downloads have finished.
-        if downloadTasks.filter({ !$0.completed }).isEmpty {
-            DDLogInfo("Invoking completion handler now")
-            addNotificationAttachments()
-            contentHandler(bestAttemptContent)
-        }
-    }
 }

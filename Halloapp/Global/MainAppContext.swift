@@ -10,7 +10,7 @@ import CocoaLumberjack
 import Combine
 import Contacts
 import Core
-import Firebase
+import FirebaseCore
 import Foundation
 
 class MainAppContext: AppContext {
@@ -106,25 +106,31 @@ class MainAppContext: AppContext {
     
     func mergeSharedData() {
         guard !mergingSharedData else { return }
+
         mergingSharedData = true
-        
-        DDLogInfo("MainAppContext/mergeSharedData/start")
-        
         let mergeGroup = DispatchGroup()
-        let sharedDataStore = ShareExtensionDataStore()
+
+        DDLogInfo("MainAppContext/merge-data/share-extension")
         
+        let shareExtensionDataStore = ShareExtensionDataStore()
         mergeGroup.enter()
-        feedData.mergeSharedData(using: sharedDataStore) {
+        feedData.mergeData(from: shareExtensionDataStore) {
             mergeGroup.leave()
         }
-        
         mergeGroup.enter()
-        chatData.mergeSharedData(using: sharedDataStore) {
+        chatData.mergeData(from: shareExtensionDataStore) {
             mergeGroup.leave()
         }
-        
+
+        DDLogInfo("MainAppContext/merge-data/notification-service-extension")
+        let notificationServiceExtensionDataStore = NotificationServiceExtensionDataStore()
+        mergeGroup.enter()
+        feedData.mergeData(from: notificationServiceExtensionDataStore) {
+            mergeGroup.leave()
+        }
+
         mergeGroup.notify(queue: .main) {
-            DDLogInfo("MainAppContext/mergeSharedData/end")
+            DDLogInfo("MainAppContext/merge-data/finished")
             self.mergingSharedData = false
         }
     }

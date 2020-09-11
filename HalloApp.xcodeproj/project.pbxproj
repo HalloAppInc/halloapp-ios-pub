@@ -116,6 +116,7 @@
 		766492232450DDB9009BC368 /* BadgedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492222450DDB9009BC368 /* BadgedButton.swift */; };
 		766492252450E04D009BC368 /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492242450E04D009BC368 /* BadgeView.swift */; };
 		76649227245119F2009BC368 /* FeedNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76649226245119F2009BC368 /* FeedNotifications.swift */; };
+		76714DD9250AC3B800779C4E /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76714DD8250AC3B800779C4E /* DataStore.swift */; };
 		768123972485A240008C5216 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123962485A240008C5216 /* NotificationService.swift */; };
 		7681239B2485A240008C5216 /* Notification Service Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 768123942485A240008C5216 /* Notification Service Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		768123A42485C56E008C5216 /* MainAppContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123A32485C56E008C5216 /* MainAppContext.swift */; };
@@ -399,6 +400,7 @@
 		766492222450DDB9009BC368 /* BadgedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgedButton.swift; path = HalloApp/Components/Views/BadgedButton.swift; sourceTree = SOURCE_ROOT; };
 		766492242450E04D009BC368 /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgeView.swift; path = HalloApp/Components/Views/BadgeView.swift; sourceTree = SOURCE_ROOT; };
 		76649226245119F2009BC368 /* FeedNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedNotifications.swift; path = HalloApp/Models/Feed/FeedNotifications.swift; sourceTree = SOURCE_ROOT; };
+		76714DD8250AC3B800779C4E /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
 		768123942485A240008C5216 /* Notification Service Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Notification Service Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		768123962485A240008C5216 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		768123982485A240008C5216 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -761,10 +763,11 @@
 		768123952485A240008C5216 /* Notification Service Extension */ = {
 			isa = PBXGroup;
 			children = (
+				7681242C2486EAC2008C5216 /* AppExtensionContext.swift */,
+				76714DD8250AC3B800779C4E /* DataStore.swift */,
+				768123982485A240008C5216 /* Info.plist */,
 				76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */,
 				768123962485A240008C5216 /* NotificationService.swift */,
-				768123982485A240008C5216 /* Info.plist */,
-				7681242C2486EAC2008C5216 /* AppExtensionContext.swift */,
 			);
 			path = "Notification Service Extension";
 			sourceTree = "<group>";
@@ -1593,6 +1596,7 @@
 				76B5B5302501EEBE0055E712 /* UNExtensions.swift in Sources */,
 				768123972485A240008C5216 /* NotificationService.swift in Sources */,
 				7681242D2486EAC2008C5216 /* AppExtensionContext.swift in Sources */,
+				76714DD9250AC3B800779C4E /* DataStore.swift in Sources */,
 				76B5B52D2501EE790055E712 /* NotificationMetadata.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

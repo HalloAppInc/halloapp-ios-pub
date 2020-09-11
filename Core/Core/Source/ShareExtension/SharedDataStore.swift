@@ -25,8 +25,6 @@ open class SharedDataStore {
         fatalError("Must implement in a subclass")
     }
 
-    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.data-store")
-
     public final lazy var persistentContainer: NSPersistentContainer! = {
         let storeDescription = NSPersistentStoreDescription(url: Self.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
@@ -113,7 +111,9 @@ open class SharedDataStore {
     }
 
     // MARK: Deleting Data
-    
+
+    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.data-store")
+
     public final func delete(posts: [SharedFeedPost], completion: @escaping (() -> Void)) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
             let posts = posts.compactMap({ managedObjectContext.object(with: $0.objectID) as? SharedFeedPost })
@@ -153,8 +153,10 @@ open class SharedDataStore {
     }
 
     private func deleteFiles(forMedia mediaItems: [SharedMedia]) {
-        mediaItems.forEach { (mediaItem) in
-            let fileUrl = fileURL(forRelativeFilePath: mediaItem.relativeFilePath)
+        for mediaItem in mediaItems {
+            guard let relativePath = mediaItem.relativeFilePath else { continue }
+
+            let fileUrl = fileURL(forRelativeFilePath: relativePath)
             do {
                 try FileManager.default.removeItem(at: fileUrl)
                 DDLogInfo("SharedDataStore/delete-media [\(fileUrl)]")
@@ -176,6 +178,19 @@ open class ShareExtensionDataStore: SharedDataStore {
 
     override class var dataDirectoryURL: URL {
         AppContext.sharedDirectoryURL.appendingPathComponent("ShareExtension")
+    }
+
+    public override init() {}
+}
+
+open class NotificationServiceExtensionDataStore: SharedDataStore {
+
+    override class var persistentStoreURL: URL {
+        AppContext.sharedDirectoryURL.appendingPathComponent("notification-service-extension.sqlite")
+    }
+
+    override class var dataDirectoryURL: URL {
+        AppContext.sharedDirectoryURL.appendingPathComponent("NotificationServiceExtension")
     }
 
     public override init() {}

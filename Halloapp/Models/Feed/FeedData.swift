@@ -880,7 +880,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             comments.filter{ !commentIdsToFilterOut.contains($0.id) && self.isCommentEligibleForLocalNotification($0) }.forEach { (comment) in
                 let protoContainer = comment.protoContainer
                 let protobufData = try? protoContainer.serializedData()
-                let metadata = NotificationMetadata(contentId: comment.id, contentType: .comment, data: protobufData, fromId: comment.userId)
+                let metadata = NotificationMetadata(contentId: comment.id, contentType: .comment, data: protobufData, timestamp: comment.timestamp, fromId: comment.userId)
 
                 let notification = UNMutableNotificationContent()
                 notification.title = contactNames[comment.userId] ?? "Unknown Contact"
@@ -921,7 +921,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPosts.filter({ !postIdsToFilterOut.contains($0.id) }).forEach { (feedPost) in
                 let protoContainer = feedPost.protoContainer
                 let protobufData = try? protoContainer.serializedData()
-                let metadata = NotificationMetadata(contentId: feedPost.id, contentType: .feedpost, data: protobufData, fromId: feedPost.userId)
+                let metadata = NotificationMetadata(contentId: feedPost.id, contentType: .feedpost, data: protobufData, timestamp: feedPost.timestamp, fromId: feedPost.userId)
 
                 let notification = UNMutableNotificationContent()
                 notification.title = contactNames[feedPost.userId] ?? "Unknown Contact"
@@ -1672,103 +1672,121 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     // MARK: Merge Data
     
-    func mergeSharedData(using sharedDataStore: SharedDataStore, completion: @escaping () -> ()) {
+    func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping () -> ()) {
         let posts = sharedDataStore.posts()
-        
         guard !posts.isEmpty else {
+            DDLogDebug("FeedData/merge-data/ Nothing to merge")
             completion()
             return
         }
+
+        //TODO: merge comments
         
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let postIds = Set(posts.map{ $0.id })
-            let existingPosts = self.feedPosts(with: postIds, in: managedObjectContext).reduce(into: [FeedPostID : FeedPost]()) { $0[$1.id] = $1 }
-            
-            for post in posts {
-                guard existingPosts[post.id] == nil else {
-                    DDLogError("FeedData/mergeSharedData/duplicate [\(post.id)]")
-                    continue
+        performSeriallyOnBackgroundContext { managedObjectContext in
+            self.merge(posts: posts, from: sharedDataStore, using: managedObjectContext, completion: completion)
+        }
+    }
+
+    private func merge(posts: [SharedFeedPost], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext, completion: @escaping () -> ()) {
+        let postIds = Set(posts.map{ $0.id })
+        let existingPosts = feedPosts(with: postIds, in: managedObjectContext).reduce(into: [FeedPostID: FeedPost]()) { $0[$1.id] = $1 }
+
+        for post in posts {
+            guard existingPosts[post.id] == nil else {
+                DDLogError("FeedData/merge-data/duplicate [\(post.id)]")
+                continue
+            }
+
+            let postId = post.id
+
+            DDLogDebug("FeedData/merge-data/post/\(postId)")
+            let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
+            feedPost.id = post.id
+            feedPost.userId = post.userId
+            feedPost.text = post.text
+            feedPost.status = {
+                switch post.status {
+                case .received: return .incoming
+                case .sent: return .sent
+                case .none, .sendError: return .sendError
                 }
+            }()
+            feedPost.timestamp = post.timestamp
 
-                let postId = post.id
+            // Mentions
+            var mentionSet = Set<FeedMention>()
+            for mention in post.mentions ?? [] {
+                let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
+                feedMention.index = mention.index
+                feedMention.userID = mention.userID
+                feedMention.name = mention.name
+                mentionSet.insert(feedMention)
+            }
+            feedPost.mentions = mentionSet
 
-                DDLogDebug("FeedData/mergeSharedData/post/\(postId)")
-                let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
-                feedPost.id = post.id
-                feedPost.userId = post.userId
-                feedPost.text = post.text
-                feedPost.status = post.status == .sent ? .sent : .sendError
-                feedPost.timestamp = post.timestamp
-
-                // Mentions
-                var mentionSet = Set<FeedMention>()
-                for mention in post.mentions ?? [] {
-                    let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
-                    feedMention.index = mention.index
-                    feedMention.userID = mention.userID
-                    feedMention.name = mention.name
-                    mentionSet.insert(feedMention)
+            // Post Audience
+            if let audience = post.audience {
+                let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
+                feedPostInfo.privacyListType = audience.privacyListType
+                feedPostInfo.receipts = audience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
+                    receipts[userId] = Receipt()
                 }
-                feedPost.mentions = mentionSet
+                feedPost.info = feedPostInfo
+            }
 
-                // Post Audience
-                if let audience = post.audience {
-                    let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
-                    feedPostInfo.privacyListType = audience.privacyListType
-                    feedPostInfo.receipts = audience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
-                        receipts[userId] = Receipt()
+            // Media
+            post.media?.forEach { (media) in
+                DDLogDebug("FeedData/merge-data/post/\(postId)/add-media [\(media)]")
+
+                let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
+                feedMedia.type = media.type
+                feedMedia.status = {
+                    switch media.status {
+                    // Incoming
+                    case .none: return .none
+                    case .downloaded: return .downloaded
+
+                    // Outgoing
+                    case .uploaded: return .uploaded
+                    case .uploading, .error: return .uploadError
                     }
-                    feedPost.info = feedPostInfo
-                }
+                }()
+                feedMedia.url = media.url
+                feedMedia.uploadUrl = media.uploadUrl
+                feedMedia.size = media.size
+                feedMedia.key = media.key
+                feedMedia.order = media.order
+                feedMedia.sha256 = media.sha256
+                feedMedia.post = feedPost
 
-                // Media
-                post.media?.forEach { (media) in
-                    DDLogDebug("FeedData/mergeSharedData/post/\(postId)/add-media [\(media)]")
-
-                    let feedMedia = NSEntityDescription.insertNewObject(forEntityName: FeedPostMedia.entity().name!, into: managedObjectContext) as! FeedPostMedia
-                    feedMedia.type = {
-                        switch media.type {
-                        case .image: return .image
-                        case .video: return .video
-                        }
-                    }()
-                    feedMedia.status = {
-                        switch media.status {
-                            ///TODO: treatment of "none" as "uploaded" is a temporary workaround to migrate media created without status attribute. safe to remove this case after 09/14/2020.
-                        case .none, .uploaded: return .uploaded
-                        default: return .uploadError
-                        }
-                    }()
-                    feedMedia.url = media.url
-                    feedMedia.uploadUrl = media.uploadUrl
-                    feedMedia.size = media.size
-                    feedMedia.key = media.key
-                    feedMedia.order = media.order
-                    feedMedia.sha256 = media.sha256
-                    feedMedia.post = feedPost
-
+                // Copy media if there'a a local copy (outgoing posts or incoming posts with downloaded media).
+                if let relativeFilePath = media.relativeFilePath {
                     let pendingMedia = PendingMedia(type: feedMedia.type)
-                    pendingMedia.fileURL = sharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath)
-                    if feedMedia.status != .uploaded {
+                    pendingMedia.fileURL = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
+                    if feedMedia.status == .uploadError {
                         // Only copy encrypted file if media failed to upload so that upload could be retried.
                         pendingMedia.encryptedFileUrl = pendingMedia.fileURL!.appendingPathExtension("enc")
                     }
                     do {
-                        try self.downloadManager.copyMedia(from: pendingMedia, to: feedMedia)
+                        try downloadManager.copyMedia(from: pendingMedia, to: feedMedia)
                     }
                     catch {
-                        DDLogError("FeedData/mergeSharedData/post/\(postId)/copy-media-error [\(error)]")
+                        DDLogError("FeedData/merge-data/post/\(postId)/copy-media-error [\(error)]")
+
+                        if feedMedia.status == .downloaded {
+                            feedMedia.status = .none
+                        }
                     }
                 }
             }
+        }
 
-            self.save(managedObjectContext)
-            
-            DDLogInfo("FeedData/mergeSharedData/finished")
-            
-            sharedDataStore.delete(posts: posts) {
-                completion()
-            }
+        save(managedObjectContext)
+
+        DDLogInfo("FeedData/merge-data/finished")
+
+        sharedDataStore.delete(posts: posts) {
+            completion()
         }
     }
 }

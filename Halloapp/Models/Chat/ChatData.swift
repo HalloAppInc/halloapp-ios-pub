@@ -648,108 +648,126 @@ class ChatData: ObservableObject {
     
     // MARK: Share Extension Merge Data
     
-    func mergeSharedData(using sharedDataStore: SharedDataStore, completion: @escaping (() -> Void)) {
+    func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping (() -> ())) {
         let messages = sharedDataStore.messages()
-        
         guard !messages.isEmpty else {
             completion()
             return
         }
-        
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            for message in messages {
-                guard self.chatMessage(with: message.id, in: managedObjectContext) == nil else {
-                    DDLogError("ChatData/mergeSharedData/already-exists [\(message.id)]")
-                    continue
-                }
 
-                let messageId = message.id
+        performSeriallyOnBackgroundContext { managedObjectContext in
+            self.merge(messages: messages, from: sharedDataStore, using: managedObjectContext, completion: completion)
+        }
+    }
 
-                DDLogDebug("ChatData/mergeSharedData/message/\(messageId)")
-                
-                let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
-                chatMessage.id = message.id
-                chatMessage.toUserId = message.toUserId
-                chatMessage.fromUserId = message.fromUserId
-                chatMessage.text = message.text
-                chatMessage.feedPostId = nil
-                chatMessage.feedPostMediaIndex = 0
+    private func merge(messages: [SharedChatMessage], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext, completion: @escaping (() -> ())) {
+        for message in messages {
+            let messageId: ChatMessageID = message.id
+
+            guard chatMessage(with: messageId, in: managedObjectContext) == nil else {
+                DDLogError("ChatData/mergeSharedData/already-exists [\(messageId)]")
+                continue
+            }
+
+            DDLogDebug("ChatData/mergeSharedData/message/\(messageId)")
+            
+            let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
+            chatMessage.id = messageId
+            chatMessage.toUserId = message.toUserId
+            chatMessage.fromUserId = message.fromUserId
+            chatMessage.text = message.text
+            chatMessage.feedPostId = nil
+            chatMessage.feedPostMediaIndex = 0
+            switch message.status {
+            case .none:
                 chatMessage.incomingStatus = .none
-                chatMessage.outgoingStatus = message.status == .sent ? .sentOut : .error
-                chatMessage.timestamp = message.timestamp
-                
-                var lastMsgMediaType: ChatThread.LastMsgMediaType = .none
-                
-                message.media?.forEach { media in
-                    DDLogDebug("ChatData/mergeSharedData/message/\(messageId)/add-media [\(media)]")
+                chatMessage.outgoingStatus = .error
 
-                    let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
-                    switch media.type {
-                    case .image:
-                        chatMedia.type = .image
-                        if lastMsgMediaType == .none {
-                            lastMsgMediaType = .image
-                        }
-                    case .video:
-                        chatMedia.type = .video
-                        if lastMsgMediaType == .none {
-                            lastMsgMediaType = .video
-                        }
+            case .sent:
+                chatMessage.incomingStatus = .none
+                chatMessage.outgoingStatus = .sentOut
+
+            case .received:
+                chatMessage.incomingStatus = .none
+                chatMessage.outgoingStatus = .none
+
+            case .sendError:
+                chatMessage.incomingStatus = .none
+                chatMessage.outgoingStatus = .error
+            }
+            chatMessage.timestamp = message.timestamp
+            
+            var lastMsgMediaType: ChatThread.LastMsgMediaType = .none
+            
+            message.media?.forEach { media in
+                DDLogDebug("ChatData/mergeSharedData/message/\(messageId)/add-media [\(media)]")
+
+                let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
+                switch media.type {
+                case .image:
+                    chatMedia.type = .image
+                    if lastMsgMediaType == .none {
+                        lastMsgMediaType = .image
                     }
-                    chatMedia.incomingStatus = .none
-                    chatMedia.outgoingStatus = {
-                        switch media.status {
-                            ///TODO: treatment of "none" as "uploaded" is a temporary workaround to migrate media created without status attribute. safe to remove this case after 09/14/2020.
-                        case .none, .uploaded:
-                            return .uploaded
-                        case .uploading, .error:
-                            return .error
-                        }
-                    }()
-                    chatMedia.url = media.url
-                    chatMedia.uploadUrl = media.uploadUrl
-                    chatMedia.size = media.size
-                    chatMedia.key = media.key
-                    chatMedia.order = media.order
-                    chatMedia.sha256 = media.sha256
-                    chatMedia.message = chatMessage
+                case .video:
+                    chatMedia.type = .video
+                    if lastMsgMediaType == .none {
+                        lastMsgMediaType = .video
+                    }
+                }
+                chatMedia.incomingStatus = media.status == .downloaded ? .downloaded : .none
+                chatMedia.outgoingStatus = {
+                    switch media.status {
+                    case .none, .downloaded: return .none
+                    case .uploaded: return .uploaded
+                    case .uploading, .error: return .error
+                    }
+                }()
+                chatMedia.url = media.url
+                chatMedia.uploadUrl = media.uploadUrl
+                chatMedia.size = media.size
+                chatMedia.key = media.key
+                chatMedia.order = media.order
+                chatMedia.sha256 = media.sha256
+                chatMedia.message = chatMessage
 
+                if let relativeFilePath = media.relativeFilePath {
                     do {
-                        let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: media.relativeFilePath)
-                        let encryptedFileUrl = chatMedia.outgoingStatus != .uploaded ? sourceUrl.appendingPathExtension("enc") : nil
-                        try self.copyFiles(toChatMedia: chatMedia, fileUrl: sourceUrl, encryptedFileUrl: encryptedFileUrl)
+                        let sourceUrl = sharedDataStore.fileURL(forRelativeFilePath: relativeFilePath)
+                        let encryptedFileUrl = chatMedia.outgoingStatus == .error ? sourceUrl.appendingPathExtension("enc") : nil
+                        try copyFiles(toChatMedia: chatMedia, fileUrl: sourceUrl, encryptedFileUrl: encryptedFileUrl)
                     } catch {
                         DDLogError("ChatData/mergeSharedData/media/copy-media/error [\(error)]")
                     }
                 }
-                
-                // Update Chat Thread
-                if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.toUserId, in: managedObjectContext) {
-                    chatThread.lastMsgId = chatMessage.id
-                    chatThread.lastMsgUserId = chatMessage.fromUserId
-                    chatThread.lastMsgText = chatMessage.text
-                    chatThread.lastMsgMediaType = lastMsgMediaType
-                    chatThread.lastMsgStatus = .none
-                    chatThread.lastMsgTimestamp = chatMessage.timestamp
-                } else {
-                    let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
-                    chatThread.chatWithUserId = chatMessage.toUserId
-                    chatThread.lastMsgId = chatMessage.id
-                    chatThread.lastMsgUserId = chatMessage.fromUserId
-                    chatThread.lastMsgText = chatMessage.text
-                    chatThread.lastMsgMediaType = lastMsgMediaType
-                    chatThread.lastMsgStatus = .none
-                    chatThread.lastMsgTimestamp = chatMessage.timestamp
-                }
             }
             
-            self.save(managedObjectContext)
+            // Update Chat Thread
+            if let chatThread = chatThread(type: ChatType.oneToOne, id: chatMessage.toUserId, in: managedObjectContext) {
+                chatThread.lastMsgId = chatMessage.id
+                chatThread.lastMsgUserId = chatMessage.fromUserId
+                chatThread.lastMsgText = chatMessage.text
+                chatThread.lastMsgMediaType = lastMsgMediaType
+                chatThread.lastMsgStatus = .none
+                chatThread.lastMsgTimestamp = chatMessage.timestamp
+            } else {
+                let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
+                chatThread.chatWithUserId = chatMessage.toUserId
+                chatThread.lastMsgId = chatMessage.id
+                chatThread.lastMsgUserId = chatMessage.fromUserId
+                chatThread.lastMsgText = chatMessage.text
+                chatThread.lastMsgMediaType = lastMsgMediaType
+                chatThread.lastMsgStatus = .none
+                chatThread.lastMsgTimestamp = chatMessage.timestamp
+            }
+        }
+        
+        save(managedObjectContext)
 
-            DDLogInfo("ChatData/mergeSharedData/finished")
-            
-            sharedDataStore.delete(messages: messages) {
-                completion()
-            }
+        DDLogInfo("ChatData/mergeSharedData/finished")
+        
+        sharedDataStore.delete(messages: messages) {
+            completion()
         }
     }
 }
