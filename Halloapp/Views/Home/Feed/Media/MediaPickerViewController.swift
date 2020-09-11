@@ -234,6 +234,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                 let maxSize = CGSize(width: UIScreen.main.bounds.width - 40, height: UIScreen.main.bounds.height - 40)
                 let options = PHImageRequestOptions()
                 options.isSynchronous = true
+                options.isNetworkAccessAllowed = true
                 
                 manager.requestImage(for: asset, targetSize: maxSize, contentMode: .aspectFit, options: options) {[weak self] image, _ in
                     guard let self = self else { return }
@@ -361,7 +362,10 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                 
                 cell.delegate = self
                 cell.item = item
-                PHImageManager.default().requestImage(for: item.asset!, targetSize: CGSize(width: 256, height: 256), contentMode: .aspectFill, options: nil) { image, _ in
+
+                let options = PHImageRequestOptions()
+                options.isNetworkAccessAllowed = true
+                PHImageManager.default().requestImage(for: item.asset!, targetSize: CGSize(width: 256, height: 256), contentMode: .aspectFill, options: options) { image, _ in
                     guard cell.item?.asset?.localIdentifier == item.asset?.localIdentifier else { return }
                     cell.image.image = image
                     cell.prepare()
@@ -402,6 +406,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     
                     let options = PHImageRequestOptions()
                     options.isSynchronous = true
+                    options.isNetworkAccessAllowed = true
                     
                     group.enter()
                     manager.requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .default, options: options) { image, _ in
