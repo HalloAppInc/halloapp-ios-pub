@@ -123,7 +123,7 @@ open class AppContext {
             }
         }
 
-        userData = UserData()
+        userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL)
         xmppControllerImpl = xmppControllerClass.init(userData: userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
         keyStore = KeyStore(userData: userData)
