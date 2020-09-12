@@ -54,13 +54,14 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         cancellableSet.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
                 guard let self = self else { return }
-                guard metadata.contentType == .chatMessage else { return }
+                guard metadata.contentType == .chatMessage || metadata.contentType == .groupChatMessage else { return }
                 self.processNotification(metadata: metadata)
             }
         )
 
         // When the user was not on this view, and HomeView sends user to here
-        if let metadata = NotificationMetadata.fromUserDefaults(), metadata.contentType == .chatMessage {
+        if let metadata = NotificationMetadata.fromUserDefaults(),
+            metadata.contentType == .chatMessage || metadata.contentType == .groupChatMessage {
             processNotification(metadata: metadata)
         }
     }
@@ -314,8 +315,11 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         DDLogInfo("ChatListViewController/notification/open-chat \(metadata.fromId)")
 
         navigationController?.popToRootViewController(animated: false)
-        navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
-
+        if metadata.contentType == .chatMessage {
+            navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
+        } else if metadata.contentType == .groupChatMessage {
+            // TODO: open group chat once server starts sending gid in notification.
+        }
         metadata.removeFromUserDefaults()
     }
 }
