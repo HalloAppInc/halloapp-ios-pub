@@ -11,7 +11,8 @@ import Core
 import UserNotifications
 
 public enum NotificationContentType: String, RawRepresentable {
-    case chat
+    case chatMessage = "chat"
+    case groupChatMessage = "group_chat"
     case comment
     case feedpost
 }

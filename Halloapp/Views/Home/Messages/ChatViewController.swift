@@ -225,7 +225,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         }
         self.chatInputView.didAppear(in: self)
         
-        UNUserNotificationCenter.current().removeDeliveredNotifications(forType: .chat, fromId: self.fromUserId!)
+        UNUserNotificationCenter.current().removeDeliveredNotifications(forType: .chatMessage, fromId: self.fromUserId!)
     }
 
     override func viewWillDisappear(_ animated: Bool) {

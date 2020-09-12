@@ -54,13 +54,13 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         cancellableSet.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
                 guard let self = self else { return }
-                guard metadata.contentType == .chat else { return }
+                guard metadata.contentType == .chatMessage else { return }
                 self.processNotification(metadata: metadata)
             }
         )
 
         // When the user was not on this view, and HomeView sends user to here
-        if let metadata = NotificationMetadata.fromUserDefaults(), metadata.contentType == .chat {
+        if let metadata = NotificationMetadata.fromUserDefaults(), metadata.contentType == .chatMessage {
             processNotification(metadata: metadata)
         }
     }

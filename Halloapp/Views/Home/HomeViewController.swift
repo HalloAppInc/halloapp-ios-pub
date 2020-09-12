@@ -167,8 +167,9 @@ class HomeViewController: UITabBarController {
     private func processNotification(metadata: NotificationMetadata) {
         // If the user tapped on a notification, switch to feed or chat tab
         switch metadata.contentType {
-        case .chat:
+        case .chatMessage, .groupChatMessage:
             self.selectedIndex = 1
+            
         case .feedpost, .comment:
             self.selectedIndex = 0
         }

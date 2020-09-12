@@ -75,13 +75,15 @@ extension UNMutableNotificationContent {
             let commentText = protoContainer.comment.mentionText.expandedText(nameProvider: mentionNameProvider).string
             body = "Commented: \(commentText)"
         } else if protoContainer.hasChatMessage {
-            body = protoContainer.chatMessage.text
-            if !protoContainer.chatMessage.media.isEmpty {
+            let protoMessage = protoContainer.chatMessage
+
+            body = protoMessage.text
+            if !protoMessage.media.isEmpty {
                 // Display how many photos and videos message contains if there's no caption.
                 if body.isEmpty {
-                    body = Self.notificationBody(forMedia: protoContainer.chatMessage.media)
+                    body = Self.notificationBody(forMedia: protoMessage.media)
                 } else {
-                    let mediaIcon = Self.mediaIcon(protoContainer.chatMessage.media.first!)
+                    let mediaIcon = Self.mediaIcon(protoMessage.media.first!)
                     body = "\(mediaIcon) \(body)"
                 }
             }
@@ -101,20 +103,18 @@ public extension UNUserNotificationCenter {
     }
 
     func removeDeliveredNotifications(forType type: NotificationContentType, fromId: String? = nil, contentId: String? = nil) {
-        if type == .chat {
+        switch type {
+        case .chatMessage, .groupChatMessage:
             guard fromId != nil else {
                 DDLogError("Notification/removeDelivered fromId should not be nil")
                 return
             }
 
-            DDLogDebug("Notification/removeDelivered/\(type) fromId=\(fromId!)")
-        } else { // .feedpost, .comment
+        case .feedpost, .comment:
             guard contentId != nil else {
                 DDLogError("Notification/removeDelivered contentId should not be nil")
                 return
             }
-
-            DDLogDebug("Notification/removeDelivered/\(type) contentId=\(contentId!)")
         }
 
         getDeliveredNotifications { (notifications) in
@@ -124,15 +124,20 @@ public extension UNUserNotificationCenter {
             for notification in notifications {
                 guard let metadata = NotificationMetadata(notificationRequest: notification.request), metadata.contentType == type else { continue }
 
-                if type == .chat {
-                    guard metadata.fromId == fromId! else { continue }
-                } else { // .feedpost, .comment
-                    guard metadata.contentId == contentId! else { continue }
+                let match: Bool = {
+                    switch type {
+                    case .chatMessage, .groupChatMessage:
+                        return metadata.fromId == fromId!
+
+                    case .feedpost, .comment:
+                        return metadata.contentId == contentId!
+                    }
+                }()
+
+                if match {
+                    DDLogDebug("Notification/removeDelivered \(notification.request.identifier) will be removed")
+                    identifiersToRemove.append(notification.request.identifier)
                 }
-
-                DDLogDebug("Notification/removeDelivered \(notification.request.identifier) will be removed")
-
-                identifiersToRemove.append(notification.request.identifier)
             }
 
             if !identifiersToRemove.isEmpty {
