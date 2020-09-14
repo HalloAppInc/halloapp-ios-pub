@@ -807,6 +807,7 @@ fileprivate class FeedItemHeaderView: UIView {
         label.numberOfLines = 1
         label.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
         label.textColor = .label
+        label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow - 10, for: .horizontal)
         label.isUserInteractionEnabled = true
@@ -822,7 +823,7 @@ fileprivate class FeedItemHeaderView: UIView {
             return UIFont.gothamFont(ofSize: fontDescriptor.pointSize + 1, weight: .medium)
         }()
         label.textColor = .tertiaryLabel
-        label.textAlignment = .natural
+        label.textAlignment = label.effectiveUserInterfaceLayoutDirection == .leftToRight ? .right : .left
         label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .horizontal) // higher than contact name
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -836,8 +837,7 @@ fileprivate class FeedItemHeaderView: UIView {
         let hStack = UIStackView(arrangedSubviews: [ nameLabel, timestampLabel ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.spacing = 8
-        hStack.axis = UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory ? .vertical : .horizontal
-        hStack.alignment = .firstBaseline
+        self.configure(stackView: hStack, forVerticalLayout: UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory)
         addSubview(hStack)
 
         contactImageView.heightAnchor.constraint(equalToConstant: 30).isActive = true
@@ -853,12 +853,19 @@ fileprivate class FeedItemHeaderView: UIView {
         contentSizeCategoryDidChangeCancellable = NotificationCenter.default
             .publisher(for: UIContentSizeCategory.didChangeNotification)
             .compactMap { $0.userInfo?[UIContentSizeCategory.newValueUserInfoKey] as? UIContentSizeCategory }
-            .sink { category in
-                if category.isAccessibilityCategory {
-                    hStack.axis = .vertical
-                } else {
-                    hStack.axis = .horizontal
-                }
+            .sink { [weak self ]category in
+                guard let self = self else { return }
+                self.configure(stackView: hStack, forVerticalLayout: category.isAccessibilityCategory)
+        }
+    }
+
+    private func configure(stackView: UIStackView, forVerticalLayout verticalLayout: Bool) {
+        if verticalLayout {
+            stackView.axis = .vertical
+            stackView.alignment = .fill
+        } else {
+            stackView.axis = .horizontal
+            stackView.alignment = .firstBaseline
         }
     }
 
