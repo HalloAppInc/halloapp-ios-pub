@@ -10,6 +10,12 @@ import Foundation
 import XMPPFramework
 
 public final class ProtoStream: XMPPStream {
+
+    override init() {
+        super.init()
+        isProtoBufProtocol = true
+    }
+
     /**
      This is a temporary solution. I can't get access to multicastDelegate in XMPPStream,
      so I use protoService here to get access to the delegate.

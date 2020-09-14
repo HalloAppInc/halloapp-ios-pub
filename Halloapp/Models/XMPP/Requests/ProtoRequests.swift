@@ -10,34 +10,6 @@ import Core
 import Foundation
 import XMPPFramework
 
-class ProtoStandardRequest<T>: ProtoRequest {
-
-    /// Transform response packet into preferred format
-    private let transform: (PBpacket) -> Result<T, Error>
-
-    /// Handle transformed response
-    private let completion: ServiceRequestCompletion<T>
-
-    init(packet: PBpacket, transform: @escaping (PBpacket) -> Result<T, Error>, completion: @escaping ServiceRequestCompletion<T> ) {
-        self.transform = transform
-        self.completion = completion
-        super.init(packet: packet, id: packet.requestID ?? UUID().uuidString)
-    }
-
-    override func didFinish(with response: PBpacket) {
-        switch transform(response) {
-        case .success(let output):
-            completion(.success(output))
-        case .failure(let error):
-            completion(.failure(error))
-        }
-    }
-
-    override func didFail(with error: Error) {
-        completion(.failure(error))
-    }
-}
-
 final class ProtoUpdateAvatarRequest: ProtoStandardRequest<String?> {
     init(data: Data?, completion: @escaping ServiceRequestCompletion<String?>) {
 
@@ -139,7 +111,7 @@ final class ProtoPresenceSubscribeRequest: ProtoStandardRequest<Void> {
         }
 
         var packet = PBpacket()
-        packet.presence = presence
+        packet.stanza = .presence(presence)
 
         super.init(packet: packet, transform: { _ in .success(())}, completion: completion)
     }

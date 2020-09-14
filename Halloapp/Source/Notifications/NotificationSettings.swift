@@ -66,8 +66,8 @@ class NotificationSettings: ObservableObject {
         [ .post: isPostsEnabled, .comment: isCommentsEnabled ]
     }
 
-    func sendConfigIfNecessary(using xmppController: XMPPControllerMain) {
-        guard xmppController.isConnected else {
+    func sendConfigIfNecessary(using service: HalloService) {
+        guard service.isConnected else {
             DDLogWarn("NotificationSettings/sync/ Not connected")
             return
         }
@@ -83,14 +83,15 @@ class NotificationSettings: ObservableObject {
 
         isSyncInProgress = true
         userDefaults.set(true, forKey: UserDefaultsKeys.isSynchronized)
-        let request = XMPPSendPushConfigRequest(config: currentConfig) { (result) in
+
+        service.updateNotificationSettings(currentConfig) { result in
             self.isSyncInProgress = false
 
             switch result {
             case .success(_):
                 // Check if there are more changes to send.
                 DispatchQueue.main.async {
-                    self.sendConfigIfNecessary(using: xmppController)
+                    self.sendConfigIfNecessary(using: service)
                 }
                 break
 
@@ -100,7 +101,6 @@ class NotificationSettings: ObservableObject {
                 userDefaults.set(false, forKey: UserDefaultsKeys.isSynchronized)
             }
         }
-        xmppController.enqueue(request: request)
     }
 
 }

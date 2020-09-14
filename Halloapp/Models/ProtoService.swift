@@ -220,6 +220,10 @@ extension ProtoService: HalloService {
         }
     }
 
+    func updateNotificationSettings(_ settings: [NotificationSettings.ConfigKey : Bool], completion: @escaping ServiceRequestCompletion<Void>) {
+        completion(.failure(ProtoServiceError.unimplemented))
+    }
+
     func checkVersionExpiration(completion: @escaping ServiceRequestCompletion<TimeInterval>) {
         enqueue(request: ProtoClientVersionCheck(version: AppContext.appVersionForXMPP, completion: completion))
     }

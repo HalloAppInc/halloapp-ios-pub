@@ -119,49 +119,48 @@ class XMPPRegisterInvitesRequest: XMPPRequest {
 
 }
 
-class ProtoGetInviteAllowanceRequest: ProtoRequest {
-
-    private let completion: ServiceRequestCompletion<(Int, Date)>
-
+class ProtoGetInviteAllowanceRequest: ProtoStandardRequest<(Int, Date)> {
     init(completion: @escaping ServiceRequestCompletion<(Int, Date)>) {
-        self.completion = completion
-
-        // TODO (waiting for schema)
-        let packet = PBpacket.iqPacketWithID()
-
-        super.init(packet: packet, id: packet.iq.id)
+        super.init(
+            packet: PBpacket.iqPacket(type: .get, payload: .invitesRequest(PBinvites_request())),
+            transform: { response in
+                let invites = Int(response.iq.payload.invitesResponse.invitesLeft)
+                let timeUntilRefresh = TimeInterval(response.iq.payload.invitesResponse.timeUntilRefresh)
+                return .success((invites, Date(timeIntervalSinceNow: timeUntilRefresh))) },
+            completion: completion)
     }
-
-    override func didFinish(with response: PBpacket) {
-        completion(.failure(ProtoServiceError.unimplemented))
-    }
-
-    override func didFail(with error: Error) {
-        completion(.failure(error))
-    }
-    
 }
 
-
-class ProtoRegisterInvitesRequest: ProtoRequest {
-
-    private let completion: ServiceRequestCompletion<InviteResponse>
-
+class ProtoRegisterInvitesRequest: ProtoStandardRequest<InviteResponse> {
     init(phoneNumbers: [ABContact.NormalizedPhoneNumber], completion: @escaping ServiceRequestCompletion<InviteResponse>) {
-        self.completion = completion
+        var request = PBinvites_request()
+        request.invites = phoneNumbers.map {
+            var invite = PBinvite()
+            invite.phone = $0
+            return invite
+        }
 
-        // TODO (waiting for schema)
-        let packet = PBpacket.iqPacketWithID()
-
-        super.init(packet: packet, id: packet.iq.id)
+        super.init(
+            packet: PBpacket.iqPacket(type: .set, payload: .invitesRequest(request)),
+            transform: { response in
+                let invitesResponse = response.iq.payload.invitesResponse
+                let invitesLeft = Int(invitesResponse.invitesLeft)
+                let timeUntilRefresh = TimeInterval(invitesResponse.timeUntilRefresh)
+                let results: [String: InviteResult] = Dictionary(uniqueKeysWithValues:
+                    invitesResponse.invites.compactMap {
+                        switch $0.result {
+                        case "ok":
+                            return ($0.phone, .success)
+                        case "failed":
+                            let reason = InviteResult.FailureReason(rawValue: $0.reason) ?? .unknown
+                            return ($0.phone, .failure(reason))
+                        default:
+                            DDLogError("ProtoRegisterInvitesRequest/error unexpected result string [\($0.result)]")
+                            return nil
+                        }
+                    }
+                )
+                return .success((results: results, count: invitesLeft, refreshDate: Date(timeIntervalSinceNow: timeUntilRefresh))) },
+            completion: completion)
     }
-
-    override func didFinish(with response: PBpacket) {
-        completion(.failure(ProtoServiceError.unimplemented))
-    }
-
-    override func didFail(with error: Error) {
-        completion(.failure(error))
-    }
-
 }

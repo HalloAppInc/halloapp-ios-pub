@@ -113,25 +113,20 @@ public class ProtoMediaUploadURLRequest: ProtoRequest {
     }
 }
 
-public class ProtoGetServerPropertiesRequest: ProtoRequest {
-
-    private let completion: ServiceRequestCompletion<ServerPropertiesResponse>
-
+public class ProtoGetServerPropertiesRequest: ProtoStandardRequest<ServerPropertiesResponse> {
     public init(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>) {
-        self.completion = completion
-
-        // TODO (waiting for schema)
-        var packet = PBpacket.iqPacketWithID()
-
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    public override func didFinish(with response: PBpacket) {
-        completion(.failure(ProtoServiceCoreError.unimplemented))
-    }
-
-    public override func didFail(with error: Error) {
-        completion(.failure(error))
+        super.init(
+            packet: PBpacket.iqPacket(type: .get, payload: .props(PBprops())),
+            transform: { response in
+                guard let version = String(data: response.iq.payload.props.hash, encoding: .utf8) else {
+                    return .failure(ProtoServiceCoreError.deserialization)
+                }
+                let properties: [String: String] = Dictionary(
+                    uniqueKeysWithValues: response.iq.payload.props.props.map { ($0.name, $0.value) }
+                )
+                return .success((version: version, properties: properties))
+            },
+            completion: completion)
     }
 }
 

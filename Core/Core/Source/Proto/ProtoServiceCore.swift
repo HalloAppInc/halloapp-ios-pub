@@ -223,6 +223,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
 
     open func didReceive(packet: PBpacket, requestID: String) {
+        DDLogInfo("proto/didReceivePacket/\(requestID)")
         func removeRequest(with id: String, outOf requests: inout [ProtoRequest]) -> [ProtoRequest] {
             let filteredSequence = requests.enumerated().filter { $0.element.requestId == id }
             let indexes = filteredSequence.map { $0.offset }
@@ -375,7 +376,52 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?) {
-        // TODO
-        DDLogError("unimplemented")
+
+        guard let messageData = try? message.protoContainer.serializedData(),
+            let fromUID = Int64(userData.userId),
+            let toUID = Int64(message.toUserId) else
+        {
+            return
+        }
+
+        var packet = PBpacket()
+        packet.msg.toUid = toUID
+        packet.msg.fromUid = fromUID
+        packet.msg.id = message.id
+        packet.msg.type = .chat
+
+        var chat = PBchat()
+        chat.payload = messageData
+
+        if let encrypt = encryption {
+            encrypt(messageData) { encryptedData in
+                if let encryptedPayload = encryptedData.data {
+                    chat.encPayload = encryptedPayload
+                } else {
+                    DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error encrypted data missing!")
+                }
+
+                if let publicKey = encryptedData.identityKey {
+                    chat.publicKey = publicKey
+                } else {
+                    DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error public key missing!")
+                }
+
+                chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
+                packet.msg.payload.content = .chat(chat)
+                guard let packetData = try? packet.serializedData() else {
+                    DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
+                    return
+                }
+                self.stream.send(packetData)
+            }
+        } else {
+            packet.msg.payload.content = .chat(chat)
+            guard let packetData = try? packet.serializedData() else {
+                DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
+                return
+            }
+            stream.send(packetData)
+        }
     }
 }

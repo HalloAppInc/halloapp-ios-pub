@@ -67,10 +67,11 @@ protocol HalloService: CoreService {
     func updatePrivacyList(_ update: PrivacyListUpdateProtocol, completion: @escaping ServiceRequestCompletion<Void>)
     func getPrivacyLists(_ listTypes: [PrivacyListType], completion: @escaping ServiceRequestCompletion<([PrivacyListProtocol], PrivacyListType)>)
 
-    // MARK: APNS
+    // MARK: Push notifications
     var hasValidAPNSPushToken: Bool { get }
     func setAPNSToken(_ token: String?)
     func sendCurrentAPNSTokenIfPossible()
+    func updateNotificationSettings(_ settings: [NotificationSettings.ConfigKey: Bool], completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Client version
     func checkVersionExpiration(completion: @escaping ServiceRequestCompletion<TimeInterval>)

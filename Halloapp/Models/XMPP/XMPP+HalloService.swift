@@ -105,6 +105,10 @@ extension XMPPControllerMain: HalloService {
         apnsToken = token
     }
 
+    func updateNotificationSettings(_ settings: [NotificationSettings.ConfigKey : Bool], completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: XMPPSendPushConfigRequest(config: settings, completion: completion))
+    }
+
     func sendPresenceIfPossible(_ presenceType: PresenceType) {
         guard isConnected else { return }
         DDLogInfo("ChatData/sendPresence \(presenceType.rawValue)")
