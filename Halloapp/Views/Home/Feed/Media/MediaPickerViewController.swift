@@ -530,15 +530,13 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         guard let cell = collectionView.cellForItem(at: indexPath) as? AssetViewCell else { return false }
         guard let asset = cell.item?.asset else { return false }
-        
-        if selected.count >= 10 {
+
+        if selected.contains(asset) {
+            deselect(collectionView, cell: cell, asset: asset)
+        } else if selected.count >= 10 {
             let alert = UIAlertController(title: "Maximum photos selected", message: "You can select up to 10 photos", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             self.present(alert, animated: true)
-        }
-        
-        if selected.contains(asset) {
-            deselect(collectionView, cell: cell, asset: asset)
         } else {
             select(collectionView, cell: cell, asset: asset)
         }
