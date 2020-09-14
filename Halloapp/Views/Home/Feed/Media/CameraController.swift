@@ -78,7 +78,11 @@ class CameraController: UIViewController {
             permissionHandler(true)
 
         case .notDetermined:
-            AVCaptureDevice.requestAccess(for: type, completionHandler: permissionHandler)
+            AVCaptureDevice.requestAccess(for: type) { granted in
+                DispatchQueue.main.async {
+                    permissionHandler(granted)
+                }
+            }
 
         case .denied,
              .restricted:
@@ -100,21 +104,62 @@ class CameraController: UIViewController {
         fatalError("Use init(cameraDelegate:)")
     }
 
+    deinit {
+        DDLogInfo("CameraController/deinit")
+        guard let captureSession = captureSession else { return }
+        teardownCaptureSession(captureSession)
+    }
+
     override func viewDidLoad() {
+        DDLogInfo("CameraController/viewDidLoad")
         super.viewDidLoad()
         view.layer.cornerRadius = 15
         view.layer.masksToBounds = true
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        checkVideoPermissions()
+    override func viewWillAppear(_ animated: Bool) {
+        DDLogInfo("CameraController/viewWillAppear")
+        super.viewWillAppear(animated)
+        if captureSession == nil {
+            checkVideoPermissions()
+        } else {
+            startCaptureSession()
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
+        DDLogInfo("CameraController/viewWillDisappear")
         super.viewWillDisappear(animated)
+        stopCaptureSession()
+    }
+
+    private func startCaptureSession() {
+        guard let captureSession = captureSession else { return }
+        DispatchQueue.global(qos: .userInitiated).async{
+            if !captureSession.isRunning {
+                DDLogInfo("CameraController/startCaptureSession startRunning")
+                captureSession.startRunning()
+
+                DispatchQueue.main.async {
+                    guard let previewLayer = self.previewLayer else { return }
+                    DDLogInfo("CameraController/startCaptureSession attach preview layer")
+                    self.view.layer.addSublayer(previewLayer)
+                    previewLayer.frame = self.view.layer.frame
+                }
+            }
+        }
+    }
+
+    private func stopCaptureSession() {
+        DDLogInfo("CameraController/stopCaptureSession detach preview layer")
         previewLayer?.removeFromSuperlayer()
-        captureSession?.stopRunning()
+        guard let captureSession = captureSession else { return }
+        DispatchQueue.global(qos: .userInitiated).async{
+            if captureSession.isRunning {
+                DDLogInfo("CameraController/stopCaptureSession stopRunning")
+                captureSession.stopRunning()
+            }
+        }
     }
 
     private func showPermissionDeniedAlert(title: String, message: String) {
@@ -124,6 +169,15 @@ class CameraController: UIViewController {
             self?.cameraDelegate.goBack()
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { [weak self] _ in
+            self?.cameraDelegate.goBack()
+        }))
+        present(alert, animated: true)
+    }
+
+    private func showCaptureSessionSetupErrorAlert(error: Error) {
+        let message = (error as? CameraInitError)?.localizedDescription
+        let alert = UIAlertController(title: "Initialization Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self] _ in
             self?.cameraDelegate.goBack()
         }))
         present(alert, animated: true)
@@ -153,47 +207,48 @@ class CameraController: UIViewController {
         }
     }
 
-    private func setCapturePreviewLayer(_ session: AVCaptureSession) {
+    private func setupAndStartCaptureSession() {
+        DDLogInfo("CameraController/setupAndStartCaptureSession")
+        let session = AVCaptureSession()
+        session.beginConfiguration()
+
+        if session.canSetSessionPreset(.photo) {
+            session.sessionPreset = .photo
+        }
+        session.automaticallyConfiguresCaptureDeviceForWideColor = true
+
+        do {
+            try setupInput(session)
+            try setupOutput(session)
+        } catch {
+            DDLogError("CameraController/setupAndStartCaptureSession: \(error)")
+            self.showCaptureSessionSetupErrorAlert(error: error)
+        }
+
+        session.commitConfiguration()
+        self.captureSession = session
         previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        view.layer.addSublayer(previewLayer!)
-        previewLayer!.frame = view.layer.frame
+
+        startCaptureSession()
     }
 
-    private func setupAndStartCaptureSession() {
-        DispatchQueue.global(qos: .userInitiated).async{
-            let session = AVCaptureSession()
-            session.beginConfiguration()
-
-            if session.canSetSessionPreset(.photo) {
-                session.sessionPreset = .photo
-            }
-            session.automaticallyConfiguresCaptureDeviceForWideColor = true
-
-            do {
-                try self.setupInput(session)
-
-                DispatchQueue.main.async {
-                    self.setCapturePreviewLayer(session)
-                }
-
-                try self.setupOutput(session)
-
-                session.commitConfiguration()
-                session.startRunning()
-                self.captureSession = session
-            } catch {
-                DDLogError("CameraController/setupAndStartCaptureSession: \(error)")
-
-                DispatchQueue.main.async {
-                    let message = (error as? CameraInitError)?.localizedDescription
-                    let alert = UIAlertController(title: "Initialization Error", message: message, preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self] _ in
-                        self?.cameraDelegate.goBack()
-                    }))
-                    self.present(alert, animated: true)
-                }
-            }
+    private func teardownCaptureSession(_ session: AVCaptureSession) {
+        DDLogInfo("CameraController/stopAndTeardownCaptureSession")
+        session.beginConfiguration()
+        if audioInput != nil {
+            session.removeInput(audioInput!)
         }
+        let cameraInput = isUsingBackCamera ? backInput : frontInput
+        if cameraInput != nil {
+            session.removeInput(cameraInput!)
+        }
+        if photoOutput != nil {
+            session.removeOutput(photoOutput!)
+        }
+        if movieOutput != nil {
+            session.removeOutput(movieOutput!)
+        }
+        session.commitConfiguration()
     }
 
     private func configureVideoOutput(_ output: AVCaptureOutput) {
@@ -201,7 +256,7 @@ class CameraController: UIViewController {
         // NOTE(VL): Do we need to support .landscapeLeft or .portraitUpsideDown?
         // Discuss and change if needed.
         if connection?.isVideoOrientationSupported ?? false {
-            connection?.videoOrientation = orientation.isPortrait ? .portrait : .landscapeRight
+            connection?.videoOrientation = orientation.isLandscape ? .landscapeRight : .portrait
         }
         if connection?.isVideoMirroringSupported ?? false {
             connection?.isVideoMirrored = !isUsingBackCamera
@@ -303,7 +358,7 @@ class CameraController: UIViewController {
     }
 
     public func setOrientation(_ orientation: UIDeviceOrientation) {
-        let didOrientationChange = self.orientation.isPortrait != orientation.isPortrait
+        let didOrientationChange = self.orientation.isLandscape != orientation.isLandscape
         self.orientation = orientation
 
         guard let captureSession = captureSession,
@@ -311,7 +366,7 @@ class CameraController: UIViewController {
             let movieOutput = movieOutput else { return }
 
         if didOrientationChange {
-            DDLogInfo("CameraController/setOrientation")
+            DDLogInfo("CameraController/setOrientation didOrientationChange")
             captureSession.beginConfiguration()
             configureVideoOutput(photoOutput)
             configureVideoOutput(movieOutput)
