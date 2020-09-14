@@ -66,8 +66,8 @@ class PostComposerViewController: UIViewController {
         super.viewDidLoad()
 
         navigationItem.title = "New Post"
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: backIcon, style: .plain, target: self, action: #selector(backAction))
-        setLeftBarButtonIcon(postTextSize: inputToPost.value.text.count)
+        navigationItem.leftBarButtonItem =
+            UIBarButtonItem(image: isMediaPost ? backIcon : closeIcon, style: .plain, target: self, action: #selector(backAction))
         shareButton = UIBarButtonItem(title: "Share", style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
 
@@ -95,8 +95,7 @@ class PostComposerViewController: UIViewController {
                 self.present(editController, animated: true)
             },
             goBack: { [weak self] in self?.backAction() },
-            setShareVisibility: { [weak self] visibility in self?.setShareVisibility(visibility) },
-            setLeftBarButtonIcon: { [weak self] textSize in self?.setLeftBarButtonIcon(postTextSize: textSize) }
+            setShareVisibility: { [weak self] visibility in self?.setShareVisibility(visibility) }
         )
 
         let postComposerViewController = UIHostingController(rootView: postComposerView)
@@ -146,11 +145,6 @@ class PostComposerViewController: UIViewController {
             navigationItem.rightBarButtonItem = nil
         }
     }
-
-    private func setLeftBarButtonIcon(postTextSize: Int) {
-        navigationItem.leftBarButtonItem?.image =
-            isMediaPost || postTextSize == 0 ? backIcon : closeIcon
-    }
 }
 
 fileprivate struct PostComposerLayoutConstants {
@@ -182,7 +176,6 @@ fileprivate struct PostComposerView: View {
     private let crop: (_ index: GenericObservable<Int>) -> Void
     private let goBack: () -> Void
     private let setShareVisibility: (Bool) -> Void
-    private let setLeftBarButtonIcon: (Int) -> Void
 
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject private var mediaState = ObservableMediaState()
@@ -209,7 +202,6 @@ fileprivate struct PostComposerView: View {
 
     private var shareVisibilityPublisher: AnyPublisher<Bool, Never>!
     private var pageChangedPublisher: AnyPublisher<Bool, Never>!
-    private var postTextSizePublisher: AnyPublisher<Int, Never>!
 
     private var mediaCount: Int {
         mediaItems.value.count
@@ -238,8 +230,7 @@ fileprivate struct PostComposerView: View {
         shouldAutoPlay: GenericObservable<Bool>,
         crop: @escaping (_ index: GenericObservable<Int>) -> Void,
         goBack: @escaping () -> Void,
-        setShareVisibility: @escaping (_ visibility: Bool) -> Void,
-        setLeftBarButtonIcon: @escaping (_ textSize: Int) -> Void)
+        setShareVisibility: @escaping (_ visibility: Bool) -> Void)
     {
         self.imageServer = imageServer
         self.mediaItems = mediaItems
@@ -248,7 +239,6 @@ fileprivate struct PostComposerView: View {
         self.crop = crop
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
-        self.setLeftBarButtonIcon = setLeftBarButtonIcon
 
         shareVisibilityPublisher =
             Publishers.CombineLatest4(
@@ -266,11 +256,6 @@ fileprivate struct PostComposerView: View {
 
         self.pageChangedPublisher =
             self.currentPosition.$value.removeDuplicates().map { _ in return true }.eraseToAnyPublisher()
-
-        self.postTextSizePublisher = self.inputToPost.$value
-            .removeDuplicates(by: { prev, current in return prev.text == current.text })
-            .map { $0.text.count }
-            .eraseToAnyPublisher()
     }
     
     private func getMediaSliderHeight(_ width: CGFloat) -> CGFloat {
@@ -372,7 +357,6 @@ fileprivate struct PostComposerView: View {
                     .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
                     .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
                     .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
-                    .onReceive(self.postTextSizePublisher) { self.setLeftBarButtonIcon($0) }
                 }
                 .frame(minHeight: geometry.size.height - self.keyboardHeight)
             }
