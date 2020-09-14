@@ -141,10 +141,10 @@ class CameraController: UIViewController {
                 captureSession.startRunning()
 
                 DispatchQueue.main.async {
-                    guard let previewLayrer = self.previewLayer else { return }
+                    guard let previewLayer = self.previewLayer else { return }
                     DDLogInfo("CameraController/startCaptureSession attach preview layer")
-                    self.view.layer.addSublayer(previewLayrer)
-                    previewLayrer.frame = self.view.layer.frame
+                    self.view.layer.addSublayer(previewLayer)
+                    previewLayer.frame = self.view.layer.frame
                 }
             }
         }
