@@ -348,6 +348,9 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     private func showUserFeed(for userID: UserID) {
+        guard MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID) else {
+            return
+        }
         let userViewController = UserFeedViewController(userID: userID)
         self.navigationController?.pushViewController(userViewController, animated: true)
     }

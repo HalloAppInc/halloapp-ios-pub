@@ -609,6 +609,18 @@ class ContactStoreMain: ContactStore {
         }
     }
 
+    func isContactInAddressBook(userId: UserID) -> Bool {
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
+        do {
+            let count = try persistentContainer.viewContext.count(for: fetchRequest)
+            return count > 0
+        }
+        catch {
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+    }
+
     // MARK: Server Sync
 
     func contactsFor(fullSync: Bool) -> [ABContact] {
