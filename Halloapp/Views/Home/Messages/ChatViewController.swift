@@ -509,7 +509,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }
     
     func chatInputView(_ inputView: ChatInputView) {
-        self.presentPhotoLibraryPicker()
+        presentPhotoLibraryPickerNew()
     }
     
     func chatInputViewCloseQuotePanel(_ inputView: ChatInputView) {
@@ -612,6 +612,20 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         }
         
         self.present(picker, animated: true)
+    }
+
+    private func presentPhotoLibraryPickerNew() {
+        let pickerController = MediaPickerViewController(camera: true) { [weak self] controller, media, cancel in
+            guard let self = self else { return }
+
+            controller.dismiss(animated: true) {
+                if !cancel {
+                    self.presentMessageComposer(with: media)
+                }
+            }
+        }
+
+        self.present(UINavigationController(rootViewController: pickerController), animated: true)
     }
 
     private func presentMessageComposer(with media: [PendingMedia]) {

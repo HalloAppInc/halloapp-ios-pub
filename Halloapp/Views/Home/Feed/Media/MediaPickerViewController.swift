@@ -26,6 +26,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     fileprivate var selected = [PHAsset]()
     
     private let didFinish: MediaPickerViewControllerCallback
+    private let camera: Bool
     private let snapshotManager = MediaPickerSnapshotManager()
     private var dataSource: UICollectionViewDiffableDataSource<Int, PickerItem>!
     private var collectionView: UICollectionView!
@@ -35,15 +36,11 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private var preview: UIView?
     private var updatingSnapshot = false
     
-    init(didFinish: @escaping MediaPickerViewControllerCallback) {
-        self.didFinish = didFinish
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    init(selected: [PendingMedia], didFinish: @escaping MediaPickerViewControllerCallback) {
+    init(camera: Bool = false, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
         self.selected.append(contentsOf: selected.filter { $0.asset != nil }.map { $0.asset! })
         self.didFinish = didFinish
-        
+        self.camera = camera
+
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -120,7 +117,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         let titleBtn = UIButton(type: .system)
         titleBtn.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            titleBtn.widthAnchor.constraint(equalToConstant: 260),
+            titleBtn.widthAnchor.constraint(equalToConstant: 160),
             titleBtn.heightAnchor.constraint(equalToConstant: 44),
         ])
         titleBtn.setTitle("Camera Roll", for: .normal)
@@ -147,11 +144,20 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     private func updateNavigationBarButtons() {
-        let icon = UIImage(systemName: selected.count > 0 ? "xmark" : "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: icon, style: .plain, target: self, action: #selector(cancelAction))
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(nextAction))
-        self.navigationItem.rightBarButtonItem?.tintColor = .systemGray
-        self.navigationItem.rightBarButtonItem?.tintColor = selected.count > 0 ? .systemBlue : .systemGray
+        let backIcon = UIImage(systemName: selected.count > 0 ? "xmark" : "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: backIcon, style: .plain, target: self, action: #selector(cancelAction))
+
+        let nextButton = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(nextAction))
+        nextButton.tintColor = selected.count > 0 ? .systemBlue : .systemGray
+
+        if camera {
+            let cameraIcon = UIImage(systemName: "camera.fill", withConfiguration: UIImage.SymbolConfiguration(scale: .large))
+            let cameraButton = UIBarButtonItem(image: cameraIcon, style: .done, target: self, action: #selector(cameraAction))
+
+            self.navigationItem.rightBarButtonItems = [nextButton, cameraButton]
+        } else {
+            self.navigationItem.rightBarButtonItem = nextButton
+        }
     }
     
     private func setupZoom() {
@@ -382,6 +388,40 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         }
         
         return source
+    }
+
+    @objc private func cameraAction() {
+        let controller = CameraViewController(
+            showCancelButton: false,
+            didFinish: { [weak self] in self?.dismiss(animated: true) },
+            didPickImage: { [weak self] image in
+                guard let self = self else { return }
+                self.dismiss(animated: true)
+
+                let media = PendingMedia(type: .image)
+                media.order = 1
+                media.image = image
+                media.size = image.size
+
+                self.didFinish(self, [media], false)
+            },
+            didPickVideo: { [weak self] url in
+                guard let self = self else { return }
+                self.dismiss(animated: true)
+
+                let media = PendingMedia(type: .video)
+                media.order = 1
+                media.videoURL = url
+
+                if let size = VideoUtils.resolutionForLocalVideo(url: url) {
+                    media.size = size
+                }
+
+                self.didFinish(self, [media], false)
+            }
+        )
+
+        self.present(controller, animated: true)
     }
     
     @objc private func nextAction() {

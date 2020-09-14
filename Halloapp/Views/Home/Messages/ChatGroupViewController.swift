@@ -484,7 +484,7 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
     }
     
     func chatInputView(_ inputView: ChatInputView) {
-        self.presentPhotoLibraryPicker()
+        self.presentPhotoLibraryPickerNew()
     }
     
     private func presentPhotoLibraryPicker() {
@@ -582,6 +582,20 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
         }
         
         self.present(picker, animated: true)
+    }
+
+    private func presentPhotoLibraryPickerNew() {
+        let pickerController = MediaPickerViewController(camera: true) { [weak self] controller, media, cancel in
+            guard let self = self else { return }
+
+            controller.dismiss(animated: true) {
+                if !cancel {
+                    self.presentMessageComposer(with: media)
+                }
+            }
+        }
+
+        self.present(UINavigationController(rootViewController: pickerController), animated: true)
     }
 
     private func presentMessageComposer(with media: [PendingMedia]) {
