@@ -28,6 +28,8 @@ fileprivate class ObservableMediaState: ObservableObject {
 }
 
 class PostComposerViewController: UIViewController {
+    let backIcon = UIImage(named: "NavbarBack")
+    let closeIcon = UIImage(named: "NavbarClose")
     fileprivate let imageServer = ImageServer()
 
     private let showCancelButton: Bool
@@ -38,6 +40,7 @@ class PostComposerViewController: UIViewController {
     private var shareButton: UIBarButtonItem!
     private let didFinish: ((Bool, [PendingMedia]) -> Void)
     private let willDismissWithInput: ((MentionInput) -> Void)?
+    private let isMediaPost: Bool
 
     init(
         mediaToPost media: [PendingMedia],
@@ -51,6 +54,7 @@ class PostComposerViewController: UIViewController {
         self.willDismissWithInput = willDismissWithInput
         self.didFinish = didFinish
         self.inputToPost = GenericObservable(initialInput)
+        self.isMediaPost = media.count > 0
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -62,12 +66,8 @@ class PostComposerViewController: UIViewController {
         super.viewDidLoad()
 
         navigationItem.title = "New Post"
-        if showCancelButton {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(backAction))
-        } else {
-            let icon = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
-            self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: icon, style: .plain, target: self, action: #selector(backAction))
-        }
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: backIcon, style: .plain, target: self, action: #selector(backAction))
+        setLeftBarButtonIcon(postTextSize: inputToPost.value.text.count)
         shareButton = UIBarButtonItem(title: "Share", style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
 
@@ -95,7 +95,8 @@ class PostComposerViewController: UIViewController {
                 self.present(editController, animated: true)
             },
             goBack: { [weak self] in self?.backAction() },
-            setShareVisibility: { [weak self] visibility in self?.setShareVisibility(visibility)}
+            setShareVisibility: { [weak self] visibility in self?.setShareVisibility(visibility) },
+            setLeftBarButtonIcon: { [weak self] textSize in self?.setLeftBarButtonIcon(postTextSize: textSize) }
         )
 
         let postComposerViewController = UIHostingController(rootView: postComposerView)
@@ -120,7 +121,7 @@ class PostComposerViewController: UIViewController {
 
     override func willMove(toParent parent: UIViewController?) {
         super.willMove(toParent: parent)
-        if parent == nil {
+        if parent == nil && isMediaPost {
             imageServer.cancel()
         }
     }
@@ -132,11 +133,10 @@ class PostComposerViewController: UIViewController {
     }
 
     @objc private func backAction() {
-        if showCancelButton {
+        if isMediaPost {
             imageServer.cancel()
         }
-        
-        didFinish(true, self.mediaItems.value)
+        didFinish(isMediaPost, self.mediaItems.value)
     }
 
     private func setShareVisibility(_ visibility: Bool) {
@@ -145,6 +145,11 @@ class PostComposerViewController: UIViewController {
         } else if (!visibility && navigationItem.rightBarButtonItem != nil) {
             navigationItem.rightBarButtonItem = nil
         }
+    }
+
+    private func setLeftBarButtonIcon(postTextSize: Int) {
+        navigationItem.leftBarButtonItem?.image =
+            isMediaPost || postTextSize == 0 ? backIcon : closeIcon
     }
 }
 
@@ -176,7 +181,8 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     private let crop: (_ index: GenericObservable<Int>) -> Void
     private let goBack: () -> Void
-    private let setShareVisibility: (_ visibility: Bool) -> Void
+    private let setShareVisibility: (Bool) -> Void
+    private let setLeftBarButtonIcon: (Int) -> Void
 
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject private var mediaState = ObservableMediaState()
@@ -203,6 +209,7 @@ fileprivate struct PostComposerView: View {
 
     private var shareVisibilityPublisher: AnyPublisher<Bool, Never>!
     private var pageChangedPublisher: AnyPublisher<Bool, Never>!
+    private var postTextSizePublisher: AnyPublisher<Int, Never>!
 
     private var mediaCount: Int {
         mediaItems.value.count
@@ -231,7 +238,8 @@ fileprivate struct PostComposerView: View {
         shouldAutoPlay: GenericObservable<Bool>,
         crop: @escaping (_ index: GenericObservable<Int>) -> Void,
         goBack: @escaping () -> Void,
-        setShareVisibility: @escaping (_ visibility: Bool) -> Void)
+        setShareVisibility: @escaping (_ visibility: Bool) -> Void,
+        setLeftBarButtonIcon: @escaping (_ textSize: Int) -> Void)
     {
         self.imageServer = imageServer
         self.mediaItems = mediaItems
@@ -240,23 +248,29 @@ fileprivate struct PostComposerView: View {
         self.crop = crop
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
+        self.setLeftBarButtonIcon = setLeftBarButtonIcon
 
-        self.shareVisibilityPublisher =
+        shareVisibilityPublisher =
             Publishers.CombineLatest4(
                 self.mediaItems.$value,
                 self.mediaState.$isReady,
                 self.mediaState.$numberOfFailedItems,
                 self.inputToPost.$value
             )
-                .map { (mediaItems, mediaIsReady, numberOfFailedUploads, inputValue) -> Bool in
-                    return (mediaItems.count > 0 && mediaIsReady && numberOfFailedUploads == 0) ||
-                        (mediaItems.count == 0 && !inputValue.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .map { (mediaItems, mediaIsReady, numberOfFailedUploads, inputValue) -> Bool in
+                return (mediaItems.count > 0 && mediaIsReady && numberOfFailedUploads == 0) ||
+                    (mediaItems.count == 0 && !inputValue.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
 
         self.pageChangedPublisher =
             self.currentPosition.$value.removeDuplicates().map { _ in return true }.eraseToAnyPublisher()
+
+        self.postTextSizePublisher = self.inputToPost.$value
+            .removeDuplicates(by: { prev, current in return prev.text == current.text })
+            .map { $0.text.count }
+            .eraseToAnyPublisher()
     }
     
     private func getMediaSliderHeight(_ width: CGFloat) -> CGFloat {
@@ -358,6 +372,7 @@ fileprivate struct PostComposerView: View {
                     .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
                     .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
                     .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
+                    .onReceive(self.postTextSizePublisher) { self.setLeftBarButtonIcon($0) }
                 }
                 .frame(minHeight: geometry.size.height - self.keyboardHeight)
             }

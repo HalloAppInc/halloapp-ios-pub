@@ -88,7 +88,7 @@ final class NewPostViewController: UIViewController {
             didFinish: { [weak self] back, media in
                 if back {
                     self?.containedNavigationController.popViewController(animated: true)
-                    
+
                     guard let picker = self?.containedNavigationController.topViewController as? MediaPickerViewController else { return }
                     picker.reset(selected: media)
                 } else {
