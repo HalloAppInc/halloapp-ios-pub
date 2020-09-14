@@ -28,6 +28,8 @@ fileprivate class ObservableMediaState: ObservableObject {
 }
 
 class PostComposerViewController: UIViewController {
+    let backIcon = UIImage(named: "NavbarBack")
+    let closeIcon = UIImage(named: "NavbarClose")
     fileprivate let imageServer = ImageServer()
 
     private let showCancelButton: Bool
@@ -38,6 +40,7 @@ class PostComposerViewController: UIViewController {
     private var shareButton: UIBarButtonItem!
     private let didFinish: ((Bool, [PendingMedia]) -> Void)
     private let willDismissWithInput: ((MentionInput) -> Void)?
+    private let isMediaPost: Bool
 
     init(
         mediaToPost media: [PendingMedia],
@@ -51,6 +54,7 @@ class PostComposerViewController: UIViewController {
         self.willDismissWithInput = willDismissWithInput
         self.didFinish = didFinish
         self.inputToPost = GenericObservable(initialInput)
+        self.isMediaPost = media.count > 0
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -62,12 +66,8 @@ class PostComposerViewController: UIViewController {
         super.viewDidLoad()
 
         navigationItem.title = "New Post"
-        if showCancelButton {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(backAction))
-        } else {
-            let icon = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
-            self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: icon, style: .plain, target: self, action: #selector(backAction))
-        }
+        navigationItem.leftBarButtonItem =
+            UIBarButtonItem(image: isMediaPost ? backIcon : closeIcon, style: .plain, target: self, action: #selector(backAction))
         shareButton = UIBarButtonItem(title: "Share", style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
 
@@ -95,7 +95,7 @@ class PostComposerViewController: UIViewController {
                 self.present(editController, animated: true)
             },
             goBack: { [weak self] in self?.backAction() },
-            setShareVisibility: { [weak self] visibility in self?.setShareVisibility(visibility)}
+            setShareVisibility: { [weak self] visibility in self?.setShareVisibility(visibility) }
         )
 
         let postComposerViewController = UIHostingController(rootView: postComposerView)
@@ -120,7 +120,7 @@ class PostComposerViewController: UIViewController {
 
     override func willMove(toParent parent: UIViewController?) {
         super.willMove(toParent: parent)
-        if parent == nil {
+        if parent == nil && isMediaPost {
             imageServer.cancel()
         }
     }
@@ -132,11 +132,10 @@ class PostComposerViewController: UIViewController {
     }
 
     @objc private func backAction() {
-        if showCancelButton {
+        if isMediaPost {
             imageServer.cancel()
         }
-        
-        didFinish(true, self.mediaItems.value)
+        didFinish(isMediaPost, self.mediaItems.value)
     }
 
     private func setShareVisibility(_ visibility: Bool) {
@@ -176,7 +175,7 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     private let crop: (_ index: GenericObservable<Int>) -> Void
     private let goBack: () -> Void
-    private let setShareVisibility: (_ visibility: Bool) -> Void
+    private let setShareVisibility: (Bool) -> Void
 
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject private var mediaState = ObservableMediaState()
@@ -241,16 +240,16 @@ fileprivate struct PostComposerView: View {
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
 
-        self.shareVisibilityPublisher =
+        shareVisibilityPublisher =
             Publishers.CombineLatest4(
                 self.mediaItems.$value,
                 self.mediaState.$isReady,
                 self.mediaState.$numberOfFailedItems,
                 self.inputToPost.$value
             )
-                .map { (mediaItems, mediaIsReady, numberOfFailedUploads, inputValue) -> Bool in
-                    return (mediaItems.count > 0 && mediaIsReady && numberOfFailedUploads == 0) ||
-                        (mediaItems.count == 0 && !inputValue.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .map { (mediaItems, mediaIsReady, numberOfFailedUploads, inputValue) -> Bool in
+                return (mediaItems.count > 0 && mediaIsReady && numberOfFailedUploads == 0) ||
+                    (mediaItems.count == 0 && !inputValue.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
