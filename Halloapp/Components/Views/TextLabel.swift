@@ -55,12 +55,12 @@ class AttributedTextLink: Equatable, Identifiable {
 }
 
 extension NSTextCheckingResult.CheckingType {
-    static let readMoreLink = NSTextCheckingResult.CheckingType(rawValue: 1 << 34)
     static let userMention = NSTextCheckingResult.CheckingType(rawValue: 1 << 35)
 }
 
 protocol TextLabelDelegate: AnyObject {
     func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink)
+    func textLabelDidRequestToExpand(_ label: TextLabel)
 }
 
 class TextLabel: UILabel {
@@ -70,6 +70,10 @@ class TextLabel: UILabel {
     private let textStorage: NSTextStorage
     private let textContainer: NSTextContainer
     private let layoutManager: NSLayoutManager
+
+    private var readMoreButton: UILabel!
+    private var maskLayer: CAShapeLayer!
+    private var readMoreGradientLayer: CAGradientLayer!
 
     override init(frame: CGRect) {
         textContainer = NSTextContainer()
@@ -84,9 +88,7 @@ class TextLabel: UILabel {
 
         super.init(frame: .zero)
 
-        self.isUserInteractionEnabled = true
-
-        self.addInteraction(UIContextMenuInteraction(delegate: self))
+        commonInit()
     }
 
     required init?(coder: NSCoder) {
@@ -102,32 +104,80 @@ class TextLabel: UILabel {
 
         super.init(coder: coder)
 
-        self.isUserInteractionEnabled = true
+        commonInit()
+    }
+
+    private func commonInit() {
+        isUserInteractionEnabled = true
+        addInteraction(UIContextMenuInteraction(delegate: self))
+
+        readMoreButton = UILabel()
+        readMoreButton.text = "...more"
+        readMoreButton.textColor = .systemGray
+        readMoreButton.font = .preferredFont(forTextStyle: .body)
+        readMoreButton.backgroundColor = backgroundColor
+        readMoreButton.isHidden = true
+        readMoreButton.isUserInteractionEnabled = true
+        readMoreButton.sizeToFit()
+        addSubview(readMoreButton)
+
+        maskLayer = CAShapeLayer()
+        maskLayer.fillRule = .evenOdd
+
+        readMoreGradientLayer = CAGradientLayer()
+        readMoreGradientLayer.colors = [ UIColor.white.withAlphaComponent(1).cgColor,
+                                         UIColor.white.withAlphaComponent(0.5).cgColor,
+                                         UIColor.white.withAlphaComponent(0).cgColor,
+                                         UIColor.white.withAlphaComponent(0).cgColor ]
+        readMoreGradientLayer.locations = [ 0, 0.3, 0.6, 1 ]
+        readMoreGradientLayer.startPoint = CGPoint(x: 0, y: 1)
+        readMoreGradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        maskLayer.addSublayer(readMoreGradientLayer)
+
+        readMoreButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(readMoreTapped)))
     }
 
     // MARK: UILabel
 
     override var text: String? {
         didSet {
-            self.invalidateTextStorage()
+            invalidateTextStorage()
         }
     }
 
     override var attributedText: NSAttributedString? {
         didSet {
-            self.invalidateTextStorage()
+            invalidateTextStorage()
+            if let readMoreButton = readMoreButton, let font = attributedText?.attribute(.font, at: 0, effectiveRange: nil) as? UIFont {
+                readMoreButton.font = font
+                readMoreButton.sizeToFit()
+                setNeedsLayout()
+            }
         }
     }
 
     override var font: UIFont! {
         didSet {
-            self.invalidateTextStorage()
+            invalidateTextStorage()
+            if let readMoreButton = readMoreButton {
+                readMoreButton.font = font
+                readMoreButton.sizeToFit()
+                setNeedsLayout()
+            }
         }
     }
 
     override var numberOfLines: Int {
         didSet {
-            self.invalidateTextStorage()
+            invalidateTextStorage()
+        }
+    }
+
+    override var backgroundColor: UIColor? {
+        didSet {
+            if let readMoreButton = readMoreButton {
+                readMoreButton.backgroundColor = backgroundColor
+            }
         }
     }
 
@@ -137,20 +187,16 @@ class TextLabel: UILabel {
 
     private var textRect: CGRect = .zero
 
-    private var lastValidCharacterIndex: Int = NSNotFound // NSNotFound == full range is valid
-
-    private var readMoreLink: AttributedTextLink?
-
     override var intrinsicContentSize: CGSize {
         get {
-            var maxLayoutWidth = self.preferredMaxLayoutWidth
+            var maxLayoutWidth = preferredMaxLayoutWidth
             if maxLayoutWidth == 0 {
-                maxLayoutWidth = self.bounds.width
+                maxLayoutWidth = bounds.width
             }
             if maxLayoutWidth == 0 {
                 maxLayoutWidth = CGFloat.greatestFiniteMagnitude
             }
-            return self.sizeThatFits(CGSize(width: maxLayoutWidth, height: CGFloat.greatestFiniteMagnitude))
+            return sizeThatFits(CGSize(width: maxLayoutWidth, height: CGFloat.greatestFiniteMagnitude))
         }
     }
 
@@ -161,75 +207,107 @@ class TextLabel: UILabel {
 
     override func sizeThatFits(_ size: CGSize) -> CGSize {
         let maxSize = CGSize(width: size.width, height: CGFloat.greatestFiniteMagnitude)
-        var textSize = self.textBoundingRect(with: maxSize).size
+        var textSize = textBoundingRect(with: maxSize).size
         textSize.width = ceil(textSize.width)
         textSize.height = ceil(textSize.height)
         return textSize
     }
 
+    private func textBoundingRect(with size: CGSize) -> CGRect {
+        prepareTextStorageIfNeeded()
+
+        if textContainer.size != size {
+            performLayoutBlock { (textStorage, textContainer, layoutManager) in
+                textContainer.size = size
+            }
+            truncateTextIfNeeded()
+            performLayoutBlock { (textStorage, textContainer, layoutManager) in
+                self.textRect = layoutManager.usedRect(for: textContainer)
+            }
+            performHyperlinkDetectionIfNeeded()
+        }
+        return textRect
+    }
+
     override func draw(_ rect: CGRect) {
-        self.prepareTextStorageIfNeeded()
+        prepareTextStorageIfNeeded()
 
         links.forEach { link in
             guard link.rects.isEmpty else { return }
             link.rects = Self.textRects(forCharacterRange: link.range, inTextContainer: textContainer, withLayoutManager: layoutManager)
         }
 
-        self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
+        performLayoutBlock { (textStorage, textContainer, layoutManager) in
             let glyphRange = layoutManager.glyphRange(forBoundingRect: rect, in: textContainer)
             layoutManager.drawGlyphs(forGlyphRange: glyphRange, at: .zero)
         }
     }
 
-    private func textBoundingRect(with size: CGSize) -> CGRect {
-        self.prepareTextStorageIfNeeded()
+    override func layoutSubviews() {
+        super.layoutSubviews()
 
-        if self.textContainer.size != size {
-            performLayoutBlock { (textStorage, textContainer, layoutManager) in
-                self.textContainer.size = size
-            }
-            self.truncateAndAppendReadMoreLinkIfNeeded()
-            performLayoutBlock { (textStorage, textContainer, layoutManager) in
-                self.textRect = layoutManager.usedRect(for: textContainer)
-            }
-            self.performHyperlinkDetectionIfNeeded()
+        let screenScale = UIScreen.main.scale
+        readMoreButton.frame.origin.x = bounds.maxX - readMoreButton.frame.width
+        readMoreButton.frame.origin.y = floor(textRect.maxY * screenScale) / screenScale - readMoreButton.frame.height
+
+        if readMoreButton.isHidden {
+            layer.mask = nil
+        } else {
+            let maskRect = bounds
+            maskLayer.frame = maskRect
+
+            let gradientWidth: CGFloat = 30
+            var gradientRect = readMoreButton.frame
+            gradientRect.origin.x = gradientRect.minX - gradientWidth
+            gradientRect.size.width = gradientWidth
+            readMoreGradientLayer.frame = gradientRect
+
+            let path = UIBezierPath(rect: gradientRect)
+            path.append(UIBezierPath(rect: maskRect))
+            maskLayer.path = path.cgPath
+
+            layer.mask = maskLayer
         }
-        return textRect
     }
+
+    // MARK: Text Storage
+
+    private var lastValidCharacterIndex: Int = NSNotFound // NSNotFound == full range is valid
 
     private func prepareTextStorageIfNeeded() {
         // FIXME: Access to this variable isn't thread safe.
-        guard !self.textStorageIsValid else { return }
+        guard !textStorageIsValid else { return }
 
-        if let attributedText = self.attributedText {
+        if let attributedText = attributedText {
             let mutableAttributedText: NSMutableAttributedString = attributedText.mutableCopy() as! NSMutableAttributedString
             mutableAttributedText.removeAttribute(.paragraphStyle, range: NSRange(location: 0, length: mutableAttributedText.length))
             mutableAttributedText.removeAttribute(.shadow, range: NSRange(location: 0, length: mutableAttributedText.length))
-            self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
+            performLayoutBlock { (textStorage, textContainer, layoutManager) in
                 textStorage.setAttributedString(mutableAttributedText)
             }
-
-            self.needsDetectHyperlinks = true
+            needsDetectHyperlinks = true
         }
-        self.textStorageIsValid = true
+        textStorageIsValid = true
     }
 
     private func invalidateTextStorage() {
-        self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
+        performLayoutBlock { (textStorage, textContainer, layoutManager) in
             textStorage.deleteCharacters(in: NSRange(location: 0, length: textStorage.length))
+            textContainer.maximumNumberOfLines = 0
+            textContainer.exclusionPaths = []
             self.links = []
         }
-        self.invalidateIntrinsicContentSize()
-        self.textStorageIsValid = false
+        invalidateIntrinsicContentSize()
+        textStorageIsValid = false
     }
 
-    private func truncate(textStorage: NSTextStorage, forLayoutManager layoutManaged: NSLayoutManager, ofTextContainer textContainer: NSTextContainer, toLineCount maxLineCount: Int) -> NSRange {
-        assert(textContainer.maximumNumberOfLines == 0, "textContainer.maximumNumberOfLines not 0")
+    private func truncate(textStorage: NSTextStorage, layoutManager: NSLayoutManager, textContainer: NSTextContainer, toLineCount maxLineCount: Int) -> NSRange {
+        textContainer.maximumNumberOfLines = 0
         let glyphCount = layoutManager.numberOfGlyphs
         var lastLineGlyphRange = NSRange(location: 0, length: 0)
         var lineCount = 0
         var startGlyphIndex = 0
-        while (startGlyphIndex < glyphCount && lineCount < maxLineCount) {
+        while startGlyphIndex < glyphCount && lineCount < maxLineCount {
             layoutManager.lineFragmentRect(forGlyphAt: startGlyphIndex, effectiveRange: &lastLineGlyphRange)
             startGlyphIndex = NSMaxRange(lastLineGlyphRange)
             lineCount += 1
@@ -240,57 +318,62 @@ class TextLabel: UILabel {
         textContainer.maximumNumberOfLines = maxLineCount
         layoutManager.invalidateGlyphs(forCharacterRange: NSRange(location: 0, length: textStorage.length), changeInLength: 0, actualCharacterRange: nil)
         var truncatedGlyphRange = layoutManager.truncatedGlyphRange(inLineFragmentForGlyphAt: lastLineGlyphRange.location)
-        textContainer.maximumNumberOfLines = 0
-        layoutManager.invalidateGlyphs(forCharacterRange: NSRange(location: 0, length: textStorage.length), changeInLength: 0, actualCharacterRange: nil)
         if truncatedGlyphRange.location == NSNotFound {
             // The last line may not be truncated if it is shown in full. In this case, we need to back
             // up the character index by 1 to remove the trailing newline character.
             let index = NSMaxRange(lastLineGlyphRange)
             truncatedGlyphRange = NSRange(location: index, length: glyphCount - index)
-            var charRangeToDelete = layoutManager.characterRange(forGlyphRange: truncatedGlyphRange, actualGlyphRange: nil)
-            if charRangeToDelete.location > 0 {
-                charRangeToDelete.location -= 1
-                charRangeToDelete.length += 1
+            var truncatedCharacterRange = layoutManager.characterRange(forGlyphRange: truncatedGlyphRange, actualGlyphRange: nil)
+            if truncatedCharacterRange.location > 0 {
+                truncatedCharacterRange.location -= 1
+                truncatedCharacterRange.length += 1
             }
-            textStorage.replaceCharacters(in: charRangeToDelete, with: "")
-            return charRangeToDelete
+            return truncatedCharacterRange
         } else {
-            self.needsDetectHyperlinks = true
+            needsDetectHyperlinks = true
 
-            // Add an ellipsis only if the default truncation behavior results in an ellipsis.
             truncatedGlyphRange.length = glyphCount - truncatedGlyphRange.location
-            let charRangeToReplace = layoutManager.characterRange(forGlyphRange: truncatedGlyphRange, actualGlyphRange:nil)
-            textStorage.replaceCharacters(in: charRangeToReplace, with: "\u{2026}")
-            return charRangeToReplace
+            let truncatedCharacterRange = layoutManager.characterRange(forGlyphRange: truncatedGlyphRange, actualGlyphRange:nil)
+            return truncatedCharacterRange
         }
     }
 
-    private func truncateAndAppendReadMoreLinkIfNeeded() {
-        self.readMoreLink = nil
-        self.lastValidCharacterIndex = NSNotFound
+    private func truncateTextIfNeeded() {
+        readMoreButton.isHidden = true
+        lastValidCharacterIndex = NSNotFound
 
-        guard self.numberOfLines != 0 else { return }
-        guard self.layoutManager.numberOfGlyphs > 10 else { return }
-
-        var replacedRange = NSRange(location: NSNotFound, length: 0)
-        self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
-            replacedRange = self.truncate(textStorage: textStorage, forLayoutManager: layoutManager, ofTextContainer: textContainer, toLineCount: self.numberOfLines)
-        }
-        guard replacedRange.location != NSNotFound else {
+        guard numberOfLines != 0 && layoutManager.numberOfGlyphs > 10 else {
             return
         }
-        if replacedRange.location > 0 {
-            self.lastValidCharacterIndex = replacedRange.location - 1
+
+        var truncatedRange = NSRange(location: NSNotFound, length: 0)
+        performLayoutBlock { (textStorage, textContainer, layoutManager) in
+            truncatedRange = self.truncate(textStorage: textStorage, layoutManager: layoutManager, textContainer: textContainer, toLineCount: self.numberOfLines)
+
+            if truncatedRange.location != NSNotFound {
+                let textRect = layoutManager.usedRect(for: textContainer)
+                // 1. Just half the height to ensure that only the bottom line of text is truncated.
+                // 2. Do not add exclusion path if text and "...more" do not overlap (eg. short lines).
+                var exclusionRectSize = CGSize(width: readMoreButton.frame.width, height: 0.5 * readMoreButton.frame.height)
+                exclusionRectSize.width -= textContainer.size.width - textRect.width
+                if exclusionRectSize.width > 0 {
+                    let exclusionRect = CGRect(x: textRect.maxX - exclusionRectSize.width, y: textRect.maxY - exclusionRectSize.height, width: exclusionRectSize.width, height: exclusionRectSize.height)
+                    textContainer.exclusionPaths  = [ UIBezierPath(rect: exclusionRect) ]
+                }
+            }
         }
 
-        let readMoreLinkCharacterIndex = self.textStorage.length
-        let readMoreLinkText = "\n\("more")" // TODO: localize
-        let attributes: [ NSAttributedString.Key: Any ] = [ .font: self.font ?? UIFont.preferredFont(forTextStyle: .body), .foregroundColor: UIColor.systemGray ]
-        self.textStorage.append(NSAttributedString(string: readMoreLinkText, attributes: attributes))
+        if truncatedRange.location > 0 {
+            lastValidCharacterIndex = truncatedRange.location - 1
+        }
 
-        let readMoreRange = NSRange(location: readMoreLinkCharacterIndex + 1, length: self.textStorage.length - readMoreLinkCharacterIndex - 1)
-        self.readMoreLink = AttributedTextLink(text: readMoreLinkText, resultType: .readMoreLink, range:readMoreRange)
-        self.links = [ self.readMoreLink! ]
+        readMoreButton.isHidden = truncatedRange.location == NSNotFound
+    }
+
+    @objc private func readMoreTapped() {
+        if let delegate = delegate {
+            delegate.textLabelDidRequestToExpand(self)
+        }
     }
 
     // MARK: Thread safety
@@ -301,9 +384,9 @@ class TextLabel: UILabel {
     private let textObjectsLock = NSLock()
 
     private func performLayoutBlock(block: (NSTextStorage, NSTextContainer, NSLayoutManager) -> ()) {
-        self.textObjectsLock.lock()
-        block(self.textStorage, self.textContainer, self.layoutManager)
-        self.textObjectsLock.unlock()
+        textObjectsLock.lock()
+        block(textStorage, textContainer, layoutManager)
+        textObjectsLock.unlock()
     }
 
     // MARK: Hyperlinks
@@ -313,11 +396,11 @@ class TextLabel: UILabel {
     private var links = [AttributedTextLink]()
 
     private static let linkAttributes: [ NSAttributedString.Key: Any ] =
-        [ NSAttributedString.Key.foregroundColor: UIColor.systemBlue ]
+        [ .foregroundColor: UIColor.systemBlue ]
 
     private static let addressAttributes: [ NSAttributedString.Key: Any ] =
-        [ NSAttributedString.Key.underlineStyle: NSUnderlineStyle.single.rawValue,
-          NSAttributedString.Key.underlineColor: UIColor.label.withAlphaComponent(0.5) ]
+        [ .underlineStyle: NSUnderlineStyle.single.rawValue,
+          .underlineColor: UIColor.label.withAlphaComponent(0.5) ]
 
     private static func mentionAttributes(baseFont: UIFont) -> [ NSAttributedString.Key: Any] {
         guard let boldDescriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitBold) else {
@@ -331,8 +414,8 @@ class TextLabel: UILabel {
     static private let dataDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue | NSTextCheckingResult.CheckingType.phoneNumber.rawValue | NSTextCheckingResult.CheckingType.address.rawValue)
 
     private func performHyperlinkDetectionIfNeeded() {
-        guard self.needsDetectHyperlinks else { return }
-        self.needsDetectHyperlinks = false
+        guard needsDetectHyperlinks else { return }
+        needsDetectHyperlinks = false
         TextLabel.detectionQueue.async {
             self.reallyDetectHyperlinks()
         }
@@ -341,14 +424,14 @@ class TextLabel: UILabel {
     private func reallyDetectHyperlinks() {
         var text: String = ""
         var links = [AttributedTextLink]()
-        self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
+        performLayoutBlock { (textStorage, textContainer, layoutManager) in
             text = textStorage.string
             links += self.userMentions(in: textStorage)
         }
         let rangesOfExistingLinks = links.compactMap { Range($0.range, in: text) }
-        links += self.detectSystemDataTypes(in: text, ignoredRanges: rangesOfExistingLinks)
+        links += detectSystemDataTypes(in: text, ignoredRanges: rangesOfExistingLinks)
 
-        self.performLayoutBlock { (textStorage, textContainer, layoutManager) in
+        performLayoutBlock { (textStorage, textContainer, layoutManager) in
             // String may have been changed or truncated while link detection was happening on a background thread.
             let possiblyTruncatedRange = text.commonPrefix(with: textStorage.string).utf16Extent
             let linksFullyContainedInRange = links.filter { possiblyTruncatedRange.contains($0.range) }
@@ -362,9 +445,6 @@ class TextLabel: UILabel {
 
         DispatchQueue.main.async {
             self.links = links
-            if self.readMoreLink != nil {
-                self.links.append(self.readMoreLink!)
-            }
             self.setNeedsDisplay()
         }
     }

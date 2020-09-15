@@ -578,16 +578,18 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
             if let url = link.result?.url {
                 self.delegate?.feedTableViewCell(self, didRequestOpen: url)
             }
-        case .readMoreLink:
-            self.delegate?.feedTableViewCellDidRequestReloadHeight(self) {
-                self.itemContentView.textLabel.numberOfLines = 0
-            }
         case .userMention:
             if let userID = link.userID {
                 showUserAction?(userID)
             }
         default:
             break
+        }
+    }
+
+    func textLabelDidRequestToExpand(_ label: TextLabel) {
+        self.delegate?.feedTableViewCellDidRequestReloadHeight(self) {
+            self.itemContentView.textLabel.numberOfLines = 0
         }
     }
 

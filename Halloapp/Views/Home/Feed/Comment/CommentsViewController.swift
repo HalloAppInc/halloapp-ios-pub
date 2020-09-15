@@ -705,6 +705,10 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             break
         }
     }
+
+    func textLabelDidRequestToExpand(_ label: TextLabel) {
+        // Text in comments is never collapsed.
+    }
 }
 
 fileprivate class CommentsTableViewCell: UITableViewCell {
