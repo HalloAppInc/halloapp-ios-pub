@@ -20,8 +20,12 @@ class MediaEditViewController: UIViewController {
     private let media: [PendingMedia]
     private let initialSelect: Int?
     private let didFinish: MediaEditViewControllerCallback
+    private let cropToCircle: Bool
+    private let allowMore: Bool
     
-    init(mediaToEdit media: [PendingMedia], selected: Int?, didFinish: @escaping MediaEditViewControllerCallback) {
+    init(cropToCircle: Bool = false, allowMore: Bool = true, mediaToEdit media: [PendingMedia], selected: Int?, didFinish: @escaping MediaEditViewControllerCallback) {
+        self.cropToCircle = cropToCircle
+        self.allowMore = allowMore
         self.media = media
         self.initialSelect = selected
         self.didFinish = didFinish
@@ -40,14 +44,14 @@ class MediaEditViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let items = media.map { MediaEdit(media: $0) }
+        let items = media.map { MediaEdit(cropToCircle: cropToCircle, media: $0) }
         
         guard let selected = MediaEditViewController.firstImage(items: items, position: initialSelect) else {
             didFinish(self, [], -1, true)
             return
         }
         
-        let mediaEditView = MediaEditView(media: items, selected: selected) { [weak self] media, selected, cancel in
+        let mediaEditView = MediaEditView(cropToCircle: cropToCircle, allowMore: allowMore, media: items, selected: selected) { [weak self] media, selected, cancel in
             guard let self = self else { return }
             self.didFinish(self, media.map { $0.process() }, selected, cancel)
         }
@@ -95,8 +99,10 @@ fileprivate class MediaEdit : ObservableObject {
     private var vFlipped = false
     private var fileURL : URL?
     private var cancellable: AnyCancellable?
+    private let cropToCircle: Bool
     
-    init(media: PendingMedia) {
+    init(cropToCircle: Bool, media: PendingMedia) {
+        self.cropToCircle = cropToCircle
         self.media = media
         self.type = media.type
         
@@ -229,13 +235,21 @@ fileprivate class MediaEdit : ObservableObject {
         if image.size.width < 120 || image.size.height < 120 {
             offset = CropRegion.borderThickness / 2
         }
+
+        if cropToCircle {
+            let size = image.size.width * 0.75
+            self.cropRect = CGRect(x: image.size.width / 2 - size / 2, y: image.size.height / 2  - size / 2, width: size, height: size)
+        } else {
+            var crop = CGRect(x: offset, y: offset, width: image.size.width - 2 * offset, height: image.size.height - 2 * offset)
+
+            let ratio = crop.size.height / crop.size.width
+            crop.size.height = crop.size.width * min(CropImage.maxAspectRatio, ratio)
+
+            self.cropRect = crop;
+        }
+
         
-        var crop = CGRect(x: offset, y: offset, width: image.size.width - 2 * offset, height: image.size.height - 2 * offset)
-        
-        let ratio = crop.size.height / crop.size.width
-        crop.size.height = crop.size.width * min(CropImage.maxAspectRatio, ratio)
-        
-        self.cropRect = crop;
+
     }
     
     func reset() {
@@ -356,7 +370,8 @@ fileprivate class MediaEdit : ObservableObject {
 }
 
 fileprivate struct CropRegion: View {
-    
+
+    let cropToCircle: Bool
     let region: CGRect
     
     static let borderThickness: CGFloat = 8
@@ -368,13 +383,22 @@ fileprivate struct CropRegion: View {
             // Shadow
             Path { path in
                 path.addRect(CGRect(x: 0, y: 0, width: geometry.size.width, height: geometry.size.height))
-                path.addRoundedRect(in: self.region, cornerSize: self.cornerSize)
+
+                if self.cropToCircle {
+                    path.addEllipse(in: self.region)
+                } else {
+                    path.addRoundedRect(in: self.region, cornerSize: self.cornerSize)
+                }
             }
             .fill(self.shadowColor, style: FillStyle(eoFill: true))
             
             // Border
             Path { path in
-                path.addRoundedRect(in: self.region, cornerSize: self.cornerSize)
+                if self.cropToCircle {
+                    path.addEllipse(in: self.region)
+                } else {
+                    path.addRoundedRect(in: self.region, cornerSize: self.cornerSize)
+                }
             }
             .stroke(Color.white, lineWidth: CropRegion.borderThickness)
             .contentShape(Rectangle()) // Apply gesture on the whole region and not just the border
@@ -542,7 +566,8 @@ fileprivate struct CropImage: View {
     
     static let maxAspectRatio: CGFloat = 5/4
     private let threshold = CGFloat(44)
-    
+
+    let cropToCircle: Bool
     @ObservedObject var media: MediaEdit
     
     @State private var isDragging = false
@@ -675,7 +700,7 @@ fileprivate struct CropImage: View {
                     .offset(self.scaleOffset(self.media.offset, containerSize: outer.size, imageSize: image.size))
                     .clipped()
                     .overlay(GeometryReader { inner in
-                        CropRegion(region: self.scaleCropRegion(self.media.cropRect, from: image.size, to: inner.size))
+                        CropRegion(cropToCircle: self.cropToCircle, region: self.scaleCropRegion(self.media.cropRect, from: image.size, to: inner.size))
                     })
                     .overlay(GeometryReader { inner in
                         CropGestureView()
@@ -711,8 +736,10 @@ fileprivate struct CropImage: View {
                                 if !self.isDragging {
                                     self.lastLocation = v
                                     self.lastCropSection = self.findCropSection(crop, location: v)
-                                    
-                                    if self.lastCropSection != .none {
+
+                                    if self.cropToCircle && self.lastCropSection == .inside {
+                                        self.isDragging = true
+                                    } else if !self.cropToCircle && self.lastCropSection != .none {
                                         self.isDragging = true
                                     } else {
                                         return
@@ -763,6 +790,8 @@ fileprivate struct Picker: UIViewControllerRepresentable {
 }
 
 fileprivate struct MediaEditView : View {
+    let cropToCircle: Bool
+    let allowMore: Bool
     @State var media: [MediaEdit]
     @State var selected: MediaEdit
     var complete: (([MediaEdit], Int, Bool) -> Void)?
@@ -874,7 +903,7 @@ fileprivate struct MediaEditView : View {
                         }
                     }
                     
-                    items.append(MediaEdit(media: m))
+                    items.append(MediaEdit(cropToCircle: self.cropToCircle, media: m))
                 }
                 
                 self.media.removeAll()
@@ -904,7 +933,7 @@ fileprivate struct MediaEditView : View {
                 }
                 
                 // effectively display the button only when the initial selection was also from picker
-                if media.allSatisfy { $0.media.asset != nil } {
+                if allowMore && media.allSatisfy { $0.media.asset != nil } {
                     addMoreButton
                 }
             }
@@ -921,7 +950,7 @@ fileprivate struct MediaEditView : View {
             VStack {
                 topBar
                 
-                CropImage(media: selected)
+                CropImage(cropToCircle: cropToCircle, media: selected)
                 
                 previews
                 bottomBar

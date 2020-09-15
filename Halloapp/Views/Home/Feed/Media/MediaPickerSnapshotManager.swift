@@ -18,6 +18,7 @@ class MediaPickerSnapshotManager {
     private let formatDayYear = DateFormatter()
     private let formatMonth = DateFormatter()
     private let formatMonthYear = DateFormatter()
+    private let filter: MediaPickerFilter
     
     private var nextIndex = 0
     private var thisYear = Calendar.current.component(.year, from: Date())
@@ -27,7 +28,9 @@ class MediaPickerSnapshotManager {
     private var itemsInMonth = 0
     private var itemsInDay = 0
     
-    init() {
+    init(filter: MediaPickerFilter = .all) {
+        self.filter = filter
+
         formatDay.locale = Locale.current
         formatDay.setLocalizedDateFormatFromTemplate("EEEE, MMM d")
         formatDayYear.locale = Locale.current
@@ -61,6 +64,8 @@ class MediaPickerSnapshotManager {
         let limit = min(nextIndex + pageSize, assets.count)
         for i in nextIndex..<limit {
             guard let date = assets[i].creationDate else { continue }
+            guard filter != .image || assets[i].mediaType == .image else { continue }
+            guard filter != .video || assets[i].mediaType == .video else { continue }
             
             let year = Calendar.current.component(.year, from: date)
             let month = Calendar.current.component(.month, from: date)

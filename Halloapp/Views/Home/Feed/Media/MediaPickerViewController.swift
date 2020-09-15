@@ -11,6 +11,10 @@ import Foundation
 import Photos
 import UIKit
 
+enum MediaPickerFilter {
+    case all, image, video
+}
+
 fileprivate enum MediaPickerMode {
     case month, day, dayLarge
 }
@@ -24,10 +28,12 @@ typealias MediaPickerViewControllerCallback = (MediaPickerViewController, [Pendi
 class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PickerViewCellDelegate {
     fileprivate var mode: MediaPickerMode = .day
     fileprivate var selected = [PHAsset]()
+    fileprivate var multiselect: Bool
     
     private let didFinish: MediaPickerViewControllerCallback
     private let camera: Bool
-    private let snapshotManager = MediaPickerSnapshotManager()
+    private let filter: MediaPickerFilter
+    private let snapshotManager: MediaPickerSnapshotManager
     private var dataSource: UICollectionViewDiffableDataSource<Int, PickerItem>!
     private var collectionView: UICollectionView!
     private var transitionLayout: UICollectionViewTransitionLayout?
@@ -36,10 +42,13 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private var preview: UIView?
     private var updatingSnapshot = false
     
-    init(camera: Bool = false, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
+    init(filter: MediaPickerFilter = .all, multiselect: Bool = true, camera: Bool = false, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
         self.selected.append(contentsOf: selected.filter { $0.asset != nil }.map { $0.asset! })
         self.didFinish = didFinish
         self.camera = camera
+        self.multiselect = multiselect
+        self.filter = filter
+        self.snapshotManager = MediaPickerSnapshotManager(filter: filter)
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -97,9 +106,18 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
             
             if let album = album {
+                // Unable to filter album assets by type, will filter them in snapshot manager
                 self.snapshotManager.reset(with: PHAsset.fetchAssets(in: album, options: options))
             } else {
-                self.snapshotManager.reset(with: PHAsset.fetchAssets(with: options))
+                switch self.filter {
+                case .all:
+                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: options))
+                case .image:
+                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: .image, options: options))
+                case .video:
+                    self.snapshotManager.reset(with: PHAsset.fetchAssets(with: .video, options: options))
+                }
+
             }
             
             let snapshot = self.snapshotManager.next()
@@ -147,17 +165,21 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         let backIcon = UIImage(systemName: selected.count > 0 ? "xmark" : "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: backIcon, style: .plain, target: self, action: #selector(cancelAction))
 
-        let nextButton = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(nextAction))
-        nextButton.tintColor = selected.count > 0 ? .systemBlue : .systemGray
+        var buttons = [UIBarButtonItem]()
+
+        if multiselect {
+            let nextButton = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(nextAction))
+            nextButton.tintColor = selected.count > 0 ? .systemBlue : .systemGray
+            buttons.append(nextButton)
+        }
 
         if camera {
             let cameraIcon = UIImage(systemName: "camera.fill", withConfiguration: UIImage.SymbolConfiguration(scale: .large))
             let cameraButton = UIBarButtonItem(image: cameraIcon, style: .done, target: self, action: #selector(cameraAction))
-
-            self.navigationItem.rightBarButtonItems = [nextButton, cameraButton]
-        } else {
-            self.navigationItem.rightBarButtonItem = nextButton
+            buttons.append(cameraButton)
         }
+
+        self.navigationItem.rightBarButtonItems = buttons
     }
     
     private func setupZoom() {
@@ -585,6 +607,12 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     private func select(_ collectionView: UICollectionView, cell: AssetViewCell, asset: PHAsset) {
+        if !multiselect {
+            selected.append(asset)
+            nextAction()
+            return
+        }
+
         UIView.animateKeyframes(withDuration: 0.3, delay: 0, options: [], animations: {
             UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.2, animations: {
                 cell.image.layer.cornerRadius = 15
@@ -668,6 +696,7 @@ class PlayerPreviewView: UIView {
 fileprivate protocol PickerViewCellDelegate: class {
     var mode: MediaPickerMode {get}
     var selected: [PHAsset] {get}
+    var multiselect: Bool {get}
 }
 
 enum PickerItemType {
@@ -858,19 +887,23 @@ fileprivate class AssetViewCell: UICollectionViewCell {
             image.layer.cornerRadius = 15
             image.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
             
-            self.indicator.layer.borderColor = UIColor.lavaOrange.cgColor
-            self.indicator.backgroundColor = .lavaOrange
-            self.indicator.text = "\(1 + idx)"
+            indicator.layer.borderColor = UIColor.lavaOrange.cgColor
+            indicator.backgroundColor = .lavaOrange
+            indicator.text = "\(1 + idx)"
         } else {
             image.layer.cornerRadius = 0
             image.transform = CGAffineTransform.identity
             
-            self.indicator.layer.borderColor = CGColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.7)
-            self.indicator.backgroundColor = .clear
-            self.indicator.text = ""
+            indicator.layer.borderColor = CGColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.7)
+            indicator.backgroundColor = .clear
+            indicator.text = ""
         }
-        
+
         play.isHidden = item?.asset?.mediaType != .video
+
+        if let multiselect = delegate?.multiselect, !multiselect {
+            indicator.isHidden = true
+        }
         
         setNeedsLayout()
     }

@@ -53,7 +53,7 @@ struct ProfileEditView: View {
                         ])
                     }
                     .sheet(isPresented: self.$showingImagePicker, onDismiss: uploadImage) {
-                        ImagePicker(image: self.$profileImageInput)
+                        ImagePickerNew(image: self.$profileImageInput)
                     }
                 }
 
@@ -170,6 +170,37 @@ fileprivate struct ImagePicker: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: YPImagePicker, context: Context) {
         
+    }
+}
+
+fileprivate struct ImagePickerNew: UIViewControllerRepresentable {
+    typealias UIViewControllerType = UINavigationController
+
+    @Environment(\.presentationMode) var presentationMode
+    @Binding var image: UIImage?
+
+    func makeUIViewController(context: Context) -> UINavigationController {
+        let picker = MediaPickerViewController(filter: .image, multiselect: false, camera: true) { controller, media, cancel in
+            if cancel || media.count == 0 {
+                self.presentationMode.wrappedValue.dismiss()
+            } else {
+                let edit = MediaEditViewController(cropToCircle: true, allowMore: false, mediaToEdit: media, selected: 0) { controller, media, index, cancel in
+                    controller.dismiss(animated: true)
+
+                    if !cancel && media.count > 0 {
+                        self.image = media[0].image
+                        self.presentationMode.wrappedValue.dismiss()
+                    }
+                }
+
+                controller.present(edit, animated: true)
+            }
+        }
+
+        return UINavigationController(rootViewController: picker)
+    }
+
+    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
     }
 }
 
