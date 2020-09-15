@@ -22,7 +22,15 @@ public final class UserData: ObservableObject {
      */
     @Published public var isLoggedIn = false
 
-    public var useProtobuf = false
+    public var useProtobuf: Bool {
+        // NB: We use the static user defaults since this is accessed during AppContext initialization
+        get {
+            return AppContext.userDefaultsForAppGroup.bool(forKey: "UseProtobuf")
+        }
+        set {
+            AppContext.userDefaultsForAppGroup.set(newValue, forKey: "UseProtobuf")
+        }
+    }
 
     public var useTestServer: Bool {
         get {

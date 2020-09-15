@@ -29,14 +29,8 @@ class MainAppContext: AppContext {
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
 
-    override var xmppController: XMPPControllerMain {
-        get {
-            super.xmppController as! XMPPControllerMain
-        }
-    }
-
     var service: HalloService {
-        xmppController
+        coreService as! HalloService
     }
 
     override var contactStore: ContactStoreMain {
@@ -83,23 +77,23 @@ class MainAppContext: AppContext {
         }
     }
 
-    required init(xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
+    required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type) {
         FirebaseApp.configure()
 
         let logger = CrashlyticsLogger()
         logger.logFormatter = LogFormatter()
         DDLog.add(logger)
-        super.init(xmppControllerClass: xmppControllerClass, contactStoreClass: contactStoreClass)
+        super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass)
         // This is needed to encode/decode protobuf in FeedPostInfo.
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
 
-        feedData = FeedData(service: xmppController, contactStore: contactStore, userData: userData)
-        chatData = ChatData(service: xmppController, userData: userData)
-        keyData = KeyData(service: xmppController, userData: userData, keyStore: keyStore)
-        syncManager = SyncManager(contactStore: contactStore, service: xmppController, userData: userData)
+        feedData = FeedData(service: service, contactStore: contactStore, userData: userData)
+        chatData = ChatData(service: service, userData: userData)
+        keyData = KeyData(service: service, userData: userData, keyStore: keyStore)
+        syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         avatarStore = AvatarStore()
-        xmppController.avatarDelegate = avatarStore
-        privacySettings = PrivacySettings(contactStore: contactStore, service: xmppController)
+        coreService.avatarDelegate = avatarStore
+        privacySettings = PrivacySettings(contactStore: contactStore, service: service)
     }
     
     private var mergingSharedData = false

@@ -23,10 +23,10 @@ class ShareExtensionContext: AppExtensionContext {
             return super.shared as! ShareExtensionContext
         }
     }
-    
-    required init(xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
-        super.init(xmppControllerClass: xmppControllerClass, contactStoreClass: contactStoreClass)
-        dataStore = DataStore(xmppController: xmppController)
+
+    required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type) {
+        super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass)
+        dataStore = DataStore(service: coreService)
         privacySettings = PrivacySettings(contactStore: contactStore)
     }
 

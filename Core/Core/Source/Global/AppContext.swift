@@ -14,8 +14,10 @@ import PhoneNumberKit
 
 fileprivate var sharedContext: AppContext?
 
-public func initAppContext(_ appContextClass: AppContext.Type, xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
-    sharedContext = appContextClass.init(xmppControllerClass: xmppControllerClass, contactStoreClass: contactStoreClass)
+public typealias ServiceBuilder = (UserData) -> CoreService
+
+public func initAppContext(_ appContextClass: AppContext.Type, serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type) {
+    sharedContext = appContextClass.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass)
 }
 
 open class AppContext {
@@ -44,23 +46,20 @@ open class AppContext {
         return "\(version).\(buildNumber)"
     }()
 
+    public static let userDefaultsForAppGroup: UserDefaults! = UserDefaults(suiteName: appGroupName)
+
     open var isAppExtension: Bool {
         get { true }
     }
 
     // MARK: Global objects
     public let userData: UserData
-    public let userDefaults: UserDefaults! = UserDefaults(suiteName: AppContext.appGroupName)
+    public let userDefaults: UserDefaults! = AppContext.userDefaultsForAppGroup
     public let keyStore: KeyStore
     public let fileLogger: DDFileLogger
     public let phoneNumberFormatter = PhoneNumberKit(metadataCallback: AppContext.phoneNumberKitMetadataCallback)
 
-    private let xmppControllerImpl: XMPPController
-    open var xmppController: XMPPController {
-        get {
-            xmppControllerImpl
-        }
-    }
+    public var coreService: CoreService
 
     private let contactStoreImpl: ContactStore
     open var contactStore: ContactStore {
@@ -89,7 +88,7 @@ open class AppContext {
         }
     }
 
-    required public init(xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
+    required public init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type) {
         let appGroupLogsDirectory = Self.sharedDirectoryURL
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Caches", isDirectory: true)
@@ -124,7 +123,7 @@ open class AppContext {
         }
 
         userData = UserData(storeDirectoryURL: Self.sharedDirectoryURL)
-        xmppControllerImpl = xmppControllerClass.init(userData: userData)
+        coreService = serviceBuilder(userData)
         contactStoreImpl = contactStoreClass.init(userData: userData)
         keyStore = KeyStore(userData: userData)
     }

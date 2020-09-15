@@ -16,12 +16,12 @@ enum ShareExtensionError: Error {
 
 class DataStore: ShareExtensionDataStore {
 
-    private let xmppController: XMPPController
+    private let service: CoreService
     private let mediaUploader: MediaUploader
 
-    init(xmppController: XMPPController) {
-        self.xmppController = xmppController
-        mediaUploader = MediaUploader(service: xmppController)
+    init(service: CoreService) {
+        self.service = service
+        mediaUploader = MediaUploader(service: service)
         super.init()
         mediaUploader.resolveMediaPath = { [weak self] (relativeMediaPath) in
             return self!.fileURL(forRelativeFilePath: relativeMediaPath)
@@ -181,12 +181,18 @@ class DataStore: ShareExtensionDataStore {
     }
 
     private func send(post feedPost: SharedFeedPost, completion: @escaping SharePostCompletion) {
+        guard let postAudience = feedPost.audience else {
+            DDLogError("SharedDataStore/send-post/\(feedPost.id) No audience set")
+            feedPost.status = .sendError
+            save(feedPost.managedObjectContext!)
+            return
+        }
+
         let managedObjectContext = feedPost.managedObjectContext!
 
         DDLogError("SharedDataStore/post/\(feedPost.id)/send")
 
-        let postAudience = feedPost.audience!
-        let request = XMPPPostItemRequest(feedPost: feedPost, audience: postAudience) { (result) in
+        service.publishPost(feedPost, audience: postAudience) { result in
             switch result {
             case .success(let timestamp):
                 DDLogError("SharedDataStore/post/\(feedPost.id)/send/complete")
@@ -208,7 +214,6 @@ class DataStore: ShareExtensionDataStore {
                 completion(.failure(error))
             }
         }
-        xmppController.enqueue(request: request)
     }
 
     public typealias SendMessageCompletion = (Result<String, Error>) -> ()
@@ -258,7 +263,8 @@ class DataStore: ShareExtensionDataStore {
             save(managedObjectContext)
         }
 
-        xmppController.xmppStream.send(message.xmppElement)
+        service.sendChatMessage(message, encryption: nil)
+
         // TODO: Find a way to detect send error
         completion(.success(message.id))
     }

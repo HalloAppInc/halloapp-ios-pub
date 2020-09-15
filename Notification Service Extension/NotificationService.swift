@@ -24,8 +24,12 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         return downloadManager
     }()
 
+    private let serviceBuilder: ServiceBuilder = {
+        $0.useProtobuf ? ProtoServiceCore(userData: $0) : XMPPController(userData: $0)
+    }
+
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
-        initAppContext(AppExtensionContext.self, xmppControllerClass: XMPPController.self, contactStoreClass: ContactStore.self)
+        initAppContext(AppExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self)
 
         DDLogInfo("didReceiveRequest/begin \(request)")
 

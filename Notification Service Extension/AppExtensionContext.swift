@@ -18,9 +18,9 @@ class AppExtensionContext: AppContext {
         }
     }
 
-    required init(xmppControllerClass: XMPPController.Type, contactStoreClass: ContactStore.Type) {
+    required init(serviceBuilder: ServiceBuilder, contactStoreClass: ContactStore.Type) {
         asyncLoggingEnabled = false
-        super.init(xmppControllerClass: xmppControllerClass, contactStoreClass: contactStoreClass)
+        super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass)
     }
 
 }

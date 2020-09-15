@@ -52,7 +52,12 @@ class ComposeViewController: SLComposeServiceViewController {
     private var mediaToSend = [PendingMedia]()
     private var dataStore: DataStore!
     private var service: CoreService!
-    
+
+    private let serviceBuilder: ServiceBuilder = {
+        // TODO: ProtoService for share extension should use passive mode and not attempt to reconnect
+        $0.useProtobuf ? ProtoServiceCore(userData: $0) : XMPPControllerShareExtension(userData: $0)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -61,10 +66,10 @@ class ComposeViewController: SLComposeServiceViewController {
          since we need to disconnet XMPP before the user left
          */
         isModalInPresentation = true
-        
-        initAppContext(ShareExtensionContext.self, xmppControllerClass: XMPPControllerShareExtension.self, contactStoreClass: ContactStore.self)
+
+        initAppContext(ShareExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self)
         dataStore = ShareExtensionContext.shared.dataStore
-        service = ShareExtensionContext.shared.xmppController
+        service = ShareExtensionContext.shared.coreService
 
         /*
          If the user switches from the host app (the app that starts the share extension request)

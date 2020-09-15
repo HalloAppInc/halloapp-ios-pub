@@ -32,7 +32,7 @@ class NotificationSettings: ObservableObject {
             if oldValue != isPostsEnabled {
                 UserDefaults.standard.set(isPostsEnabled, forKey: UserDefaultsKeys.postsEnabled)
                 UserDefaults.standard.set(false, forKey: UserDefaultsKeys.isSynchronized)
-                sendConfigIfNecessary(using: MainAppContext.shared.xmppController)
+                sendConfigIfNecessary(using: MainAppContext.shared.service)
             }
         }
     }
@@ -42,7 +42,7 @@ class NotificationSettings: ObservableObject {
             if oldValue != isCommentsEnabled {
                 UserDefaults.standard.set(isCommentsEnabled, forKey: UserDefaultsKeys.commentsEnabled)
                 UserDefaults.standard.set(false, forKey: UserDefaultsKeys.isSynchronized)
-                sendConfigIfNecessary(using: MainAppContext.shared.xmppController)
+                sendConfigIfNecessary(using: MainAppContext.shared.service)
             }
         }
     }
