@@ -12,7 +12,6 @@ target 'HalloApp' do
   pod 'NextLevelSessionExporter', '>= 0.4.5'
   pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
   pod 'Firebase/Crashlytics'
-  pod 'YPImagePicker', :git => 'git@github.com:HalloAppInc/YPImagePicker.git', :tag => '4.2.6'
   pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
 end
 

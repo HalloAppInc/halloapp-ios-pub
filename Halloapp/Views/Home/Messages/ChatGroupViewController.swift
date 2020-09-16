@@ -12,7 +12,6 @@ import Core
 import CoreData
 import Photos
 import UIKit
-import YPImagePicker
 
 fileprivate struct Constants {
     static let WidthOfMsgBubble:CGFloat = 0.9
@@ -485,103 +484,6 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
     
     func chatInputView(_ inputView: ChatInputView) {
         self.presentPhotoLibraryPickerNew()
-    }
-    
-    private func presentPhotoLibraryPicker() {
-        var config = YPImagePickerConfiguration()
-
-        // General
-        config.library.mediaType = .photoAndVideo
-        config.shouldSaveNewPicturesToAlbum = false
-        config.showsCrop = .none
-        config.wordings.libraryTitle = "Gallery"
-        config.showsPhotoFilters = false
-        config.showsVideoTrimmer = false
-        config.startOnScreen = YPPickerScreen.library
-        config.screens = [.library, .photo, .video]
-        config.hidesStatusBar = false
-        config.hidesBottomBar = false
-        
-        // Library
-        config.library.onlySquare = false
-        config.library.isSquareByDefault = false
-        config.library.mediaType = YPlibraryMediaType.photoAndVideo
-        config.library.defaultMultipleSelection = false
-        config.library.maxNumberOfItems = 10
-        config.library.skipSelectionsGallery = true
-        config.library.preselectedItems = nil
-
-        // Video
-        config.video.compression = AVAssetExportPresetPassthrough
-        config.video.fileType = .mp4
-        config.video.recordingTimeLimit = 60.0
-        config.video.libraryTimeLimit = 60.0
-        config.video.minimumTimeLimit = 3.0
-        config.video.trimmerMaxDuration = 60.0
-        config.video.trimmerMinDuration = 3.0
-
-        let picker = YPImagePicker(configuration: config)
-  
-        picker.didFinishPicking { [unowned picker] items, cancelled in
-
-            guard !cancelled else {
-                picker.dismiss(animated: true)
-                return
-            }
-
-            var mediaToPost: [PendingMedia] = []
-            let mediaGroup = DispatchGroup()
-            var orderCounter: Int = 1
-            for item in items {
-                mediaGroup.enter()
-                switch item {
-                case .photo(let photo):
-                    let mediaItem = PendingMedia(type: .image)
-                    mediaItem.order = orderCounter
-                    mediaItem.image = photo.image
-                    mediaItem.size = photo.image.size
-                    orderCounter += 1
-                    mediaToPost.append(mediaItem)
-                    mediaGroup.leave()
-                case .video(let video):
-                    let mediaItem = PendingMedia(type: .video)
-                    mediaItem.order = orderCounter
-                    orderCounter += 1
-
-                    if let videoSize = VideoUtils.resolutionForLocalVideo(url: video.url) {
-                        mediaItem.size = videoSize
-                        DDLogInfo("Video size: [\(NSCoder.string(for: videoSize))]")
-                    }
-
-                    if !video.fromCamera {
-                        if let asset = video.asset {
-                            PHCachingImageManager().requestAVAsset(forVideo: asset, options: nil) { (avAsset, _, _) in
-                                let asset = avAsset as! AVURLAsset
-                                mediaItem.videoURL = asset.url
-                                mediaToPost.append(mediaItem)
-                                mediaGroup.leave()
-                            }
-                        } else {
-                            mediaGroup.leave()
-                        }
-                    } else {
-                        mediaItem.videoURL = video.url
-                        mediaToPost.append(mediaItem)
-                        mediaGroup.leave()
-                    }
-
-                }
-            }
-
-            mediaGroup.notify(queue: .main) {
-                mediaToPost.sort { $0.order < $1.order }
-                picker.dismiss(animated: false) {
-                    self.presentMessageComposer(with: mediaToPost)
-                }
-            }
-        }
-        
-        self.present(picker, animated: true)
     }
 
     private func presentPhotoLibraryPickerNew() {

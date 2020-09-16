@@ -54,9 +54,7 @@ PODS:
   - nanopb/encode (1.30905.0)
   - NextLevelSessionExporter (0.4.5)
   - PromisesObjC (1.2.9)
-  - PryntTrimmerView (4.0.0)
   - Sodium (0.8.0)
-  - SteviaLayout (4.7.3)
   - XMPPFramework/default (4.0.1):
     - CocoaAsyncSocket (~> 7.6)
     - CocoaLumberjack
@@ -65,16 +63,12 @@ PODS:
   - XMPPFramework/Swift (4.0.1):
     - CocoaLumberjack/Swift
     - XMPPFramework/default
-  - YPImagePicker (4.2.6):
-    - PryntTrimmerView (~> 4.0.0)
-    - SteviaLayout (~> 4.7.3)
 
 DEPENDENCIES:
   - Firebase/Crashlytics
   - NextLevelSessionExporter (>= 0.4.5)
   - "Sodium (from `git@github.com:HalloAppInc/swift-sodium.git`)"
   - "XMPPFramework/Swift (from `git@github.com:HalloAppInc/XMPPFramework.git`)"
-  - "YPImagePicker (from `git@github.com:HalloAppInc/YPImagePicker.git`, tag `4.2.6`)"
 
 SPEC REPOS:
   trunk:
@@ -92,17 +86,12 @@ SPEC REPOS:
     - nanopb
     - NextLevelSessionExporter
     - PromisesObjC
-    - PryntTrimmerView
-    - SteviaLayout
 
 EXTERNAL SOURCES:
   Sodium:
     :git: "git@github.com:HalloAppInc/swift-sodium.git"
   XMPPFramework:
     :git: "git@github.com:HalloAppInc/XMPPFramework.git"
-  YPImagePicker:
-    :git: "git@github.com:HalloAppInc/YPImagePicker.git"
-    :tag: 4.2.6
 
 CHECKOUT OPTIONS:
   Sodium:
@@ -111,9 +100,6 @@ CHECKOUT OPTIONS:
   XMPPFramework:
     :commit: 0b10dec12094cebf35e42134e6f744ea3144e326
     :git: "git@github.com:HalloAppInc/XMPPFramework.git"
-  YPImagePicker:
-    :git: "git@github.com:HalloAppInc/YPImagePicker.git"
-    :tag: 4.2.6
 
 SPEC CHECKSUMS:
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
@@ -130,12 +116,9 @@ SPEC CHECKSUMS:
   nanopb: c43f40fadfe79e8b8db116583945847910cbabc9
   NextLevelSessionExporter: 9abd19742084fc9563f644b21e0f994339338d4e
   PromisesObjC: b48e0338dbbac2207e611750777895f7a5811b75
-  PryntTrimmerView: 67e67573ffd4c073f1308effa66aefd0cfa667a0
   Sodium: 9ab4cdb17a88b6de0d3e33832b06a664c8d3232c
-  SteviaLayout: c2ecdcff57d44e38fd2f65e54ad52aeae28ca0c4
   XMPPFramework: 759900cc7eb3c22036d622da72f66a05ae7b6948
-  YPImagePicker: bf0f1f30d4d7542b4c7b1ff6a5eabf7eec228da0
 
-PODFILE CHECKSUM: ecf894c943588508e8db7934bdb7d7d3bd820dd7
+PODFILE CHECKSUM: eac5aa29b7caf472e59ce4b70d8ebf1b5bcfd390
 
 COCOAPODS: 1.9.3

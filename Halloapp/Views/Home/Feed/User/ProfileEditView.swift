@@ -9,7 +9,6 @@
 import CocoaLumberjack
 import Core
 import SwiftUI
-import YPImagePicker
 
 struct ProfileEditView: View {
     var dismiss: (() -> ())?
@@ -129,47 +128,6 @@ struct ProfileEditView: View {
         MainAppContext.shared.avatarStore.save(image:resizedImage, forUserId: MainAppContext.shared.userData.userId, avatarId: "self")
         
         MainAppContext.shared.service.sendCurrentAvatarIfPossible()
-    }
-}
-
-fileprivate struct ImagePicker: UIViewControllerRepresentable {
-    @Environment(\.presentationMode) var presentationMode
-    @Binding var image: UIImage?
-    
-    func makeUIViewController(context: UIViewControllerRepresentableContext<ImagePicker>) -> YPImagePicker {
-        var config = YPImagePickerConfiguration()
-        
-        // General
-        config.showsPhotoFilters = false
-        config.shouldSaveNewPicturesToAlbum = false
-        config.startOnScreen = .library
-        config.usesFrontCamera = true
-        
-        
-        // Library
-        config.library.onlySquare = true
-        
-        
-        let picker = YPImagePicker(configuration: config)
-        
-        picker.didFinishPicking { items, cancelled in
-            guard !cancelled else {
-                self.presentationMode.wrappedValue.dismiss()
-                return
-            }
-            
-            if let photo = items.singlePhoto {
-                self.image = photo.image
-            }
-            
-            self.presentationMode.wrappedValue.dismiss()
-        }
-        
-        return picker
-    }
-    
-    func updateUIViewController(_ uiViewController: YPImagePicker, context: Context) {
-        
     }
 }
 
