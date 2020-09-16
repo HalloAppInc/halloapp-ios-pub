@@ -23,7 +23,11 @@ fileprivate extension FeedPost {
 }
 
 class FeedTableViewController: UITableViewController, NSFetchedResultsControllerDelegate, FeedTableViewCellDelegate {
-    private static let cellReuseIdentifier = "FeedTableViewCell"
+
+    private struct Constants {
+        static let activePostCellReuseIdentifier = "active-post"
+        static let deletedPostCellReuseIdentifier = "deleted-post"
+    }
 
     private(set) var fetchedResultsController: NSFetchedResultsController<FeedPost>?
 
@@ -45,22 +49,23 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
         navigationItem.standardAppearance = .opaqueAppearance
 
-        self.tableView.separatorStyle = .none
-        self.tableView.allowsSelection = false
-        self.tableView.showsVerticalScrollIndicator = false
-        self.tableView.register(FeedTableViewCell.self, forCellReuseIdentifier: FeedTableViewController.cellReuseIdentifier)
-        self.tableView.backgroundColor = .feedBackground
+        tableView.separatorStyle = .none
+        tableView.allowsSelection = false
+        tableView.showsVerticalScrollIndicator = false
+        tableView.register(FeedPostTableViewCell.self, forCellReuseIdentifier: Constants.activePostCellReuseIdentifier)
+        tableView.register(DeletedPostTableViewCell.self, forCellReuseIdentifier: Constants.deletedPostCellReuseIdentifier)
+        tableView.backgroundColor = .feedBackground
 
-        self.setupFetchedResultsController()
+        setupFetchedResultsController()
 
-        self.cancellableSet.insert(MainAppContext.shared.feedData.willDestroyStore.sink { [weak self] in
+        cancellableSet.insert(MainAppContext.shared.feedData.willDestroyStore.sink { [weak self] in
             guard let self = self else { return }
             self.fetchedResultsController = nil
             self.tableView.reloadData()
             self.view.isUserInteractionEnabled = false
         })
 
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             MainAppContext.shared.feedData.didReloadStore.sink { [weak self] in
                 guard let self = self else { return }
                 self.view.isUserInteractionEnabled = true
@@ -68,19 +73,19 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
                 self.tableView.reloadData()
         })
 
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] (_) in
                 guard let self = self else { return }
                 self.stopAllVideoPlayback()
         })
 
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification).sink { [weak self] (_) in
                 guard let self = self else { return }
                 self.refreshTimestamps()
         })
 
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] (_) in
                 guard let self = self else { return }
                 guard let indexPaths = self.tableView.indexPathsForVisibleRows else { return }
@@ -113,18 +118,16 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     func scrollToTop(animated: Bool) {
-        guard let firstSection = self.fetchedResultsController?.sections?.first else { return }
+        guard let firstSection = fetchedResultsController?.sections?.first else { return }
         if firstSection.numberOfObjects > 0 {
-            self.tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .middle, animated: true)
+            tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .middle, animated: true)
         }
     }
 
     // MARK: FeedTableViewController Customization
 
     public var fetchRequest: NSFetchRequest<FeedPost> {
-        get {
-            fatalError("Must be implemented in a subclass.")
-        }
+        fatalError("Must be implemented in a subclass.")
     }
 
     public func shouldOpenFeed(for userID: UserID) -> Bool {
@@ -136,18 +139,18 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     private var trackPerRowFRCChanges = false
 
     func reloadTableView() {
-        guard self.fetchedResultsController != nil else { return }
-        self.fetchedResultsController?.delegate = nil
+        guard fetchedResultsController != nil else { return }
+        fetchedResultsController?.delegate = nil
         setupFetchedResultsController()
-        if self.isViewLoaded {
-            self.tableView.reloadData()
+        if isViewLoaded {
+            tableView.reloadData()
         }
     }
 
     private func setupFetchedResultsController() {
-        self.fetchedResultsController = self.newFetchedResultsController()
+        fetchedResultsController = newFetchedResultsController()
         do {
-            try self.fetchedResultsController?.performFetch()
+            try fetchedResultsController?.performFetch()
         } catch {
             fatalError("Failed to fetch feed items \(error)")
         }
@@ -155,19 +158,22 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     private func newFetchedResultsController() -> NSFetchedResultsController<FeedPost> {
         // Setup fetched results controller the old way because it allows granular control over UI update operations.
-        let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: self.fetchRequest, managedObjectContext: MainAppContext.shared.feedData.viewContext,
-                                                                            sectionNameKeyPath: nil, cacheName: nil)
+        let fetchedResultsController = NSFetchedResultsController<FeedPost>(fetchRequest: fetchRequest,
+                                                                            managedObjectContext: MainAppContext.shared.feedData.viewContext,
+                                                                            sectionNameKeyPath: nil,
+                                                                            cacheName: nil)
         fetchedResultsController.delegate = self
         return fetchedResultsController
     }
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
+        trackPerRowFRCChanges = view.window != nil && UIApplication.shared.applicationState == .active
         if trackPerRowFRCChanges {
-            self.tableView.beginUpdates()
+            tableView.beginUpdates()
             CATransaction.begin()
             CATransaction.setCompletionBlock {
                 self.tableView.setNeedsLayout()
+                self.tableView.layoutIfNeeded()
             }
         }
         DDLogDebug("FeedTableView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
@@ -179,28 +185,43 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
             guard let indexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
             DDLogDebug("FeedTableView/frc/insert [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.insertRows(at: [ indexPath ], with: .fade)
+                tableView.insertRows(at: [ indexPath ], with: .fade)
             }
 
         case .delete:
             guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { break }
             DDLogDebug("FeedTableView/frc/delete [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.deleteRows(at: [ indexPath ], with: .none)
+                tableView.deleteRows(at: [ indexPath ], with: .none)
             }
 
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
             DDLogDebug("FeedTableView/frc/move [\(feedPost)] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
+                tableView.moveRow(at: fromIndexPath, to: toIndexPath)
             }
 
         case .update:
             guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { return }
             DDLogDebug("FeedTableView/frc/update [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.reloadRows(at: [ indexPath ], with: .none)
+                var reloadRow = feedPost.isPostRetracted
+                if !reloadRow {
+                    // Update UI without doing full cell reuse-reload if possible to avoid flickering.
+                    if let cell = tableView.cellForRow(at: indexPath) as? FeedPostTableViewCellBase, cell.postId == feedPost.id {
+                        let contentWidth = tableView.frame.size.width - tableView.layoutMargins.left - tableView.layoutMargins.right
+                        let gutterWidth = (1 - FeedPostTableViewCell.LayoutConstants.backgroundPanelHMarginRatio) * tableView.layoutMargins.left
+                        cell.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth)
+                        DDLogDebug("FeedTableView/frc/update/soft [\(feedPost)] at [\(indexPath)]")
+                    } else {
+                        reloadRow = true
+                    }
+                }
+                if reloadRow {
+                    DDLogDebug("FeedTableView/frc/update/full [\(feedPost)] at [\(indexPath)]")
+                    tableView.reloadRows(at: [ indexPath ], with: .none)
+                }
             }
 
         default:
@@ -211,57 +232,71 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("FeedTableView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
-            self.tableView.endUpdates()
+            tableView.endUpdates()
             CATransaction.commit()
         } else {
-            self.tableView.reloadData()
+            tableView.reloadData()
         }
     }
 
     // MARK: UITableView
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return self.fetchedResultsController?.sections?.count ?? 0
+        return fetchedResultsController?.sections?.count ?? 0
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let sections = self.fetchedResultsController?.sections else { return 0 }
+        guard let sections = fetchedResultsController?.sections else {
+            return 0
+        }
         return sections[section].numberOfObjects
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: FeedTableViewController.cellReuseIdentifier, for: indexPath) as! FeedTableViewCell
-        if let feedPost = fetchedResultsController?.object(at: indexPath) {
-            let postId = feedPost.id
-            let contentWidth = tableView.frame.size.width - tableView.layoutMargins.left - tableView.layoutMargins.right
-            let gutterWidth = (1 - FeedTableViewCell.LayoutConstants.backgroundPanelHMarginRatio) * tableView.layoutMargins.left
-            cell.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth)
-            cell.commentAction = { [weak self] in
+        guard let feedPost = fetchedResultsController?.object(at: indexPath) else {
+            return UITableViewCell(style: .default, reuseIdentifier: nil)
+        }
+        let cellReuseIdentifier = feedPost.isPostRetracted ? Constants.deletedPostCellReuseIdentifier : Constants.activePostCellReuseIdentifier
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! FeedPostTableViewCellBase
+
+        let postId = feedPost.id
+        let contentWidth = tableView.frame.size.width - tableView.layoutMargins.left - tableView.layoutMargins.right
+        let gutterWidth = (1 - FeedPostTableViewCell.LayoutConstants.backgroundPanelHMarginRatio) * tableView.layoutMargins.left
+        cell.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth)
+
+        if let activePostCell = cell as? FeedPostTableViewCell {
+            activePostCell.commentAction = { [weak self] in
                 guard let self = self else { return }
                 self.showCommentsView(for: postId)
             }
-            cell.messageAction = { [weak self] in
+            activePostCell.messageAction = { [weak self] in
                 guard let self = self else { return }
                 self.showMessageView(for: postId)
             }
-            cell.showSeenByAction = { [weak self] in
+            activePostCell.showSeenByAction = { [weak self] in
                 guard let self = self else { return }
                 self.showSeenByView(for: postId)
             }
-            cell.showUserAction = { [weak self] userID in
+            activePostCell.showUserAction = { [weak self] userID in
                 guard let self = self else { return }
                 self.showUserFeed(for: userID)
             }
-            cell.cancelSendingAction = { [weak self] in
+            activePostCell.cancelSendingAction = { [weak self] in
                 guard let self = self else { return }
                 self.cancelSending(postId: postId)
             }
-            cell.retrySendingAction = { [weak self] in
+            activePostCell.retrySendingAction = { [weak self] in
                 guard let self = self else { return }
                 self.retrySending(postId: postId)
             }
+            activePostCell.delegate = self
         }
-        cell.delegate = self
+        if let deletedPostCell = cell as? DeletedPostTableViewCell {
+            deletedPostCell.showUserAction = { [weak self] userID in
+                guard let self = self else { return }
+                self.showUserFeed(for: userID)
+            }
+        }
         return cell
     }
 
@@ -270,23 +305,23 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     }
 
     override func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if let feedCell = cell as? FeedTableViewCell {
+        if let feedCell = cell as? FeedPostTableViewCell {
             feedCell.stopPlayback()
         }
     }
 
     // MARK: FeedTableViewCellDelegate
 
-    fileprivate func feedTableViewCell(_ cell: FeedTableViewCell, didRequestOpen url: URL) {
+    fileprivate func feedTableViewCell(_ cell: FeedPostTableViewCell, didRequestOpen url: URL) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             UIApplication.shared.open(url, options: [:])
         }
     }
 
-    fileprivate func feedTableViewCellDidRequestReloadHeight(_ cell: FeedTableViewCell, animations animationBlock: () -> Void) {
-        self.tableView.beginUpdates()
+    fileprivate func feedTableViewCellDidRequestReloadHeight(_ cell: FeedPostTableViewCell, animations animationBlock: () -> Void) {
+        tableView.beginUpdates()
         animationBlock()
-        self.tableView.endUpdates()
+        tableView.endUpdates()
 
         if let postId = cell.postId, let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) {
             feedDataItem.textExpanded = true
@@ -298,24 +333,24 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     func showCommentsView(for postId: FeedPostID, highlighting commentId: FeedPostCommentID? = nil) {
         let commentsViewController = CommentsViewController(feedPostId: postId)
         commentsViewController.highlightedCommentId = commentId
-        self.navigationController?.pushViewController(commentsViewController, animated: true)
+        navigationController?.pushViewController(commentsViewController, animated: true)
     }
 
     private func showMessageView(for postId: FeedPostID) {
         if let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) {
-            self.navigationController?.pushViewController(ChatViewController(for: feedDataItem.userId, with: postId, at: Int32(feedDataItem.currentMediaIndex ?? 0)), animated: true)
+            navigationController?.pushViewController(ChatViewController(for: feedDataItem.userId, with: postId, at: Int32(feedDataItem.currentMediaIndex ?? 0)), animated: true)
         }
     }
 
     private func showSeenByView(for postId: FeedPostID) {
         let seenByViewController = FeedPostSeenByViewController(feedPostId: postId)
-        self.present(UINavigationController(rootViewController: seenByViewController), animated: true)
+        present(UINavigationController(rootViewController: seenByViewController), animated: true)
     }
 
     private func showUserFeed(for userID: UserID) {
         guard shouldOpenFeed(for: userID) else { return }
         let userViewController = UserFeedViewController(userID: userID)
-        self.navigationController?.pushViewController(userViewController, animated: true)
+        navigationController?.pushViewController(userViewController, animated: true)
     }
 
     private func cancelSending(postId: FeedPostID) {
@@ -330,7 +365,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     private func stopAllVideoPlayback() {
         for cell in tableView.visibleCells {
-            if let feedTableViewCell = cell as? FeedTableViewCell {
+            if let feedTableViewCell = cell as? FeedPostTableViewCell {
                 feedTableViewCell.stopPlayback()
             }
         }
@@ -339,7 +374,7 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
     private func refreshTimestamps() {
         guard let indexPaths = tableView.indexPathsForVisibleRows else { return }
         for indexPath in indexPaths {
-            if let feedTableViewCell = tableView.cellForRow(at: indexPath) as? FeedTableViewCell,
+            if let feedTableViewCell = tableView.cellForRow(at: indexPath) as? FeedPostTableViewCell,
                 let feedPost = fetchedResultsController?.object(at: indexPath) {
                 feedTableViewCell.refreshTimestamp(using: feedPost)
             }
@@ -366,12 +401,12 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 }
 
 
-fileprivate protocol FeedTableViewCellDelegate: AnyObject {
-    func feedTableViewCell(_ cell: FeedTableViewCell, didRequestOpen url: URL)
-    func feedTableViewCellDidRequestReloadHeight(_ cell: FeedTableViewCell, animations animationBlock: () -> Void)
+private protocol FeedTableViewCellDelegate: AnyObject {
+    func feedTableViewCell(_ cell: FeedPostTableViewCell, didRequestOpen url: URL)
+    func feedTableViewCellDidRequestReloadHeight(_ cell: FeedPostTableViewCell, animations animationBlock: () -> Void)
 }
 
-fileprivate class FeedTableViewCellBackgroundPanelView: UIView {
+private class FeedTableViewCellBackgroundPanelView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -413,8 +448,9 @@ fileprivate class FeedTableViewCellBackgroundPanelView: UIView {
     }
 }
 
+private class FeedPostTableViewCellBase: UITableViewCell {
 
-fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
+    var postId: FeedPostID? = nil
 
     fileprivate struct LayoutConstants {
         static let backgroundCornerRadius: CGFloat = 15
@@ -436,7 +472,66 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         static let backgroundPanelHMarginRatio: CGFloat = 0.5
     }
 
-    var postId: FeedPostID? = nil
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        commonInit()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        commonInit()
+    }
+
+    private(set) var backgroundPanelView: FeedTableViewCellBackgroundPanelView!
+
+    private func commonInit() {
+        selectionStyle = .none
+        backgroundColor = .clear
+
+        backgroundPanelView = FeedTableViewCellBackgroundPanelView()
+        backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
+
+        let backgroundView = UIView()
+        backgroundView.preservesSuperviewLayoutMargins = true
+        backgroundView.addSubview(backgroundPanelView)
+        self.backgroundView = backgroundView
+        updateBackgroundPanelShadow()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        if let backgroundView = backgroundView {
+            let panelInsets = UIEdgeInsets(
+                top: LayoutConstants.backgroundPanelVMargin,
+                left: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.left,
+                bottom: LayoutConstants.backgroundPanelVMargin,
+                right: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.right)
+            backgroundPanelView.frame = backgroundView.bounds.inset(by: panelInsets)
+        }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle {
+            // Shadow color needs to be updated when user interface style changes between dark and light.
+            updateBackgroundPanelShadow()
+        }
+    }
+
+    private func updateBackgroundPanelShadow() {
+        backgroundPanelView.isShadowHidden = traitCollection.userInterfaceStyle == .dark
+    }
+
+    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) {
+        DDLogVerbose("FeedTableViewCell/configure [\(post.id)]")
+
+        postId = post.id
+    }
+}
+
+
+private class FeedPostTableViewCell: FeedPostTableViewCellBase, TextLabelDelegate {
 
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
@@ -449,66 +544,63 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupView()
+        commonInit()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setupView()
+        commonInit()
     }
 
-    private lazy var backgroundPanelView: FeedTableViewCellBackgroundPanelView = {
-        let panel = FeedTableViewCellBackgroundPanelView()
-        panel.cornerRadius = LayoutConstants.backgroundCornerRadius
-        return panel
-    }()
+    private var headerView: FeedItemHeaderView!
 
-    private lazy var headerView: FeedItemHeaderView = {
-        let view = FeedItemHeaderView()
-        view.preservesSuperviewLayoutMargins = true
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
+    private var itemContentView: FeedItemContentView!
 
-    private lazy var itemContentView: FeedItemContentView = {
-        let view = FeedItemContentView()
-        view.preservesSuperviewLayoutMargins = true
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.textLabel.delegate = self
-        return view
-    }()
+    private var footerView: FeedItemFooterView!
 
-    lazy var footerView: FeedItemFooterView = {
-        let view = FeedItemFooterView()
-        view.preservesSuperviewLayoutMargins = true
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
+    private func commonInit() {
+        headerView = FeedItemHeaderView()
+        headerView.preservesSuperviewLayoutMargins = true
+        headerView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(headerView)
 
-    private func setupView() {
-        self.selectionStyle = .none
-        self.backgroundColor = .clear
+        itemContentView = FeedItemContentView()
+        itemContentView.translatesAutoresizingMaskIntoConstraints = false
+        itemContentView.textLabel.delegate = self
+        contentView.addSubview(itemContentView)
 
-        // Background
-        let backgroundView = UIView()
-        backgroundView.preservesSuperviewLayoutMargins = true
-        backgroundView.addSubview(backgroundPanelView)
-        self.backgroundView = backgroundView
-        self.updateBackgroundPanelShadow()
+        footerView = FeedItemFooterView()
+        footerView.preservesSuperviewLayoutMargins = true
+        footerView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(footerView)
 
-        // Content view: a vertical stack of header, content and footer.
-        let vStack = UIStackView(arrangedSubviews: [ self.headerView, self.itemContentView, self.footerView ])
-        vStack.axis = .vertical
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        self.contentView.addSubview(vStack)
-        vStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: LayoutConstants.backgroundPanelVMargin + LayoutConstants.backgroundPanelViewOutsetV).isActive = true
-        vStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -(LayoutConstants.backgroundPanelVMargin + LayoutConstants.backgroundPanelViewOutsetV)).isActive = true
+        // Lower constraint priority to avoid unsatisfiable constraints situation when UITableViewCell's height is 44 during early table view layout passes.
+        let footerViewBottomConstraint = footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -(LayoutConstants.backgroundPanelVMargin + LayoutConstants.backgroundPanelViewOutsetV))
+        footerViewBottomConstraint.priority = .required - 10
+
+        contentView.addConstraints([
+            // HEADER
+            headerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            headerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: LayoutConstants.backgroundPanelVMargin + LayoutConstants.backgroundPanelViewOutsetV),
+            headerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+
+            // CONTENT
+            itemContentView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            itemContentView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            itemContentView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+
+            // FOOTER
+            footerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            footerView.topAnchor.constraint(equalTo: itemContentView.bottomAnchor),
+            footerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+            footerViewBottomConstraint
+        ])
 
         // Separator in the footer view needs to be extended past view bounds to be the same width as background "card".
-        footerView.separator.leadingAnchor.constraint(equalTo: backgroundPanelView.leadingAnchor).isActive = true
-        footerView.separator.trailingAnchor.constraint(equalTo: backgroundPanelView.trailingAnchor).isActive = true
+        addConstraints([
+            footerView.separator.leadingAnchor.constraint(equalTo: backgroundPanelView.leadingAnchor),
+            footerView.separator.trailingAnchor.constraint(equalTo: backgroundPanelView.trailingAnchor)
+        ])
 
         // Connect actions of footer view buttons
         footerView.commentButton.addTarget(self, action: #selector(showComments), for: .touchUpInside)
@@ -522,61 +614,29 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
         }
     }
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
+    override func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) {
+        super.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth)
 
-        if let backgroundView = self.backgroundView {
-            let panelInsets = UIEdgeInsets(
-                top: LayoutConstants.backgroundPanelVMargin,
-                left: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.left,
-                bottom: LayoutConstants.backgroundPanelVMargin,
-                right: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.right)
-            backgroundPanelView.frame = backgroundView.bounds.inset(by: panelInsets)
-        }
-    }
-
-    public func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) {
-        DDLogVerbose("FeedTableViewCell/configure [\(post.id)]")
-
-        self.postId = post.id
-        self.headerView.configure(with: post)
-        self.headerView.showUserAction = { [weak self] in
+        headerView.configure(with: post)
+        headerView.showUserAction = { [weak self] in
             self?.showUserAction?(post.userId)
         }
-        self.itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth)
-        if post.isPostRetracted {
-            self.footerView.isHidden = true
-        } else {
-            self.footerView.isHidden = false
-            self.footerView.configure(with: post, contentWidth: contentWidth)
-        }
-
-    }
-
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        if previousTraitCollection?.userInterfaceStyle != self.traitCollection.userInterfaceStyle {
-            // Shadow color needs to be updated when user interface style changes between dark and light.
-            self.updateBackgroundPanelShadow()
-        }
-    }
-
-    private func updateBackgroundPanelShadow() {
-        self.backgroundPanelView.isShadowHidden = self.traitCollection.userInterfaceStyle == .dark
+        itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth)
+        footerView.configure(with: post, contentWidth: contentWidth)
     }
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.headerView.prepareForReuse()
-        self.itemContentView.prepareForReuse()
-        self.footerView.prepareForReuse()
+        headerView.prepareForReuse()
+        itemContentView.prepareForReuse()
+        footerView.prepareForReuse()
     }
 
     func textLabel(_ label: TextLabel, didRequestHandle link: AttributedTextLink) {
         switch link.linkType {
         case .link, .phoneNumber:
-            if let url = link.result?.url {
-                self.delegate?.feedTableViewCell(self, didRequestOpen: url)
+            if let url = link.result?.url, let delegate = delegate {
+                delegate.feedTableViewCell(self, didRequestOpen: url)
             }
         case .userMention:
             if let userID = link.userID {
@@ -588,8 +648,8 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     }
 
     func textLabelDidRequestToExpand(_ label: TextLabel) {
-        self.delegate?.feedTableViewCellDidRequestReloadHeight(self) {
-            self.itemContentView.textLabel.numberOfLines = 0
+        delegate?.feedTableViewCellDidRequestReloadHeight(self) {
+            itemContentView.textLabel.numberOfLines = 0
         }
     }
 
@@ -598,63 +658,53 @@ fileprivate class FeedTableViewCell: UITableViewCell, TextLabelDelegate {
     }
 
     func refreshTimestamp(using feedPost: FeedPost) {
-        self.headerView.configure(with: feedPost)
+        headerView.configure(with: feedPost)
     }
 
     // MARK: Button actions
 
     @objc private func showComments() {
-        if self.commentAction != nil {
-            self.commentAction!()
+        if let action = commentAction {
+            action()
         }
     }
 
     @objc private func messageContact() {
-        if self.messageAction != nil {
-            self.messageAction!()
+        if let action = messageAction {
+            action()
         }
     }
 
     @objc private func showSeenBy() {
-        if self.showSeenByAction != nil {
-            self.showSeenByAction!()
+        if let action = showSeenByAction {
+            action()
         }
     }
 }
 
 
-fileprivate class FeedItemContentView: UIView {
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupView()
+private class DeletedPostTableViewCell: FeedPostTableViewCellBase {
+
+    var showUserAction: ((UserID) -> ())?
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        commonInit()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setupView()
+        commonInit()
     }
 
-    private lazy var vStack: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ self.textContentView ])
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        return vStack
-    }()
+    private var headerView: FeedItemHeaderView!
 
-    private lazy var textContentView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(self.textLabel)
-        self.textLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
-        self.textLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor).isActive = true
-        self.textLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor).isActive = true
-        self.textLabel.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor).isActive = true
-        return view
-    }()
+    private func commonInit() {
+        headerView = FeedItemHeaderView()
+        headerView.preservesSuperviewLayoutMargins = true
+        headerView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(headerView)
 
-    static let deletedPostViewTag = 1
-    fileprivate lazy var deletedPostView: UIView = {
         let textLabel = UILabel()
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.textAlignment = .center
@@ -666,82 +716,121 @@ fileprivate class FeedItemContentView: UIView {
         view.layoutMargins.top = 20
         view.layoutMargins.bottom = 12
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.tag = FeedItemContentView.deletedPostViewTag
         view.addSubview(textLabel)
-        textLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
-        textLabel.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor).isActive = true
-        textLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor).isActive = true
-        textLabel.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor).isActive = true
-        return view
-    }()
+        textLabel.constrainMargins(to: view)
+        contentView.addSubview(view)
 
-    private(set) lazy var textLabel: TextLabel = {
-        let label = TextLabel()
-        label.textColor = .label
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+        // Lower constraint priority to avoid unsatisfiable constraints situation when UITableViewCell's height is 44 during early table view layout passes.
+        let viewBottomConstraint = view.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -(LayoutConstants.backgroundPanelVMargin + LayoutConstants.backgroundPanelViewOutsetV))
+        viewBottomConstraint.priority = .required - 10
+
+        contentView.addConstraints([
+            // HEADER
+            headerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            headerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: LayoutConstants.backgroundPanelVMargin + LayoutConstants.backgroundPanelViewOutsetV),
+            headerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+
+            // TEXT
+            view.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            view.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            view.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+            viewBottomConstraint
+        ])
+
+    }
+
+    override func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) {
+        super.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth)
+
+        headerView.configure(with: post)
+        headerView.showUserAction = { [weak self] in
+            self?.showUserAction?(post.userId)
+        }
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        headerView.prepareForReuse()
+    }
+}
+
+
+private class FeedItemContentView: UIView {
+
+    private var postId: FeedPostID? = nil
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupView()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupView()
+    }
+
+    private var vStack: UIStackView!
+
+    private var textContentView: UIView!
+
+    private(set) var textLabel: TextLabel!
 
     private var mediaView: MediaCarouselView?
 
-    private var feedPostId: FeedPostID? = nil
-
     private func setupView() {
-        self.isUserInteractionEnabled = true
-        self.layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 8, right: 0)
+        isUserInteractionEnabled = true
+        layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 8, right: 0)
 
-        self.addSubview(self.vStack)
-        self.vStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-        // This is the required amount of spacing between profile photo (bottom of the header view) and top of the post media.
-        self.vStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        self.vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
-        self.vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
+        textLabel = TextLabel()
+        textLabel.textColor = .label
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        textContentView = UIView()
+        textContentView.translatesAutoresizingMaskIntoConstraints = false
+        textContentView.addSubview(textLabel)
+        textLabel.constrainMargins(to: textContentView)
+
+        vStack = UIStackView(arrangedSubviews: [ textContentView ])
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.axis = .vertical
+        addSubview(vStack)
+        vStack.constrainMargins(to: self)
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) {
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) else { return }
 
-        var reuseMediaView = false
-        if let mediaView = self.mediaView {
-            reuseMediaView = feedPostId == post.id && !post.isPostRetracted
-            if !reuseMediaView {
-                self.vStack.removeArrangedSubview(mediaView)
+        if let mediaView = mediaView {
+            let keepMediaView = postId == post.id
+            if !keepMediaView {
+                vStack.removeArrangedSubview(mediaView)
                 mediaView.removeFromSuperview()
                 self.mediaView = nil
+            } else {
+                DDLogInfo("FeedTableViewCell/content-view/reuse-media-view post=[\(post.id)]")
             }
         }
 
-        if reuseMediaView {
-            DDLogInfo("FeedTableViewCell/content-view/reuse-media post=[\(post.id)]")
-        }
-
-        let postContainsMedia = !feedDataItem.media.isEmpty && !post.isPostRetracted
-        if postContainsMedia && !reuseMediaView {
+        let postContainsMedia = !feedDataItem.media.isEmpty
+        if postContainsMedia && mediaView == nil {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
             var mediaViewConfiguration = MediaCarouselViewConfiguration.default
             mediaViewConfiguration.gutterWidth = gutterWidth
             let mediaView = MediaCarouselView(feedDataItem: feedDataItem, configuration: mediaViewConfiguration)
             mediaView.addConstraint({
-                let constraint = NSLayoutConstraint.init(item: mediaView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: mediaViewHeight)
-                constraint.priority = .defaultHigh
+                let constraint = mediaView.heightAnchor.constraint(equalToConstant: mediaViewHeight)
+                constraint.priority = .required - 10
                 return constraint
             }())
-            self.vStack.insertArrangedSubview(mediaView, at: 0)
+            vStack.insertArrangedSubview(mediaView, at: 0)
             self.mediaView = mediaView
         }
 
-        if post.isPostRetracted {
-            self.textContentView.isHidden = true
-
-            self.deletedPostView.isHidden = false
-            if !self.vStack.arrangedSubviews.contains(self.deletedPostView) {
-                self.vStack.addArrangedSubview(self.deletedPostView)
-            }
-        }
         // With media or > 180 chars long: System 16 pt (Body - 1)
         // Text-only under 180 chars long: System 20 pt (Body + 3)
-        else if !(post.text ?? "").isEmpty {
-            self.textContentView.isHidden = false
+        let postContainsText = !(post.text ?? "").isEmpty
+        if postContainsText {
+            textContentView.isHidden = false
 
             let postText = MainAppContext.shared.contactStore.textWithMentions(
                 post.text,
@@ -751,37 +840,32 @@ fileprivate class FeedItemContentView: UIView {
                 let fontSizeDiff: CGFloat = postContainsMedia || (postText?.string ?? "").count > 180 ? -1 : 3
                 return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
             }()
-            self.textLabel.attributedText = postText?.with(font: postFont, color: .label)
-            self.textLabel.numberOfLines = feedDataItem.textExpanded ? 0 : postContainsMedia ? 3 : 10
+            textLabel.attributedText = postText?.with(font: postFont, color: .label)
+            textLabel.numberOfLines = feedDataItem.textExpanded ? 0 : postContainsMedia ? 3 : 10
             // Adjust vertical margins around text.
-            self.textContentView.layoutMargins.top = postContainsMedia ? 11 : 9
+            textContentView.layoutMargins.top = postContainsMedia ? 11 : 9
         } else {
-            self.textContentView.isHidden = true
+            textContentView.isHidden = true
         }
 
         // Remove extra spacing
-        self.layoutMargins.bottom = post.hideFooterSeparator ? 2 : 8
+        layoutMargins.bottom = post.hideFooterSeparator ? 2 : 8
 
-        feedPostId = post.id
+        postId = post.id
     }
 
-    func prepareForReuse() {
-        // Hide "This post has been deleted" view.
-        // Use tags so as to not trigger lazy initialization of the view.
-        if let deletedPostView = self.vStack.arrangedSubviews.first(where: { $0.tag == FeedItemContentView.deletedPostViewTag }) {
-            deletedPostView.isHidden = true
-        }
-    }
+    func prepareForReuse() { }
 
     func stopPlayback() {
-        if let mediaView = self.mediaView {
+        if let mediaView = mediaView {
             mediaView.stopPlayback()
         }
     }
 }
 
 
-fileprivate class FeedItemHeaderView: UIView {
+private class FeedItemHeaderView: UIView {
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
@@ -825,7 +909,7 @@ fileprivate class FeedItemHeaderView: UIView {
             return UIFont.gothamFont(ofSize: fontDescriptor.pointSize + 1, weight: .medium)
         }()
         label.textColor = .tertiaryLabel
-        label.textAlignment = label.effectiveUserInterfaceLayoutDirection == .leftToRight ? .right : .left
+        label.textAlignment = .natural
         label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .horizontal) // higher than contact name
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -888,7 +972,7 @@ fileprivate class FeedItemHeaderView: UIView {
 }
 
 
-fileprivate class FeedItemFooterView: UIView {
+private class FeedItemFooterView: UIView {
 
     class ButtonWithBadge: UIButton {
 
@@ -1257,7 +1341,8 @@ fileprivate class FeedItemFooterView: UIView {
     }
 }
 
-fileprivate class FacePileView: UIControl {
+
+private class FacePileView: UIControl {
     var avatarViews: [AvatarView] = []
     let numberOfFaces = 3
     
@@ -1267,7 +1352,8 @@ fileprivate class FacePileView: UIControl {
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: coder)
+        setupView()
     }
     
     private func setupView() {
