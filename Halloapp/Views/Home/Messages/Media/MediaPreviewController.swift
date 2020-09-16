@@ -131,16 +131,12 @@ class MediaPreviewController: UIViewController {
     // MARK: Appearance
     
     private lazy var imageView: ZoomableImageView = {
-        let view = ZoomableImageView(frame: self.view.bounds)
-        view.contentMode = .scaleAspectFit
-        self.view.addSubview(view)
+        let zoomableView = ZoomableImageView(frame: view.bounds)
+        zoomableView.contentMode = .scaleAspectFit
+        view.addSubview(zoomableView)
 
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-        view.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-        view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-        view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
-        return view
+        zoomableView.constrain(to: view)
+        return zoomableView
     }()
     
     @objc private func cancelAction() {

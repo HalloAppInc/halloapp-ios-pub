@@ -410,7 +410,7 @@ class XMPPControllerMain: XMPPController {
         }
         
         if let groupElement = message.element(forName: "group") {
-            if let group = XMPPGroup(itemElement: groupElement) {
+            if let group = XMPPGroup(itemElement: groupElement, messageId: message.elementID) {
                 chatDelegate?.halloService(self, didReceiveGroupMessage: group)
             } else {
                 DDLogError("XMPPController/didReceive/error could not read group message")

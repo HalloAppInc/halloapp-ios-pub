@@ -294,13 +294,9 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     
     func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
 
-        if !isPreviousMsgSameSender {
-            nameLabel.text = AppContext.shared.contactStore.fullName(for: chatGroupMessage.userId)
-            if nameLabel.text == "Unknown Contact" {
-                nameLabel.text = "~\(chatGroupMessage.name ?? "Unknown Contact")"
-            }
-            
-            nameLabel.textColor = getNameColor(for: chatGroupMessage.userId, name: nameLabel.text ?? "", groupId: chatGroupMessage.groupId)
+        if !isPreviousMsgSameSender, let userId = chatGroupMessage.userId {
+            nameLabel.text = AppContext.shared.contactStore.fullName(for: userId)
+            nameLabel.textColor = getNameColor(for: userId, name: nameLabel.text ?? "", groupId: chatGroupMessage.groupId)
             nameRow.isHidden = false
             
             if (chatGroupMessage.orderedMedia.count == 0) {
@@ -386,7 +382,6 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         
         self.textView.text = text
         
-        
         // media
         if let media = media {
             
@@ -424,21 +419,23 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
             }
             
             if !media.isEmpty {
+                bubbleRow.insertArrangedSubview(self.mediaRow, at: 1)
                 
-                self.bubbleRow.insertArrangedSubview(self.mediaRow, at: 1)
+                var preferredHeight = preferredSize.height
+                if media.count > 1 {
+                    preferredHeight += 25
+                }
+                mediaImageView.widthAnchor.constraint(equalToConstant: preferredSize.width).isActive = true
+                mediaImageView.heightAnchor.constraint(equalToConstant: preferredHeight).isActive = true
                 
-                NSLayoutConstraint(item: mediaImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: preferredSize.width).isActive = true
-                NSLayoutConstraint(item: mediaImageView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: preferredSize.height).isActive = true
+                mediaImageView.configure(with: sliderMediaArr, size: preferredSize)
                 
-                self.mediaImageView.configure(with: sliderMediaArr, size: preferredSize)
-                
-                self.mediaImageView.isHidden = false
+                mediaImageView.isHidden = false
                 
                 if (isQuotedMessage) {
                     mediaRow.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
                 }
                 mediaRow.isHidden = false
-
             }
         }
         
@@ -488,23 +485,24 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     func preferredSize(for media: [ChatMedia]) -> CGSize {
         guard !media.isEmpty else { return CGSize(width: 0, height: 0) }
         
-        var width = CGFloat(UIScreen.main.bounds.width * 0.8).rounded()
+        let maxRatio: CGFloat = 5/4 // height/width
+        let maxWidth = CGFloat(UIScreen.main.bounds.width * 0.8)
+        let maxHeight = maxWidth*maxRatio
         
-        let tallestItem = media.max { return $0.size.height < $1.size.height }
-        
-        let tallestItemAspectRatio = tallestItem!.size.height / tallestItem!.size.width
-        
-        let maxAllowedAspectRatio: CGFloat = 5/4
-        
-        let preferredRatio = min(maxAllowedAspectRatio, tallestItemAspectRatio)
-        
-        let height = (width * preferredRatio).rounded()
-        
-        if media.count == 1 {
-            width = height/tallestItemAspectRatio
+        var tallest: CGFloat = 0
+        var widest: CGFloat = 0
+        for med in media {
+            let ratio = med.size.height/med.size.width
+            let height = maxWidth*ratio
+            let width = maxHeight/ratio
+            
+            tallest = max(tallest, height)
+            widest = max(widest, width)
         }
-
-        return CGSize(width: width, height: height)
+        
+        tallest = min(tallest, maxHeight)
+        widest = min(widest, maxWidth)
+        return CGSize(width: widest, height: tallest)
     }
     
     func getNameColor(for userId: UserID, name: String, groupId: GroupID) -> UIColor {

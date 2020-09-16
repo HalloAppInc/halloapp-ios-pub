@@ -46,6 +46,8 @@ extension ChatThread {
     @NSManaged var lastMsgText: String?
     @NSManaged private var lastMsgMediaTypeValue: Int16
     @NSManaged var lastMsgTimestamp: Date?
+
+    @NSManaged var draft: String?
     
     var type: ChatType {
         get {

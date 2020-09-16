@@ -13,7 +13,7 @@ import Foundation
 
 
 extension ChatGroupMessage {
-
+    
     enum InboundStatus: Int16 {
         case none = 0
         case haveSeen = 1
@@ -34,20 +34,29 @@ extension ChatGroupMessage {
         return NSFetchRequest<ChatGroupMessage>(entityName: "ChatGroupMessage")
     }
 
-    @NSManaged public var userId: UserID
     @NSManaged public var groupId: String
     @NSManaged public var id: String
-    @NSManaged public var name: String?
+
+    @NSManaged public var userId: UserID?
+    
+    @NSManaged var typeValue: Int16
+    
     @NSManaged public var text: String?
     @NSManaged public var timestamp: Date?
     
-    @NSManaged var info: Set<ChatGroupMessageInfo>?
     @NSManaged var media: Set<ChatMedia>?
+    @NSManaged var info: Set<ChatGroupMessageInfo>?
+    
+    @NSManaged var event: ChatGroupMessageEvent?
     
     @NSManaged var cellHeight: Int16
     
     @NSManaged var inboundStatusValue: Int16
     @NSManaged var outboundStatusValue: Int16
+    
+    var isEvent: Bool {
+        return event != nil
+    }
     
     var inboundStatus: InboundStatus {
         get {

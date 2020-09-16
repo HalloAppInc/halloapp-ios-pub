@@ -47,9 +47,6 @@ extension ChatMessage {
     @NSManaged var incomingStatusValue: Int16
     @NSManaged var outgoingStatusValue: Int16
 
-    @NSManaged var receiverStatusValue: Int16
-    @NSManaged var senderStatusValue: Int16
-    
     @NSManaged var timestamp: Date?
     
     @NSManaged var cellHeight: Int16
@@ -78,5 +75,4 @@ extension ChatMessage {
             return media.sorted { $0.order < $1.order }
         }
     }
-    
 }

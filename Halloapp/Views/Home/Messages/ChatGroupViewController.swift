@@ -29,12 +29,11 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
     static private let sectionMain = 0
     static private let inboundMsgCellReuseIdentifier = "InboundMsgCell"
     static private let outboundMsgCellReuseIdentifier = "OutboundMsgCell"
+    static private let eventMsgTableViewCellReuseIdentifier = "EventMsgTableViewCell"
     
     private var cancellableSet: Set<AnyCancellable> = []
     
     // MARK: Lifecycle
-    
-
     
     init(for groupId: String) {
         DDLogDebug("GroupChatViewController/init/\(groupId)")
@@ -110,8 +109,17 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
             
             //TODO: refactor out/inbound cells and update params after ui stabilize
             
-            // outbound cell
-            if chatGroupMessage.userId == MainAppContext.shared.userData.userId {
+            if chatGroupMessage.isEvent {
+                if let cell = tableView.dequeueReusableCell(withIdentifier: ChatGroupViewController.eventMsgTableViewCellReuseIdentifier, for: indexPath) as? EventMsgTableViewCell {
+
+                    guard let text = chatGroupMessage.event?.text else { cell.isHidden = true; return cell }
+                    cell.configure(with: text)
+
+                    return cell
+                }
+                
+            } else if chatGroupMessage.userId == MainAppContext.shared.userData.userId {
+                
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatGroupViewController.outboundMsgCellReuseIdentifier, for: indexPath) as? OutboundMsgCell {
 
                     cell.update(with: chatGroupMessage,
@@ -129,8 +137,10 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
                     cell.delegate = self
                     return cell
                 }
-            } else {
+                
 
+            } else {
+                
                 // inbound cell
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatGroupViewController.inboundMsgCellReuseIdentifier, for: indexPath) as? InboundMsgCell {
 
@@ -149,7 +159,6 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
                     return cell
                 }
             }
-            
             return UITableViewCell()
         }
 
@@ -167,15 +176,16 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
         do {
             try self.fetchedResultsController!.performFetch()
             self.updateData(animatingDifferences: false)
-            
         } catch {
             return
         }
         
-        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard(_:)))
         self.view.addGestureRecognizer(tapGesture)
-                
+        
+        guard let thread = MainAppContext.shared.chatData.chatThread(type: .group, id: groupId) else { return }
+        guard thread.draft != "", let draft = thread.draft else { return }
+        chatInputView.setDraftText(text: draft)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -203,12 +213,12 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
         
 //        NotificationUtility.removeDelivered(forType: .chat, withFromId: self.fromUserId!)
         
-        // TODO: group info should be sync-ed just in case every so often
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
+        MainAppContext.shared.chatData.saveDraft(type: .group, for: groupId, with: chatInputView.text)
         MainAppContext.shared.chatData.setCurrentlyChattingInGroup(for: nil)
         chatInputView.willDisappear(in: self)
     }
@@ -245,6 +255,7 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
         tableView.preservesSuperviewLayoutMargins = true
         tableView.register(InboundMsgCell.self, forCellReuseIdentifier: ChatGroupViewController.inboundMsgCellReuseIdentifier)
         tableView.register(OutboundMsgCell.self, forCellReuseIdentifier: ChatGroupViewController.outboundMsgCellReuseIdentifier)
+        tableView.register(EventMsgTableViewCell.self, forCellReuseIdentifier: ChatGroupViewController.eventMsgTableViewCellReuseIdentifier)
         tableView.delegate = self
         return tableView
     }()
@@ -365,7 +376,6 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
     }
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        
         if self.skipDataUpdate {
             DDLogDebug("ChatGroupViewController/frc/update/skipDataUpdate")
             self.skipDataUpdate = false
@@ -408,8 +418,8 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
     }()
 
     override var inputAccessoryView: UIView? {
-        self.chatInputView.setInputViewWidth(self.view.bounds.size.width)
-        return self.chatInputView
+        chatInputView.setInputViewWidth(view.bounds.size.width)
+        return chatInputView
     }
     
     override var canBecomeFirstResponder: Bool {
@@ -674,16 +684,13 @@ class InboundMsgCell: UITableViewCell, IncomingMsgViewDelegate {
         setup()
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func prepareForReuse() {
         super.prepareForReuse()
         self.incomingMsgView.reset()
     }
-
+    
     private func setup() {
         backgroundColor = UIColor.systemGray6
         
@@ -747,10 +754,7 @@ class OutboundMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
         setup()
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func prepareForReuse() {
         super.prepareForReuse()
@@ -809,4 +813,72 @@ class OutboundMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
         guard let messageId = msgId else { return }
         self.delegate?.outboundMsgCell(self, didLongPressOn: messageId)
     }
+}
+
+
+class EventMsgTableViewCell: UITableViewCell {
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setup()
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+    }
+
+    func configure(with text: String) {
+        messageLabel.text = text
+    }
+    
+    private func setup() {
+        backgroundColor = .clear
+        selectionStyle = .none
+        contentView.addSubview(mainView)
+        mainView.constrain(to: contentView)
+    }
+
+    private lazy var mainView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ messageRow ])
+        view.axis = .vertical
+        view.alignment = .center
+    
+        view.layoutMargins = UIEdgeInsets(top: 5, left: 10, bottom: 5, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var messageRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ messageLabel])
+        view.axis = .horizontal
+        
+        view.layoutMargins = UIEdgeInsets(top: 5, left: 10, bottom: 5, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        let subView = UIView(frame: view.bounds)
+        subView.layer.cornerRadius = 10
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        subView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.5)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(subView, at: 0)
+        
+        return view
+    }()
+    
+    private lazy var messageLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.systemFont(ofSize: 15)
+        label.textColor = .label
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
 }

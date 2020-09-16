@@ -15,6 +15,9 @@ typealias HalloGroupChatMessage = XMPPChatGroupMessage
 enum ChatGroupAction: String {
     case create = "create"
     case leave = "leave"
+    case delete = "delete"
+    case changeName = "change_name"
+    case changeAvatar = "change_avatar"
     case modifyMembers = "modify_members"
     case modifyAdmins = "modify_admins"
 }
@@ -34,21 +37,25 @@ enum ChatGroupMemberAction: String {
 }
 
 struct XMPPGroup {
+    var messageId: String? = nil
     let sender: UserID?
     let senderName: String?
     let groupId: String
     let name: String
-    let action: ChatGroupAction? // getGroupInfo has not action
+    let action: ChatGroupAction? // getGroupInfo has no action
     let avatar: String? = nil
     let members: [XMPPGroupMember]
 
     // inbound
-    init?(itemElement item: XMLElement) {
+    init?(itemElement item: XMLElement, messageId: String? = nil) {
+        if let messageId = messageId {
+            self.messageId = messageId
+        }
+        guard let groupId = item.attributeStringValue(forName: "gid") else { return nil }
+        guard let name = item.attributeStringValue(forName: "name") else { return nil }
         self.sender = item.attributeStringValue(forName: "sender")
         self.senderName = item.attributeStringValue(forName: "sender_name")
         
-        guard let groupId = item.attributeStringValue(forName: "gid") else { return nil }
-        guard let name = item.attributeStringValue(forName: "name") else { return nil }
         let actionStr = item.attributeStringValue(forName: "action")
         
         let action: ChatGroupAction? = {
@@ -62,10 +69,10 @@ struct XMPPGroup {
         
         let membersEl = item.elements(forName: "member")
         
-        self.members = membersEl.compactMap({ XMPPGroupMember(xmlElement: $0) })
         self.groupId = groupId
         self.name = name
         self.action = action
+        self.members = membersEl.compactMap({ XMPPGroupMember(xmlElement: $0) })
     }
 
     init?(protoGroup: PBgroup_stanza) {
@@ -162,7 +169,7 @@ struct XMPPChatGroupMessage {
     let id: String
     let groupId: GroupID
     let groupName: String?
-    let userId: UserID
+    let userId: UserID?
     let userName: String?
     let text: String?
     let media: [XMPPChatMedia]

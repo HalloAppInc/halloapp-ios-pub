@@ -71,7 +71,7 @@ class ChatData: ObservableObject {
         
         self.service = service
         self.userData = userData
-        self.mediaUploader = MediaUploader(service: service)
+        mediaUploader = MediaUploader(service: service)
 
         self.service.chatDelegate = self
 
@@ -79,10 +79,7 @@ class ChatData: ObservableObject {
             return MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
         }
         
-        self.migrateSenderStatusChatMessages()
-        self.migrateReceiverStatusChatMessages()
-        
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             service.didGetChatAck.sink { [weak self] xmppAck in
                 DDLogInfo("ChatData/gotAck \(xmppAck)")
                 guard let self = self else { return }
@@ -90,15 +87,16 @@ class ChatData: ObservableObject {
             }
         )
         
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             service.didGetNewChatMessage.sink { [weak self] xmppMessage in
                 DDLogInfo("ChatData/newMsg \(xmppMessage)")
                 self?.processIncomingXMPPChatMessage(xmppMessage)
             }
         )
         
-        self.cancellableSet.insert(
-            self.service.didConnect.sink {
+        cancellableSet.insert(
+            service.didConnect.sink { [weak self] in
+                guard let self = self else { return }
                 DDLogInfo("ChatData/onConnect")
                 
                 if (UIApplication.shared.applicationState == .active) {
@@ -145,7 +143,7 @@ class ChatData: ObservableObject {
             }
         )
         
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             service.didGetPresence.sink { [weak self] xmppPresence in
                 DDLogInfo("ChatData/gotPresence \(xmppPresence)")
                 guard let self = self else { return }
@@ -156,7 +154,7 @@ class ChatData: ObservableObject {
         /** gotcha: use Combine sink instead of notificationCenter.addObserver because for some reason if the user flicks the app to the background and 3
             really quickly, the observer doesn't fire
          */
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification).sink { [weak self] notification in
                 guard let self = self else { return }
                 self.sendPresence(type: .available)
@@ -169,15 +167,13 @@ class ChatData: ObservableObject {
             }
         )
         
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] notification in
                 guard let self = self else { return }
                 self.sendPresence(type: .away)
             }
         )
-        
     }
-    
     
     func populateThreadsWithSymmetricContacts() {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
@@ -188,7 +184,7 @@ class ChatData: ObservableObject {
                     guard chatThread.lastMsgTimestamp == nil else { continue }
                     if chatThread.title != AppContext.shared.contactStore.fullName(for: userId) {
                         DDLogDebug("ChatData/populateThreads/contact/rename \(userId)")
-                        self.updateChatThread(for: userId) { (chatThread) in
+                        self.updateChatThread(type: .oneToOne, for: userId) { (chatThread) in
                             chatThread.title = AppContext.shared.contactStore.fullName(for: userId)
                         }
                     }
@@ -516,7 +512,6 @@ class ChatData: ObservableObject {
                 
                 if chatGroupMessage.outboundStatus == .pending {
                     
-                    
                     chatGroupMessage.outboundStatus = .sentOut
                 
                     self.updateChatThreadStatus(type: .group, for: chatGroupMessage.groupId, messageId: chatGroupMessage.id) { (chatThread) in
@@ -638,12 +633,13 @@ class ChatData: ObservableObject {
     
     func sendSeenGroupReceipt(for chatGroupMessage: ChatGroupMessage) {
         DDLogInfo("ChatData/sendSeenGroupReceipt \(chatGroupMessage.id)")
+        guard let userId = chatGroupMessage.userId else { return }
         service.sendReceipt(
             itemID: chatGroupMessage.id,
             thread: .group(chatGroupMessage.groupId),
             type: .read,
             fromUserID: userData.userId,
-            toUserID: chatGroupMessage.userId)
+            toUserID: userId)
     }
     
     // MARK: Share Extension Merge Data
@@ -682,15 +678,12 @@ class ChatData: ObservableObject {
             case .none:
                 chatMessage.incomingStatus = .none
                 chatMessage.outgoingStatus = .error
-
             case .sent:
                 chatMessage.incomingStatus = .none
                 chatMessage.outgoingStatus = .sentOut
-
             case .received:
                 chatMessage.incomingStatus = .none
                 chatMessage.outgoingStatus = .none
-
             case .sendError:
                 chatMessage.incomingStatus = .none
                 chatMessage.outgoingStatus = .error
@@ -727,7 +720,7 @@ class ChatData: ObservableObject {
                 chatMedia.uploadUrl = media.uploadUrl
                 chatMedia.size = media.size
                 chatMedia.key = media.key
-                chatMedia.order = media.order
+                chatMedia.order = media.order - 1 // adjusts for share extension starting at 1
                 chatMedia.sha256 = media.sha256
                 chatMedia.message = chatMessage
 
@@ -830,6 +823,13 @@ extension ChatData {
             self.unreadMessageCount = Int(threads.reduce(0) { $0 + $1.unreadCount })
         }
     }
+    
+    func saveDraft(type: ChatType, for groupId: GroupID, with draft: String?) {
+        updateChatThread(type: type, for: groupId) { chatThread in
+            guard chatThread.draft != draft else { return }
+            chatThread.draft = draft
+        }
+    }
 
     //MARK: Thread Core Data Fetching
     
@@ -868,22 +868,24 @@ extension ChatData {
     
     // MARK: Thread Core Data Updating
     
-    private func updateChatThread(for chatWithUserId: String, block: @escaping (ChatThread) -> Void) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            guard let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatWithUserId, in: managedObjectContext) else {
-                DDLogError("ChatData/update-chatThread/missing-thread [\(chatWithUserId)]")
+    private func updateChatThread(type: ChatType, for id: String, block: @escaping (ChatThread) -> Void) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            guard let chatThread = self.chatThread(type: type, id: id, in: managedObjectContext) else {
+                DDLogError("ChatData/update-chatThread/missing-thread [\(id)]")
                 return
             }
-            DDLogVerbose("ChatData/update-chatThread [\(chatWithUserId)]")
             block(chatThread)
             if managedObjectContext.hasChanges {
+                DDLogVerbose("ChatData/update-chatThread [\(id)]")
                 self.save(managedObjectContext)
             }
         }
     }
     
     private func updateChatThreadStatus(type: ChatType, for id: String, messageId: String, block: @escaping (ChatThread) -> Void) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             guard let chatThread = self.chatThreadStatus(type: type, id: id, messageId: messageId, in: managedObjectContext) else {
                 DDLogError("ChatData/update-chatThread/missing-msg-in-thread [\(id)] [\(messageId)]")
                 return
@@ -901,12 +903,11 @@ extension ChatData {
     
     // MARK: 1-1
     
-    public func updateChatMessageCellHeight(for chatMessageId: String, with cellHeight: Int) {
-        self.updateChatMessage(with: chatMessageId) { (chatMessage) in
-            chatMessage.cellHeight = Int16(cellHeight)
-        }
+    func setCurrentlyChattingWithUserId(for chatWithUserId: String?) {
+        currentlyChattingWithUserId = chatWithUserId
+        isSubscribedToCurrentUser = false
     }
-    
+            
     // MARK: 1-1 Sending Messages
     
     func sendMessage(toUserId: String, text: String, media: [PendingMedia], feedPostId: String?, feedPostMediaIndex: Int32) {
@@ -1082,21 +1083,14 @@ extension ChatData {
         service.sendChatMessage(xmppMessage, encryption: MainAppContext.shared.keyData.encryptOperation(for: message.toUserId))
     }
     
-    // MARK: 1-1 Core Data Fetching
-
-    func senderStatusChatMessages(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
-        let sortDescriptors = [
-            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
-        ]
-        return self.chatMessages(predicate: NSPredicate(format: "senderStatusValue != 0 AND outgoingStatusValue = 0"), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    // MARK: 1-1 Presence
+    
+    func subscribeToPresence(to chatWithUserId: String) {
+        guard !self.isSubscribedToCurrentUser else { return }
+        self.isSubscribedToCurrentUser = service.subscribeToPresenceIfPossible(to: chatWithUserId)
     }
     
-    func receiverStatusChatMessages(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
-        let sortDescriptors = [
-            NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
-        ]
-        return self.chatMessages(predicate: NSPredicate(format: "receiverStatusValue != 0 AND incomingStatusValue = 0"), sortDescriptors: sortDescriptors, in: managedObjectContext)
-    }
+    // MARK: 1-1 Core Data Fetching
     
     private func chatMessages(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
         let managedObjectContext = managedObjectContext ?? self.viewContext
@@ -1157,43 +1151,6 @@ extension ChatData {
         return self.chatGroupMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
 
-    func subscribeToPresence(to chatWithUserId: String) {
-        guard !self.isSubscribedToCurrentUser else { return }
-        self.isSubscribedToCurrentUser = service.subscribeToPresenceIfPossible(to: chatWithUserId)
-    }
-
-    func migrateSenderStatusChatMessages() {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            
-            let messages = self.senderStatusChatMessages(in: managedObjectContext)
-            DDLogDebug("ChatData/migrateSenderStatusChatMessages \(messages.count)")
-  
-            messages.forEach {
-                $0.outgoingStatusValue = $0.senderStatusValue
-            }
-
-            if managedObjectContext.hasChanges {
-                self.save(managedObjectContext)
-            }
-        }
-    }
-    
-    func migrateReceiverStatusChatMessages() {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            
-            let messages = self.receiverStatusChatMessages(in: managedObjectContext)
-            DDLogDebug("ChatData/migrateReceiverStatusChatMessages \(messages.count)")
-            
-            messages.forEach {
-                $0.incomingStatusValue = $0.receiverStatusValue
-            }
-            
-            if managedObjectContext.hasChanges {
-                self.save(managedObjectContext)
-            }
-        }
-    }
-    
     // MARK: 1-1 Core Data Updating
     
     private func updateChatMessage(with chatMessageId: String, block: @escaping (ChatMessage) -> Void) {
@@ -1210,15 +1167,12 @@ extension ChatData {
         }
     }
     
-    func setCurrentlyChattingWithUserId(for chatWithUserId: String?) {
-        self.currentlyChattingWithUserId = chatWithUserId
-        self.isSubscribedToCurrentUser = false
+    public func updateChatMessageCellHeight(for chatMessageId: String, with cellHeight: Int) {
+        updateChatMessage(with: chatMessageId) { (chatMessage) in
+            chatMessage.cellHeight = Int16(cellHeight)
+        }
     }
-    
-    func setCurrentlyChattingInGroup(for groupId: GroupID?) {
-        self.currentlyChattingInGroup = groupId
-    }
-    
+        
     // MARK: 1-1 Core Data Deleting
     
     private func deleteMedia(in chatMessage: ChatMessage) {
@@ -1305,7 +1259,6 @@ extension ChatData {
     }
     
     private func processIncomingChatMessage(xmppChatMessage: ChatMessageProtocol, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
-        
         guard self.chatMessage(with: xmppChatMessage.id, in: managedObjectContext) == nil else {
             DDLogError("ChatData/process/already-exists [\(xmppChatMessage.id)]")
             return
@@ -1507,6 +1460,12 @@ extension ChatData {
     
     public typealias GroupActionCompletion = (Error?) -> Void
     
+    // MARK: Group
+    
+    func setCurrentlyChattingInGroup(for groupId: GroupID?) {
+        currentlyChattingInGroup = groupId
+    }
+    
     // MARK: Group Actions
     
     public func getAndSyncGroup(groupId: GroupID) {
@@ -1551,8 +1510,8 @@ extension ChatData {
             if chatGroup.avatar != xmppGroup.avatar {
                 chatGroup.avatar = xmppGroup.avatar
             }
-
-            // remove users that are not members anymore
+            
+            // look for users that are not members anymore
             chatGroup.orderedMembers.forEach { currentMember in
                 let foundMember = xmppGroup.members.first(where: { $0.userId == currentMember.userId })
                 
@@ -1560,6 +1519,8 @@ extension ChatData {
                     chatGroup.managedObjectContext!.delete(currentMember)
                 }
             }
+            
+            var contactNames = [UserID:String]()
             
             // see if there are new members added or needs to be updated
             xmppGroup.members.forEach { inboundMember in
@@ -1576,6 +1537,15 @@ extension ChatData {
                     DDLogDebug("ChatData/group/syncGroupInfo/new/add-member [\(inboundMember.userId)]")
                     self.processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: inboundMember, in: chatGroup.managedObjectContext!)
                 }
+                
+                // add to pushnames
+                if let name = inboundMember.name {
+                    contactNames[inboundMember.userId] = name
+                }
+            }
+            
+            if !contactNames.isEmpty {
+                MainAppContext.shared.contactStore.addPushNames(contactNames)
             }
         }
     }
@@ -1597,7 +1567,7 @@ extension ChatData {
         chatGroupMessage.outboundStatus = .pending
         chatGroupMessage.timestamp = Date()
 
-        // Record all the group members who should get this message
+        // insert all the group members who should get this message
         if let chatGroup = self.chatGroup(groupId: toGroupId, in: managedObjectContext) {
             if let members = chatGroup.members {
                 for member in members {
@@ -1658,6 +1628,7 @@ extension ChatData {
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .pending
             chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
+            chatThread.draft = nil
         } else {
             DDLogDebug("ChatData/group/new-msg/\(groupMessageId)/new-thread")
             let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
@@ -1813,7 +1784,7 @@ extension ChatData {
         let sortDescriptors = [
             NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
         ]
-        return self.chatGroupMessages(predicate: NSPredicate(format: "groupId = %@ && (inboundStatusValue = %d OR inboundStatusValue = %d)", groupId, ChatGroupMessage.InboundStatus.none.rawValue, ChatGroupMessage.InboundStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+        return self.chatGroupMessages(predicate: NSPredicate(format: "(groupId = %@) && (event.@count == 0) && (inboundStatusValue = %d OR inboundStatusValue = %d)", groupId, ChatGroupMessage.InboundStatus.none.rawValue, ChatGroupMessage.InboundStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     private func chatGroupMessageAllInfo(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessageInfo] {
@@ -1841,7 +1812,6 @@ extension ChatData {
         return self.chatGroupMessageAllInfo(predicate: NSPredicate(format: "chatGroupMessageId == %@ && userId == %@", messageId, userId), in: managedObjectContext).first
     }
     
-
     // MARK: Group Core Data Updating
     
     public func updateChatGroupMessageCellHeight(for chatGroupMessageId: String, with cellHeight: Int) {
@@ -2014,7 +1984,6 @@ extension ChatData {
         DDLogDebug("ChatData/group/process/newMsg [\(xmppChatGroupMessage.id)]")
         let chatGroupMessage = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMessage.entity().name!, into: managedObjectContext) as! ChatGroupMessage
         chatGroupMessage.id = xmppChatGroupMessage.id
-        chatGroupMessage.name = xmppChatGroupMessage.userName
         chatGroupMessage.groupId = xmppChatGroupMessage.groupId
         chatGroupMessage.userId = xmppChatGroupMessage.userId
         chatGroupMessage.text = xmppChatGroupMessage.text
@@ -2079,7 +2048,7 @@ extension ChatData {
         }
         
         save(managedObjectContext)
-        
+                
         if !groupExist {
             getAndSyncGroup(groupId: xmppChatGroupMessage.groupId)
         }
@@ -2092,7 +2061,12 @@ extension ChatData {
         } else {
             self.updateUnreadThreadCount()
         }
-                
+        
+        // add to pushnames
+        if let userId = xmppChatGroupMessage.userId, let name = xmppChatGroupMessage.userName {
+            MainAppContext.shared.contactStore.addPushNames([userId: name])
+        }
+        
 //        self.presentLocalNotifications(for: chatMessage)
         
         // download chat group message media
@@ -2161,7 +2135,7 @@ extension ChatData {
             
     }
     
-    // MARK: Group Process Inbound Actions
+    // MARK: Group Process Inbound Actions/Events
 
     private func processIncomingXMPPGroup(_ group: XMPPGroup) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
@@ -2188,26 +2162,40 @@ extension ChatData {
 
         let chatGroup = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
         
+        var contactNames = [UserID:String]()
+        
         // Add Group Creator
         if let existingCreator = chatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroup.sender ?? "", in: managedObjectContext) {
-            existingCreator.name = xmppGroup.senderName
             existingCreator.type = .admin
         } else {
             guard let sender = xmppGroup.sender else { return }
             let groupCreator = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMember.entity().name!, into: managedObjectContext) as! ChatGroupMember
             groupCreator.groupId = xmppGroup.groupId
             groupCreator.userId = sender
-            groupCreator.name = xmppGroup.senderName
             groupCreator.type = .admin
             groupCreator.group = chatGroup
+            
+            if let userId = xmppGroup.senderName, let name = xmppGroup.senderName {
+                contactNames[userId] = name
+            }
         }
 
         // Add new Group members to database
         for (_, xmppGroupMember) in xmppGroup.members.enumerated() {
             DDLogDebug("ChatData/group/process/new/add-member [\(xmppGroupMember.userId)]")
             processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+            
+            // add to pushnames
+            if let name = xmppGroupMember.name {
+                contactNames[xmppGroupMember.userId] = name
+            }
         }
         
+        if !contactNames.isEmpty {
+            MainAppContext.shared.contactStore.addPushNames(contactNames)
+        }
+        
+        recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
     }
 
     private func processGroupLeaveAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
@@ -2219,7 +2207,7 @@ extension ChatData {
             guard xmppGroupMember.action == .leave else { continue }
             deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
             
-            //TODO: record as system message
+            recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
             
             if xmppGroupMember.userId != MainAppContext.shared.userData.userId {
                 getAndSyncGroup(groupId: xmppGroup.groupId)
@@ -2243,6 +2231,7 @@ extension ChatData {
                 if xmppGroupMember.userId != MainAppContext.shared.userData.userId {
                     syncGroup = true
                 }
+                
             } else {
                 syncGroup = true
             }
@@ -2253,7 +2242,8 @@ extension ChatData {
 //                deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
 //            }
             
-            //TODO: record as system message
+            recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+            
             
         }
         if syncGroup {
@@ -2286,11 +2276,62 @@ extension ChatData {
         }
     }
     
+    private func recordGroupMessageEvent(xmppGroup: XMPPGroup, xmppGroupMember: XMPPGroupMember?, in managedObjectContext: NSManagedObjectContext) {
+        let chatGroupMessage = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMessage.entity().name!, into: managedObjectContext) as! ChatGroupMessage
+        if let messageId = xmppGroup.messageId {
+            chatGroupMessage.id = messageId
+        }
+        chatGroupMessage.groupId = xmppGroup.groupId
+        chatGroupMessage.timestamp = Date()
+        
+        let chatGroupMessageEvent = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMessageEvent.entity().name!, into: managedObjectContext) as! ChatGroupMessageEvent
+        chatGroupMessageEvent.sender = xmppGroup.sender
+        chatGroupMessageEvent.memberUserId = xmppGroupMember?.userId
+        
+        chatGroupMessageEvent.action = {
+            switch xmppGroup.action {
+            case .create: return .create
+            case .leave: return .leave
+            case .delete: return .delete
+            case .changeName: return .changeName
+            case .changeAvatar: return .changeAvatar
+            case .modifyAdmins: return .modifyAdmins
+            case .modifyMembers: return .modifyMembers
+            default: return .none
+            }
+        }()
+        
+        chatGroupMessageEvent.memberAction = {
+            switch xmppGroupMember?.action {
+            case .add: return .add
+            case .remove: return .remove
+            case .promote: return .promote
+            case .demote: return .demote
+            case .leave: return .leave
+            default: return .none
+            }
+        }()
+        
+        chatGroupMessageEvent.groupMessage = chatGroupMessage
+        
+        save(managedObjectContext)
+        
+        if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
+            chatThread.lastMsgId = chatGroupMessage.id
+            chatThread.lastMsgUserId = chatGroupMessage.userId
+            chatThread.lastMsgText = chatGroupMessageEvent.text
+            chatThread.lastMsgMediaType = .none
+            chatThread.lastMsgStatus = .none
+            chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
+            // unreadCount is not incremented for group event messages
+        }
+    }
+    
+    
     private func processGroupAddMemberAction(chatGroup: ChatGroup, xmppGroupMember: XMPPGroupMember, in managedObjectContext: NSManagedObjectContext) {
         DDLogDebug("ChatData/group/processGroupAddMemberAction/member [\(xmppGroupMember.userId)]")
         guard let xmppGroupMemberType = xmppGroupMember.type else { return }
         if let existingMember = chatGroupMember(groupId: chatGroup.groupId, memberUserId: xmppGroupMember.userId, in: managedObjectContext) {
-            existingMember.name = xmppGroupMember.name
             switch xmppGroupMemberType {
             case .member:
                 existingMember.type = .member
@@ -2301,7 +2342,6 @@ extension ChatData {
             let member = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMember.entity().name!, into: managedObjectContext) as! ChatGroupMember
             member.groupId = chatGroup.groupId
             member.userId = xmppGroupMember.userId
-            member.name = xmppGroupMember.name
             switch xmppGroupMemberType {
             case .member:
                 member.type = .member

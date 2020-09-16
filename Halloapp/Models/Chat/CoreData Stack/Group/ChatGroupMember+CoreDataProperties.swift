@@ -20,7 +20,6 @@ extension ChatGroupMember {
     @NSManaged var groupId: String
     @NSManaged var typeValue: Int16
     @NSManaged var userId: String
-    @NSManaged var name: String?
 
     @NSManaged var group: ChatGroup
     

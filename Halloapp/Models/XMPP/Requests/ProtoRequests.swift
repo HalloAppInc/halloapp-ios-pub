@@ -269,10 +269,13 @@ class ProtoGroupModifyRequest: ProtoStandardRequest<Void> {
 extension PBgroup_stanza.Action {
     init(_ groupAction: ChatGroupAction) {
         switch groupAction {
-        case .modifyAdmins: self = .modifyAdmins
-        case .modifyMembers: self = .modifyMembers
         case .create: self = .create
         case .leave: self = .leave
+        case .delete: self = .delete
+        case .changeName: self = .changeName
+        case .changeAvatar: self = .changeAvatar
+        case .modifyAdmins: self = .modifyAdmins
+        case .modifyMembers: self = .modifyMembers
         }
     }
 }

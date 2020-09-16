@@ -52,7 +52,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
     
     override func viewDidLoad() {
-        guard self.fromUserId != nil else { return }
+        guard let fromUserId = self.fromUserId else { return }
 
         super.viewDidLoad()
         
@@ -67,22 +67,22 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
             titleView.widthAnchor.constraint(equalToConstant: (self.view.frame.width*0.7))
         ])
         
-        self.navigationItem.titleView = titleView
+        navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
-        self.titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        titleView.update(with: self.fromUserId!, status: UserPresenceType.none, lastSeen: nil)
+        titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        titleView.update(with: fromUserId, status: UserPresenceType.none, lastSeen: nil)
         
-        self.view.addSubview(self.tableView)
-        self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-        self.tableView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-        self.tableView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-        self.tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+        view.addSubview(self.tableView)
+        tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        tableView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
-        self.tableView.backgroundColor = UIColor.systemGray6
-        self.tableView.tableHeaderView = nil
-        self.tableView.tableFooterView = nil
+        tableView.backgroundColor = UIColor.systemGray6
+        tableView.tableHeaderView = nil
+        tableView.tableFooterView = nil
         
-        self.dataSource = UITableViewDiffableDataSource<Int, ChatMessage>(tableView: self.tableView) { [weak self] tableView, indexPath, chatMessage in
+        dataSource = UITableViewDiffableDataSource<Int, ChatMessage>(tableView: self.tableView) { [weak self] tableView, indexPath, chatMessage in
             guard let self = self else { return nil }
             
             self.trackedChatMessages[chatMessage.id] = TrackedChatMessage(with: chatMessage)
@@ -163,33 +163,33 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
             NSSortDescriptor(keyPath: \ChatMessage.id, ascending: true) // if timestamps are the same, break tie
         ]
         
-        self.fetchedResultsController =
+        fetchedResultsController =
             NSFetchedResultsController<ChatMessage>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.chatData.viewContext,
                                                         sectionNameKeyPath: nil, cacheName: nil)
-        self.fetchedResultsController?.delegate = self
+        fetchedResultsController?.delegate = self
         do {
-            try self.fetchedResultsController!.performFetch()
-            self.updateData(animatingDifferences: false)
+            try fetchedResultsController!.performFetch()
+            updateData(animatingDifferences: false)
             
         } catch {
             return
         }
         
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard(_:)))
-        self.view.addGestureRecognizer(tapGesture)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard(_:)))
+        view.addGestureRecognizer(tapGesture)
         
         if let feedPostId = self.feedPostId {
             if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
-                    self.chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: mediaItem.type, mediaUrl: mediaItem.relativeFilePath)
+                    chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: mediaItem.type, mediaUrl: mediaItem.relativeFilePath)
                 } else {
-                    self.chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: nil, mediaUrl: nil)
+                    chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: nil, mediaUrl: nil)
                 }
             }
         }
         
-        self.cancellableSet.insert(
+        cancellableSet.insert(
             MainAppContext.shared.chatData.didGetCurrentChatPresence.sink { [weak self] status, ts in
                 DDLogInfo("ChatViewController/didGetCurrentChatPresence")
                 guard let self = self else { return }
@@ -198,6 +198,9 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
             }
         )
 
+        guard let thread = MainAppContext.shared.chatData.chatThread(type: .oneToOne, id: fromUserId) else { return }
+        guard thread.draft != "", let draft = thread.draft else { return }
+        chatInputView.setDraftText(text: draft)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -229,9 +232,11 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-
+        if let id = fromUserId {
+            MainAppContext.shared.chatData.saveDraft(type: .oneToOne, for: id, with: chatInputView.text)
+        }
         MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
-        self.chatInputView.willDisappear(in: self)
+        chatInputView.willDisappear(in: self)
     }
     
     deinit {
@@ -737,25 +742,25 @@ class OutgoingMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.outgoingMsgView.reset()
+        outgoingMsgView.reset()
     }
 
     private func setup() {
-        self.selectionStyle = .none
+        selectionStyle = .none
         
-        self.contentView.preservesSuperviewLayoutMargins = false
-        self.contentView.layoutMargins.top = 0
-        self.contentView.layoutMargins.bottom = 0
+        contentView.preservesSuperviewLayoutMargins = false
+        contentView.layoutMargins.top = 0
+        contentView.layoutMargins.bottom = 0
         
-        self.contentView.addSubview(self.outgoingMsgView)
+        contentView.addSubview(outgoingMsgView)
         
-        self.outgoingMsgView.translatesAutoresizingMaskIntoConstraints = false
-        self.outgoingMsgView.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = false
-        self.outgoingMsgView.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
-        self.outgoingMsgView.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-        self.outgoingMsgView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
+        outgoingMsgView.translatesAutoresizingMaskIntoConstraints = false
+        outgoingMsgView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = false
+        outgoingMsgView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor).isActive = true
+        outgoingMsgView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        outgoingMsgView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        self.outgoingMsgView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(UIScreen.main.bounds.width * Constants.WidthOfMsgBubble).rounded()).isActive = true
+        outgoingMsgView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(UIScreen.main.bounds.width * Constants.WidthOfMsgBubble).rounded()).isActive = true
     }
 
     private lazy var outgoingMsgView: OutgoingMsgView = {
@@ -765,15 +770,13 @@ class OutgoingMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
     }()
     
     func update(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
-        self.outgoingMsgView.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
+        outgoingMsgView.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
     }
     
     // MARK: OutgoingMsgView Delegates
     
     func outgoingMsgView(_ outgoingMsgView: OutgoingMsgView, previewType: MediaPreviewController.PreviewType, mediaIndex: Int) {
-        if self.previewAction != nil {
-            self.previewAction!(previewType, mediaIndex)
-        }
+        guard previewAction != nil else { return }
+        previewAction!(previewType, mediaIndex)
     }
-    
 }

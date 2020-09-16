@@ -57,9 +57,9 @@ extension Date {
         if seconds < Date.minutes(1) {
             return "Now"
         } else if seconds < Date.hours(6) || Calendar.current.isDateInToday(self) {
-            return DateFormatter.dateTimeFormatterCompactTime.string(from: self)
+            return DateFormatter.dateTimeFormatterTime.string(from: self)
         } else if seconds < Date.weeks(1) {
-            return DateFormatter.dateTimeFormatterDayOfWeekCompactTime.string(from: self)
+            return DateFormatter.dateTimeFormatterDayOfWeekTime.string(from: self)
         } else {
             return "\(Date.toDays(seconds))d"
         }
@@ -71,7 +71,7 @@ extension Date {
         if seconds < Date.minutes(1) {
             return "Now"
         } else if Calendar.current.isDateInToday(self) {
-            let dateFormatter = DateFormatter.dateTimeFormatterCompactTime
+            let dateFormatter = DateFormatter.dateTimeFormatterTime
             return dateFormatter.string(from: self)
         } else if Calendar.current.isDateInYesterday(self) {
             return "Yesterday"
@@ -93,16 +93,16 @@ extension Date {
         if seconds < Date.minutes(1) {
             return "now"
         } else if Calendar.current.isDateInToday(self) {
-            let dateFormatter = DateFormatter.dateTimeFormatterCompactTime
+            let dateFormatter = DateFormatter.dateTimeFormatterTime
             return dateFormatter.string(from: self)
         } else if seconds < Date.weeks(1) {
-            let dateFormatter = DateFormatter.dateTimeFormatterDayOfWeekCompactTime
+            let dateFormatter = DateFormatter.dateTimeFormatterDayOfWeekTime
             return dateFormatter.string(from: self)
         } else if seconds < Date.weeks(52) {
-            let dateFormatter = DateFormatter.dateTimeFormatterMonthDayCompactTime
+            let dateFormatter = DateFormatter.dateTimeFormatterMonthDayTime
             return dateFormatter.string(from: self)
         } else {
-            let dateFormatter = DateFormatter.dateTimeFormatterMonthDayYearCompactTime
+            let dateFormatter = DateFormatter.dateTimeFormatterMonthDayYearTime
             return dateFormatter.string(from: self)
         }
     }

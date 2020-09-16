@@ -57,7 +57,7 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .plain, target: self, action: #selector(nextAction))
         }
         self.navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
-        self.navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
+//        self.navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
         
         self.navigationItem.title = "Add Members"
         self.navigationItem.standardAppearance = .opaqueAppearance
@@ -328,7 +328,7 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
         }
         cell.setContact(selected: isSelected, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
-        navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
+//        navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
 
         searchController.isActive = false
         searchController.searchBar.text = ""

@@ -27,7 +27,8 @@ class CreateGroupViewController: UIViewController {
     private var placeholderText = "Group Name"
     
     var canCreate: Bool {
-        return !textView.text.isEmpty && selectedMembers.count > 0
+//        return !textView.text.isEmpty && selectedMembers.count > 0
+        return !textView.text.isEmpty
     }
 
     init(selectedMembers: [UserID]) {
@@ -73,7 +74,9 @@ class CreateGroupViewController: UIViewController {
     private func createAction() {
         navigationItem.rightBarButtonItem?.isEnabled = false
         
-        MainAppContext.shared.service.createGroup(name: textView.text, members: selectedMembers) { [weak self] result in
+        let name = textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        
+        MainAppContext.shared.service.createGroup(name: name, members: selectedMembers) { [weak self] result in
             guard let self = self else { return }
 
             switch result {
@@ -195,7 +198,9 @@ extension CreateGroupViewController: UITextViewDelegate {
             navigationItem.rightBarButtonItem?.isEnabled = false
         } else if textView.textColor == .placeholderText && !text.isEmpty {
             textView.textColor = .label
-            textView.text = text
+            DispatchQueue.main.async { // workaround for bug in iOS that causes double capitalizations
+                textView.text = text
+            }
             navigationItem.rightBarButtonItem?.isEnabled = canCreate
         } else {
             return true

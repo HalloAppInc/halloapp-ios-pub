@@ -90,7 +90,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         get {
             let fetchRequest = NSFetchRequest<ChatGroupMember>(entityName: "ChatGroupMember")
             fetchRequest.sortDescriptors = [
-                NSSortDescriptor(keyPath: \ChatGroupMember.name, ascending: true)
+                NSSortDescriptor(keyPath: \ChatGroupMember.typeValue, ascending: true)
             ]
             fetchRequest.predicate = NSPredicate(format: "groupId = %@", groupId)
             return fetchRequest
@@ -106,7 +106,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         do {
             try self.fetchedResultsController?.performFetch()
         } catch {
-            fatalError("Failed to fetch feed items \(error)")
+            fatalError("Failed to fetch group members \(error)")
         }
     }
 
@@ -129,20 +129,19 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
+        case .update:
+            guard let indexPath = indexPath, let member = anObject as? ChatGroupMember else { return }
+            DDLogDebug("GroupInfoViewController/frc/update [\(member)] at [\(indexPath)]")
+            if trackPerRowFRCChanges {
+                tableView.reloadRows(at: [ indexPath ], with: .automatic)
+            } else {
+                reloadTableViewInDidChangeContent = true
+            }
         case .insert:
             guard let indexPath = newIndexPath, let member = anObject as? ChatGroupMember else { break }
             DDLogDebug("GroupInfoViewController/frc/insert [\(member)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.insertRows(at: [ indexPath ], with: .automatic)
-            } else {
-                reloadTableViewInDidChangeContent = true
-            }
-
-        case .delete:
-            guard let indexPath = indexPath, let member = anObject as? ChatGroupMember else { break }
-            DDLogDebug("GroupInfoViewController/frc/delete [\(member)] at [\(indexPath)]")
-            if trackPerRowFRCChanges {
-                self.tableView.deleteRows(at: [ indexPath ], with: .automatic)
+                tableView.insertRows(at: [ indexPath ], with: .automatic)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -150,17 +149,21 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let member = anObject as? ChatGroupMember else { break }
             DDLogDebug("GroupInfoViewController/frc/move [\(member)] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            print("member: \(member.typeValue)")
             if trackPerRowFRCChanges {
-                self.tableView.moveRow(at: fromIndexPath, to: toIndexPath)
+                tableView.moveRow(at: fromIndexPath, to: toIndexPath)
+                DispatchQueue.main.async {
+                    self.tableView.reloadRows(at: [ toIndexPath ], with: .automatic)
+                }
+                
             } else {
                 reloadTableViewInDidChangeContent = true
             }
-
-        case .update:
-            guard let indexPath = indexPath, let member = anObject as? ChatGroupMember else { return }
-            DDLogDebug("GroupInfoViewController/frc/update [\(member)] at [\(indexPath)]")
+        case .delete:
+            guard let indexPath = indexPath, let member = anObject as? ChatGroupMember else { break }
+            DDLogDebug("GroupInfoViewController/frc/delete [\(member)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                self.tableView.reloadRows(at: [ indexPath ], with: .automatic)
+                tableView.deleteRows(at: [ indexPath ], with: .automatic)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
@@ -173,12 +176,13 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("GroupInfoViewController/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
         if trackPerRowFRCChanges {
-            self.tableView.endUpdates()
+            tableView.endUpdates()
         } else if reloadTableViewInDidChangeContent {
-            self.tableView.reloadData()
+            tableView.reloadData()
         }
 
-        self.checkIfMember()
+        
+        checkIfMember()
     }
     
     
@@ -205,7 +209,6 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         return UITableView.automaticDimension
     }
 
-        
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard isAdmin else { return }
         guard let chatGroupMember = fetchedResultsController?.object(at: indexPath) else { return }
@@ -244,8 +247,6 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         self.present(actionSheet, animated: true)
-
-  
     }
     
     func checkIfMember() {
@@ -435,19 +436,17 @@ class GroupInfoFooterView: UIView {
 }
 
 fileprivate class GroupMemberViewCell: UITableViewCell {
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
     }
 
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.isHidden = false
+        isHidden = false
         nameLabel.text = ""
         roleLabel.text = ""
         contactImageView.prepareForReuse()
@@ -460,35 +459,34 @@ fileprivate class GroupMemberViewCell: UITableViewCell {
     }
 
     private func setup() {
+        backgroundColor = .clear
         
-        let vStack = UIStackView(arrangedSubviews: [self.nameLabel, self.lastMessageLabel])
+        let vStack = UIStackView(arrangedSubviews: [nameLabel, lastMessageLabel])
         vStack.axis = .vertical
         vStack.spacing = 2
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.setContentHuggingPriority(.defaultLow, for: .horizontal)
 
         let imageSize: CGFloat = 40.0
-        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
-        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
+        contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
+        contactImageView.heightAnchor.constraint(equalTo: contactImageView.widthAnchor).isActive = true
 
         let hStack = UIStackView(arrangedSubviews: [ contactImageView, vStack, roleLabel])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.spacing = 10
 
-        self.contentView.addSubview(hStack)
+        contentView.addSubview(hStack)
         
         // Priority is lower than "required" because cell's height might be 0 (duplicate contacts).
-        self.contentView.addConstraint({
-            let constraint = hStack.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor)
+        contentView.addConstraint({
+            let constraint = hStack.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor)
             constraint.priority = .defaultHigh
             return constraint
             }())
-        hStack.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-
-        self.backgroundColor = .clear
+        hStack.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        hStack.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
     }
     
     private lazy var contactImageView: AvatarView = {

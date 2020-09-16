@@ -17,24 +17,19 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate {
     weak var delegate: ChatMediaSliderDelegate?
     public var currentPage: Int = 0
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupView()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupView()
-    }
-    
     private var imageViewList: [Int: UIImageView] = [:]
     private var imageViewOverlayList: [Int: UIImageView] = [:]
     
-    func configure(with sliderMedia: [SliderMedia], size: CGSize, currentPage: Int = 0) {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setup()
+    }
 
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
+    
+    func configure(with sliderMedia: [SliderMedia], size: CGSize, currentPage: Int = 0) {
         for (index, media) in sliderMedia.enumerated() {
 
-            
             let imageView = ZoomableImageView(frame: CGRect(x: size.width * CGFloat(index),
                                                       y: 0,
                                                       width: size.width,
@@ -42,11 +37,14 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate {
             
             imageView.image = media.image
             imageView.contentMode = .scaleAspectFit
+            
+            imageView.roundCorner(20)
+            
             imageView.clipsToBounds = true
 
-            self.imageViewList[media.order] = imageView
+            imageViewList[media.order] = imageView
 
-            scrollView.addSubview(self.imageViewList[media.order]!)
+            scrollView.addSubview(imageViewList[media.order]!)
             
             if media.type == .image && media.image == nil {
                 let photoButtonOverlay = UIImageView(frame: CGRect(x: size.width * CGFloat(index),
@@ -61,8 +59,8 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate {
                 photoButtonOverlay.contentMode = .center
                 photoButtonOverlay.alpha = 0.8
                 
-                self.imageViewOverlayList[media.order] = photoButtonOverlay
-                scrollView.addSubview(self.imageViewOverlayList[media.order]!)
+                imageViewOverlayList[media.order] = photoButtonOverlay
+                scrollView.addSubview(imageViewOverlayList[media.order]!)
             }
             
             if media.type == .video {
@@ -72,7 +70,7 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate {
                                                           height: size.height))
 
                 let targetWidth = size.width * 0.20
-                playButtonOverlay.image = self.resizeImage(image: UIImage(systemName: "play.fill")!, newWidth: targetWidth)?.withRenderingMode(.alwaysTemplate)
+                playButtonOverlay.image = resizeImage(image: UIImage(systemName: "play.fill")!, newWidth: targetWidth)?.withRenderingMode(.alwaysTemplate)
                 
                 playButtonOverlay.tintColor = UIColor.systemGray6
                 playButtonOverlay.contentMode = .center
@@ -80,7 +78,6 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate {
                 
                 scrollView.addSubview(playButtonOverlay)
             }
-            
         }
         
         // Set the scrollView contentSize
@@ -88,22 +85,15 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate {
         if sliderMedia.count == 1 {
             contentSizeWidth -= 1 // disable extra scrolling for single image
         }
-        scrollView.contentSize = CGSize(width: contentSizeWidth, height: size.height)
+        scrollView.contentSize = CGSize(width: contentSizeWidth, height: 1)
         
         if sliderMedia.count > 1 {
-            self.addSubview(self.pageControl)
-            self.pageControl.numberOfPages = sliderMedia.count
-            self.pageControl.currentPage = currentPage
-            self.pageControl.currentPageIndicatorTintColor = UIColor(named: "LavaOrange")
-            self.pageControl.pageIndicatorTintColor = UIColor.systemGray.withAlphaComponent(0.8)
-            self.pageControl.addTarget(self, action: #selector(self.pageControlTap), for: .valueChanged)
-            
-            self.pageControl.translatesAutoresizingMaskIntoConstraints = false
-            let leading = NSLayoutConstraint(item: self.pageControl, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1, constant: 0)
-            let trailing = NSLayoutConstraint(item: self.pageControl, attribute: .trailing, relatedBy: .equal, toItem: self, attribute: .trailing, multiplier: 1, constant: 0)
-            let bottom = NSLayoutConstraint(item: self.pageControl, attribute: .bottom, relatedBy: .equal, toItem: self, attribute: .bottom, multiplier: 1, constant: 0)
-            self.addConstraints([leading, trailing, bottom])
+            pageControl.numberOfPages = sliderMedia.count
+            pageControl.currentPage = currentPage
+            pageControl.isHidden = false
         }
+        
+        mainView.constrain(to: self) // constrain again since subviews were added to scrollview
         
         DispatchQueue.main.async {
             self.scrollToIndex(index: self.pageControl.currentPage, animated: false)
@@ -112,26 +102,47 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate {
     }
     
     func updateMedia(_ sliderMedia: SliderMedia) {
-        guard let imageView = self.imageViewList[sliderMedia.order] else { return }
+        guard let imageView = imageViewList[sliderMedia.order] else { return }
         imageView.image = sliderMedia.image
         
-        guard let imageViewOverlay = self.imageViewOverlayList[sliderMedia.order] else { return }
+        guard let imageViewOverlay = imageViewOverlayList[sliderMedia.order] else { return }
         imageViewOverlay.removeFromSuperview()
     }
     
     func reset() {
-        self.currentPage = 0
-        self.pageControl.numberOfPages = 0
-        self.pageControl.currentPage = 0
-        self.pageControl.removeFromSuperview()
-        self.scrollView.contentSize = CGSize(width: 0, height: 0)
-        self.scrollView.subviews.forEach({ $0.removeFromSuperview() })
+        currentPage = 0
+        pageControl.isHidden = true
+        pageControl.numberOfPages = 0
+        pageControl.currentPage = 0
+        
+        scrollView.contentSize = CGSize(width: 0, height: 0)
+        scrollView.subviews.forEach({ $0.removeFromSuperview() })
     }
     
+    private func setup() {
+        addSubview(mainView)
+        mainView.constrain(to: self)
+    }
+    
+    private lazy var mainView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ scrollViewRow, pageControl ])
+        view.axis = .vertical
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        pageControl.heightAnchor.constraint(equalToConstant: 25).isActive = true
+        return view
+    }()
+    
+    private lazy var scrollViewRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ scrollView ])
+        view.axis = .horizontal
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
     private lazy var scrollView: UIScrollView = {
         let view = UIScrollView()
-        view.frame = self.bounds
-        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.isPagingEnabled = true
         view.showsHorizontalScrollIndicator = false
         view.showsVerticalScrollIndicator = false
@@ -143,14 +154,17 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate {
         let view = UIPageControl()
         view.numberOfPages = 0
         view.currentPage = 0
+
+        view.pageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.2)
+        view.currentPageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.7)
+        
+        view.addTarget(self, action: #selector(pageControlTap), for: .valueChanged)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true
         return view
     }()
     
-    private func setupView() {
-        self.addSubview(self.scrollView)
-    }
-    
-    // MARK: actions
+    // MARK: Actions
     
     @IBAction func pageControlTap(_ sender: Any?) {
         guard let pageControl: UIPageControl = sender as? UIPageControl else {
@@ -158,32 +172,19 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate {
         }
         
         scrollToIndex(index: pageControl.currentPage, animated: true)
-        self.delegate?.chatMediaSlider(self, currentPage: pageControl.currentPage)
+        delegate?.chatMediaSlider(self, currentPage: pageControl.currentPage)
     }
+    
+    // MARK: Helpers
     
     private func scrollToIndex(index: Int, animated: Bool) {
-        let pageWidth: CGFloat = self.scrollView.frame.width
+        let pageWidth: CGFloat = scrollView.frame.width
         let slideToX: CGFloat = CGFloat(index) * pageWidth
         
-        self.scrollView.scrollRectToVisible(CGRect(x: slideToX, y:0, width:pageWidth, height: self.scrollView.frame.height), animated: animated)
+        scrollView.scrollRectToVisible(CGRect(x: slideToX, y:0, width:pageWidth, height: scrollView.frame.height), animated: animated)
     }
-    
-    // MARK: scrollview delegates
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard scrollView.frame.width > 0 else { return }
-        let pageWidth = scrollView.frame.width
-        let viewCenterXInScrollViewCoordinates = scrollView.convert(self.center, from: self).x
-        let pageIndex = Int(viewCenterXInScrollViewCoordinates / pageWidth)
-        self.pageControl.currentPage = pageIndex
-        self.currentPage = pageIndex
-        self.delegate?.chatMediaSlider(self, currentPage: pageControl.currentPage)
-    }
-    
-    // MARK: helpers
     
     func resizeImage(image: UIImage, newWidth: CGFloat) -> UIImage? {
-
         let scale = newWidth / image.size.width
         let newHeight = image.size.height * scale
         UIGraphicsBeginImageContext(CGSize(width: newWidth, height: newHeight))
@@ -193,6 +194,18 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate {
         UIGraphicsEndImageContext()
 
         return newImage
+    }
+    
+    // MARK: Scrollview Delegates
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView.frame.width > 0 else { return }
+        let pageWidth = scrollView.frame.width
+        let viewCenterXInScrollViewCoordinates = scrollView.convert(center, from: self).x
+        let pageIndex = Int(viewCenterXInScrollViewCoordinates / pageWidth)
+        pageControl.currentPage = pageIndex
+        currentPage = pageIndex
+        delegate?.chatMediaSlider(self, currentPage: pageControl.currentPage)
     }
 }
 
@@ -205,5 +218,28 @@ struct SliderMedia {
         self.image = image
         self.type = type
         self.order = order
+    }
+}
+
+fileprivate extension UIImageView
+{
+    func roundCorner(_ radius: CGFloat) {
+        guard let image = image else { return }
+        let boundsScale = bounds.size.width / bounds.size.height
+        let imageScale = image.size.width / image.size.height
+
+        var rect: CGRect = bounds
+
+        if boundsScale > imageScale {
+            rect.size.width =  rect.size.height * imageScale
+            rect.origin.x = (bounds.size.width - rect.size.width) / 2
+        } else {
+            rect.size.height = rect.size.width / imageScale
+            rect.origin.y = (bounds.size.height - rect.size.height) / 2
+        }
+        let path = UIBezierPath(roundedRect: rect, cornerRadius: radius)
+        let mask = CAShapeLayer()
+        mask.path = path.cgPath
+        layer.mask = mask
     }
 }

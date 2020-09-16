@@ -348,10 +348,12 @@ private class ChatListTableViewCell: UITableViewCell {
         avatarView.prepareForReuse()
     }
 
+    // 14 points for font
     private func lastMessageText(for chatThread: ChatThread) -> NSAttributedString {
 
         let textColor = UIColor.secondaryLabel
-        let font = UIFont.preferredFont(forTextStyle: .footnote)
+        let footnoteFont = UIFont.preferredFont(forTextStyle: .footnote)
+        let font = UIFont.systemFont(ofSize: footnoteFont.pointSize + 1)
 
         var contactNamePart = ""
         if chatThread.type == .group {
@@ -493,18 +495,23 @@ private class ChatListTableViewCell: UITableViewCell {
         return AvatarView()
     }()
 
+    // 16 points for font
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
+        label.font = .gothamFont(forTextStyle: .callout, weight: .medium)
         label.textColor = .label
         return label
     }()
     
+    // 14 points for font
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = .preferredFont(forTextStyle: .caption1)
+        
+        let font = UIFont.preferredFont(forTextStyle: .caption1)
+        label.font = UIFont.systemFont(ofSize: font.pointSize + 1)
+        
         label.textColor = .secondaryLabel
         label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultHigh + 50, for: .horizontal)

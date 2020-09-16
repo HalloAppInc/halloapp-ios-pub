@@ -266,16 +266,20 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
         }
         
         if !pendingMedia.isEmpty {
-            let width: CGFloat = UIScreen.main.bounds.width
-            let height: CGFloat = UIScreen.main.bounds.height * 0.2
+            let width: CGFloat = UIScreen.main.bounds.width * 0.9
+            var height: CGFloat = UIScreen.main.bounds.height * 0.2
             let preferredSize = CGSize(width: width, height: height)
+            
+            chatMediaSlider.configure(with: sliderMediaArr, size: preferredSize)
+            
+            if pendingMedia.count > 1 {
+                height += 25
+            }
+        
+            chatMediaSlider.widthAnchor.constraint(equalToConstant: width).isActive = true
+            chatMediaSlider.heightAnchor.constraint(equalToConstant: height).isActive = true
 
-            self.chatMediaSlider.configure(with: sliderMediaArr, size: preferredSize)
-
-            NSLayoutConstraint(item: self.chatMediaSlider, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: width).isActive = true
-            NSLayoutConstraint(item: self.chatMediaSlider, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: height).isActive = true
-
-            self.chatMediaSlider.isHidden = false
+            chatMediaSlider.isHidden = false
         }
 
     }

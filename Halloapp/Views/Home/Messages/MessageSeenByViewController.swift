@@ -140,9 +140,9 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
         
         chatGroupMessage.info?.forEach { (info) in
             let abContact = MainAppContext.shared.contactStore.sortedContacts(withUserIds: [info.userId]).first
-            let name = abContact?.fullName
+            let name = MainAppContext.shared.contactStore.fullName(for: info.userId)
             let phone = abContact?.phoneNumber
-            
+
             if info.outboundStatus == .delivered {
                 deliveredRows.append(ChatGroupMessageReceipt(userId: info.userId,
                                                              type: .delivered,

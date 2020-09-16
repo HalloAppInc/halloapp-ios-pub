@@ -9,16 +9,7 @@
 import Foundation
 
 extension DateFormatter {
-    
-    // 8:48pm
-    static let dateTimeFormatterCompactTime: DateFormatter = {
-        let dateFormatter = DateFormatter()
-        dateFormatter.amSymbol = "am"
-        dateFormatter.pmSymbol = "pm"
-        dateFormatter.dateFormat = "h:mma"
-        return dateFormatter
-    }()
-    
+        
     // 8:48 PM
     static let dateTimeFormatterTime: DateFormatter = {
         let dateFormatter = DateFormatter()
@@ -47,30 +38,24 @@ extension DateFormatter {
         return dateFormatter
     }()
     
-    // Thu 8:48pm
-    static let dateTimeFormatterDayOfWeekCompactTime: DateFormatter = {
+    // Thu 8:48 PM
+    static let dateTimeFormatterDayOfWeekTime: DateFormatter = {
         let dateFormatter = DateFormatter()
-        dateFormatter.amSymbol = "am"
-        dateFormatter.pmSymbol = "pm"
-        dateFormatter.dateFormat = "eee h:mma"
+        dateFormatter.dateFormat = DateFormatter.dateFormat(fromTemplate: "eee h:mm a", options: 0, locale: NSLocale.current)
         return dateFormatter
     }()
 
-    // Jun 20 8:48pm
-    static let dateTimeFormatterMonthDayCompactTime: DateFormatter = {
+    // Jun 20 8:48 PM
+    static let dateTimeFormatterMonthDayTime: DateFormatter = {
         let dateFormatter = DateFormatter()
-        dateFormatter.amSymbol = "am"
-        dateFormatter.pmSymbol = "pm"
-        dateFormatter.dateFormat = "MMM d h:mma"
+        dateFormatter.dateFormat = DateFormatter.dateFormat(fromTemplate: "MMM d h:mm a", options: 0, locale: NSLocale.current)
         return dateFormatter
     }()
     
-    // Jun 20 2020 8:48pm
-    static let dateTimeFormatterMonthDayYearCompactTime: DateFormatter = {
+    // Jun 20 2020 8:48 PM
+    static let dateTimeFormatterMonthDayYearTime: DateFormatter = {
         let dateFormatter = DateFormatter()
-        dateFormatter.amSymbol = "am"
-        dateFormatter.pmSymbol = "pm"
-        dateFormatter.dateFormat = "MMM d yyyy h:mma"
+        dateFormatter.dateFormat = DateFormatter.dateFormat(fromTemplate: "MMM d yyyy h:mm a", options: 0, locale: NSLocale.current)
         return dateFormatter
     }()
 }
