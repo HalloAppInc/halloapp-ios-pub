@@ -63,7 +63,7 @@ protocol TextLabelDelegate: AnyObject {
     func textLabelDidRequestToExpand(_ label: TextLabel)
 }
 
-class TextLabel: UILabel {
+class TextLabel: UILabel, NSLayoutManagerDelegate {
 
     weak var delegate: TextLabelDelegate?
 
@@ -110,6 +110,8 @@ class TextLabel: UILabel {
     private func commonInit() {
         isUserInteractionEnabled = true
         addInteraction(UIContextMenuInteraction(delegate: self))
+
+        layoutManager.delegate = self
 
         readMoreButton = UILabel()
         readMoreButton.text = "...more"
@@ -251,7 +253,11 @@ class TextLabel: UILabel {
 
         let screenScale = UIScreen.main.scale
         readMoreButton.frame.origin.x = bounds.maxX - readMoreButton.frame.width
-        readMoreButton.frame.origin.y = floor(textRect.maxY * screenScale) / screenScale - readMoreButton.frame.height
+        if let baselineOffset = baselineOffsetFromBottom {
+            // This value only works well if UILabel is resized using `sizeToFit()`.
+            let labelBaselineY = readMoreButton.font.ascender
+            readMoreButton.frame.origin.y = floor((textRect.maxY  - baselineOffset - labelBaselineY) * screenScale) / screenScale
+        }
 
         if readMoreButton.isHidden {
             layer.mask = nil
@@ -276,6 +282,9 @@ class TextLabel: UILabel {
     // MARK: Text Storage
 
     private var lastValidCharacterIndex: Int = NSNotFound // NSNotFound == full range is valid
+
+    // Distance from the bottom of text rect to the baseline of the last line of text.
+    private var baselineOffsetFromBottom: CGFloat? = nil
 
     private func prepareTextStorageIfNeeded() {
         // FIXME: Access to this variable isn't thread safe.
@@ -339,6 +348,16 @@ class TextLabel: UILabel {
             let truncatedCharacterRange = layoutManager.characterRange(forGlyphRange: truncatedGlyphRange, actualGlyphRange:nil)
             return truncatedCharacterRange
         }
+    }
+
+    func layoutManager(_ layoutManager: NSLayoutManager,
+                       shouldSetLineFragmentRect lineFragmentRect: UnsafeMutablePointer<CGRect>,
+                       lineFragmentUsedRect: UnsafeMutablePointer<CGRect>,
+                       baselineOffset: UnsafeMutablePointer<CGFloat>,
+                       in textContainer: NSTextContainer,
+                       forGlyphRange glyphRange: NSRange) -> Bool {
+        baselineOffsetFromBottom = lineFragmentRect.pointee.height - baselineOffset.pointee
+        return false
     }
 
     private func truncateTextIfNeeded() {
