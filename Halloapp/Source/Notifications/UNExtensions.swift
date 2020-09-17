@@ -78,7 +78,7 @@ extension UNMutableNotificationContent {
             let protoMessage = protoContainer.chatMessage
 
             // "Contact @ Group"
-            if let groupName = notificationMetadata.threadName, !groupName.isEmpty {
+            if let groupName = notificationMetadata.threadName, !groupName.isEmpty, notificationMetadata.contentType == .groupChatMessage {
                 title = "\(title) @ \(groupName)"
             }
 
