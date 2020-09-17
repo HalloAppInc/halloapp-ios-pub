@@ -60,7 +60,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         }
 
         // Populate notification body.
-        bestAttemptContent.populate(withDataFrom: protoContainer, mentionNameProvider: { userID in
+        bestAttemptContent.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
             AppExtensionContext.shared.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
         })
 

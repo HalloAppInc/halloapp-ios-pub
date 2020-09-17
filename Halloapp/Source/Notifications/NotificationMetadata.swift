@@ -25,9 +25,11 @@ class NotificationMetadata {
     private struct Keys {
         static let contentId = "content-id"
         static let contentType = "content-type"
-        static let data = "data"
         static let fromId = "from-id"
+        static let threadId = "thread-id"
+        static let threadName = "thread-name"
         static let timestamp = "timestamp"
+        static let data = "data"
     }
 
     /*
@@ -38,9 +40,11 @@ class NotificationMetadata {
      */
     let contentId: String
     let contentType: NotificationContentType
-    let data: Data?
-    let timestamp: Date?
     let fromId: UserID
+    let threadId: String?
+    let threadName: String?
+    let timestamp: Date?
+    let data: Data?
 
     var rawData: [String: String] {
         get {
@@ -89,47 +93,48 @@ class NotificationMetadata {
             return nil
         }
 
-        if let contentId = metadata[Keys.contentId] {
-            self.contentId = contentId
-        } else {
+        guard let contentId = metadata[Keys.contentId] else {
             DDLogError("NotificationMetadata/init/error Missing ContentId")
             return nil
         }
+        self.contentId = contentId
 
         guard let contentType = NotificationContentType(rawValue: metadata[Keys.contentType] ?? "") else {
             DDLogError("NotificationMetadata/init/error Unsupported ContentType \(String(describing: metadata[Keys.contentType]))")
             return nil
         }
-
         self.contentType = contentType
 
-        if let fromId = metadata[Keys.fromId] {
-            self.fromId = fromId
-        } else {
+        guard let fromId = metadata[Keys.fromId] else {
             DDLogError("NotificationMetadata/init/error Missing fromId")
             return nil
         }
+        self.fromId = fromId
 
-        if let base64Data = metadata[Keys.data] {
-            self.data = Data(base64Encoded: base64Data)
-        } else {
+        guard let base64Data = metadata[Keys.data] else {
             DDLogError("NotificationMetadata/init/error Missing Data")
             return nil
         }
+        self.data = Data(base64Encoded: base64Data)
 
         if let timestamp = TimeInterval(metadata[Keys.timestamp] ?? "") {
             self.timestamp = Date(timeIntervalSince1970: timestamp)
         } else {
             self.timestamp = nil
         }
+
+        self.threadId = metadata[Keys.threadId]
+        self.threadName = metadata[Keys.threadName]
     }
 
-    init(contentId: String, contentType: NotificationContentType, data: Data?, timestamp: Date?, fromId: UserID) {
+    init(contentId: String, contentType: NotificationContentType, fromId: UserID, threadId: String? = nil, threadName: String? = nil, data: Data?, timestamp: Date?) {
         self.contentId = contentId
         self.contentType = contentType
+        self.fromId = fromId
+        self.threadId = threadId
+        self.threadName = threadName
         self.data = data
         self.timestamp = timestamp
-        self.fromId = fromId
     }
 
     convenience init?(notificationRequest: UNNotificationRequest) {

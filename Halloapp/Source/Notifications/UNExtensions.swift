@@ -58,7 +58,7 @@ extension UNMutableNotificationContent {
         return strings.joined(separator: ", ")
     }
 
-    func populate(withDataFrom protoContainer: Proto_Container, mentionNameProvider: (UserID) -> String) {
+    func populate(withDataFrom protoContainer: Proto_Container, notificationMetadata: NotificationMetadata, mentionNameProvider: (UserID) -> String) {
         if protoContainer.hasPost {
             subtitle = "New Post"
             body = protoContainer.post.mentionText.expandedText(nameProvider: mentionNameProvider).string
@@ -76,6 +76,11 @@ extension UNMutableNotificationContent {
             body = "Commented: \(commentText)"
         } else if protoContainer.hasChatMessage {
             let protoMessage = protoContainer.chatMessage
+
+            // "Contact @ Group"
+            if let groupName = notificationMetadata.threadName, !groupName.isEmpty {
+                title = "\(title) @ \(groupName)"
+            }
 
             body = protoMessage.text
             if !protoMessage.media.isEmpty {

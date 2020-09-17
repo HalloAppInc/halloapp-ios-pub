@@ -880,11 +880,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             comments.filter{ !commentIdsToFilterOut.contains($0.id) && self.isCommentEligibleForLocalNotification($0) }.forEach { (comment) in
                 let protoContainer = comment.protoContainer
                 let protobufData = try? protoContainer.serializedData()
-                let metadata = NotificationMetadata(contentId: comment.id, contentType: .comment, data: protobufData, timestamp: comment.timestamp, fromId: comment.userId)
+                let metadata = NotificationMetadata(contentId: comment.id, contentType: .comment, fromId: comment.userId, data: protobufData, timestamp: comment.timestamp)
 
                 let notification = UNMutableNotificationContent()
                 notification.title = contactNames[comment.userId] ?? "Unknown Contact"
-                notification.populate(withDataFrom: protoContainer, mentionNameProvider: { userID in
+                notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
                     self.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
                 })
                 notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
@@ -921,11 +921,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPosts.filter({ !postIdsToFilterOut.contains($0.id) }).forEach { (feedPost) in
                 let protoContainer = feedPost.protoContainer
                 let protobufData = try? protoContainer.serializedData()
-                let metadata = NotificationMetadata(contentId: feedPost.id, contentType: .feedpost, data: protobufData, timestamp: feedPost.timestamp, fromId: feedPost.userId)
+                let metadata = NotificationMetadata(contentId: feedPost.id, contentType: .feedpost, fromId: feedPost.userId, data: protobufData, timestamp: feedPost.timestamp)
 
                 let notification = UNMutableNotificationContent()
                 notification.title = contactNames[feedPost.userId] ?? "Unknown Contact"
-                notification.populate(withDataFrom: protoContainer, mentionNameProvider: { userID in
+                notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
                     self.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
                 })
                 notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
