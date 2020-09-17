@@ -2471,6 +2471,40 @@ extension XMPPChatMessage {
         
         self.timestamp = chat.attributeDoubleValue(forName: "timestamp")
     }
+
+    init?(_ pbChat: PBchat, from fromUserID: UserID, to toUserID: UserID, id: String) {
+        self.id = id
+        self.fromUserId = fromUserID
+        self.toUserId = toUserID
+        self.timestamp = TimeInterval(pbChat.timestamp)
+
+        let protoChat: Proto_ChatMessage
+        if false {
+            // TODO: Handle encrypted payloads
+            return nil
+        } else if let protoContainer = try? Proto_Container(serializedData: pbChat.payload),
+            protoContainer.hasChatMessage
+        {
+            // Binary protocol
+            protoChat = protoContainer.chatMessage
+        } else if let decodedData = Data(base64Encoded: pbChat.payload, options: .ignoreUnknownCharacters),
+            let protoContainer = try? Proto_Container(serializedData: decodedData),
+            protoContainer.hasChatMessage
+        {
+            // Legacy Base64 protocol
+            protoChat = protoContainer.chatMessage
+        } else {
+            DDLogError("proto/error could not read chat message")
+            return nil
+        }
+
+        text = protoChat.text.isEmpty ? nil : protoChat.text
+        media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }
+        feedPostId = protoChat.feedPostID.isEmpty ? nil : protoChat.feedPostID
+        feedPostMediaIndex = protoChat.feedPostMediaIndex
+
+        DDLogDebug("ChatData/XMPPChatMessage/plainText: \(text ?? "")")
+    }
 }
 
 

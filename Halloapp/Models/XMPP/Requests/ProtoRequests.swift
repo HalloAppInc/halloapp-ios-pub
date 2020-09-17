@@ -143,6 +143,7 @@ final class ProtoPresenceUpdate: ProtoStandardRequest<Void> {
 
 final class ProtoSendReceipt: ProtoStandardRequest<Void> {
     init(
+        messageID: String? = nil,
         itemID: String,
         thread: HalloReceipt.Thread,
         type: HalloReceipt.`Type`,
@@ -150,27 +151,41 @@ final class ProtoSendReceipt: ProtoStandardRequest<Void> {
         toUserID: UserID,
         completion: @escaping ServiceRequestCompletion<Void>)
     {
+        let threadID: String = {
+            switch thread {
+            case .group(let threadID): return threadID
+            case .feed: return "feed"
+            case .none: return ""
+            }
+        }()
+
         let payloadContent: PBmsg_payload.OneOf_Content = {
             switch type {
             case .delivery:
                 var receipt = PBdelivery_receipt()
                 receipt.id = itemID
-                if case .group(let threadID) = thread {
-                    receipt.threadID = threadID
-                }
+                receipt.threadID = threadID
                 return .delivery(receipt)
             case .read:
                 var receipt = PBseen_receipt()
                 receipt.id = itemID
-                if case .group(let threadID) = thread {
-                    receipt.threadID = threadID
-                }
+                receipt.threadID = threadID
                 return .seen(receipt)
             }
         }()
 
-        var packet = PBpacket()
-        packet.msg.payload.content = payloadContent
+        let typeString: String = {
+            switch type {
+            case .delivery: return "delivery"
+            case .read: return "seen"
+            }
+        }()
+
+        let packet = PBpacket.msgPacket(
+            from: fromUserID,
+            to: toUserID,
+            id: messageID ?? "\(typeString)-\(itemID)",
+            payload: payloadContent)
 
         super.init(packet: packet, transform: { _ in .success(()) }, completion: completion)
     }

@@ -154,6 +154,37 @@ public extension PBpacket {
         packet.iq.payload.content = payload
         return packet
     }
+
+    static func msgPacket(
+        from: UserID,
+        to: UserID,
+        id: String = UUID().uuidString,
+        type: PBha_message.TypeEnum = .normal,
+        payload: PBmsg_payload.OneOf_Content) -> PBpacket
+    {
+        var msg = PBha_message()
+
+        if let fromUID = Int64(from) {
+            msg.fromUid = fromUID
+        } else {
+            DDLogError("PBpacket/\(id)/error invalid from user ID \(from)")
+        }
+
+        if let toUID = Int64(to) {
+            msg.toUid = toUID
+        } else {
+            DDLogError("PBpacket/\(id)/error invalid to user ID \(to)")
+        }
+
+        msg.type = type
+        msg.id = id
+        msg.payload.content = payload
+
+        var packet = PBpacket()
+        packet.msg = msg
+
+        return packet
+    }
     
     var requestID: String? {
         guard let stanza = stanza else {

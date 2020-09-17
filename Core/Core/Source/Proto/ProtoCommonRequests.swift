@@ -19,10 +19,6 @@ public class ProtoPublishPostRequest: ProtoRequest {
     public init(post: FeedPostProtocol, audience: FeedAudience, completion: @escaping ServiceRequestCompletion<Date?>) {
         self.completion = completion
 
-        var pbFeedItem = PBfeed_item()
-        pbFeedItem.action = .publish
-        pbFeedItem.item = post.protoFeedItem(withData: true)
-
         var pbAudience = PBaudience()
         pbAudience.uids = audience.userIds.compactMap { Int64($0) }
         pbAudience.type = {
@@ -36,16 +32,21 @@ public class ProtoPublishPostRequest: ProtoRequest {
             }
         }()
 
+        var pbPost = post.pbPost
+        pbPost.audience = pbAudience
+
+        var pbFeedItem = PBfeed_item()
+        pbFeedItem.action = .publish
+        pbFeedItem.item = .post(pbPost)
+
         let packet = PBpacket.iqPacket(type: .set, payload: .feedItem(pbFeedItem))
 
         super.init(packet: packet, id: packet.iq.id)
     }
 
     public override func didFinish(with response: PBpacket) {
-        var timestamp: Date?
-        if let ts: TimeInterval = TimeInterval(response.iq.payload.feedItem.post.timestamp) {
-            timestamp = Date(timeIntervalSince1970: ts)
-        }
+        let ts = TimeInterval(response.iq.payload.feedItem.post.timestamp)
+        let timestamp = Date(timeIntervalSince1970: ts)
         self.completion(.success(timestamp))
     }
 
@@ -70,10 +71,8 @@ public class ProtoPublishCommentRequest: ProtoRequest {
     }
 
     public override func didFinish(with response: PBpacket) {
-        var timestamp: Date?
-        if let ts: TimeInterval = TimeInterval(response.iq.payload.feedItem.comment.timestamp) {
-            timestamp = Date(timeIntervalSince1970: ts)
-        }
+        let ts = TimeInterval(response.iq.payload.feedItem.comment.timestamp)
+        let timestamp = Date(timeIntervalSince1970: ts)
         self.completion(.success(timestamp))
     }
 

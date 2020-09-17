@@ -250,7 +250,7 @@ public extension FeedPostProtocol {
         }
     }
 
-    func protoFeedItem(withData: Bool) -> PBfeed_item.OneOf_Item {
+    var pbPost: PBpost {
         var post = PBpost()
 
         if let uid = Int64(userId) {
@@ -261,7 +261,11 @@ public extension FeedPostProtocol {
         if let payload = try? oldFormatProtoContainer(withData: true).serializedData() {
             post.payload = payload
         }
-        return .post(post)
+        return post
+    }
+
+    func protoFeedItem(withData: Bool) -> PBfeed_item.OneOf_Item {
+        .post(pbPost)
     }
 }
 
@@ -308,7 +312,7 @@ public extension FeedCommentProtocol {
         }
     }
 
-    func protoFeedItem(withData: Bool) -> PBfeed_item.OneOf_Item {
+    var pbComment: PBcomment {
         var comment = PBcomment()
         comment.id = id
         if let parentID = parentId {
@@ -320,6 +324,10 @@ public extension FeedCommentProtocol {
             comment.payload = payload
         }
 
-        return .comment(comment)
+        return comment
+    }
+
+    func protoFeedItem(withData: Bool) -> PBfeed_item.OneOf_Item {
+        .comment(pbComment)
     }
 }

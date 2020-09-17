@@ -24,6 +24,17 @@ public enum WhisperMessage {
             return nil
         }
     }
+
+    public init?(_ pbKeys: PBwhisper_keys) {
+        switch pbKeys.action {
+        case .normal:
+            self = .normal(keyCount: pbKeys.otpKeyCount)
+        case .update:
+            self = .update(userID: UserID(pbKeys.uid))
+        default:
+            return nil
+        }
+    }
 }
 
 class XMPPWhisperUploadRequest : XMPPRequest {

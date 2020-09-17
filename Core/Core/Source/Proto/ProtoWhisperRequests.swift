@@ -46,6 +46,8 @@ final public class ProtoWhisperUploadRequest : ProtoRequest {
             return try? protoOneTimePreKey.serializedData()
         }
 
+        keys.action = .set
+
         let packet = PBpacket.iqPacket(type: .set, payload: .whisperKeys(keys))
 
         super.init(packet: packet, id: packet.iq.id)
@@ -110,14 +112,31 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest {
 
     public override func didFinish(with response: PBpacket) {
         let pbKey = response.iq.payload.whisperKeys
-        guard let protoContainer = try? Proto_SignedPreKey(serializedData: pbKey.signedKey) else {
+        let protoContainer: Proto_SignedPreKey
+        if let container = try? Proto_SignedPreKey(serializedData: pbKey.signedKey) {
+            // Binary data
+            protoContainer = container
+        } else if let decodedData = Data(base64Encoded: pbKey.signedKey, options: .ignoreUnknownCharacters),
+            let container = try? Proto_SignedPreKey(serializedData: decodedData) {
+            // Legacy Base64 protocol
+            protoContainer = container
+        } else {
             DDLogError("ProtoWhisperGetBundleRequest/didFinish/error could not deserialize signed key")
             completion(.failure(ProtoServiceCoreError.deserialization))
             return
         }
 
         let oneTimeKeys: [PreKey] = pbKey.oneTimeKeys.compactMap { data in
-            guard let protoKey = try? Proto_OneTimePreKey(serializedData: data) else {
+            let protoKey: Proto_OneTimePreKey
+            if let key = try? Proto_OneTimePreKey(serializedData: data) {
+                // Binary data
+                protoKey = key
+            } else if let decodedData = Data(base64Encoded: pbKey.signedKey, options: .ignoreUnknownCharacters),
+                let key = try? Proto_OneTimePreKey(serializedData: decodedData)
+            {
+                // Legacy Base64 protocol
+                protoKey = key
+            } else {
                 DDLogError("ProtoWhisperGetBundleRequest/didFinish/error could not deserialize one time key")
                 return nil
             }

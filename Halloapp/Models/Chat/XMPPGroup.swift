@@ -194,7 +194,34 @@ struct XMPPChatGroupMessage {
             self.media = []
         }
     }
-    
+
+    // init inbound message
+    init?(_ pbGroupChat: PBgroup_chat, id: String) {
+        let protoChat: Proto_ChatMessage
+        if let protoContainer = try? Proto_Container(serializedData: pbGroupChat.payload),
+            protoContainer.hasChatMessage
+        {
+            // Binary protocol
+            protoChat = protoContainer.chatMessage
+        } else if let decodedData = Data(base64Encoded: pbGroupChat.payload),
+            let protoContainer = try? Proto_Container(serializedData: decodedData),
+            protoContainer.hasChatMessage
+        {
+            // Legacy Base64 protocol
+            protoChat = protoContainer.chatMessage
+        } else {
+            return nil
+        }
+
+        self.id = id
+        self.groupId = pbGroupChat.gid
+        self.groupName = pbGroupChat.name
+        self.userId = UserID(pbGroupChat.senderUid)
+        self.userName = pbGroupChat.senderName
+        self.text = protoChat.text.isEmpty ? nil : protoChat.text
+        self.media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }
+        self.timestamp = Date(timeIntervalSince1970: TimeInterval(pbGroupChat.timestamp))
+    }
     
     // init inbound message
     init?(itemElement item: XMLElement) {

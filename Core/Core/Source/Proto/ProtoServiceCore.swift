@@ -413,6 +413,7 @@ extension ProtoServiceCore: CoreService {
                     DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
                     return
                 }
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (encrypted)")
                 self.stream.send(packetData)
             }
         } else {
@@ -421,6 +422,7 @@ extension ProtoServiceCore: CoreService {
                 DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
                 return
             }
+            DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (unencrypted)")
             stream.send(packetData)
         }
     }

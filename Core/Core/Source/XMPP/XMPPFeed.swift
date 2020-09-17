@@ -109,6 +109,25 @@ public struct XMPPFeedPost: FeedPostProtocol {
     public let media: [XMPPFeedMedia]
     public let mentions: [XMPPFeedMention]
 
+    public init?(_ pbPost: PBpost) {
+        let protoPost: Proto_Post
+        if let protoContainer = try? Proto_Container(serializedData: pbPost.payload), protoContainer.hasPost {
+            protoPost = protoContainer.post
+        } else if let decodedData = Data(base64Encoded: pbPost.payload), let protoContainer = try? Proto_Container(serializedData: decodedData), protoContainer.hasPost {
+            protoPost = protoContainer.post
+        } else {
+            DDLogError("Could not deserialize post")
+            return nil
+        }
+
+        self.id = pbPost.id
+        self.userId = UserID(pbPost.uid)
+        self.text = protoPost.text.isEmpty ? nil : protoPost.text
+        self.media = protoPost.media.enumerated().compactMap { XMPPFeedMedia(id: "\(pbPost.id)-\($0)", protoMedia: $1) }
+        self.mentions = protoPost.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
+        self.timestamp = Date(timeIntervalSince1970: TimeInterval(pbPost.timestamp))
+    }
+
     /**
      <post id='bnd81g37d61f49fgn581' uid='1000000000000000001' timestamp='1583883173'>
        .....pb_payload.....
@@ -187,6 +206,30 @@ public struct XMPPComment: FeedCommentProtocol {
     }
 
     public let mentions: [XMPPFeedMention]
+
+    public init?(_ pbComment: PBcomment) {
+        let protoComment: Proto_Comment
+        if let protoContainer = try? Proto_Container(serializedData: pbComment.payload), protoContainer.hasComment {
+            protoComment = protoContainer.comment
+        } else if let decodedData = Data(base64Encoded: pbComment.payload), let protoContainer = try? Proto_Container(serializedData: decodedData), protoContainer.hasComment {
+            protoComment = protoContainer.comment
+        } else {
+            DDLogError("Could not deserialize comment")
+            return nil
+        }
+
+        // Fall back to IDs from payload if missing from top level
+        let postID = pbComment.postID.isEmpty ? protoComment.feedPostID : pbComment.postID
+        let parentID = pbComment.parentCommentID.isEmpty ? protoComment.parentCommentID : pbComment.parentCommentID
+
+        self.id = pbComment.id
+        self.userId = UserID(pbComment.publisherUid)
+        self.feedPostId = postID
+        self.parentId = parentID
+        self.text = protoComment.text
+        self.mentions = protoComment.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
+        self.timestamp = Date(timeIntervalSince1970: TimeInterval(pbComment.timestamp))
+    }
 
     /**
      <comment id='6ede90def1fb40b08ff71' post_id='bnd81g37d61f49fgn581' timestamp='1583894714' publisher_uid='1000000000000000003' publisher_name='user3'/>
