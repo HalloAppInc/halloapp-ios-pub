@@ -53,6 +53,12 @@ class NotificationMetadata {
                 Keys.contentType: contentType.rawValue,
                 Keys.fromId: fromId
             ]
+            if let threadId = threadId {
+                result[Keys.threadId] = threadId
+            }
+            if let threadName = threadName {
+                result[Keys.threadName] = threadName
+            }
             if let data = data {
                 result[Keys.data] = data.base64EncodedString()
             }

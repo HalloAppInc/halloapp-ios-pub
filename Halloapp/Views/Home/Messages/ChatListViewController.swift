@@ -313,8 +313,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         navigationController?.popToRootViewController(animated: false)
         if metadata.contentType == .chatMessage {
             navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
-        } else if metadata.contentType == .groupChatMessage {
-            // TODO: open group chat once server starts sending gid in notification.
+        } else if metadata.contentType == .groupChatMessage, let groupId = metadata.threadId {
+            navigationController?.pushViewController(ChatGroupViewController(for: groupId), animated: true)
         }
         metadata.removeFromUserDefaults()
     }
