@@ -22,19 +22,20 @@ fileprivate extension FeedPost {
     }
 }
 
-class FeedTableViewController: UITableViewController, NSFetchedResultsControllerDelegate, FeedTableViewCellDelegate {
+class FeedTableViewController: UIViewController, NSFetchedResultsControllerDelegate, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate, FeedTableViewCellDelegate {
 
     private struct Constants {
         static let activePostCellReuseIdentifier = "active-post"
         static let deletedPostCellReuseIdentifier = "deleted-post"
     }
 
+    let tableView = UITableView()
     private(set) var fetchedResultsController: NSFetchedResultsController<FeedPost>?
 
     private var cancellableSet: Set<AnyCancellable> = []
 
     init(title: String) {
-        super.init(style: .plain)
+        super.init(nibName: nil, bundle: nil)
         self.title = title
     }
 
@@ -49,12 +50,18 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
         navigationItem.standardAppearance = .opaqueAppearance
 
+        view.addSubview(tableView)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.constrain(to: view)
+
         tableView.separatorStyle = .none
         tableView.allowsSelection = false
         tableView.showsVerticalScrollIndicator = false
         tableView.register(FeedPostTableViewCell.self, forCellReuseIdentifier: Constants.activePostCellReuseIdentifier)
         tableView.register(DeletedPostTableViewCell.self, forCellReuseIdentifier: Constants.deletedPostCellReuseIdentifier)
         tableView.backgroundColor = .feedBackground
+        tableView.delegate = self
+        tableView.dataSource = self
 
         setupFetchedResultsController()
 
@@ -95,14 +102,10 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         })
     }
 
-    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView == tableView {
             updateNavigationBarStyleUsing(scrollView: tableView)
         }
-    }
-
-    override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        // This is implemented so that subclasses can call super.scrollViewWillBeginDragging in their overrides.
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -241,18 +244,18 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
 
     // MARK: UITableView
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return fetchedResultsController?.sections?.count ?? 0
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let sections = fetchedResultsController?.sections else {
             return 0
         }
         return sections[section].numberOfObjects
     }
 
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let feedPost = fetchedResultsController?.object(at: indexPath) else {
             return UITableViewCell(style: .default, reuseIdentifier: nil)
         }
@@ -300,11 +303,11 @@ class FeedTableViewController: UITableViewController, NSFetchedResultsController
         return cell
     }
 
-    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         didShowPost(atIndexPath: indexPath)
     }
 
-    override func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if let feedCell = cell as? FeedPostTableViewCell {
             feedCell.stopPlayback()
         }

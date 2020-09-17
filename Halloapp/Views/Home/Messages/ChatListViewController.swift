@@ -21,16 +21,17 @@ fileprivate enum ChatListViewSection {
     case main
 }
 
-class ChatListViewController: UITableViewController, NSFetchedResultsControllerDelegate, NewMessageViewControllerDelegate {
+class ChatListViewController: UIViewController, NSFetchedResultsControllerDelegate, UITableViewDelegate, UITableViewDataSource, NewMessageViewControllerDelegate {
 
     private static let cellReuseIdentifier = "ChatListViewCell"
     private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
     private var cancellableSet: Set<AnyCancellable> = []
+    private let tableView = UITableView()
     
     // MARK: Lifecycle
     
     init(title: String) {
-        super.init(style: .plain)
+        super.init(nibName: nil, bundle: nil)
         self.title = title
     }
 
@@ -39,14 +40,20 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     override func viewDidLoad() {
         DDLogInfo("ChatListViewController/viewDidLoad")
 
+        view.addSubview(tableView)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.constrain(to: view)
+
         installLargeTitleUsingGothamFont()
         installFloatingActionMenu()
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         navigationItem.standardAppearance = .opaqueAppearance
-        
+
         tableView.backgroundColor = .feedBackground
         tableView.separatorStyle = .none
         tableView.register(ChatListTableViewCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
+        tableView.delegate = self
+        tableView.dataSource = self
 
         setupFetchedResultsController()
         
@@ -72,9 +79,6 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
 
         tableView.reloadData()
         populateWithSymmetricContacts()
-
-        // Floating menu is hidden while our view is obscured
-        floatingMenu.isHidden = false
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -85,12 +89,10 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
-        // Floating menu is in the navigation controller's view so we have to hide it
         floatingMenu.setState(.collapsed, animated: true)
-        floatingMenu.isHidden = true
     }
 
-    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView == tableView {
             updateNavigationBarStyleUsing(scrollView: scrollView)
         }
@@ -114,15 +116,9 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     }()
 
     private func installFloatingActionMenu() {
-        // Install in NavigationController's view because our own view is a table view (complicates position and z-ordering)
-        guard let container = navigationController?.view else {
-            DDLogError("Cannot install FAB on chat list without navigation controller")
-            return
-        }
-
         floatingMenu.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(floatingMenu)
-        floatingMenu.constrain(to: container)
+        view.addSubview(floatingMenu)
+        floatingMenu.constrain(to: view)
     }
 
     private func showContacts() {
@@ -246,16 +242,16 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
     
     // MARK: UITableView Delegates
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return fetchedResultsController?.sections?.count ?? 0
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let sections = fetchedResultsController?.sections else { return 0 }
         return sections[section].numberOfObjects
     }
 
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ChatListTableViewCell
         if let chatThread = fetchedResultsController?.object(at: indexPath) {
             cell.configure(with: chatThread)
@@ -263,7 +259,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         return cell
     }
 
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let chatThread = fetchedResultsController?.object(at: indexPath) else {
             tableView.deselectRow(at: indexPath, animated: true)
             return
@@ -281,7 +277,7 @@ class ChatListViewController: UITableViewController, NSFetchedResultsControllerD
         }
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == .delete) {
             let actionSheet = UIAlertController(title: "Are you sure you want to delete this chat?", message: nil, preferredStyle: .actionSheet)
             actionSheet.addAction(UIAlertAction(title: "Delete Chat", style: .destructive) { action in

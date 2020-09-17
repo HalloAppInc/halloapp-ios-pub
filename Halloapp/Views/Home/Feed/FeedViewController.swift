@@ -62,21 +62,6 @@ class FeedViewController: FeedTableViewController {
         }
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        // Floating menu is hidden while our view is obscured
-        floatingMenu.isHidden = false
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        // Floating menu is in the navigation controller's view so we have to hide it
-        floatingMenu.setState(.collapsed, animated: true)
-        floatingMenu.isHidden = true
-    }
-
     deinit {
         self.cancellables.forEach { $0.cancel() }
     }
@@ -89,11 +74,6 @@ class FeedViewController: FeedTableViewController {
             fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
             return fetchRequest
         }
-    }
-
-    override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        super.scrollViewWillBeginDragging(scrollView)
-        floatingMenu.setState(.collapsed, animated: true)
     }
 
     // MARK: UI Actions
@@ -127,15 +107,9 @@ class FeedViewController: FeedTableViewController {
     }()
 
     private func installFloatingActionMenu() {
-        // Install in NavigationController's view because our own view is a table view (complicates position and z-ordering)
-        guard let container = navigationController?.view else {
-            DDLogError("Cannot install FAB on feed without navigation controller")
-            return
-        }
-
         floatingMenu.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(floatingMenu)
-        floatingMenu.constrain(to: container)
+        view.addSubview(floatingMenu)
+        floatingMenu.constrain(to: view)
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
