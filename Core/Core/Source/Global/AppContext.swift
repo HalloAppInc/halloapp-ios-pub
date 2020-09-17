@@ -25,7 +25,8 @@ open class AppContext {
     private static let appGroupName = "group.com.halloapp.shared"
     private static let contactsDatabaseFilename = "contacts.sqlite"
     private static let keysDatabaseFilename = "keys.sqlite"
-    
+
+    // MARK: Global App Properties
     public static let appVersion: String = {
         guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
             return ""
@@ -46,7 +47,10 @@ open class AppContext {
         return "\(version).\(buildNumber)"
     }()
 
-    public static let userDefaultsForAppGroup: UserDefaults! = UserDefaults(suiteName: appGroupName)
+    open var applicationIconBadgeNumber: Int {
+        get { userDefaults.integer(forKey: "ApplicationIconBadgeNumber") }
+        set { userDefaults.set(newValue, forKey: "ApplicationIconBadgeNumber") }
+    }
 
     open var isAppExtension: Bool {
         get { true }
@@ -54,6 +58,7 @@ open class AppContext {
 
     // MARK: Global objects
     public let userData: UserData
+    public static let userDefaultsForAppGroup: UserDefaults! = UserDefaults(suiteName: appGroupName)
     public let userDefaults: UserDefaults! = AppContext.userDefaultsForAppGroup
     public let keyStore: KeyStore
     public let fileLogger: DDFileLogger

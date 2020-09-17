@@ -79,6 +79,9 @@ extension SceneDelegate: UIWindowSceneDelegate {
     func sceneDidBecomeActive(_ scene: UIScene) {
         DDLogInfo("application/didBecomeActive")
 
+        // Remove badge when application is backgrounded.
+        MainAppContext.shared.applicationIconBadgeNumber = 0
+
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
         if let appDelegate = UIApplication.shared.delegate as? AppDelegate {

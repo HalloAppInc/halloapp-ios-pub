@@ -38,11 +38,18 @@ class MainAppContext: AppContext {
             super.contactStore as! ContactStoreMain
         }
     }
-    
+
+    // MARK: Global App Properties
+
     override var isAppExtension: Bool {
         get { false }
     }
-    
+
+    override var applicationIconBadgeNumber: Int {
+        didSet {
+            UIApplication.shared.applicationIconBadgeNumber = applicationIconBadgeNumber
+        }
+    }
 
     // MARK: Paths
     static let documentsDirectoryURL = {

@@ -79,6 +79,10 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 let downloadTask = startDownloading(media: xmppMedia)
                 invokeHandler = downloadTask == nil
             }
+
+            let applicationIconBadgeNumber = AppExtensionContext.shared.applicationIconBadgeNumber + 1
+            bestAttemptContent.badge = NSNumber(value: applicationIconBadgeNumber)
+            AppExtensionContext.shared.applicationIconBadgeNumber = applicationIconBadgeNumber
         }
 
         // Invoke completion handler now if there was nothing to download.
