@@ -113,11 +113,11 @@ class TextLabel: UILabel {
 
         readMoreButton = UILabel()
         readMoreButton.text = "...more"
-        readMoreButton.textColor = .systemGray
-        readMoreButton.font = .preferredFont(forTextStyle: .body)
+        readMoreButton.textColor = .systemBlue
         readMoreButton.backgroundColor = backgroundColor
         readMoreButton.isHidden = true
         readMoreButton.isUserInteractionEnabled = true
+        updateReadMoreFont(using: font)
         readMoreButton.sizeToFit()
         addSubview(readMoreButton)
 
@@ -148,10 +148,8 @@ class TextLabel: UILabel {
     override var attributedText: NSAttributedString? {
         didSet {
             invalidateTextStorage()
-            if let readMoreButton = readMoreButton, let font = attributedText?.attribute(.font, at: 0, effectiveRange: nil) as? UIFont {
-                readMoreButton.font = font
-                readMoreButton.sizeToFit()
-                setNeedsLayout()
+            if let font = attributedText?.attribute(.font, at: 0, effectiveRange: nil) as? UIFont {
+                updateReadMoreFont(using: font)
             }
         }
     }
@@ -159,11 +157,7 @@ class TextLabel: UILabel {
     override var font: UIFont! {
         didSet {
             invalidateTextStorage()
-            if let readMoreButton = readMoreButton {
-                readMoreButton.font = font
-                readMoreButton.sizeToFit()
-                setNeedsLayout()
-            }
+            updateReadMoreFont(using: font)
         }
     }
 
@@ -178,6 +172,15 @@ class TextLabel: UILabel {
             if let readMoreButton = readMoreButton {
                 readMoreButton.backgroundColor = backgroundColor
             }
+        }
+    }
+
+    private func updateReadMoreFont(using font: UIFont) {
+        if let readMoreButton = readMoreButton {
+            let semiboldFont = UIFont.systemFont(ofSize: font.pointSize, weight: .medium)
+            readMoreButton.font = semiboldFont
+            readMoreButton.sizeToFit()
+            setNeedsLayout()
         }
     }
 
