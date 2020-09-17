@@ -180,7 +180,7 @@ class ChatData: ObservableObject {
             let contacts = AppContext.shared.contactStore.allInNetworkContacts(sorted: true)
             for contact in contacts {
                 guard let userId = contact.userId else { continue }
-                if let chatThread = self.chatThread(type: ChatType.oneToOne, id: userId) {
+                if let chatThread = self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) {
                     guard chatThread.lastMsgTimestamp == nil else { continue }
                     if chatThread.title != AppContext.shared.contactStore.fullName(for: userId) {
                         DDLogDebug("ChatData/populateThreads/contact/rename \(userId)")
