@@ -191,7 +191,7 @@ final class MediaUploader {
     private func startUpload(forTask task: Task, to url: URL) {
         DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/begin url=[\(url)]")
 
-        task.uploadRequest = AF.upload(task.fileURL, to: url, method: .put, headers: [ "Content-Type": "application/octet-stream" ])
+        task.uploadRequest = AF.upload(task.fileURL, to: url, method: .put, headers: [ .contentType("application/octet-stream") ])
             .uploadProgress { [weak task, weak self] (progress) in
                 guard let self = self, let task = task, !task.isCanceled else {
                     return
@@ -201,16 +201,19 @@ final class MediaUploader {
                 task.completedSize = progress.completedUnitCount
                 self.updateUploadProgress(forGroupId: task.groupId)
             }
+            .validate()
             .response { [weak task] (response) in
                 guard let task = task, !task.isCanceled else {
                     return
                 }
-                if let error = response.error {
-                    DDLogError("MediaUploader/upload/\(task.groupId)/\(task.index)/error [\(error)]")
-                    self.fail(task: task, withError: error)
-                } else {
+                switch response.result {
+                case .success(_):
                     DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/success")
                     self.finish(task: task)
+
+                case .failure(let error):
+                    DDLogError("MediaUploader/upload/\(task.groupId)/\(task.index)/error [\(error)]")
+                    self.fail(task: task, withError: error)
                 }
         }
     }
