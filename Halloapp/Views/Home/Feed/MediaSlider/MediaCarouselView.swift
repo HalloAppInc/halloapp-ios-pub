@@ -57,8 +57,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     private var currentIndex = 0 {
         didSet {
-            self.feedDataItem?.currentMediaIndex = currentIndex
-            self.pageControl?.currentPage = currentIndex
+            feedDataItem?.currentMediaIndex = currentIndex
+            pageControl?.currentPage = currentIndex
 
             if oldValue != currentIndex {
                 if let videoCell = collectionView.cellForItem(at: IndexPath(row: oldValue, section: MediaSliderSection.main.rawValue)) as? MediaCarouselVideoCollectionViewCell {
@@ -69,8 +69,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                     playCurrentVideo()
                 }
 
-                if self.indexChangeDelegate != nil {
-                    self.indexChangeDelegate?.indexChanged(position: currentIndex)
+                if let delegate = indexChangeDelegate {
+                    delegate.indexChanged(position: currentIndex)
                 }
             }
         }
@@ -79,14 +79,14 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     private var mediaIndexToScrollToInLayoutSubviews: Int? = nil
 
     private func setCurrentIndex(_ index: Int, animated: Bool) {
-        let pageWidth = self.collectionView.frame.width
-        var contentOffset = self.collectionView.contentOffset
+        let pageWidth = collectionView.frame.width
+        var contentOffset = collectionView.contentOffset
         if collectionView.effectiveUserInterfaceLayoutDirection == .rightToLeft {
-            contentOffset.x = CGFloat(self.media.count - 1 - index) * pageWidth
+            contentOffset.x = CGFloat(media.count - 1 - index) * pageWidth
         } else {
             contentOffset.x = CGFloat(index) * pageWidth
         }
-        self.collectionView.setContentOffset(contentOffset, animated: animated)
+        collectionView.setContentOffset(contentOffset, animated: animated)
     }
 
     class func preferredHeight(for media: [FeedMedia], width: CGFloat) -> CGFloat {
@@ -160,36 +160,36 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     }
 
     private func commonInit() {
-        self.clipsToBounds = false
-        self.isUserInteractionEnabled = true
-        self.layoutMargins = .zero
+        clipsToBounds = false
+        isUserInteractionEnabled = true
+        layoutMargins = .zero
 
         // Collection view container lets items remain visible when scrolling through "gutter" but clip at edge of card
         let collectionViewContainer = UIView()
         collectionViewContainer.translatesAutoresizingMaskIntoConstraints = false
         collectionViewContainer.clipsToBounds = true
 
-        collectionViewContainer.addSubview(self.collectionView)
-        self.addSubview(collectionViewContainer)
+        collectionViewContainer.addSubview(collectionView)
+        addSubview(collectionViewContainer)
 
         collectionViewContainer.constrain([.top, .bottom], to: collectionView)
         collectionViewContainer.constrain(anchor: .leading, to: self, constant: -configuration.gutterWidth)
         collectionViewContainer.constrain(anchor: .trailing, to: self, constant: configuration.gutterWidth)
 
         if configuration.isPagingEnabled {
-            self.collectionView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: -0.5*configuration.cellSpacing).isActive = true
-            self.collectionView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: 0.5*configuration.cellSpacing).isActive = true
+            collectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -0.5*configuration.cellSpacing).isActive = true
+            collectionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0.5*configuration.cellSpacing).isActive = true
         } else {
-            self.collectionView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-            self.collectionView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
+            collectionView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
+            collectionView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
         }
-        self.collectionView.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        self.collectionBottomConstraint = self.collectionView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor)
+        collectionView.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
+        collectionBottomConstraint = collectionView.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor)
 
         updatePageControl()
-        self.collectionView.delegate = self
+        collectionView.delegate = self
 
-        let dataSource = UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>(collectionView: self.collectionView) { [weak self] collectionView, indexPath, feedMedia in
+        let dataSource = UICollectionViewDiffableDataSource<MediaSliderSection, FeedMedia>(collectionView: collectionView) { [weak self] collectionView, indexPath, feedMedia in
             guard let self = self else { return nil }
 
             let reuseIdentifier: String = {
@@ -220,17 +220,17 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         var snapshot = NSDiffableDataSourceSnapshot<MediaSliderSection, FeedMedia>()
         snapshot.appendSections([.main])
         if collectionView.effectiveUserInterfaceLayoutDirection == .rightToLeft {
-            snapshot.appendItems(self.media.reversed())
+            snapshot.appendItems(media.reversed())
         } else {
-            snapshot.appendItems(self.media)
+            snapshot.appendItems(media)
         }
         dataSource.apply(snapshot, animatingDifferences: false)
         self.dataSource = dataSource
     }
 
     private func updatePageControl() {
-        if self.media.count > 1 && configuration.isPagingEnabled {
-            if (self.pageControl == nil) {
+        if media.count > 1 && configuration.isPagingEnabled {
+            if (pageControl == nil) {
                 let pageControl = UIPageControl()
                 pageControl.pageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.2)
                 pageControl.currentPageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.7)
@@ -239,20 +239,20 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 pageControl.sizeToFit()
                 addSubview(pageControl)
 
-                pageControl.topAnchor.constraint(equalTo: self.collectionView.bottomAnchor, constant: LayoutConstants.pageControlSpacingTop).isActive = true
-                pageControl.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor, constant: -LayoutConstants.pageControlSpacingBottom).isActive = true
-                pageControl.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
+                pageControl.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: LayoutConstants.pageControlSpacingTop).isActive = true
+                pageControl.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor, constant: -LayoutConstants.pageControlSpacingBottom).isActive = true
+                pageControl.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
 
                 self.pageControl = pageControl
             }
-            self.pageControl?.numberOfPages = self.media.count
-            self.collectionBottomConstraint.isActive = false
+            pageControl?.numberOfPages = media.count
+            collectionBottomConstraint.isActive = false
         } else {
-            if (self.pageControl != nil) {
-                self.pageControl?.removeFromSuperview()
-                self.pageControl = nil
+            if pageControl != nil {
+                pageControl?.removeFromSuperview()
+                pageControl = nil
             }
-            self.collectionBottomConstraint.isActive = true
+            collectionBottomConstraint.isActive = true
         }
     }
 
@@ -267,7 +267,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             snapshot.appendItems(media)
         }
 
-        self.dataSource?.apply(snapshot, animatingDifferences: false)
+        dataSource?.apply(snapshot, animatingDifferences: false)
 
         self.media = media
         updatePageControl()
@@ -275,29 +275,35 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         let newIndex = max(0, min(index, self.media.count - 1))
         if newIndex != currentIndex {
             currentIndex = newIndex
-            self.setCurrentIndex(newIndex, animated: true)
+            setCurrentIndex(newIndex, animated: true)
         } else if self.shouldAutoPlay {
             playCurrentVideo()
         }
     }
 
     @objc private func pageControlAction() {
-        self.setCurrentIndex(self.pageControl?.currentPage ?? 0, animated: true)
+        setCurrentIndex(pageControl?.currentPage ?? 0, animated: true)
     }
 
     override func willMove(toWindow newWindow: UIWindow?) {
         super.willMove(toWindow: newWindow)
-        if newWindow != nil && feedDataItem?.currentMediaIndex != nil {
+        if newWindow != nil, let mediaIndex = feedDataItem?.currentMediaIndex {
             // Delay scrolling until view has a non-zero size.
-            mediaIndexToScrollToInLayoutSubviews = (feedDataItem?.currentMediaIndex)!
+            mediaIndexToScrollToInLayoutSubviews = mediaIndex
         }
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        if self.bounds != .zero && mediaIndexToScrollToInLayoutSubviews != nil {
-            setCurrentIndex(mediaIndexToScrollToInLayoutSubviews!, animated: false)
-            mediaIndexToScrollToInLayoutSubviews = nil
+        if let mediaIndex = mediaIndexToScrollToInLayoutSubviews {
+            // DispatchAsync is needed because collection view isn't resized at this point
+            // because of complex view hierarchy and non-trivial auto layout constraints.
+            DispatchQueue.main.async {
+                if self.collectionView.frame.size != .zero {
+                    self.setCurrentIndex(mediaIndex, animated: false)
+                    self.mediaIndexToScrollToInLayoutSubviews = nil
+               }
+            }
         }
     }
 
@@ -319,8 +325,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         if configuration.isPagingEnabled {
-            var size = self.bounds.size
-            if self.pageControl != nil && size.height > Self.pageControlAreaHeight {
+            var size = bounds.size
+            if pageControl != nil && size.height > Self.pageControlAreaHeight {
                 size.height -= Self.pageControlAreaHeight
             }
             return size
@@ -341,12 +347,12 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         guard configuration.isPagingEnabled else { return }
 
         let pageWidth = scrollView.frame.width
-        let viewCenterXInScrollViewCoordinates = scrollView.convert(self.center, from: self).x
+        let viewCenterXInScrollViewCoordinates = scrollView.convert(center, from: self).x
         let pageIndex = Int(viewCenterXInScrollViewCoordinates / pageWidth)
         if scrollView.effectiveUserInterfaceLayoutDirection == .rightToLeft {
-            self.currentIndex = self.media.count - 1 - pageIndex
+            currentIndex = media.count - 1 - pageIndex
         } else {
-            self.currentIndex = pageIndex
+            currentIndex = pageIndex
         }
     }
 
@@ -424,16 +430,16 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
     }
 
     private func progressViewIfExists() -> CircularProgressView? {
-        return self.contentView.subviews.first(where: { $0.isKind(of: CircularProgressView.self) }) as? CircularProgressView
+        return contentView.subviews.first(where: { $0.isKind(of: CircularProgressView.self) }) as? CircularProgressView
     }
 
     private func showProgressView() {
         if progressView.superview == nil {
-            self.contentView.addSubview(progressView)
-            progressView.centerXAnchor.constraint(equalTo: self.contentView.centerXAnchor).isActive = true
-            progressView.centerYAnchor.constraint(equalTo: self.contentView.centerYAnchor).isActive = true
+            contentView.addSubview(progressView)
+            progressView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
+            progressView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor).isActive = true
         }
-        self.contentView.bringSubviewToFront(progressView)
+        contentView.bringSubviewToFront(progressView)
         progressView.isHidden = false
     }
 
@@ -474,18 +480,18 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func commonInit() {
-        placeholderImageView = UIImageView(frame: self.contentView.bounds)
+        placeholderImageView = UIImageView(frame: contentView.bounds)
         placeholderImageView.contentMode = .center
         placeholderImageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         placeholderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
         placeholderImageView.image = UIImage(systemName: "photo")
         placeholderImageView.tintColor = .systemGray3
-        self.contentView.addSubview(placeholderImageView)
+        contentView.addSubview(placeholderImageView)
 
-        imageView = ZoomableImageView(frame: self.contentView.bounds)
+        imageView = ZoomableImageView(frame: contentView.bounds)
         imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
-        imageView.cornerRadius = self.cornerRadius
-        self.contentView.addSubview(imageView)
+        imageView.cornerRadius = cornerRadius
+        contentView.addSubview(imageView)
     }
 
     override func configure(with media: FeedMedia) {
@@ -583,20 +589,20 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func commonInit() {
-        placeholderImageView = UIImageView(frame: self.contentView.bounds)
+        placeholderImageView = UIImageView(frame: contentView.bounds)
         placeholderImageView.contentMode = .center
         placeholderImageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         placeholderImageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(textStyle: .largeTitle)
         placeholderImageView.image = UIImage(systemName: "video")
         placeholderImageView.tintColor = .systemGray3
-        self.contentView.addSubview(placeholderImageView)
+        contentView.addSubview(placeholderImageView)
 
         avPlayerViewController = AVPlayerViewController()
-        avPlayerViewController.view.frame = self.contentView.bounds
+        avPlayerViewController.view.frame = contentView.bounds
         avPlayerViewController.view.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         avPlayerViewController.view.isHidden = true
         avPlayerViewController.view.backgroundColor = .clear
-        self.contentView.addSubview(avPlayerViewController.view)
+        contentView.addSubview(avPlayerViewController.view)
 
         avPlayerViewController.addObserver(self, forKeyPath: #keyPath(AVPlayerViewController.videoBounds), options: [ ], context:&avPlayerVCContext)
     }
@@ -666,12 +672,12 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     private func updatePlayerViewFrame() {
         // Video takes entire cell content.
         if avPlayerViewController.videoBounds.size == .zero || avPlayerViewController.videoGravity == .resizeAspectFill {
-            setPlayerView(frame: self.contentView.bounds)
+            setPlayerView(frame: contentView.bounds)
             return
         }
 
         let videoSize = avPlayerViewController.videoBounds.integral.size
-        let cellAspectRatio = self.contentView.bounds.width /  self.contentView.bounds.height
+        let cellAspectRatio = contentView.bounds.width / contentView.bounds.height
         let videoAspectRatio = videoSize.width / videoSize.height
 
         // Stop updating frame if desired size was reached.
@@ -679,13 +685,13 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
             return
         }
 
-        var rect = self.contentView.bounds
+        var rect = contentView.bounds
         if cellAspectRatio > videoAspectRatio {
             rect.size.width = ceil(rect.height * videoAspectRatio)
-            rect.origin.x = (self.contentView.bounds.width - rect.width) / 2
+            rect.origin.x = (contentView.bounds.width - rect.width) / 2
         } else {
             rect.size.height = ceil(rect.width / videoAspectRatio)
-            rect.origin.y = (self.contentView.bounds.height - rect.height) / 2
+            rect.origin.y = (contentView.bounds.height - rect.height) / 2
         }
         setPlayerView(frame: rect)
     }
@@ -694,7 +700,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.view.frame = frame
 
         let maskLayer = CAShapeLayer()
-        maskLayer.path = UIBezierPath(roundedRect: avPlayerViewController.view.bounds, cornerRadius: self.cornerRadius).cgPath
+        maskLayer.path = UIBezierPath(roundedRect: avPlayerViewController.view.bounds, cornerRadius: cornerRadius).cgPath
         avPlayerViewController.view.layer.mask = maskLayer
     }
 
