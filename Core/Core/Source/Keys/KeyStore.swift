@@ -596,8 +596,15 @@ extension KeyStore {
     public func decryptMessage(for userId: String, from entry: XMLElement, keyBundle: KeyBundle, isNewReceiveSession: Bool) -> Data? {
         DDLogInfo("KeyStore/decryptMessage/for/\(userId)")
         
-        guard let enc = entry.element(forName: "enc") else { return nil }
+        guard let enc = entry.element(forName: "enc") else {
+            DDLogDebug("KeyStore/decryptMessage/no enc")
+            return nil
+        }
         guard let encStringValue = enc.stringValue else { return nil }
+        guard !encStringValue.isEmpty else {
+            DDLogDebug("KeyStore/decryptMessage/empty enc")
+            return nil
+        }
         guard let encryptedPayload = Data(base64Encoded: encStringValue, options: .ignoreUnknownCharacters) else { return nil }
         
         let inboundEphemeralPublicKey = encryptedPayload[0...31]
