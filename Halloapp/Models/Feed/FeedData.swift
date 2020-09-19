@@ -1560,8 +1560,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 // Save URLs acquired during upload to the database.
                 self.updateFeedPost(with: postId) { (feedPost) in
                     if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
-                        media.uploadUrl = mediaURLs.put
-                        media.url = mediaURLs.get
+                        switch mediaURLs {
+                        case .getPut(let getURL, let putURL):
+                            media.url = getURL
+                            media.uploadUrl = putURL
+
+                        case .patch(let patchURL):
+                            media.uploadUrl = patchURL
+                        }
                     }
                 }
             }) { (uploadResult) in
@@ -1571,7 +1577,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.updateFeedPost(with: postId) { (feedPost) in
                     if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
                         switch uploadResult {
-                        case .success(_):
+                        case .success(let url):
+                            media.url = url
                             media.status = .uploaded
 
                         case .failure(_):

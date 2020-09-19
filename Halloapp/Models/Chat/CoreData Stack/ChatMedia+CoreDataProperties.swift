@@ -90,6 +90,7 @@ extension ChatMedia {
 }
 
 extension ChatMedia: MediaUploadable {
+
     var index: Int {
         Int(order)
     }
@@ -99,5 +100,16 @@ extension ChatMedia: MediaUploadable {
             return nil
         }
         return filePath.appending(".enc")
+    }
+
+    var urlInfo: MediaURLInfo? {
+        guard let uploadUrl = uploadUrl else {
+            return nil
+        }
+        if let downloadUrl = url {
+            return .getPut(downloadUrl, uploadUrl)
+        } else {
+            return .patch(uploadUrl)
+        }
     }
 }

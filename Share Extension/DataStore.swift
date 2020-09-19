@@ -51,15 +51,22 @@ class DataStore: ShareExtensionDataStore {
                 DDLogInfo("SharedDataStore/upload-media/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
                 // Save URLs acquired during upload to the database.
-                mediaItem.uploadUrl = mediaURLs.put
-                mediaItem.url = mediaURLs.get
+                switch mediaURLs {
+                case .getPut(let getURL, let putURL):
+                    mediaItem.uploadUrl = putURL
+                    mediaItem.url = getURL
+
+                case .patch(let patchURL):
+                    mediaItem.uploadUrl = patchURL
+                }
                 self.save(managedObjectContext)
             }) { (uploadResult) in
                 DDLogInfo("SharedDataStore/upload-media/\(mediaIndex)/finished result=[\(uploadResult)]")
 
                 // Save URLs acquired during upload to the database.
                 switch uploadResult {
-                case .success(_):
+                case .success(let url):
+                    mediaItem.url = url
                     mediaItem.status = .uploaded
 
                 case .failure(_):
@@ -279,5 +286,16 @@ extension SharedMedia: MediaUploadable {
 
     var index: Int {
         get { Int(order) }
+    }
+
+    var urlInfo: MediaURLInfo? {
+        guard let uploadUrl = uploadUrl else {
+            return nil
+        }
+        if let downloadUrl = url {
+            return .getPut(downloadUrl, uploadUrl)
+        } else {
+            return .patch(uploadUrl)
+        }
     }
 }

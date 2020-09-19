@@ -83,9 +83,9 @@ public class ProtoPublishCommentRequest: ProtoRequest {
 
 public class ProtoMediaUploadURLRequest: ProtoRequest {
 
-    private let completion: ServiceRequestCompletion<MediaURL>
+    private let completion: ServiceRequestCompletion<MediaURLInfo>
 
-    public init(size: Int, completion: @escaping ServiceRequestCompletion<MediaURL>) {
+    public init(size: Int, completion: @escaping ServiceRequestCompletion<MediaURLInfo>) {
         self.completion = completion
 
         var uploadMedia = PBupload_media()
@@ -97,14 +97,18 @@ public class ProtoMediaUploadURLRequest: ProtoRequest {
     }
 
     public override func didFinish(with response: PBpacket) {
-        let urls = response.iq.payload.uploadMedia.url
-        guard response.iq.payload.uploadMedia.hasURL,
-            let getURL = URL(string: urls.get), let putURL = URL(string: urls.put) else
-        {
+        guard response.iq.payload.uploadMedia.hasURL else {
             completion(.failure(ProtoRequestError.apiResponseMissingMediaURL))
             return
         }
-        completion(.success(MediaURL(get: getURL, put: putURL)))
+        let urls = response.iq.payload.uploadMedia.url
+        if let getURL = URL(string: urls.get), let putURL = URL(string: urls.put) {
+            completion(.success(.getPut(getURL, putURL)))
+        } else if let patchURL = URL(string: urls.patch) {
+            completion(.success(.patch(patchURL)))
+        } else {
+            completion(.failure(ProtoRequestError.apiResponseMissingMediaURL))
+        }
     }
 
     public override func didFail(with error: Error) {

@@ -80,6 +80,17 @@ extension FeedPostMedia: MediaUploadable {
     var index: Int {
         get { Int(order) }
     }
+
+    var urlInfo: MediaURLInfo? {
+        guard let uploadUrl = uploadUrl else {
+            return nil
+        }
+        if let downloadUrl = url {
+            return .getPut(downloadUrl, uploadUrl)
+        } else {
+            return .patch(uploadUrl)
+        }
+    }
 }
 
 extension FeedPostMedia: FeedMediaProtocol {

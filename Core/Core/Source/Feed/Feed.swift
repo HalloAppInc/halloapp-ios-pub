@@ -191,14 +191,9 @@ public class PendingMedia {
     }
 }
 
-public struct MediaURL {
-    public var get: URL
-    public var put: URL
-
-    public init(get: URL, put: URL) {
-        self.get = get
-        self.put = put
-    }
+public enum MediaURLInfo {
+    case getPut(URL, URL)
+    case patch(URL)
 }
 
 // MARK: FeedElement

@@ -27,24 +27,32 @@ extension FeedAudience: XMPPElementRepresentable {
 
 public class XMPPMediaUploadURLRequest: XMPPRequest {
 
-    public typealias XMPPMediaUploadURLRequestCompletion = (Result<MediaURL, Error>) -> Void
+    public typealias XMPPMediaUploadURLRequestCompletion = (Result<MediaURLInfo, Error>) -> Void
 
     private let completion: XMPPMediaUploadURLRequestCompletion
 
-    public init(completion: @escaping XMPPMediaUploadURLRequestCompletion) {
+    public init(size: Int, completion: @escaping XMPPMediaUploadURLRequestCompletion) {
         self.completion = completion
         let iq = XMPPIQ(iqType: .get, to: XMPPJID(string: XMPPIQDefaultTo))
-        iq.addChild(XMPPElement(name: "upload_media", xmlns: "ns:upload_media"))
+        iq.addChild({
+            let uploadMedia = XMPPElement(name: "upload_media", xmlns: "ns:upload_media")
+            if size > 0 {
+                uploadMedia.addAttribute(withName: "size", integerValue: size)
+            }
+            return uploadMedia
+        }())
         super.init(iq: iq)
     }
 
     public override func didFinish(with response: XMPPIQ) {
         if let mediaURLs = response.childElement?.element(forName: "media_urls") {
-            if let get = mediaURLs.attributeStringValue(forName: "get"), let put = mediaURLs.attributeStringValue(forName: "put") {
-                if let getURL = URL(string: get), let putURL = URL(string: put) {
-                    self.completion(.success(MediaURL(get: getURL, put: putURL)))
-                    return
-                }
+            if let get = mediaURLs.attributeStringValue(forName: "get"), let getURL = URL(string: get),
+               let put = mediaURLs.attributeStringValue(forName: "put"), let putURL = URL(string: put) {
+                completion(.success(.getPut(getURL, putURL)))
+                return
+            } else if let patch = mediaURLs.attributeStringValue(forName: "patch"), let patchURL = URL(string: patch) {
+                completion(.success(.patch(patchURL)))
+                return
             }
         }
         self.completion(.failure(XMPPError.malformed))

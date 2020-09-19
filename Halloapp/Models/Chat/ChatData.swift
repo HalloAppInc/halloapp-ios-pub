@@ -1041,8 +1041,14 @@ extension ChatData {
                 // Save URLs acquired during upload to the database.
                 self.updateChatMessage(with: messageId) { (chatMessage) in
                     if let media = chatMessage.media?.first(where: { $0.order == mediaIndex }) {
-                        media.url = mediaURLs.get
-                        media.uploadUrl = mediaURLs.put
+                        switch mediaURLs {
+                        case .getPut(let getURL, let putURL):
+                            media.url = getURL
+                            media.uploadUrl = putURL
+
+                        case .patch(let patchURL):
+                            media.uploadUrl = patchURL
+                        }
                     }
                 }
             }) { (uploadResult) in
@@ -1052,7 +1058,8 @@ extension ChatData {
                 self.updateChatMessage(with: messageId) { (chatMessage) in
                     if let media = chatMessage.media?.first(where: { $0.order == mediaIndex }) {
                         switch uploadResult {
-                        case .success(_):
+                        case .success(let url):
+                            media.url = url
                             media.outgoingStatus = .uploaded
 
                         case .failure(_):
@@ -1672,8 +1679,14 @@ extension ChatData {
                 // Save URLs acquired during upload to the database.
                 self.updateChatGroupMessage(with: groupMessageId) { (chatGroupMessage) in
                     if let media = chatGroupMessage.media?.first(where: { $0.order == mediaIndex }) {
-                        media.url = mediaURLs.get
-                        media.uploadUrl = mediaURLs.put
+                        switch mediaURLs {
+                        case .getPut(let getURL, let putURL):
+                            media.url = getURL
+                            media.uploadUrl = putURL
+
+                        case .patch(let patchURL):
+                            media.uploadUrl = patchURL
+                        }
                     }
                 }
             }) { (uploadResult) in
@@ -1683,7 +1696,8 @@ extension ChatData {
                 self.updateChatGroupMessage(with: groupMessageId) { (chatGroupMessage) in
                     if let media = chatGroupMessage.media?.first(where: { $0.order == mediaIndex }) {
                         switch uploadResult {
-                        case .success(_):
+                        case .success(let url):
+                            media.url = url
                             media.outgoingStatus = .uploaded
 
                         case .failure(_):

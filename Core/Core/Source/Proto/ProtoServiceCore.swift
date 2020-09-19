@@ -352,7 +352,7 @@ extension ProtoServiceCore: XMPPPingDelegate {
 }
 
 extension ProtoServiceCore: CoreService {
-    public func requestMediaUploadURL(size: Int, completion: @escaping ServiceRequestCompletion<MediaURL>) {
+    public func requestMediaUploadURL(size: Int, completion: @escaping ServiceRequestCompletion<MediaURLInfo>) {
         // Wait until connected to request URLs. User meanwhile can cancel posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
             self.enqueue(request: ProtoMediaUploadURLRequest(size: size, completion: completion))

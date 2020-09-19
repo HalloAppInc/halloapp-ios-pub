@@ -19,8 +19,8 @@ extension XMPPController: CoreService {
         }
     }
 
-    public func requestMediaUploadURL(size: Int, completion: @escaping ServiceRequestCompletion<MediaURL>) {
-        let request = XMPPMediaUploadURLRequest(completion: completion)
+    public func requestMediaUploadURL(size: Int, completion: @escaping ServiceRequestCompletion<MediaURLInfo>) {
+        let request = XMPPMediaUploadURLRequest(size: size, completion: completion)
         // Wait until connected to request URLs. User meanwhile can cancel posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
             self.enqueue(request: request)

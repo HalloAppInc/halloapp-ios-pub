@@ -38,7 +38,7 @@ public protocol CoreService {
     func execute(whenConnectionStateIs state: ConnectionState, onQueue queue: DispatchQueue, work: @escaping @convention(block) () -> Void)
 
     // MARK: Feed
-    func requestMediaUploadURL(size: Int, completion: @escaping ServiceRequestCompletion<MediaURL>)
+    func requestMediaUploadURL(size: Int, completion: @escaping ServiceRequestCompletion<MediaURLInfo>)
     func publishPost(_ post: FeedPostProtocol, audience: FeedAudience, completion: @escaping ServiceRequestCompletion<Date?>)
     func publishComment(_ comment: FeedCommentProtocol, completion: @escaping ServiceRequestCompletion<Date?>)
 
