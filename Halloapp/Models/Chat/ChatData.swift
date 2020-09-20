@@ -1055,21 +1055,23 @@ extension ChatData {
                 DDLogInfo("ChatData/upload-media/\(messageId)/\(mediaIndex)/finished result=[\(uploadResult)]")
 
                 // Save URLs acquired during upload to the database.
-                self.updateChatMessage(with: messageId) { (chatMessage) in
-                    if let media = chatMessage.media?.first(where: { $0.order == mediaIndex }) {
-                        switch uploadResult {
-                        case .success(let url):
-                            media.url = url
-                            media.outgoingStatus = .uploaded
+                self.updateChatMessage(with: messageId,
+                                       block: { (chatMessage) in
+                                        if let media = chatMessage.media?.first(where: { $0.order == mediaIndex }) {
+                                            switch uploadResult {
+                                            case .success(let url):
+                                                media.url = url
+                                                media.outgoingStatus = .uploaded
 
-                        case .failure(_):
-                            numberOfFailedUploads += 1
-                            media.outgoingStatus = .error
-                        }
-                    }
-
-                    uploadGroup.leave()
-                }
+                                            case .failure(_):
+                                                numberOfFailedUploads += 1
+                                                media.outgoingStatus = .error
+                                            }
+                                        }
+                                       },
+                                       performAfterSave: {
+                                        uploadGroup.leave()
+                                       })
             }
         }
 
@@ -1160,8 +1162,13 @@ extension ChatData {
 
     // MARK: 1-1 Core Data Updating
     
-    private func updateChatMessage(with chatMessageId: String, block: @escaping (ChatMessage) -> Void) {
+    private func updateChatMessage(with chatMessageId: String, block: @escaping (ChatMessage) -> (), performAfterSave: (() -> ())? = nil) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
             guard let chatMessage = self.chatMessage(with: chatMessageId, in: managedObjectContext) else {
                 DDLogError("ChatData/update-message/missing [\(chatMessageId)]")
                 return
@@ -1693,21 +1700,23 @@ extension ChatData {
                 DDLogInfo("ChatData/group/upload-media/\(groupMessageId)/\(mediaIndex)/finished result=[\(uploadResult)]")
 
                 // Save URLs acquired during upload to the database.
-                self.updateChatGroupMessage(with: groupMessageId) { (chatGroupMessage) in
-                    if let media = chatGroupMessage.media?.first(where: { $0.order == mediaIndex }) {
-                        switch uploadResult {
-                        case .success(let url):
-                            media.url = url
-                            media.outgoingStatus = .uploaded
+                self.updateChatGroupMessage(with: groupMessageId,
+                                            block: { (chatGroupMessage) in
+                                                if let media = chatGroupMessage.media?.first(where: { $0.order == mediaIndex }) {
+                                                    switch uploadResult {
+                                                    case .success(let url):
+                                                        media.url = url
+                                                        media.outgoingStatus = .uploaded
 
-                        case .failure(_):
-                            numberOfFailedUploads += 1
-                            media.outgoingStatus = .error
-                        }
-                    }
-
-                    uploadGroup.leave()
-                }
+                                                    case .failure(_):
+                                                        numberOfFailedUploads += 1
+                                                        media.outgoingStatus = .error
+                                                    }
+                                                }
+                                            },
+                                            performAfterSave: {
+                                                uploadGroup.leave()
+                                            })
             }
         }
 
@@ -1834,8 +1843,13 @@ extension ChatData {
         }
     }
     
-    func updateChatGroup(with groupId: GroupID, block: @escaping (ChatGroup) -> Void) {
+    func updateChatGroup(with groupId: GroupID, block: @escaping (ChatGroup) -> (), performAfterSave: (() -> ())? = nil) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
             guard let chatGroup = self.chatGroup(groupId: groupId, in: managedObjectContext) else {
                 DDLogError("ChatData/group/updateChatGroup/missing [\(groupId)]")
                 return
@@ -1848,8 +1862,13 @@ extension ChatData {
         }
     }
     
-    func updateChatGroupMessage(with chatGroupMessageId: String, block: @escaping (ChatGroupMessage) -> Void) {
+    func updateChatGroupMessage(with chatGroupMessageId: String, block: @escaping (ChatGroupMessage) -> (), performAfterSave: (() -> ())? = nil) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
             guard let chatGroupMessage = self.chatGroupMessage(with: chatGroupMessageId, in: managedObjectContext) else {
                 DDLogError("ChatData/group/update-message/missing [\(chatGroupMessageId)]")
                 return
@@ -1862,8 +1881,13 @@ extension ChatData {
         }
     }
     
-    func updateChatGroupMessageInfo(with chatGroupMessageId: String, userId: UserID, block: @escaping (ChatGroupMessageInfo) -> Void) {
+    func updateChatGroupMessageInfo(with chatGroupMessageId: String, userId: UserID, block: @escaping (ChatGroupMessageInfo) -> (), performAfterSave: (() -> ())? = nil) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
             guard let chatGroupMessageInfo = self.chatGroupMessageInfoForUser(messageId: chatGroupMessageId, userId: userId, in: managedObjectContext) else {
                 DDLogError("ChatData/group/update-message/missing [\(chatGroupMessageId)]")
                 return

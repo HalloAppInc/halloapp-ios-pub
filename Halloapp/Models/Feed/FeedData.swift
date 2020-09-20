@@ -389,8 +389,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Updates
 
-    private func updateFeedPost(with id: FeedPostID, block: @escaping (FeedPost) -> Void) {
+    private func updateFeedPost(with id: FeedPostID, block: @escaping (FeedPost) -> (), performAfterSave: (() -> ())? = nil) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
             guard let feedPost = self.feedPost(with: id, in: managedObjectContext) else {
                 DDLogError("FeedData/update-post/missing-post [\(id)]")
                 return
@@ -403,8 +408,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func updateFeedPostComment(with id: FeedPostCommentID, block: @escaping (FeedPostComment) -> Void) {
+    private func updateFeedPostComment(with id: FeedPostCommentID, block: @escaping (FeedPostComment) -> (), performAfterSave: (() -> ())? = nil) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
             guard let comment = self.feedComment(with: id, in: managedObjectContext) else {
                 DDLogError("FeedData/update-comment/missing-comment [\(id)]")
                 return
@@ -418,12 +428,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func markCommentsAsRead(feedPostId: FeedPostID) {
-        self.updateFeedPost(with: feedPostId) { (feedPost) in
+        updateFeedPost(with: feedPostId) { (feedPost) in
             if feedPost.unreadCount != 0 {
                 feedPost.unreadCount = 0
             }
         }
-        self.markNotificationsAsRead(for: feedPostId)
+        markNotificationsAsRead(for: feedPostId)
     }
 
     // MARK: Process Incoming Feed Data
@@ -1143,13 +1153,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         guard feedPost.status == .incoming else { return }
 
         let postId = feedPost.id
-        self.updateFeedPost(with: postId) { (post) in
+        updateFeedPost(with: postId) { (post) in
             self.internalSendSeenReceipt(for: post)
         }
     }
 
     func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt) {
-        self.updateFeedPost(with: receipt.itemId) { (feedPost) in
+        updateFeedPost(with: receipt.itemId) { (feedPost) in
             if !feedPost.isPostRetracted {
                 feedPost.status = .seen
             }
@@ -1574,21 +1584,23 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogInfo("FeedData/upload-media/\(postId)/\(mediaIndex)/finished result=[\(uploadResult)]")
 
                 // Save URLs acquired during upload to the database.
-                self.updateFeedPost(with: postId) { (feedPost) in
-                    if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
-                        switch uploadResult {
-                        case .success(let url):
-                            media.url = url
-                            media.status = .uploaded
+                self.updateFeedPost(with: postId,
+                                    block: { feedPost in
+                                        if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
+                                            switch uploadResult {
+                                            case .success(let url):
+                                                media.url = url
+                                                media.status = .uploaded
 
-                        case .failure(_):
-                            numberOfFailedUploads += 1
-                            media.status = .uploadError
-                        }
-                    }
-
-                    uploadGroup.leave()
-                }
+                                            case .failure(_):
+                                                numberOfFailedUploads += 1
+                                                media.status = .uploadError
+                                            }
+                                        }
+                                    },
+                                    performAfterSave: {
+                                        uploadGroup.leave()
+                                    })
             }
         }
 
