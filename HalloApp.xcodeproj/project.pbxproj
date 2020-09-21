@@ -82,6 +82,8 @@
 		762EDBD9244E2EB700986617 /* Gotham-ThinIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBC9244E2EB700986617 /* Gotham-ThinIta.otf */; };
 		762EDBDB244E344300986617 /* UIFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EDBDA244E344300986617 /* UIFont.swift */; };
 		762EDBDD244E5A7800986617 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EDBDC244E5A7800986617 /* HomeViewController.swift */; };
+		7639BA39251944920023850E /* NextLevelSessionExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7639BA38251944920023850E /* NextLevelSessionExporter.swift */; };
+		7639BA3A251944920023850E /* NextLevelSessionExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7639BA38251944920023850E /* NextLevelSessionExporter.swift */; };
 		763B42AC243274F400FF0E82 /* FeedTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AB243274F400FF0E82 /* FeedTableViewController.swift */; };
 		763B42AE2435A74E00FF0E82 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AD2435A74E00FF0E82 /* Date.swift */; };
 		76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DF7245CA3F00031F96A /* UIViewController.swift */; };
@@ -367,6 +369,7 @@
 		762EDBC9244E2EB700986617 /* Gotham-ThinIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-ThinIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-ThinIta.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBDA244E344300986617 /* UIFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIFont.swift; path = HalloApp/Components/Extensions/UIFont.swift; sourceTree = SOURCE_ROOT; };
 		762EDBDC244E5A7800986617 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeViewController.swift; path = HalloApp/Views/Home/HomeViewController.swift; sourceTree = SOURCE_ROOT; };
+		7639BA38251944920023850E /* NextLevelSessionExporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NextLevelSessionExporter.swift; path = "HalloApp/Components/Third Party/NextLevelSessionExporter.swift"; sourceTree = SOURCE_ROOT; };
 		763B42AB243274F400FF0E82 /* FeedTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedTableViewController.swift; path = HalloApp/Views/Home/Feed/FeedList/FeedTableViewController.swift; sourceTree = SOURCE_ROOT; };
 		763B42AD2435A74E00FF0E82 /* Date.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Date.swift; path = HalloApp/Components/Extensions/Date.swift; sourceTree = SOURCE_ROOT; };
 		76407DF7245CA3F00031F96A /* UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIViewController.swift; path = HalloApp/Components/Extensions/UIViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -686,6 +689,7 @@
 		761C6165242D896E0028AE19 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				7639BA2D251944400023850E /* Third Party */,
 				EABF312423EE1EDF0039B5A6 /* Extensions */,
 				761C6166242D89D70028AE19 /* Views */,
 			);
@@ -714,6 +718,14 @@
 				7626CCDD24C738F50023FC2E /* CrashlyticsLogger.swift */,
 			);
 			path = Logging;
+			sourceTree = "<group>";
+		};
+		7639BA2D251944400023850E /* Third Party */ = {
+			isa = PBXGroup;
+			children = (
+				7639BA38251944920023850E /* NextLevelSessionExporter.swift */,
+			);
+			path = "Third Party";
 			sourceTree = "<group>";
 		};
 		764AB41624A67A3C00D4E354 /* Privacy */ = {
@@ -1592,6 +1604,7 @@
 				2446D68B24CF732B005BAD3C /* DataStore.swift in Sources */,
 				24009E8D24B6643700155DE2 /* ShareExtensionContext.swift in Sources */,
 				2446D68424CB682C005BAD3C /* AppExtensionContext.swift in Sources */,
+				7639BA3A251944920023850E /* NextLevelSessionExporter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1690,6 +1703,7 @@
 				EAC84CEA2422E05700A5AAEF /* XMPPFeedRequests.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				7626CCDE24C738F50023FC2E /* CrashlyticsLogger.swift in Sources */,
+				7639BA39251944920023850E /* NextLevelSessionExporter.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,

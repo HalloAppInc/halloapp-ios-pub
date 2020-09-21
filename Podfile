@@ -9,7 +9,6 @@ target 'Core' do
 end
 
 target 'HalloApp' do
-  pod 'NextLevelSessionExporter', '>= 0.4.5'
   pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
   pod 'Firebase/Crashlytics'
   pod 'Sodium', :git => 'git@github.com:HalloAppInc/swift-sodium.git'
@@ -24,7 +23,6 @@ target 'Notification Service Extension' do
 end
 
 target 'Share Extension' do
-  pod 'NextLevelSessionExporter', '>= 0.4.5'
   pod 'Firebase/Crashlytics'
   pod 'XMPPFramework/Swift', :git => 'git@github.com:HalloAppInc/XMPPFramework.git'
 end

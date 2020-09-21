@@ -52,7 +52,6 @@ PODS:
     - nanopb/encode (= 1.30905.0)
   - nanopb/decode (1.30905.0)
   - nanopb/encode (1.30905.0)
-  - NextLevelSessionExporter (0.4.5)
   - PromisesObjC (1.2.9)
   - Sodium (0.8.0)
   - XMPPFramework/default (4.0.1):
@@ -66,7 +65,6 @@ PODS:
 
 DEPENDENCIES:
   - Firebase/Crashlytics
-  - NextLevelSessionExporter (>= 0.4.5)
   - "Sodium (from `git@github.com:HalloAppInc/swift-sodium.git`)"
   - "XMPPFramework/Swift (from `git@github.com:HalloAppInc/XMPPFramework.git`)"
 
@@ -84,7 +82,6 @@ SPEC REPOS:
     - KissXML
     - libidn
     - nanopb
-    - NextLevelSessionExporter
     - PromisesObjC
 
 EXTERNAL SOURCES:
@@ -114,11 +111,10 @@ SPEC CHECKSUMS:
   KissXML: 5c8e0f2e8b9f071d3e1ae123dec3eb5da615c10c
   libidn: e4576a956b797c584c77aaedfc6e3dd639b61bdc
   nanopb: c43f40fadfe79e8b8db116583945847910cbabc9
-  NextLevelSessionExporter: 9abd19742084fc9563f644b21e0f994339338d4e
   PromisesObjC: b48e0338dbbac2207e611750777895f7a5811b75
   Sodium: 9ab4cdb17a88b6de0d3e33832b06a664c8d3232c
   XMPPFramework: 759900cc7eb3c22036d622da72f66a05ae7b6948
 
-PODFILE CHECKSUM: eac5aa29b7caf472e59ce4b70d8ebf1b5bcfd390
+PODFILE CHECKSUM: c80cde5712b76e4f1151da216645e15a68ef440d
 
 COCOAPODS: 1.9.3
