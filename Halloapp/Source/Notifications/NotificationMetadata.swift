@@ -144,13 +144,11 @@ class NotificationMetadata {
     }
 
     convenience init?(notificationRequest: UNNotificationRequest) {
-        DDLogDebug("NotificationMetadata/init request=\(notificationRequest)")
         guard let metadata = notificationRequest.content.userInfo[Self.userInfoKey] else { return nil }
         self.init(rawMetadata: metadata)
     }
 
     convenience init?(notificationResponse: UNNotificationResponse) {
-        DDLogDebug("NotificationMetadata/init response=\(notificationResponse)")
         guard let metadata = notificationResponse.notification.request.content.userInfo[Self.userInfoKey] else { return nil }
         self.init(rawMetadata: metadata)
     }
