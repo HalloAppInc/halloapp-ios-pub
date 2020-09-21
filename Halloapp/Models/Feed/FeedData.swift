@@ -1141,7 +1141,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func internalSendSeenReceipt(for feedPost: FeedPost) {
         // Make sure the post is still in a valid state and wasn't retracted just now.
-        guard feedPost.status == .incoming else {
+        guard feedPost.status == .incoming || feedPost.status == .seenSending else {
             DDLogWarn("FeedData/seen-receipt/ignore Incorrect post status: \(feedPost.status)")
             return
         }
