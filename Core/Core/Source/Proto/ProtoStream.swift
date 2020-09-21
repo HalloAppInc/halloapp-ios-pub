@@ -62,12 +62,22 @@ public final class ProtoStream: XMPPStream {
     /// remove the first four bytes (like the data we send out, the 1st byte is always 0, and the next 3 bytes are the size of the payload),
     /// and let handleAuth or handlePacket to process them.
     public override func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
-        let finalData = data.subdata(in: 4..<data.count)
 
-        if (state == XMPPStreamState.STATE_XMPP_AUTH) {
-            handleAuth(data: finalData)
-        } else {
-            handlePacket(data: finalData)
+        var offset = 0
+        while offset < data.count {
+
+            // The socket may have read multiple proto packets. Split them up using 4-byte length headers.
+            let lengthData = Data(bytes: Array(data.bytes[offset..<data.count]), count: 4)
+            let length = Int(UInt32(bigEndian: lengthData.withUnsafeBytes { $0.load(as: UInt32.self)}))
+            let packetMax = min(data.count, offset+length+4)
+            let packetData = data.subdata(in: (offset+4)..<packetMax)
+            offset += length + 4
+
+            if (state == XMPPStreamState.STATE_XMPP_AUTH) {
+                handleAuth(data: packetData)
+            } else {
+                handlePacket(data: packetData)
+            }
         }
 
         asyncSocket.readData(withTimeout: -1, tag: 101)
