@@ -30,11 +30,14 @@ extension Font {
         case .body: return .body
         case .callout: return .callout
         case .caption: return .caption1
+        case .caption2: return .caption2
         case .footnote: return .footnote
         case .headline: return .headline
         case .largeTitle: return .largeTitle
         case .subheadline: return .subheadline
         case .title: return .title1
+        case .title2: return .title2
+        case .title3: return .title3
         @unknown default:
             fatalError("Unknown text style \(textStyle)")
         }
