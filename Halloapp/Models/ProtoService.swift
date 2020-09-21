@@ -39,6 +39,22 @@ final class ProtoService: ProtoServiceCore {
             })
     }
 
+    override func performOnConnect() {
+        super.performOnConnect()
+
+        if hasValidAPNSPushToken {
+            sendCurrentAPNSTokenIfPossible()
+        }
+
+        resendNameIfNecessary()
+        resendAvatarIfNecessary()
+        //TODO
+        //resendAllPendingReceipts()
+        //queryAvatarForCurrentUserIfNecessary()
+        requestServerPropertiesIfNecessary()
+        NotificationSettings.current.sendConfigIfNecessary(using: self)
+    }
+
     private var cancellableSet = Set<AnyCancellable>()
 
     weak var chatDelegate: HalloChatDelegate?
@@ -326,7 +342,7 @@ extension ProtoService: HalloService {
     }
 
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-
+        completion(.failure(ProtoServiceError.unimplemented))
     }
 
     func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
