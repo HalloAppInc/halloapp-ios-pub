@@ -194,6 +194,11 @@ extension NextLevelSessionExporter {
     public func export(renderHandler: RenderHandler? = nil,
                        progressHandler: ProgressHandler? = nil,
                        completionHandler: CompletionHandler? = nil) {
+
+        self._progressHandler = progressHandler
+        self._renderHandler = renderHandler
+        self._completionHandler = completionHandler
+
         guard let asset = self.asset,
               let outputURL = self.outputURL,
               let outputFileType = self.outputFileType else {
@@ -223,15 +228,17 @@ extension NextLevelSessionExporter {
             DispatchQueue.main.async {
                 self._completionHandler?(.failure(NextLevelSessionExporterError.setupFailure))
             }
+            return
         }
         
         do {
             self._writer = try AVAssetWriter(outputURL: outputURL, fileType: outputFileType)
         } catch {
-            print("NextLevelSessionExporter, could not setup a reader for the provided asset \(asset)")
+            print("NextLevelSessionExporter, could not setup a writer for the provided asset \(asset)")
             DispatchQueue.main.async {
                 self._completionHandler?(.failure(NextLevelSessionExporterError.setupFailure))
             }
+            return
         }
 
         // if a video configuration exists, validate it (otherwise, proceed as audio)
@@ -240,12 +247,9 @@ extension NextLevelSessionExporter {
             DispatchQueue.main.async {
                 self._completionHandler?(.failure(NextLevelSessionExporterError.setupFailure))
             }
+            return
         }
-        
-        self._progressHandler = progressHandler
-        self._renderHandler = renderHandler
-        self._completionHandler = completionHandler
-        
+
         self._reader?.timeRange = self.timeRange
         self._writer?.shouldOptimizeForNetworkUse = self.optimizeForNetworkUse
         
