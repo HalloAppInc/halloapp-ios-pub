@@ -225,7 +225,7 @@ public struct XMPPComment: FeedCommentProtocol {
         self.id = pbComment.id
         self.userId = UserID(pbComment.publisherUid)
         self.feedPostId = postID
-        self.parentId = parentID
+        self.parentId = parentID.isEmpty ? nil : parentID
         self.text = protoComment.text
         self.mentions = protoComment.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
         self.timestamp = Date(timeIntervalSince1970: TimeInterval(pbComment.timestamp))
