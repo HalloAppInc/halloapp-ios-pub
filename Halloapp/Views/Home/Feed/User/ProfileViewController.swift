@@ -83,7 +83,10 @@ class ProfileViewController: FeedTableViewController {
     // MARK: UI Actions
 
     @objc private func presentDeveloperMenu() {
-        let developerMenuView = DeveloperMenuView(useTestServer: MainAppContext.shared.userData.useTestServer, dismiss: { self.dismiss(animated: true) })
+        let developerMenuView = DeveloperMenuView(
+            useTestServer: MainAppContext.shared.userData.useTestServer,
+            useProtobuf: MainAppContext.shared.userData.useProtobuf,
+            dismiss: { self.dismiss(animated: true) })
         present(UIHostingController(rootView: developerMenuView), animated: true)
     }
 
