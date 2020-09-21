@@ -113,6 +113,9 @@ public final class ProtoStream: XMPPStream {
         do {
             let authResult = try PBauth_result(serializedData: data)
 
+            // TODO: Make serverPropertiesVersion writable in XMPPFramework
+            //serverPropertiesVersion = authResult.propsHash.toHexString()
+
             if authResult.result == "success" {
                 isAuthenticated = true
                 state = XMPPStreamState.STATE_XMPP_CONNECTED

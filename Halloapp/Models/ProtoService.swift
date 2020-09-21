@@ -49,6 +49,26 @@ final class ProtoService: ProtoServiceCore {
     let didGetChatAck = PassthroughSubject<ChatAck, Never>()
     let didGetPresence = PassthroughSubject<ChatPresenceInfo, Never>()
 
+    // MARK: Server Properties
+
+    private func requestServerPropertiesIfNecessary() {
+        // TODO: Only check when necessary (requires setting serverPropertiesVersion in handleAuth)
+        //guard ServerProperties.shouldQuery(forVersion: stream.serverPropertiesVersion) else {
+        //    return
+        //}
+        DDLogInfo("proto/serverprops/request")
+        getServerProperties { (result) in
+            switch result {
+            case .success(let (version, properties)):
+                DDLogDebug("proto/serverprops/request/success version=[\(version)]")
+                ServerProperties.update(withProperties: properties, version: version)
+
+            case .failure(let error):
+                DDLogError("proto/serverprops/request/error [\(error)]")
+            }
+        }
+    }
+
     // MARK: Receipts
 
     typealias ReceiptData = (HalloReceipt, UserID)

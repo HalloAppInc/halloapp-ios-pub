@@ -121,9 +121,7 @@ public class ProtoGetServerPropertiesRequest: ProtoStandardRequest<ServerPropert
         super.init(
             packet: PBpacket.iqPacket(type: .get, payload: .props(PBprops())),
             transform: { response in
-                guard let version = String(data: response.iq.payload.props.hash, encoding: .utf8) else {
-                    return .failure(ProtoServiceCoreError.deserialization)
-                }
+                let version = response.iq.payload.props.hash.toHexString()
                 let properties: [String: String] = Dictionary(
                     uniqueKeysWithValues: response.iq.payload.props.props.map { ($0.name, $0.value) }
                 )
