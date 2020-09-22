@@ -44,6 +44,7 @@ struct SettingsView: View {
     @ObservedObject private var notificationSettings = NotificationSettings.current
 
     @State private var isShowingMailView = false
+    @State private var isShowingShareLogsView = false
     @State private var mailViewResult: Result<MFMailComposeResult, Error>? = nil
 
     @State private var isEditingProfile = false
@@ -139,14 +140,27 @@ struct SettingsView: View {
 
                     // Send Logs
                     if MFMailComposeViewController.canSendMail() {
-                        Button(action: { self.isShowingMailView = true }) {
+                        Button(action: {
+                            self.isShowingMailView = true
+                        }) {
                             Text("Send Logs")
                         }
                         .sheet(isPresented: self.$isShowingMailView) {
-                            MailView(result: self.$mailViewResult)
+                            EmailLogsView(result: self.$mailViewResult)
                         }
                     }
-
+                    // Share Logs: Internal users or Mail unavailable
+                    if ServerProperties.isInternalUser || !MFMailComposeViewController.canSendMail() {
+                        Button(action: {
+                            self.isShowingShareLogsView = true
+                        }) {
+                            Text("Share Logs")
+                        }
+                        .sheet(isPresented: self.$isShowingShareLogsView) {
+                            ShareLogsView()
+                        }
+                    }
+                    
                     // Privacy Policy
                     Button(action: { self.isTOSPagePresented = true }) {
                         HStack {

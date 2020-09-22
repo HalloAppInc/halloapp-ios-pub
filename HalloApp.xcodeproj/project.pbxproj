@@ -64,6 +64,7 @@
 		761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761EE21D24B5135400B30632 /* MFMessageComposeView.swift */; };
 		7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */; };
 		7626CCDE24C738F50023FC2E /* CrashlyticsLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7626CCDD24C738F50023FC2E /* CrashlyticsLogger.swift */; };
+		762AE3A725199FEC00DC1505 /* SendLogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762AE3A525199FEC00DC1505 /* SendLogsView.swift */; };
 		762EDBCA244E2EB700986617 /* Gotham-BlackIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */; };
 		762EDBCB244E2EB700986617 /* Gotham-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBB244E2EB500986617 /* Gotham-Medium.otf */; };
 		762EDBCC244E2EB700986617 /* Gotham-UltraIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBC244E2EB600986617 /* Gotham-UltraIta.otf */; };
@@ -184,7 +185,6 @@
 		EAA424FE24ECF1480025CBBE /* ChatGroup+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F824ECF1480025CBBE /* ChatGroup+CoreDataClass.swift */; };
 		EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */; };
 		EAA4250524F0DE360025CBBE /* ChatGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */; };
-		EAB03B7B2400517500643EB6 /* MailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB03B7A2400517500643EB6 /* MailView.swift */; };
 		EAB1FFEE2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */; };
 		EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1FFED2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift */; };
 		EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */; };
@@ -351,6 +351,7 @@
 		761EE21D24B5135400B30632 /* MFMessageComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MFMessageComposeView.swift; path = HalloApp/Components/Views/MFMessageComposeView.swift; sourceTree = SOURCE_ROOT; };
 		7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CircularProgressView.swift; path = HalloApp/Components/Views/CircularProgressView.swift; sourceTree = SOURCE_ROOT; };
 		7626CCDD24C738F50023FC2E /* CrashlyticsLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CrashlyticsLogger.swift; path = HalloApp/Logging/CrashlyticsLogger.swift; sourceTree = SOURCE_ROOT; };
+		762AE3A525199FEC00DC1505 /* SendLogsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SendLogsView.swift; path = HalloApp/Views/Settings/SendLogsView.swift; sourceTree = SOURCE_ROOT; };
 		762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-BlackIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-BlackIta.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBBB244E2EB500986617 /* Gotham-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-Medium.otf"; path = "HalloApp/Resources/Fonts/Gotham-Medium.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBBC244E2EB600986617 /* Gotham-UltraIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-UltraIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-UltraIta.otf"; sourceTree = SOURCE_ROOT; };
@@ -476,7 +477,6 @@
 		EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroup+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGroupViewController.swift; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
-		EAB03B7A2400517500643EB6 /* MailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MailView.swift; sourceTree = "<group>"; };
 		EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageEvent+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAB1FFED2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageEvent+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGroupMembersViewController.swift; sourceTree = "<group>"; };
@@ -742,7 +742,7 @@
 			children = (
 				764AB42224A71D3D00D4E354 /* Privacy */,
 				761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */,
-				EAB03B7A2400517500643EB6 /* MailView.swift */,
+				762AE3A525199FEC00DC1505 /* SendLogsView.swift */,
 				764AB41C24A6BF2800D4E354 /* SettingsView.swift */,
 			);
 			path = Settings;
@@ -1647,7 +1647,6 @@
 				F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */,
 				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,
 				EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */,
-				EAB03B7B2400517500643EB6 /* MailView.swift in Sources */,
 				EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */,
 				EAD476CD245513EF00EF8591 /* ChatListViewController.swift in Sources */,
 				76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */,
@@ -1767,6 +1766,7 @@
 				EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */,
 				76C64E0D24E5AD85007C0F6F /* MediaUploader.swift in Sources */,
 				EAA424FA24ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift in Sources */,
+				762AE3A725199FEC00DC1505 /* SendLogsView.swift in Sources */,
 				763B42AE2435A74E00FF0E82 /* Date.swift in Sources */,
 				EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */,
 				EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */,
