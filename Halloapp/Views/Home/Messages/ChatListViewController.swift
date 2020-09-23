@@ -517,7 +517,6 @@ private class ChatListTableViewCell: UITableViewCell {
     private lazy var lastMsgLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.setContentHuggingPriority(.defaultLow, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         return label
     }()
@@ -559,7 +558,9 @@ private class UnreadBadgeView: UIView {
         label.textAlignment = .center
         label.textColor = .white
         label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .horizontal)
         label.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .vertical)
         label.translatesAutoresizingMaskIntoConstraints = false
         addSubview(label)
         label.widthAnchor.constraint(greaterThanOrEqualTo: label.heightAnchor, multiplier: 1).isActive = true
