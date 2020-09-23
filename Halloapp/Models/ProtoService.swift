@@ -167,18 +167,15 @@ final class ProtoService: ProtoServiceCore {
         case .ack(let ack):
             let timestamp = Date(timeIntervalSince1970: TimeInterval(ack.timestamp))
             if let receipt = sentReceipts[ack.id] {
+                sentReceipts[ack.id] = nil
                 switch receipt.thread {
                 case .feed:
                     if let delegate = feedDelegate {
-                        delegate.halloService(self, didReceiveFeedReceipt: receipt, ack: { self.sendAck(messageID: ack.id) })
-                    } else {
-                        sendAck(messageID: ack.id)
+                        delegate.halloService(self, didSendFeedReceipt: receipt)
                     }
                 case .none, .group:
                     if let delegate = chatDelegate {
-                        delegate.halloService(self, didReceiveMessageReceipt: receipt, ack: { self.sendAck(messageID: ack.id) })
-                    } else {
-                        sendAck(messageID: ack.id)
+                        delegate.halloService(self, didSendMessageReceipt: receipt)
                     }
                 }
             } else {
