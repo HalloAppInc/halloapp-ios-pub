@@ -287,7 +287,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     override func willMove(toWindow newWindow: UIWindow?) {
         super.willMove(toWindow: newWindow)
-        if newWindow != nil, let mediaIndex = feedDataItem?.currentMediaIndex {
+        if newWindow != nil, configuration.isPagingEnabled, let mediaIndex = feedDataItem?.currentMediaIndex {
             // Delay scrolling until view has a non-zero size.
             mediaIndexToScrollToInLayoutSubviews = mediaIndex
         }
