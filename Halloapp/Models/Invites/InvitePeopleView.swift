@@ -89,7 +89,7 @@ struct InvitePeopleView: View {
         .edgesIgnoringSafeArea(.bottom)
         .navigationBarTitle("Invite Friends", displayMode: .inline)
         .navigationBarItems(leading: Button(action: { self.dismiss() }) {
-            Image("NavbarClose")
+            Image("NavbarClose").renderingMode(.template)
         })
         .actionSheet(isPresented: $isActionSheetPresented) {
             ActionSheet(title: Text("You are about to redeem one invite for \(self.inviteManager.contactToInvite!.fullName!)"),
