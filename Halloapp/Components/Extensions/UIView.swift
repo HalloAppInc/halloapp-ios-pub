@@ -25,6 +25,17 @@ extension UIView {
         }
         return alignedCenter
     }
+
+    // MARK: RTL
+
+    func getDirectionalUIEdgeInsets(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat) -> UIEdgeInsets {
+        // NOTE: this wil be deprecated when Apple use `NSDirectioanlEdgeInsets` (https://developer.apple.com/documentation/uikit/nsdirectionaledgeinsets) for your insets property instead of `UIEdgeInsets`
+        if UIView.userInterfaceLayoutDirection(for: semanticContentAttribute) == .leftToRight {
+            return UIEdgeInsets(top: top, left: leading, bottom: bottom, right: trailing)
+        } else {
+            return UIEdgeInsets(top: top, left: trailing, bottom: bottom, right: leading)
+        }
+    }
     
     // MARK: Constraint helpers
     

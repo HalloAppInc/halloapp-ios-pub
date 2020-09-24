@@ -147,6 +147,12 @@ final class FloatingMenu: UIView {
         }
     }
 
+    var suggestedContentInsetHeight: CGFloat {
+        layoutIfNeeded()
+        let margin = bounds.maxY - permanentButton.frame.maxY
+        return permanentButton.frame.height + (2 * margin)
+    }
+
     @discardableResult
     func toggleExpanded() -> Future<Void, Never> {
         return setState(isCollapsed ? .expanded : .collapsed, animated: true)

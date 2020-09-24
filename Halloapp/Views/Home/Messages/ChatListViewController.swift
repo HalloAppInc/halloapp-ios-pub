@@ -10,6 +10,7 @@ import CocoaLumberjack
 import Combine
 import Core
 import CoreData
+import SwiftUI
 import UIKit
 
 // MARK: Constraint Constants
@@ -24,6 +25,7 @@ fileprivate enum ChatListViewSection {
 class ChatListViewController: UIViewController, NSFetchedResultsControllerDelegate, UITableViewDelegate, UITableViewDataSource, NewMessageViewControllerDelegate {
 
     private static let cellReuseIdentifier = "ChatListViewCell"
+    private static let inviteFriendsReuseIdentifier = "ChatListInviteFriendsCell"
     private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
     private var cancellableSet: Set<AnyCancellable> = []
     private let tableView = UITableView()
@@ -52,6 +54,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         tableView.backgroundColor = .feedBackground
         tableView.separatorStyle = .none
         tableView.register(ChatListTableViewCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
+        tableView.register(ChatListInviteFriendsTableViewCell.self, forCellReuseIdentifier: ChatListViewController.inviteFriendsReuseIdentifier)
         tableView.delegate = self
         tableView.dataSource = self
 
@@ -125,6 +128,17 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         let controller = NewMessageViewController()
         controller.delegate = self
         present(UINavigationController(rootViewController: controller), animated: true)
+    }
+
+    // MARK: Invite friends
+
+    @objc
+    private func startInviteFriendsFlow() {
+        InviteManager.shared.requestInvitesIfNecessary()
+        let inviteView = InvitePeopleView(dismiss: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+        let inviteVC = UIHostingController(rootView: inviteView)
+        let navController = UINavigationController(rootViewController: inviteVC)
+        present(navController, animated: true)
     }
     
     // MARK: Fetched Results Controller
@@ -242,25 +256,36 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     
     // MARK: UITableView Delegates
 
+    func chatThread(at indexPath: IndexPath) -> ChatThread? {
+        guard let fetchedObjects = fetchedResultsController?.fetchedObjects, indexPath.row < fetchedObjects.count else {
+            return nil
+        }
+        return fetchedObjects[indexPath.row]
+    }
+
     func numberOfSections(in tableView: UITableView) -> Int {
         return fetchedResultsController?.sections?.count ?? 0
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let sections = fetchedResultsController?.sections else { return 0 }
-        return sections[section].numberOfObjects
+        return sections[section].numberOfObjects + 1
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ChatListTableViewCell
-        if let chatThread = fetchedResultsController?.object(at: indexPath) {
-            cell.configure(with: chatThread)
+        guard let chatThread = chatThread(at: indexPath) else {
+            let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.inviteFriendsReuseIdentifier, for: indexPath)
+            return cell
         }
+        let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ChatListTableViewCell
+        cell.configure(with: chatThread)
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let chatThread = fetchedResultsController?.object(at: indexPath) else {
+        guard let chatThread = chatThread(at: indexPath) else {
+            // Must be invite friends cell
+            startInviteFriendsFlow()
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
@@ -281,7 +306,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         if (editingStyle == .delete) {
             let actionSheet = UIAlertController(title: "Are you sure you want to delete this chat?", message: nil, preferredStyle: .actionSheet)
             actionSheet.addAction(UIAlertAction(title: "Delete Chat", style: .destructive) { action in
-                if let chatThread = self.fetchedResultsController?.object(at: indexPath) {
+                if let chatThread = self.chatThread(at: indexPath) {
                     if chatThread.type == .oneToOne {
                         guard let chatWithUserId = chatThread.chatWithUserId else { return }
                         MainAppContext.shared.chatData.deleteChat(chatThreadId: chatWithUserId)
@@ -320,6 +345,63 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 }
 
+private class ChatListInviteFriendsTableViewCell: UITableViewCell {
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setup()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setup()
+    }
+
+    lazy var iconView: UIImageView = {
+        let image = UIImage(named: "AddFriend")?
+            .withRenderingMode(.alwaysTemplate)
+            .imageFlippedForRightToLeftLayoutDirection()
+        let view = UIImageView(image: image)
+        view.contentMode = .center
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerRadius = LayoutConstants.avatarSize / 2
+        view.tintColor = .white
+        view.backgroundColor = .systemBlue
+        return view
+    }()
+
+    lazy var label: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Invite friends & family"
+        label.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
+        label.numberOfLines = 0
+        label.textColor = .systemBlue
+        return label
+    }()
+
+    private func setup() {
+        backgroundColor = .clear
+
+        contentView.addSubview(iconView)
+        contentView.addSubview(label)
+
+        contentView.addConstraints([
+            iconView.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize),
+            iconView.heightAnchor.constraint(equalTo: iconView.widthAnchor),
+            iconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            iconView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            iconView.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8),
+
+            label.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 10),
+            label.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
+            label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            label.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
+
+            contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 40),
+        ])
+    }
+}
 
 private class ChatListTableViewCell: UITableViewCell {
 

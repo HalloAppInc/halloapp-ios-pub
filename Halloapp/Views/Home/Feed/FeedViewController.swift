@@ -26,6 +26,7 @@ class FeedViewController: FeedTableViewController {
 
         installLargeTitleUsingGothamFont()
         installFloatingActionMenu()
+        installInviteFriendsButton()
 
         let notificationButton = BadgedButton(type: .system)
         notificationButton.setImage(UIImage(named: "FeedNavbarNotifications"), for: .normal)
@@ -62,6 +63,11 @@ class FeedViewController: FeedTableViewController {
         }
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        updateInviteFriendsButtonPosition()
+    }
+
     deinit {
         self.cancellables.forEach { $0.cancel() }
     }
@@ -76,10 +82,59 @@ class FeedViewController: FeedTableViewController {
         }
     }
 
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        super.scrollViewDidScroll(scrollView)
+
+        guard scrollView == tableView else { return }
+        updateInviteFriendsButtonPosition()
+    }
+
     // MARK: UI Actions
 
     @objc private func presentNotificationsView() {
         self.present(UINavigationController(rootViewController: NotificationsViewController(style: .plain)), animated: true)
+    }
+
+    // MARK: Invite friends
+
+    private let inviteFriendsButton = UIButton()
+
+    private func installInviteFriendsButton() {
+        inviteFriendsButton.setTitle("Invite friends & family", for: .normal)
+        inviteFriendsButton.setTitleColor(.systemBlue, for: .normal)
+        inviteFriendsButton.titleLabel?.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
+        inviteFriendsButton.titleLabel?.numberOfLines = 0
+        inviteFriendsButton.tintColor = .systemBlue
+        let image = UIImage(named: "AddFriend")?
+            .withRenderingMode(.alwaysTemplate)
+            .imageFlippedForRightToLeftLayoutDirection()
+        inviteFriendsButton.setImage(image, for: .normal)
+        inviteFriendsButton.translatesAutoresizingMaskIntoConstraints = false
+        inviteFriendsButton.addTarget(self, action: #selector(startInviteFriendsFlow), for: .touchUpInside)
+        inviteFriendsButton.contentHorizontalAlignment = .leading
+        let imageSpacing: CGFloat = 6 // NB: The image has an additional 4px of padding so it will optically center correctly
+        inviteFriendsButton.contentEdgeInsets = inviteFriendsButton.getDirectionalUIEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: imageSpacing)
+        inviteFriendsButton.titleEdgeInsets = inviteFriendsButton.getDirectionalUIEdgeInsets(top: 0, leading: imageSpacing, bottom: 0, trailing: -imageSpacing)
+        view.addSubview(inviteFriendsButton)
+
+        inviteFriendsButton.trailingAnchor.constraint(lessThanOrEqualTo: floatingMenu.permanentButton.leadingAnchor).isActive = true
+        inviteFriendsButton.constrainMargin(anchor: .leading, to: view)
+    }
+
+    private func updateInviteFriendsButtonPosition() {
+        let tableViewVisibleHeight = tableView.contentSize.height - tableView.contentOffset.y
+        let floatingButtonAlignedY = floatingMenu.permanentButton.center.y - inviteFriendsButton.frame.height / 2
+
+        inviteFriendsButton.frame.origin.y = max(tableViewVisibleHeight, floatingButtonAlignedY)
+    }
+
+    @objc
+    private func startInviteFriendsFlow() {
+        InviteManager.shared.requestInvitesIfNecessary()
+        let inviteView = InvitePeopleView(dismiss: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+        let inviteVC = UIHostingController(rootView: inviteView)
+        let navController = UINavigationController(rootViewController: inviteVC)
+        present(navController, animated: true)
     }
 
     // MARK: New post
@@ -110,6 +165,8 @@ class FeedViewController: FeedTableViewController {
         floatingMenu.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(floatingMenu)
         floatingMenu.constrain(to: view)
+
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: floatingMenu.suggestedContentInsetHeight, right: 0)
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
