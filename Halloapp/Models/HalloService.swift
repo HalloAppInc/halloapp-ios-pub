@@ -45,7 +45,7 @@ protocol HalloService: CoreService {
     func sendPresenceIfPossible(_ presenceType: PresenceType)
 
     // MARK: Groups
-    func sendGroupChatMessage(_ message: HalloGroupChatMessage, completion: @escaping ServiceRequestCompletion<Void>)
+    func sendGroupChatMessage(_ message: HalloGroupChatMessage)
     func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>)
     func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>)
     func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>)

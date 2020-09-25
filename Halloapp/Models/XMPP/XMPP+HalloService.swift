@@ -143,7 +143,7 @@ extension XMPPControllerMain: HalloService {
         enqueue(request: XMPPGetServerPropertiesRequest(completion: completion))
     }
 
-    func sendGroupChatMessage(_ message: XMPPChatGroupMessage, completion: @escaping ServiceRequestCompletion<Void>) {
+    func sendGroupChatMessage(_ message: XMPPChatGroupMessage) {
         xmppStream.send(message.xmppElement)
     }
 

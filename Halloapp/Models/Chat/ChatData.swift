@@ -1734,7 +1734,7 @@ extension ChatData {
     
     private func sendGroup(groupMessage: ChatGroupMessage) {
         let xmppGroupMessage = XMPPChatGroupMessage(chatGroupMessage: groupMessage)
-        service.sendGroupChatMessage(xmppGroupMessage) { _ in }
+        service.sendGroupChatMessage(xmppGroupMessage)
     }
 
     // MARK: Group Core Data Fetching

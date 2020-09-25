@@ -13,7 +13,6 @@ import XMPPFramework
 
 enum ProtoServiceCoreError: Error {
     case deserialization
-    case unimplemented
 }
 
 open class ProtoServiceCore: NSObject, ObservableObject {

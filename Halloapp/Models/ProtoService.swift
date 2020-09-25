@@ -16,7 +16,6 @@ fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 
 enum ProtoServiceError: Error {
-    case unimplemented
     case unexpectedResponseFormat
 }
 
@@ -48,9 +47,8 @@ final class ProtoService: ProtoServiceCore {
 
         resendNameIfNecessary()
         resendAvatarIfNecessary()
-        //TODO
-        //resendAllPendingReceipts()
-        //queryAvatarForCurrentUserIfNecessary()
+        resendAllPendingReceipts()
+        queryAvatarForCurrentUserIfNecessary()
         requestServerPropertiesIfNecessary()
         NotificationSettings.current.sendConfigIfNecessary(using: self)
     }
@@ -87,9 +85,27 @@ final class ProtoService: ProtoServiceCore {
 
     // MARK: Receipts
 
-    typealias ReceiptData = (HalloReceipt, UserID)
-    private var sentReceipts: [ String : HalloReceipt ] = [:] // Key is message's id - it would be the same as "id" in ack.
+    typealias ReceiptData = (receipt: HalloReceipt, userID: UserID)
     private var unackedReceipts: [ String : ReceiptData ] = [:]
+
+    private func resendAllPendingReceipts() {
+        for (messageID, receiptData) in unackedReceipts {
+            sendReceipt(receiptData.receipt, to: receiptData.userID, messageID: messageID)
+        }
+    }
+
+    private func sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = UUID().uuidString) {
+        unackedReceipts[messageID] = (receipt, toUserID)
+
+        enqueue(request: ProtoSendReceipt(
+                    messageID: messageID,
+                    itemID: receipt.itemId,
+                    thread: receipt.thread,
+                    type: receipt.type,
+                    fromUserID: receipt.userId,
+                    toUserID: toUserID) { _ in }
+        )
+    }
 
     private func sendAck(messageID: String) {
         var ack = PBha_ack()
@@ -101,15 +117,24 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    private func handleChatReceipt(receipt: ReceivedReceipt, from: UserID, messageID: String) {
+    private func handleReceivedReceipt(receipt: ReceivedReceipt, from: UserID, messageID: String) {
         let ts = TimeInterval(receipt.timestamp)
+        let thread: HalloReceipt.Thread = {
+            switch receipt.threadID {
+            case "feed": return .feed
+            case "": return .none
+            default: return .group(receipt.threadID)
+            }
+        }()
         let receipt = HalloReceipt(
             itemId: receipt.id,
             userId: from,
             type: receipt.receiptType,
             timestamp: Date(timeIntervalSince1970: ts),
-            thread: receipt.threadID.isEmpty ? .none : .group(receipt.threadID))
-        if let delegate = chatDelegate {
+            thread: thread)
+        if thread == .feed, let delegate = feedDelegate {
+            delegate.halloService(self, didReceiveFeedReceipt: receipt, ack: { self.sendAck(messageID: messageID) })
+        } else if thread != .feed, let delegate = chatDelegate {
             delegate.halloService(self, didReceiveMessageReceipt: receipt, ack: { self.sendAck(messageID: messageID) })
         } else {
             sendAck(messageID: messageID)
@@ -166,8 +191,8 @@ final class ProtoService: ProtoServiceCore {
         switch packet.stanza {
         case .ack(let ack):
             let timestamp = Date(timeIntervalSince1970: TimeInterval(ack.timestamp))
-            if let receipt = sentReceipts[ack.id] {
-                sentReceipts[ack.id] = nil
+            if let (receipt, _) = unackedReceipts[ack.id] {
+                unackedReceipts[ack.id] = nil
                 switch receipt.thread {
                 case .feed:
                     if let delegate = feedDelegate {
@@ -204,9 +229,9 @@ final class ProtoService: ProtoServiceCore {
                 }
                 self.sendAck(messageID: msg.id)
             case .seen(let pbReceipt):
-                handleChatReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
+                handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
             case .delivery(let pbReceipt):
-                handleChatReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
+                handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
             case .chat(let pbChat):
                 if let chat = XMPPChatMessage(pbChat, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id) {
                     didGetNewChatMessage.send(chat)
@@ -259,12 +284,17 @@ final class ProtoService: ProtoServiceCore {
             }
         case .error(let error):
             DDLogError("proto/didReceive/\(requestID) received packet with error \(error)")
-        case .presence:
-            // TODO
-            break
+        case .presence(let pbPresence):
+            DDLogInfo("proto/presence/received [\(pbPresence.uid)] [\(pbPresence.type)]")
+            // Dispatch to main thread because ChatViewController updates UI in response
+            DispatchQueue.main.async {
+                self.didGetPresence.send(
+                    (userID: UserID(pbPresence.uid),
+                     presence: PresenceType(pbPresence.type),
+                     lastSeen: Date(timeIntervalSince1970: TimeInterval(pbPresence.lastSeen))))
+            }
         case .chatState:
-            // TODO
-            break
+            DDLogInfo("proto/chatState/\(requestID) ignored")
         case .iq:
             // NB: Should be handled by superclass implementation
             break
@@ -287,6 +317,25 @@ final class ProtoService: ProtoServiceCore {
     }
 
     // MARK: Avatar
+
+    private func queryAvatarForCurrentUserIfNecessary() {
+        guard !UserDefaults.standard.bool(forKey: AvatarStore.Keys.userDefaultsDownload) else { return }
+
+        DDLogInfo("proto/queryAvatarForCurrentUserIfNecessary start")
+
+        let request = ProtoAvatarRequest(userID: userData.userId) { result in
+            switch result {
+            case .success(let avatarInfo):
+                UserDefaults.standard.set(true, forKey: AvatarStore.Keys.userDefaultsDownload)
+                DDLogInfo("proto/queryAvatarForCurrentUserIfNecessary/success avatarId=\(avatarInfo.avatarID)")
+                MainAppContext.shared.avatarStore.save(avatarId: avatarInfo.avatarID, forUserId: avatarInfo.userID)
+            case .failure(let error):
+                DDLogError("proto/queryAvatarForCurrentUserIfNecessary/error \(error)")
+            }
+        }
+
+        self.enqueue(request: request)
+    }
 
     private func resendAvatarIfNecessary() {
         guard UserDefaults.standard.bool(forKey: AvatarStore.Keys.userDefaultsUpload) else { return }
@@ -339,7 +388,7 @@ extension ProtoService: HalloService {
     }
 
     func sharePosts(postIds: [FeedPostID], with userId: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
-        completion(.failure(ProtoServiceError.unimplemented))
+        enqueue(request: ProtoSharePostsRequest(postIDs: postIds, userID: userId, completion: completion))
     }
 
     func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
@@ -360,22 +409,7 @@ extension ProtoService: HalloService {
 
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID) {
         let receipt = HalloReceipt(itemId: itemID, userId: fromUserID, type: type, timestamp: nil, thread: thread)
-
-        // TODO: implement receipt management logic
-        let messageID = UUID().uuidString
-        sentReceipts[messageID] = receipt
-        unackedReceipts[messageID] = (receipt, toUserID)
-
-        enqueue(request: ProtoSendReceipt(
-            messageID: messageID,
-            itemID: itemID,
-            thread: thread,
-            type: type,
-            fromUserID: fromUserID,
-            toUserID: toUserID) { _ in
-                self.unackedReceipts[messageID] = nil
-            }
-        )
+        sendReceipt(receipt, to: toUserID)
     }
 
     func sendPresenceIfPossible(_ presenceType: PresenceType) {
@@ -442,7 +476,7 @@ extension ProtoService: HalloService {
     }
 
     func updateNotificationSettings(_ settings: [NotificationSettings.ConfigKey : Bool], completion: @escaping ServiceRequestCompletion<Void>) {
-        completion(.failure(ProtoServiceError.unimplemented))
+        enqueue(request: ProtoUpdateNotificationSettingsRequest(settings: settings, completion: completion))
     }
 
     func checkVersionExpiration(completion: @escaping ServiceRequestCompletion<TimeInterval>) {
@@ -453,8 +487,37 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoGetServerPropertiesRequest(completion: completion))
     }
 
-    func sendGroupChatMessage(_ message: HalloGroupChatMessage, completion: @escaping ServiceRequestCompletion<Void>) {
-        completion(.failure(ProtoServiceError.unimplemented))
+    func sendGroupChatMessage(_ message: HalloGroupChatMessage) {
+        guard let messageData = try? message.protoContainer.serializedData() else {
+            DDLogError("ProtoServiceCore/sendGroupChatMessage/\(message.id)/error could not serialize message data")
+            return
+        }
+         guard let fromUID = Int64(userData.userId) else {
+            DDLogError("ProtoServiceCore/sendGroupChatMessage/\(message.id)/error invalid sender uid")
+            return
+        }
+
+        var packet = PBpacket()
+        packet.msg.fromUid = fromUID
+        packet.msg.id = message.id
+        packet.msg.type = .groupchat
+
+        var chat = PBgroup_chat()
+        chat.payload = messageData
+        chat.gid = message.groupId
+        if let groupName = message.groupName {
+            chat.name = groupName
+        }
+
+        packet.msg.payload.content = .groupChat(chat)
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoServiceCore/sendGroupChatMessage/\(message.id)/error could not serialize packet")
+            return
+        }
+
+        DDLogInfo("ProtoServiceCore/sendGroupChatMessage/\(message.id) sending (unencrypted)")
+        stream.send(packetData)
+
     }
 
     func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>) {
@@ -492,4 +555,21 @@ extension PBdelivery_receipt: ReceivedReceipt {
 
 extension PBseen_receipt: ReceivedReceipt {
     var receiptType: HalloReceipt.`Type` { .read }
+}
+
+extension PresenceType {
+    init?(_ pbPresenceType: PBha_presence.TypeEnum) {
+        switch pbPresenceType {
+        case .away:
+            self = .away
+        case .available:
+            self = .available
+        case .subscribe, .unsubscribe:
+            DDLogError("proto/presence/error received invalid presence \(pbPresenceType)")
+            return nil
+        case .UNRECOGNIZED(let i):
+            DDLogError("proto/presence/error received unknown presence \(i)")
+            return nil
+        }
+    }
 }

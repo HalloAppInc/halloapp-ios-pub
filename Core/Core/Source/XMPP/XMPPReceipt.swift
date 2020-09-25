@@ -18,7 +18,7 @@ public struct XMPPReceipt: Equatable {
         case read
     }
 
-    public enum Thread {
+    public enum Thread: Equatable {
         case none           // 1-1 messages
         case feed           // feed
         case group(String)  // associated value is group id

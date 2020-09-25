@@ -6,9 +6,26 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Core
 import Foundation
 import XMPPFramework
+
+final class ProtoAvatarRequest: ProtoStandardRequest<AvatarInfo> {
+    init(userID: UserID, completion: @escaping ServiceRequestCompletion<AvatarInfo>) {
+        var avatar = PBavatar()
+        if let uid = Int64(userID) {
+            avatar.uid = uid
+        } else {
+            DDLogError("ProtoAvatarRequest/error invalid userID \(userID)")
+        }
+
+        super.init(
+            packet: .iqPacket(type: .get, payload: .avatar(avatar)),
+            transform: { response in .success((userID: userID, avatarID: response.iq.payload.avatar.id)) },
+            completion: completion)
+    }
+}
 
 final class ProtoUpdateAvatarRequest: ProtoStandardRequest<String?> {
     init(data: Data?, completion: @escaping ServiceRequestCompletion<String?>) {
@@ -19,7 +36,7 @@ final class ProtoUpdateAvatarRequest: ProtoStandardRequest<String?> {
         }
 
         super.init(
-            packet: PBpacket.iqPacket(type: .set, payload: .uploadAvatar(uploadAvatar)),
+            packet: .iqPacket(type: .set, payload: .uploadAvatar(uploadAvatar)),
             transform: { .success($0.iq.payload.avatar.id) },
             completion: completion)
     }
@@ -36,7 +53,29 @@ final class ProtoPushTokenRequest: ProtoStandardRequest<Void> {
         pushRegister.pushToken = pushToken
 
         super.init(
-            packet: PBpacket.iqPacket(type: .set, payload: .pushRegister(pushRegister)),
+            packet: .iqPacket(type: .set, payload: .pushRegister(pushRegister)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
+
+final class ProtoSharePostsRequest: ProtoStandardRequest<Void> {
+    init(postIDs: [FeedPostID], userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
+
+        var share = PBshare_stanza()
+        share.postIds = postIDs
+        if let uid = Int64(userID) {
+            share.uid = uid
+        } else {
+            DDLogError("ProtoSharePostsRequest/error invalid userID \(userID)")
+        }
+
+        var item = PBfeed_item()
+        item.action = .share
+        item.shareStanzas = [share]
+
+        super.init(
+            packet: .iqPacket(type: .set, payload: .feedItem(item)),
             transform: { _ in .success(()) },
             completion: completion)
     }
@@ -50,7 +89,7 @@ final class ProtoRetractItemRequest: ProtoStandardRequest<Void> {
         pbFeedItem.action = .retract
 
         super.init(
-            packet: PBpacket.iqPacket(type: .set, payload: .feedItem(pbFeedItem)),
+            packet: .iqPacket(type: .set, payload: .feedItem(pbFeedItem)),
             transform: { _ in .success(()) },
             completion: completion)
     }
@@ -92,7 +131,7 @@ final class ProtoContactSyncRequest: ProtoStandardRequest<[HalloContact]> {
         }
 
         super.init(
-            packet: PBpacket.iqPacket(type: .set, payload: .contactList(contactList)),
+            packet: .iqPacket(type: .set, payload: .contactList(contactList)),
             transform: {
                 let contacts = $0.iq.payload.contactList.contacts
                 return .success(contacts.compactMap { HalloContact($0) }) },
@@ -191,27 +230,27 @@ final class ProtoSendReceipt: ProtoStandardRequest<Void> {
     }
 }
 
-class ProtoSendNameRequest: ProtoStandardRequest<Void> {
+final class ProtoSendNameRequest: ProtoStandardRequest<Void> {
     init(name: String, completion: @escaping ServiceRequestCompletion<Void>) {
 
         var pbName = PBname()
         pbName.name = name
 
         super.init(
-            packet: PBpacket.iqPacket(type: .set, payload: .name(pbName)),
+            packet: .iqPacket(type: .set, payload: .name(pbName)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-class ProtoClientVersionCheck: ProtoStandardRequest<TimeInterval> {
+final class ProtoClientVersionCheck: ProtoStandardRequest<TimeInterval> {
     init(version: String, completion: @escaping ServiceRequestCompletion<TimeInterval>) {
 
         var clientVersion = PBclient_version()
         clientVersion.version = "HalloApp/iOS\(version)"
 
         super.init(
-            packet: PBpacket.iqPacket(type: .get, payload: .clientVersion(clientVersion)),
+            packet: .iqPacket(type: .get, payload: .clientVersion(clientVersion)),
             transform: {
                 let expiresInSeconds = $0.iq.payload.clientVersion.expiresInSeconds
                 return .success(TimeInterval(expiresInSeconds)) },
@@ -219,7 +258,7 @@ class ProtoClientVersionCheck: ProtoStandardRequest<TimeInterval> {
     }
 }
 
-class ProtoGroupCreateRequest: ProtoStandardRequest<Void> {
+final class ProtoGroupCreateRequest: ProtoStandardRequest<Void> {
     init(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>) {
 
         var group = PBgroup_stanza()
@@ -228,13 +267,13 @@ class ProtoGroupCreateRequest: ProtoStandardRequest<Void> {
         group.members = members.compactMap { PBgroup_member(userID: $0) }
 
         super.init(
-            packet: PBpacket.iqPacket(type: .set, payload: .groupStanza(group)),
+            packet: .iqPacket(type: .set, payload: .groupStanza(group)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-class ProtoGroupInfoRequest: ProtoStandardRequest<HalloGroup> {
+final class ProtoGroupInfoRequest: ProtoStandardRequest<HalloGroup> {
     init(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>) {
 
         var group = PBgroup_stanza()
@@ -242,7 +281,7 @@ class ProtoGroupInfoRequest: ProtoStandardRequest<HalloGroup> {
         group.action = .get
 
         super.init(
-            packet: PBpacket.iqPacket(type: .get, payload: .groupStanza(group)),
+            packet: .iqPacket(type: .get, payload: .groupStanza(group)),
             transform: {
                 guard let group = HalloGroup(protoGroup: $0.iq.payload.groupStanza) else {
                     return .failure(ProtoServiceError.unexpectedResponseFormat)
@@ -252,7 +291,7 @@ class ProtoGroupInfoRequest: ProtoStandardRequest<HalloGroup> {
     }
 }
 
-class ProtoGroupLeaveRequest: ProtoStandardRequest<Void> {
+final class ProtoGroupLeaveRequest: ProtoStandardRequest<Void> {
     init(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>) {
 
         var group = PBgroup_stanza()
@@ -260,13 +299,13 @@ class ProtoGroupLeaveRequest: ProtoStandardRequest<Void> {
         group.action = .leave
 
         super.init(
-            packet: PBpacket.iqPacket(type: .set, payload: .groupStanza(group)),
+            packet: .iqPacket(type: .set, payload: .groupStanza(group)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-class ProtoGroupModifyRequest: ProtoStandardRequest<Void> {
+final class ProtoGroupModifyRequest: ProtoStandardRequest<Void> {
     init(groupID: GroupID, members: [UserID], groupAction: ChatGroupAction, action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>) {
 
         var group = PBgroup_stanza()
@@ -275,9 +314,31 @@ class ProtoGroupModifyRequest: ProtoStandardRequest<Void> {
         group.members = members.compactMap { PBgroup_member(userID: $0, action: .init(action)) }
 
         super.init(
-            packet: PBpacket.iqPacket(type: .set, payload: .groupStanza(group)),
+            packet: .iqPacket(type: .set, payload: .groupStanza(group)),
             transform: { _ in .success(()) },
             completion: completion)
+    }
+}
+
+final class ProtoUpdateNotificationSettingsRequest: ProtoStandardRequest<Void> {
+    init(settings: [NotificationSettings.ConfigKey: Bool], completion: @escaping ServiceRequestCompletion<Void>) {
+        var prefs = PBnotification_prefs()
+        prefs.pushPrefs = settings.map {
+            var pref = PBpush_pref()
+            pref.name = .init($0.key)
+            pref.value = $0.value
+            return pref
+        }
+        super.init(packet: .iqPacket(type: .set, payload: .notificationPrefs(prefs)), transform: { _ in .success(()) }, completion: completion)
+    }
+}
+
+extension PBpush_pref.Name {
+    init(_ configKey: NotificationSettings.ConfigKey) {
+        switch configKey {
+        case .post: self = .post
+        case .comment: self = .comment
+        }
     }
 }
 
