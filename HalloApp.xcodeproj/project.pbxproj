@@ -52,6 +52,7 @@
 		761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C4245D32C200DD9D1A /* UIDevice.swift */; };
 		761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C8245D4DE500DD9D1A /* UIButton.swift */; };
 		761442CB245DF6A600DD9D1A /* CharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442CA245DF6A600DD9D1A /* CharacterSet.swift */; };
+		7615B012251D6C0300F0711D /* ContactsTableViewDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7615B011251D6C0300F0711D /* ContactsTableViewDataSource.swift */; };
 		761905A32459EB07008FC600 /* InputTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761905A22459EB07008FC600 /* InputTextView.swift */; };
 		761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3953241C38A300858251 /* XMPPCommonRequests.swift */; };
 		761B3957241D815800858251 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3956241D815800858251 /* SyncManager.swift */; };
@@ -344,6 +345,7 @@
 		761442C4245D32C200DD9D1A /* UIDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIDevice.swift; path = HalloApp/Components/Extensions/UIDevice.swift; sourceTree = SOURCE_ROOT; };
 		761442C8245D4DE500DD9D1A /* UIButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIButton.swift; path = HalloApp/Components/Extensions/UIButton.swift; sourceTree = SOURCE_ROOT; };
 		761442CA245DF6A600DD9D1A /* CharacterSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CharacterSet.swift; path = HalloApp/Components/Extensions/CharacterSet.swift; sourceTree = SOURCE_ROOT; };
+		7615B011251D6C0300F0711D /* ContactsTableViewDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactsTableViewDataSource.swift; path = HalloApp/Components/Views/ContactsTableViewDataSource.swift; sourceTree = SOURCE_ROOT; };
 		761905A22459EB07008FC600 /* InputTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InputTextView.swift; path = HalloApp/Components/Views/InputTextView.swift; sourceTree = SOURCE_ROOT; };
 		761B3953241C38A300858251 /* XMPPCommonRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPCommonRequests.swift; sourceTree = "<group>"; };
 		761B3956241D815800858251 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
@@ -716,6 +718,7 @@
 				761EE21D24B5135400B30632 /* MFMessageComposeView.swift */,
 				7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */,
 				765EB4EA24D92404002FA5D9 /* SafariView.swift */,
+				7615B011251D6C0300F0711D /* ContactsTableViewDataSource.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1663,6 +1666,7 @@
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
 				6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */,
 				76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */,
+				7615B012251D6C0300F0711D /* ContactsTableViewDataSource.swift in Sources */,
 				761442CB245DF6A600DD9D1A /* CharacterSet.swift in Sources */,
 				F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */,
 				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,

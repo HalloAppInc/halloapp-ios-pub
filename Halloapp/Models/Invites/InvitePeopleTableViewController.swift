@@ -69,12 +69,8 @@ fileprivate class InvitePeopleResultsController: UITableViewController {
 
 class InvitePeopleTableViewController: UITableViewController {
 
-    private enum TableSection {
-        case main
-    }
-
     private let inviteManager = InviteManager.shared
-    private var dataSource: UITableViewDiffableDataSource<TableSection, ABContact>!
+    private var dataSource: ContactsTableViewDataSource!
     private var fetchedResultsController: NSFetchedResultsController<ABContact>!
     private let didSelectContact: (ABContact) -> ()
 
@@ -96,7 +92,7 @@ class InvitePeopleTableViewController: UITableViewController {
         tableView.backgroundColor = .feedBackground
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
 
-        dataSource = UITableViewDiffableDataSource<TableSection, ABContact>(tableView: tableView) { (tableView, indexPath, contact) in
+        dataSource = ContactsTableViewDataSource(tableView: tableView) { (tableView, indexPath, contact) in
             let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
             cell.configure(withContact: contact)
             return cell
@@ -156,15 +152,14 @@ extension InvitePeopleTableViewController {
             tableView.deselectRow(at: indexPath, animated: true)
         }
     }
+
 }
 
 extension InvitePeopleTableViewController: NSFetchedResultsControllerDelegate {
 
     private func updateSnapshot() {
-        var dataSourceSnapshot = NSDiffableDataSourceSnapshot<TableSection, ABContact>()
-        dataSourceSnapshot.appendSections([.main])
-        dataSourceSnapshot.appendItems(fetchedResultsController.fetchedObjects ?? [])
-        dataSource.apply(dataSourceSnapshot, animatingDifferences: viewIfLoaded?.window != nil)
+        let allContacts = fetchedResultsController.fetchedObjects ?? []
+        dataSource.reload(contacts: allContacts, animatingDifferences: viewIfLoaded?.window != nil)
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
