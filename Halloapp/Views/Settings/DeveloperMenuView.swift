@@ -111,6 +111,17 @@ struct DeveloperMenuView: View {
                 }
 
                 Button(action: {
+                    MainAppContext.shared.nux.startDemo()
+                }) {
+                    Text("Reset NUX demo")
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 12)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(24)
+                }
+
+                Button(action: {
                     self.userData.logout()
 
                     if self.dismiss != nil {

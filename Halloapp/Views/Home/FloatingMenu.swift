@@ -245,7 +245,7 @@ final class FloatingMenu: UIView {
     }
 }
 
-private extension Future {
+extension Future {
     // Converts a known value into a Future so you can use it in an async API.
     // Not sure if something like this already exists in Combine?
     static func guarantee(_ value: Output) -> Future<Output, Never> {

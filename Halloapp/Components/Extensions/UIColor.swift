@@ -22,6 +22,10 @@ extension UIColor {
         get { UIColor(named: "LavaOrange")! }
     }
 
+    class var nux: UIColor {
+        get { UIColor(named: "NUX")! }
+    }
+
     class var separator: UIColor {
         get { UIColor(named: "Separator")! }
     }

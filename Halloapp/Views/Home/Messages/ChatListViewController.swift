@@ -87,6 +87,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("ChatListViewController/viewDidAppear")
         super.viewDidAppear(animated)
+
+        showNUXIfNecessary()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -107,7 +109,25 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
         }
     }
-    
+
+    // MARK: NUX
+
+    private lazy var overlayContainer: OverlayContainer = {
+        let targetView: UIView = tabBarController?.view ?? view
+        let overlayContainer = OverlayContainer()
+        overlayContainer.translatesAutoresizingMaskIntoConstraints = false
+        targetView.addSubview(overlayContainer)
+        overlayContainer.constrain(to: targetView)
+        return overlayContainer
+    }()
+
+    private func showNUXIfNecessary() {
+        if MainAppContext.shared.nux.isIncomplete(.chatListIntro) {
+            let popover = NUXPopover(NUX.chatIntroContent) { MainAppContext.shared.nux.didComplete(.chatListIntro) }
+            overlayContainer.display(popover)
+        }
+    }
+
     // MARK: New Chat
 
     private lazy var floatingMenu: FloatingMenu = {

@@ -16,6 +16,12 @@ import UIKit
 class FeedViewController: FeedTableViewController {
 
     private var cancellables: Set<AnyCancellable> = []
+    private var notificationButton: BadgedButton?
+    private var notificationCount: Int = 0 {
+        didSet {
+            updateNotificationCount(notificationCount)
+        }
+    }
 
     private var feedPostIdToScrollTo: FeedPostID?
 
@@ -32,14 +38,15 @@ class FeedViewController: FeedTableViewController {
         notificationButton.setImage(UIImage(named: "FeedNavbarNotifications"), for: .normal)
         notificationButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
         notificationButton.addTarget(self, action: #selector(presentNotificationsView), for: .touchUpInside)
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: notificationButton)
+        self.notificationButton = notificationButton
+
         if let feedNotifications = MainAppContext.shared.feedData.feedNotifications {
-            notificationButton.isBadgeHidden = feedNotifications.unreadCount == 0
-            self.cancellables.insert(feedNotifications.unreadCountDidChange.sink { (unreadCount) in
-                notificationButton.isBadgeHidden = unreadCount == 0
+            notificationCount = feedNotifications.unreadCount
+            self.cancellables.insert(feedNotifications.unreadCountDidChange.sink { [weak self] (unreadCount) in
+                self?.notificationCount = unreadCount
             })
         }
-
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: notificationButton)
 
         cancellables.insert(
             MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] (feedPost) in
@@ -66,6 +73,12 @@ class FeedViewController: FeedTableViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         updateInviteFriendsButtonPosition()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        installNUXHeaderViewIfNecessary()
+        showActivityCenterNUXIfNecessary()
     }
 
     deinit {
@@ -137,6 +150,117 @@ class FeedViewController: FeedTableViewController {
         present(navController, animated: true)
     }
 
+    // MARK: NUX
+
+    private lazy var overlayContainer: OverlayContainer = {
+        let targetView: UIView = tabBarController?.view ?? view
+        let overlayContainer = OverlayContainer()
+        overlayContainer.translatesAutoresizingMaskIntoConstraints = false
+        targetView.addSubview(overlayContainer)
+        overlayContainer.constrain(to: targetView)
+        return overlayContainer
+    }()
+
+    private weak var overlay: Overlay?
+
+    private var isShowingNUXHeaderView = false
+
+    private func installNUXHeaderViewIfNecessary() {
+        guard MainAppContext.shared.nux.isIncomplete(.homeFeedIntro), !isShowingNUXHeaderView else {
+            return
+        }
+
+        let nuxItem = NUXItem(
+            message: NUX.homeFeedIntroContent,
+            icon: UIImage(named: "NUXSpeechBubble"),
+            link: (text: "Learn more", action: { [weak self] nuxItem in
+                self?.showNUXDetails { _ = nuxItem.dismiss() }
+            }),
+            didClose: { [weak self] in
+                MainAppContext.shared.nux.didComplete(.homeFeedIntro)
+                UIView.animate(
+                    withDuration: 0.3,
+                    delay: 0,
+                    usingSpringWithDamping: 1,
+                    initialSpringVelocity: 0,
+                    options: UIView.AnimationOptions(),
+                    animations: {
+                        self?.isShowingNUXHeaderView = false
+                        self?.tableView.tableHeaderView = nil
+                        self?.tableView.layoutIfNeeded() },
+                    completion: { [weak self] _ in
+                        self?.showActivityCenterNUXIfNecessary()
+                    })
+        })
+        nuxItem.frame.size = nuxItem.systemLayoutSizeFitting(
+            CGSize(width: tableView.bounds.width, height: .greatestFiniteMagnitude),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel)
+        tableView.tableHeaderView = nuxItem
+        isShowingNUXHeaderView = true
+    }
+
+    private func showNUXDetails(completion: (() -> Void)?) {
+        let titleLabel = UILabel()
+        titleLabel.text = NUX.homeFeedDetailsTitle
+        titleLabel.numberOfLines = 0
+        titleLabel.font = .systemFont(forTextStyle: .title3, weight: .medium)
+        titleLabel.textColor = UIColor.label
+
+        let label = UILabel()
+        label.text = NUX.homeFeedDetailsBody
+        label.numberOfLines = 0
+        label.font = .systemFont(forTextStyle: .callout)
+        label.textColor = UIColor.label.withAlphaComponent(0.5)
+
+        let button = UIButton()
+        button.contentHorizontalAlignment = .trailing
+        button.setContentCompressionResistancePriority(.required, for: .vertical)
+        button.setTitle("OK", for: .normal)
+        button.setTitleColor(UIColor.nux, for: .normal)
+        button.titleLabel?.font = .systemFont(forTextStyle: .callout, weight: .bold)
+        button.addTarget(self, action: #selector(dismissOverlay), for: .touchUpInside)
+
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, label, button])
+        stackView.spacing = 15
+        stackView.axis = .vertical
+        stackView.alignment = .fill
+
+        let sheet = BottomSheet(innerView: stackView, completion: completion)
+
+        overlay = sheet
+        overlayContainer.display(sheet)
+    }
+
+    private func showActivityCenterNUXIfNecessary() {
+        guard let notificationButton = notificationButton,
+              overlay == nil && !isShowingNUXHeaderView && notificationCount > 0 &&
+                MainAppContext.shared.nux.isIncomplete(.activityCenterIcon) else
+        {
+            return
+        }
+
+        let popover = NUXPopover(
+            NUX.activityCenterIconContent,
+            targetRect: notificationButton.bounds,
+            targetSpace: notificationButton.coordinateSpace,
+            showButton: false) { [weak self] in
+            MainAppContext.shared.nux.didComplete(.activityCenterIcon)
+            self?.overlay = nil
+        }
+
+        overlay = popover
+        overlayContainer.display(popover)
+    }
+
+    @objc
+    private func dismissOverlay() {
+        if let currentOverlay = overlay {
+            overlayContainer.dismiss(currentOverlay)
+        }
+        overlay = nil
+    }
+
     // MARK: New post
 
     private lazy var floatingMenu: FloatingMenu = {
@@ -178,6 +302,11 @@ class FeedViewController: FeedTableViewController {
     }
 
     // MARK: Notification Handling
+
+    private func updateNotificationCount(_ unreadCount: Int) {
+        notificationButton?.isBadgeHidden = unreadCount == 0
+        showActivityCenterNUXIfNecessary()
+    }
 
     private func scrollTo(post feedPost: FeedPost) {
         if let indexPath = fetchedResultsController?.indexPath(forObject: feedPost) {

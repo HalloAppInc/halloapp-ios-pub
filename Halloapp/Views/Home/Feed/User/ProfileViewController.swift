@@ -63,6 +63,16 @@ class ProfileViewController: FeedTableViewController {
         super.viewWillDisappear(animated)
 
         floatingMenu.setState(.collapsed, animated: true)
+        if let currentOverlay = overlay {
+            overlayContainer.dismiss(currentOverlay)
+            overlay = nil
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        showNUXIfNecessary()
     }
 
     override func viewDidLayoutSubviews() {
@@ -102,6 +112,25 @@ class ProfileViewController: FeedTableViewController {
         present(UIHostingController(rootView: NavigationView(content: { profileEditView } )), animated: true)
     }
 
+    // MARK: NUX
+
+    private lazy var overlayContainer: OverlayContainer = {
+        let overlayContainer = OverlayContainer()
+        overlayContainer.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(overlayContainer)
+        overlayContainer.constrain(to: view)
+        return overlayContainer
+    }()
+
+    private var overlay: Overlay?
+
+    private func showNUXIfNecessary() {
+        if MainAppContext.shared.nux.isIncomplete(.profileIntro) {
+            let popover = NUXPopover(NUX.profileContent) { MainAppContext.shared.nux.didComplete(.profileIntro) }
+            overlayContainer.display(popover)
+            overlay = popover
+        }
+    }
 
     // MARK: New post
 

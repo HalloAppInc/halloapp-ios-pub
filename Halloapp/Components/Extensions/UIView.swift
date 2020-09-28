@@ -44,6 +44,8 @@ extension UIView {
         case bottom
         case leading
         case trailing
+        case centerX
+        case centerY
     }
     
     enum ConstraintDimension {
@@ -63,6 +65,10 @@ extension UIView {
             constraint = leadingAnchor.constraint(equalTo: otherView.leadingAnchor, constant: constant)
         case .trailing:
             constraint = trailingAnchor.constraint(equalTo: otherView.trailingAnchor, constant: constant)
+        case .centerX:
+            constraint = centerXAnchor.constraint(equalTo: otherView.centerXAnchor, constant: constant)
+        case .centerY:
+            constraint = centerYAnchor.constraint(equalTo: otherView.centerYAnchor, constant: constant)
         }
         constraint.isActive = true
         return constraint
@@ -80,6 +86,10 @@ extension UIView {
             constraint = leadingAnchor.constraint(equalTo: otherView.layoutMarginsGuide.leadingAnchor, constant: constant)
         case .trailing:
             constraint = trailingAnchor.constraint(equalTo: otherView.layoutMarginsGuide.trailingAnchor, constant: constant)
+        case .centerX:
+            constraint = centerXAnchor.constraint(equalTo: otherView.layoutMarginsGuide.centerXAnchor, constant: constant)
+        case .centerY:
+            constraint = centerYAnchor.constraint(equalTo: otherView.layoutMarginsGuide.centerYAnchor, constant: constant)
         }
         constraint.isActive = true
         return constraint

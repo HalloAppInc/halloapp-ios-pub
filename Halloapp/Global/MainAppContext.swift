@@ -25,6 +25,7 @@ class MainAppContext: AppContext {
     private(set) var keyData: KeyData!
     private(set) var syncManager: SyncManager!
     private(set) var privacySettings: PrivacySettings!
+    private(set) var nux: NUX
     
     let didTapNotification = PassthroughSubject<NotificationMetadata, Never>()
     let activityViewControllerPresentRequest = PassthroughSubject<[Any], Never>()
@@ -90,6 +91,9 @@ class MainAppContext: AppContext {
         let logger = CrashlyticsLogger()
         logger.logFormatter = LogFormatter()
         DDLog.add(logger)
+
+        nux = NUX()
+
         super.init(serviceBuilder: serviceBuilder, contactStoreClass: contactStoreClass)
         // This is needed to encode/decode protobuf in FeedPostInfo.
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
