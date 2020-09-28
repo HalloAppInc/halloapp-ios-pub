@@ -10,6 +10,8 @@ import Foundation
 import UIKit
 import XMPPFramework
 
+public typealias GroupID = String
+
 public enum ChatMessageMediaType: Int {
     case image = 0
     case video = 1

@@ -39,11 +39,13 @@ extension ChatGroupMessageEvent {
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatGroupMessageEvent> {
         return NSFetchRequest<ChatGroupMessageEvent>(entityName: "ChatGroupMessageEvent")
     }
-
+    
     @NSManaged public var actionValue: Int16
     @NSManaged public var memberActionValue: Int16
     @NSManaged public var memberUserId: String?
     @NSManaged public var sender: String?
+    @NSManaged public var groupName: String?
+    
     @NSManaged public var groupMessage: ChatGroupMessage
     
     var action: Action {
@@ -89,19 +91,20 @@ extension ChatGroupMessageEvent {
             guard let senderName = senderName else { return nil }
             switch action {
             case .create: return "\(senderName) created this group"
+            case .changeName: return "\(senderName) changed the group name to \"\(groupName ?? "")\""
+            case .changeAvatar: return "\(senderName) changed the group avatar"
             case .leave, .modifyMembers, .modifyAdmins:
                 guard let memberName = memberName else { return nil }
                 switch memberAction {
                 case .add: return "\(senderName) added \(memberName)"
                 case .remove: return "\(senderName) removed \(memberName)"
-                case .promote: return "\(senderName) promoted \(memberName)"
+                case .promote: return "\(senderName) promoted \(memberName) to admin"
                 case .demote: return "\(senderName) demoted \(memberName)"
                 case .leave: return "\(senderName) left the group"
                 default: return nil
                 }
             default: return nil
             }
-
         }
     }
 

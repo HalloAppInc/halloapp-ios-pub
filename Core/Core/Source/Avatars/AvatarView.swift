@@ -11,6 +11,7 @@ import UIKit
 
 public class AvatarView: UIView {
     public static let defaultImage = UIImage(named: "AvatarPlaceholder")
+    public static let defaultGroupImage = UIImage(systemName: "person.3.fill")?.withRenderingMode(.alwaysTemplate)
     
     private let avatar = UIImageView()
     private var avatarUpdatingCancellable: AnyCancellable?
@@ -162,6 +163,34 @@ public class AvatarView: UIView {
     }
 }
 
+extension AvatarView {
+    
+    public func configureGroupAvatar(for groupID: GroupID, using avatarStore: AvatarStore) {
+        let groupAvatarData = avatarStore.groupAvatarData(for: groupID)
+        configureGroupAvatar(with: groupAvatarData, using: avatarStore)
+    }
+    
+    public func configureGroupAvatar(with groupAvatarData: GroupAvatarData, using avatarStore: AvatarStore) {
+        if let image = groupAvatarData.image {
+            avatar.image = image
+        } else {
+            avatar.image = AvatarView.defaultGroupImage
+            if !groupAvatarData.isEmpty {
+                groupAvatarData.loadImage(using: avatarStore)
+            }
+        }
+
+        avatarUpdatingCancellable = groupAvatarData.imageDidChange.sink { [weak self] image in
+            guard let self = self else { return }
+            
+            if let image = image {
+                self.avatar.image = image
+            } else {
+                self.avatar.image = AvatarView.defaultGroupImage
+            }
+        }
+    }
+}
 
 public class AvatarViewButton: UIButton {
 

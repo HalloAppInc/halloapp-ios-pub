@@ -51,7 +51,9 @@ protocol HalloService: CoreService {
     func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>)
     func modifyGroup(groupID: GroupID, with members: [UserID], groupAction: ChatGroupAction,
                      action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>)
-
+    func changeGroupName(groupID: GroupID, name: String, completion: @escaping ServiceRequestCompletion<Void>)
+    func changeGroupAvatar(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<String>)
+    
     @discardableResult
     func subscribeToPresenceIfPossible(to userID: UserID) -> Bool
 

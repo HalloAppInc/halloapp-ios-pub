@@ -101,7 +101,7 @@ open class AppContext {
         let fileLogger = DDFileLogger(logFileManager: LogFileManager(logsDirectory: appGroupLogsDirectory.path))
         fileLogger.rollingFrequency = TimeInterval(60*60*24)
         fileLogger.doNotReuseLogFiles = true
-        fileLogger.logFileManager.maximumNumberOfLogFiles = 96
+        fileLogger.logFileManager.maximumNumberOfLogFiles = 300
         fileLogger.logFormatter = FileLogFormatter()
         DDLog.add(fileLogger)
         self.fileLogger = fileLogger

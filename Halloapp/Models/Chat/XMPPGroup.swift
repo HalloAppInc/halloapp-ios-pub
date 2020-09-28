@@ -43,7 +43,7 @@ struct XMPPGroup {
     let groupId: String
     let name: String
     let action: ChatGroupAction? // getGroupInfo has no action
-    let avatar: String? = nil
+    var avatarID: String? = nil
     let members: [XMPPGroupMember]
 
     // inbound
@@ -53,6 +53,10 @@ struct XMPPGroup {
         }
         guard let groupId = item.attributeStringValue(forName: "gid") else { return nil }
         guard let name = item.attributeStringValue(forName: "name") else { return nil }
+        
+        if let avatarID = item.attributeStringValue(forName: "avatar"), avatarID != "" {
+            self.avatarID = avatarID
+        }
         self.sender = item.attributeStringValue(forName: "sender")
         self.senderName = item.attributeStringValue(forName: "sender_name")
         
@@ -64,6 +68,8 @@ struct XMPPGroup {
             case "leave": return .leave
             case "modify_members": return .modifyMembers
             case "modify_admins": return .modifyAdmins
+            case "change_name": return .changeName
+            case "change_avatar": return .changeAvatar
             default: return nil
             }}()
         
@@ -80,6 +86,7 @@ struct XMPPGroup {
         self.senderName = protoGroup.senderName
         self.groupId = protoGroup.gid
         self.name = protoGroup.name
+        self.avatarID = protoGroup.avatarID
         self.members = protoGroup.members.compactMap { XMPPGroupMember(protoMember: $0) }
         // TODO: Which of these actions do we expect to exist?
         self.action = {

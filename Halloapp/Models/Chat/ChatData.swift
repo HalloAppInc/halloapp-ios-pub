@@ -15,7 +15,6 @@ typealias ChatPresenceInfo = (userID: UserID, presence: PresenceType?, lastSeen:
 
 typealias ChatMessageID = String
 typealias ChatGroupMessageID = String
-typealias GroupID = String
 
 public enum ChatType: Int16 {
     case oneToOne = 0
@@ -40,6 +39,9 @@ class ChatData: ObservableObject {
     private let userData: UserData
     private var service: HalloService
     private let mediaUploader: MediaUploader
+    
+    private var persistentContainer: NSPersistentContainer
+    
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var currentlyChattingWithUserId: String? = nil
@@ -66,15 +68,24 @@ class ChatData: ObservableObject {
     private let maxNumDownloads: Int = 1
     private var currentlyDownloading: [URL] = [] // TODO: not currently used, re-evaluate if it's needed
     private let maxTries: Int = 10
-
+    
     init(service: HalloService, userData: UserData) {
-        
         self.service = service
         self.userData = userData
         mediaUploader = MediaUploader(service: service)
-
+        
+        // init persistentContainer without lazy
+        let storeDescription = NSPersistentStoreDescription(url: ChatData.persistentStoreURL)
+        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
+        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
+        storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
+        storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
+        persistentContainer = NSPersistentContainer(name: "Chat")
+        persistentContainer.persistentStoreDescriptions = [storeDescription]
+        loadPersistentStores(in: persistentContainer)
+            
         self.service.chatDelegate = self
-
+        
         mediaUploader.resolveMediaPath = { relativePath in
             return MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
         }
@@ -415,7 +426,7 @@ class ChatData: ObservableObject {
     
 
     
-    // MARK: Fetch Controller
+    // MARK: Core Data Setup
     
     private class var persistentStoreURL: URL {
         get {
@@ -427,8 +438,6 @@ class ChatData: ObservableObject {
         persistentContainer.loadPersistentStores { (description, error) in
             if let error = error {
                 DDLogError("Failed to load persistent store: \(error)")
-                DDLogError("Deleting persistent store at [\(ChatData.persistentStoreURL.absoluteString)]")
-                try! FileManager.default.removeItem(at: ChatData.persistentStoreURL)
                 fatalError("Unable to load persistent store: \(error)")
             } else {
                 DDLogInfo("ChatData/load-store/completed [\(description)]")
@@ -436,22 +445,10 @@ class ChatData: ObservableObject {
         }
     }
     
-    private lazy var persistentContainer: NSPersistentContainer = {
-        let storeDescription = NSPersistentStoreDescription(url: ChatData.persistentStoreURL)
-        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
-        storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
-        storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
-        storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
-        let container = NSPersistentContainer(name: "Chat")
-        container.persistentStoreDescriptions = [storeDescription]
-        self.loadPersistentStores(in: container)
-        return container
-    }()
-    
-    private func loadPersistentContainer() {
-        let container = self.persistentContainer
-        DDLogDebug("ChatData/loadPersistentStore Loaded [\(container)]")
-    }
+//    private func loadPersistentContainer() {
+//        let container = self.persistentContainer
+//        DDLogDebug("ChatData/loadPersistentStore Loaded [\(container)]")
+//    }
     
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         self.backgroundProcessingQueue.async {
@@ -527,20 +524,6 @@ class ChatData: ObservableObject {
         
     }
     
-    
-    private func presentLocalNotifications(for chatMessage: ChatMessage) {
-        let notification = UNMutableNotificationContent()
-        notification.title = AppContext.shared.contactStore.fullName(for: chatMessage.fromUserId)
-        if let text = chatMessage.text {
-            notification.body = text
-        }
-        
-        // TODO: If we want to use this method in the future, we need to construct and save metadata to userinfo
-        
-        DDLogDebug("ChatData/new-msg/localNotification [\(chatMessage.id)]")
-        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: notification, trigger: nil))
-    }
-            
     func copyFiles(toChatMedia chatMedia: ChatMedia, fileUrl: URL, encryptedFileUrl: URL?) throws {
         
         var threadId = ""
@@ -633,7 +616,10 @@ class ChatData: ObservableObject {
     
     func sendSeenGroupReceipt(for chatGroupMessage: ChatGroupMessage) {
         DDLogInfo("ChatData/sendSeenGroupReceipt \(chatGroupMessage.id)")
-        guard let userId = chatGroupMessage.userId else { return }
+        guard let userId = chatGroupMessage.userId else {
+            DDLogInfo("ChatData/sendSeenGroupReceipt/no userId \(chatGroupMessage.id)")
+            return
+        }
         service.sendReceipt(
             itemID: chatGroupMessage.id,
             thread: .group(chatGroupMessage.groupId),
@@ -647,6 +633,7 @@ class ChatData: ObservableObject {
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping (() -> ())) {
         let messages = sharedDataStore.messages()
         guard !messages.isEmpty else {
+            DDLogDebug("ChatData/merge-data/ Nothing to merge")
             completion()
             return
         }
@@ -868,8 +855,13 @@ extension ChatData {
     
     // MARK: Thread Core Data Updating
     
-    private func updateChatThread(type: ChatType, for id: String, block: @escaping (ChatThread) -> Void) {
+    private func updateChatThread(type: ChatType, for id: String, block: @escaping (ChatThread) -> Void, performAfterSave: (() -> ())? = nil) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            defer {
+                if let performAfterSave = performAfterSave {
+                    performAfterSave()
+                }
+            }
             guard let self = self else { return }
             guard let chatThread = self.chatThread(type: type, id: id, in: managedObjectContext) else {
                 DDLogError("ChatData/update-chatThread/missing-thread [\(id)]")
@@ -1400,16 +1392,16 @@ extension ChatData {
             self.updateUnreadThreadCount()
         }
         
-        //        self.presentLocalNotifications(for: chatMessage)
+        showOneToOneNotification(for: xmppChatMessage)
         
         // download chat message media
-        self.processPendingChatMessageMedia()
-        
+        processPendingChatMessageMedia()
     }
     
     // MARK: 1-1 Process Inbound Receipts
     
     private func processInboundOneToOneMessageReceipt(with receipt: XMPPReceipt) {
+        DDLogInfo("ChatData/processInboundOneToOneMessageReceipt")
         let messageId = receipt.itemId
         let receiptType = receipt.type
         
@@ -1466,8 +1458,86 @@ extension ChatData {
         guard currentlyChattingWithUserId == presenceInfo.userID else { return }
         self.didGetCurrentChatPresence.send((presenceStatus, presenceLastSeen))
     }
-        
+}
 
+// MARK: 1-1 Local Notifications
+extension ChatData {
+    private func showOneToOneNotification(for xmppChatMessage: ChatMessageProtocol) {
+        DDLogDebug("ChatData/showOneToOneNotification")
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if UIApplication.shared.applicationState == .background {
+                self.presentLocalOneToOneNotifications(for: xmppChatMessage)
+            } else {
+                guard self.currentlyChattingWithUserId != xmppChatMessage.fromUserId else { return }
+                self.presentOneToOneBanner(for: xmppChatMessage)
+            }
+        }
+    }
+    
+    private func presentOneToOneBanner(for xmppChatMessage: ChatMessageProtocol) {
+        DDLogDebug("ChatData/presentOneToOneBanner")
+        let userID = xmppChatMessage.fromUserId
+        
+        let name = AppContext.shared.contactStore.fullName(for: userID)
+        
+        let title = "\(name)"
+        
+        var body = ""
+        
+        body += xmppChatMessage.text ?? ""
+        
+        if !xmppChatMessage.orderedMedia.isEmpty {
+            var mediaStr = "📷"
+            if let firstMedia = xmppChatMessage.orderedMedia.first {
+                if firstMedia.mediaType == .video {
+                    mediaStr = "📹"
+                }
+            }
+            
+            if body.isEmpty {
+                body = mediaStr
+            } else {
+                body = "\(mediaStr) \(body)"
+            }
+        }
+        
+        Banner.show(title: title, body: body)
+    }
+    
+    private func presentLocalOneToOneNotifications(for xmppChatMessage: ChatMessageProtocol) {
+        DDLogDebug("ChatData/presentLocalOneToOneNotifications")
+        let userID = xmppChatMessage.fromUserId
+        
+        guard let ts = xmppChatMessage.timeIntervalSince1970 else { return }
+        
+        let timestamp = Date(timeIntervalSinceReferenceDate: ts)
+        
+        var notifications: [UNMutableNotificationContent] = []
+        
+        let protoContainer = xmppChatMessage.protoContainer
+        let protobufData = try? protoContainer.serializedData()
+        
+        let metadata = NotificationMetadata(contentId: xmppChatMessage.id,
+                                            contentType: .chatMessage,
+                                            fromId: userID,
+                                            data: protobufData,
+                                            timestamp: timestamp)
+        
+        let notification = UNMutableNotificationContent()
+        notification.title = AppContext.shared.contactStore.fullName(for: userID)
+        notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
+            MainAppContext.shared.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
+        })
+        
+        notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
+        notifications.append(notification)
+        
+        let notificationCenter = UNUserNotificationCenter.current()
+        notifications.forEach { (notificationContent) in
+            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+        }
+    }
 }
 
 extension ChatData {
@@ -1481,6 +1551,64 @@ extension ChatData {
     }
     
     // MARK: Group Actions
+    
+    private func updateGroupName(for groupID: GroupID, with name: String, completion: @escaping () -> ()) {
+        let group = DispatchGroup()
+            
+        group.enter()
+        updateChatGroup(with: groupID, block: { (chatGroup) in
+            guard chatGroup.name != name else { return }
+            chatGroup.name = name
+        }, performAfterSave: {
+            group.leave()
+        })
+
+        group.enter()
+        updateChatThread(type: .group, for: groupID, block: { (chatThread) in
+            guard chatThread.title != name else { return }
+            chatThread.title = name
+        }, performAfterSave: {
+            group.leave()
+        })
+        
+        group.notify(queue: backgroundProcessingQueue) {
+            completion()
+        }
+    }
+    
+    public func changeGroupName(groupID: GroupID, name: String, completion: @escaping ServiceRequestCompletion<Void>) {
+        MainAppContext.shared.service.changeGroupName(groupID: groupID, name: name) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success:
+                self.updateGroupName(for: groupID, with: name) {
+                    completion(.success(()))
+                }
+            case .failure(let error):
+                DDLogError("CreateGroupViewController/createAction/error \(error)")
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    public func changeGroupAvatar(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+        MainAppContext.shared.service.changeGroupAvatar(groupID: groupID, data: data) { [weak self] result in
+            guard let self = self else { return }
+     
+            switch result {
+            case .success(let avatarID):
+                self.updateChatGroup(with: groupID, block: { (chatGroup) in
+                    chatGroup.avatar = avatarID
+                }, performAfterSave: {
+                    MainAppContext.shared.avatarStore.updateOrInsertGroupAvatar(for: groupID, with: avatarID)
+//                    MainAppContext.shared.avatarStore.updateGroupAvatarImageData(for: groupID, avatarID: avatarID, with: data)
+                    completion(.success(()))
+                })
+            case .failure(let error):
+                DDLogError("CreateGroupViewController/createAction/error \(error)")
+            }
+        }
+    }
     
     public func getAndSyncGroup(groupId: GroupID) {
         DDLogDebug("ChatData/group/getAndSyncGroupInfo/group \(groupId)")
@@ -1514,15 +1642,21 @@ extension ChatData {
     func syncGroup(_ xmppGroup: XMPPGroup) {
         DDLogInfo("ChatData/group/syncGroupInfo")
     
-        self.updateChatGroup(with: xmppGroup.groupId) { [weak self] (chatGroup) in
+        updateChatGroup(with: xmppGroup.groupId) { [weak self] (chatGroup) in
             guard let self = self else { return }
             chatGroup.lastSync = Date()
             
             if chatGroup.name != xmppGroup.name {
                 chatGroup.name = xmppGroup.name
+                self.updateChatThread(type: .group, for: xmppGroup.groupId) { (chatThread) in
+                    chatThread.title = xmppGroup.name
+                }
             }
-            if chatGroup.avatar != xmppGroup.avatar {
-                chatGroup.avatar = xmppGroup.avatar
+            if chatGroup.avatar != xmppGroup.avatarID {
+                chatGroup.avatar = xmppGroup.avatarID
+                if let avatarID = xmppGroup.avatarID {
+                    MainAppContext.shared.avatarStore.updateOrInsertGroupAvatar(for: chatGroup.groupId, with: avatarID)
+                }
             }
             
             // look for users that are not members anymore
@@ -2105,7 +2239,7 @@ extension ChatData {
             MainAppContext.shared.contactStore.addPushNames([userId: name])
         }
         
-//        self.presentLocalNotifications(for: chatMessage)
+        showGroupNotification(for: xmppChatGroupMessage)
         
         // download chat group message media
         self.processPendingChatGroupMessageMedia()
@@ -2176,7 +2310,8 @@ extension ChatData {
     // MARK: Group Process Inbound Actions/Events
 
     private func processIncomingXMPPGroup(_ group: XMPPGroup) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             self.processIncomingGroup(xmppGroup: group, using: managedObjectContext)
         }
     }
@@ -2189,6 +2324,10 @@ extension ChatData {
             processGroupLeaveAction(xmppGroup: xmppGroup, in: managedObjectContext)
         case .modifyMembers, .modifyAdmins:
             processGroupModifyMembersAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .changeName:
+            processGroupChangeNameAction(xmppGroup: xmppGroup, in: managedObjectContext)
+        case .changeAvatar:
+            processGroupChangeAvatarAction(xmppGroup: xmppGroup, in: managedObjectContext)
         default: break
         }
         
@@ -2281,12 +2420,32 @@ extension ChatData {
 //            }
             
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
-            
-            
         }
+        
         if syncGroup {
             getAndSyncGroup(groupId: xmppGroup.groupId)
         }
+    }
+    
+    private func processGroupChangeNameAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
+        DDLogDebug("ChatData/group/processGroupChangeNameAction")
+        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        
+        recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+        
+        getAndSyncGroup(groupId: xmppGroup.groupId)
+        
+    }
+    
+    private func processGroupChangeAvatarAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
+        DDLogDebug("ChatData/group/processGroupChangeAvatarAction")
+        
+        _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
+        
+        recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
+        
+        getAndSyncGroup(groupId: xmppGroup.groupId)
+        
     }
     
     private func processGroupCreateIfNotExist(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) -> ChatGroup {
@@ -2325,6 +2484,7 @@ extension ChatData {
         let chatGroupMessageEvent = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMessageEvent.entity().name!, into: managedObjectContext) as! ChatGroupMessageEvent
         chatGroupMessageEvent.sender = xmppGroup.sender
         chatGroupMessageEvent.memberUserId = xmppGroupMember?.userId
+        chatGroupMessageEvent.groupName = xmppGroup.name
         
         chatGroupMessageEvent.action = {
             switch xmppGroup.action {
@@ -2391,13 +2551,92 @@ extension ChatData {
     }
 }
 
+// MARK: Group Notifications
+extension ChatData {
+    private func showGroupNotification(for xmppChatGroupMessage: XMPPChatGroupMessage) {
+        DDLogDebug("ChatData/showGroupNotification")
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if UIApplication.shared.applicationState == .background {
+                self.presentLocalGroupNotifications(for: xmppChatGroupMessage)
+            } else {
+                guard self.currentlyChattingInGroup != xmppChatGroupMessage.groupId else { return }
+                self.presentGroupBanner(for: xmppChatGroupMessage)
+            }
+        }
+    }
+    
+    private func presentGroupBanner(for xmppChatGroupMessage: XMPPChatGroupMessage) {
+        DDLogDebug("ChatData/presentGroupBanner")
+        guard let userID = xmppChatGroupMessage.userId else { return }
+        guard let groupName = xmppChatGroupMessage.groupName else { return }
+        
+        let name = AppContext.shared.contactStore.fullName(for: userID)
+        
+        let title = "\(name) @ \(groupName)"
+        
+        var body = ""
+        
+        body += xmppChatGroupMessage.text ?? ""
+        
+        if !xmppChatGroupMessage.media.isEmpty {
+            var mediaStr = "📷"
+            if let firstMedia = xmppChatGroupMessage.media.first {
+                if firstMedia.type == .video {
+                    mediaStr = "📹"
+                }
+            }
+            
+            if body.isEmpty {
+                body = mediaStr
+            } else {
+                body = "\(mediaStr) \(body)"
+            }
+        }
+        
+        Banner.show(title: title, body: body)
+    }
+    
+    private func presentLocalGroupNotifications(for xmppChatGroupMessage: XMPPChatGroupMessage) {
+        DDLogDebug("ChatData/presentLocalGroupNotifications")
+        guard let userID = xmppChatGroupMessage.userId else { return }
+        
+        var notifications: [UNMutableNotificationContent] = []
+        
+        let protoContainer = xmppChatGroupMessage.protoContainer
+        let protobufData = try? protoContainer.serializedData()
+                
+        let metadata = NotificationMetadata(contentId: xmppChatGroupMessage.id,
+                                            contentType: .groupChatMessage,
+                                            fromId: userID,
+                                            threadId: xmppChatGroupMessage.groupId,
+                                            threadName: xmppChatGroupMessage.groupName,
+                                            data: protobufData,
+                                            timestamp: xmppChatGroupMessage.timestamp)
+        
+        let notification = UNMutableNotificationContent()
+        notification.title = AppContext.shared.contactStore.fullName(for: userID)
+        notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
+            MainAppContext.shared.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
+        })
+        
+        notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
+        notifications.append(notification)
+        
+        let notificationCenter = UNUserNotificationCenter.current()
+        notifications.forEach { (notificationContent) in
+            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+        }
+        
+    }
+}
 
 extension ChatData: HalloChatDelegate {
 
     // MARK: XMPP Chat Delegates
     
     func halloService(_ halloService: HalloService, didReceiveMessageReceipt receipt: HalloReceipt, ack: (() -> Void)?) {
-        DDLogDebug("ChatData/didReceiveMessageReceipt [\(receipt.itemId)]")
+        DDLogDebug("ChatData/didReceiveMessageReceipt [\(receipt.itemId)] \(receipt)")
         
         switch receipt.thread {
         case .none:

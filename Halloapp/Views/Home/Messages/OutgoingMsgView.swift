@@ -82,7 +82,7 @@ class OutgoingMsgView: UIView {
         
         let subView = UIView(frame: view.bounds)
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        subView.backgroundColor = .white
+        subView.backgroundColor = .secondarySystemGroupedBackground
         subView.layer.cornerRadius = 20
         subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         subView.layer.masksToBounds = true
@@ -114,7 +114,6 @@ class OutgoingMsgView: UIView {
         let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
         let boldFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
         label.font = boldFont
-        label.textColor = .darkText
         return label
     }()
         
@@ -129,7 +128,6 @@ class OutgoingMsgView: UIView {
         view.textContainer.lineFragmentPadding = 0
         view.backgroundColor = .clear
         view.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
-        view.textColor = .darkText
         view.tintColor = UIColor.link
         view.translatesAutoresizingMaskIntoConstraints = false
         return view

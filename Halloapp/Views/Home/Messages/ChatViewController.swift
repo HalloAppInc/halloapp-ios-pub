@@ -57,7 +57,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         super.viewDidLoad()
         
         let appearance = UINavigationBarAppearance()
-        appearance.backgroundColor = UIColor.systemGray6
+        appearance.backgroundColor = UIColor.feedBackground
         appearance.shadowColor = .clear
         navigationItem.standardAppearance = appearance
         navigationItem.scrollEdgeAppearance = appearance
@@ -78,7 +78,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
-        tableView.backgroundColor = UIColor.systemGray6
+        tableView.backgroundColor = UIColor.feedBackground
         tableView.tableHeaderView = nil
         tableView.tableFooterView = nil
         
@@ -125,7 +125,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.outgoingMsgCellReuseIdentifier, for: indexPath) as? OutgoingMsgCell {
 
                     cell.update(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
-                    cell.backgroundColor = UIColor.systemGray6
 
                     if (chatMessage.media != nil) || (chatMessage.quoted != nil && chatMessage.quoted?.media != nil) {
                         cell.previewAction = { [weak self] previewType, mediaIndex in
@@ -141,7 +140,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.incomingMsgCellReuseIdentifier, for: indexPath) as? IncomingMsgCell {
 
                     cell.update(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
-                    cell.backgroundColor = UIColor.systemGray6
 
                     if (chatMessage.media != nil) || (chatMessage.quoted != nil && chatMessage.quoted?.media != nil) {
                         cell.previewAction = { [weak self] previewType, mediaIndex in
@@ -182,9 +180,9 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         if let feedPostId = self.feedPostId {
             if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
                 if let mediaItem = feedPost.media?.first(where: { $0.order == self.feedPostMediaIndex }) {
-                    chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: mediaItem.type, mediaUrl: mediaItem.relativeFilePath)
+                    chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: mediaItem.type, mediaUrl: mediaItem.relativeFilePath, from: self)
                 } else {
-                    chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: nil, mediaUrl: nil)
+                    chatInputView.showQuoteFeedPanel(with: feedPost.userId, text: feedPost.text ?? "", mediaType: nil, mediaUrl: nil, from: self)
                 }
             }
         }
@@ -205,7 +203,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.chatInputView.willAppear(in: self)
+        chatInputView.willAppear(in: self)
     }
 
     override func viewDidLayoutSubviews() {
@@ -437,8 +435,8 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }()
 
     override var inputAccessoryView: UIView? {
-        self.chatInputView.setInputViewWidth(self.view.bounds.size.width)
-        return self.chatInputView
+        chatInputView.setInputViewWidth(view.bounds.size.width)
+        return chatInputView
     }
     
     override var canBecomeFirstResponder: Bool {
@@ -448,11 +446,11 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }
 
     func updateTableViewContentInsets(with keyboardHeight: CGFloat, adjustContentOffset: Bool) {
-        let topInset = self.tableView.contentInset.top
+        let topInset = tableView.contentInset.top
         let extraBottomInset: CGFloat = 10 // extra margin for the bottom of the table
-        let bottomInset = keyboardHeight - self.tableView.safeAreaInsets.bottom + extraBottomInset
-        let currentInset = self.tableView.contentInset
-        var contentOffset = self.tableView.contentOffset
+        let bottomInset = keyboardHeight - tableView.safeAreaInsets.bottom + extraBottomInset
+        let currentInset = tableView.contentInset
+        var contentOffset = tableView.contentOffset
         var adjustContentOffset = adjustContentOffset
         if bottomInset > currentInset.bottom && currentInset.bottom == 0 {
             // Because of the SwiftUI the accessory view appears with a slight delay
@@ -464,25 +462,25 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
             contentOffset.y += bottomInset - currentInset.bottom
         }
         if (adjustContentOffset) {
-            self.tableView.contentOffset = contentOffset
+            tableView.contentOffset = contentOffset
         }
         // Setting contentInset below will also adjust contentOffset as needed if it is outside of the
         // UITableView's scrollable range.
-        self.tableView.contentInset = UIEdgeInsets(top: topInset, left: 0, bottom: bottomInset, right: 0)
+        tableView.contentInset = UIEdgeInsets(top: topInset, left: 0, bottom: bottomInset, right: 0)
         let scrollIndicatorInsets = UIEdgeInsets(top: topInset, left: 0, bottom: bottomInset, right: 0)
-        self.tableView.scrollIndicatorInsets = scrollIndicatorInsets
+        tableView.scrollIndicatorInsets = scrollIndicatorInsets
     }
 
     // MARK: ChatInputView Delegates
     
     func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
         var animationDuration = animationDuration
-        if self.transitionCoordinator != nil {
+        if transitionCoordinator != nil {
             animationDuration = 0
         }
         var adjustContentOffset = true
         // Prevent the content offset from changing when the user drags the keyboard down.
-        if self.tableView.panGestureRecognizer.state == .ended || self.tableView.panGestureRecognizer.state == .changed {
+        if tableView.panGestureRecognizer.state == .ended || self.tableView.panGestureRecognizer.state == .changed {
             adjustContentOffset = false
         }
         
@@ -497,7 +495,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }
 
     func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
-        self.sendMessage(text: text, media: [])
+        sendMessage(text: text, media: [])
     }
     
     func sendMessage(text: String, media: [PendingMedia]) {
@@ -539,11 +537,11 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         let vc = MessageComposerView(mediaItemsToPost: media)
         vc.delegate = self
         vc.modalPresentationStyle = .fullScreen
-        self.present(vc, animated: false, completion: nil)
+        present(vc, animated: false, completion: nil)
     }
     
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
-        self.chatInputView.hideKeyboard()
+        chatInputView.hideKeyboard()
     }
 }
 
@@ -686,21 +684,22 @@ class IncomingMsgCell: UITableViewCell, IncomingMsgViewDelegate {
     }
 
     private func setup() {
-        self.selectionStyle = .none
+        selectionStyle = .none
+        backgroundColor = UIColor.feedBackground
         
-        self.contentView.preservesSuperviewLayoutMargins = false
-        self.contentView.layoutMargins.top = 0
-        self.contentView.layoutMargins.bottom = 0
+        contentView.preservesSuperviewLayoutMargins = false
+        contentView.layoutMargins.top = 0
+        contentView.layoutMargins.bottom = 0
         
-        self.contentView.addSubview(self.incomingMsgView)
+        contentView.addSubview(incomingMsgView)
         
-        self.incomingMsgView.translatesAutoresizingMaskIntoConstraints = false
-        self.incomingMsgView.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        self.incomingMsgView.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
-        self.incomingMsgView.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = false
-        self.incomingMsgView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
+        incomingMsgView.translatesAutoresizingMaskIntoConstraints = false
+        incomingMsgView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        incomingMsgView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor).isActive = true
+        incomingMsgView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = false
+        incomingMsgView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        self.incomingMsgView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(UIScreen.main.bounds.width * Constants.WidthOfMsgBubble).rounded()).isActive = true
+        incomingMsgView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(UIScreen.main.bounds.width * Constants.WidthOfMsgBubble).rounded()).isActive = true
     }
     
     private lazy var incomingMsgView: IncomingMsgView = {
@@ -747,6 +746,7 @@ class OutgoingMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
 
     private func setup() {
         selectionStyle = .none
+        backgroundColor = UIColor.feedBackground
         
         contentView.preservesSuperviewLayoutMargins = false
         contentView.layoutMargins.top = 0

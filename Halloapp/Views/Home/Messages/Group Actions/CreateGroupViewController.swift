@@ -11,8 +11,6 @@ import Core
 import CoreData
 import Foundation
 import UIKit
-import SwiftUI
-
 
 protocol CreateGroupViewControllerDelegate: AnyObject {
     func createGroupViewController(_ createGroupViewController: CreateGroupViewController)

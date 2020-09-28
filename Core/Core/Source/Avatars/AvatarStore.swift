@@ -24,9 +24,12 @@ public class AvatarStore: ServiceAvatarDelegate {
         public static let userDefaultsUpload = "xmpp.avatar-sent"
         public static let userDefaultsDownload = "xmpp.avatar-query"
     }
+
+    private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.avatars")
     
     // Please notice that when app moves to the background, `userAvatars` may be evicted.
     private let userAvatars = NSCache<NSString, UserAvatar>()
+    private let groupAvatarsData = NSCache<NSString, GroupAvatarData>()
     
     private class var persistentStoreURL: URL {
         get {
@@ -60,10 +63,11 @@ public class AvatarStore: ServiceAvatarDelegate {
     
     public init() {}
     
-    private func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        let managedObjectContext = self.persistentContainer.newBackgroundContext()
-        managedObjectContext.performAndWait {
-            block(managedObjectContext)
+    private func performOnBackgroundContextAndWait(_ block: @escaping (NSManagedObjectContext) -> Void) {
+        backgroundProcessingQueue.async { [weak self] in
+            guard let self = self else { return }
+            let managedObjectContext = self.persistentContainer.newBackgroundContext()
+            managedObjectContext.performAndWait { block(managedObjectContext) }
         }
     }
     
@@ -141,7 +145,6 @@ public class AvatarStore: ServiceAvatarDelegate {
                         DDLogError("AvatarStore/save/failed to remove old file [\(error)]")
                     }
                 }
-                
                 currentAvatar!.relativeFilePath = nil
             }
         }
@@ -252,7 +255,7 @@ public class AvatarStore: ServiceAvatarDelegate {
     public func service(_ service: CoreService, didReceiveAvatarInfo avatarInfo: AvatarInfo) {
         DDLogInfo("AvatarStore/didReceiveAvatar \(avatarInfo)")
 
-        let managedObjectContext = self.persistentContainer.viewContext
+        let managedObjectContext = persistentContainer.viewContext
         
         save(avatarId: avatarInfo.avatarID, forUserId: avatarInfo.userID, using: managedObjectContext)
     }
@@ -260,10 +263,157 @@ public class AvatarStore: ServiceAvatarDelegate {
     public func processContactSync(_ avatarDict: [UserID: AvatarID]) {
         performOnBackgroundContextAndWait { (managedObjectContext) in
             for (userId, avatarId) in avatarDict {
-                save(avatarId: avatarId, forUserId: userId, using: managedObjectContext, isContactSync: true)
+                self.save(avatarId: avatarId, forUserId: userId, using: managedObjectContext, isContactSync: true)
             }
         }
     }
+}
+
+extension AvatarStore {
+
+    public func groupAvatarData(for groupID: GroupID) -> GroupAvatarData {
+        if let groupAvatarData = groupAvatarsData.object(forKey: groupID as NSString) {
+            DDLogDebug("AvatarStore/group/groupAvatarData/in cache already \(groupID)")
+            return groupAvatarData
+        }
+
+        var groupAvatarData: GroupAvatarData?
+
+        if let groupAvatar = groupAvatar(for: groupID) {
+            groupAvatarData = GroupAvatarData(groupAvatar)
+        } else {
+            groupAvatarData = GroupAvatarData(groupID: groupID)
+        }
+
+        groupAvatarsData.setObject(groupAvatarData!, forKey: groupID as NSString)
+        return groupAvatarData!
+    }
+ 
+    // MARK: GroupAvatar Core Data Inserting
+  
+    public func updateOrInsertGroupAvatar(for groupID: GroupID, with avatarID: AvatarID) {
+        performOnBackgroundContextAndWait { (managedObjectContext) in
+            self.updateOrInsertGroupAvatar(for: groupID, with: avatarID, using: managedObjectContext)
+        }
+    }
+    
+    private func updateOrInsertGroupAvatar(for groupID: GroupID, with avatarID: AvatarID, using managedObjectContext: NSManagedObjectContext) {
+        if let groupAvatar = groupAvatar(for: groupID, using: managedObjectContext) {
+            guard groupAvatar.avatarID != avatarID else {
+                DDLogDebug("AvatarStore/group/save/no change to avatarID")
+                return
+            }
+            DDLogDebug("AvatarStore/group/save/avaterID changed")
+
+            groupAvatar.avatarID = avatarID
+            
+            if let relativeFilePath = groupAvatar.relativeFilePath {
+                DDLogDebug("AvatarStore/group/save/delete old avatar")
+                let filePath = AvatarStore.fileURL(forRelativeFilePath: relativeFilePath)
+                if FileManager.default.fileExists(atPath: filePath.path) {
+                    do {
+                        try FileManager.default.removeItem(at: filePath)
+                    } catch let error as NSError {
+                        DDLogError("AvatarStore/save/failed to remove old file [\(error)]")
+                    }
+                }
+                groupAvatar.relativeFilePath = nil
+            }
+            
+        } else {
+            DDLogDebug("AvatarStore/group/save/insert new avatar")
+            let groupAvatar = NSEntityDescription.insertNewObject(forEntityName: GroupAvatar.entity().name!, into: managedObjectContext) as! GroupAvatar
+            groupAvatar.groupID = groupID
+            groupAvatar.avatarID = avatarID
+        }
+
+        do {
+            try managedObjectContext.save()
+        } catch let error as NSError {
+            DDLogError("AvatarStore/save/error [\(error)]")
+        }
+        
+        if let groupAvatarData = groupAvatarsData.object(forKey: groupID as NSString) {
+            groupAvatarData.skipEmptyStateRenderingOnce = true
+            groupAvatarData.image = nil
+            groupAvatarData.data = nil
+            groupAvatarData.fileUrl = nil
+
+            groupAvatarData.avatarId = avatarID
+
+            if avatarID != "" {
+                groupAvatarData.loadImage(using: self)
+            }
+        }
+    }
+    
+    /* currently not used */
+    public func updateGroupAvatarImageData(for groupID: GroupID, avatarID: AvatarID, with data: Data) {
+        DDLogInfo("AvatarStore/saveGroupAvatarImageData")
+ 
+        let fileURL = AvatarStore.fileURL(forRelativeFilePath: "\(avatarID).jpeg")
+        
+        do {
+            try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+            try data.write(to: fileURL)
+        } catch {
+            DDLogError("AvatarStore/save/failed [\(error)]")
+            return
+        }
+        
+        updateGroupAvatar(for: groupID, relativeFilePath: "\(avatarID).jpeg")
+        
+        // update cache
+        if let groupAvatarData = groupAvatarsData.object(forKey: groupID as NSString) {
+            groupAvatarData.avatarId = avatarID
+            groupAvatarData.image = UIImage(data: data)
+            groupAvatarData.data = data
+            groupAvatarData.fileUrl = fileURL
+        }
+    }
+    
+    // MARK: GroupAvatar Core Data Fetching
+    
+    private func groupAvatar(for groupID: GroupID) -> GroupAvatar? {
+        let managedObjectContext = self.persistentContainer.viewContext
+        return groupAvatar(for: groupID, using: managedObjectContext)
+    }
+    
+    private func groupAvatar(for groupID: GroupID, using managedObjectContext: NSManagedObjectContext) -> GroupAvatar? {
+        let fetchRequest: NSFetchRequest<GroupAvatar> = GroupAvatar.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "groupID == %@", groupID)
+        
+        do {
+            let results = try managedObjectContext.fetch(fetchRequest)
+            return results.first
+        } catch  {
+            DDLogError("AvatarStore/group/fetch/error [\(error)]")
+            return nil
+        }
+    }
+    
+    // MARK: GroupAvatar Core Data Updating
+    
+    fileprivate func updateGroupAvatar(for groupID: GroupID, relativeFilePath: String) {
+        performOnBackgroundContextAndWait { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            guard let currentAvatar = self.groupAvatar(for: groupID, using: managedObjectContext) else {
+                DDLogError("AvatarStore/group/updateGroupAvatar/error avatar does not exist!")
+                return
+            }
+            
+            currentAvatar.relativeFilePath = relativeFilePath
+            
+            do {
+                try managedObjectContext.save()
+            } catch let error as NSError {
+                DDLogError("AvatarStore/group/updateGroupAvatar/error [\(error)]")
+            }
+            
+            DDLogInfo("AvatarStore/group/updateGroupAvatar relativeFilePath for group \(groupID) has been changed to \(relativeFilePath)")
+        }
+    }
+    
 }
 
 public class UserAvatar {
@@ -394,6 +544,149 @@ public class UserAvatar {
                     self.image = image
                     self.data = response.value!
                     DDLogInfo("UserAvatar/loadImage avatar for user \(self.userId) has been loaded from network")
+                }
+                
+                self.imageIsLoading = false
+            }
+        }
+    }
+}
+
+
+public class GroupAvatarData {
+    
+    public let imageDidChange = PassthroughSubject<UIImage?, Never>()
+    public var isEmpty = true
+    
+    public var data: Data?
+    public var skipEmptyStateRenderingOnce: Bool = false
+    public var image: UIImage? {
+        didSet {
+            if !skipEmptyStateRenderingOnce {
+                DispatchQueue.main.async {
+                    self.imageDidChange.send(self.image)
+                }
+            } else {
+                skipEmptyStateRenderingOnce = false
+            }
+        }
+    }
+    
+    
+    private static let avatarLoadingQueue = DispatchQueue(label: "com.halloapp.group-avatar-loading", qos: .userInitiated)
+    fileprivate var fileUrl: URL?
+    private let groupID: GroupID
+    fileprivate var avatarId: AvatarID? {
+        didSet {
+            if avatarId != nil && !avatarId!.isEmpty {
+                isEmpty = false
+            } else {
+                isEmpty = true
+            }
+        }
+    }
+    
+    private var imageIsLoading = false
+    
+    init(_ groupAvatar: GroupAvatar) {
+        avatarId = groupAvatar.avatarID
+        groupID = groupAvatar.groupID
+        
+        if avatarId != nil && !avatarId!.isEmpty {
+            isEmpty = false
+        } else {
+            isEmpty = true
+        }
+        
+        if let relativeFilePath = groupAvatar.relativeFilePath {
+            fileUrl = AvatarStore.fileURL(forRelativeFilePath: relativeFilePath)
+        } else {
+            fileUrl = nil
+        }
+        
+        DDLogInfo("GroupAvatarData/init \(groupID)")
+        DDLogInfo("GroupAvatarData/init avatarID: \(avatarId)")
+    }
+    
+    init(groupID: GroupID) {
+        self.groupID = groupID
+        
+        DDLogInfo("GroupAvatarData/init dummy object \(groupID)")
+    }
+    
+    public func loadImage(using avatarStore: AvatarStore) {
+        guard image == nil && !imageIsLoading && !isEmpty else {
+            return
+        }
+        
+        imageIsLoading = true
+        
+        DDLogInfo("GroupAvatarData/loadImage for group=\(groupID), avatar=\(avatarId ?? ""), fileUrl=\(String(describing: fileUrl))")
+        if let fileUrl = self.fileUrl { // avatar has been downloaded
+            GroupAvatarData.avatarLoadingQueue.async {
+                do {
+                    self.data = try Data(contentsOf: fileUrl)
+                } catch {
+                    DDLogError("UserAvatar/reload failed to read data \(error)")
+                    return
+                }
+                
+                if let image = UIImage(data: self.data!) {
+                    DispatchQueue.main.async {
+                        self.image = image
+                        DDLogInfo("GroupAvatarData/loadImage avatar for group \(self.groupID) has been loaded from disk")
+                    }
+                } else {
+                    DDLogError("GroupAvatarData/reload failed to deserialized data into UIImage")
+                    self.data = nil
+                }
+                
+                self.imageIsLoading = false
+            }
+        } else { // avatar has not been downloaded yet
+            guard let url = URL(string: AvatarStore.avatarCDNUrl + avatarId!) else {
+                DDLogError("GroupAvatarData/loadImage/error \(AvatarStore.avatarCDNUrl + avatarId!) cannot be formed as a URL")
+                self.imageIsLoading = false
+                return
+            }
+            
+            let fileName = "\(avatarId!).jpeg"
+            let fileUrl = AvatarStore.fileURL(forRelativeFilePath: fileName)
+            let destination: DownloadRequest.Destination = { _, _ in
+                return (fileUrl, [.removePreviousFile, .createIntermediateDirectories])
+            }
+            
+            AF.download(url, to: destination).responseData(queue: GroupAvatarData.avatarLoadingQueue) { (response) in
+                if let error = response.error {
+                    DDLogError("GroupAvatarData/loadImage/AFDownload/error \(error)")
+                    self.imageIsLoading = false
+                    return
+                }
+                
+                guard let httpURLResponse = response.response else {
+                    DDLogError("GroupAvatarData/loadImage/AFDownload/error can't get response")
+                    self.imageIsLoading = false
+                    return
+                }
+                
+                guard httpURLResponse.statusCode == 200 else {
+                    DDLogError("GroupAvatarData/loadImage/AFDownload/error unexpected response code \(httpURLResponse.statusCode)")
+                    self.imageIsLoading = false
+                    return
+                }
+                
+                guard let image = UIImage(data: response.value!) else {
+                    DDLogError("GroupAvatarData/loadImage/AFDownload/error failed to deserialized data into UIIamge")
+                    self.imageIsLoading = false
+                    return
+                }
+                
+                avatarStore.updateGroupAvatar(for: self.groupID, relativeFilePath: fileName)
+                
+                DispatchQueue.main.async {
+                    self.image = image
+                    self.data = response.value!
+                    DDLogInfo("GroupAvatarData/loadImage avatar for group \(self.groupID) has been loaded from network")
                 }
                 
                 self.imageIsLoading = false

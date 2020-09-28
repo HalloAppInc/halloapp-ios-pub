@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="16119" systemVersion="19F101" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19G2021" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Avatar" representedClassName="Avatar" syncable="YES">
         <attribute name="avatarId" optional="YES" attributeType="String"/>
         <attribute name="relativeFilePath" optional="YES" attributeType="String"/>
         <attribute name="userId" attributeType="String"/>
     </entity>
+    <entity name="GroupAvatar" representedClassName="GroupAvatar" syncable="YES">
+        <attribute name="avatarID" optional="YES" attributeType="String"/>
+        <attribute name="groupID" optional="YES" attributeType="String"/>
+        <attribute name="relativeFilePath" optional="YES" attributeType="String"/>
+    </entity>
     <elements>
         <element name="Avatar" positionX="-63" positionY="-18" width="128" height="88"/>
+        <element name="GroupAvatar" positionX="-63" positionY="9" width="128" height="88"/>
     </elements>
 </model>

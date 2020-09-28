@@ -531,6 +531,7 @@ extension ProtoService: HalloService {
     func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>) {
         enqueue(request: ProtoGroupInfoRequest(groupID: groupID, completion: completion))
     }
+    
     func modifyGroup(groupID: GroupID, with members: [UserID], groupAction: ChatGroupAction,
                      action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoGroupModifyRequest(
@@ -540,6 +541,21 @@ extension ProtoService: HalloService {
             action: action,
             completion: completion))
     }
+
+    func changeGroupName(groupID: GroupID, name: String, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoChangeGroupNameRequest(
+            groupID: groupID,
+            name: name,
+            completion: completion))
+    }
+
+    func changeGroupAvatar(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<String>) {
+        enqueue(request: ProtoChangeGroupAvatarRequest(
+            groupID: groupID,
+            data: data,
+            completion: completion))
+    }
+    
 }
 
 private protocol ReceivedReceipt {

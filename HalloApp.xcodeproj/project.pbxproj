@@ -166,6 +166,7 @@
 		EA35857C2450BE3300E6E8AB /* IncomingMsgView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3585772450BE3300E6E8AB /* IncomingMsgView.swift */; };
 		EA35857D2450BE3300E6E8AB /* OutgoingMsgView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3585782450BE3300E6E8AB /* OutgoingMsgView.swift */; };
 		EA36B5F024FDB83700A7E4CE /* MessageSeenByViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */; };
+		EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA388C5B2520EB9500DEAB53 /* Banner.swift */; };
 		EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* ProfileViewController.swift */; };
 		EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */; };
 		EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713223EB7DB3008C2E44 /* FeedMedia.swift */; };
@@ -190,6 +191,7 @@
 		EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */; };
 		EABBF72B24E72C6200FE1F1F /* CreateGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */; };
 		EABBF73524E7901300FE1F1F /* XMPPGroupRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF73424E7901300FE1F1F /* XMPPGroupRequests.swift */; };
+		EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC46555251484FE00783821 /* EditGroupViewController.swift */; };
 		EAC4AF23233E8DAB00739B2B /* ChatMediaDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */; };
 		EAC84CEA2422E05700A5AAEF /* XMPPFeedRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */; };
 		EACC34CB24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EACC34C924FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift */; };
@@ -457,6 +459,7 @@
 		EA3585772450BE3300E6E8AB /* IncomingMsgView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IncomingMsgView.swift; sourceTree = "<group>"; };
 		EA3585782450BE3300E6E8AB /* OutgoingMsgView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OutgoingMsgView.swift; sourceTree = "<group>"; };
 		EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSeenByViewController.swift; sourceTree = "<group>"; };
+		EA388C5B2520EB9500DEAB53 /* Banner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Banner.swift; sourceTree = "<group>"; };
 		EA454B63234E769F002B960D /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
 		EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataItem.swift; sourceTree = "<group>"; };
 		EA45713223EB7DB3008C2E44 /* FeedMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMedia.swift; sourceTree = "<group>"; };
@@ -482,6 +485,7 @@
 		EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGroupMembersViewController.swift; sourceTree = "<group>"; };
 		EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupViewController.swift; sourceTree = "<group>"; };
 		EABBF73424E7901300FE1F1F /* XMPPGroupRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPGroupRequests.swift; sourceTree = "<group>"; };
+		EAC46555251484FE00783821 /* EditGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGroupViewController.swift; sourceTree = "<group>"; };
 		EAC4AF22233E8DAB00739B2B /* ChatMediaDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMediaDownloader.swift; sourceTree = "<group>"; };
 		EAC84CE92422E05700A5AAEF /* XMPPFeedRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPFeedRequests.swift; sourceTree = "<group>"; };
 		EACC34C924FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageInfo+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -928,11 +932,11 @@
 		EA38843523A15D2C00E8BF92 /* Messages */ = {
 			isa = PBXGroup;
 			children = (
+				EAC465502514827800783821 /* Group Actions */,
 				EAD476CE2457AEF700EF8591 /* Media */,
 				EAD476D124588DB600EF8591 /* MediaSlider */,
 				EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */,
 				EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */,
-				EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */,
 				EAD476CC245513EF00EF8591 /* ChatListViewController.swift */,
 				EAD944F624F73E4C004A27B1 /* GroupInfoViewController.swift */,
 				EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */,
@@ -941,6 +945,7 @@
 				EA3585782450BE3300E6E8AB /* OutgoingMsgView.swift */,
 				EA3585752450BE3300E6E8AB /* ChatInputView.swift */,
 				EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */,
+				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
 			);
 			path = Messages;
 			sourceTree = "<group>";
@@ -1095,6 +1100,15 @@
 				76407DF7245CA3F00031F96A /* UIViewController.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		EAC465502514827800783821 /* Group Actions */ = {
+			isa = PBXGroup;
+			children = (
+				EABBF72A24E72C6200FE1F1F /* CreateGroupViewController.swift */,
+				EAC46555251484FE00783821 /* EditGroupViewController.swift */,
+			);
+			path = "Group Actions";
 			sourceTree = "<group>";
 		};
 		EAC4AF21233E8D9700739B2B /* Network */ = {
@@ -1670,6 +1684,7 @@
 				24AA69D324DCC1B500ED65CE /* XMPPChatMessage.swift in Sources */,
 				76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */,
 				76A9244B244EC49000794859 /* UIView.swift in Sources */,
+				EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */,
 				761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */,
 				761BD10024B4291200B567F6 /* InvitePeopleTableViewController.swift in Sources */,
 				766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */,
@@ -1689,6 +1704,7 @@
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
 				764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */,
 				F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */,
+				EAC46556251484FE00783821 /* EditGroupViewController.swift in Sources */,
 				76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */,
 				EAD944F724F73E4C004A27B1 /* GroupInfoViewController.swift in Sources */,
 				764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */,

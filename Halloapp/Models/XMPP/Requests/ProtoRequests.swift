@@ -320,6 +320,44 @@ final class ProtoGroupModifyRequest: ProtoStandardRequest<Void> {
     }
 }
 
+final class ProtoChangeGroupNameRequest: ProtoStandardRequest<Void> {
+    init(groupID: GroupID, name: String, completion: @escaping ServiceRequestCompletion<Void>) {
+
+        var group = PBgroup_stanza()
+        group.gid = groupID
+        group.action = .changeName
+        group.name = name
+        
+        super.init(
+            packet: PBpacket.iqPacket(type: .set, payload: .groupStanza(group)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
+
+final class ProtoChangeGroupAvatarRequest: ProtoStandardRequest<String> {
+    init(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<String>) {
+
+        var group = PBgroup_stanza()
+        group.gid = groupID
+        group.action = .changeAvatar
+        
+        super.init(
+            packet: .iqPacket(type: .get, payload: .groupStanza(group)),
+            transform: {
+                guard let group = HalloGroup(protoGroup: $0.iq.payload.groupStanza), let avatarID = group.avatarID else {
+                    return .failure(ProtoServiceError.unexpectedResponseFormat)
+                }
+                return .success(avatarID) },
+            completion: completion)
+        
+//        super.init(
+//            packet: PBpacket.iqPacket(type: .set, payload: .groupStanza(group)),
+//            transform: { _ in .success(()) },
+//            completion: completion)
+    }
+}
+
 final class ProtoUpdateNotificationSettingsRequest: ProtoStandardRequest<Void> {
     init(settings: [NotificationSettings.ConfigKey: Bool], completion: @escaping ServiceRequestCompletion<Void>) {
         var prefs = PBnotification_prefs()

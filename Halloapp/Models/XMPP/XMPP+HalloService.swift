@@ -176,6 +176,7 @@ extension XMPPControllerMain: HalloService {
             }
         })
     }
+    
     func modifyGroup(groupID: GroupID, with members: [UserID], groupAction: ChatGroupAction,
                      action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>)
     {
@@ -184,6 +185,26 @@ extension XMPPControllerMain: HalloService {
                 completion(.failure(error))
             } else {
                 completion(.success(()))
+            }
+        })
+    }
+    
+    func changeGroupName(groupID: GroupID, name: String, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: XMPPGroupChangeNameRequest(groupId: groupID, name: name) { (_, error) in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+            }
+        })
+    }
+    
+    func changeGroupAvatar(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<String>) {
+        enqueue(request: XMPPGroupChangeAvatarRequest(groupID: groupID, data: data) { (xml, error) in
+            if let xml = xml, let group = xml.forName("group"), let avatarID = group.attributeStringValue(forName: "avatar"), avatarID != "" {
+                completion(.success(avatarID))
+            } else {
+                completion(.failure(error ?? XMPPError.malformed))
             }
         })
     }

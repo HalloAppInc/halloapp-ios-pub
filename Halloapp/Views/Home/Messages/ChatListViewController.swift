@@ -336,6 +336,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         DDLogInfo("ChatListViewController/notification/open-chat \(metadata.fromId)")
 
         navigationController?.popToRootViewController(animated: false)
+
         if metadata.contentType == .chatMessage {
             navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
         } else if metadata.contentType == .groupChatMessage, let groupId = metadata.threadId {
@@ -531,6 +532,8 @@ private class ChatListTableViewCell: UITableViewCell {
         
         if chatThread.type == .oneToOne {
             avatarView.configure(with: chatThread.chatWithUserId ?? "", using: MainAppContext.shared.avatarStore)
+        } else {
+            avatarView.configureGroupAvatar(for: chatThread.groupId ?? "", using: MainAppContext.shared.avatarStore)
         }
     }
     
@@ -561,7 +564,7 @@ private class ChatListTableViewCell: UITableViewCell {
             avatarView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             avatarView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
             avatarView.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8),
-
+            
             vStack.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 10),
             vStack.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
             vStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
@@ -572,7 +575,7 @@ private class ChatListTableViewCell: UITableViewCell {
     private lazy var avatarView: AvatarView = {
         return AvatarView()
     }()
-
+    
     // 16 points for font
     private lazy var nameLabel: UILabel = {
         let label = UILabel()

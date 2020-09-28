@@ -68,7 +68,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         
         let subView = UIView(frame: view.bounds)
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        subView.backgroundColor = .white
+        subView.backgroundColor = .secondarySystemGroupedBackground
         subView.layer.cornerRadius = 20
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
@@ -146,7 +146,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         baseSubView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         baseSubView.layer.masksToBounds = true
         baseSubView.clipsToBounds = true
-        baseSubView.backgroundColor = UIColor.systemGray6
+        baseSubView.backgroundColor = UIColor.feedBackground
         baseSubView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(baseSubView, at: 0)
         
@@ -275,7 +275,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         textView.backgroundColor = .clear
         textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
         textView.tintColor = UIColor.link
-        textView.textColor = UIColor.darkText
+//        textView.textColor = UIColor.darkText
         return textView
     }()
 

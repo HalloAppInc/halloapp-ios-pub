@@ -59,7 +59,7 @@ public struct XMPPReceipt: Equatable {
         self.itemId = itemId
         self.userId = userId
         self.timestamp = Date(timeIntervalSince1970: timestamp)
-        if let threadId = xmlElement.attributeStringValue(forName: "thread_id") {
+        if let threadId = xmlElement.attributeStringValue(forName: "thread_id"), threadId != "" {
             if threadId == "feed" {
                 self.thread = .feed
             } else {

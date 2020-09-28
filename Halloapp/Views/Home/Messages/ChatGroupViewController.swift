@@ -13,7 +13,9 @@ import CoreData
 import Photos
 import UIKit
 
+// MARK: Constraint Constants
 fileprivate struct Constants {
+    static let AvatarSize: CGFloat = 40
     static let WidthOfMsgBubble:CGFloat = 0.9
 }
 
@@ -47,7 +49,7 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
         super.viewDidLoad()
 
         let appearance = UINavigationBarAppearance()
-        appearance.backgroundColor = UIColor.systemGray6
+        appearance.backgroundColor = UIColor.feedBackground
         appearance.shadowColor = .clear
         navigationItem.standardAppearance = appearance
         navigationItem.scrollEdgeAppearance = appearance
@@ -60,13 +62,13 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
         navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
         titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        titleView.update(with: groupId)
+        
         titleView.delegate = self
         
         view.addSubview(tableView)
         tableView.constrain(to: view)
 
-        tableView.backgroundColor = UIColor.systemGray6
+        tableView.backgroundColor = UIColor.feedBackground
         tableView.tableHeaderView = nil
         tableView.tableFooterView = nil
         
@@ -113,6 +115,7 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatGroupViewController.eventMsgTableViewCellReuseIdentifier, for: indexPath) as? EventMsgTableViewCell {
 
                     guard let text = chatGroupMessage.event?.text else { cell.isHidden = true; return cell }
+                    
                     cell.configure(with: text)
 
                     return cell
@@ -190,7 +193,8 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        chatInputView.willAppear(in: self)
+        titleView.update(with: groupId)
+//        chatInputView.willAppear(in: self)
     }
 
     override func viewDidLayoutSubviews() {
@@ -478,14 +482,12 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
     }
 
     func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
-        self.sendGroupMessage(text: text, media: [])
+        sendGroupMessage(text: text, media: [])
     }
     
     func sendGroupMessage(text: String, media: [PendingMedia]) {
-     
         MainAppContext.shared.chatData.sendGroupMessage(toGroupId: groupId, text: text, media: media)
-        
-        self.chatInputView.text = ""
+        chatInputView.text = ""
     }
     
     // TODO: move chatInputViewCloseQuotePanel to a separate protocol
@@ -493,7 +495,7 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
     }
     
     func chatInputView(_ inputView: ChatInputView) {
-        self.presentPhotoLibraryPickerNew()
+        presentPhotoLibraryPickerNew()
     }
 
     private func presentPhotoLibraryPickerNew() {
@@ -514,11 +516,11 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
         let vc = MessageComposerView(mediaItemsToPost: media)
         vc.delegate = self
         vc.modalPresentationStyle = .fullScreen
-        self.present(vc, animated: false, completion: nil)
+        present(vc, animated: false, completion: nil)
     }
     
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
-        self.chatInputView.hideKeyboard()
+        chatInputView.hideKeyboard()
     }
 }
 
@@ -609,37 +611,36 @@ fileprivate class TitleView: UIView {
             self.nameLabel.text = chatGroup.name
         }
         
-        //        contactImageView.configure(with: fromUserId, using: MainAppContext.shared.avatarStore)
+        avatarView.configureGroupAvatar(for: groupId, using: MainAppContext.shared.avatarStore)
     }
 
     private func setup() {
-        let imageSize: CGFloat = 40.0
-        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
-        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
+        avatarView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
+        avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
         
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
         spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
 
-        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.nameColumn, spacer ])
+        let hStack = UIStackView(arrangedSubviews: [ avatarView, nameColumn, spacer ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
         hStack.alignment = .leading
         hStack.spacing = 10
 
-        self.addSubview(hStack)
-        hStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
+        addSubview(hStack)
+        hStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
+        hStack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
+        hStack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoGroupInfo(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoGroupInfo(_:)))
         isUserInteractionEnabled = true
         addGestureRecognizer(tapGesture)
     }
     
-    private lazy var contactImageView: AvatarView = {
+    private lazy var avatarView: AvatarView = {
         return AvatarView()
     }()
     
@@ -671,7 +672,7 @@ fileprivate class TitleView: UIView {
     }()
     
     @objc func gotoGroupInfo(_ sender: UIView) {
-        self.delegate?.titleView(self)
+        delegate?.titleView(self)
     }
 }
 
@@ -688,27 +689,26 @@ class InboundMsgCell: UITableViewCell, IncomingMsgViewDelegate {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.incomingMsgView.reset()
+        incomingMsgView.reset()
     }
     
     private func setup() {
-        backgroundColor = UIColor.systemGray6
+        selectionStyle = .none
+        backgroundColor = UIColor.feedBackground
         
-        self.selectionStyle = .none
+        contentView.preservesSuperviewLayoutMargins = false
+        contentView.layoutMargins.top = 0
+        contentView.layoutMargins.bottom = 0
         
-        self.contentView.preservesSuperviewLayoutMargins = false
-        self.contentView.layoutMargins.top = 0
-        self.contentView.layoutMargins.bottom = 0
+        contentView.addSubview(incomingMsgView)
         
-        self.contentView.addSubview(self.incomingMsgView)
-        
-        self.incomingMsgView.translatesAutoresizingMaskIntoConstraints = false
-        self.incomingMsgView.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        self.incomingMsgView.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
-        self.incomingMsgView.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = false
-        self.incomingMsgView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
+        incomingMsgView.translatesAutoresizingMaskIntoConstraints = false
+        incomingMsgView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        incomingMsgView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor).isActive = true
+        incomingMsgView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = false
+        incomingMsgView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        self.incomingMsgView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(UIScreen.main.bounds.width * Constants.WidthOfMsgBubble).rounded()).isActive = true
+        incomingMsgView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(UIScreen.main.bounds.width * Constants.WidthOfMsgBubble).rounded()).isActive = true
     }
     
     private lazy var incomingMsgView: IncomingMsgView = {
@@ -763,25 +763,24 @@ class OutboundMsgCell: UITableViewCell, OutgoingMsgViewDelegate {
     }
 
     private func setup() {
-        backgroundColor = UIColor.systemGray6
+        selectionStyle = .none
+        backgroundColor = UIColor.feedBackground
         
-        self.selectionStyle = .none
+        contentView.preservesSuperviewLayoutMargins = false
+        contentView.layoutMargins.top = 0
+        contentView.layoutMargins.bottom = 0
         
-        self.contentView.preservesSuperviewLayoutMargins = false
-        self.contentView.layoutMargins.top = 0
-        self.contentView.layoutMargins.bottom = 0
+        contentView.addSubview(outgoingMsgView)
         
-        self.contentView.addSubview(self.outgoingMsgView)
-        
-        self.outgoingMsgView.translatesAutoresizingMaskIntoConstraints = false
-        self.outgoingMsgView.leadingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.leadingAnchor).isActive = false
-        self.outgoingMsgView.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor).isActive = true
-        self.outgoingMsgView.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-        self.outgoingMsgView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor).isActive = true
+        outgoingMsgView.translatesAutoresizingMaskIntoConstraints = false
+        outgoingMsgView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = false
+        outgoingMsgView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor).isActive = true
+        outgoingMsgView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+        outgoingMsgView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        self.outgoingMsgView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(UIScreen.main.bounds.width * Constants.WidthOfMsgBubble).rounded()).isActive = true
+        outgoingMsgView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(UIScreen.main.bounds.width * Constants.WidthOfMsgBubble).rounded()).isActive = true
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoMsgInfo(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
         outgoingMsgView.isUserInteractionEnabled = true
         outgoingMsgView.addGestureRecognizer(tapGesture)
         
@@ -874,9 +873,10 @@ class EventMsgTableViewCell: UITableViewCell {
     
     private lazy var messageLabel: UILabel = {
         let label = UILabel()
-        label.numberOfLines = 1
+        label.numberOfLines = 2
         label.font = UIFont.systemFont(ofSize: 15)
         label.textColor = .label
+        label.textAlignment = .center
         
         label.translatesAutoresizingMaskIntoConstraints = false
         return label

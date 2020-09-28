@@ -29,6 +29,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     
     private var placeholderText = "Type a message"
     
+    private var isVisible: Bool = false
+    
     // MARK: ChatInput Lifecycle
 
     override init(frame: CGRect) {
@@ -40,35 +42,38 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     func willAppear(in viewController: UIViewController) {
-        self.setInputViewWidth(viewController.view.bounds.size.width)
+        setInputViewWidth(viewController.view.bounds.size.width)
 //        viewController.becomeFirstResponder()
     }
 
     func didAppear(in viewController: UIViewController) {
-//        viewController.becomeFirstResponder()
+        isVisible = true
+        viewController.becomeFirstResponder()
     }
 
     func willDisappear(in viewController: UIViewController) {
-        guard self.isKeyboardVisible || !viewController.isFirstResponder else { return }
+        isVisible = false
+        guard isKeyboardVisible || !viewController.isFirstResponder else { return }
 
         var deferResigns = false
         if viewController.isMovingFromParent {
             // Popping
             deferResigns = true
-        } else if self.isKeyboardVisible {
+        } else if isKeyboardVisible {
             // Pushing or presenting
             deferResigns = viewController.transitionCoordinator != nil && viewController.transitionCoordinator!.initiallyInteractive
         }
         if deferResigns && viewController.transitionCoordinator != nil {
-            viewController.transitionCoordinator?.animate(alongsideTransition: nil,
-                                                          completion: { context in
+            viewController.transitionCoordinator?.animate(alongsideTransition: nil, completion: { [weak self] context in
+                guard let self = self else { return }
                 if !context.isCancelled {
                     self.resignFirstResponderOnDisappear(in: viewController)
                 }
             })
         } else {
-            self.resignFirstResponderOnDisappear(in: viewController)
+            resignFirstResponderOnDisappear(in: viewController)
         }
+
     }
     
     private func setup() {
@@ -135,26 +140,26 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         }
 
         func setupView() {
-            self.translatesAutoresizingMaskIntoConstraints = false
-            self.setContentHuggingPriority(.required, for: .vertical)
-            self.setContentCompressionResistancePriority(.required, for: .vertical)
+            translatesAutoresizingMaskIntoConstraints = false
+            setContentHuggingPriority(.required, for: .vertical)
+            setContentCompressionResistancePriority(.required, for: .vertical)
         }
 
         override func safeAreaInsetsDidChange() {
             super.safeAreaInsetsDidChange()
-            self.invalidateIntrinsicContentSize()
+            invalidateIntrinsicContentSize()
         }
 
         override var intrinsicContentSize: CGSize {
             get {
-                let width = self.delegate!.currentLayoutWidth(for: self)
-                let height = self.preferredHeight(for: width) + self.safeAreaInsets.bottom
+                let width = delegate!.currentLayoutWidth(for: self)
+                let height = preferredHeight(for: width) + self.safeAreaInsets.bottom
                 return CGSize(width: width, height: height)
             }
         }
 
         func preferredHeight(for layoutWidth: CGFloat) -> CGFloat {
-            return self.delegate!.containerView(self, preferredHeightFor: layoutWidth)
+            return delegate!.containerView(self, preferredHeightFor: layoutWidth)
         }
     }
 
@@ -214,7 +219,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }()
     
     private lazy var quoteFeedPanelTextMediaContent: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.quoteFeedPanelTextContent, self.quoteFeedPanelImage ])
+        let view = UIStackView(arrangedSubviews: [ quoteFeedPanelTextContent, quoteFeedPanelImage ])
         view.translatesAutoresizingMaskIntoConstraints = false
 
         view.axis = .horizontal
@@ -287,7 +292,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     private lazy var postMediaButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "photo.fill"), for: .normal)
-        button.addTarget(self, action: #selector(self.postMediaButtonClicked), for: .touchUpInside)
+        button.addTarget(self, action: #selector(postMediaButtonClicked), for: .touchUpInside)
         button.isEnabled = true
         button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
@@ -302,7 +307,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     private lazy var postButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(named: "Send"), for: .normal)
-        button.addTarget(self, action: #selector(self.postButtonClicked), for: .touchUpInside)
+        button.addTarget(self, action: #selector(postButtonClicked), for: .touchUpInside)
         button.isEnabled = false
         
         // insets at 5 or higher to have a bigger hit area
@@ -343,7 +348,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }()
     
     private lazy var vStack: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [self.quoteFeedPanel, self.textInputRow ])
+        let view = UIStackView(arrangedSubviews: [quoteFeedPanel, textInputRow ])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .vertical
         view.alignment = .trailing
@@ -358,21 +363,21 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     // MARK: Layout
 
     func setInputViewWidth(_ width: CGFloat) {
-        guard self.bounds.size.width != width else { return }
-        self.bounds = CGRect(origin: .zero, size: CGSize(width: width, height: self.containerView.preferredHeight(for: width)))
+        guard bounds.size.width != width else { return }
+        bounds = CGRect(origin: .zero, size: CGSize(width: width, height: containerView.preferredHeight(for: width)))
     }
 
     func containerView(_ containerView: ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat {
-        return self.preferredHeight(for: layoutWidth)
+        return preferredHeight(for: layoutWidth)
     }
 
     func currentLayoutWidth(for containerView: ContainerView) -> CGFloat {
-        return self.currentLayoutWidth
+        return currentLayoutWidth
     }
 
     private var currentLayoutWidth: CGFloat {
         get {
-            var view: UIView? = self.superview
+            var view: UIView? = superview
             if view == nil || view?.bounds.size.width == 0 {
                 view = self
             }
@@ -381,25 +386,25 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }
 
     private func setNeedsUpdateHeight() {
-        self.setNeedsUpdateHeight(animationDuration:CommentInputView.heightChangeAnimationDuration)
+        setNeedsUpdateHeight(animationDuration:CommentInputView.heightChangeAnimationDuration)
     }
 
     private func setNeedsUpdateHeight(animationDuration: TimeInterval) {
-        guard self.window != nil else {
-            self.invalidateLayout()
+        guard window != nil else {
+            invalidateLayout()
             return
         }
 
         // Don't defer the initial layout to avoid UI glitches.
-        if self.bounds.size.height == 0.0 {
-            self.animationDurationForHeightUpdate = 0.0
-            self.updateHeight()
+        if bounds.size.height == 0.0 {
+            animationDurationForHeightUpdate = 0.0
+            updateHeight()
             return
         }
 
-        self.animationDurationForHeightUpdate = max(animationDuration, self.animationDurationForHeightUpdate)
-        if (!self.updateHeightScheduled) {
-            self.updateHeightScheduled = true
+        animationDurationForHeightUpdate = max(animationDuration, animationDurationForHeightUpdate)
+        if (!updateHeightScheduled) {
+            updateHeightScheduled = true
             // Coalesce multiple calls to -setNeedsUpdateHeight.
             DispatchQueue.main.async {
                 self.updateHeight()
@@ -408,14 +413,14 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }
 
     private func invalidateLayout() {
-        self.invalidateIntrinsicContentSize()
-        self.containerView.invalidateIntrinsicContentSize()
+        invalidateIntrinsicContentSize()
+        containerView.invalidateIntrinsicContentSize()
     }
 
     private func updateHeight() {
-        self.updateHeightScheduled = false
-        let duration = self.animationDurationForHeightUpdate;
-        self.animationDurationForHeightUpdate = -1
+        updateHeightScheduled = false
+        let duration = animationDurationForHeightUpdate
+        animationDurationForHeightUpdate = -1
 
         let animationBlock = {
             self.invalidateLayout()
@@ -425,7 +430,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
             self.window?.rootViewController?.view.setNeedsLayout()
             // Triggering this layout pass will fire UIKeyboardWillShowNotification.
             self.window?.rootViewController?.view.layoutIfNeeded()
-        };
+        }
         if duration > 0 {
             UIView.animate(withDuration: duration, animations: animationBlock)
         } else {
@@ -474,7 +479,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         }
     }
     
-    func showQuoteFeedPanel(with userId: String, text: String, mediaType: FeedMediaType?, mediaUrl: String?) {
+    func showQuoteFeedPanel(with userId: String, text: String, mediaType: FeedMediaType?, mediaUrl: String?, from viewController: UIViewController) {
         self.quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
         self.quoteFeedPanelTextLabel.text = text
         if self.vStack.arrangedSubviews.contains(self.quoteFeedPanel) {
@@ -506,11 +511,10 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
             self.quoteFeedPanelImage.isHidden = true
         }
     
-
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.9) {
+            guard self.isVisible else { return }
             self.textView.becomeFirstResponder()
         }
-      
     }
 
 
