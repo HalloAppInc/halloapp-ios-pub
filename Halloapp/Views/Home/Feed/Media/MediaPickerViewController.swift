@@ -41,6 +41,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private var transitionState: TransitionState = .ready
     private var preview: UIView?
     private var updatingSnapshot = false
+    private var nextInProgress = false
     
     init(filter: MediaPickerFilter = .all, multiselect: Bool = true, camera: Bool = false, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
         self.selected.append(contentsOf: selected.filter { $0.asset != nil }.map { $0.asset! })
@@ -448,6 +449,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     
     @objc private func nextAction() {
         guard selected.count > 0 else { return }
+        guard !nextInProgress else { return }
+        nextInProgress = true
         
         var result = [PendingMedia]()
         
@@ -482,11 +485,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     media.asset = asset
                     media.order = i + 1
                     
-                    let options = PHVideoRequestOptions()
-                    options.isNetworkAccessAllowed = true
-                    
                     group.enter()
-                    manager.requestAVAsset(forVideo: asset, options: options) { (avAsset, _, _) in
+                    manager.requestAVAsset(forVideo: asset, options: nil) { (avAsset, _, _) in
                         let video = avAsset as! AVURLAsset
                         media.videoURL = video.url
                         
@@ -510,6 +510,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     self.selected.removeAll()
                 }
 
+                self.nextInProgress = false
                 self.didFinish(self, result, false)
             }
         }
