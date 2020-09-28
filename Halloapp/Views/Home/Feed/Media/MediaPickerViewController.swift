@@ -81,7 +81,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     
     private func fetchAssets(album: PHAssetCollection? = nil) {
         switch(PHPhotoLibrary.authorizationStatus()) {
-        case .authorized:
+        case .authorized, .limited:
             break
         case .notDetermined:
             PHPhotoLibrary.requestAuthorization { status in
@@ -96,7 +96,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             self.present(alert, animated: true)
             return
         default:
-            return
+            break
         }
         
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
