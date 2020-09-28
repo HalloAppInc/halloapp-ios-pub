@@ -108,7 +108,7 @@ final class ProtoService: ProtoServiceCore {
     }
 
     private func sendAck(messageID: String) {
-        var ack = PBha_ack()
+        var ack = PBack()
         ack.id = messageID
         var packet = PBpacket()
         packet.stanza = .ack(ack)
@@ -208,11 +208,13 @@ final class ProtoService: ProtoServiceCore {
                 didGetChatAck.send((id: ack.id, timestamp: timestamp))
             }
         case .msg(let msg):
-            guard let payload = msg.payload.content else {
+            guard let payload = msg.payload else {
                 DDLogError("proto/didReceive/\(requestID)/error missing payload")
                 break
             }
             switch payload {
+            case .chatRetract(_),  .groupchatRetract(_), .groupFeedItem(_):
+                break
             case .contactList(let pbContactList):
                 let contacts = pbContactList.contacts.compactMap { HalloContact($0) }
                 MainAppContext.shared.syncManager.processNotification(contacts: contacts) {
@@ -228,11 +230,11 @@ final class ProtoService: ProtoServiceCore {
                     DDLogError("ProtoService/didReceive/\(requestID)/error could not read whisper message")
                 }
                 self.sendAck(messageID: msg.id)
-            case .seen(let pbReceipt):
+            case .seenReceipt(let pbReceipt):
                 handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
-            case .delivery(let pbReceipt):
+            case .deliveryReceipt(let pbReceipt):
                 handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
-            case .chat(let pbChat):
+            case .chatStanza(let pbChat):
                 if let chat = XMPPChatMessage(pbChat, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id) {
                     didGetNewChatMessage.send(chat)
                 } else {
@@ -279,10 +281,10 @@ final class ProtoService: ProtoServiceCore {
                     MainAppContext.shared.contactStore.addPushNames([ UserID(pbName.uid): pbName.name ])
                 }
                 sendAck(messageID: msg.id)
-            case .error(let error):
+            case .errorStanza(let error):
                 DDLogError("proto/didReceive/\(requestID) received message with error \(error)")
             }
-        case .error(let error):
+        case .haError(let error):
             DDLogError("proto/didReceive/\(requestID) received packet with error \(error)")
         case .presence(let pbPresence):
             DDLogInfo("proto/presence/received [\(pbPresence.uid)] [\(pbPresence.type)]")
@@ -509,7 +511,7 @@ extension ProtoService: HalloService {
             chat.name = groupName
         }
 
-        packet.msg.payload.content = .groupChat(chat)
+        packet.msg.payload = .groupChat(chat)
         guard let packetData = try? packet.serializedData() else {
             DDLogError("ProtoServiceCore/sendGroupChatMessage/\(message.id)/error could not serialize packet")
             return
@@ -574,7 +576,7 @@ extension PBseen_receipt: ReceivedReceipt {
 }
 
 extension PresenceType {
-    init?(_ pbPresenceType: PBha_presence.TypeEnum) {
+    init?(_ pbPresenceType: PBpresence.TypeEnum) {
         switch pbPresenceType {
         case .away:
             self = .away

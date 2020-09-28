@@ -22,7 +22,7 @@ final class ProtoAvatarRequest: ProtoStandardRequest<AvatarInfo> {
 
         super.init(
             packet: .iqPacket(type: .get, payload: .avatar(avatar)),
-            transform: { response in .success((userID: userID, avatarID: response.iq.payload.avatar.id)) },
+            transform: { response in .success((userID: userID, avatarID: response.iq.avatar.id)) },
             completion: completion)
     }
 }
@@ -37,7 +37,7 @@ final class ProtoUpdateAvatarRequest: ProtoStandardRequest<String?> {
 
         super.init(
             packet: .iqPacket(type: .set, payload: .uploadAvatar(uploadAvatar)),
-            transform: { .success($0.iq.payload.avatar.id) },
+            transform: { .success($0.iq.avatar.id) },
             completion: completion)
     }
 }
@@ -133,7 +133,7 @@ final class ProtoContactSyncRequest: ProtoStandardRequest<[HalloContact]> {
         super.init(
             packet: .iqPacket(type: .set, payload: .contactList(contactList)),
             transform: {
-                let contacts = $0.iq.payload.contactList.contacts
+                let contacts = $0.iq.contactList.contacts
                 return .success(contacts.compactMap { HalloContact($0) }) },
             completion: completion)
     }
@@ -142,7 +142,7 @@ final class ProtoContactSyncRequest: ProtoStandardRequest<[HalloContact]> {
 final class ProtoPresenceSubscribeRequest: ProtoStandardRequest<Void> {
     init(userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var presence = PBha_presence()
+        var presence = PBpresence()
         presence.id = UUID().uuidString
         presence.type = .subscribe
         if let uid = Int64(userID) {
@@ -159,7 +159,7 @@ final class ProtoPresenceSubscribeRequest: ProtoStandardRequest<Void> {
 final class ProtoPresenceUpdate: ProtoStandardRequest<Void> {
     init(status: PresenceType, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var presence = PBha_presence()
+        var presence = PBpresence()
         presence.id = UUID().uuidString
         presence.type = {
             switch status {
@@ -198,18 +198,18 @@ final class ProtoSendReceipt: ProtoStandardRequest<Void> {
             }
         }()
 
-        let payloadContent: PBmsg_payload.OneOf_Content = {
+        let payloadContent: PBmsg.OneOf_Payload = {
             switch type {
             case .delivery:
                 var receipt = PBdelivery_receipt()
                 receipt.id = itemID
                 receipt.threadID = threadID
-                return .delivery(receipt)
+                return .deliveryReceipt(receipt)
             case .read:
                 var receipt = PBseen_receipt()
                 receipt.id = itemID
                 receipt.threadID = threadID
-                return .seen(receipt)
+                return .seenReceipt(receipt)
             }
         }()
 
@@ -252,7 +252,7 @@ final class ProtoClientVersionCheck: ProtoStandardRequest<TimeInterval> {
         super.init(
             packet: .iqPacket(type: .get, payload: .clientVersion(clientVersion)),
             transform: {
-                let expiresInSeconds = $0.iq.payload.clientVersion.expiresInSeconds
+                let expiresInSeconds = $0.iq.clientVersion.expiresInSeconds
                 return .success(TimeInterval(expiresInSeconds)) },
             completion: completion)
     }
@@ -283,7 +283,7 @@ final class ProtoGroupInfoRequest: ProtoStandardRequest<HalloGroup> {
         super.init(
             packet: .iqPacket(type: .get, payload: .groupStanza(group)),
             transform: {
-                guard let group = HalloGroup(protoGroup: $0.iq.payload.groupStanza) else {
+                guard let group = HalloGroup(protoGroup: $0.iq.groupStanza) else {
                     return .failure(ProtoServiceError.unexpectedResponseFormat)
                 }
                 return .success(group) },
@@ -345,7 +345,7 @@ final class ProtoChangeGroupAvatarRequest: ProtoStandardRequest<String> {
         super.init(
             packet: .iqPacket(type: .get, payload: .groupStanza(group)),
             transform: {
-                guard let group = HalloGroup(protoGroup: $0.iq.payload.groupStanza), let avatarID = group.avatarID else {
+                guard let group = HalloGroup(protoGroup: $0.iq.groupStanza), let avatarID = group.avatarID else {
                     return .failure(ProtoServiceError.unexpectedResponseFormat)
                 }
                 return .success(avatarID) },

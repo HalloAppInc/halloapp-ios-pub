@@ -2749,7 +2749,7 @@ extension XMPPChatMessage {
         self.timestamp = chat.attributeDoubleValue(forName: "timestamp")
     }
 
-    init?(_ pbChat: PBchat, from fromUserID: UserID, to toUserID: UserID, id: String) {
+    init?(_ pbChat: PBchat_stanza, from fromUserID: UserID, to toUserID: UserID, id: String) {
         self.id = id
         self.fromUserId = fromUserID
         self.toUserId = toUserID

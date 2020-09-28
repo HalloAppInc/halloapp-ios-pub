@@ -156,7 +156,7 @@ class ProtoGetPrivacyListsRequest: ProtoRequest {
 
     override func didFinish(with response: PBpacket) {
 
-        let pbPrivacyLists = response.iq.payload.privacyLists
+        let pbPrivacyLists = response.iq.privacyLists
         let lists: [PrivacyListProtocol] = pbPrivacyLists.lists.compactMap { pbList in
             guard let listType = pbList.type.privacyListType else {
                 DDLogError("ProtoGetPrivacyListsRequest/didFinish/error unknown list type \(pbList.type)")

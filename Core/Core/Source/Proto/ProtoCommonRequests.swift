@@ -45,7 +45,7 @@ public class ProtoPublishPostRequest: ProtoRequest {
     }
 
     public override func didFinish(with response: PBpacket) {
-        let ts = TimeInterval(response.iq.payload.feedItem.post.timestamp)
+        let ts = TimeInterval(response.iq.feedItem.post.timestamp)
         let timestamp = Date(timeIntervalSince1970: ts)
         self.completion(.success(timestamp))
     }
@@ -71,7 +71,7 @@ public class ProtoPublishCommentRequest: ProtoRequest {
     }
 
     public override func didFinish(with response: PBpacket) {
-        let ts = TimeInterval(response.iq.payload.feedItem.comment.timestamp)
+        let ts = TimeInterval(response.iq.feedItem.comment.timestamp)
         let timestamp = Date(timeIntervalSince1970: ts)
         self.completion(.success(timestamp))
     }
@@ -97,11 +97,11 @@ public class ProtoMediaUploadURLRequest: ProtoRequest {
     }
 
     public override func didFinish(with response: PBpacket) {
-        guard response.iq.payload.uploadMedia.hasURL else {
+        guard response.iq.uploadMedia.hasURL else {
             completion(.failure(ProtoRequestError.apiResponseMissingMediaURL))
             return
         }
-        let urls = response.iq.payload.uploadMedia.url
+        let urls = response.iq.uploadMedia.url
         if let getURL = URL(string: urls.get), let putURL = URL(string: urls.put) {
             completion(.success(.getPut(getURL, putURL)))
         } else if let patchURL = URL(string: urls.patch) {
@@ -121,9 +121,9 @@ public class ProtoGetServerPropertiesRequest: ProtoStandardRequest<ServerPropert
         super.init(
             packet: PBpacket.iqPacket(type: .get, payload: .props(PBprops())),
             transform: { response in
-                let version = response.iq.payload.props.hash.toHexString()
+                let version = response.iq.props.hash.toHexString()
                 let properties: [String: String] = Dictionary(
-                    uniqueKeysWithValues: response.iq.payload.props.props.map { ($0.name, $0.value) }
+                    uniqueKeysWithValues: response.iq.props.props.map { ($0.name, $0.value) }
                 )
                 return .success((version: version, properties: properties))
             },

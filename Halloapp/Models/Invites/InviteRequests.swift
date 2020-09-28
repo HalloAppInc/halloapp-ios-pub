@@ -124,8 +124,8 @@ class ProtoGetInviteAllowanceRequest: ProtoStandardRequest<(Int, Date)> {
         super.init(
             packet: PBpacket.iqPacket(type: .get, payload: .invitesRequest(PBinvites_request())),
             transform: { response in
-                let invites = Int(response.iq.payload.invitesResponse.invitesLeft)
-                let timeUntilRefresh = TimeInterval(response.iq.payload.invitesResponse.timeUntilRefresh)
+                let invites = Int(response.iq.invitesResponse.invitesLeft)
+                let timeUntilRefresh = TimeInterval(response.iq.invitesResponse.timeUntilRefresh)
                 return .success((invites, Date(timeIntervalSinceNow: timeUntilRefresh))) },
             completion: completion)
     }
@@ -143,7 +143,7 @@ class ProtoRegisterInvitesRequest: ProtoStandardRequest<InviteResponse> {
         super.init(
             packet: PBpacket.iqPacket(type: .set, payload: .invitesRequest(request)),
             transform: { response in
-                let invitesResponse = response.iq.payload.invitesResponse
+                let invitesResponse = response.iq.invitesResponse
                 let invitesLeft = Int(invitesResponse.invitesLeft)
                 let timeUntilRefresh = TimeInterval(invitesResponse.timeUntilRefresh)
                 let results: [String: InviteResult] = Dictionary(uniqueKeysWithValues:

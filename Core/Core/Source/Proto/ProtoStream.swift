@@ -161,10 +161,10 @@ public extension PBpacket {
         return packet
     }
 
-    static func iqPacket(type: PBha_iq.TypeEnum, payload: PBiq_payload.OneOf_Content) -> PBpacket {
+    static func iqPacket(type: PBiq.TypeEnum, payload: PBiq.OneOf_Payload) -> PBpacket {
         var packet = PBpacket.iqPacketWithID()
         packet.iq.type = type
-        packet.iq.payload.content = payload
+        packet.iq.payload = payload
         return packet
     }
 
@@ -172,10 +172,10 @@ public extension PBpacket {
         from: UserID,
         to: UserID,
         id: String = UUID().uuidString,
-        type: PBha_message.TypeEnum = .normal,
-        payload: PBmsg_payload.OneOf_Content) -> PBpacket
+        type: PBmsg.TypeEnum = .normal,
+        payload: PBmsg.OneOf_Payload) -> PBpacket
     {
-        var msg = PBha_message()
+        var msg = PBmsg()
 
         if let fromUID = Int64(from) {
             msg.fromUid = fromUID
@@ -191,7 +191,7 @@ public extension PBpacket {
 
         msg.type = type
         msg.id = id
-        msg.payload.content = payload
+        msg.payload = payload
 
         var packet = PBpacket()
         packet.msg = msg
@@ -215,7 +215,7 @@ public extension PBpacket {
         case .chatState:
             // TODO: do we need an ID here for anything?
             return nil
-        case .error:
+        case .haError:
             return nil
         }
     }

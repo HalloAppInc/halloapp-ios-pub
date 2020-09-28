@@ -20,7 +20,7 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
-public struct PBchat {
+public struct PBchat_stanza {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -52,7 +52,7 @@ public struct PBping {
   public init() {}
 }
 
-public struct PBerror {
+public struct PBerror_stanza {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -78,203 +78,221 @@ public struct PBname {
   public init() {}
 }
 
-public struct PBiq_payload {
+public struct PBiq {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var content: OneOf_Content? {
-    get {return _storage._content}
-    set {_uniqueStorage()._content = newValue}
+  public var id: String {
+    get {return _storage._id}
+    set {_uniqueStorage()._id = newValue}
+  }
+
+  public var type: PBiq.TypeEnum {
+    get {return _storage._type}
+    set {_uniqueStorage()._type = newValue}
+  }
+
+  public var payload: OneOf_Payload? {
+    get {return _storage._payload}
+    set {_uniqueStorage()._payload = newValue}
   }
 
   public var uploadMedia: PBupload_media {
     get {
-      if case .uploadMedia(let v)? = _storage._content {return v}
+      if case .uploadMedia(let v)? = _storage._payload {return v}
       return PBupload_media()
     }
-    set {_uniqueStorage()._content = .uploadMedia(newValue)}
+    set {_uniqueStorage()._payload = .uploadMedia(newValue)}
   }
 
   public var contactList: PBcontact_list {
     get {
-      if case .contactList(let v)? = _storage._content {return v}
+      if case .contactList(let v)? = _storage._payload {return v}
       return PBcontact_list()
     }
-    set {_uniqueStorage()._content = .contactList(newValue)}
+    set {_uniqueStorage()._payload = .contactList(newValue)}
   }
 
   public var uploadAvatar: PBupload_avatar {
     get {
-      if case .uploadAvatar(let v)? = _storage._content {return v}
+      if case .uploadAvatar(let v)? = _storage._payload {return v}
       return PBupload_avatar()
     }
-    set {_uniqueStorage()._content = .uploadAvatar(newValue)}
+    set {_uniqueStorage()._payload = .uploadAvatar(newValue)}
   }
 
   public var avatar: PBavatar {
     get {
-      if case .avatar(let v)? = _storage._content {return v}
+      if case .avatar(let v)? = _storage._payload {return v}
       return PBavatar()
     }
-    set {_uniqueStorage()._content = .avatar(newValue)}
+    set {_uniqueStorage()._payload = .avatar(newValue)}
   }
 
   public var avatars: PBavatars {
     get {
-      if case .avatars(let v)? = _storage._content {return v}
+      if case .avatars(let v)? = _storage._payload {return v}
       return PBavatars()
     }
-    set {_uniqueStorage()._content = .avatars(newValue)}
+    set {_uniqueStorage()._payload = .avatars(newValue)}
   }
 
   public var clientMode: PBclient_mode {
     get {
-      if case .clientMode(let v)? = _storage._content {return v}
+      if case .clientMode(let v)? = _storage._payload {return v}
       return PBclient_mode()
     }
-    set {_uniqueStorage()._content = .clientMode(newValue)}
+    set {_uniqueStorage()._payload = .clientMode(newValue)}
   }
 
   public var clientVersion: PBclient_version {
     get {
-      if case .clientVersion(let v)? = _storage._content {return v}
+      if case .clientVersion(let v)? = _storage._payload {return v}
       return PBclient_version()
     }
-    set {_uniqueStorage()._content = .clientVersion(newValue)}
+    set {_uniqueStorage()._payload = .clientVersion(newValue)}
   }
 
   public var pushRegister: PBpush_register {
     get {
-      if case .pushRegister(let v)? = _storage._content {return v}
+      if case .pushRegister(let v)? = _storage._payload {return v}
       return PBpush_register()
     }
-    set {_uniqueStorage()._content = .pushRegister(newValue)}
+    set {_uniqueStorage()._payload = .pushRegister(newValue)}
   }
 
   public var whisperKeys: PBwhisper_keys {
     get {
-      if case .whisperKeys(let v)? = _storage._content {return v}
+      if case .whisperKeys(let v)? = _storage._payload {return v}
       return PBwhisper_keys()
     }
-    set {_uniqueStorage()._content = .whisperKeys(newValue)}
+    set {_uniqueStorage()._payload = .whisperKeys(newValue)}
   }
 
   public var ping: PBping {
     get {
-      if case .ping(let v)? = _storage._content {return v}
+      if case .ping(let v)? = _storage._payload {return v}
       return PBping()
     }
-    set {_uniqueStorage()._content = .ping(newValue)}
+    set {_uniqueStorage()._payload = .ping(newValue)}
   }
 
   public var feedItem: PBfeed_item {
     get {
-      if case .feedItem(let v)? = _storage._content {return v}
+      if case .feedItem(let v)? = _storage._payload {return v}
       return PBfeed_item()
     }
-    set {_uniqueStorage()._content = .feedItem(newValue)}
+    set {_uniqueStorage()._payload = .feedItem(newValue)}
   }
 
   public var privacyList: PBprivacy_list {
     get {
-      if case .privacyList(let v)? = _storage._content {return v}
+      if case .privacyList(let v)? = _storage._payload {return v}
       return PBprivacy_list()
     }
-    set {_uniqueStorage()._content = .privacyList(newValue)}
+    set {_uniqueStorage()._payload = .privacyList(newValue)}
   }
 
   public var privacyListResult: PBprivacy_list_result {
     get {
-      if case .privacyListResult(let v)? = _storage._content {return v}
+      if case .privacyListResult(let v)? = _storage._payload {return v}
       return PBprivacy_list_result()
     }
-    set {_uniqueStorage()._content = .privacyListResult(newValue)}
+    set {_uniqueStorage()._payload = .privacyListResult(newValue)}
   }
 
   public var privacyLists: PBprivacy_lists {
     get {
-      if case .privacyLists(let v)? = _storage._content {return v}
+      if case .privacyLists(let v)? = _storage._payload {return v}
       return PBprivacy_lists()
     }
-    set {_uniqueStorage()._content = .privacyLists(newValue)}
+    set {_uniqueStorage()._payload = .privacyLists(newValue)}
   }
 
   public var groupStanza: PBgroup_stanza {
     get {
-      if case .groupStanza(let v)? = _storage._content {return v}
+      if case .groupStanza(let v)? = _storage._payload {return v}
       return PBgroup_stanza()
     }
-    set {_uniqueStorage()._content = .groupStanza(newValue)}
+    set {_uniqueStorage()._payload = .groupStanza(newValue)}
   }
 
   public var groupsStanza: PBgroups_stanza {
     get {
-      if case .groupsStanza(let v)? = _storage._content {return v}
+      if case .groupsStanza(let v)? = _storage._payload {return v}
       return PBgroups_stanza()
     }
-    set {_uniqueStorage()._content = .groupsStanza(newValue)}
+    set {_uniqueStorage()._payload = .groupsStanza(newValue)}
   }
 
   public var clientLog: PBclient_log {
     get {
-      if case .clientLog(let v)? = _storage._content {return v}
+      if case .clientLog(let v)? = _storage._payload {return v}
       return PBclient_log()
     }
-    set {_uniqueStorage()._content = .clientLog(newValue)}
+    set {_uniqueStorage()._payload = .clientLog(newValue)}
   }
 
   public var name: PBname {
     get {
-      if case .name(let v)? = _storage._content {return v}
+      if case .name(let v)? = _storage._payload {return v}
       return PBname()
     }
-    set {_uniqueStorage()._content = .name(newValue)}
+    set {_uniqueStorage()._payload = .name(newValue)}
   }
 
-  public var error: PBerror {
+  public var errorStanza: PBerror_stanza {
     get {
-      if case .error(let v)? = _storage._content {return v}
-      return PBerror()
+      if case .errorStanza(let v)? = _storage._payload {return v}
+      return PBerror_stanza()
     }
-    set {_uniqueStorage()._content = .error(newValue)}
+    set {_uniqueStorage()._payload = .errorStanza(newValue)}
   }
 
   public var props: PBprops {
     get {
-      if case .props(let v)? = _storage._content {return v}
+      if case .props(let v)? = _storage._payload {return v}
       return PBprops()
     }
-    set {_uniqueStorage()._content = .props(newValue)}
+    set {_uniqueStorage()._payload = .props(newValue)}
   }
 
   public var invitesRequest: PBinvites_request {
     get {
-      if case .invitesRequest(let v)? = _storage._content {return v}
+      if case .invitesRequest(let v)? = _storage._payload {return v}
       return PBinvites_request()
     }
-    set {_uniqueStorage()._content = .invitesRequest(newValue)}
+    set {_uniqueStorage()._payload = .invitesRequest(newValue)}
   }
 
   public var invitesResponse: PBinvites_response {
     get {
-      if case .invitesResponse(let v)? = _storage._content {return v}
+      if case .invitesResponse(let v)? = _storage._payload {return v}
       return PBinvites_response()
     }
-    set {_uniqueStorage()._content = .invitesResponse(newValue)}
+    set {_uniqueStorage()._payload = .invitesResponse(newValue)}
   }
 
   public var notificationPrefs: PBnotification_prefs {
     get {
-      if case .notificationPrefs(let v)? = _storage._content {return v}
+      if case .notificationPrefs(let v)? = _storage._payload {return v}
       return PBnotification_prefs()
     }
-    set {_uniqueStorage()._content = .notificationPrefs(newValue)}
+    set {_uniqueStorage()._payload = .notificationPrefs(newValue)}
+  }
+
+  public var groupFeedItem: PBgroup_feed_item {
+    get {
+      if case .groupFeedItem(let v)? = _storage._payload {return v}
+      return PBgroup_feed_item()
+    }
+    set {_uniqueStorage()._payload = .groupFeedItem(newValue)}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public enum OneOf_Content: Equatable {
+  public enum OneOf_Payload: Equatable {
     case uploadMedia(PBupload_media)
     case contactList(PBcontact_list)
     case uploadAvatar(PBupload_avatar)
@@ -293,14 +311,15 @@ public struct PBiq_payload {
     case groupsStanza(PBgroups_stanza)
     case clientLog(PBclient_log)
     case name(PBname)
-    case error(PBerror)
+    case errorStanza(PBerror_stanza)
     case props(PBprops)
     case invitesRequest(PBinvites_request)
     case invitesResponse(PBinvites_response)
     case notificationPrefs(PBnotification_prefs)
+    case groupFeedItem(PBgroup_feed_item)
 
   #if !swift(>=4.1)
-    public static func ==(lhs: PBiq_payload.OneOf_Content, rhs: PBiq_payload.OneOf_Content) -> Bool {
+    public static func ==(lhs: PBiq.OneOf_Payload, rhs: PBiq.OneOf_Payload) -> Bool {
       switch (lhs, rhs) {
       case (.uploadMedia(let l), .uploadMedia(let r)): return l == r
       case (.contactList(let l), .contactList(let r)): return l == r
@@ -320,194 +339,17 @@ public struct PBiq_payload {
       case (.groupsStanza(let l), .groupsStanza(let r)): return l == r
       case (.clientLog(let l), .clientLog(let r)): return l == r
       case (.name(let l), .name(let r)): return l == r
-      case (.error(let l), .error(let r)): return l == r
+      case (.errorStanza(let l), .errorStanza(let r)): return l == r
       case (.props(let l), .props(let r)): return l == r
       case (.invitesRequest(let l), .invitesRequest(let r)): return l == r
       case (.invitesResponse(let l), .invitesResponse(let r)): return l == r
       case (.notificationPrefs(let l), .notificationPrefs(let r)): return l == r
+      case (.groupFeedItem(let l), .groupFeedItem(let r)): return l == r
       default: return false
       }
     }
   #endif
   }
-
-  public init() {}
-
-  fileprivate var _storage = _StorageClass.defaultInstance
-}
-
-public struct PBmsg_payload {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var content: PBmsg_payload.OneOf_Content? = nil
-
-  public var contactList: PBcontact_list {
-    get {
-      if case .contactList(let v)? = content {return v}
-      return PBcontact_list()
-    }
-    set {content = .contactList(newValue)}
-  }
-
-  public var avatar: PBavatar {
-    get {
-      if case .avatar(let v)? = content {return v}
-      return PBavatar()
-    }
-    set {content = .avatar(newValue)}
-  }
-
-  public var whisperKeys: PBwhisper_keys {
-    get {
-      if case .whisperKeys(let v)? = content {return v}
-      return PBwhisper_keys()
-    }
-    set {content = .whisperKeys(newValue)}
-  }
-
-  public var seen: PBseen_receipt {
-    get {
-      if case .seen(let v)? = content {return v}
-      return PBseen_receipt()
-    }
-    set {content = .seen(newValue)}
-  }
-
-  public var delivery: PBdelivery_receipt {
-    get {
-      if case .delivery(let v)? = content {return v}
-      return PBdelivery_receipt()
-    }
-    set {content = .delivery(newValue)}
-  }
-
-  public var chat: PBchat {
-    get {
-      if case .chat(let v)? = content {return v}
-      return PBchat()
-    }
-    set {content = .chat(newValue)}
-  }
-
-  public var feedItem: PBfeed_item {
-    get {
-      if case .feedItem(let v)? = content {return v}
-      return PBfeed_item()
-    }
-    set {content = .feedItem(newValue)}
-  }
-
-  public var feedItems: PBfeed_items {
-    get {
-      if case .feedItems(let v)? = content {return v}
-      return PBfeed_items()
-    }
-    set {content = .feedItems(newValue)}
-  }
-
-  public var contactHash: PBcontact_hash {
-    get {
-      if case .contactHash(let v)? = content {return v}
-      return PBcontact_hash()
-    }
-    set {content = .contactHash(newValue)}
-  }
-
-  public var groupStanza: PBgroup_stanza {
-    get {
-      if case .groupStanza(let v)? = content {return v}
-      return PBgroup_stanza()
-    }
-    set {content = .groupStanza(newValue)}
-  }
-
-  public var groupChat: PBgroup_chat {
-    get {
-      if case .groupChat(let v)? = content {return v}
-      return PBgroup_chat()
-    }
-    set {content = .groupChat(newValue)}
-  }
-
-  public var name: PBname {
-    get {
-      if case .name(let v)? = content {return v}
-      return PBname()
-    }
-    set {content = .name(newValue)}
-  }
-
-  public var error: PBerror {
-    get {
-      if case .error(let v)? = content {return v}
-      return PBerror()
-    }
-    set {content = .error(newValue)}
-  }
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public enum OneOf_Content: Equatable {
-    case contactList(PBcontact_list)
-    case avatar(PBavatar)
-    case whisperKeys(PBwhisper_keys)
-    case seen(PBseen_receipt)
-    case delivery(PBdelivery_receipt)
-    case chat(PBchat)
-    case feedItem(PBfeed_item)
-    case feedItems(PBfeed_items)
-    case contactHash(PBcontact_hash)
-    case groupStanza(PBgroup_stanza)
-    case groupChat(PBgroup_chat)
-    case name(PBname)
-    case error(PBerror)
-
-  #if !swift(>=4.1)
-    public static func ==(lhs: PBmsg_payload.OneOf_Content, rhs: PBmsg_payload.OneOf_Content) -> Bool {
-      switch (lhs, rhs) {
-      case (.contactList(let l), .contactList(let r)): return l == r
-      case (.avatar(let l), .avatar(let r)): return l == r
-      case (.whisperKeys(let l), .whisperKeys(let r)): return l == r
-      case (.seen(let l), .seen(let r)): return l == r
-      case (.delivery(let l), .delivery(let r)): return l == r
-      case (.chat(let l), .chat(let r)): return l == r
-      case (.feedItem(let l), .feedItem(let r)): return l == r
-      case (.feedItems(let l), .feedItems(let r)): return l == r
-      case (.contactHash(let l), .contactHash(let r)): return l == r
-      case (.groupStanza(let l), .groupStanza(let r)): return l == r
-      case (.groupChat(let l), .groupChat(let r)): return l == r
-      case (.name(let l), .name(let r)): return l == r
-      case (.error(let l), .error(let r)): return l == r
-      default: return false
-      }
-    }
-  #endif
-  }
-
-  public init() {}
-}
-
-public struct PBha_iq {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var id: String = String()
-
-  public var type: PBha_iq.TypeEnum = .get
-
-  public var payload: PBiq_payload {
-    get {return _payload ?? PBiq_payload()}
-    set {_payload = newValue}
-  }
-  /// Returns true if `payload` has been explicitly set.
-  public var hasPayload: Bool {return self._payload != nil}
-  /// Clears the value of `payload`. Subsequent reads from it will return its default value.
-  public mutating func clearPayload() {self._payload = nil}
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum TypeEnum: SwiftProtobuf.Enum {
     public typealias RawValue = Int
@@ -545,14 +387,14 @@ public struct PBha_iq {
 
   public init() {}
 
-  fileprivate var _payload: PBiq_payload? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 #if swift(>=4.2)
 
-extension PBha_iq.TypeEnum: CaseIterable {
+extension PBiq.TypeEnum: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static var allCases: [PBha_iq.TypeEnum] = [
+  public static var allCases: [PBiq.TypeEnum] = [
     .get,
     .set,
     .result,
@@ -562,29 +404,208 @@ extension PBha_iq.TypeEnum: CaseIterable {
 
 #endif  // swift(>=4.2)
 
-public struct PBha_message {
+public struct PBmsg {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var id: String = String()
-
-  public var type: PBha_message.TypeEnum = .normal
-
-  public var toUid: Int64 = 0
-
-  public var fromUid: Int64 = 0
-
-  public var payload: PBmsg_payload {
-    get {return _payload ?? PBmsg_payload()}
-    set {_payload = newValue}
+  public var id: String {
+    get {return _storage._id}
+    set {_uniqueStorage()._id = newValue}
   }
-  /// Returns true if `payload` has been explicitly set.
-  public var hasPayload: Bool {return self._payload != nil}
-  /// Clears the value of `payload`. Subsequent reads from it will return its default value.
-  public mutating func clearPayload() {self._payload = nil}
+
+  public var type: PBmsg.TypeEnum {
+    get {return _storage._type}
+    set {_uniqueStorage()._type = newValue}
+  }
+
+  public var toUid: Int64 {
+    get {return _storage._toUid}
+    set {_uniqueStorage()._toUid = newValue}
+  }
+
+  public var fromUid: Int64 {
+    get {return _storage._fromUid}
+    set {_uniqueStorage()._fromUid = newValue}
+  }
+
+  public var payload: OneOf_Payload? {
+    get {return _storage._payload}
+    set {_uniqueStorage()._payload = newValue}
+  }
+
+  public var contactList: PBcontact_list {
+    get {
+      if case .contactList(let v)? = _storage._payload {return v}
+      return PBcontact_list()
+    }
+    set {_uniqueStorage()._payload = .contactList(newValue)}
+  }
+
+  public var avatar: PBavatar {
+    get {
+      if case .avatar(let v)? = _storage._payload {return v}
+      return PBavatar()
+    }
+    set {_uniqueStorage()._payload = .avatar(newValue)}
+  }
+
+  public var whisperKeys: PBwhisper_keys {
+    get {
+      if case .whisperKeys(let v)? = _storage._payload {return v}
+      return PBwhisper_keys()
+    }
+    set {_uniqueStorage()._payload = .whisperKeys(newValue)}
+  }
+
+  public var seenReceipt: PBseen_receipt {
+    get {
+      if case .seenReceipt(let v)? = _storage._payload {return v}
+      return PBseen_receipt()
+    }
+    set {_uniqueStorage()._payload = .seenReceipt(newValue)}
+  }
+
+  public var deliveryReceipt: PBdelivery_receipt {
+    get {
+      if case .deliveryReceipt(let v)? = _storage._payload {return v}
+      return PBdelivery_receipt()
+    }
+    set {_uniqueStorage()._payload = .deliveryReceipt(newValue)}
+  }
+
+  public var chatStanza: PBchat_stanza {
+    get {
+      if case .chatStanza(let v)? = _storage._payload {return v}
+      return PBchat_stanza()
+    }
+    set {_uniqueStorage()._payload = .chatStanza(newValue)}
+  }
+
+  public var feedItem: PBfeed_item {
+    get {
+      if case .feedItem(let v)? = _storage._payload {return v}
+      return PBfeed_item()
+    }
+    set {_uniqueStorage()._payload = .feedItem(newValue)}
+  }
+
+  public var feedItems: PBfeed_items {
+    get {
+      if case .feedItems(let v)? = _storage._payload {return v}
+      return PBfeed_items()
+    }
+    set {_uniqueStorage()._payload = .feedItems(newValue)}
+  }
+
+  public var contactHash: PBcontact_hash {
+    get {
+      if case .contactHash(let v)? = _storage._payload {return v}
+      return PBcontact_hash()
+    }
+    set {_uniqueStorage()._payload = .contactHash(newValue)}
+  }
+
+  public var groupStanza: PBgroup_stanza {
+    get {
+      if case .groupStanza(let v)? = _storage._payload {return v}
+      return PBgroup_stanza()
+    }
+    set {_uniqueStorage()._payload = .groupStanza(newValue)}
+  }
+
+  public var groupChat: PBgroup_chat {
+    get {
+      if case .groupChat(let v)? = _storage._payload {return v}
+      return PBgroup_chat()
+    }
+    set {_uniqueStorage()._payload = .groupChat(newValue)}
+  }
+
+  public var name: PBname {
+    get {
+      if case .name(let v)? = _storage._payload {return v}
+      return PBname()
+    }
+    set {_uniqueStorage()._payload = .name(newValue)}
+  }
+
+  public var errorStanza: PBerror_stanza {
+    get {
+      if case .errorStanza(let v)? = _storage._payload {return v}
+      return PBerror_stanza()
+    }
+    set {_uniqueStorage()._payload = .errorStanza(newValue)}
+  }
+
+  public var groupchatRetract: PBgroupchat_retract {
+    get {
+      if case .groupchatRetract(let v)? = _storage._payload {return v}
+      return PBgroupchat_retract()
+    }
+    set {_uniqueStorage()._payload = .groupchatRetract(newValue)}
+  }
+
+  public var chatRetract: PBchat_retract {
+    get {
+      if case .chatRetract(let v)? = _storage._payload {return v}
+      return PBchat_retract()
+    }
+    set {_uniqueStorage()._payload = .chatRetract(newValue)}
+  }
+
+  public var groupFeedItem: PBgroup_feed_item {
+    get {
+      if case .groupFeedItem(let v)? = _storage._payload {return v}
+      return PBgroup_feed_item()
+    }
+    set {_uniqueStorage()._payload = .groupFeedItem(newValue)}
+  }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Payload: Equatable {
+    case contactList(PBcontact_list)
+    case avatar(PBavatar)
+    case whisperKeys(PBwhisper_keys)
+    case seenReceipt(PBseen_receipt)
+    case deliveryReceipt(PBdelivery_receipt)
+    case chatStanza(PBchat_stanza)
+    case feedItem(PBfeed_item)
+    case feedItems(PBfeed_items)
+    case contactHash(PBcontact_hash)
+    case groupStanza(PBgroup_stanza)
+    case groupChat(PBgroup_chat)
+    case name(PBname)
+    case errorStanza(PBerror_stanza)
+    case groupchatRetract(PBgroupchat_retract)
+    case chatRetract(PBchat_retract)
+    case groupFeedItem(PBgroup_feed_item)
+
+  #if !swift(>=4.1)
+    public static func ==(lhs: PBmsg.OneOf_Payload, rhs: PBmsg.OneOf_Payload) -> Bool {
+      switch (lhs, rhs) {
+      case (.contactList(let l), .contactList(let r)): return l == r
+      case (.avatar(let l), .avatar(let r)): return l == r
+      case (.whisperKeys(let l), .whisperKeys(let r)): return l == r
+      case (.seenReceipt(let l), .seenReceipt(let r)): return l == r
+      case (.deliveryReceipt(let l), .deliveryReceipt(let r)): return l == r
+      case (.chatStanza(let l), .chatStanza(let r)): return l == r
+      case (.feedItem(let l), .feedItem(let r)): return l == r
+      case (.feedItems(let l), .feedItems(let r)): return l == r
+      case (.contactHash(let l), .contactHash(let r)): return l == r
+      case (.groupStanza(let l), .groupStanza(let r)): return l == r
+      case (.groupChat(let l), .groupChat(let r)): return l == r
+      case (.name(let l), .name(let r)): return l == r
+      case (.errorStanza(let l), .errorStanza(let r)): return l == r
+      case (.groupchatRetract(let l), .groupchatRetract(let r)): return l == r
+      case (.chatRetract(let l), .chatRetract(let r)): return l == r
+      case (.groupFeedItem(let l), .groupFeedItem(let r)): return l == r
+      default: return false
+      }
+    }
+  #endif
+  }
 
   public enum TypeEnum: SwiftProtobuf.Enum {
     public typealias RawValue = Int
@@ -627,14 +648,14 @@ public struct PBha_message {
 
   public init() {}
 
-  fileprivate var _payload: PBmsg_payload? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 #if swift(>=4.2)
 
-extension PBha_message.TypeEnum: CaseIterable {
+extension PBmsg.TypeEnum: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static var allCases: [PBha_message.TypeEnum] = [
+  public static var allCases: [PBmsg.TypeEnum] = [
     .normal,
     .error,
     .groupchat,
@@ -645,14 +666,14 @@ extension PBha_message.TypeEnum: CaseIterable {
 
 #endif  // swift(>=4.2)
 
-public struct PBha_presence {
+public struct PBpresence {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   public var id: String = String()
 
-  public var type: PBha_presence.TypeEnum = .available
+  public var type: PBpresence.TypeEnum = .available
 
   public var uid: Int64 = 0
 
@@ -699,9 +720,9 @@ public struct PBha_presence {
 
 #if swift(>=4.2)
 
-extension PBha_presence.TypeEnum: CaseIterable {
+extension PBpresence.TypeEnum: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static var allCases: [PBha_presence.TypeEnum] = [
+  public static var allCases: [PBpresence.TypeEnum] = [
     .available,
     .away,
     .subscribe,
@@ -711,16 +732,16 @@ extension PBha_presence.TypeEnum: CaseIterable {
 
 #endif  // swift(>=4.2)
 
-public struct PBha_chat_state {
+public struct PBchat_state {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var type: PBha_chat_state.TypeEnum = .available
+  public var type: PBchat_state.TypeEnum = .available
 
   public var threadID: String = String()
 
-  public var threadType: PBha_chat_state.ThreadType = .chat
+  public var threadType: PBchat_state.ThreadType = .chat
 
   public var fromUid: Int64 = 0
 
@@ -787,17 +808,17 @@ public struct PBha_chat_state {
 
 #if swift(>=4.2)
 
-extension PBha_chat_state.TypeEnum: CaseIterable {
+extension PBchat_state.TypeEnum: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static var allCases: [PBha_chat_state.TypeEnum] = [
+  public static var allCases: [PBchat_state.TypeEnum] = [
     .available,
     .typing,
   ]
 }
 
-extension PBha_chat_state.ThreadType: CaseIterable {
+extension PBchat_state.ThreadType: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
-  public static var allCases: [PBha_chat_state.ThreadType] = [
+  public static var allCases: [PBchat_state.ThreadType] = [
     .chat,
     .groupChat,
   ]
@@ -805,7 +826,7 @@ extension PBha_chat_state.ThreadType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
-public struct PBha_ack {
+public struct PBack {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -838,50 +859,50 @@ public struct PBpacket {
 
   public var stanza: PBpacket.OneOf_Stanza? = nil
 
-  public var msg: PBha_message {
+  public var msg: PBmsg {
     get {
       if case .msg(let v)? = stanza {return v}
-      return PBha_message()
+      return PBmsg()
     }
     set {stanza = .msg(newValue)}
   }
 
-  public var iq: PBha_iq {
+  public var iq: PBiq {
     get {
       if case .iq(let v)? = stanza {return v}
-      return PBha_iq()
+      return PBiq()
     }
     set {stanza = .iq(newValue)}
   }
 
-  public var ack: PBha_ack {
+  public var ack: PBack {
     get {
       if case .ack(let v)? = stanza {return v}
-      return PBha_ack()
+      return PBack()
     }
     set {stanza = .ack(newValue)}
   }
 
-  public var presence: PBha_presence {
+  public var presence: PBpresence {
     get {
       if case .presence(let v)? = stanza {return v}
-      return PBha_presence()
+      return PBpresence()
     }
     set {stanza = .presence(newValue)}
   }
 
-  public var error: PBha_error {
+  public var haError: PBha_error {
     get {
-      if case .error(let v)? = stanza {return v}
+      if case .haError(let v)? = stanza {return v}
       return PBha_error()
     }
-    set {stanza = .error(newValue)}
+    set {stanza = .haError(newValue)}
   }
 
-  public var chatState: PBha_chat_state {
+  public var chatState: PBchat_state {
     get {
       if case .chatState(let v)? = stanza {return v}
-      return PBha_chat_state()
+      return PBchat_state()
     }
     set {stanza = .chatState(newValue)}
   }
@@ -889,12 +910,12 @@ public struct PBpacket {
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Stanza: Equatable {
-    case msg(PBha_message)
-    case iq(PBha_iq)
-    case ack(PBha_ack)
-    case presence(PBha_presence)
-    case error(PBha_error)
-    case chatState(PBha_chat_state)
+    case msg(PBmsg)
+    case iq(PBiq)
+    case ack(PBack)
+    case presence(PBpresence)
+    case haError(PBha_error)
+    case chatState(PBchat_state)
 
   #if !swift(>=4.1)
     public static func ==(lhs: PBpacket.OneOf_Stanza, rhs: PBpacket.OneOf_Stanza) -> Bool {
@@ -903,7 +924,7 @@ public struct PBpacket {
       case (.iq(let l), .iq(let r)): return l == r
       case (.ack(let l), .ack(let r)): return l == r
       case (.presence(let l), .presence(let r)): return l == r
-      case (.error(let l), .error(let r)): return l == r
+      case (.haError(let l), .haError(let r)): return l == r
       case (.chatState(let l), .chatState(let r)): return l == r
       default: return false
       }
@@ -916,8 +937,8 @@ public struct PBpacket {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-extension PBchat: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = "chat"
+extension PBchat_stanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "chat_stanza"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "timestamp"),
     2: .same(proto: "payload"),
@@ -958,7 +979,7 @@ extension PBchat: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: PBchat, rhs: PBchat) -> Bool {
+  public static func ==(lhs: PBchat_stanza, rhs: PBchat_stanza) -> Bool {
     if lhs.timestamp != rhs.timestamp {return false}
     if lhs.payload != rhs.payload {return false}
     if lhs.encPayload != rhs.encPayload {return false}
@@ -988,8 +1009,8 @@ extension PBping: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
   }
 }
 
-extension PBerror: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = "error"
+extension PBerror_stanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "error_stanza"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "reason"),
   ]
@@ -1010,7 +1031,7 @@ extension PBerror: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBa
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: PBerror, rhs: PBerror) -> Bool {
+  public static func ==(lhs: PBerror_stanza, rhs: PBerror_stanza) -> Bool {
     if lhs.reason != rhs.reason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -1052,43 +1073,50 @@ extension PBname: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
   }
 }
 
-extension PBiq_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = "iq_payload"
+extension PBiq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "iq"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "upload_media"),
-    2: .standard(proto: "contact_list"),
-    3: .standard(proto: "upload_avatar"),
-    4: .same(proto: "avatar"),
-    5: .same(proto: "avatars"),
-    6: .standard(proto: "client_mode"),
-    7: .standard(proto: "client_version"),
-    8: .standard(proto: "push_register"),
-    9: .standard(proto: "whisper_keys"),
-    10: .same(proto: "ping"),
-    11: .standard(proto: "feed_item"),
-    12: .standard(proto: "privacy_list"),
-    13: .standard(proto: "privacy_list_result"),
-    14: .standard(proto: "privacy_lists"),
-    15: .standard(proto: "group_stanza"),
-    16: .standard(proto: "groups_stanza"),
-    17: .standard(proto: "client_log"),
-    18: .same(proto: "name"),
-    19: .same(proto: "error"),
-    20: .same(proto: "props"),
-    21: .standard(proto: "invites_request"),
-    22: .standard(proto: "invites_response"),
-    23: .standard(proto: "notification_prefs"),
+    1: .same(proto: "id"),
+    2: .same(proto: "type"),
+    3: .standard(proto: "upload_media"),
+    4: .standard(proto: "contact_list"),
+    5: .standard(proto: "upload_avatar"),
+    6: .same(proto: "avatar"),
+    7: .same(proto: "avatars"),
+    8: .standard(proto: "client_mode"),
+    9: .standard(proto: "client_version"),
+    10: .standard(proto: "push_register"),
+    11: .standard(proto: "whisper_keys"),
+    12: .same(proto: "ping"),
+    13: .standard(proto: "feed_item"),
+    14: .standard(proto: "privacy_list"),
+    15: .standard(proto: "privacy_list_result"),
+    16: .standard(proto: "privacy_lists"),
+    17: .standard(proto: "group_stanza"),
+    18: .standard(proto: "groups_stanza"),
+    19: .standard(proto: "client_log"),
+    20: .same(proto: "name"),
+    21: .standard(proto: "error_stanza"),
+    22: .same(proto: "props"),
+    23: .standard(proto: "invites_request"),
+    24: .standard(proto: "invites_response"),
+    25: .standard(proto: "notification_prefs"),
+    26: .standard(proto: "group_feed_item"),
   ]
 
   fileprivate class _StorageClass {
-    var _content: PBiq_payload.OneOf_Content?
+    var _id: String = String()
+    var _type: PBiq.TypeEnum = .get
+    var _payload: PBiq.OneOf_Payload?
 
     static let defaultInstance = _StorageClass()
 
     private init() {}
 
     init(copying source: _StorageClass) {
-      _content = source._content
+      _id = source._id
+      _type = source._type
+      _payload = source._payload
     }
   }
 
@@ -1104,190 +1132,200 @@ extension PBiq_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
       while let fieldNumber = try decoder.nextFieldNumber() {
         switch fieldNumber {
-        case 1:
+        case 1: try decoder.decodeSingularStringField(value: &_storage._id)
+        case 2: try decoder.decodeSingularEnumField(value: &_storage._type)
+        case 3:
           var v: PBupload_media?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .uploadMedia(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .uploadMedia(v)}
-        case 2:
+          if let v = v {_storage._payload = .uploadMedia(v)}
+        case 4:
           var v: PBcontact_list?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .contactList(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .contactList(v)}
-        case 3:
+          if let v = v {_storage._payload = .contactList(v)}
+        case 5:
           var v: PBupload_avatar?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .uploadAvatar(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .uploadAvatar(v)}
-        case 4:
+          if let v = v {_storage._payload = .uploadAvatar(v)}
+        case 6:
           var v: PBavatar?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .avatar(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .avatar(v)}
-        case 5:
+          if let v = v {_storage._payload = .avatar(v)}
+        case 7:
           var v: PBavatars?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .avatars(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .avatars(v)}
-        case 6:
+          if let v = v {_storage._payload = .avatars(v)}
+        case 8:
           var v: PBclient_mode?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .clientMode(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .clientMode(v)}
-        case 7:
+          if let v = v {_storage._payload = .clientMode(v)}
+        case 9:
           var v: PBclient_version?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .clientVersion(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .clientVersion(v)}
-        case 8:
+          if let v = v {_storage._payload = .clientVersion(v)}
+        case 10:
           var v: PBpush_register?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .pushRegister(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .pushRegister(v)}
-        case 9:
+          if let v = v {_storage._payload = .pushRegister(v)}
+        case 11:
           var v: PBwhisper_keys?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .whisperKeys(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .whisperKeys(v)}
-        case 10:
+          if let v = v {_storage._payload = .whisperKeys(v)}
+        case 12:
           var v: PBping?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .ping(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .ping(v)}
-        case 11:
+          if let v = v {_storage._payload = .ping(v)}
+        case 13:
           var v: PBfeed_item?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .feedItem(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .feedItem(v)}
-        case 12:
+          if let v = v {_storage._payload = .feedItem(v)}
+        case 14:
           var v: PBprivacy_list?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .privacyList(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .privacyList(v)}
-        case 13:
+          if let v = v {_storage._payload = .privacyList(v)}
+        case 15:
           var v: PBprivacy_list_result?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .privacyListResult(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .privacyListResult(v)}
-        case 14:
+          if let v = v {_storage._payload = .privacyListResult(v)}
+        case 16:
           var v: PBprivacy_lists?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .privacyLists(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .privacyLists(v)}
-        case 15:
+          if let v = v {_storage._payload = .privacyLists(v)}
+        case 17:
           var v: PBgroup_stanza?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .groupStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .groupStanza(v)}
-        case 16:
+          if let v = v {_storage._payload = .groupStanza(v)}
+        case 18:
           var v: PBgroups_stanza?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .groupsStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .groupsStanza(v)}
-        case 17:
+          if let v = v {_storage._payload = .groupsStanza(v)}
+        case 19:
           var v: PBclient_log?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .clientLog(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .clientLog(v)}
-        case 18:
+          if let v = v {_storage._payload = .clientLog(v)}
+        case 20:
           var v: PBname?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .name(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .name(v)}
-        case 19:
-          var v: PBerror?
-          if let current = _storage._content {
+          if let v = v {_storage._payload = .name(v)}
+        case 21:
+          var v: PBerror_stanza?
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
-            if case .error(let m) = current {v = m}
+            if case .errorStanza(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .error(v)}
-        case 20:
+          if let v = v {_storage._payload = .errorStanza(v)}
+        case 22:
           var v: PBprops?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .props(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .props(v)}
-        case 21:
+          if let v = v {_storage._payload = .props(v)}
+        case 23:
           var v: PBinvites_request?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .invitesRequest(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .invitesRequest(v)}
-        case 22:
+          if let v = v {_storage._payload = .invitesRequest(v)}
+        case 24:
           var v: PBinvites_response?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .invitesResponse(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .invitesResponse(v)}
-        case 23:
+          if let v = v {_storage._payload = .invitesResponse(v)}
+        case 25:
           var v: PBnotification_prefs?
-          if let current = _storage._content {
+          if let current = _storage._payload {
             try decoder.handleConflictingOneOf()
             if case .notificationPrefs(let m) = current {v = m}
           }
           try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .notificationPrefs(v)}
+          if let v = v {_storage._payload = .notificationPrefs(v)}
+        case 26:
+          var v: PBgroup_feed_item?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupFeedItem(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupFeedItem(v)}
         default: break
         }
       }
@@ -1296,65 +1334,75 @@ extension PBiq_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      switch _storage._content {
+      if !_storage._id.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._id, fieldNumber: 1)
+      }
+      if _storage._type != .get {
+        try visitor.visitSingularEnumField(value: _storage._type, fieldNumber: 2)
+      }
+      switch _storage._payload {
       case .uploadMedia(let v)?:
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-      case .contactList(let v)?:
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-      case .uploadAvatar(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-      case .avatar(let v)?:
+      case .contactList(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-      case .avatars(let v)?:
+      case .uploadAvatar(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-      case .clientMode(let v)?:
+      case .avatar(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-      case .clientVersion(let v)?:
+      case .avatars(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
-      case .pushRegister(let v)?:
+      case .clientMode(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
-      case .whisperKeys(let v)?:
+      case .clientVersion(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
-      case .ping(let v)?:
+      case .pushRegister(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
-      case .feedItem(let v)?:
+      case .whisperKeys(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
-      case .privacyList(let v)?:
+      case .ping(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
-      case .privacyListResult(let v)?:
+      case .feedItem(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
-      case .privacyLists(let v)?:
+      case .privacyList(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
-      case .groupStanza(let v)?:
+      case .privacyListResult(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
-      case .groupsStanza(let v)?:
+      case .privacyLists(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
-      case .clientLog(let v)?:
+      case .groupStanza(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
-      case .name(let v)?:
+      case .groupsStanza(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
-      case .error(let v)?:
+      case .clientLog(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
-      case .props(let v)?:
+      case .name(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
-      case .invitesRequest(let v)?:
+      case .errorStanza(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 21)
-      case .invitesResponse(let v)?:
+      case .props(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
-      case .notificationPrefs(let v)?:
+      case .invitesRequest(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 23)
+      case .invitesResponse(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 24)
+      case .notificationPrefs(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 25)
+      case .groupFeedItem(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 26)
       case nil: break
       }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: PBiq_payload, rhs: PBiq_payload) -> Bool {
+  public static func ==(lhs: PBiq, rhs: PBiq) -> Bool {
     if lhs._storage !== rhs._storage {
       let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
         let _storage = _args.0
         let rhs_storage = _args.1
-        if _storage._content != rhs_storage._content {return false}
+        if _storage._id != rhs_storage._id {return false}
+        if _storage._type != rhs_storage._type {return false}
+        if _storage._payload != rhs_storage._payload {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -1364,218 +1412,7 @@ extension PBiq_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
   }
 }
 
-extension PBmsg_payload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = "msg_payload"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "contact_list"),
-    2: .same(proto: "avatar"),
-    3: .standard(proto: "whisper_keys"),
-    4: .same(proto: "seen"),
-    5: .same(proto: "delivery"),
-    6: .same(proto: "chat"),
-    7: .standard(proto: "feed_item"),
-    8: .standard(proto: "feed_items"),
-    9: .standard(proto: "contact_hash"),
-    10: .standard(proto: "group_stanza"),
-    11: .standard(proto: "group_chat"),
-    12: .same(proto: "name"),
-    13: .same(proto: "error"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      switch fieldNumber {
-      case 1:
-        var v: PBcontact_list?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .contactList(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .contactList(v)}
-      case 2:
-        var v: PBavatar?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .avatar(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .avatar(v)}
-      case 3:
-        var v: PBwhisper_keys?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .whisperKeys(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .whisperKeys(v)}
-      case 4:
-        var v: PBseen_receipt?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .seen(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .seen(v)}
-      case 5:
-        var v: PBdelivery_receipt?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .delivery(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .delivery(v)}
-      case 6:
-        var v: PBchat?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .chat(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .chat(v)}
-      case 7:
-        var v: PBfeed_item?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .feedItem(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .feedItem(v)}
-      case 8:
-        var v: PBfeed_items?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .feedItems(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .feedItems(v)}
-      case 9:
-        var v: PBcontact_hash?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .contactHash(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .contactHash(v)}
-      case 10:
-        var v: PBgroup_stanza?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .groupStanza(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .groupStanza(v)}
-      case 11:
-        var v: PBgroup_chat?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .groupChat(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .groupChat(v)}
-      case 12:
-        var v: PBname?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .name(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .name(v)}
-      case 13:
-        var v: PBerror?
-        if let current = self.content {
-          try decoder.handleConflictingOneOf()
-          if case .error(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.content = .error(v)}
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    switch self.content {
-    case .contactList(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    case .avatar(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    case .whisperKeys(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    case .seen(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    case .delivery(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-    case .chat(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-    case .feedItem(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
-    case .feedItems(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
-    case .contactHash(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
-    case .groupStanza(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
-    case .groupChat(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
-    case .name(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
-    case .error(let v)?:
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
-    case nil: break
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: PBmsg_payload, rhs: PBmsg_payload) -> Bool {
-    if lhs.content != rhs.content {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension PBha_iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = "ha_iq"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "id"),
-    2: .same(proto: "type"),
-    3: .same(proto: "payload"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      switch fieldNumber {
-      case 1: try decoder.decodeSingularStringField(value: &self.id)
-      case 2: try decoder.decodeSingularEnumField(value: &self.type)
-      case 3: try decoder.decodeSingularMessageField(value: &self._payload)
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-    }
-    if self.type != .get {
-      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 2)
-    }
-    if let v = self._payload {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: PBha_iq, rhs: PBha_iq) -> Bool {
-    if lhs.id != rhs.id {return false}
-    if lhs.type != rhs.type {return false}
-    if lhs._payload != rhs._payload {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension PBha_iq.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+extension PBiq.TypeEnum: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "get"),
     1: .same(proto: "set"),
@@ -1584,60 +1421,274 @@ extension PBha_iq.TypeEnum: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
-extension PBha_message: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = "ha_message"
+extension PBmsg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "msg"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
     2: .same(proto: "type"),
     3: .standard(proto: "to_uid"),
     4: .standard(proto: "from_uid"),
-    5: .same(proto: "payload"),
+    5: .standard(proto: "contact_list"),
+    6: .same(proto: "avatar"),
+    7: .standard(proto: "whisper_keys"),
+    8: .standard(proto: "seen_receipt"),
+    9: .standard(proto: "delivery_receipt"),
+    10: .standard(proto: "chat_stanza"),
+    11: .standard(proto: "feed_item"),
+    12: .standard(proto: "feed_items"),
+    13: .standard(proto: "contact_hash"),
+    14: .standard(proto: "group_stanza"),
+    15: .standard(proto: "group_chat"),
+    16: .same(proto: "name"),
+    17: .standard(proto: "error_stanza"),
+    18: .standard(proto: "groupchat_retract"),
+    19: .standard(proto: "chat_retract"),
+    20: .standard(proto: "group_feed_item"),
   ]
 
+  fileprivate class _StorageClass {
+    var _id: String = String()
+    var _type: PBmsg.TypeEnum = .normal
+    var _toUid: Int64 = 0
+    var _fromUid: Int64 = 0
+    var _payload: PBmsg.OneOf_Payload?
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _id = source._id
+      _type = source._type
+      _toUid = source._toUid
+      _fromUid = source._fromUid
+      _payload = source._payload
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      switch fieldNumber {
-      case 1: try decoder.decodeSingularStringField(value: &self.id)
-      case 2: try decoder.decodeSingularEnumField(value: &self.type)
-      case 3: try decoder.decodeSingularInt64Field(value: &self.toUid)
-      case 4: try decoder.decodeSingularInt64Field(value: &self.fromUid)
-      case 5: try decoder.decodeSingularMessageField(value: &self._payload)
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        switch fieldNumber {
+        case 1: try decoder.decodeSingularStringField(value: &_storage._id)
+        case 2: try decoder.decodeSingularEnumField(value: &_storage._type)
+        case 3: try decoder.decodeSingularInt64Field(value: &_storage._toUid)
+        case 4: try decoder.decodeSingularInt64Field(value: &_storage._fromUid)
+        case 5:
+          var v: PBcontact_list?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .contactList(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .contactList(v)}
+        case 6:
+          var v: PBavatar?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .avatar(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .avatar(v)}
+        case 7:
+          var v: PBwhisper_keys?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .whisperKeys(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .whisperKeys(v)}
+        case 8:
+          var v: PBseen_receipt?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .seenReceipt(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .seenReceipt(v)}
+        case 9:
+          var v: PBdelivery_receipt?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .deliveryReceipt(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .deliveryReceipt(v)}
+        case 10:
+          var v: PBchat_stanza?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .chatStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .chatStanza(v)}
+        case 11:
+          var v: PBfeed_item?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .feedItem(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .feedItem(v)}
+        case 12:
+          var v: PBfeed_items?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .feedItems(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .feedItems(v)}
+        case 13:
+          var v: PBcontact_hash?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .contactHash(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .contactHash(v)}
+        case 14:
+          var v: PBgroup_stanza?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupStanza(v)}
+        case 15:
+          var v: PBgroup_chat?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupChat(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupChat(v)}
+        case 16:
+          var v: PBname?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .name(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .name(v)}
+        case 17:
+          var v: PBerror_stanza?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .errorStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .errorStanza(v)}
+        case 18:
+          var v: PBgroupchat_retract?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupchatRetract(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupchatRetract(v)}
+        case 19:
+          var v: PBchat_retract?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .chatRetract(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .chatRetract(v)}
+        case 20:
+          var v: PBgroup_feed_item?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupFeedItem(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupFeedItem(v)}
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-    }
-    if self.type != .normal {
-      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 2)
-    }
-    if self.toUid != 0 {
-      try visitor.visitSingularInt64Field(value: self.toUid, fieldNumber: 3)
-    }
-    if self.fromUid != 0 {
-      try visitor.visitSingularInt64Field(value: self.fromUid, fieldNumber: 4)
-    }
-    if let v = self._payload {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      if !_storage._id.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._id, fieldNumber: 1)
+      }
+      if _storage._type != .normal {
+        try visitor.visitSingularEnumField(value: _storage._type, fieldNumber: 2)
+      }
+      if _storage._toUid != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._toUid, fieldNumber: 3)
+      }
+      if _storage._fromUid != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._fromUid, fieldNumber: 4)
+      }
+      switch _storage._payload {
+      case .contactList(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+      case .avatar(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+      case .whisperKeys(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+      case .seenReceipt(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+      case .deliveryReceipt(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
+      case .chatStanza(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
+      case .feedItem(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
+      case .feedItems(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
+      case .contactHash(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
+      case .groupStanza(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
+      case .groupChat(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
+      case .name(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
+      case .errorStanza(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
+      case .groupchatRetract(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
+      case .chatRetract(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
+      case .groupFeedItem(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
+      case nil: break
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: PBha_message, rhs: PBha_message) -> Bool {
-    if lhs.id != rhs.id {return false}
-    if lhs.type != rhs.type {return false}
-    if lhs.toUid != rhs.toUid {return false}
-    if lhs.fromUid != rhs.fromUid {return false}
-    if lhs._payload != rhs._payload {return false}
+  public static func ==(lhs: PBmsg, rhs: PBmsg) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._id != rhs_storage._id {return false}
+        if _storage._type != rhs_storage._type {return false}
+        if _storage._toUid != rhs_storage._toUid {return false}
+        if _storage._fromUid != rhs_storage._fromUid {return false}
+        if _storage._payload != rhs_storage._payload {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-extension PBha_message.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+extension PBmsg.TypeEnum: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "normal"),
     1: .same(proto: "error"),
@@ -1647,8 +1698,8 @@ extension PBha_message.TypeEnum: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
-extension PBha_presence: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = "ha_presence"
+extension PBpresence: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "presence"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
     2: .same(proto: "type"),
@@ -1684,7 +1735,7 @@ extension PBha_presence: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: PBha_presence, rhs: PBha_presence) -> Bool {
+  public static func ==(lhs: PBpresence, rhs: PBpresence) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.type != rhs.type {return false}
     if lhs.uid != rhs.uid {return false}
@@ -1694,7 +1745,7 @@ extension PBha_presence: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
   }
 }
 
-extension PBha_presence.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+extension PBpresence.TypeEnum: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "available"),
     1: .same(proto: "away"),
@@ -1703,8 +1754,8 @@ extension PBha_presence.TypeEnum: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
-extension PBha_chat_state: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = "ha_chat_state"
+extension PBchat_state: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "chat_state"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "type"),
     2: .standard(proto: "thread_id"),
@@ -1740,7 +1791,7 @@ extension PBha_chat_state: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: PBha_chat_state, rhs: PBha_chat_state) -> Bool {
+  public static func ==(lhs: PBchat_state, rhs: PBchat_state) -> Bool {
     if lhs.type != rhs.type {return false}
     if lhs.threadID != rhs.threadID {return false}
     if lhs.threadType != rhs.threadType {return false}
@@ -1750,22 +1801,22 @@ extension PBha_chat_state: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
   }
 }
 
-extension PBha_chat_state.TypeEnum: SwiftProtobuf._ProtoNameProviding {
+extension PBchat_state.TypeEnum: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "available"),
     1: .same(proto: "typing"),
   ]
 }
 
-extension PBha_chat_state.ThreadType: SwiftProtobuf._ProtoNameProviding {
+extension PBchat_state.ThreadType: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "chat"),
     1: .same(proto: "group_chat"),
   ]
 }
 
-extension PBha_ack: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = "ha_ack"
+extension PBack: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "ack"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
     2: .same(proto: "timestamp"),
@@ -1791,7 +1842,7 @@ extension PBha_ack: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: PBha_ack, rhs: PBha_ack) -> Bool {
+  public static func ==(lhs: PBack, rhs: PBack) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.timestamp != rhs.timestamp {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
@@ -1835,7 +1886,7 @@ extension PBpacket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
     2: .same(proto: "iq"),
     3: .same(proto: "ack"),
     4: .same(proto: "presence"),
-    5: .same(proto: "error"),
+    5: .standard(proto: "ha_error"),
     6: .standard(proto: "chat_state"),
   ]
 
@@ -1843,7 +1894,7 @@ extension PBpacket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1:
-        var v: PBha_message?
+        var v: PBmsg?
         if let current = self.stanza {
           try decoder.handleConflictingOneOf()
           if case .msg(let m) = current {v = m}
@@ -1851,7 +1902,7 @@ extension PBpacket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.stanza = .msg(v)}
       case 2:
-        var v: PBha_iq?
+        var v: PBiq?
         if let current = self.stanza {
           try decoder.handleConflictingOneOf()
           if case .iq(let m) = current {v = m}
@@ -1859,7 +1910,7 @@ extension PBpacket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.stanza = .iq(v)}
       case 3:
-        var v: PBha_ack?
+        var v: PBack?
         if let current = self.stanza {
           try decoder.handleConflictingOneOf()
           if case .ack(let m) = current {v = m}
@@ -1867,7 +1918,7 @@ extension PBpacket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {self.stanza = .ack(v)}
       case 4:
-        var v: PBha_presence?
+        var v: PBpresence?
         if let current = self.stanza {
           try decoder.handleConflictingOneOf()
           if case .presence(let m) = current {v = m}
@@ -1878,12 +1929,12 @@ extension PBpacket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
         var v: PBha_error?
         if let current = self.stanza {
           try decoder.handleConflictingOneOf()
-          if case .error(let m) = current {v = m}
+          if case .haError(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {self.stanza = .error(v)}
+        if let v = v {self.stanza = .haError(v)}
       case 6:
-        var v: PBha_chat_state?
+        var v: PBchat_state?
         if let current = self.stanza {
           try decoder.handleConflictingOneOf()
           if case .chatState(let m) = current {v = m}
@@ -1905,7 +1956,7 @@ extension PBpacket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationB
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     case .presence(let v)?:
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    case .error(let v)?:
+    case .haError(let v)?:
       try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     case .chatState(let v)?:
       try visitor.visitSingularMessageField(value: v, fieldNumber: 6)

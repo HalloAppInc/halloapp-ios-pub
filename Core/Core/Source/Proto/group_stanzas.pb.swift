@@ -165,6 +165,7 @@ public struct PBgroup_stanza {
     case modifyAdmins // = 7
     case modifyMembers // = 8
     case autoPromoteAdmins // = 9
+    case setName // = 10
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -183,6 +184,7 @@ public struct PBgroup_stanza {
       case 7: self = .modifyAdmins
       case 8: self = .modifyMembers
       case 9: self = .autoPromoteAdmins
+      case 10: self = .setName
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -199,6 +201,7 @@ public struct PBgroup_stanza {
       case .modifyAdmins: return 7
       case .modifyMembers: return 8
       case .autoPromoteAdmins: return 9
+      case .setName: return 10
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -223,6 +226,7 @@ extension PBgroup_stanza.Action: CaseIterable {
     .modifyAdmins,
     .modifyMembers,
     .autoPromoteAdmins,
+    .setName,
   ]
 }
 
@@ -463,6 +467,7 @@ extension PBgroup_stanza.Action: SwiftProtobuf._ProtoNameProviding {
     7: .same(proto: "modify_admins"),
     8: .same(proto: "modify_members"),
     9: .same(proto: "auto_promote_admins"),
+    10: .same(proto: "set_name"),
   ]
 }
 

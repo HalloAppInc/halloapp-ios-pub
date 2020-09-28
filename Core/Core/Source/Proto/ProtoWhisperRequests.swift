@@ -111,7 +111,7 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest {
     }
 
     public override func didFinish(with response: PBpacket) {
-        let pbKey = response.iq.payload.whisperKeys
+        let pbKey = response.iq.whisperKeys
         let protoContainer: Proto_SignedPreKey
         if let container = try? Proto_SignedPreKey(serializedData: pbKey.signedKey) {
             // Binary data
@@ -177,7 +177,7 @@ public class ProtoWhisperGetCountOfOneTimeKeysRequest : ProtoRequest {
     }
 
     public override func didFinish(with response: PBpacket) {
-        completion(.success(response.iq.payload.whisperKeys.otpKeyCount))
+        completion(.success(response.iq.whisperKeys.otpKeyCount))
     }
 
     public override func didFail(with error: Error) {

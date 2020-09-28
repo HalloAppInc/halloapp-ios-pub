@@ -389,7 +389,7 @@ extension ProtoServiceCore: CoreService {
         packet.msg.id = message.id
         packet.msg.type = .chat
 
-        var chat = PBchat()
+        var chat = PBchat_stanza()
         chat.payload = messageData
 
         if let encrypt = encryption {
@@ -407,7 +407,7 @@ extension ProtoServiceCore: CoreService {
                 }
 
                 chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
-                packet.msg.payload.content = .chat(chat)
+                packet.msg.payload = .chatStanza(chat)
                 guard let packetData = try? packet.serializedData() else {
                     DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
                     return
@@ -416,7 +416,7 @@ extension ProtoServiceCore: CoreService {
                 self.stream.send(packetData)
             }
         } else {
-            packet.msg.payload.content = .chat(chat)
+            packet.msg.payload = .chatStanza(chat)
             guard let packetData = try? packet.serializedData() else {
                 DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
                 return

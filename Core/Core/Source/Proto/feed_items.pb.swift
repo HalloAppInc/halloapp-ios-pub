@@ -85,7 +85,7 @@ public struct PBpost {
 
   public var id: String = String()
 
-  public var uid: Int64 = 0
+  public var publisherUid: Int64 = 0
 
   public var payload: Data = SwiftProtobuf.Internal.emptyData
 
@@ -99,6 +99,8 @@ public struct PBpost {
   public mutating func clearAudience() {self._audience = nil}
 
   public var timestamp: Int64 = 0
+
+  public var publisherName: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -254,6 +256,97 @@ public struct PBfeed_items {
   public init() {}
 }
 
+public struct PBgroup_feed_item {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var action: PBgroup_feed_item.Action = .publish
+
+  public var gid: String = String()
+
+  public var name: String = String()
+
+  public var avatarID: String = String()
+
+  public var item: PBgroup_feed_item.OneOf_Item? = nil
+
+  public var post: PBpost {
+    get {
+      if case .post(let v)? = item {return v}
+      return PBpost()
+    }
+    set {item = .post(newValue)}
+  }
+
+  public var comment: PBcomment {
+    get {
+      if case .comment(let v)? = item {return v}
+      return PBcomment()
+    }
+    set {item = .comment(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Item: Equatable {
+    case post(PBpost)
+    case comment(PBcomment)
+
+  #if !swift(>=4.1)
+    public static func ==(lhs: PBgroup_feed_item.OneOf_Item, rhs: PBgroup_feed_item.OneOf_Item) -> Bool {
+      switch (lhs, rhs) {
+      case (.post(let l), .post(let r)): return l == r
+      case (.comment(let l), .comment(let r)): return l == r
+      default: return false
+      }
+    }
+  #endif
+  }
+
+  public enum Action: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+    case publish // = 0
+    case retract // = 1
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .publish
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .publish
+      case 1: self = .retract
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .publish: return 0
+      case .retract: return 1
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension PBgroup_feed_item.Action: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [PBgroup_feed_item.Action] = [
+    .publish,
+    .retract,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 extension PBaudience: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -303,20 +396,22 @@ extension PBpost: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
   public static let protoMessageName: String = "post"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
-    2: .same(proto: "uid"),
+    2: .standard(proto: "publisher_uid"),
     3: .same(proto: "payload"),
     4: .same(proto: "audience"),
     5: .same(proto: "timestamp"),
+    6: .standard(proto: "publisher_name"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try decoder.decodeSingularStringField(value: &self.id)
-      case 2: try decoder.decodeSingularInt64Field(value: &self.uid)
+      case 2: try decoder.decodeSingularInt64Field(value: &self.publisherUid)
       case 3: try decoder.decodeSingularBytesField(value: &self.payload)
       case 4: try decoder.decodeSingularMessageField(value: &self._audience)
       case 5: try decoder.decodeSingularInt64Field(value: &self.timestamp)
+      case 6: try decoder.decodeSingularStringField(value: &self.publisherName)
       default: break
       }
     }
@@ -326,8 +421,8 @@ extension PBpost: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     if !self.id.isEmpty {
       try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
     }
-    if self.uid != 0 {
-      try visitor.visitSingularInt64Field(value: self.uid, fieldNumber: 2)
+    if self.publisherUid != 0 {
+      try visitor.visitSingularInt64Field(value: self.publisherUid, fieldNumber: 2)
     }
     if !self.payload.isEmpty {
       try visitor.visitSingularBytesField(value: self.payload, fieldNumber: 3)
@@ -338,15 +433,19 @@ extension PBpost: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBas
     if self.timestamp != 0 {
       try visitor.visitSingularInt64Field(value: self.timestamp, fieldNumber: 5)
     }
+    if !self.publisherName.isEmpty {
+      try visitor.visitSingularStringField(value: self.publisherName, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: PBpost, rhs: PBpost) -> Bool {
     if lhs.id != rhs.id {return false}
-    if lhs.uid != rhs.uid {return false}
+    if lhs.publisherUid != rhs.publisherUid {return false}
     if lhs.payload != rhs.payload {return false}
     if lhs._audience != rhs._audience {return false}
     if lhs.timestamp != rhs.timestamp {return false}
+    if lhs.publisherName != rhs.publisherName {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -566,4 +665,84 @@ extension PBfeed_items: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
+}
+
+extension PBgroup_feed_item: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = "group_feed_item"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "action"),
+    2: .same(proto: "gid"),
+    3: .same(proto: "name"),
+    4: .standard(proto: "avatar_id"),
+    5: .same(proto: "post"),
+    6: .same(proto: "comment"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularEnumField(value: &self.action)
+      case 2: try decoder.decodeSingularStringField(value: &self.gid)
+      case 3: try decoder.decodeSingularStringField(value: &self.name)
+      case 4: try decoder.decodeSingularStringField(value: &self.avatarID)
+      case 5:
+        var v: PBpost?
+        if let current = self.item {
+          try decoder.handleConflictingOneOf()
+          if case .post(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.item = .post(v)}
+      case 6:
+        var v: PBcomment?
+        if let current = self.item {
+          try decoder.handleConflictingOneOf()
+          if case .comment(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {self.item = .comment(v)}
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.action != .publish {
+      try visitor.visitSingularEnumField(value: self.action, fieldNumber: 1)
+    }
+    if !self.gid.isEmpty {
+      try visitor.visitSingularStringField(value: self.gid, fieldNumber: 2)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 3)
+    }
+    if !self.avatarID.isEmpty {
+      try visitor.visitSingularStringField(value: self.avatarID, fieldNumber: 4)
+    }
+    switch self.item {
+    case .post(let v)?:
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    case .comment(let v)?:
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: PBgroup_feed_item, rhs: PBgroup_feed_item) -> Bool {
+    if lhs.action != rhs.action {return false}
+    if lhs.gid != rhs.gid {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.avatarID != rhs.avatarID {return false}
+    if lhs.item != rhs.item {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension PBgroup_feed_item.Action: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "publish"),
+    1: .same(proto: "retract"),
+  ]
 }

@@ -121,7 +121,7 @@ public struct XMPPFeedPost: FeedPostProtocol {
         }
 
         self.id = pbPost.id
-        self.userId = UserID(pbPost.uid)
+        self.userId = UserID(pbPost.publisherUid)
         self.text = protoPost.text.isEmpty ? nil : protoPost.text
         self.media = protoPost.media.enumerated().compactMap { XMPPFeedMedia(id: "\(pbPost.id)-\($0)", protoMedia: $1) }
         self.mentions = protoPost.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }

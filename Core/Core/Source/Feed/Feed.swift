@@ -249,7 +249,7 @@ public extension FeedPostProtocol {
         var post = PBpost()
 
         if let uid = Int64(userId) {
-            post.uid = uid
+            post.publisherUid = uid
         }
         post.id = id
         post.timestamp = Int64(timestamp.timeIntervalSince1970)

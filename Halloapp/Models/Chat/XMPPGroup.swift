@@ -100,6 +100,7 @@ struct XMPPGroup {
             case .changeName: return nil
             case .modifyAdmins: return .modifyAdmins
             case .modifyMembers: return .modifyMembers
+            case .setName: return nil
             case .autoPromoteAdmins: return nil
             case .UNRECOGNIZED(_): return nil
             }

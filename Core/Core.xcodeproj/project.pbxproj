@@ -53,6 +53,7 @@
 		68D2915525096F9400AF5061 /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2915425096F9400AF5061 /* Mentions.swift */; };
 		68D2915B250AE49400AF5061 /* server_props.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D29159250AE49300AF5061 /* server_props.pb.swift */; };
 		68D2915C250AE49400AF5061 /* invite.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2915A250AE49400AF5061 /* invite.pb.swift */; };
+		68E965682522536A0076B76C /* retract.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E965672522536A0076B76C /* retract.pb.swift */; };
 		7605EA1F24F475A800CAD9AB /* Privacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7605EA1E24F475A800CAD9AB /* Privacy.swift */; };
 		762EE69B24F62886008765A5 /* XMPPElementRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */; };
 		7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7656F93124BCE66500F00AF7 /* LogFileManager.swift */; };
@@ -154,6 +155,7 @@
 		68D2915425096F9400AF5061 /* Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mentions.swift; sourceTree = "<group>"; };
 		68D29159250AE49300AF5061 /* server_props.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = server_props.pb.swift; sourceTree = "<group>"; };
 		68D2915A250AE49400AF5061 /* invite.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = invite.pb.swift; sourceTree = "<group>"; };
+		68E965672522536A0076B76C /* retract.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = retract.pb.swift; sourceTree = "<group>"; };
 		7605EA1E24F475A800CAD9AB /* Privacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privacy.swift; sourceTree = "<group>"; };
 		762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPElementRepresentable.swift; sourceTree = "<group>"; };
 		7656F93124BCE66500F00AF7 /* LogFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileManager.swift; sourceTree = "<group>"; };
@@ -418,6 +420,7 @@
 		76812415248619BB008C5216 /* Proto */ = {
 			isa = PBXGroup;
 			children = (
+				68E965672522536A0076B76C /* retract.pb.swift */,
 				68D2915A250AE49400AF5061 /* invite.pb.swift */,
 				68D29159250AE49300AF5061 /* server_props.pb.swift */,
 				6888CBC72500349F0049FF0E /* cert.pb.swift */,
@@ -678,6 +681,7 @@
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
 				68D2915C250AE49400AF5061 /* invite.pb.swift in Sources */,
 				688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */,
+				68E965682522536A0076B76C /* retract.pb.swift in Sources */,
 				EAAE7B3C24DD039900946B77 /* XMPPWhisperRequests.swift in Sources */,
 				682F79EF24F72F630084AF42 /* packets.pb.swift in Sources */,
 				246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */,
