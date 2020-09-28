@@ -28,6 +28,7 @@ public extension ABContact {
 
     @NSManaged var fullName: String?
     @NSManaged var givenName: String?
+    @NSManaged var indexName: String?
     @NSManaged var identifier: String?
     @NSManaged var normalizedPhoneNumber: NormalizedPhoneNumber?
     @NSManaged var phoneNumber: String?

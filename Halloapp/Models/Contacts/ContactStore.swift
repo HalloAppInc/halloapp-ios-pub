@@ -18,9 +18,9 @@ import CoreData
 
 // MARK: Constants
 
-fileprivate let ContactStoreMetadataCollationLocale = "CollationLocale"
-fileprivate let ContactStoreMetadataContactsLoaded = "ContactsLoaded"
-fileprivate let ContactsStoreMetadataContactsSynced = "ContactsSynced"
+private let ContactStoreMetadataCollationLocale = "CollationLocale"
+private let ContactStoreMetadataContactsLoaded = "ContactsLoaded"
+private let ContactsStoreMetadataContactsSynced = "ContactsSynced"
 let ContactStoreMetadataNextFullSyncDate = "NextFullSyncDate"
 
 /**
@@ -30,7 +30,7 @@ let ContactStoreMetadataNextFullSyncDate = "NextFullSyncDate"
 
  Recent iOS versions allow storing phone numbers in non-Lating numerals (e.g. Devanagari, Arabic). Those are converted to Latin numerals that server understands.
  */
-fileprivate struct PhoneProxy {
+private struct PhoneProxy {
     private(set) var phoneNumber: String, localizedPhoneNumber: String?
 
     init?(_ phoneNumberValue: CNLabeledValue<CNPhoneNumber>) {
@@ -48,30 +48,30 @@ fileprivate struct PhoneProxy {
 
  Contains logic that consumes a `CNContact` object and loads all information that our app needs into format convenient for  populating `ABContact` instances.
  */
-fileprivate struct ContactProxy {
+private struct ContactProxy {
     private(set) var identifier: String
-    private(set) var fullName = "", givenName = "", searchTokenList = ""
+    private(set) var fullName = "", givenName = "", indexName = "", searchTokenList = ""
     private(set) var phones: [PhoneProxy]
 
     init(_ contact: CNContact) {
-        self.identifier = contact.identifier
+        identifier = contact.identifier
 
         // Note: If contact doesn't have a property set, CNContact will return an empty string, not nil.
-        self.givenName = contact.givenName
+        givenName = contact.givenName
 
         // Try to get a composite name for the contact using AddressBook API.
         // If API returns an empty string, try using: Company name, Nickname, Emails, Phone Numbers.
-        if self.givenName.lengthOfBytes(using: .utf8) + contact.familyName.lengthOfBytes(using: .utf8) < 1000 {
+        if givenName.lengthOfBytes(using: .utf8) + contact.familyName.lengthOfBytes(using: .utf8) < 1000 {
             // Filter out contacts with unreasonably long names.
-            self.fullName = CNContactFormatter.string(from:contact, style:.fullName) ?? ""
-        } else if !self.givenName.isEmpty {
-            self.fullName = self.givenName
+            fullName = CNContactFormatter.string(from:contact, style:.fullName) ?? ""
+        } else if !givenName.isEmpty {
+            fullName = givenName
         } else {
-            self.fullName = contact.familyName
+            fullName = contact.familyName
         }
-        if self.fullName.isEmpty {
+        if fullName.isEmpty {
             DDLogWarn("CNContact/\(contact.identifier): fullName is empty")
-            self.fullName = {
+            fullName = {
                 if !contact.organizationName.isEmpty {
                     return contact.organizationName
                 }
@@ -81,19 +81,51 @@ fileprivate struct ContactProxy {
                 return ""
             } ()
 
-            // Fallback to phone number.
-            if self.fullName.isEmpty {
-                if let phone = contact.phoneNumbers.first {
-                    self.fullName = phone.value.stringValue
+            // Fallback to email address.
+            if fullName.isEmpty {
+                if let email = contact.emailAddresses.first {
+                    fullName = email.value as String
                 }
             }
-            // Fallback to email address.
-            if self.fullName.isEmpty {
-                if let email = contact.emailAddresses.first {
-                    self.fullName = email.value as String
+
+            // Fallback to phone number.
+            if fullName.isEmpty {
+                if let phone = contact.phoneNumbers.first {
+                    fullName = phone.value.stringValue
                 }
             }
         }
+
+        // Name used to split contacts in sections.
+        if (CNContactsUserDefaults.shared().sortOrder == .givenName) {
+            indexName = contact.phoneticGivenName
+            if indexName.isEmpty {
+                indexName = contact.givenName
+            }
+            if indexName.isEmpty {
+                indexName = contact.familyName
+            }
+        } else {
+            indexName = contact.phoneticFamilyName
+            if indexName.isEmpty {
+                indexName = contact.familyName
+            }
+            if indexName.isEmpty {
+                indexName = contact.givenName
+            }
+        }
+        if indexName.isEmpty && contact.contactType == .organization {
+            indexName = contact.organizationName
+        }
+        if indexName.isEmpty {
+            indexName = contact.nickname
+        }
+        if indexName.isEmpty {
+            indexName = fullName
+        }
+
+        // iOS ignores non-alphanumeric characters in names - so should we.
+        indexName = indexName.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
 
         // Search tokens: all names, company and nickname.
         // Note: Tokenization is fairly expensive. Unfortunately, since we have no way
@@ -104,12 +136,10 @@ fileprivate struct ContactProxy {
         var searchTokens: Set<String> = Set(contactFields.flatMap { $0.searchTokens() })
         // Add transliterated tokens to be able to search by typing contact name in English (Apple's apps do that).
         searchTokens.formUnion(searchTokens.compactMap{ $0.applyingTransform(.toLatin, reverse: false) })
-        self.searchTokenList = searchTokens.sorted(by: { $0 < $1}).joined(separator: " ")
-
-        ///TODO: load section data
+        searchTokenList = searchTokens.sorted(by: { $0 < $1}).joined(separator: " ")
 
         // Phones
-        self.phones = contact.phoneNumbers.compactMap{ PhoneProxy($0) }
+        phones = contact.phoneNumbers.compactMap{ PhoneProxy($0) }
     }
 }
 
@@ -583,6 +613,9 @@ class ContactStoreMain: ContactStore {
             }
             if contact.givenName != contactProxy.givenName {
                 contact.givenName = contactProxy.givenName
+            }
+            if contact.indexName != contactProxy.indexName {
+                contact.indexName = contactProxy.indexName
             }
             if contact.searchTokenList != contactProxy.searchTokenList {
                 contact.searchTokenList = contactProxy.searchTokenList
