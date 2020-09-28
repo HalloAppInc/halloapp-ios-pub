@@ -151,6 +151,7 @@ fileprivate struct ImagePickerNew: UIViewControllerRepresentable {
                     }
                 }
 
+                edit.modalPresentationStyle = .fullScreen
                 controller.present(edit, animated: true)
             }
         }

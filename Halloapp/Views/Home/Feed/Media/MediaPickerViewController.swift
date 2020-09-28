@@ -505,6 +505,11 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             
             group.notify(queue: .main) { [weak self] in
                 guard let self = self else { return }
+
+                if !self.multiselect {
+                    self.selected.removeAll()
+                }
+
                 self.didFinish(self, result, false)
             }
         }

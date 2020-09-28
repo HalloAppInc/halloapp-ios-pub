@@ -237,7 +237,7 @@ fileprivate class MediaEdit : ObservableObject {
         }
 
         if cropToCircle {
-            let size = image.size.width * 0.75
+            let size = min(image.size.width, image.size.height) * 0.90
             self.cropRect = CGRect(x: image.size.width / 2 - size / 2, y: image.size.height / 2  - size / 2, width: size, height: size)
         } else {
             var crop = CGRect(x: offset, y: offset, width: image.size.width - 2 * offset, height: image.size.height - 2 * offset)
@@ -836,6 +836,7 @@ fileprivate struct MediaEditView : View {
             
             Button(action: { self.selected.rotate() }) {
                 Image("Rotate")
+                    .renderingMode(.template)
                     .foregroundColor(.white)
                     .imageScale(.large)
                     .accessibility(label: Text("Rotate"))
@@ -844,6 +845,7 @@ fileprivate struct MediaEditView : View {
             
             Button(action: { self.selected.flip() }) {
                 Image("Flip")
+                    .renderingMode(.template)
                     .foregroundColor(.white)
                     .imageScale(.large)
                     .accessibility(label: Text("Flip"))
@@ -941,17 +943,16 @@ fileprivate struct MediaEditView : View {
     }
     
     var body: some View {
-        VStack {
+        ZStack {
             Rectangle()
                 .foregroundColor(.black)
                 .edgesIgnoringSafeArea(.top)
-                .frame(height: -10)
             
             VStack {
                 topBar
-                
+
                 CropImage(cropToCircle: cropToCircle, media: selected)
-                
+
                 previews
                 bottomBar
                 Spacer()
