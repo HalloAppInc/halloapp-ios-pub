@@ -11,49 +11,28 @@ import UIKit
 
 class ContactsTableViewDataSource: UITableViewDiffableDataSource<String, ABContact> {
 
-    private struct ContactsSection {
+    private class ContactsSection {
         let title: String
-        var contacts: [ABContact]
+        var contacts: [ABContact] = []
+
+        init(title: String) {
+            self.title = title
+        }
     }
 
     let collation = UILocalizedIndexedCollation.current()
 
     private func contactSections(from contacts: [ABContact]) -> [ContactsSection] {
         let sectionTitles = collation.sectionTitles
-
-        var sections: [ContactsSection] = []
-
-        var currentSectionIndex = -1
-        var currentSectionContacts: [ABContact] = []
+        let sections = sectionTitles.map({ ContactsSection(title: $0) })
 
         for contact in contacts {
             let indexName = contact.indexName ?? "#"
-
-            // Don't ever allow repeating sections - once you get to "#" there's no coming back.
-            let sectionIndex = max(currentSectionIndex, collation.section(for: indexName, collationStringSelector: Selector("self")))
-
-            // Section title changed - wrap all accumulated contacts into a section.
-            if sectionIndex != currentSectionIndex {
-                if !currentSectionContacts.isEmpty {
-                    let sectionTitle = sectionTitles[currentSectionIndex]
-                    let section = ContactsSection(title: sectionTitle, contacts: currentSectionContacts)
-                    sections.append(section)
-                }
-
-                currentSectionIndex = sectionIndex
-                currentSectionContacts = []
-            }
-
-            currentSectionContacts.append(contact)
+            let sectionIndex = collation.section(for: indexName, collationStringSelector: Selector("self"))
+            let contactsSection = sections[sectionIndex]
+            contactsSection.contacts.append(contact)
         }
-
-        // Last section.
-        if !currentSectionContacts.isEmpty {
-            let sectionTitle = sectionTitles[currentSectionIndex]
-            let section = ContactsSection(title: sectionTitle, contacts: currentSectionContacts)
-            sections.append(section)
-        }
-        return sections
+        return sections.filter({ !$0.contacts.isEmpty })
     }
 
     func reload(contacts: [ABContact], animatingDifferences: Bool = true, completion: (() -> Void)? = nil) {
