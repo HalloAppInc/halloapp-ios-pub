@@ -27,6 +27,12 @@ private extension ContactTableViewCell {
     }
 }
 
+extension ABContact: IndexableContact {
+    var collationName: String {
+        indexName ?? "#"
+    }
+}
+
 fileprivate class InvitePeopleResultsController: UITableViewController {
     var contacts: [ABContact] = [] {
         didSet {
@@ -70,7 +76,7 @@ fileprivate class InvitePeopleResultsController: UITableViewController {
 class InvitePeopleTableViewController: UITableViewController {
 
     private let inviteManager = InviteManager.shared
-    private var dataSource: ContactsTableViewDataSource!
+    private var dataSource: ContactsTableViewDataSource<ABContact>!
     private var fetchedResultsController: NSFetchedResultsController<ABContact>!
     private let didSelectContact: (ABContact) -> ()
 
@@ -92,7 +98,7 @@ class InvitePeopleTableViewController: UITableViewController {
         tableView.backgroundColor = .feedBackground
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
 
-        dataSource = ContactsTableViewDataSource(tableView: tableView) { (tableView, indexPath, contact) in
+        dataSource = ContactsTableViewDataSource<ABContact>(tableView: tableView) { (tableView, indexPath, contact) in
             let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
             cell.configure(withContact: contact)
             return cell

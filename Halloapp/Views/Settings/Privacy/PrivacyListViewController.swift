@@ -9,32 +9,40 @@
 import Core
 import UIKit
 
-class PrivacyListTableRow: NSObject {
+private class PrivacyListTableRow: NSObject, IndexableContact {
     let userId: UserID
     let name: String?
+    let indexName: String
     let phoneNumber: String?
     var isSelected: Bool = false
     @objc let searchTokens: [String]
 
-    init(userId: UserID, name: String? = nil, phoneNumber: String? = nil, searchTokens: [String] = [], isSelected: Bool = false) {
+    init(userId: UserID, name: String? = nil, indexName: String? = nil, phoneNumber: String? = nil, searchTokens: [String] = [], isSelected: Bool = false) {
         self.userId = userId
         self.name = name
+        self.indexName = indexName ?? "#"
         self.phoneNumber = phoneNumber
         self.searchTokens = searchTokens
         self.isSelected = isSelected
     }
 
     convenience init(contact: ABContact) {
-        self.init(userId: contact.userId!, name: contact.fullName, phoneNumber: contact.phoneNumber, searchTokens: contact.searchTokens)
+        self.init(userId: contact.userId!, name: contact.fullName, indexName: contact.indexName, phoneNumber: contact.phoneNumber, searchTokens: contact.searchTokens)
+    }
+
+    var collationName: String {
+        indexName
     }
 }
 
 class PrivacyListTableViewController: UITableViewController {
     static private let cellReuseIdentifier = "ContactCell"
 
-    var contacts: [PrivacyListTableRow]
+    fileprivate var contacts: [PrivacyListTableRow]
+    class var showSections: Bool { true }
+    fileprivate var dataSource: ContactsTableViewDataSource<PrivacyListTableRow>!
 
-    init(contacts: [PrivacyListTableRow]) {
+    fileprivate init(contacts: [PrivacyListTableRow]) {
         self.contacts = contacts
         super.init(style: .plain)
     }
@@ -46,42 +54,33 @@ class PrivacyListTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
-    }
-
-    // MARK: - Table view data source
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return contacts.count
-    }
-
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-        let listEntry = contacts[indexPath.row]
-        cell.configure(withListEntry: listEntry)
-        cell.setContact(selected: listEntry.isSelected)
-        return cell
+        dataSource = ContactsTableViewDataSource<PrivacyListTableRow>(tableView: tableView, cellProvider: { (tableView, indexPath, contact) -> UITableViewCell? in
+            let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
+            cell.configure(with: contact)
+            cell.setContact(selected: contact.isSelected)
+            return cell
+        })
+        dataSource.isSectioningEnabled = Self.showSections
+        dataSource.reload(contacts: contacts, animatingDifferences: false)
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let cell = tableView.cellForRow(at: indexPath) as? ContactTableViewCell else { return }
-        let listEntry = contacts[indexPath.row]
-        listEntry.isSelected = !listEntry.isSelected
-        cell.setContact(selected: listEntry.isSelected, animated: true)
+        guard let cell = tableView.cellForRow(at: indexPath) as? ContactTableViewCell,
+              let contact = dataSource.itemIdentifier(for: indexPath) else { return }
+        contact.isSelected = !contact.isSelected
+        cell.setContact(selected: contact.isSelected, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
     }
-
 }
 
-class PrivacyListSearchResultsViewController: PrivacyListTableViewController {
+private class PrivacyListSearchResultsViewController: PrivacyListTableViewController {
 
-    override var contacts: [PrivacyListTableRow] {
+    override class var showSections: Bool { false }
+
+    override fileprivate var contacts: [PrivacyListTableRow] {
         didSet {
             if isViewLoaded {
-                tableView.reloadData()
+                dataSource.reload(contacts: contacts, animatingDifferences: false)
             }
         }
     }
@@ -145,8 +144,7 @@ class PrivacyListViewController: PrivacyListTableViewController {
     /**
      Discard changes and dismiss picker.
      */
-    @objc
-    private func cancelAction() {
+    @objc private func cancelAction() {
         if let dismissAction = dismissAction {
            dismissAction()
         }
@@ -155,8 +153,7 @@ class PrivacyListViewController: PrivacyListTableViewController {
     /**
      Save changes and close picker.
      */
-    @objc
-    private func doneAction() {
+    @objc private func doneAction() {
         let selectedContactIds = contacts.filter({ $0.isSelected }).map({ $0.userId })
         privacySettings.update(privacyList: privacyList, with: selectedContactIds)
 
@@ -196,9 +193,9 @@ extension PrivacyListViewController: UISearchResultsUpdating {
 
 private extension ContactTableViewCell {
 
-    func configure(withListEntry listEntry: PrivacyListTableRow) {
+    func configure(with contact: PrivacyListTableRow) {
         options.insert(.hasCheckmark)
-        nameLabel.text = listEntry.name ?? MainAppContext.shared.contactStore.fullName(for: listEntry.userId)
-        subtitleLabel.text = listEntry.phoneNumber
+        nameLabel.text = contact.name ?? MainAppContext.shared.contactStore.fullName(for: contact.userId)
+        subtitleLabel.text = contact.phoneNumber
     }
 }

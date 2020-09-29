@@ -9,47 +9,60 @@
 import Core
 import UIKit
 
-class ContactsTableViewDataSource: UITableViewDiffableDataSource<String, ABContact> {
+@objc protocol IndexableContact {
+    var collationName: String { get }
+}
+
+class ContactsTableViewDataSource<ItemIdentifierType>: UITableViewDiffableDataSource<String, ItemIdentifierType> where ItemIdentifierType: IndexableContact, ItemIdentifierType: Hashable {
 
     private class ContactsSection {
         let title: String
-        var contacts: [ABContact] = []
+        var contacts: [ItemIdentifierType] = []
 
         init(title: String) {
             self.title = title
         }
     }
 
+    var isSectioningEnabled = true
     let collation = UILocalizedIndexedCollation.current()
 
-    private func contactSections(from contacts: [ABContact]) -> [ContactsSection] {
+    private func contactSections(from contacts: [ItemIdentifierType]) -> [ContactsSection] {
         let sectionTitles = collation.sectionTitles
         let sections = sectionTitles.map({ ContactsSection(title: $0) })
 
         for contact in contacts {
-            let indexName = contact.indexName ?? "#"
-            let sectionIndex = collation.section(for: indexName, collationStringSelector: Selector("self"))
+            let selector = #selector(getter: IndexableContact.collationName)
+            let sectionIndex = collation.section(for: contact, collationStringSelector: selector)
             let contactsSection = sections[sectionIndex]
             contactsSection.contacts.append(contact)
         }
         return sections.filter({ !$0.contacts.isEmpty })
     }
 
-    func reload(contacts: [ABContact], animatingDifferences: Bool = true, completion: (() -> Void)? = nil) {
-        let sections = contactSections(from: contacts)
-        var dataSourceSnapshot = NSDiffableDataSourceSnapshot<String, ABContact>()
-        dataSourceSnapshot.appendSections(sections.map { $0.title } )
-        for section in sections {
-            dataSourceSnapshot.appendItems(section.contacts, toSection: section.title)
+    func reload(contacts: [ItemIdentifierType], animatingDifferences: Bool = true, completion: (() -> Void)? = nil) {
+        var dataSourceSnapshot = NSDiffableDataSourceSnapshot<String, ItemIdentifierType>()
+        if isSectioningEnabled {
+            let sections = contactSections(from: contacts)
+            dataSourceSnapshot.appendSections(sections.map { $0.title } )
+            for section in sections {
+                dataSourceSnapshot.appendItems(section.contacts, toSection: section.title)
+            }
+        } else {
+            let theOnlySection = ""
+            dataSourceSnapshot.appendSections([ theOnlySection ])
+            dataSourceSnapshot.appendItems(contacts, toSection: theOnlySection)
         }
         apply(dataSourceSnapshot, animatingDifferences: animatingDifferences)
     }
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        guard isSectioningEnabled else { return nil }
         return snapshot().sectionIdentifiers[section]
     }
 
     override func sectionIndexTitles(for tableView: UITableView) -> [String]? {
+        guard isSectioningEnabled else { return nil }
         return collation.sectionIndexTitles
     }
 
