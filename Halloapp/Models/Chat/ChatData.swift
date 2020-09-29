@@ -750,6 +750,11 @@ class ChatData: ObservableObject {
             completion()
         }
     }
+    
+    private func incrementApplicationIconBadgeNumber() {
+        let badgeNum = MainAppContext.shared.applicationIconBadgeNumber
+        MainAppContext.shared.applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1
+    }
 }
 
 extension ChatData {
@@ -1462,15 +1467,26 @@ extension ChatData {
 
 // MARK: 1-1 Local Notifications
 extension ChatData {
+    
     private func showOneToOneNotification(for xmppChatMessage: ChatMessageProtocol) {
         DDLogDebug("ChatData/showOneToOneNotification")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            if UIApplication.shared.applicationState == .background {
+    
+            switch UIApplication.shared.applicationState {
+            case .background, .inactive:
                 self.presentLocalOneToOneNotifications(for: xmppChatMessage)
-            } else {
+            case .active:
                 guard self.currentlyChattingWithUserId != xmppChatMessage.fromUserId else { return }
-                self.presentOneToOneBanner(for: xmppChatMessage)
+                UNUserNotificationCenter.current().getContentIdsForDeliveredNotifications(ofType: .chatMessage) { [weak self] (ids) in
+                    guard let self = self else { return }
+                    guard !ids.contains(xmppChatMessage.id) else { return }
+                    DispatchQueue.main.async {
+                        self.presentOneToOneBanner(for: xmppChatMessage)
+                    }
+                }
+            @unknown default:
+                self.presentLocalOneToOneNotifications(for: xmppChatMessage)
             }
         }
     }
@@ -1536,6 +1552,7 @@ extension ChatData {
         let notificationCenter = UNUserNotificationCenter.current()
         notifications.forEach { (notificationContent) in
             notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+            incrementApplicationIconBadgeNumber()
         }
     }
 }
@@ -2557,11 +2574,21 @@ extension ChatData {
         DDLogDebug("ChatData/showGroupNotification")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            if UIApplication.shared.applicationState == .background {
+            
+            switch UIApplication.shared.applicationState {
+            case .background, .inactive:
                 self.presentLocalGroupNotifications(for: xmppChatGroupMessage)
-            } else {
+            case .active:
                 guard self.currentlyChattingInGroup != xmppChatGroupMessage.groupId else { return }
-                self.presentGroupBanner(for: xmppChatGroupMessage)
+                UNUserNotificationCenter.current().getContentIdsForDeliveredNotifications(ofType: .groupChatMessage) { [weak self] (ids) in
+                    guard let self = self else { return }
+                    guard !ids.contains(xmppChatGroupMessage.id) else { return }
+                    DispatchQueue.main.async {
+                        self.presentGroupBanner(for: xmppChatGroupMessage)
+                    }
+                }
+            @unknown default:
+                self.presentLocalGroupNotifications(for: xmppChatGroupMessage)
             }
         }
     }
@@ -2626,6 +2653,7 @@ extension ChatData {
         let notificationCenter = UNUserNotificationCenter.current()
         notifications.forEach { (notificationContent) in
             notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+            incrementApplicationIconBadgeNumber()
         }
         
     }

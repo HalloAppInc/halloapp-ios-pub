@@ -17,7 +17,7 @@ class Banner {
         guard let superView = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
         
         let width = superView.bounds.size.width
-        let height: CGFloat = 120
+        let height: CGFloat = 125
         
         let bannerView = BannerView(frame: CGRect(x: 0, y: 0 - height, width: width, height: height))
         bannerView.configure(title: title, body: body)
@@ -83,7 +83,7 @@ fileprivate class BannerView: UIView {
         let view = UIStackView(arrangedSubviews: [ spacer, titleRow, bodyRow ])
         view.axis = .vertical
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 15, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 10, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.distribution = .equalCentering

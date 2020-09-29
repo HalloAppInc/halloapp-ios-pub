@@ -80,7 +80,8 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 invokeHandler = downloadTask == nil
             }
 
-            let applicationIconBadgeNumber = AppExtensionContext.shared.applicationIconBadgeNumber + 1
+            let badgeNum = AppExtensionContext.shared.applicationIconBadgeNumber
+            let applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1
             bestAttemptContent.badge = NSNumber(value: applicationIconBadgeNumber)
             AppExtensionContext.shared.applicationIconBadgeNumber = applicationIconBadgeNumber
         }

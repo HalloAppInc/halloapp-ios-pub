@@ -107,14 +107,18 @@ public extension UNUserNotificationCenter {
         }
     }
 
-    func removeDeliveredNotifications(forType type: NotificationContentType, fromId: String? = nil, contentId: String? = nil) {
+    func removeDeliveredNotifications(forType type: NotificationContentType, fromId: String? = nil, contentId: String? = nil, threadId: String? = nil) {
         switch type {
-        case .chatMessage, .groupChatMessage:
+        case .chatMessage:
             guard fromId != nil else {
-                DDLogError("Notification/removeDelivered fromId should not be nil")
+                DDLogError("Notification/removeDelivered/chatMessage fromId should not be nil")
                 return
             }
-
+        case .groupChatMessage:
+            guard threadId != nil else {
+                DDLogError("Notification/removeDelivered/groupChatMessage threadId should not be nil")
+                return
+            }
         case .feedpost, .comment:
             guard contentId != nil else {
                 DDLogError("Notification/removeDelivered contentId should not be nil")
@@ -131,9 +135,10 @@ public extension UNUserNotificationCenter {
 
                 let match: Bool = {
                     switch type {
-                    case .chatMessage, .groupChatMessage:
+                    case .chatMessage:
                         return metadata.fromId == fromId!
-
+                    case .groupChatMessage:
+                        return metadata.threadId == threadId!
                     case .feedpost, .comment:
                         return metadata.contentId == contentId!
                     }

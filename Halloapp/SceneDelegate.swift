@@ -79,8 +79,10 @@ extension SceneDelegate: UIWindowSceneDelegate {
     func sceneDidBecomeActive(_ scene: UIScene) {
         DDLogInfo("application/didBecomeActive")
 
-        // Remove badge when application is backgrounded.
-        MainAppContext.shared.applicationIconBadgeNumber = 0
+        // Clear icon badges (currently used to track only chat messages)
+        // Set to -1 instead of 0
+        // If set to 0 from X, iOS will delete all local notifications including feed, comments, messages, etc.
+        MainAppContext.shared.applicationIconBadgeNumber = -1
 
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.

@@ -215,7 +215,7 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
 
         chatInputView.didAppear(in: self)
         
-//        NotificationUtility.removeDelivered(forType: .chat, withFromId: self.fromUserId!)
+        UNUserNotificationCenter.current().removeDeliveredNotifications(forType: .groupChatMessage, threadId: groupId )
         
     }
 
