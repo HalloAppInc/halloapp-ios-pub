@@ -13,7 +13,7 @@ import UIKit
 struct FeedPostReceipt {
     enum ReceiptType: Int {
         case seen = 0
-        case delivered = 1
+        case sent = 1
     }
 
     let userId: UserID
@@ -172,7 +172,7 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         case .seen:
             return "Viewed by"
 
-        case .delivered:
+        case .sent:
             return "Sent to"
         }
     }
@@ -213,14 +213,17 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         var deliveredRows = [FeedPostReceipt]()
         allContacts.forEach { (abContact) in
             if addedUserIds.insert(abContact.userId!).inserted {
-                deliveredRows.append(FeedPostReceipt(userId: abContact.userId!, type: .delivered, contactName: abContact.fullName, phoneNumber: abContact.phoneNumber, timestamp: Date()))
+                deliveredRows.append(FeedPostReceipt(userId: abContact.userId!, type: .sent, contactName: abContact.fullName, phoneNumber: abContact.phoneNumber, timestamp: Date()))
             }
         }
 
         var snapshot = NSDiffableDataSourceSnapshot<FeedPostReceipt.ReceiptType, FeedPostReceipt>()
-        snapshot.appendSections([ .seen, .delivered ])
+        snapshot.appendSections([ .seen ])
         snapshot.appendItems(seenRows, toSection: .seen)
-        snapshot.appendItems(deliveredRows, toSection: .delivered)
+        if !deliveredRows.isEmpty {
+            snapshot.appendSections([ .sent ])
+            snapshot.appendItems(deliveredRows, toSection: .sent)
+        }
         dataSource?.apply(snapshot, animatingDifferences: viewIfLoaded?.window != nil)
     }
 

@@ -111,11 +111,10 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
         case .seen:
             return "Viewed by"
 
-        case .delivered:
+        case .sent:
             return "Sent to"
         }
     }
-
 
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         var headerView: SectionHeaderView! = tableView.dequeueReusableHeaderFooterView(withIdentifier: Constants.headerReuseIdentifier) as? SectionHeaderView
@@ -159,9 +158,12 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
         }
 
         var snapshot = NSDiffableDataSourceSnapshot<ChatGroupMessageReceipt.ReceiptType, ChatGroupMessageReceipt>()
-        snapshot.appendSections([ .seen, .delivered ])
+        snapshot.appendSections([ .seen ])
         snapshot.appendItems(seenRows, toSection: .seen)
-        snapshot.appendItems(deliveredRows, toSection: .delivered)
+        if !deliveredRows.isEmpty {
+            snapshot.appendSections([ .delivered ])
+            snapshot.appendItems(deliveredRows, toSection: .delivered)
+        }
         dataSource?.apply(snapshot, animatingDifferences: viewIfLoaded?.window != nil)
     }
 
