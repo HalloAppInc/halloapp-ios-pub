@@ -306,19 +306,31 @@ extension KeyStore {
         let sodium = Sodium()
         
         // generate new key pair
-        guard let newKeyPair = sodium.box.keyPair() else { return nil }
+        guard let newKeyPair = sodium.box.keyPair() else {
+            DDLogInfo("KeyStore/initiateSessionSetup/keyPairGenerationFailed")
+            return nil
+        }
         
         let outboundIdentityPrivateKey = myKeys.identityPrivateKey                              // I_initiator
         
         let outboundEphemeralPublicKey = Data(newKeyPair.publicKey)
         let outboundEphemeralPrivateKey = Data(newKeyPair.secretKey)                            // E_initiator
         
-        guard let inboundIdentityPublicEdKey = targetUserWhisperKeys.identity else { return nil }
-        guard let inboundIdentityPublicKeyUInt8 = sodium.sign.convertToX25519PublicKey(publicKey: [UInt8](inboundIdentityPublicEdKey)) else { return nil }
+        guard let inboundIdentityPublicEdKey = targetUserWhisperKeys.identity else {
+            DDLogInfo("KeyStore/initiateSessionSetup/missingTargetUserIdentityKey")
+            return nil
+        }
+        guard let inboundIdentityPublicKeyUInt8 = sodium.sign.convertToX25519PublicKey(publicKey: [UInt8](inboundIdentityPublicEdKey)) else {
+            DDLogInfo("KeyStore/initiateSessionSetup/x25519conversionFailed")
+            return nil
+        }
         
         let inboundIdentityPublicKey = Data(inboundIdentityPublicKeyUInt8)                      // I_recipient
         
-        guard let targetUserSigned = targetUserWhisperKeys.signed else { return nil }
+        guard let targetUserSigned = targetUserWhisperKeys.signed else {
+            DDLogInfo("KeyStore/initiateSessionSetup/missingMyKeyBundle")
+            return nil
+        }
         
         let inboundSignedPrePublicKey = targetUserSigned.publicKey                              // S_recipient
         
@@ -345,9 +357,10 @@ extension KeyStore {
                                                initiatorEphemeralKey: outboundEphemeralPrivateKey,
                                                recipientIdentityKey: inboundIdentityPublicKey,
                                                recipientSignedPreKey: inboundSignedPrePublicKey,
-                                               recipientOneTimePreKey: inboundOneTimePrePublicKey) else {
-                                                DDLogDebug("KeyStore/initiateSessionSetup/invalidMasterKey")
-                                                return nil
+                                               recipientOneTimePreKey: inboundOneTimePrePublicKey) else
+        {
+            DDLogDebug("KeyStore/initiateSessionSetup/invalidMasterKey")
+            return nil
         }
         
         let rootKey = masterKey.rootKey

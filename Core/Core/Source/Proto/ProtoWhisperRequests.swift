@@ -143,8 +143,21 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest {
             return PreKey(id: protoKey.id, privateKey: nil, publicKey: protoKey.publicKey)
         }
 
+        let protoIdentity: Proto_IdentityKey
+        if let identity = try? Proto_IdentityKey(serializedData: pbKey.identityKey) {
+            protoIdentity = identity
+        } else if let decodedData = Data(base64Encoded: pbKey.identityKey, options: .ignoreUnknownCharacters),
+                  let identity = try? Proto_IdentityKey(serializedData: decodedData)
+        {
+            protoIdentity = identity
+        } else {
+            DDLogError("ProtoWhisperGetBundleRequest/didFinish/error could not deserialize identity key")
+            completion(.failure(ProtoServiceCoreError.deserialization))
+            return
+        }
+
         let bundle = WhisperKeyBundle(
-            identity: pbKey.identityKey,
+            identity: protoIdentity.publicKey,
             signed: PreKey(id: protoContainer.id, privateKey: nil, publicKey: protoContainer.publicKey),
             signature: protoContainer.signature,
             oneTime: oneTimeKeys)
