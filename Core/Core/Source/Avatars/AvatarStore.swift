@@ -273,9 +273,9 @@ extension AvatarStore {
 
     public func groupAvatarData(for groupID: GroupID) -> GroupAvatarData {
         if let groupAvatarData = groupAvatarsData.object(forKey: groupID as NSString) {
-            DDLogDebug("AvatarStore/group/groupAvatarData/in cache already \(groupID)")
             return groupAvatarData
         }
+        DDLogDebug("AvatarStore/group/groupAvatarData/not in cache yet \(groupID)")
 
         var groupAvatarData: GroupAvatarData?
 

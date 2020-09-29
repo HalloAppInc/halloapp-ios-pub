@@ -15,6 +15,7 @@ struct XMPPChatMessage {
     let id: String
     let fromUserId: UserID
     let toUserId: UserID
+    var retryCount: Int32? = nil
     let text: String?
     let media: [XMPPChatMedia]
     let feedPostId: String?

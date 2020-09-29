@@ -179,6 +179,7 @@ struct XMPPChatGroupMessage {
     let groupName: String?
     let userId: UserID?
     let userName: String?
+    var retryCount: Int32? = nil
     let text: String?
     let media: [XMPPChatMedia]
     var timestamp: Date?
@@ -232,9 +233,13 @@ struct XMPPChatGroupMessage {
     }
     
     // init inbound message
-    init?(itemElement item: XMLElement) {
-        guard let groupChat = item.element(forName: "group_chat") else { return nil }
-        guard let id = item.attributeStringValue(forName: "id") else { return nil }
+    init?(itemElement msgXML: XMLElement) {
+        if let retryCount = msgXML.attributeStringValue(forName: "retry_count"), retryCount != "" {
+            self.retryCount = Int32(retryCount)
+        }
+        guard let id = msgXML.attributeStringValue(forName: "id") else { return nil }
+        guard let groupChat = msgXML.element(forName: "group_chat") else { return nil }
+        
         guard let groupId = groupChat.attributeStringValue(forName: "gid") else { return nil }
         guard let groupName = groupChat.attributeStringValue(forName: "name") else { return nil }
         guard let userId = groupChat.attributeStringValue(forName: "sender") else { return nil }

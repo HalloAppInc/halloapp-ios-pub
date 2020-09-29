@@ -60,6 +60,10 @@ extension SharedChatMessage {
 
 extension SharedChatMessage: ChatMessageProtocol {
 
+    public var retryCount: Int32? {
+        nil
+    }
+    
     public var orderedMedia: [ChatMediaProtocol] {
         guard let media = media else { return [] }
         return media.sorted { $0.order < $1.order }

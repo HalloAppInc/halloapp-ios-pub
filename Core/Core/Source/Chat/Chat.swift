@@ -22,6 +22,8 @@ public protocol ChatMessageProtocol {
     var fromUserId: UserID { get }
     var toUserId: UserID { get }
 
+    var retryCount: Int32? { get }
+    
     var text: String? { get }
     var orderedMedia: [ChatMediaProtocol] { get }
     var feedPostId: FeedPostID? { get }

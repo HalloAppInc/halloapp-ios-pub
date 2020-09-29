@@ -1397,7 +1397,10 @@ extension ChatData {
             self.updateUnreadThreadCount()
         }
         
-        showOneToOneNotification(for: xmppChatMessage)
+        // 1 and higher means it's an offline message and that server has sent out a push notification already
+        if xmppChatMessage.retryCount == nil || xmppChatMessage.retryCount == 0 {
+            showOneToOneNotification(for: xmppChatMessage)
+        }
         
         // download chat message media
         processPendingChatMessageMedia()
@@ -1472,19 +1475,12 @@ extension ChatData {
         DDLogDebug("ChatData/showOneToOneNotification")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-    
             switch UIApplication.shared.applicationState {
             case .background, .inactive:
                 self.presentLocalOneToOneNotifications(for: xmppChatMessage)
             case .active:
                 guard self.currentlyChattingWithUserId != xmppChatMessage.fromUserId else { return }
-                UNUserNotificationCenter.current().getContentIdsForDeliveredNotifications(ofType: .chatMessage) { [weak self] (ids) in
-                    guard let self = self else { return }
-                    guard !ids.contains(xmppChatMessage.id) else { return }
-                    DispatchQueue.main.async {
-                        self.presentOneToOneBanner(for: xmppChatMessage)
-                    }
-                }
+                self.presentOneToOneBanner(for: xmppChatMessage)
             @unknown default:
                 self.presentLocalOneToOneNotifications(for: xmppChatMessage)
             }
@@ -2256,7 +2252,9 @@ extension ChatData {
             MainAppContext.shared.contactStore.addPushNames([userId: name])
         }
         
-        showGroupNotification(for: xmppChatGroupMessage)
+        if xmppChatGroupMessage.retryCount == nil || xmppChatGroupMessage.retryCount == 0 {
+            showGroupNotification(for: xmppChatGroupMessage)
+        }
         
         // download chat group message media
         self.processPendingChatGroupMessageMedia()
@@ -2570,6 +2568,7 @@ extension ChatData {
 
 // MARK: Group Notifications
 extension ChatData {
+    
     private func showGroupNotification(for xmppChatGroupMessage: XMPPChatGroupMessage) {
         DDLogDebug("ChatData/showGroupNotification")
         DispatchQueue.main.async { [weak self] in
@@ -2580,13 +2579,7 @@ extension ChatData {
                 self.presentLocalGroupNotifications(for: xmppChatGroupMessage)
             case .active:
                 guard self.currentlyChattingInGroup != xmppChatGroupMessage.groupId else { return }
-                UNUserNotificationCenter.current().getContentIdsForDeliveredNotifications(ofType: .groupChatMessage) { [weak self] (ids) in
-                    guard let self = self else { return }
-                    guard !ids.contains(xmppChatGroupMessage.id) else { return }
-                    DispatchQueue.main.async {
-                        self.presentGroupBanner(for: xmppChatGroupMessage)
-                    }
-                }
+                self.presentGroupBanner(for: xmppChatGroupMessage)
             @unknown default:
                 self.presentLocalGroupNotifications(for: xmppChatGroupMessage)
             }
@@ -2736,6 +2729,11 @@ extension XMPPChatMessage {
         guard let id = item.attributeStringValue(forName: "id") else { return nil }
         guard let toUserId = item.attributeStringValue(forName: "to")?.components(separatedBy: "@").first else { return nil }
         guard let fromUserId = item.attributeStringValue(forName: "from")?.components(separatedBy: "@").first else { return nil }
+                
+        if let retryCount = item.attributeStringValue(forName: "retry_count"), retryCount != "" {
+            self.retryCount = Int32(retryCount)
+        }
+        
         guard let chat = item.element(forName: "chat") else { return nil }
         
         var text: String?, media: [XMPPChatMedia] = [], feedPostId: String?, feedPostMediaIndex: Int32 = 0
