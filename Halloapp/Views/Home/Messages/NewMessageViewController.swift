@@ -7,87 +7,89 @@
 //
 
 import CocoaLumberjack
-import Combine
 import Core
 import CoreData
-import Foundation
 import UIKit
-import SwiftUI
 
-fileprivate struct Constants {
-    static let cellReuseIdentifier = "NewMessageViewCell"
+protocol NewChatViewControllerDelegate: AnyObject {
+    func newChatViewController(_ newChatViewController: NewChatViewController, didSelect userId: UserID)
 }
 
-protocol NewMessageViewControllerDelegate: AnyObject {
-    func newMessageViewController(_ newMessageViewController: NewMessageViewController, chatWithUserId: String)
-}
+class NewChatTableViewController: ContactPickerViewController<ABContact> {
 
-fileprivate class ContactsSearchResultsController: UITableViewController {
+    // MARK: ContactPickerViewController
 
-    var contacts: [ABContact] = [] {
-        didSet {
-            if self.isViewLoaded {
-                self.tableView.reloadData()
-            }
+    override func configure(cell: ContactTableViewCell, with contact: ABContact) {
+        cell.configure(with: contact)
+    }
+
+    // MARK: NewChatTableViewController
+
+    fileprivate func didSelectContact(with userId: UserID) {
+        // Subclasses to implement.
+    }
+
+    // MARK: UITableViewDelegate
+
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let contact = dataSource.itemIdentifier(for: indexPath),
+              let userId = contact.userId else
+        {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
         }
+
+        didSelectContact(with: userId)
+    }
+
+}
+
+class NewChatViewController: NewChatTableViewController {
+
+    weak var delegate: NewChatViewControllerDelegate?
+
+    private var fetchedResultsController: NSFetchedResultsController<ABContact>!
+
+    private var searchController: UISearchController!
+
+    init(delegate: NewChatViewControllerDelegate) {
+        self.delegate = delegate
+        super.init(contacts: [])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("Use init(delegate:)")
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        tableView.backgroundColor = .feedBackground
-        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
-    }
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return contacts.count
-    }
-
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-        cell.configure(with: contacts[indexPath.row])
-        return cell
-    }
-}
-
-
-
-class NewMessageViewController: UITableViewController, NSFetchedResultsControllerDelegate {
-
-    weak var delegate: NewMessageViewControllerDelegate?
-
-    private var fetchedResultsController: NSFetchedResultsController<ABContact>!
-
-    private var searchController: UISearchController!
-    private var searchResultsController: ContactsSearchResultsController!
-
-    private var trackedContacts: [String: TrackedContact] = [:]
-
-    init() {
-        super.init(style: .plain)
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-
-    override func viewDidLoad() {
         DDLogInfo("NewMessageViewController/viewDidLoad")
 
         navigationItem.title = "New Chat"
         navigationItem.standardAppearance = .opaqueAppearance
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
 
-        setupFetchedResultsController()
-
         tableView.backgroundColor = .feedBackground
-        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
-        
-        searchResultsController = ContactsSearchResultsController(style: .plain)
+
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)",
+                                             ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
+        fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
+        fetchedResultsController = NSFetchedResultsController<ABContact>(fetchRequest: fetchRequest,
+                                                                         managedObjectContext: AppContext.shared.contactStore.viewContext,
+                                                                         sectionNameKeyPath: nil,
+                                                                         cacheName: nil)
+        fetchedResultsController.delegate = self
+        do {
+            try fetchedResultsController.performFetch()
+            reloadContacts()
+        } catch {
+            fatalError("Failed to fetch contacts. \(error)")
+        }
+
+        let searchResultsController = NewChatSearchResultsController(delegate: self)
         searchController = UISearchController(searchResultsController: searchResultsController)
-        searchController.delegate = self
         searchController.searchResultsUpdater = self
         searchController.searchBar.autocapitalizationType = .none
         searchController.definesPresentationContext = true
@@ -95,13 +97,11 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
         
-        let newMessageHeaderView = NewMessageHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 35))
-        newMessageHeaderView.isHidden = true
         if ServerProperties.isInternalUser || ServerProperties.isGroupsEnabled {
-            newMessageHeaderView.isHidden = false
+            let headerView = TableHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 44))
+            headerView.button.addTarget(self, action: #selector(createNewGroup), for: .touchUpInside)
+            tableView.tableHeaderView = headerView
         }
-        newMessageHeaderView.delegate = self
-        tableView.tableHeaderView = newMessageHeaderView
     }
 
     // MARK: Appearance
@@ -116,8 +116,17 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         super.viewDidAppear(animated)
     }
 
-    deinit {
-        DDLogDebug("NewMessageViewController/deinit ")
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        guard let headerView = tableView.tableHeaderView else { return }
+        let size = headerView.systemLayoutSizeFitting(CGSize(width: tableView.frame.width, height: CGFloat.greatestFiniteMagnitude),
+                                                      withHorizontalFittingPriority: .required,
+                                                      verticalFittingPriority: .fittingSizeLevel)
+        if headerView.frame.height != size.height {
+            headerView.frame.size = size
+            tableView.tableHeaderView = headerView
+        }
     }
 
     // MARK: Top Nav Button Actions
@@ -126,234 +135,88 @@ class NewMessageViewController: UITableViewController, NSFetchedResultsControlle
         dismiss(animated: true)
     }
 
-    // MARK: Customization
-
-    private var fetchRequest: NSFetchRequest<ABContact> {
-        let fetchRequest = NSFetchRequest<ABContact>(entityName: "ABContact")
-        fetchRequest.sortDescriptors = [
-            NSSortDescriptor(keyPath: \ABContact.fullName, ascending: true)
-        ]
-        fetchRequest.predicate = NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
-        return fetchRequest
+    @objc private func createNewGroup() {
+        navigationController?.pushViewController(NewGroupMembersViewController(), animated: true)
     }
 
-    // MARK: Fetched Results Controller
-
-    private var trackPerRowFRCChanges = false
-
-    private func setupFetchedResultsController() {
-        fetchedResultsController = newFetchedResultsController()
-        do {
-            try fetchedResultsController.performFetch()
-        } catch {
-            fatalError("Failed to fetch feed items \(error)")
+    private func reloadContacts() {
+        var deduplicatedContacts: [ABContact] = []
+        var contactIdentifiers = Set<String>()
+        for contact in fetchedResultsController.fetchedObjects ?? [] {
+            guard let identifier = contact.identifier,
+                  let phoneNumber = contact.normalizedPhoneNumber else
+            {
+                deduplicatedContacts.append(contact)
+                continue
+            }
+            let id = "\(identifier)-\(phoneNumber)"
+            guard !contactIdentifiers.contains(id) else {
+                continue
+            }
+            contactIdentifiers.insert(id)
+            deduplicatedContacts.append(contact)
         }
+        contacts = deduplicatedContacts
     }
 
-    private func newFetchedResultsController() -> NSFetchedResultsController<ABContact> {
-        // Setup fetched results controller the old way because it allows granular control over UI update operations.
-        let fetchedResultsController = NSFetchedResultsController<ABContact>(fetchRequest: fetchRequest,
-                                                                             managedObjectContext: AppContext.shared.contactStore.viewContext,
-                                                                             sectionNameKeyPath: nil,
-                                                                             cacheName: nil)
-        fetchedResultsController.delegate = self
-        return fetchedResultsController
+    // MARK: NewChatTableViewController
+
+    override func didSelectContact(with userId: UserID) {
+        delegate?.newChatViewController(self, didSelect: userId)
     }
+}
 
-    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        trackPerRowFRCChanges = view.window != nil && UIApplication.shared.applicationState == .active
-        DDLogDebug("NewMessageView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
-        if trackPerRowFRCChanges {
-            tableView.beginUpdates()
-        }
-    }
-
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        switch type {
-        case .insert:
-            guard let indexPath = newIndexPath, let abContact = anObject as? ABContact else { break }
-            DDLogDebug("NewMessageView/frc/insert [\(abContact)] at [\(indexPath)]")
-            if trackPerRowFRCChanges {
-                tableView.insertRows(at: [ indexPath ], with: .automatic)
-            }
-
-        case .delete:
-            guard let indexPath = indexPath, let abContact = anObject as? ABContact else { break }
-            DDLogDebug("NewMessageView/frc/delete [\(abContact)] at [\(indexPath)]")
-            if trackPerRowFRCChanges {
-                tableView.deleteRows(at: [ indexPath ], with: .automatic)
-            }
-
-        case .move:
-            guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let abContact = anObject as? ABContact else { break }
-            DDLogDebug("NewMessageView/frc/move [\(abContact)] from [\(fromIndexPath)] to [\(toIndexPath)]")
-            if trackPerRowFRCChanges {
-                tableView.moveRow(at: fromIndexPath, to: toIndexPath)
-            }
-
-        case .update:
-            guard let indexPath = indexPath, let abContact = anObject as? ABContact else { return }
-            DDLogDebug("NewMessageView/frc/update [\(abContact)] at [\(indexPath)]")
-            if trackPerRowFRCChanges {
-                tableView.reloadRows(at: [ indexPath ], with: .automatic)
-            }
-
-        default:
-            break
-        }
-    }
+extension NewChatViewController: NSFetchedResultsControllerDelegate {
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("NewMessageView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]")
-        if trackPerRowFRCChanges {
-            tableView.endUpdates()
-        } else {
-            tableView.reloadData()
-        }
+        reloadContacts()
     }
+}
 
-    // MARK: UITableView Delegates
+extension NewChatViewController: NewChatSearchResultsControllerDelegate {
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return fetchedResultsController.sections?.count ?? 0
-    }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let sections = fetchedResultsController?.sections else {
-            return 0
-        }
-        return sections[section].numberOfObjects
-    }
-
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-        cell.configure(with: fetchedResultsController.object(at: indexPath))
-        return cell
-    }
-
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        var contact: ABContact
-        if tableView == self.tableView {
-            contact = fetchedResultsController.object(at: indexPath)
-        } else {
-            contact = searchResultsController.contacts[indexPath.row]
-        }
-        guard !isDuplicate(contact) else {
-            return 0
-        }
-        return UITableView.automaticDimension
-    }
-
-    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        var contact: ABContact
-        if tableView == self.tableView {
-            contact = fetchedResultsController.object(at: indexPath)
-        } else {
-            contact = searchResultsController.contacts[indexPath.row]
-        }
-        if isDuplicate(contact) {
-            cell.isHidden = true
-        }
-    }
-
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let delegate = delegate else {
-            tableView.deselectRow(at: indexPath, animated: true)
-            return
-        }
-
-        var userId: UserID?
-        if tableView == self.tableView {
-            userId = fetchedResultsController.object(at: indexPath).userId
-        } else {
-            userId = searchResultsController.contacts[indexPath.row].userId
-        }
-
-        if let userId = userId {
-            if searchController.isActive {
-                searchController.dismiss(animated: false) {
-                    delegate.newMessageViewController(self, chatWithUserId: userId)
-                }
-            } else {
-                delegate.newMessageViewController(self, chatWithUserId: userId)
-
+    fileprivate func newChatSearchResultsController(_ controller: NewChatSearchResultsController, didSelect userId: UserID) {
+        if searchController.isActive {
+            searchController.dismiss(animated: false) {
+                self.didSelectContact(with: userId)
             }
         } else {
-            tableView.deselectRow(at: indexPath, animated: true)
-        }
-    }
-
-    func isDuplicate(_ abContact: ABContact) -> Bool {
-        guard let identifier = abContact.identifier else { return false }
-        guard let phoneNumber = abContact.phoneNumber else { return false }
-        guard let normalizedPhoneNumber = abContact.normalizedPhoneNumber else { return false }
-        let id = "\(identifier)-\(phoneNumber)"
-        if trackedContacts[id] == nil {
-            var trackedContact = TrackedContact(with: abContact)
-            if trackedContacts.keys.first(where: { trackedContacts[$0]?.normalizedPhone == normalizedPhoneNumber }) != nil {
-                trackedContact.isDuplicate = true
-            }
-            trackedContacts[id] = trackedContact
-        }
-        return trackedContacts[id]?.isDuplicate ?? false
-    }
-
-}
-
-extension NewMessageViewController: UISearchControllerDelegate {
-
-    func willPresentSearchController(_ searchController: UISearchController) {
-        if let resultsController = searchController.searchResultsController as? UITableViewController {
-            resultsController.tableView.delegate = self
+            didSelectContact(with: userId)
         }
     }
 }
 
-extension NewMessageViewController: UISearchResultsUpdating {
+private protocol NewChatSearchResultsControllerDelegate: AnyObject {
 
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let resultsController = searchController.searchResultsController as? ContactsSearchResultsController else { return }
-        guard let allContacts = fetchedResultsController?.fetchedObjects else { return }
+    func newChatSearchResultsController(_ controller: NewChatSearchResultsController, didSelect userId: UserID)
+}
 
-        let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
-        let searchItems = strippedString.components(separatedBy: " ")
+private class NewChatSearchResultsController: NewChatTableViewController {
 
-        let andPredicates: [NSPredicate] = searchItems.map { (searchString) in
-            NSComparisonPredicate(leftExpression: NSExpression(forKeyPath: "searchTokens"),
-                                  rightExpression: NSExpression(forConstantValue: searchString),
-                                  modifier: .any,
-                                  type: .contains,
-                                  options: [.caseInsensitive, .diacriticInsensitive])
-        }
+    weak var delegate: NewChatSearchResultsControllerDelegate?
 
-        let finalCompoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: andPredicates)
-        resultsController.contacts = allContacts.filter { finalCompoundPredicate.evaluate(with: $0) }
+    init(delegate: NewChatSearchResultsControllerDelegate) {
+        self.delegate = delegate
+        super.init(contacts: [])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("Use init(delegate:)")
+    }
+
+    // MARK: ContactPickerViewController
+
+    override class var showSections: Bool { false }
+
+    // MARK: NewChatTableViewController
+
+    override func didSelectContact(with userId: UserID) {
+        delegate?.newChatSearchResultsController(self, didSelect: userId)
     }
 }
 
-extension NewMessageViewController: NewMessageHeaderViewDelegate {
-    func newMessageHeaderView(_ newMessageHeaderView: NewMessageHeaderView) {
-        self.navigationController?.pushViewController(NewGroupMembersViewController(), animated: true)
-    }
-}
+private class TableHeaderView: UIView {
 
-fileprivate struct TrackedContact {
-    let normalizedPhone: String?
-    var isDuplicate: Bool = false
-
-    init(with abContact: ABContact) {
-        normalizedPhone = abContact.normalizedPhoneNumber
-    }
-}
-
-protocol NewMessageHeaderViewDelegate: AnyObject {
-    func newMessageHeaderView(_ newMessageHeaderView: NewMessageHeaderView)
-}
-
-class NewMessageHeaderView: UIView {
-
-    weak var delegate: NewMessageHeaderViewDelegate?
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
@@ -364,41 +227,27 @@ class NewMessageHeaderView: UIView {
         setup()
     }
 
-    private lazy var textLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .body)
-        label.textColor = .systemBlue
-        label.textAlignment = .right
-        label.text = "New Group"
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.openNewGroupView(_:)))
-        label.isUserInteractionEnabled = true
-        label.addGestureRecognizer(tapGesture)
-
-        return label
-    }()
-
-    private let vStack: UIStackView = {
-        let vStack = UIStackView()
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        return vStack
-    }()
+    private(set) var button: UIButton!
 
     private func setup() {
-        self.preservesSuperviewLayoutMargins = true
+        preservesSuperviewLayoutMargins = true
 
-        vStack.addArrangedSubview(textLabel)
-        addSubview(vStack)
-
-        vStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-        vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
+        button = UIButton(type: .system)
+        button.titleLabel?.font = .gothamFont(forTextStyle: .headline, weight: .medium)
+        button.setTitle("New Group", for: .normal)
+        button.tintColor = .systemBlue
+        button.contentHorizontalAlignment = .leading
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: layoutMargins.left, bottom: 8, right: layoutMargins.right)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        addSubview(button)
+        button.constrain(to: self)
     }
-    
-    @objc func openNewGroupView (_ sender: UITapGestureRecognizer) {
-        self.delegate?.newMessageHeaderView(self)
+
+    override func layoutMarginsDidChange() {
+        super.layoutMarginsDidChange()
+        button.contentEdgeInsets.left = layoutMargins.left
+        button.contentEdgeInsets.right = layoutMargins.right
     }
 }
 

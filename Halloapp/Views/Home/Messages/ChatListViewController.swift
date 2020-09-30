@@ -22,7 +22,7 @@ fileprivate enum ChatListViewSection {
     case main
 }
 
-class ChatListViewController: UIViewController, NSFetchedResultsControllerDelegate, UITableViewDelegate, UITableViewDataSource, NewMessageViewControllerDelegate {
+class ChatListViewController: UIViewController, NSFetchedResultsControllerDelegate, UITableViewDelegate, UITableViewDataSource {
 
     private static let cellReuseIdentifier = "ChatListViewCell"
     private static let inviteFriendsReuseIdentifier = "ChatListInviteFriendsCell"
@@ -145,9 +145,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 
     private func showContacts() {
-        let controller = NewMessageViewController()
-        controller.delegate = self
-        present(UINavigationController(rootViewController: controller), animated: true)
+        present(UINavigationController(rootViewController: NewChatViewController(delegate: self)), animated: true)
     }
 
     // MARK: Invite friends
@@ -341,14 +339,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         }
     }
 
-    // MARK: New Message Delegates
-    
-    func newMessageViewController(_ newMessageViewController: NewMessageViewController, chatWithUserId: String) {
-        newMessageViewController.dismiss(animated: true) {
-            self.navigationController?.pushViewController(ChatViewController(for: chatWithUserId), animated: true)
-        }
-    }
-    
     // MARK: Tap Notification
     
     private func processNotification(metadata: NotificationMetadata) {
@@ -363,6 +353,14 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             navigationController?.pushViewController(ChatGroupViewController(for: groupId), animated: true)
         }
         metadata.removeFromUserDefaults()
+    }
+}
+
+extension ChatListViewController: NewChatViewControllerDelegate {
+    func newChatViewController(_ controller: NewChatViewController, didSelect userId: UserID) {
+        controller.dismiss(animated: true) {
+            self.navigationController?.pushViewController(ChatViewController(for: userId), animated: true)
+        }
     }
 }
 

@@ -10,13 +10,9 @@ import Core
 import CoreData
 import UIKit
 
-fileprivate struct Constants {
-    static let cellReuseIdentifier = "inviteContactCell"
-}
-
 private extension ContactTableViewCell {
 
-    func configure(withContact contact: ABContact) {
+    func configure(with contact: ABContact) {
         options.remove(.hasImage)
 
         let isUserAlready = contact.status == .in
@@ -33,92 +29,87 @@ extension ABContact: IndexableContact {
     }
 }
 
-fileprivate class InvitePeopleResultsController: UITableViewController {
-    var contacts: [ABContact] = [] {
-        didSet {
-            if self.isViewLoaded {
-                self.tableView.reloadData()
-            }
-        }
-    }
+extension ABContact: SearchableContact { }
 
-    init() {
-        super.init(style: .plain)
+class InvitePeopleTableViewController: ContactPickerViewController<ABContact> {
+
+    fileprivate let didSelectContact: (ABContact) -> ()
+
+    fileprivate init(didSelectContact: @escaping (ABContact) -> ()) {
+        self.didSelectContact = didSelectContact
+        super.init(contacts: [])
     }
 
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        fatalError("Use init(didSelectContact:)")
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    // MARK: ContactPickerViewController
 
-        tableView.backgroundColor = .feedBackground
-        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+    override func configure(cell: ContactTableViewCell, with contact: ABContact) {
+        cell.configure(with: contact)
     }
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+    // MARK: UITableViewDelegate
+
+    private func contactForIndexPath(_ indexPath: IndexPath, in tableView: UITableView) -> ABContact? {
+        return dataSource.itemIdentifier(for: indexPath)
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return contacts.count
+    override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+        guard let contact = contactForIndexPath(indexPath, in: tableView), contact.status != .in else {
+            return nil
+        }
+        return indexPath
     }
 
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let contact = contacts[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-        cell.configure(withContact: contact)
-        return cell
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let contact = contactForIndexPath(indexPath, in: tableView) else { return }
+
+        didSelectContact(contact)
+        DispatchQueue.main.async {
+            tableView.deselectRow(at: indexPath, animated: true)
+        }
     }
+
 }
 
-class InvitePeopleTableViewController: UITableViewController {
+class InvitePeopleViewController: InvitePeopleTableViewController {
 
-    private let inviteManager = InviteManager.shared
-    private var dataSource: ContactsTableViewDataSource<ABContact>!
     private var fetchedResultsController: NSFetchedResultsController<ABContact>!
-    private let didSelectContact: (ABContact) -> ()
 
     private var searchController: UISearchController!
-    private var resultsController: InvitePeopleResultsController!
 
-    init(didSelectContact: @escaping (ABContact) -> ()) {
-        self.didSelectContact = didSelectContact
-        super.init(style: .plain)
+    override init(didSelectContact: @escaping (ABContact) -> ()) {
+        super.init(didSelectContact: didSelectContact)
     }
 
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        fatalError("Use init(didSelectContact:)")
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         tableView.backgroundColor = .feedBackground
-        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
-
-        dataSource = ContactsTableViewDataSource<ABContact>(tableView: tableView) { (tableView, indexPath, contact) in
-            let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-            cell.configure(withContact: contact)
-            return cell
-        }
 
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "statusValue == %d OR statusValue == %d", ABContact.Status.out.rawValue, ABContact.Status.in.rawValue)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \ABContact.sort, ascending: true) ]
-        fetchedResultsController = NSFetchedResultsController<ABContact>(fetchRequest: fetchRequest, managedObjectContext: MainAppContext.shared.contactStore.viewContext, sectionNameKeyPath: nil, cacheName: nil)
-        fetchedResultsController?.delegate = self
+        fetchedResultsController = NSFetchedResultsController<ABContact>(fetchRequest: fetchRequest,
+                                                                         managedObjectContext: MainAppContext.shared.contactStore.viewContext,
+                                                                         sectionNameKeyPath: nil,
+                                                                         cacheName: nil)
+        fetchedResultsController.delegate = self
         do {
-            try fetchedResultsController?.performFetch()
-            updateSnapshot()
+            try fetchedResultsController.performFetch()
+            reloadContacts()
         }
         catch {
             fatalError("Failed to fetch contacts. \(error)")
         }
 
-        resultsController = InvitePeopleResultsController()
-        resultsController.tableView.delegate = self
+        let resultsController = InvitePeopleSearchResultsController(didSelectContact: didSelectContact)
         searchController = UISearchController(searchResultsController: resultsController)
         searchController.searchResultsUpdater = self
         searchController.searchBar.autocapitalizationType = .none
@@ -131,66 +122,20 @@ class InvitePeopleTableViewController: UITableViewController {
         }
     }
 
-}
-
-extension InvitePeopleTableViewController {
-
-    private func contactForIndexPath(_ indexPath: IndexPath, in tableView: UITableView) -> ABContact {
-        if tableView == self.tableView {
-            return dataSource.itemIdentifier(for: indexPath)!
-        } else {
-            return resultsController.contacts[indexPath.row]
-        }
-    }
-
-    override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
-        let contact = contactForIndexPath(indexPath, in: tableView)
-        guard contact.status != .in else {
-            return nil
-        }
-        return indexPath
-    }
-
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let contact = contactForIndexPath(indexPath, in: tableView)
-        self.didSelectContact(contact)
-        DispatchQueue.main.async {
-            tableView.deselectRow(at: indexPath, animated: true)
-        }
+    private func reloadContacts() {
+        contacts = fetchedResultsController.fetchedObjects ?? []
     }
 
 }
 
-extension InvitePeopleTableViewController: NSFetchedResultsControllerDelegate {
-
-    private func updateSnapshot() {
-        let allContacts = fetchedResultsController.fetchedObjects ?? []
-        dataSource.reload(contacts: allContacts, animatingDifferences: viewIfLoaded?.window != nil)
-    }
+extension InvitePeopleViewController: NSFetchedResultsControllerDelegate {
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        updateSnapshot()
+        reloadContacts()
     }
 }
 
-extension InvitePeopleTableViewController: UISearchResultsUpdating {
+private class InvitePeopleSearchResultsController: InvitePeopleTableViewController {
 
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let resultsController = searchController.searchResultsController as? InvitePeopleResultsController else { return }
-        guard let allContacts = fetchedResultsController.fetchedObjects else { return }
-
-        let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
-        let searchItems = strippedString.components(separatedBy: " ")
-
-        let andPredicates: [NSPredicate] = searchItems.map { (searchString) in
-            NSComparisonPredicate(leftExpression: NSExpression(forKeyPath: "searchTokens"),
-                                  rightExpression: NSExpression(forConstantValue: searchString),
-                                  modifier: .any,
-                                  type: .contains,
-                                  options: [.caseInsensitive, .diacriticInsensitive])
-        }
-
-        let finalCompoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: andPredicates)
-        resultsController.contacts = allContacts.filter { finalCompoundPredicate.evaluate(with: $0) }
-    }
+    override class var showSections: Bool { false }
 }

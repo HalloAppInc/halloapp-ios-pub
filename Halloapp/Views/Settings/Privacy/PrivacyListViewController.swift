@@ -9,7 +9,7 @@
 import Core
 import UIKit
 
-private class PrivacyListTableRow: NSObject, IndexableContact {
+final class PrivacyListTableRow: NSObject, IndexableContact, SearchableContact {
     let userId: UserID
     let name: String?
     let indexName: String
@@ -35,34 +35,25 @@ private class PrivacyListTableRow: NSObject, IndexableContact {
     }
 }
 
-class PrivacyListTableViewController: UITableViewController {
-    static private let cellReuseIdentifier = "ContactCell"
+private extension ContactTableViewCell {
 
-    fileprivate var contacts: [PrivacyListTableRow]
-    class var showSections: Bool { true }
-    fileprivate var dataSource: ContactsTableViewDataSource<PrivacyListTableRow>!
+    func configure(with contact: PrivacyListTableRow) {
+        options.insert(.hasCheckmark)
+        nameLabel.text = contact.name ?? MainAppContext.shared.contactStore.fullName(for: contact.userId)
+        subtitleLabel.text = contact.phoneNumber
+    }
+}
 
-    fileprivate init(contacts: [PrivacyListTableRow]) {
-        self.contacts = contacts
-        super.init(style: .plain)
+class PrivacyListTableViewController: ContactPickerViewController<PrivacyListTableRow> {
+
+    // MARK: ContactPickerViewController
+
+    override func configure(cell: ContactTableViewCell, with contact: PrivacyListTableRow) {
+        cell.configure(with: contact)
+        cell.setContact(selected: contact.isSelected)
     }
 
-    required init?(coder: NSCoder) {
-        fatalError("Use init(contacts:)")
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Self.cellReuseIdentifier)
-        dataSource = ContactsTableViewDataSource<PrivacyListTableRow>(tableView: tableView, cellProvider: { (tableView, indexPath, contact) -> UITableViewCell? in
-            let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
-            cell.configure(with: contact)
-            cell.setContact(selected: contact.isSelected)
-            return cell
-        })
-        dataSource.isSectioningEnabled = Self.showSections
-        dataSource.reload(contacts: contacts, animatingDifferences: false)
-    }
+    // MARK: UITableViewDelegate
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let cell = tableView.cellForRow(at: indexPath) as? ContactTableViewCell,
@@ -70,19 +61,6 @@ class PrivacyListTableViewController: UITableViewController {
         contact.isSelected = !contact.isSelected
         cell.setContact(selected: contact.isSelected, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
-    }
-}
-
-private class PrivacyListSearchResultsViewController: PrivacyListTableViewController {
-
-    override class var showSections: Bool { false }
-
-    override fileprivate var contacts: [PrivacyListTableRow] {
-        didSet {
-            if isViewLoaded {
-                dataSource.reload(contacts: contacts, animatingDifferences: false)
-            }
-        }
     }
 }
 
@@ -122,15 +100,15 @@ class PrivacyListViewController: PrivacyListTableViewController {
     }
 
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        fatalError("Use init(privacyList:settings:)")
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.navigationItem.title = PrivacyList.name(forPrivacyListType: privacyList.type)
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneAction))
+        navigationItem.title = PrivacyList.name(forPrivacyListType: privacyList.type)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneAction))
 
         // Search
         let searchResultsController = PrivacyListSearchResultsViewController(contacts: [])
@@ -166,36 +144,12 @@ class PrivacyListViewController: PrivacyListTableViewController {
 extension PrivacyListViewController: UISearchControllerDelegate {
 
     func willDismissSearchController(_ searchController: UISearchController) {
+        // Reload to reflect selection changes made while in search mode.
         tableView.reloadData()
     }
 }
 
-extension PrivacyListViewController: UISearchResultsUpdating {
+private class PrivacyListSearchResultsViewController: PrivacyListTableViewController {
 
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let resultsController = searchController.searchResultsController as? PrivacyListSearchResultsViewController else { return }
-
-        let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
-        let searchItems = strippedString.components(separatedBy: " ")
-
-        let andPredicates: [NSPredicate] = searchItems.map { (searchString) in
-            NSComparisonPredicate(leftExpression: NSExpression(forKeyPath: "searchTokens"),
-                                  rightExpression: NSExpression(forConstantValue: searchString),
-                                  modifier: .any,
-                                  type: .contains,
-                                  options: [.caseInsensitive, .diacriticInsensitive])
-        }
-
-        let finalCompoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: andPredicates)
-        resultsController.contacts = contacts.filter { finalCompoundPredicate.evaluate(with: $0) }
-    }
-}
-
-private extension ContactTableViewCell {
-
-    func configure(with contact: PrivacyListTableRow) {
-        options.insert(.hasCheckmark)
-        nameLabel.text = contact.name ?? MainAppContext.shared.contactStore.fullName(for: contact.userId)
-        subtitleLabel.text = contact.phoneNumber
-    }
+    override class var showSections: Bool { false }
 }

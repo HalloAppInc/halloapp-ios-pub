@@ -16,7 +16,7 @@ fileprivate struct InvitePeopleTableView: UIViewControllerRepresentable {
     let didSelectContact: (ABContact) -> ()
 
     func makeUIViewController(context: Context) -> UIViewControllerType {
-        let viewController = InvitePeopleTableViewController(didSelectContact: didSelectContact)
+        let viewController = InvitePeopleViewController(didSelectContact: didSelectContact)
         return viewController
     }
 
