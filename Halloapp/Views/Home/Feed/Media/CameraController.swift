@@ -411,7 +411,7 @@ class CameraController: UIViewController {
 
         DDLogInfo("CameraController/takePhoto")
         let photoSettings = AVCapturePhotoSettings()
-        photoSettings.flashMode = useFlashlight ? .auto : .off
+        photoSettings.flashMode = useFlashlight ? .on : .off
         photoOutput.capturePhoto(with: photoSettings, delegate: cameraDelegate)
     }
 

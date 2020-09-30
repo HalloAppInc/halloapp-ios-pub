@@ -180,9 +180,15 @@ fileprivate struct CameraView: View {
         return HStack {
             Spacer()
             Button(action: self.toggleFlash) {
-                Image("CameraFlashOff")
-                    .foregroundColor(.cameraButton)
-                    .rotationEffect(CameraView.getIconRotation(cameraState.orientation))
+                if cameraState.shouldUseFlashlight {
+                    Image("CameraFlashOn")
+                        .foregroundColor(.cameraButton)
+                        .rotationEffect(CameraView.getIconRotation(cameraState.orientation))
+                } else {
+                    Image("CameraFlashOff")
+                        .foregroundColor(.cameraButton)
+                        .rotationEffect(CameraView.getIconRotation(cameraState.orientation))
+                }
             }
             Spacer()
 
