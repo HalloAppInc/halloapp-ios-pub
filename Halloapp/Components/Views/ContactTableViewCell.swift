@@ -123,6 +123,7 @@ class ContactTableViewCell: UITableViewCell {
         contentView.addSubview(contactImage)
 
         vStack = UIStackView(arrangedSubviews: [ nameLabel, subtitleLabel ])
+        vStack.distribution = .fillProportionally
         vStack.axis = .vertical
 
         hStack = UIStackView(arrangedSubviews: [ vStack, accessoryLabel ])
