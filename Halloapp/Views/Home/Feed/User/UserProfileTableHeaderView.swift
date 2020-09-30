@@ -49,7 +49,7 @@ final class UserProfileTableHeaderView: UIView {
 
     private func commonInit() {
         preservesSuperviewLayoutMargins = true
-        layoutMargins.top = 16
+        layoutMargins.top = 32
 
         reloadNameLabelFont()
         NotificationCenter.default.addObserver(forName: UIContentSizeCategory.didChangeNotification, object: nil, queue: .main) { (notification) in
@@ -62,10 +62,10 @@ final class UserProfileTableHeaderView: UIView {
         vStack.axis = .vertical
         vStack.alignment = .center
         addSubview(vStack)
-        vStack.constrainMargins(to: self)
+        vStack.constrainMargins(to: self, priority: .required - 10) // because UIKit temporarily might set header view's width to zero.
 
-        contactImageView.heightAnchor.constraint(equalToConstant: 70).isActive = true
-        contactImageView.widthAnchor.constraint(equalTo: contactImageView.heightAnchor).isActive = true
+        addConstraints([ contactImageView.heightAnchor.constraint(equalToConstant: 70),
+                         contactImageView.widthAnchor.constraint(equalTo: contactImageView.heightAnchor) ])
     }
 
     func updateMyProfile(name: String) {

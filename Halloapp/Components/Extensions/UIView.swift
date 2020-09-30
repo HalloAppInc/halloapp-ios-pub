@@ -54,7 +54,7 @@ extension UIView {
     }
     
     @discardableResult
-    func constrain(anchor: ConstraintAnchor, to otherView: UIView, constant: CGFloat = 0) -> NSLayoutConstraint {
+    func constrain(anchor: ConstraintAnchor, to otherView: UIView, constant: CGFloat = 0, priority: UILayoutPriority = .required) -> NSLayoutConstraint {
         let constraint: NSLayoutConstraint
         switch anchor {
         case .top:
@@ -70,12 +70,13 @@ extension UIView {
         case .centerY:
             constraint = centerYAnchor.constraint(equalTo: otherView.centerYAnchor, constant: constant)
         }
+        constraint.priority = priority
         constraint.isActive = true
         return constraint
     }
 
     @discardableResult
-    func constrainMargin(anchor: ConstraintAnchor, to otherView: UIView, constant: CGFloat = 0) -> NSLayoutConstraint {
+    func constrainMargin(anchor: ConstraintAnchor, to otherView: UIView, constant: CGFloat = 0, priority: UILayoutPriority = .required) -> NSLayoutConstraint {
         let constraint: NSLayoutConstraint
         switch anchor {
         case .top:
@@ -91,17 +92,18 @@ extension UIView {
         case .centerY:
             constraint = centerYAnchor.constraint(equalTo: otherView.layoutMarginsGuide.centerYAnchor, constant: constant)
         }
+        constraint.priority = priority
         constraint.isActive = true
         return constraint
     }
     
     @discardableResult
-    func constrain(_ anchors: [ConstraintAnchor] = [.top, .bottom, .leading, .trailing], to otherView: UIView) -> [NSLayoutConstraint] {
-        return anchors.map { constrain(anchor: $0, to: otherView) }
+    func constrain(_ anchors: [ConstraintAnchor] = [.top, .bottom, .leading, .trailing], to otherView: UIView, priority: UILayoutPriority = .required) -> [NSLayoutConstraint] {
+        return anchors.map { constrain(anchor: $0, to: otherView, priority: priority) }
     }
 
     @discardableResult
-    func constrainMargins(_ anchors: [ConstraintAnchor] = [.top, .bottom, .leading, .trailing], to otherView: UIView) -> [NSLayoutConstraint] {
-        return anchors.map { constrainMargin(anchor: $0, to: otherView) }
+    func constrainMargins(_ anchors: [ConstraintAnchor] = [.top, .bottom, .leading, .trailing], to otherView: UIView, priority: UILayoutPriority = .required) -> [NSLayoutConstraint] {
+        return anchors.map { constrainMargin(anchor: $0, to: otherView, priority: priority) }
     }
 }
