@@ -886,6 +886,7 @@ private class FeedItemHeaderView: UIView {
     private lazy var contactImageView: AvatarView = {
         let avatarView = AvatarView()
         avatarView.isUserInteractionEnabled = true
+        avatarView.translatesAutoresizingMaskIntoConstraints = false
         avatarView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showUser)))
         return avatarView
     }()

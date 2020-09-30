@@ -120,6 +120,7 @@ class ContactTableViewCell: UITableViewCell {
     }
 
     private func commonInit() {
+        contactImage.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(contactImage)
 
         vStack = UIStackView(arrangedSubviews: [ nameLabel, subtitleLabel ])

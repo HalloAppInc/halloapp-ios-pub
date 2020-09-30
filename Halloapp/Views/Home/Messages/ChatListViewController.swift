@@ -558,6 +558,7 @@ private class ChatListTableViewCell: UITableViewCell {
     private func setup() {
         backgroundColor = .clear
 
+        avatarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(avatarView)
 
         let topRow = UIStackView(arrangedSubviews: [ nameLabel, timeLabel ])

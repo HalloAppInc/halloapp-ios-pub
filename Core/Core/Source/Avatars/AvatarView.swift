@@ -75,8 +75,6 @@ public class AvatarView: UIView {
         avatar.image = AvatarView.defaultImage
         avatar.tintColor = .systemGray
         self.addSubview(avatar)
-        
-        self.translatesAutoresizingMaskIntoConstraints = false
     }
     
     public func configure(with userId: UserID, using avatarStore: AvatarStore) {
