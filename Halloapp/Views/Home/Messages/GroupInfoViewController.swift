@@ -213,14 +213,18 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard isAdmin else {
+        func deselectRow() {
             tableView.deselectRow(at: indexPath, animated: true)
+        }
+
+        guard isAdmin else {
+            deselectRow()
             return
         }
         guard let chatGroupMember = fetchedResultsController?.object(at: indexPath),
               chatGroupMember.userId != MainAppContext.shared.userData.userId else
         {
-            tableView.deselectRow(at: indexPath, animated: true)
+            deselectRow()
             return
         }
         
@@ -256,7 +260,9 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         })
         
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        self.present(actionSheet, animated: true)
+        present(actionSheet, animated: true) {
+            deselectRow()
+        }
     }
     
     func checkIfMember() {
