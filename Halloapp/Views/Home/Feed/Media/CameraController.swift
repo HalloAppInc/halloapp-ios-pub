@@ -252,23 +252,24 @@ class CameraController: UIViewController {
     }
 
     private func configureVideoOutput(_ output: AVCaptureOutput) {
-        let connection = output.connection(with: .video)
-        if connection?.isVideoOrientationSupported ?? false {
+        guard let connection = output.connection(with: .video) else { return }
+
+        if connection.isVideoOrientationSupported {
             switch orientation {
             case .portrait:
-                connection?.videoOrientation = .portrait
+                connection.videoOrientation = .portrait
             case .landscapeLeft:
-                connection?.videoOrientation = .landscapeRight
+                connection.videoOrientation = .landscapeRight
             case .portraitUpsideDown:
-                connection?.videoOrientation = .portraitUpsideDown
+                connection.videoOrientation = .portraitUpsideDown
             case .landscapeRight:
-                connection?.videoOrientation = .landscapeLeft
+                connection.videoOrientation = .landscapeLeft
             default:
-                connection?.videoOrientation = .portrait
+                connection.videoOrientation = .portrait
             }
         }
-        if connection?.isVideoMirroringSupported ?? false {
-            connection?.isVideoMirrored = !isUsingBackCamera
+        if connection.isVideoMirroringSupported {
+            connection.isVideoMirrored = !isUsingBackCamera
         }
     }
 
