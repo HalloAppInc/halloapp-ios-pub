@@ -252,14 +252,24 @@ class CameraController: UIViewController {
     }
 
     private func configureVideoOutput(_ output: AVCaptureOutput) {
-        let connection = output.connection(with: .video)
-        // NOTE(VL): Do we need to support .landscapeLeft or .portraitUpsideDown?
-        // Discuss and change if needed.
-        if connection?.isVideoOrientationSupported ?? false {
-            connection?.videoOrientation = orientation.isLandscape ? .landscapeRight : .portrait
+        guard let connection = output.connection(with: .video) else { return }
+
+        if connection.isVideoOrientationSupported {
+            switch orientation {
+            case .portrait:
+                connection.videoOrientation = .portrait
+            case .landscapeLeft:
+                connection.videoOrientation = .landscapeRight
+            case .portraitUpsideDown:
+                connection.videoOrientation = .portraitUpsideDown
+            case .landscapeRight:
+                connection.videoOrientation = .landscapeLeft
+            default:
+                connection.videoOrientation = .portrait
+            }
         }
-        if connection?.isVideoMirroringSupported ?? false {
-            connection?.isVideoMirrored = !isUsingBackCamera
+        if connection.isVideoMirroringSupported {
+            connection.isVideoMirrored = !isUsingBackCamera
         }
     }
 
@@ -358,14 +368,12 @@ class CameraController: UIViewController {
     }
 
     public func setOrientation(_ orientation: UIDeviceOrientation) {
-        let didOrientationChange = self.orientation.isLandscape != orientation.isLandscape
-        self.orientation = orientation
-
         guard let captureSession = captureSession,
             let photoOutput = photoOutput,
             let movieOutput = movieOutput else { return }
 
-        if didOrientationChange {
+        if self.orientation != orientation {
+            self.orientation = orientation
             DDLogInfo("CameraController/setOrientation didOrientationChange")
             captureSession.beginConfiguration()
             configureVideoOutput(photoOutput)

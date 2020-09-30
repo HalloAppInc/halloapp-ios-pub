@@ -128,7 +128,7 @@ class CameraViewController: UIViewController {
     }
 
     private func setTitle(orientation: UIDeviceOrientation) {
-        if orientation.isLandscape {
+        if orientation.isLandscape || orientation == .portraitUpsideDown {
             navigationItem.title = nil
         } else {
             navigationItem.title = "Camera"
@@ -173,7 +173,20 @@ fileprivate struct CameraView: View {
     }
 
     private static func getIconRotation(_ orientation: UIDeviceOrientation) -> Angle {
-        return Angle(degrees: orientation.isLandscape ? 90 : 0)
+        var degrees: Double = 0
+        switch orientation {
+        case .portrait:
+            degrees = 0
+        case .landscapeLeft:
+            degrees = 90
+        case .portraitUpsideDown:
+            degrees = 180
+        case .landscapeRight:
+            degrees = 270
+        default:
+            degrees = 0
+        }
+        return Angle(degrees: degrees)
     }
 
     var controls: some View {
