@@ -883,12 +883,11 @@ private class FeedItemHeaderView: UIView {
 
     private var contentSizeCategoryDidChangeCancellable: AnyCancellable!
 
-    private lazy var contactImageView: AvatarView = {
-        let avatarView = AvatarView()
-        avatarView.isUserInteractionEnabled = true
-        avatarView.translatesAutoresizingMaskIntoConstraints = false
-        avatarView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showUser)))
-        return avatarView
+    private lazy var avatarViewButton: AvatarViewButton = {
+        let avatarViewButton = AvatarViewButton(type: .custom)
+        avatarViewButton.translatesAutoresizingMaskIntoConstraints = false
+        avatarViewButton.addTarget(self, action: #selector(showUser), for: .touchUpInside)
+        return avatarViewButton
     }()
 
     // Gotham Medium, 15 pt (Subhead)
@@ -922,20 +921,20 @@ private class FeedItemHeaderView: UIView {
     private func setupView() {
         isUserInteractionEnabled = true
 
-        addSubview(contactImageView)
+        addSubview(avatarViewButton)
 
         let hStack = UIStackView(arrangedSubviews: [ nameLabel, timestampLabel ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.spacing = 8
-        self.configure(stackView: hStack, forVerticalLayout: UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory)
+        configure(stackView: hStack, forVerticalLayout: UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory)
         addSubview(hStack)
 
-        contactImageView.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        contactImageView.heightAnchor.constraint(equalTo: contactImageView.widthAnchor).isActive = true
-        contactImageView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
-        contactImageView.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
-        contactImageView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-        hStack.leadingAnchor.constraint(equalToSystemSpacingAfter: contactImageView.trailingAnchor, multiplier: 1).isActive = true
+        avatarViewButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        avatarViewButton.heightAnchor.constraint(equalTo: avatarViewButton.widthAnchor).isActive = true
+        avatarViewButton.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
+        avatarViewButton.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
+        avatarViewButton.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        hStack.leadingAnchor.constraint(equalToSystemSpacingAfter: avatarViewButton.trailingAnchor, multiplier: 1).isActive = true
         hStack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor).isActive = true
         hStack.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
@@ -960,13 +959,13 @@ private class FeedItemHeaderView: UIView {
     }
 
     func configure(with post: FeedPost) {
-        self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
-        self.timestampLabel.text = post.timestamp.feedTimestamp()
-        self.contactImageView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: post.userId)
+        timestampLabel.text = post.timestamp.feedTimestamp()
+        avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
     }
 
     func prepareForReuse() {
-        contactImageView.prepareForReuse()
+        avatarViewButton.avatarView.prepareForReuse()
     }
 
     @objc func showUser() {
