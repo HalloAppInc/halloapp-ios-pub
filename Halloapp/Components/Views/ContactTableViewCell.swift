@@ -81,6 +81,17 @@ class ContactTableViewCell: UITableViewCell {
         return label
     }()
 
+    let accessoryLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = .preferredFont(forTextStyle: .caption1)
+        label.textColor = .tertiaryLabel
+        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultHigh + 50, for: .horizontal)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
     private static var checkmarkUnchecked: UIImage {
         UIImage(systemName: "circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 25))!.withRenderingMode(.alwaysTemplate)
     }
@@ -96,6 +107,7 @@ class ContactTableViewCell: UITableViewCell {
     }()
 
     private var vStack: UIStackView!
+    private var hStack: UIStackView!
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -111,18 +123,26 @@ class ContactTableViewCell: UITableViewCell {
         contentView.addSubview(contactImage)
 
         vStack = UIStackView(arrangedSubviews: [ nameLabel, subtitleLabel ])
-        vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
-        contentView.addSubview(vStack)
+
+        hStack = UIStackView(arrangedSubviews: [ vStack, accessoryLabel ])
+        hStack.spacing = 8
+        hStack.axis = .horizontal
+        hStack.alignment = .center
+        hStack.distribution = .fillProportionally
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(hStack)
+
+        accessoryLabel.textAlignment = effectiveUserInterfaceLayoutDirection == .leftToRight ? .right : .left
 
         profilePictureSizeConstraint = contactImage.heightAnchor.constraint(equalToConstant: profilePictureSize)
 
         profilePictureVisibleConstraints = [
-            vStack.leadingAnchor.constraint(equalTo: contactImage.trailingAnchor, constant: 10)
+            hStack.leadingAnchor.constraint(equalTo: contactImage.trailingAnchor, constant: 10)
         ]
 
         profilePictureHiddenConstraints = [
-            vStack.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor)
+            hStack.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor)
         ]
 
         contentView.addConstraints([
@@ -131,8 +151,8 @@ class ContactTableViewCell: UITableViewCell {
             contactImage.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
             contactImage.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
 
-            vStack.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor),
-            vStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor)
+            hStack.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor),
+            hStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor)
         ])
 
         if options.contains(.hasImage) {
@@ -141,14 +161,14 @@ class ContactTableViewCell: UITableViewCell {
             contentView.addConstraints(profilePictureHiddenConstraints)
         }
 
-        // Priority is lower than "required" because cell's height might be 0 (duplicate contacts).
+        // Priority is lower than "required" because cell's height might not be enough temporarily.
         contentView.addConstraint({
             let constraint = contactImage.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8)
             constraint.priority = .defaultHigh
             return constraint
             }())
         contentView.addConstraint({
-            let constraint = vStack.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor)
+            let constraint = hStack.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor)
             constraint.priority = .defaultHigh
             return constraint
             }())
@@ -180,11 +200,15 @@ class ContactTableViewCell: UITableViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        let labelSpacing: CGFloat = subtitleLabel.text?.isEmpty ?? true ? 0 : 3 // matches UITableViewCell's spacing
-        if vStack.spacing != labelSpacing {
-            vStack.spacing = labelSpacing
+        let verticalSpacing: CGFloat = subtitleLabel.text?.isEmpty ?? true ? 0 : 3 // matches UITableViewCell's spacing
+        if vStack.spacing != verticalSpacing {
+            vStack.spacing = verticalSpacing
+        }
+
+        let horizontalSpacing: CGFloat = accessoryLabel.text?.isEmpty ?? true ? 0 : 8
+        if hStack.spacing != horizontalSpacing {
+            hStack.spacing = horizontalSpacing
         }
     }
 
 }
-

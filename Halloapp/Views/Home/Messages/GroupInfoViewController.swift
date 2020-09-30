@@ -49,7 +49,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
 
         tableView.separatorStyle = .none
         tableView.backgroundColor = UIColor.systemGray6
-        tableView.register(GroupMemberViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
+        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         
         let groupInfoHeaderView = GroupInfoHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: Constants.HeaderHeight))
         groupInfoHeaderView.delegate = self
@@ -205,21 +205,24 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! GroupMemberViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
         if let chatGroupMember = fetchedResultsController?.object(at: indexPath) {
             cell.configure(with: chatGroupMember)
         }
         return cell
     }
 
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return UITableView.automaticDimension
-    }
-
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard isAdmin else { return }
-        guard let chatGroupMember = fetchedResultsController?.object(at: indexPath) else { return }
-        guard chatGroupMember.userId != MainAppContext.shared.userData.userId else { return }
+        guard isAdmin else {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
+        }
+        guard let chatGroupMember = fetchedResultsController?.object(at: indexPath),
+              chatGroupMember.userId != MainAppContext.shared.userData.userId else
+        {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
+        }
         
         let userName = MainAppContext.shared.contactStore.fullName(for: chatGroupMember.userId)
         let selectedMembers = [chatGroupMember.userId]
@@ -529,93 +532,12 @@ class GroupInfoFooterView: UIView {
     }
 }
 
-fileprivate class GroupMemberViewCell: UITableViewCell {
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setup()
-    }
+private extension ContactTableViewCell {
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        isHidden = false
-        nameLabel.text = ""
-        roleLabel.text = ""
-        contactImageView.prepareForReuse()
-    }
-    
-    public func configure(with chatGroupMember: ChatGroupMember) {
+    func configure(with chatGroupMember: ChatGroupMember) {
+        profilePictureSize = 40
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatGroupMember.userId)
-        roleLabel.text = chatGroupMember.type == .admin ? "Admin" : ""
-        contactImageView.configure(with: chatGroupMember.userId, using: MainAppContext.shared.avatarStore)
-        
+        accessoryLabel.text = chatGroupMember.type == .admin ? "Admin" : ""
+        contactImage.configure(with: chatGroupMember.userId, using: MainAppContext.shared.avatarStore)
     }
-
-    private func setup() {
-        backgroundColor = .clear
-        
-        let vStack = UIStackView(arrangedSubviews: [nameLabel, lastMessageLabel])
-        vStack.axis = .vertical
-        vStack.spacing = 2
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.setContentHuggingPriority(.defaultLow, for: .horizontal)
-
-        let imageSize: CGFloat = 40.0
-        contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
-        contactImageView.heightAnchor.constraint(equalTo: contactImageView.widthAnchor).isActive = true
-
-        let hStack = UIStackView(arrangedSubviews: [ contactImageView, vStack, roleLabel])
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.axis = .horizontal
-        hStack.spacing = 10
-
-        contentView.addSubview(hStack)
-        
-        // Priority is lower than "required" because cell's height might be 0 (duplicate contacts).
-        contentView.addConstraint({
-            let constraint = hStack.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor)
-            constraint.priority = .defaultHigh
-            return constraint
-            }())
-        hStack.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
-    }
-    
-    private lazy var contactImageView: AvatarView = {
-        return AvatarView()
-    }()
-
-    private lazy var nameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = .label
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    private lazy var lastMessageLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        label.textColor = .secondaryLabel
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    private lazy var roleLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = .secondaryLabel
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        return label
-    }()
-    
-        
-   
 }
