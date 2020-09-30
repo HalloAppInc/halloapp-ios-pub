@@ -22,10 +22,7 @@ final class UserProfileTableHeaderView: UIView {
     }
 
     private var vStack: UIStackView!
-
-    private lazy var contactImageView: AvatarView = {
-        return AvatarView()
-    }()
+    private(set) var avatarViewButton: AvatarViewButton!
 
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
@@ -36,11 +33,41 @@ final class UserProfileTableHeaderView: UIView {
         return label
     }()
 
-    var displayName: Bool = true {
+    var isDisplayingName: Bool = true {
         didSet {
-            vStack.spacing = displayName ? 16 : 0
-            nameLabel.isHidden = !displayName
+            vStack.spacing = isDisplayingName ? 16 : 0
+            nameLabel.isHidden = !isDisplayingName
         }
+    }
+
+    var canEditProfile: Bool = false {
+        didSet {
+            if canEditProfile {
+                addCameraOverlayToAvatarViewButton()
+                avatarViewButton.isUserInteractionEnabled = true
+            } else {
+                avatarViewButton.avatarView.placeholderOverlayView = nil
+                avatarViewButton.isUserInteractionEnabled = false
+            }
+        }
+    }
+
+    private func addCameraOverlayToAvatarViewButton() {
+        let overlayViewDiameter: CGFloat = 27
+        let cameraOverlayView = UIButton(type: .custom)
+        cameraOverlayView.bounds.size = CGSize(width: overlayViewDiameter, height: overlayViewDiameter)
+        cameraOverlayView.translatesAutoresizingMaskIntoConstraints = false
+        cameraOverlayView.setBackgroundColor(.systemBlue, for: .normal)
+        cameraOverlayView.setImage(UIImage(named: "ProfileHeaderCamera")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        cameraOverlayView.layer.cornerRadius = 0.5 * overlayViewDiameter
+        cameraOverlayView.layer.masksToBounds = true
+        avatarViewButton.avatarView.placeholderOverlayView = cameraOverlayView
+        avatarViewButton.addConstraints([
+            cameraOverlayView.widthAnchor.constraint(equalToConstant: overlayViewDiameter),
+            cameraOverlayView.heightAnchor.constraint(equalTo: cameraOverlayView.widthAnchor),
+            cameraOverlayView.bottomAnchor.constraint(equalTo: avatarViewButton.avatarView.bottomAnchor),
+            cameraOverlayView.trailingAnchor.constraint(equalTo: avatarViewButton.avatarView.trailingAnchor, constant: 8)
+        ])
     }
 
     private func reloadNameLabelFont() {
@@ -51,12 +78,15 @@ final class UserProfileTableHeaderView: UIView {
         preservesSuperviewLayoutMargins = true
         layoutMargins.top = 32
 
+        avatarViewButton = AvatarViewButton(type: .custom)
+        avatarViewButton.isUserInteractionEnabled = canEditProfile
+
         reloadNameLabelFont()
         NotificationCenter.default.addObserver(forName: UIContentSizeCategory.didChangeNotification, object: nil, queue: .main) { (notification) in
             self.reloadNameLabelFont()
         }
 
-        vStack = UIStackView(arrangedSubviews: [ contactImageView, nameLabel ])
+        vStack = UIStackView(arrangedSubviews: [ avatarViewButton, nameLabel ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.spacing = 16
         vStack.axis = .vertical
@@ -64,16 +94,16 @@ final class UserProfileTableHeaderView: UIView {
         addSubview(vStack)
         vStack.constrainMargins(to: self, priority: .required - 10) // because UIKit temporarily might set header view's width to zero.
 
-        addConstraints([ contactImageView.heightAnchor.constraint(equalToConstant: 70),
-                         contactImageView.widthAnchor.constraint(equalTo: contactImageView.heightAnchor) ])
+        addConstraints([ avatarViewButton.heightAnchor.constraint(equalToConstant: 70),
+                         avatarViewButton.widthAnchor.constraint(equalTo: avatarViewButton.heightAnchor) ])
     }
 
     func updateMyProfile(name: String) {
-        contactImageView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
+        avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
         nameLabel.text = name
     }
 
     func updateProfile(userID: UserID) {
-        contactImageView.configure(with: userID, using: MainAppContext.shared.avatarStore)
+        avatarViewButton.avatarView.configure(with: userID, using: MainAppContext.shared.avatarStore)
     }
 }

@@ -33,7 +33,7 @@ class UserFeedViewController: FeedTableViewController {
 
         let tableWidth = view.frame.width
         let headerView = UserProfileTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
-        headerView.displayName = false
+        headerView.isDisplayingName = false
         tableView.tableHeaderView = headerView
     }
 

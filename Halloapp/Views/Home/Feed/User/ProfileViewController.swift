@@ -38,6 +38,8 @@ class ProfileViewController: FeedTableViewController {
 
         let tableWidth = view.frame.width
         let headerView = UserProfileTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
+        headerView.canEditProfile = true
+        headerView.avatarViewButton.addTarget(self, action: #selector(presentProfileEditScreen), for: .touchUpInside)
         tableView.tableHeaderView = headerView
 
         cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in

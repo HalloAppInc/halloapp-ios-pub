@@ -14,8 +14,25 @@ public class AvatarView: UIView {
     public static let defaultGroupImage = UIImage(systemName: "person.3.fill")?.withRenderingMode(.alwaysTemplate)
     
     private let avatar = UIImageView()
+    private let avatarContainerView = UIView()
     private var avatarUpdatingCancellable: AnyCancellable?
     private var borderLayer: CAShapeLayer?
+
+    /**
+      Caller is responsible for configuring overlay's bounds and position.
+     */
+    public var placeholderOverlayView: UIView? {
+        willSet {
+            if let view = placeholderOverlayView {
+                view.removeFromSuperview()
+            }
+        }
+        didSet {
+            if let view = placeholderOverlayView {
+                addSubview(view)
+            }
+        }
+    }
     
     public var borderColor: UIColor? {
         didSet {
@@ -35,7 +52,7 @@ public class AvatarView: UIView {
     
     public override var bounds: CGRect {
         didSet {
-            if oldValue != self.bounds {
+            if oldValue.size != bounds.size {
                 applyCornerRadius()
                 applyBorder()
             }
@@ -44,7 +61,7 @@ public class AvatarView: UIView {
     
     public override var frame: CGRect {
         didSet {
-            if oldValue != self.frame {
+            if oldValue.size != frame.size {
                 applyCornerRadius()
                 applyBorder()
             }
@@ -74,7 +91,8 @@ public class AvatarView: UIView {
         avatar.contentMode = .scaleAspectFit
         avatar.image = AvatarView.defaultImage
         avatar.tintColor = .systemGray
-        self.addSubview(avatar)
+        avatarContainerView.addSubview(avatar)
+        addSubview(avatarContainerView)
     }
     
     public func configure(with userId: UserID, using avatarStore: AvatarStore) {
@@ -85,8 +103,10 @@ public class AvatarView: UIView {
     public func configure(with userAvatar: UserAvatar, using avatarStore: AvatarStore) {
         if let image = userAvatar.image {
             avatar.image = image
+            placeholderOverlayView?.isHidden = true
         } else {
             avatar.image = AvatarView.defaultImage
+            placeholderOverlayView?.isHidden = false
             
             if !userAvatar.isEmpty {
                 userAvatar.loadImage(using: avatarStore)
@@ -95,7 +115,7 @@ public class AvatarView: UIView {
         
         avatarUpdatingCancellable = userAvatar.imageDidChange.sink { [weak self] image in
             guard let self = self else { return }
-            
+            self.placeholderOverlayView?.isHidden = image != nil
             if let image = image {
                 self.avatar.image = image
             } else {
@@ -107,6 +127,7 @@ public class AvatarView: UIView {
     public func prepareForReuse() {
         avatarUpdatingCancellable?.cancel()
         avatar.image = AvatarView.defaultImage
+        placeholderOverlayView?.isHidden = true
     }
     
     public func resetImage() {
@@ -116,28 +137,27 @@ public class AvatarView: UIView {
     private func applyCornerRadius() {
         let maskLayer = CAShapeLayer()
         maskLayer.path = UIBezierPath(ovalIn: self.bounds).cgPath
-        self.layer.mask = maskLayer
+        avatarContainerView.layer.mask = maskLayer
     }
     
     private func applyBorder() {
+        avatarContainerView.frame = bounds
         if let borderColor = borderColor, let borderWidth = borderWidth, borderWidth > 0 {
-            avatar.frame = self.bounds.insetBy(dx: borderWidth / 2, dy: borderWidth / 2)
+            avatar.frame = avatarContainerView.bounds.insetBy(dx: borderWidth / 2, dy: borderWidth / 2)
             
             let border = CAShapeLayer()
             border.fillColor = UIColor.clear.cgColor
             border.strokeColor = borderColor.cgColor
             border.lineWidth = borderWidth * 2 // Make sure the stroke can reach the border
             border.path = UIBezierPath(ovalIn: self.bounds).cgPath
-            
             if let oldBorderLayer = borderLayer {
-                self.layer.replaceSublayer(oldBorderLayer, with: border)
+                avatarContainerView.layer.replaceSublayer(oldBorderLayer, with: border)
             } else {
-                self.layer.addSublayer(border)
+                avatarContainerView.layer.addSublayer(border)
             }
-            
             borderLayer = border
         } else {
-            avatar.frame = self.bounds
+            avatar.frame = avatarContainerView.bounds
             
             if let oldBorderLayer = borderLayer {
                 oldBorderLayer.removeFromSuperlayer()
@@ -194,23 +214,23 @@ public class AvatarViewButton: UIButton {
 
     public let avatarView = AvatarView()
 
-    public override init(frame: CGRect) {
+    private override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()
     }
 
-    public required init?(coder: NSCoder) {
+    required init?(coder: NSCoder) {
         super.init(coder: coder)
         commonInit()
     }
 
     private func commonInit() {
-        self.addSubview(avatarView)
+        addSubview(avatarView)
     }
 
     public override func layoutSubviews() {
         super.layoutSubviews()
-        avatarView.frame = self.bounds
+        avatarView.frame = bounds
         avatarView.isUserInteractionEnabled = false
     }
 
