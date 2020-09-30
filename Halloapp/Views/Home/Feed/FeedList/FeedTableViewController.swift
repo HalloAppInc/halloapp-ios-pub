@@ -1363,11 +1363,9 @@ private class FacePileView: UIControl {
         for index in 0 ..< numberOfFaces {
             // The avatars are added from right to left
             let avatarView = AvatarView()
-            avatarView.backgroundColor = .secondarySystemGroupedBackground
             avatarView.borderColor = .secondarySystemGroupedBackground
             avatarView.borderWidth = 2
             avatarView.isHidden = true
-            avatarView.isUserInteractionEnabled = false // Let FacePileView handle touch event
             avatarView.translatesAutoresizingMaskIntoConstraints = false
             
             self.addSubview(avatarView)

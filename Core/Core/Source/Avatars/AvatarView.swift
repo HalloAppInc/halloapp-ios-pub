@@ -135,8 +135,9 @@ public class AvatarView: UIView {
     }
     
     private func applyCornerRadius() {
+        avatarContainerView.frame = bounds
         let maskLayer = CAShapeLayer()
-        maskLayer.path = UIBezierPath(ovalIn: self.bounds).cgPath
+        maskLayer.path = UIBezierPath(ovalIn: avatarContainerView.bounds).cgPath
         avatarContainerView.layer.mask = maskLayer
     }
     
@@ -149,7 +150,7 @@ public class AvatarView: UIView {
             border.fillColor = UIColor.clear.cgColor
             border.strokeColor = borderColor.cgColor
             border.lineWidth = borderWidth * 2 // Make sure the stroke can reach the border
-            border.path = UIBezierPath(ovalIn: self.bounds).cgPath
+            border.path = UIBezierPath(ovalIn: avatarContainerView.bounds).cgPath
             if let oldBorderLayer = borderLayer {
                 avatarContainerView.layer.replaceSublayer(oldBorderLayer, with: border)
             } else {
