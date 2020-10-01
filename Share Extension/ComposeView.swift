@@ -87,10 +87,8 @@ class ComposeViewController: SLComposeServiceViewController {
             ShareExtensionContext.shared.shareExtensionIsActive = false
         }
 
-        if ServerProperties.isInternalUser {
-            textView.inputAccessoryView = mentionPicker
-            textView.delegate = self
-        }
+        textView.inputAccessoryView = mentionPicker
+        textView.delegate = self
     }
     
     override func presentationAnimationDidFinish() {
