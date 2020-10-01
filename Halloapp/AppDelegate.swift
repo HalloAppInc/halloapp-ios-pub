@@ -307,6 +307,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         disconnectTimer = nil
         MainAppContext.shared.service.disconnect()
+        MainAppContext.shared.feedData.suspendMediaDownloads()
     }
 
     func endBackgroundConnectionTask() {

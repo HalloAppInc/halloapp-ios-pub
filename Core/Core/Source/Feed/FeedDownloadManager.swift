@@ -33,6 +33,7 @@ public class FeedDownloadManager {
 
         // Output parameters.
         public let downloadProgress = CurrentValueSubject<Float, Never>(0)
+        public weak var downloadRequest: Alamofire.DownloadRequest?
         public fileprivate(set) var completed = false
         public var error: Error?
         fileprivate var encryptedFilePath: String?
@@ -103,19 +104,33 @@ public class FeedDownloadManager {
         let destination: DownloadRequest.Destination = { _, _ in
             return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
         }
+
+        // Resume from existing partial data if possible
+        let request: Alamofire.DownloadRequest = {
+            if let resumeData = try? Data(contentsOf: resumeDataFileURL(forMediaFilename: task.filename)) {
+                DDLogInfo("FeedDownloadManager/\(task.id)/resuming")
+                return AF.download(resumingWith: resumeData, to: destination)
+            } else {
+                DDLogInfo("FeedDownloadManager/\(task.id)/initiating")
+                return AF.download(task.downloadURL, to: destination)
+            }
+        }()
+
         // TODO: move reponse handler off the main thread.
-        AF.download(task.downloadURL, to: destination)
-            .downloadProgress { (progress) in
+
+        request.downloadProgress { (progress) in
                 DDLogDebug("FeedDownloadManager/\(task.id)/download/progress [\(progress.fractionCompleted)]")
                 task.downloadProgress.send(Float(progress.fractionCompleted))
             }
             .responseData { (afDownloadResponse) in
                 task.downloadProgress.send(completion: .finished)
+                task.downloadRequest = nil
 
                 if afDownloadResponse.error == nil, let httpURLResponse = afDownloadResponse.response {
                     DDLogDebug("FeedDownloadManager/\(task.id)/download/finished [\(afDownloadResponse.response!)]")
-                    if httpURLResponse.statusCode == 200, let fileURL = afDownloadResponse.fileURL {
+                    if httpURLResponse.statusCode == 200 || httpURLResponse.statusCode == 206, let fileURL = afDownloadResponse.fileURL {
                         task.encryptedFilePath = self.relativePath(from: fileURL)
+                        self.cleanUpResumeData(for: task)
                         self.decryptionQueue.async {
                             self.decryptData(for: task)
                         }
@@ -125,10 +140,16 @@ public class FeedDownloadManager {
                     }
                 } else {
                     DDLogDebug("FeedDownloadManager/\(task.id)/download/error [\(String(describing: afDownloadResponse.error))]")
+                    if let nsError = afDownloadResponse.error?.underlyingError as? NSError,
+                       let resumeData = nsError.userInfo[NSURLSessionDownloadTaskResumeData] as? Data
+                    {
+                        self.saveResumeData(resumeData, for: task)
+                    }
                     task.error = afDownloadResponse.error
                     self.taskFailed(task)
                 }
         }
+        task.downloadRequest = request
         self.tasks.insert(task)
         return true
     }
@@ -136,6 +157,45 @@ public class FeedDownloadManager {
     public func currentTask(for media: FeedMediaProtocol) -> Task? {
         let taskId = Task.taskId(for: media)
         return self.tasks.first(where: { $0.id == taskId })
+    }
+
+    public func suspendMediaDownloads() {
+        for task in tasks {
+            guard let request = task.downloadRequest else { continue }
+            request.cancel() { resumeData in
+                if let resumeData = resumeData {
+                    self.saveResumeData(resumeData, for: task)
+                }
+            }
+        }
+    }
+
+    private func saveResumeData(_ resumeData: Data, for task: Task) {
+        do {
+            let fileURL = self.resumeDataFileURL(forMediaFilename: task.filename)
+            try FileManager.default.createDirectory(
+                atPath: fileURL.deletingLastPathComponent().path,
+                withIntermediateDirectories: true,
+                attributes: nil)
+            try resumeData.write(to: fileURL)
+            DDLogInfo("FeedDownloadManager/\(task.id)/saveResumeData saved to \(fileURL)")
+        } catch {
+            DDLogError("FeedDownloadManager/\(task.id)/saveResumeData/error \(error)")
+        }
+    }
+
+    private func cleanUpResumeData(for task: Task) {
+        let resumeDataFileURL = self.resumeDataFileURL(forMediaFilename: task.filename)
+        guard FileManager.default.fileExists(atPath: resumeDataFileURL.path) else {
+            DDLogInfo("FeedDownloadManager/\(task.id)/cleanUpResumeData unnecessary")
+            return
+        }
+        do {
+            try FileManager.default.removeItem(at: resumeDataFileURL)
+            DDLogInfo("FeedDownloadManager/\(task.id)/cleanUpResumeData success")
+        } catch {
+            DDLogError("FeedDownloadManager/\(task.id)/cleanUpResumeData/error \(error)")
+        }
     }
 
     // MARK: Decryption
@@ -272,6 +332,10 @@ public class FeedDownloadManager {
             return String(fullPath.suffix(from: range.upperBound))
         }
         return nil
+    }
+
+    private func resumeDataFileURL(forMediaFilename mediaFilename: String) -> URL {
+        return fileURL(forMediaFilename: mediaFilename).appendingPathExtension("partial")
     }
 
 }

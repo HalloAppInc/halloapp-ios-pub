@@ -1200,6 +1200,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return downloadManager.currentTask(for: feedPostMedia)
     }
 
+    func suspendMediaDownloads() {
+        downloadManager.suspendMediaDownloads()
+    }
     /**
      This method must be run on the main queue to avoid race condition.
      */
