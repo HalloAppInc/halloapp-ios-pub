@@ -15,10 +15,36 @@ enum ProtoRequestError: Error {
 
 public class ProtoPublishPostRequest: ProtoRequest {
     private let completion: ServiceRequestCompletion<Date?>
+    private let isGroupFeedRequest: Bool
 
-    public init(post: FeedPostProtocol, audience: FeedAudience, completion: @escaping ServiceRequestCompletion<Date?>) {
+    public init(post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date?>) {
         self.completion = completion
 
+        let payload: PBiq.OneOf_Payload
+        switch feed {
+        case .personal(let audience):
+            isGroupFeedRequest = false
+            payload = .feedItem(Self.pbFeedItem(post: post, audience: audience))
+
+        case .group(let groupId):
+            isGroupFeedRequest = true
+            payload = .groupFeedItem(Self.pbGroupFeedItem(post: post, groupId: groupId))
+        }
+
+        let packet = PBpacket.iqPacket(type: .set, payload: payload)
+
+        super.init(packet: packet, id: packet.iq.id)
+    }
+
+    private static func pbGroupFeedItem(post: FeedPostProtocol, groupId: GroupID) -> PBgroup_feed_item {
+        var pbGroupFeedItem = PBgroup_feed_item()
+        pbGroupFeedItem.action = .publish
+        pbGroupFeedItem.item = .post(post.pbPost)
+        pbGroupFeedItem.gid = groupId
+        return pbGroupFeedItem
+    }
+
+    private static func pbFeedItem(post: FeedPostProtocol, audience: FeedAudience) -> PBfeed_item {
         var pbAudience = PBaudience()
         pbAudience.uids = audience.userIds.compactMap { Int64($0) }
         pbAudience.type = {
@@ -38,15 +64,12 @@ public class ProtoPublishPostRequest: ProtoRequest {
         var pbFeedItem = PBfeed_item()
         pbFeedItem.action = .publish
         pbFeedItem.item = .post(pbPost)
-
-        let packet = PBpacket.iqPacket(type: .set, payload: .feedItem(pbFeedItem))
-
-        super.init(packet: packet, id: packet.iq.id)
+        return pbFeedItem
     }
 
     public override func didFinish(with response: PBpacket) {
-        let ts = TimeInterval(response.iq.feedItem.post.timestamp)
-        let timestamp = Date(timeIntervalSince1970: ts)
+        let pbPost = isGroupFeedRequest ? response.iq.groupFeedItem.post : response.iq.feedItem.post
+        let timestamp = Date(timeIntervalSince1970: TimeInterval(pbPost.timestamp))
         self.completion(.success(timestamp))
     }
 

@@ -358,11 +358,11 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func publishPost(_ post: FeedPostProtocol, audience: FeedAudience, completion: @escaping ServiceRequestCompletion<Date?>) {
+    public func publishPost(_ post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date?>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            self.enqueue(request: ProtoPublishPostRequest(post: post, audience: audience, completion: completion))
+            self.enqueue(request: ProtoPublishPostRequest(post: post, feed: feed, completion: completion))
         }
     }
 

@@ -16,6 +16,11 @@ public enum ConnectionState {
     case disconnecting
 }
 
+public enum Feed {
+    case personal(FeedAudience)
+    case group(GroupID)
+}
+
 public typealias ServiceRequestCompletion<T> = (Result<T, Error>) -> Void
 
 public typealias AvatarInfo = (userID: UserID, avatarID: AvatarID)
@@ -39,7 +44,7 @@ public protocol CoreService {
 
     // MARK: Feed
     func requestMediaUploadURL(size: Int, completion: @escaping ServiceRequestCompletion<MediaURLInfo>)
-    func publishPost(_ post: FeedPostProtocol, audience: FeedAudience, completion: @escaping ServiceRequestCompletion<Date?>)
+    func publishPost(_ post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date?>)
     func publishComment(_ comment: FeedCommentProtocol, completion: @escaping ServiceRequestCompletion<Date?>)
 
     // MARK: Chat

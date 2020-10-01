@@ -1487,7 +1487,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         let postId = post.id
-        service.publishPost(post, audience: postAudience) { result in
+        service.publishPost(post, feed: .personal(postAudience)) { result in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPost(with: postId) { (feedPost) in

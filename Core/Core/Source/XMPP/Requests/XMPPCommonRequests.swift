@@ -66,18 +66,30 @@ public class XMPPMediaUploadURLRequest: XMPPRequest {
 public class XMPPPostItemRequest: XMPPRequest {
 
     private let completion: XMPPPostItemRequestCompletion
+    private let isGroupFeedRequest: Bool
 
-    public init(feedPost: FeedPostProtocol, audience: FeedAudience, completion: @escaping XMPPPostItemRequestCompletion){
+    public init(feedPost: FeedPostProtocol, feed: Feed, completion: @escaping XMPPPostItemRequestCompletion) {
         self.completion = completion
         
-        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
-        iq.addChild({
-            let feedElement = XMPPElement(name: "feed", xmlns: "halloapp:feed")
-            feedElement.addAttribute(withName: "action", stringValue: "publish")
+        let feedElement: XMPPElement
+        switch feed {
+        case .personal(let audience):
+            isGroupFeedRequest = false
+
+            feedElement = XMPPElement(name: "feed", xmlns: "halloapp:feed")
             feedElement.addChild(audience.xmppElement)
-            feedElement.addChild(feedPost.xmppElement(withData: true))
-            return feedElement
-        }())
+
+        case .group(let groupId):
+            isGroupFeedRequest = true
+
+            feedElement = XMPPElement(name: "group_feed", xmlns: "halloapp:group:feed")
+            feedElement.addAttribute(withName: "gid", stringValue: groupId)
+        }
+        feedElement.addAttribute(withName: "action", stringValue: "publish")
+        feedElement.addChild(feedPost.xmppElement(withData: true))
+
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
+        iq.addChild(feedElement)
         super.init(iq: iq)
     }
 
@@ -96,13 +108,14 @@ public class XMPPPostItemRequest: XMPPRequest {
 
     public override func didFinish(with response: XMPPIQ) {
         var timestamp: Date?
-        if let postElement = response.element(forName: "feed")?.element(forName: "post") {
+        let rootElementName = isGroupFeedRequest ? "group_feed" : "feed"
+        if let postElement = response.element(forName: rootElementName)?.element(forName: "post") {
             let ts = postElement.attributeDoubleValue(forName: "timestamp")
             if ts > 0 {
                 timestamp = Date(timeIntervalSince1970: ts)
             }
         }
-        else if let commentElement = response.element(forName: "feed")?.element(forName: "comment") {
+        else if let commentElement = response.element(forName: rootElementName)?.element(forName: "comment") {
             let ts = commentElement.attributeDoubleValue(forName: "timestamp")
             if ts > 0 {
                 timestamp = Date(timeIntervalSince1970: ts)

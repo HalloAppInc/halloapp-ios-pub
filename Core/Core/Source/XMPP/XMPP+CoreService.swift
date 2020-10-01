@@ -27,8 +27,8 @@ extension XMPPController: CoreService {
         }
     }
 
-    public func publishPost(_ post: FeedPostProtocol, audience: FeedAudience, completion: @escaping ServiceRequestCompletion<Date?>) {
-        let request = XMPPPostItemRequest(feedPost: post, audience: audience, completion: completion)
+    public func publishPost(_ post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date?>) {
+        let request = XMPPPostItemRequest(feedPost: post, feed: feed, completion: completion)
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
             self.enqueue(request: request)

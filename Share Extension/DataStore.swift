@@ -199,7 +199,7 @@ class DataStore: ShareExtensionDataStore {
 
         DDLogError("SharedDataStore/post/\(feedPost.id)/send")
 
-        service.publishPost(feedPost, audience: postAudience) { result in
+        service.publishPost(feedPost, feed: .personal(postAudience)) { result in
             switch result {
             case .success(let timestamp):
                 DDLogError("SharedDataStore/post/\(feedPost.id)/send/complete")
