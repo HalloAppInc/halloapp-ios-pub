@@ -146,10 +146,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Authorization status will be unknown on first launch or after privacy settings reset.
         // We need to excplicitly request access in this case.
         if ContactStore.contactsAccessRequestNecessary {
-            DDLogInfo("appdelegate/contacts/access-request")
+            DDLogInfo("appdelegate/contacts/access-request Prompting user now")
             let contactStore = CNContactStore()
             contactStore.requestAccess(for: .contacts) { authorized, error in
-                DDLogInfo("appdelegate/contacts/access-request granted=[\(authorized)]")
                 DispatchQueue.main.async {
                     completion(true, authorized)
                 }
@@ -160,16 +159,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func requestAccessToContactsAndNotifications() {
-        guard !self.contactsAccessRequestInProgress else {
-            DDLogWarn("appdelegate/contacts/access-request/in-progress")
+        guard !contactsAccessRequestInProgress else {
+            DDLogWarn("appdelegate/contacts/access-request Already in progress")
             return
         }
         guard UIApplication.shared.applicationState != .background else {
-            DDLogInfo("appdelegate/contacts/access-request/app-inactive")
+            DDLogInfo("appdelegate/contacts/access-request App is inactive")
             return
         }
-        self.contactsAccessRequestInProgress = true
-        self.checkContactsAuthorizationStatus{ requestPresented, accessAuthorized in
+        contactsAccessRequestInProgress = true
+        checkContactsAuthorizationStatus { requestPresented, accessAuthorized in
+            DDLogInfo("appdelegate/contacts/access-request Granted: [\(accessAuthorized)] Request presented: [\(requestPresented)]")
             self.contactsAccessRequestInProgress = false
             MainAppContext.shared.contactStore.reloadContactsIfNecessary()
             if requestPresented {

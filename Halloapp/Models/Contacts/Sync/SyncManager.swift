@@ -136,27 +136,28 @@ class SyncManager {
 
     // MARK: Run sync
     private func runFullSyncIfNecessary() {
-        let nextFullSyncDate = self.contactStore.databaseMetadata?[ContactStoreMetadataNextFullSyncDate] as? Date
-        DDLogInfo("syncmanager/scheduled-full/check d:[\(String(describing: nextFullSyncDate))]")
+        let nextFullSyncDate = contactStore.databaseMetadata?[ContactStoreMetadataNextFullSyncDate] as? Date
+        DDLogInfo("syncmanager/full/check-schedule Next full sync is scheduled at [\(String(describing: nextFullSyncDate))]")
 
         var runFullSync = false
 
         // Force full sync on address book permissions change.
         if ContactStore.contactsAccessAuthorized == UserDefaults.standard.bool(forKey: SyncManager.UDDisabledAddressBookSynced) {
+            DDLogInfo("syncmanager/full/check-schedule Force full sync on contacts permissions change. Access granted: \(ContactStore.contactsAccessAuthorized)")
             runFullSync = true
-            self.nextSyncDate = Date()
+            nextSyncDate = Date()
         }
         // Sync was never run - do it now.
         if nextFullSyncDate == nil {
-            if !self.isSyncInProgress {
+            if !isSyncInProgress {
                 runFullSync = true
-                self.nextSyncDate = Date()
+                nextSyncDate = Date()
             }
         }
         // Time for a scheduled sync
         else if nextFullSyncDate!.timeIntervalSinceNow < 0 {
             runFullSync = true
-            self.nextSyncDate = nextFullSyncDate
+            nextSyncDate = nextFullSyncDate
         }
 
         if runFullSync {
@@ -204,11 +205,17 @@ class SyncManager {
     private func reallyPerformSync() {
         DDLogInfo("syncmanager/sync/prepare/\(self.nextSyncMode)")
 
-        let contactsToSync = ContactStore.contactsAccessAuthorized ? self.contactStore.contactsFor(fullSync: self.nextSyncMode == .full) : []
+        let contactsToSync: [ABContact]
+        if ContactStore.contactsAccessAuthorized {
+            contactsToSync = contactStore.contactsFor(fullSync: nextSyncMode == .full)
+        } else {
+            DDLogInfo("syncmanager/sync/prepare Access to contacts disabled - syncing an empty list")
+            contactsToSync = []
+        }
 
         // Do not run delta syncs with an empty set of users.
-        guard self.nextSyncMode == .full || !contactsToSync.isEmpty || !self.pendingDeletes.isEmpty else {
-            DDLogInfo("syncmanager/delta/cancel-no-items")
+        guard nextSyncMode == .full || !contactsToSync.isEmpty || !pendingDeletes.isEmpty else {
+            DDLogInfo("syncmanager/sync/prepare Empty delta sync - exiting now")
             return
         }
 
@@ -216,17 +223,17 @@ class SyncManager {
         var xmppContacts: [XMPPContact] = contactsToSync.map{ XMPPContact($0) }
 
         // Individual deleted phone don't matter if the entire address book is about to be synced.
-        if self.nextSyncMode == .full {
-            self.pendingDeletes.removeAll()
+        if nextSyncMode == .full {
+            pendingDeletes.removeAll()
         } else if !self.pendingDeletes.isEmpty {
-            xmppContacts.append(contentsOf: self.pendingDeletes.map{ XMPPContact.deletedContact(with: $0) })
-            self.processedDeletes.formUnion(self.pendingDeletes)
+            xmppContacts.append(contentsOf: pendingDeletes.map{ XMPPContact.deletedContact(with: $0) })
+            processedDeletes.formUnion(pendingDeletes)
         }
 
-        self.isSyncInProgress = true
+        isSyncInProgress = true
 
-        let syncMode = self.nextSyncMode
-        DDLogInfo("syncmanager/sync/start/\(self.nextSyncMode) [\(xmppContacts.count)]")
+        let syncMode = nextSyncMode
+        DDLogInfo("syncmanager/sync/start/\(nextSyncMode) [\(xmppContacts.count)]")
         let syncSession = SyncSession(mode: syncMode, contacts: xmppContacts) { results, error in
             self.queue.async {
                 self.processSyncResponse(mode: syncMode, contacts: results, error: error)
