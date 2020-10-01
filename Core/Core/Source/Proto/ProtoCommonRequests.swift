@@ -80,22 +80,39 @@ public class ProtoPublishPostRequest: ProtoRequest {
 
 public class ProtoPublishCommentRequest: ProtoRequest {
     private let completion: ServiceRequestCompletion<Date?>
+    private let isGroupFeedRequest: Bool
 
-    public init(comment: FeedCommentProtocol, completion: @escaping ServiceRequestCompletion<Date?>) {
+    public init(comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date?>) {
         self.completion = completion
 
-        var pbFeedItem = PBfeed_item()
-        pbFeedItem.action = .publish
-        pbFeedItem.item = comment.protoFeedItem(withData: true)
+        let payload: PBiq.OneOf_Payload
+        if let groupId = groupId {
+            isGroupFeedRequest = true
 
-        let packet = PBpacket.iqPacket(type: .set, payload: .feedItem(pbFeedItem))
+            var pbGroupFeedItem = PBgroup_feed_item()
+            pbGroupFeedItem.action = .publish
+            pbGroupFeedItem.item = .comment(comment.pbComment)
+            pbGroupFeedItem.gid = groupId
+
+            payload = .groupFeedItem(pbGroupFeedItem)
+        } else {
+            isGroupFeedRequest = false
+
+            var pbFeedItem = PBfeed_item()
+            pbFeedItem.action = .publish
+            pbFeedItem.item = .comment(comment.pbComment)
+
+            payload = .feedItem(pbFeedItem)
+        }
+        
+        let packet = PBpacket.iqPacket(type: .set, payload: payload)
 
         super.init(packet: packet, id: packet.iq.id)
     }
 
     public override func didFinish(with response: PBpacket) {
-        let ts = TimeInterval(response.iq.feedItem.comment.timestamp)
-        let timestamp = Date(timeIntervalSince1970: ts)
+        let pbComment = isGroupFeedRequest ? response.iq.groupFeedItem.comment : response.iq.feedItem.comment
+        let timestamp = Date(timeIntervalSince1970: TimeInterval(pbComment.timestamp))
         self.completion(.success(timestamp))
     }
 

@@ -1460,7 +1460,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func send(comment: FeedPostComment) {
         let commentId = comment.id
-        service.publishComment(comment) { result in
+        service.publishComment(comment, groupId: nil) { result in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPostComment(with: commentId) { (feedComment) in

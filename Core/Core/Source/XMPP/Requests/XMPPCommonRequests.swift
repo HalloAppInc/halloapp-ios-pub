@@ -93,16 +93,25 @@ public class XMPPPostItemRequest: XMPPRequest {
         super.init(iq: iq)
     }
 
-    public init(feedPostComment: FeedCommentProtocol, completion: @escaping XMPPPostItemRequestCompletion) {
+    public init(feedPostComment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping XMPPPostItemRequestCompletion) {
         self.completion = completion
 
+        let feedElement: XMPPElement
+        if let groupId = groupId {
+            isGroupFeedRequest = true
+
+            feedElement = XMPPElement(name: "group_feed", xmlns: "halloapp:group:feed")
+            feedElement.addAttribute(withName: "gid", stringValue: groupId)
+        } else {
+            isGroupFeedRequest = false
+            
+            feedElement = XMPPElement(name: "feed", xmlns: "halloapp:feed")
+        }
+        feedElement.addAttribute(withName: "action", stringValue: "publish")
+        feedElement.addChild(feedPostComment.xmppElement(withData: true))
+
         let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
-        iq.addChild({
-            let feedElement = XMPPElement(name: "feed", xmlns: "halloapp:feed")
-            feedElement.addAttribute(withName: "action", stringValue: "publish")
-            feedElement.addChild(feedPostComment.xmppElement(withData: true))
-            return feedElement
-        }())
+        iq.addChild(feedElement)
         super.init(iq: iq)
     }
 

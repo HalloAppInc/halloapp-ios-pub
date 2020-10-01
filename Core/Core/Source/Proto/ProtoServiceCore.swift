@@ -366,11 +366,11 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func publishComment(_ comment: FeedCommentProtocol, completion: @escaping ServiceRequestCompletion<Date?>) {
+    public func publishComment(_ comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date?>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
-            self.enqueue(request: ProtoPublishCommentRequest(comment: comment, completion: completion))
+            self.enqueue(request: ProtoPublishCommentRequest(comment: comment, groupId: groupId, completion: completion))
         }
     }
 
