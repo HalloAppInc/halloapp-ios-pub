@@ -88,6 +88,8 @@ public class AvatarView: UIView {
     }
     
     private func commonInit() {
+        isUserInteractionEnabled = false
+        
         avatar.contentMode = .scaleAspectFit
         avatar.image = AvatarView.defaultImage
         avatar.tintColor = .systemGray
