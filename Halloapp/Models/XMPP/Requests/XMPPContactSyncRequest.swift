@@ -21,12 +21,18 @@ struct XMPPContact {
     var isDeletedContact: Bool = false
 
     /** Use to process protobuf server responses */
-    init?(_ pbContact: PBcontact) {
-        userid = String(pbContact.uid)
-        normalized = pbContact.normalized
-        registered = (pbContact.role == .friends)
+    init(_ pbContact: PBcontact) {
+        if pbContact.uid > 0 {
+            userid = String(pbContact.uid)
+        }
+        if !pbContact.normalized.isEmpty {
+            normalized = pbContact.normalized
+        }
+        registered = (pbContact.role == .friends && userid != nil)
         raw = pbContact.raw
-        avatarid = pbContact.avatarID
+        if !pbContact.avatarID.isEmpty {
+            avatarid = pbContact.avatarID
+        }
     }
 
     /**
@@ -47,19 +53,19 @@ struct XMPPContact {
             }
             if let name = childElement.name {
                 if name == "userid" {
-                    self.userid = value
+                    userid = value
                 }
                 if name == "normalized" {
-                    self.normalized = value
+                    normalized = value
                 }
                 if name == "role" {
-                    self.registered = (value == "friends")
+                    registered = (value == "friends")
                 }
                 if name == "raw" {
-                    self.raw = value
+                    raw = value
                 }
                 if name == "avatarid" {
-                    self.avatarid = value
+                    avatarid = value
                 }
             }
         }
@@ -69,9 +75,9 @@ struct XMPPContact {
      Initialize with address book contact's data.
      */
     init(_ abContact: ABContact) {
-        self.raw = abContact.phoneNumber
-        self.normalized = abContact.normalizedPhoneNumber
-        self.userid = abContact.userId
+        raw = abContact.phoneNumber
+        normalized = abContact.normalizedPhoneNumber
+        userid = abContact.userId
     }
 
     private init(_ normalizedPhoneNumber: ABContact.NormalizedPhoneNumber) {
