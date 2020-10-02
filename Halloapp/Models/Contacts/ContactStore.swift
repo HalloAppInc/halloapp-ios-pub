@@ -656,7 +656,7 @@ class ContactStoreMain: ContactStore {
 
     // MARK: Server Sync
 
-    func contactsFor(fullSync: Bool) -> [ABContact] {
+    func contactsFor(fullSync: Bool, in managedObjectContext: NSManagedObjectContext) -> [ABContact] {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         if fullSync {
             fetchRequest.predicate = NSPredicate(format: "phoneNumber != nil")
@@ -665,8 +665,7 @@ class ContactStoreMain: ContactStore {
         }
         var allContacts: [ABContact] = []
         do {
-            ///TODO: should use a private context here likely
-            allContacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
+            allContacts = try managedObjectContext.fetch(fetchRequest)
         }
         catch {
             fatalError()

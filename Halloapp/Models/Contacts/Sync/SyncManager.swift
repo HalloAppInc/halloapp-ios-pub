@@ -9,6 +9,7 @@
 import CocoaLumberjack
 import Combine
 import Core
+import CoreData
 import Foundation
 
 class SyncManager {
@@ -46,39 +47,48 @@ class SyncManager {
         self.contactStore = contactStore
         self.service = service
 
-        self.fullSyncTimer = DispatchSource.makeTimerSource(queue: self.queue)
-        self.fullSyncTimer.setEventHandler {
-            self.runFullSyncIfNecessary()
+        fullSyncTimer = DispatchSource.makeTimerSource(queue: queue)
+        fullSyncTimer.setEventHandler { [weak self] in
+            guard let self = self else { return }
+            self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
+                self.runFullSyncIfNecessary(using: managedObjectContext)
+            }
         }
 
-        self.cancellableSet.insert(self.service.didConnect.sink {
+        cancellableSet.insert(self.service.didConnect.sink { [weak self] in
+            guard let self = self else { return }
             self.queue.async {
-                self.runSyncIfNecessary()
+                self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
+                    self.runSyncIfNecessary(using: managedObjectContext)
+                }
             }
         })
 
-        self.cancellableSet.insert(userData.didLogOff.sink {
+        cancellableSet.insert(userData.didLogOff.sink {
             self.disableSync()
         })
     }
 
     func enableSync() {
-        guard !self.isSyncEnabled else {
+        guard !isSyncEnabled else {
             return
         }
         DDLogInfo("syncmanager/enabled")
-        self.isSyncEnabled = true
+        isSyncEnabled = true
 
-        self.fullSyncTimer.schedule(wallDeadline: DispatchWallTime.now(), repeating: 60)
-        self.fullSyncTimer.activate()
-        self.queue.async {
-            self.runFullSyncIfNecessary()
-            if !self.isSyncInProgress {
-                self.requestDeltaSync()
+        fullSyncTimer.schedule(wallDeadline: DispatchWallTime.now(), repeating: 60)
+        fullSyncTimer.activate()
+
+        queue.async {
+            self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
+                self.runFullSyncIfNecessary(using: managedObjectContext)
+                if !self.isSyncInProgress {
+                    self.runSyncWith(mode: .delta, using: managedObjectContext)
+                }
             }
         }
 
-        self.cancellableSet.insert(AppContext.shared.userData.didLogOff.sink { _ in
+        cancellableSet.insert(AppContext.shared.userData.didLogOff.sink { _ in
             self.disableSync()
         })
     }
@@ -86,56 +96,64 @@ class SyncManager {
     func disableSync() {
         DDLogInfo("syncmanager/disabled")
 
-        self.isSyncEnabled = false
-        self.isSyncInProgress = false
+        isSyncEnabled = false
+        isSyncInProgress = false
 
-        self.nextSyncDate = nil
-        self.nextSyncMode = .none
-        self.pendingDeletes.removeAll()
-        self.processedDeletes.removeAll()
+        nextSyncDate = nil
+        nextSyncMode = .none
+        pendingDeletes.removeAll()
+        processedDeletes.removeAll()
 
-        self.fullSyncTimer.suspend()
+        fullSyncTimer.suspend()
 
         if !ContactStore.contactsAccessAuthorized {
             UserDefaults.standard.removeObject(forKey: SyncManager.UDDisabledAddressBookSynced)
         }
 
         // Reset next full sync date.
-        self.contactStore.mutateDatabaseMetadata { (metadata) in
+        contactStore.mutateDatabaseMetadata { (metadata) in
             metadata[ContactStoreMetadataNextFullSyncDate] = nil
         }
     }
 
     func add(deleted userIds: Set<ABContact.NormalizedPhoneNumber>) {
         DDLogDebug("syncmanager/add-deleted [\(userIds)]")
-        self.pendingDeletes.formUnion(userIds)
+        pendingDeletes.formUnion(userIds)
     }
 
     // MARK: Scheduling
 
     func requestDeltaSync() {
         DDLogInfo("syncmanager/request/delta")
-        self.requestSyncWith(mode: .delta)
-    }
-
-    func requestFullSync() {
-        DDLogInfo("syncmanager/request/full")
-        self.requestSyncWith(mode: .full)
-    }
-
-    private func requestSyncWith(mode: SyncMode) {
-        self.queue.async {
-            self.nextSyncDate = Date()
-            self.nextSyncMode = mode
-
-            if case .failure(let failureReason) = self.runSyncIfNecessary() {
-                DDLogError("syncmanager/sync/failed [\(failureReason)]")
+        queue.async {
+            self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
+                self.runSyncWith(mode: .delta, using: managedObjectContext)
             }
         }
     }
 
+    func requestFullSync() {
+        DDLogInfo("syncmanager/request/full")
+        queue.async {
+            self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
+                self.runSyncWith(mode: .full, using: managedObjectContext)
+            }
+        }
+    }
+
+    // Must be called from `queue`.
+    private func runSyncWith(mode: SyncMode, using managedObjectContext: NSManagedObjectContext) {
+        nextSyncDate = Date()
+        nextSyncMode = mode
+
+        if case .failure(let failureReason) = runSyncIfNecessary(using: managedObjectContext) {
+            DDLogError("syncmanager/sync/failed [\(failureReason)]")
+        }
+    }
+
     // MARK: Run sync
-    private func runFullSyncIfNecessary() {
+
+    private func runFullSyncIfNecessary(using managedObjectContext: NSManagedObjectContext) {
         let nextFullSyncDate = contactStore.databaseMetadata?[ContactStoreMetadataNextFullSyncDate] as? Date
         DDLogInfo("syncmanager/full/check-schedule Next full sync is scheduled at [\(String(describing: nextFullSyncDate))]")
 
@@ -161,53 +179,52 @@ class SyncManager {
         }
 
         if runFullSync {
-            self.nextSyncMode = .full
-            self.runSyncIfNecessary()
+            nextSyncMode = .full
+            runSyncIfNecessary(using: managedObjectContext)
         }
     }
 
-    @discardableResult private func runSyncIfNecessary() -> SyncResult {
-        guard !self.isSyncInProgress else {
+    @discardableResult private func runSyncIfNecessary(using managedObjectContext: NSManagedObjectContext) -> SyncResult {
+        guard !isSyncInProgress else {
             return .failure(.alreadyRunning)
         }
 
-        guard self.isSyncEnabled else {
+        guard isSyncEnabled else {
             return .failure(.notEnabled)
         }
 
         // Sync mode must be set.
-        guard self.nextSyncMode != .none else {
+        guard nextSyncMode != .none else {
             return .failure(.empty)
         }
 
         // Next sync date should be set.
-        guard self.nextSyncDate != nil else {
+        guard nextSyncDate != nil else {
             return .failure(.empty)
         }
-        guard self.nextSyncDate!.timeIntervalSinceNow < 0 else {
+        guard nextSyncDate!.timeIntervalSinceNow < 0 else {
             return .failure(.empty)
         }
 
         // Must be connected.
-        guard self.service.isConnected else {
+        guard service.isConnected else {
             return .failure(.notAllowed)
         }
 
-        self.reallyPerformSync()
-
-        // Clean up.
-        self.nextSyncDate = nil
-        self.nextSyncMode = .none
-
-        return self.isSyncInProgress ? .success(()) : .failure(.empty)
+        return reallyPerformSync(using: managedObjectContext)
     }
 
-    private func reallyPerformSync() {
-        DDLogInfo("syncmanager/sync/prepare/\(self.nextSyncMode)")
+    private func reallyPerformSync(using managedObjectContext: NSManagedObjectContext) -> SyncResult {
+        DDLogInfo("syncmanager/sync/prepare/\(nextSyncMode)")
+
+        defer {
+            nextSyncMode = .none
+            nextSyncDate = nil
+        }
 
         let contactsToSync: [ABContact]
         if ContactStore.contactsAccessAuthorized {
-            contactsToSync = contactStore.contactsFor(fullSync: nextSyncMode == .full)
+            contactsToSync = contactStore.contactsFor(fullSync: nextSyncMode == .full, in: managedObjectContext)
         } else {
             DDLogInfo("syncmanager/sync/prepare Access to contacts disabled - syncing an empty list")
             contactsToSync = []
@@ -216,17 +233,17 @@ class SyncManager {
         // Do not run delta syncs with an empty set of users.
         guard nextSyncMode == .full || !contactsToSync.isEmpty || !pendingDeletes.isEmpty else {
             DDLogInfo("syncmanager/sync/prepare Empty delta sync - exiting now")
-            return
+            return .failure(.empty)
         }
 
         // Prepare what gets sent to the server.
-        var xmppContacts: [XMPPContact] = contactsToSync.map{ XMPPContact($0) }
+        var xmppContacts = contactsToSync.map { XMPPContact($0) }
 
         // Individual deleted phone don't matter if the entire address book is about to be synced.
         if nextSyncMode == .full {
             pendingDeletes.removeAll()
-        } else if !self.pendingDeletes.isEmpty {
-            xmppContacts.append(contentsOf: pendingDeletes.map{ XMPPContact.deletedContact(with: $0) })
+        } else {
+            xmppContacts.append(contentsOf: pendingDeletes.map { XMPPContact.deletedContact(with: $0) })
             processedDeletes.formUnion(pendingDeletes)
         }
 
@@ -240,19 +257,20 @@ class SyncManager {
             }
         }
         syncSession.start()
+
+        return .success(())
     }
 
     private func processSyncResponse(mode: SyncMode, contacts: [XMPPContact]?, error: Error?) {
         guard error == nil else {
             DDLogError("syncmanager/sync/\(mode)/response/error [\(error!)]")
-            self.finishSync(withMode: mode, result: .failure(.serverError(error!)))
+            finishSync(withMode: mode, result: .failure(.serverError(error!)))
             return
         }
 
         // Process results
-        self.pendingDeletes.subtract(self.processedDeletes)
-        self.processedDeletes.removeAll()
-
+        pendingDeletes.subtract(processedDeletes)
+        processedDeletes.removeAll()
 
         if mode == .full {
             // Mark that contacts were resynced after Contacts permissions change.
@@ -263,13 +281,13 @@ class SyncManager {
             }
 
             // Set next full sync date: now + 1 day
-            self.contactStore.mutateDatabaseMetadata { (metadata) in
+            contactStore.mutateDatabaseMetadata { (metadata) in
                 metadata[ContactStoreMetadataNextFullSyncDate] = Date(timeIntervalSinceNow: 3600*24)
             }
         }
 
         if contacts != nil {
-            self.contactStore.performOnBackgroundContextAndWait{ managedObjectContext in
+            contactStore.performOnBackgroundContextAndWait { managedObjectContext in
                 self.contactStore.processSync(results: contacts!, isFullSync: mode == .full, using: managedObjectContext)
             }
             
@@ -280,7 +298,7 @@ class SyncManager {
             
             MainAppContext.shared.avatarStore.processContactSync(avatarDict)
         }
-        self.finishSync(withMode: mode, result: .success(()))
+        finishSync(withMode: mode, result: .success(()))
     }
 
     func processNotification(contacts: [XMPPContact], completion: @escaping () -> Void) {
@@ -289,8 +307,8 @@ class SyncManager {
             completion()
             return
         }
-        self.queue.async {
-            self.contactStore.performOnBackgroundContextAndWait{ managedObjectContext in
+        queue.async {
+            self.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
                 self.contactStore.processNotification(contacts: contacts, using: managedObjectContext)
             }
             completion()
@@ -303,21 +321,21 @@ class SyncManager {
             completion()
             return
         }
-        self.queue.async {
-            self.contactStore.performOnBackgroundContextAndWait{ managedObjectContext in
+        queue.async {
+            self.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
                 self.contactStore.processNotification(contactHashes: contactHashes, using: managedObjectContext)
+                self.runSyncWith(mode: .delta, using: managedObjectContext)
             }
-            self.requestDeltaSync()
             completion()
         }
     }
 
     private func finishSync(withMode mode: SyncMode, result: SyncResult) {
-        guard self.isSyncInProgress else {
+        guard isSyncInProgress else {
             return
         }
 
-        self.isSyncInProgress = false
+        isSyncInProgress = false
 
         ///TODO: retry sync on failure
     }
