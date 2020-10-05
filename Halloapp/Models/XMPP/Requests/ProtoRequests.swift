@@ -338,12 +338,12 @@ final class ProtoChangeGroupNameRequest: ProtoStandardRequest<Void> {
 final class ProtoChangeGroupAvatarRequest: ProtoStandardRequest<String> {
     init(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<String>) {
 
-        var group = Server_GroupStanza()
-        group.gid = groupID
-        group.action = .changeAvatar
+        var uploadAvatar = Server_UploadGroupAvatar()
+        uploadAvatar.gid = groupID
+        uploadAvatar.data = data
         
         super.init(
-            packet: .iqPacket(type: .get, payload: .groupStanza(group)),
+            packet: .iqPacket(type: .set, payload: .groupAvatar(uploadAvatar)),
             transform: {
                 guard let group = HalloGroup(protoGroup: $0.iq.groupStanza), let avatarID = group.avatarID else {
                     return .failure(ProtoServiceError.unexpectedResponseFormat)
