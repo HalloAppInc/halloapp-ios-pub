@@ -244,6 +244,8 @@ struct XMPPChatGroupMessage {
         guard let groupName = groupChat.attributeStringValue(forName: "name") else { return nil }
         guard let userId = groupChat.attributeStringValue(forName: "sender") else { return nil }
         guard let userName = groupChat.attributeStringValue(forName: "sender_name") else { return nil }
+
+        let timestamp = groupChat.attributeDoubleValue(forName: "timestamp")
         
         var text: String?, media: [XMPPChatMedia] = []
         
@@ -261,10 +263,8 @@ struct XMPPChatGroupMessage {
         self.userId = userId
         self.userName = userName
         self.text = text
-    
         self.media = media
-        
-        self.timestamp = Date()
+        self.timestamp = Date(timeIntervalSince1970: TimeInterval(timestamp))
     }
     
     var xmppElement: XMPPElement {

@@ -884,6 +884,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		EA1112DC2527C12200F42D41 /* Seen By */ = {
+			isa = PBXGroup;
+			children = (
+				EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */,
+			);
+			path = "Seen By";
+			sourceTree = "<group>";
+		};
 		EA220B7524D0E7E000C44CE7 /* Key */ = {
 			isa = PBXGroup;
 			children = (
@@ -943,6 +951,7 @@
 				EAC465502514827800783821 /* Group Actions */,
 				EAD476CE2457AEF700EF8591 /* Media */,
 				EAD476D124588DB600EF8591 /* MediaSlider */,
+				EA1112DC2527C12200F42D41 /* Seen By */,
 				EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */,
 				EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */,
 				EAD476CC245513EF00EF8591 /* ChatListViewController.swift */,
@@ -952,7 +961,6 @@
 				EA3585772450BE3300E6E8AB /* IncomingMsgView.swift */,
 				EA3585782450BE3300E6E8AB /* OutgoingMsgView.swift */,
 				EA3585752450BE3300E6E8AB /* ChatInputView.swift */,
-				EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */,
 				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
 			);
 			path = Messages;

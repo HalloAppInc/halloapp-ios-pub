@@ -10,6 +10,7 @@ import Core
 import UIKit
 
 fileprivate struct Constants {
+    static let SpaceBetweenBubbles:CGFloat = 7
     static let TextFontStyle: UIFont.TextStyle = .subheadline
 }
 
@@ -38,7 +39,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
 
     private func setup() {
         backgroundColor = .clear
-        layoutMargins = UIEdgeInsets(top: 3, left: 0, bottom: 0, right: 0)
+        layoutMargins = UIEdgeInsets(top: Constants.SpaceBetweenBubbles, left: 0, bottom: 0, right: 0)
         addSubview(mainView)
         
         mainView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
@@ -52,11 +53,13 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     }
 
     private lazy var mainView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ bubbleRow, timeRow ])
+        let view = UIStackView(arrangedSubviews: [ bubbleRow ])
         view.axis = .vertical
         view.alignment = .leading
         view.spacing = 0
+        
         view.translatesAutoresizingMaskIntoConstraints = false
+
         return view
     }()
     
@@ -109,18 +112,19 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         let view = UIStackView(arrangedSubviews: [ timeLabel ])
         view.axis = .vertical
         view.spacing = 0
-        view.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 10, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 5, left: 5, bottom: 0, right: 10)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
+    // font point 11
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
         
-        label.font = UIFont.systemFont(ofSize: 12)
+        label.font = UIFont.preferredFont(forTextStyle: .caption2)
         label.textColor = .secondaryLabel
         
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -132,7 +136,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     // MARK: Quoted Row
     
     private lazy var quotedRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.quotedTextVStack, self.quotedImageView ])
+        let view = UIStackView(arrangedSubviews: [ quotedTextVStack, quotedImageView ])
         view.axis = .horizontal
         view.spacing = 10
 
@@ -155,7 +159,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
-        subView.backgroundColor = UIColor.lavaOrange.withAlphaComponent(0.1)
+        subView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.1)
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(subView, at: 1)
         
@@ -168,7 +172,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ self.quotedNameLabel, self.quotedTextView, spacer ])
+        let view = UIStackView(arrangedSubviews: [ quotedNameLabel, quotedTextView, spacer ])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
@@ -199,7 +203,8 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         view.textContainer.lineFragmentPadding = 0
         view.backgroundColor = .clear
         view.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
-        view.tintColor = UIColor.link
+        view.tintColor = UIColor.label
+        view.textColor = UIColor.systemBlue
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -254,8 +259,9 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     }()
     
     private lazy var textRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.textView ])
-        view.axis = .horizontal
+        let view = UIStackView(arrangedSubviews: [ textView, timeRow ])
+        view.axis = .vertical
+        view.alignment = .leading
         view.spacing = 1
         view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         view.isLayoutMarginsRelativeArrangement = true
@@ -263,8 +269,8 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         return view
     }()
     
-    private lazy var textView: UITextView = {
-        let textView = UITextView()
+    private lazy var textView: UnselectableUITextView = {
+        let textView = UnselectableUITextView()
         textView.translatesAutoresizingMaskIntoConstraints = false
         textView.isScrollEnabled = false
         textView.isEditable = false
@@ -275,7 +281,6 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         textView.backgroundColor = .clear
         textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
         textView.tintColor = UIColor.link
-//        textView.textColor = UIColor.darkText
         return textView
     }()
 
@@ -365,15 +370,11 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, media: Set<ChatMedia>?, timestamp: Date?) {
         
         if isNextMsgSameSender {
-            timeRow.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 3, right: 0)
+            layoutMargins = UIEdgeInsets(top: Constants.SpaceBetweenBubbles, left: 0, bottom: 0, right: 0)
         } else {
-            timeRow.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 10, right: 0)
+            layoutMargins = UIEdgeInsets(top: Constants.SpaceBetweenBubbles, left: 0, bottom: Constants.SpaceBetweenBubbles, right: 0)
         }
-        
-        if isNextMsgSameTime {
-            timeRow.isHidden = true
-        }
-        
+                
         // text
         let text = text ?? ""
         if text.count <= 3 && text.containsOnlyEmoji {
@@ -387,7 +388,6 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
             
             if textView.text == "" {
                 textView.isHidden = true
-                textRow.isHidden = true
             }
             
             var sliderMediaArr: [SliderMedia] = []
@@ -452,6 +452,8 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     // MARK: reuse
     
     func reset() {
+        layoutMargins = UIEdgeInsets(top: Constants.SpaceBetweenBubbles, left: 0, bottom: 0, right: 0)
+        
         nameRow.isHidden = true
         nameLabel.text = ""
         nameLabel.textColor = .secondaryLabel
@@ -468,14 +470,11 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         mediaImageView.reset()
         mediaImageView.removeConstraints(mediaImageView.constraints)
         
-        textRow.isHidden = false
         textRow.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         textView.isHidden = false
         textView.text = ""
         textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
         
-        timeRow.isHidden = false
-        timeRow.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 10, right: 0)
         timeLabel.isHidden = false
         timeLabel.text = nil
     }
@@ -524,8 +523,8 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
             case 7: return UIColor.systemTeal
             case 8: return UIColor.systemYellow
             case 9: return UIColor.systemGray
-            case 10: return UIColor.systemGray3
-            case 11: return UIColor.black
+            case 10: return UIColor.systemBlue.withAlphaComponent(0.5)
+            case 11: return UIColor.systemGreen.withAlphaComponent(0.5)
             case 12: return UIColor.brown
             case 13: return UIColor.magenta
             default: return UIColor.secondaryLabel
@@ -543,5 +542,4 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         delegate?.incomingMsgView(self, previewType: .media, mediaIndex: mediaImageView.currentPage)
     }
 }
-
 

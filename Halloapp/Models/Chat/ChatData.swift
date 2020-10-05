@@ -101,7 +101,7 @@ class ChatData: ObservableObject {
         cancellableSet.insert(
             service.didGetNewChatMessage.sink { [weak self] xmppMessage in
                 DDLogInfo("ChatData/newMsg \(xmppMessage)")
-                self?.processIncomingXMPPChatMessage(xmppMessage)
+                self?.processInboundXMPPChatMessage(xmppMessage)
             }
         )
         
@@ -755,6 +755,23 @@ class ChatData: ObservableObject {
         let badgeNum = MainAppContext.shared.applicationIconBadgeNumber
         MainAppContext.shared.applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1
     }
+    
+    
+    // MARK: Helpers
+    
+    private func isAtChatListView() -> Bool {
+        guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return false }
+        guard let topController = keyWindow.rootViewController else { return false }
+        guard let homeView = topController as? UITabBarController else { return false }
+        guard homeView.selectedIndex == 1 else { return false }
+        guard let navigationController = homeView.selectedViewController as? UINavigationController else { return false }
+        
+        if (navigationController.topViewController as? ChatListViewController) != nil {
+            return true
+        }
+    
+        return false
+    }
 }
 
 extension ChatData {
@@ -1261,15 +1278,15 @@ extension ChatData {
 
     // MARK: 1-1 Process Inbound Messages
     
-    private func processIncomingXMPPChatMessage(_ chatMessage: ChatMessageProtocol) {
+    private func processInboundXMPPChatMessage(_ chatMessage: ChatMessageProtocol) {
         let isAppActive = UIApplication.shared.applicationState == .active
         
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            self.processIncomingChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
+            self.processInboundChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
         }
     }
     
-    private func processIncomingChatMessage(xmppChatMessage: ChatMessageProtocol, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
+    private func processInboundChatMessage(xmppChatMessage: ChatMessageProtocol, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
         guard self.chatMessage(with: xmppChatMessage.id, in: managedObjectContext) == nil else {
             DDLogError("ChatData/process/already-exists [\(xmppChatMessage.id)]")
             return
@@ -1473,8 +1490,11 @@ extension ChatData {
     
     private func showOneToOneNotification(for xmppChatMessage: ChatMessageProtocol) {
         DDLogDebug("ChatData/showOneToOneNotification")
+        
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+            guard !self.isAtChatListView() else { return }
+   
             switch UIApplication.shared.applicationState {
             case .background, .inactive:
                 self.presentLocalOneToOneNotifications(for: xmppChatMessage)
@@ -1514,7 +1534,7 @@ extension ChatData {
             }
         }
         
-        Banner.show(title: title, body: body)
+        Banner.show(title: title, body: body, userID: userID, using: MainAppContext.shared.avatarStore)
     }
     
     private func presentLocalOneToOneNotifications(for xmppChatMessage: ChatMessageProtocol) {
@@ -2139,7 +2159,6 @@ extension ChatData {
     // MARK: Group Process Inbound Messages
     
     private func processInboundChatGroupMessage(xmppChatGroupMessage: XMPPChatGroupMessage, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
-        
         guard chatGroupMessage(with: xmppChatGroupMessage.id, in: managedObjectContext) == nil else {
             DDLogError("ChatData/group/processInboundChatGroupMessage/already-exists [\(xmppChatGroupMessage.id)]")
             return
@@ -2573,6 +2592,7 @@ extension ChatData {
         DDLogDebug("ChatData/showGroupNotification")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+            guard !self.isAtChatListView() else { return }
             
             switch UIApplication.shared.applicationState {
             case .background, .inactive:
@@ -2588,6 +2608,7 @@ extension ChatData {
     
     private func presentGroupBanner(for xmppChatGroupMessage: XMPPChatGroupMessage) {
         DDLogDebug("ChatData/presentGroupBanner")
+        let groupID = xmppChatGroupMessage.groupId
         guard let userID = xmppChatGroupMessage.userId else { return }
         guard let groupName = xmppChatGroupMessage.groupName else { return }
         
@@ -2614,7 +2635,7 @@ extension ChatData {
             }
         }
         
-        Banner.show(title: title, body: body)
+        Banner.show(title: title, body: body, groupID: groupID, using: MainAppContext.shared.avatarStore)
     }
     
     private func presentLocalGroupNotifications(for xmppChatGroupMessage: XMPPChatGroupMessage) {
@@ -2708,7 +2729,7 @@ extension ChatData: HalloChatDelegate {
 
 extension XMPPChatMessage {
     
-    // used for outgoing chat messages
+    // for outbound message
     init(chatMessage: ChatMessage) {
         self.id = chatMessage.id
         self.fromUserId = chatMessage.fromUserId
@@ -2724,7 +2745,7 @@ extension XMPPChatMessage {
         }
     }
     
-    // init incoming message
+    // for inbound message
     init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id") else { return nil }
         guard let toUserId = item.attributeStringValue(forName: "to")?.components(separatedBy: "@").first else { return nil }

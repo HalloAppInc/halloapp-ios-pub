@@ -17,7 +17,7 @@ import UIKit
 fileprivate struct Constants {
     static let AvatarSize: CGFloat = UIScreen.main.bounds.height * 0.10
     static let HeaderHeight: CGFloat = UIScreen.main.bounds.height * 0.25
-    static let FooterHeight: CGFloat = 40
+    static let FooterHeight: CGFloat = 75
 }
 
 class GroupInfoViewController: UITableViewController, NSFetchedResultsControllerDelegate {
@@ -45,10 +45,10 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         navigationItem.title = "Group Info"
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Edit", style: .plain, target: self, action: #selector(editAction))
         navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
+        navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
 
         tableView.separatorStyle = .none
-        tableView.backgroundColor = UIColor.systemGray6
+        tableView.backgroundColor = UIColor.feedBackground
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         
         let groupInfoHeaderView = GroupInfoHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: Constants.HeaderHeight))
@@ -361,14 +361,8 @@ class GroupInfoHeaderView: UIView {
     }
     
     private func setup() {
-        preservesSuperviewLayoutMargins = true
-
         addSubview(vStack)
-
-        vStack.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
-        vStack.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: topAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+        vStack.constrain(to: self)
     }
     
     private lazy var vStack: UIStackView = {
@@ -447,7 +441,7 @@ class GroupInfoHeaderView: UIView {
     
     private lazy var addMembersLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.font = .gothamFont(forTextStyle: .headline, weight: .medium)
         label.textColor = .systemBlue
         label.textAlignment = .right
         label.text = "Add Members"
@@ -486,32 +480,49 @@ class GroupInfoFooterView: UIView {
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     public func setIsMember(_ isMember: Bool) {
-        textLabel.isHidden = isMember ? false : true
+        leaveGroupLabel.isHidden = isMember ? false : true
         notAMemberLabel.isHidden = isMember ? true : false
     }
     
     private func setup() {
-        preservesSuperviewLayoutMargins = true
-
         addSubview(vStack)
-
-        vStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-        vStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
+        vStack.constrain(to: self)
     }
     
     private lazy var vStack: UIStackView = {
-        let vStack = UIStackView(arrangedSubviews: [ self.textLabel, self.notAMemberLabel ])
-        vStack.axis = .vertical
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        return vStack
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        
+        let view = UIStackView(arrangedSubviews: [ spacer, leaveGroupRow ])
+        view.axis = .vertical
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        return view
     }()
     
-    private lazy var textLabel: UILabel = {
+    private lazy var leaveGroupRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        
+        let view = UIStackView(arrangedSubviews: [ leaveGroupLabel, notAMemberLabel ])
+        view.axis = .vertical
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 20)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.backgroundColor = .secondarySystemGroupedBackground
+        view.insertSubview(subView, at: 0)
+        
+        return view
+    }()
+    
+    private lazy var leaveGroupLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .body)
-        label.textColor = .systemBlue
+        label.font = .gothamFont(forTextStyle: .headline, weight: .medium)
+        label.textColor = .systemRed
         label.textAlignment = .right
         label.text = "Leave Group"
         
@@ -546,4 +557,5 @@ private extension ContactTableViewCell {
         accessoryLabel.text = chatGroupMember.type == .admin ? "Admin" : ""
         contactImage.configure(with: chatGroupMember.userId, using: MainAppContext.shared.avatarStore)
     }
+    
 }

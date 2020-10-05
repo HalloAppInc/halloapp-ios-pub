@@ -31,7 +31,7 @@ class OutgoingMsgView: UIView {
 
     private func setup() {
         backgroundColor = .clear
-        layoutMargins = UIEdgeInsets(top: 3, left: 0, bottom: 0, right: 0)
+        layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 0, right: 0)
         addSubview(mainView)
         
         mainView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
@@ -44,7 +44,7 @@ class OutgoingMsgView: UIView {
     }
     
     private lazy var mainView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ bubbleRow, timeRow ])
+        let view = UIStackView(arrangedSubviews: [ bubbleRow ])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .vertical
         view.alignment = .trailing
@@ -63,7 +63,7 @@ class OutgoingMsgView: UIView {
         subView.layer.cornerRadius = 20
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
-        subView.backgroundColor = UIColor.lavaOrange.withAlphaComponent(0.1)
+        subView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.1)
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(subView, at: 0)
         
@@ -73,7 +73,7 @@ class OutgoingMsgView: UIView {
     // MARK: Quoted Row
     
     private lazy var quotedRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.quotedTextVStack, self.quotedImageView ])
+        let view = UIStackView(arrangedSubviews: [ quotedTextVStack, quotedImageView ])
         view.axis = .horizontal
         view.spacing = 10
         view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -98,7 +98,7 @@ class OutgoingMsgView: UIView {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ self.quotedNameLabel, self.quotedTextView, spacer ])
+        let view = UIStackView(arrangedSubviews: [ quotedNameLabel, quotedTextView, spacer ])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
@@ -116,7 +116,7 @@ class OutgoingMsgView: UIView {
         label.font = boldFont
         return label
     }()
-        
+            
     private lazy var quotedTextView: UITextView = {
         let view = UITextView()
         view.isScrollEnabled = false
@@ -176,8 +176,22 @@ class OutgoingMsgView: UIView {
     
     // MARK: Text Row
     
-    private lazy var textView: UITextView = {
-        let textView = UITextView()
+    private lazy var textStackView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ textView ])
+        view.axis = .horizontal
+        view.spacing = 0
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(timeAndStatusRow)
+        timeAndStatusRow.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor).isActive = true
+        timeAndStatusRow.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor).isActive = true
+        
+        return view
+    }()
+
+    private lazy var textView: UnselectableUITextView = {
+        let textView = UnselectableUITextView()
         textView.isScrollEnabled = false
         textView.isEditable = false
         textView.isSelectable = true
@@ -186,64 +200,19 @@ class OutgoingMsgView: UIView {
         textView.textContainerInset = UIEdgeInsets.zero
         textView.backgroundColor = .clear
         textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
-        textView.tintColor = UIColor.link
+        textView.tintColor = UIColor.label
+        textView.textColor = UIColor.systemBlue
+
         textView.translatesAutoresizingMaskIntoConstraints = false
         return textView
     }()
     
-    private lazy var textStackView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.textView ])
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.axis = .horizontal
-        view.spacing = 0
-        return view
-    }()
-    
-    private lazy var sentTickImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "CheckmarkSingle")?.withRenderingMode(.alwaysTemplate))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = UIColor.systemGray3
-        imageView.isHidden = true
-        return imageView
-    }()
-    
-    private lazy var deliveredTickImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "CheckmarkDouble")?.withRenderingMode(.alwaysTemplate))
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = UIColor.systemGray3
-        imageView.isHidden = true
-        return imageView
-    }()
-        
-    private lazy var sentTickStack: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.sentTickImageView ])
-        view.axis = .vertical
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 2, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        view.spacing = 0
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private lazy var deliveredTickStack: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.deliveredTickImageView ])
-        view.axis = .vertical
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 2, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        view.spacing = 0
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-            
+
     private lazy var textRow: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ spacer, self.textStackView, self.sentTickStack, self.deliveredTickStack ])
+        let view = UIStackView(arrangedSubviews: [ spacer, textStackView ])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .horizontal
         view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -251,23 +220,26 @@ class OutgoingMsgView: UIView {
         view.alignment = .bottom
         view.spacing = 1
 
-        let sentTickSize: CGFloat = 12.0
-        let deliveredTickSize: CGFloat = 15.0
-        NSLayoutConstraint(item: self.sentTickImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: sentTickSize).isActive = true
-        NSLayoutConstraint(item: self.sentTickImageView, attribute: .height, relatedBy: .equal, toItem: self.sentTickImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
-        NSLayoutConstraint(item: self.deliveredTickImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: deliveredTickSize).isActive = true
-        NSLayoutConstraint(item: self.deliveredTickImageView, attribute: .height, relatedBy: .equal, toItem: self.deliveredTickImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
-
         return view
     }()
     
-
+    private lazy var timeAndStatusRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ timeAndStatusLabel ])
+        view.axis = .vertical
+        view.spacing = 0
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 3, right: 5)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
     
-    private lazy var timeLabel: UILabel = {
+    // font point 11
+    private lazy var timeAndStatusLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
         
-        label.font = UIFont.systemFont(ofSize: 12)
+        label.font = UIFont.preferredFont(forTextStyle: .caption2)
         label.textColor = .secondaryLabel
         
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -275,19 +247,6 @@ class OutgoingMsgView: UIView {
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         return label
     }()
-    
-    private lazy var timeRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ timeLabel ])
-        view.axis = .vertical
-        view.spacing = 0
-        view.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 10, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-
     
     // MARK: Update
     
@@ -299,9 +258,10 @@ class OutgoingMsgView: UIView {
                    isQuotedMessage: isQuotedMessage,
                    text: chatMessage.text,
                    media: chatMessage.media,
-                   timestamp: chatMessage.timestamp)
+                   timestamp: chatMessage.timestamp,
+                   statusIcon: statusIcon(chatMessage.outgoingStatus))
         
-        updateChatMessageOutboundStatus(chatMessage.outgoingStatus)
+//        updateChatMessageOutboundStatus(chatMessage.outgoingStatus)
     }
     
     func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
@@ -311,8 +271,10 @@ class OutgoingMsgView: UIView {
                    isQuotedMessage: false,
                    text: chatGroupMessage.text,
                    media: chatGroupMessage.media,
-                   timestamp: chatGroupMessage.timestamp)
-        updateChatGroupMessageOutboundStatus(chatGroupMessage.outboundStatus)
+                   timestamp: chatGroupMessage.timestamp,
+                   statusIcon: statusIcon(chatGroupMessage.outboundStatus))
+        
+//        updateChatGroupMessageOutboundStatus(chatGroupMessage.outboundStatus)
     }
     
     func updateQuoted(chatQuoted: ChatQuoted?, feedPostMediaIndex: Int) -> Bool {
@@ -359,22 +321,18 @@ class OutgoingMsgView: UIView {
         return isQuotedMessage
     }
     
-    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, media: Set<ChatMedia>?, timestamp: Date?) {
+    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, media: Set<ChatMedia>?, timestamp: Date?, statusIcon: UIImage?) {
 
         if isNextMsgSameSender {
-            timeRow.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 3, right: 0)
+            layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 0, right: 0)
         } else {
-            timeRow.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 10, right: 0)
-        }
-        
-        if isNextMsgSameTime {
-            timeRow.isHidden = true
+            layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 5, right: 0)
         }
         
         // media
         if let media = media {
             
-            self.mediaImageView.reset()
+            mediaImageView.reset()
             
             var sliderMediaArr: [SliderMedia] = []
             
@@ -422,75 +380,53 @@ class OutgoingMsgView: UIView {
                 mediaRow.isHidden = false
             }
         }
+                
+        // time and status
+        if let timestamp = timestamp {
+            let result = NSMutableAttributedString(string: timestamp.chatTimestamp())
+            
+            if let icon = statusIcon {
+                let iconAttachment = NSTextAttachment(image: icon)
+                result.append(NSAttributedString(string: "  "))
+                result.append(NSAttributedString(attachment: iconAttachment))
+            }
+
+            timeAndStatusLabel.attributedText = result
+        }
         
         // text
         let text = text ?? ""
         if text.count <= 3 && text.containsOnlyEmoji {
-            self.textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+            textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
         }
-        self.textView.text = text
-        
-        // time
-        if let timestamp = timestamp {
-            self.timeLabel.text = timestamp.chatTimestamp()
-        }
+
+        var blanks = " \u{2800}" // extra space so links can work
+        let numBlanks = timeAndStatusLabel.text?.count ?? 1
+        blanks += String(repeating: "\u{00a0}", count: Int(Double(numBlanks)*1.7)) // nonbreaking spaces
+        textView.text = text + blanks
     }
     
-    func updateChatMessageOutboundStatus(_ outboundStatus: ChatMessage.OutgoingStatus) {
-        // ticks
-        switch outboundStatus {
-        case .seen:
-            self.sentTickImageView.isHidden = true
-            self.sentTickImageView.tintColor = UIColor.systemBlue
-            self.deliveredTickImageView.isHidden = false
-            self.deliveredTickImageView.tintColor = UIColor.systemBlue
-        case .delivered:
-            self.sentTickImageView.isHidden = true
-            self.sentTickImageView.tintColor = UIColor.systemGray3
-            self.deliveredTickImageView.isHidden = false
-            self.deliveredTickImageView.tintColor = UIColor.systemGray3
-        case .sentOut:
-            self.sentTickImageView.isHidden = false
-            self.sentTickImageView.tintColor = UIColor.systemGray3
-            self.deliveredTickImageView.isHidden = true
-            self.deliveredTickImageView.tintColor = UIColor.systemGray3
-        default:
-            self.sentTickImageView.isHidden = true
-            self.sentTickImageView.tintColor = UIColor.systemGray3
-            self.deliveredTickImageView.isHidden = true
-            self.deliveredTickImageView.tintColor = UIColor.systemGray3
-        }
+    func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
+        switch status {
+        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemBlue)
+        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(UIColor.systemGray3)
+        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(UIColor.systemGray3)
+        default: return nil }
     }
     
-    func updateChatGroupMessageOutboundStatus(_ outboundStatus: ChatGroupMessage.OutboundStatus) {
-        // ticks
-        switch outboundStatus {
-        case .seen:
-            self.sentTickImageView.isHidden = true
-            self.sentTickImageView.tintColor = UIColor.systemBlue
-            self.deliveredTickImageView.isHidden = false
-            self.deliveredTickImageView.tintColor = UIColor.systemBlue
-        case .delivered:
-            self.sentTickImageView.isHidden = true
-            self.sentTickImageView.tintColor = UIColor.systemGray3
-            self.deliveredTickImageView.isHidden = false
-            self.deliveredTickImageView.tintColor = UIColor.systemGray3
-        case .sentOut:
-            self.sentTickImageView.isHidden = false
-            self.sentTickImageView.tintColor = UIColor.systemGray3
-            self.deliveredTickImageView.isHidden = true
-            self.deliveredTickImageView.tintColor = UIColor.systemGray3
-        default:
-            self.sentTickImageView.isHidden = true
-            self.sentTickImageView.tintColor = UIColor.systemGray3
-            self.deliveredTickImageView.isHidden = true
-            self.deliveredTickImageView.tintColor = UIColor.systemGray3
-        }
+    func statusIcon(_ status: ChatGroupMessage.OutboundStatus) -> UIImage? {
+        switch status {
+        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemBlue)
+        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(UIColor.systemGray3)
+        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(UIColor.systemGray3)
+        default: return nil }
     }
     
     // MARK: Reuse
     
     func reset() {
+        layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 0, right: 0)
+        
         quotedNameLabel.text = ""
         quotedTextView.text = ""
         quotedTextVStack.isHidden = true
@@ -505,15 +441,8 @@ class OutgoingMsgView: UIView {
         
         textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
         textView.text = ""
-        sentTickImageView.isHidden = true
-        sentTickImageView.tintColor = UIColor.systemGray3
-        deliveredTickImageView.isHidden = true
-        deliveredTickImageView.tintColor = UIColor.systemGray3
-        
-        timeRow.isHidden = false
-        timeRow.layoutMargins = UIEdgeInsets(top: 1, left: 15, bottom: 10, right: 0)
-        timeLabel.isHidden = false
-        timeLabel.text = nil
+
+        timeAndStatusLabel.attributedText = nil
     }
     
     func preferredSize(for media: [ChatMedia]) -> CGSize {
@@ -548,3 +477,13 @@ class OutgoingMsgView: UIView {
     }
 }
 
+class UnselectableUITextView: UITextView {
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        guard let pos = closestPosition(to: point) else { return false }
+        guard let range = tokenizer.rangeEnclosingPosition(pos, with: .character, inDirection: .layout(.left)) else {
+            return false
+        }
+        let startIndex = offset(from: beginningOfDocument, to: range.start)
+        return attributedText.attribute(.link, at: startIndex, effectiveRange: nil) != nil
+    }
+}

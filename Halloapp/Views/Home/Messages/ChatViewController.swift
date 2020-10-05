@@ -52,7 +52,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
     
     override func viewDidLoad() {
-        guard let fromUserId = self.fromUserId else { return }
+        guard let fromUserId = fromUserId else { return }
 
         super.viewDidLoad()
         
@@ -69,10 +69,10 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         
         navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
-        titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 3, right: 0)
         titleView.update(with: fromUserId, status: UserPresenceType.none, lastSeen: nil)
         
-        view.addSubview(self.tableView)
+        view.addSubview(tableView)
         tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         tableView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
@@ -82,7 +82,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
         tableView.tableHeaderView = nil
         tableView.tableFooterView = nil
         
-        dataSource = UITableViewDiffableDataSource<Int, ChatMessage>(tableView: self.tableView) { [weak self] tableView, indexPath, chatMessage in
+        dataSource = UITableViewDiffableDataSource<Int, ChatMessage>(tableView: tableView) { [weak self] tableView, indexPath, chatMessage in
             guard let self = self else { return nil }
             
             self.trackedChatMessages[chatMessage.id] = TrackedChatMessage(with: chatMessage)
@@ -255,6 +255,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     
     private lazy var titleView: TitleView = {
         let titleView = TitleView()
+        titleView.delegate = self
         titleView.translatesAutoresizingMaskIntoConstraints = false
         return titleView
     }()
@@ -545,6 +546,14 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
     }
 }
 
+extension ChatViewController: TitleViewDelegate {
+    fileprivate func titleView(_ titleView: TitleView) {
+        guard let userID = fromUserId else { return }
+        let userViewController = UserFeedViewController(userID: userID)
+        navigationController?.pushViewController(userViewController, animated: true)
+    }
+}
+
 fileprivate struct TrackedChatMedia {
     let relativeFilePath: String?
     let order: Int
@@ -577,21 +586,59 @@ fileprivate struct TrackedChatMessage {
     }
 }
 
+fileprivate protocol TitleViewDelegate: AnyObject {
+    func titleView(_ titleView: TitleView)
+}
+
 fileprivate class TitleView: UIView {
+    
+    weak var delegate: TitleViewDelegate?
+    
     override init(frame: CGRect){
         super.init(frame: frame)
         setup()
     }
 
-    required init?(coder aDecoder: NSCoder){
-        super.init(coder: aDecoder)
-        setup()
-    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     private lazy var contactImageView: AvatarView = {
         return AvatarView()
     }()
-    
+
+    private func setup() {
+        let imageSize: CGFloat = 35
+        contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
+        contactImageView.heightAnchor.constraint(equalTo: contactImageView.widthAnchor).isActive = true
+        
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+
+        let hStack = UIStackView(arrangedSubviews: [ contactImageView, nameColumn ])
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+        hStack.axis = .horizontal
+        hStack.alignment = .center
+        hStack.spacing = 10
+        
+        addSubview(hStack)
+        hStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
+        hStack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
+        hStack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor).isActive = true
+        hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoProfile))
+        isUserInteractionEnabled = true
+        addGestureRecognizer(tapGesture)
+    }
+
+    private lazy var nameColumn: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [nameLabel, lastSeenLabel])
+        view.axis = .vertical
+        view.spacing = 0
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
@@ -605,63 +652,35 @@ fileprivate class TitleView: UIView {
         let label = UILabel()
         label.numberOfLines = 1
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.systemFont(ofSize: 13)
+        label.font = UIFont.systemFont(ofSize: 12)
         label.textColor = .secondaryLabel
         label.isHidden = true
         return label
     }()
     
-    private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [self.nameLabel, self.lastSeenLabel])
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.axis = .vertical
-        view.spacing = 0
-        return view
-    }()
-    
-    private func setup() {
-        let imageSize: CGFloat = 40.0
-        self.contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
-        self.contactImageView.heightAnchor.constraint(equalTo: self.contactImageView.widthAnchor).isActive = true
-        
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
-        spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-
-        let hStack = UIStackView(arrangedSubviews: [ self.contactImageView, self.nameColumn, spacer ])
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.axis = .horizontal
-        hStack.alignment = .leading
-        hStack.spacing = 10
-
-        self.addSubview(hStack)
-        hStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-        hStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        hStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
-        hStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
-    }
-
     func update(with fromUserId: String, status: UserPresenceType, lastSeen: Date?) {
-        self.nameLabel.text = MainAppContext.shared.contactStore.fullName(for: fromUserId)
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: fromUserId)
         
         switch status {
         case .away:
             if let lastSeen = lastSeen {
-                self.lastSeenLabel.text = lastSeen.lastSeenTimestamp()
-                self.lastSeenLabel.isHidden = false
+                lastSeenLabel.text = lastSeen.lastSeenTimestamp()
+                lastSeenLabel.isHidden = false
             }
         case .available:
-            self.lastSeenLabel.isHidden = false
-            self.lastSeenLabel.text = "online"
+            lastSeenLabel.isHidden = false
+            lastSeenLabel.text = "online"
         default:
-            self.lastSeenLabel.isHidden = true
-            self.lastSeenLabel.text = ""
+            lastSeenLabel.isHidden = true
+            lastSeenLabel.text = ""
         }
         
         contactImageView.configure(with: fromUserId, using: MainAppContext.shared.avatarStore)
     }
     
+    @objc func gotoProfile(_ sender: UIView) {
+        delegate?.titleView(self)
+    }
 }
 
 class IncomingMsgCell: UITableViewCell, IncomingMsgViewDelegate {

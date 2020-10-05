@@ -296,7 +296,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         button.isEnabled = true
         button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
-        button.tintColor = UIColor.systemGray
+        button.tintColor = UIColor.label
         
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)

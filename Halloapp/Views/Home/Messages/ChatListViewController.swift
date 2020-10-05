@@ -92,6 +92,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 
     override func viewWillDisappear(_ animated: Bool) {
+        DDLogInfo("ChatListViewController/viewWillDisappear")
         super.viewWillDisappear(animated)
 
         floatingMenu.setState(.collapsed, animated: true)

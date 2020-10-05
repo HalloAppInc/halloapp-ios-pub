@@ -15,7 +15,7 @@ import UIKit
 
 // MARK: Constraint Constants
 fileprivate struct Constants {
-    static let AvatarSize: CGFloat = 40
+    static let AvatarSize: CGFloat = 35
     static let WidthOfMsgBubble:CGFloat = 0.9
 }
 
@@ -524,8 +524,6 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
     }
 }
 
-
-
 extension ChatGroupViewController: TitleViewDelegate {
     fileprivate func titleView(_ titleView: TitleView) {
         let vc = GroupInfoViewController(for: groupId)
@@ -547,10 +545,7 @@ extension ChatGroupViewController: OutboundMsgCellDelegate {
          })
          actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
          self.present(actionSheet, animated: true)
-        
     }
-    
-
 }
 
 extension ChatGroupViewController: MessageComposerViewDelegate {
@@ -618,15 +613,10 @@ fileprivate class TitleView: UIView {
         avatarView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
         avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
         
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        spacer.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
-        spacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-
-        let hStack = UIStackView(arrangedSubviews: [ avatarView, nameColumn, spacer ])
+        let hStack = UIStackView(arrangedSubviews: [ avatarView, nameColumn ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
-        hStack.alignment = .leading
+        hStack.alignment = .center
         hStack.spacing = 10
 
         addSubview(hStack)
@@ -642,6 +632,14 @@ fileprivate class TitleView: UIView {
     
     private lazy var avatarView: AvatarView = {
         return AvatarView()
+    }()
+    
+    private lazy var nameColumn: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [nameLabel, lastSeenLabel])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .vertical
+        view.spacing = 0
+        return view
     }()
     
     private lazy var nameLabel: UILabel = {
@@ -661,14 +659,6 @@ fileprivate class TitleView: UIView {
         label.textColor = .secondaryLabel
         label.isHidden = true
         return label
-    }()
-    
-    private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [self.nameLabel, self.lastSeenLabel])
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.axis = .vertical
-        view.spacing = 0
-        return view
     }()
     
     @objc func gotoGroupInfo(_ sender: UIView) {
