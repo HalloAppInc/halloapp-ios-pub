@@ -59,6 +59,7 @@ final class UserProfileTableHeaderView: UIView {
         cameraOverlayView.translatesAutoresizingMaskIntoConstraints = false
         cameraOverlayView.setBackgroundColor(.systemBlue, for: .normal)
         cameraOverlayView.setImage(UIImage(named: "ProfileHeaderCamera")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        cameraOverlayView.tintColor = .white
         cameraOverlayView.layer.cornerRadius = 0.5 * overlayViewDiameter
         cameraOverlayView.layer.masksToBounds = true
         avatarViewButton.avatarView.placeholderOverlayView = cameraOverlayView
