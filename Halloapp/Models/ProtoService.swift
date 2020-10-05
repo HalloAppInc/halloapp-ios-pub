@@ -153,8 +153,9 @@ final class ProtoService: ProtoServiceCore {
             case .post(let pbPost):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    guard let post = XMPPFeedPost(pbPost) else { return }
-                    elements.append(.post(post))
+                    if let post = XMPPFeedPost(pbPost) {
+                        elements.append(.post(post))
+                    }
                 case .retract:
                     retracts.append(.post(pbPost.id))
                 case .UNRECOGNIZED(let action):
@@ -163,8 +164,9 @@ final class ProtoService: ProtoServiceCore {
             case .comment(let pbComment):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    guard let comment = XMPPComment(pbComment) else { return }
-                    elements.append(.comment(comment, publisherName: pbComment.publisherName))
+                    if let comment = XMPPComment(pbComment) {
+                        elements.append(.comment(comment, publisherName: pbComment.publisherName))
+                    }
                 case .retract:
                     retracts.append(.comment(pbComment.id))
                 case .UNRECOGNIZED(let action):
