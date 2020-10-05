@@ -65,7 +65,7 @@ class UserFeedViewController: FeedTableViewController {
     override var fetchRequest: NSFetchRequest<FeedPost> {
         get {
             let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
+            fetchRequest.predicate = NSPredicate(format: "userId == %@ AND groupId == nil", userID)
             fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
             return fetchRequest
         }

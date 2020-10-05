@@ -90,6 +90,7 @@ class FeedViewController: FeedTableViewController {
     override var fetchRequest: NSFetchRequest<FeedPost> {
         get {
             let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "groupId == nil")
             fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
             return fetchRequest
         }

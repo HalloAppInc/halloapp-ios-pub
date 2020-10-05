@@ -177,7 +177,7 @@ class ProfileViewController: FeedTableViewController {
     override var fetchRequest: NSFetchRequest<FeedPost> {
         get {
             let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "userId == %@", MainAppContext.shared.userData.userId)
+            fetchRequest.predicate = NSPredicate(format: "userId == %@ AND groupId == nil", MainAppContext.shared.userData.userId)
             fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
             return fetchRequest
         }

@@ -36,6 +36,9 @@
             <fetchIndexElement property="userId" type="Binary" order="ascending"/>
             <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
         </fetchIndex>
+        <fetchIndex name="byGroupId">
+            <fetchIndexElement property="groupId" type="Binary" order="ascending"/>
+        </fetchIndex>
     </entity>
     <entity name="FeedPostComment" representedClassName="FeedPostComment" syncable="YES">
         <attribute name="id" attributeType="String"/>
