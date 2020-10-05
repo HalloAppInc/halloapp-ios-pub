@@ -21,7 +21,7 @@ struct XMPPContact {
     var isDeletedContact: Bool = false
 
     /** Use to process protobuf server responses */
-    init(_ pbContact: PBcontact) {
+    init(_ pbContact: Server_Contact) {
         if pbContact.uid > 0 {
             userid = String(pbContact.uid)
         }

@@ -22,7 +22,7 @@ private extension UNNotificationRequest {
 
 extension UNMutableNotificationContent {
 
-    private static func mediaIcon(_ protoMedia: Proto_Media) -> String {
+    private static func mediaIcon(_ protoMedia: Clients_Media) -> String {
         switch protoMedia.type {
             case .image:
                 return "📷"
@@ -33,7 +33,7 @@ extension UNMutableNotificationContent {
         }
     }
 
-    private static func notificationBody(forMedia media: [Proto_Media]) -> String {
+    private static func notificationBody(forMedia media: [Clients_Media]) -> String {
         let numPhotos = media.filter { $0.type == .image }.count
         let numVideos = media.filter { $0.type == .video }.count
         var strings = [String]()
@@ -58,7 +58,7 @@ extension UNMutableNotificationContent {
         return strings.joined(separator: ", ")
     }
 
-    func populate(withDataFrom protoContainer: Proto_Container, notificationMetadata: NotificationMetadata, mentionNameProvider: (UserID) -> String) {
+    func populate(withDataFrom protoContainer: Clients_Container, notificationMetadata: NotificationMetadata, mentionNameProvider: (UserID) -> String) {
         if protoContainer.hasPost {
             subtitle = "New Post"
             body = protoContainer.post.mentionText.expandedText(nameProvider: mentionNameProvider).string

@@ -70,7 +70,7 @@ struct XMPPChatMedia {
         self.sha256 = sha256
     }
 
-    init?(protoMedia: Proto_Media) {
+    init?(protoMedia: Clients_Media) {
         guard let type: ChatMessageMediaType = {
             switch protoMedia.type {
             case .image: return .image
@@ -95,12 +95,12 @@ extension XMPPChatMedia: ChatMediaProtocol {
     }
 }
 
-extension Proto_Container {
-    static func chatMessageContainer(from entry: XMLElement) -> Proto_Container? {
+extension Clients_Container {
+    static func chatMessageContainer(from entry: XMLElement) -> Clients_Container? {
         guard let s1 = entry.element(forName: "s1")?.stringValue else { return nil }
         guard let data = Data(base64Encoded: s1, options: .ignoreUnknownCharacters) else { return nil }
         do {
-            let protoContainer = try Proto_Container(serializedData: data)
+            let protoContainer = try Clients_Container(serializedData: data)
             if protoContainer.hasChatMessage {
                 return protoContainer
             }

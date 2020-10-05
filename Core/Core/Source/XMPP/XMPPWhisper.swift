@@ -58,7 +58,7 @@ public struct XMPPWhisperKey {
         guard let identityKeyData = Data(base64Encoded: identityKey, options: .ignoreUnknownCharacters) else { return nil }
         
         do {
-            let protoContainer = try Proto_IdentityKey(serializedData: identityKeyData)
+            let protoContainer = try Clients_IdentityKey(serializedData: identityKeyData)
             protoIdentity = protoContainer.publicKey
         }
         catch {
@@ -69,7 +69,7 @@ public struct XMPPWhisperKey {
         guard let signedKeyData = Data(base64Encoded: signedKey, options: .ignoreUnknownCharacters) else { return nil }
 
         do {
-            let protoContainer = try Proto_SignedPreKey(serializedData: signedKeyData)
+            let protoContainer = try Clients_SignedPreKey(serializedData: signedKeyData)
             protoSigned = PreKey(id: protoContainer.id, privateKey: nil, publicKey: protoContainer.publicKey)
             protoSignature = protoContainer.signature
         }
@@ -81,7 +81,7 @@ public struct XMPPWhisperKey {
         if let oneTimeKey = whisperKeys.element(forName: "one_time_key")?.stringValue {
             if let oneTimeKeyData = Data(base64Encoded: oneTimeKey, options: .ignoreUnknownCharacters) {
                 do {
-                    let protoContainer = try Proto_OneTimePreKey(serializedData: oneTimeKeyData)
+                    let protoContainer = try Clients_OneTimePreKey(serializedData: oneTimeKeyData)
                     self.oneTime.append(PreKey(id: protoContainer.id, privateKey: nil, publicKey: protoContainer.publicKey))
                 }
                 catch {
@@ -108,7 +108,7 @@ public struct XMPPWhisperKey {
             
             if (self.type == .set) {
                 
-                var protoIdentityKey = Proto_IdentityKey()
+                var protoIdentityKey = Clients_IdentityKey()
                 guard let identity = self.identity else { return whisperKeys }
                 protoIdentityKey.publicKey = identity
                 
@@ -116,7 +116,7 @@ public struct XMPPWhisperKey {
                     whisperKeys.addChild(XMPPElement(name: "identity_key", stringValue: protoIdentityKeyData.base64EncodedString()))
                 }
                 
-                var protoSignedPreKey = Proto_SignedPreKey()
+                var protoSignedPreKey = Clients_SignedPreKey()
                 guard let signed = self.signed else { return whisperKeys }
                 protoSignedPreKey.id = signed.id
                 protoSignedPreKey.publicKey = signed.publicKey
@@ -131,7 +131,7 @@ public struct XMPPWhisperKey {
             
             for oneTimeKey in oneTime {
             
-                var protoOneTimePreKey = Proto_OneTimePreKey()
+                var protoOneTimePreKey = Clients_OneTimePreKey()
                 protoOneTimePreKey.id = oneTimeKey.id
                 protoOneTimePreKey.publicKey = oneTimeKey.publicKey
                 if let protoOneTimePreKeyData = try? protoOneTimePreKey.serializedData() {
@@ -143,18 +143,18 @@ public struct XMPPWhisperKey {
         }
     }
     
-    var protoIdentityKey: Proto_IdentityKey {
+    var protoIdentityKey: Clients_IdentityKey {
         get {
-            var protoIdentityKey = Proto_IdentityKey()
+            var protoIdentityKey = Clients_IdentityKey()
             guard let identity = self.identity else { return protoIdentityKey }
             protoIdentityKey.publicKey = identity
             return protoIdentityKey
         }
     }
     
-    var protoSignedPreKey: Proto_SignedPreKey {
+    var protoSignedPreKey: Clients_SignedPreKey {
         get {
-            var protoSignedPreKey = Proto_SignedPreKey()
+            var protoSignedPreKey = Clients_SignedPreKey()
             guard let signed = self.signed else { return protoSignedPreKey }
             protoSignedPreKey.id = signed.id
             protoSignedPreKey.publicKey = signed.publicKey

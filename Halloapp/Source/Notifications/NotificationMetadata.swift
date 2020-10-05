@@ -69,10 +69,10 @@ class NotificationMetadata {
         }
     }
 
-    var protoContainer: Proto_Container? {
+    var protoContainer: Clients_Container? {
         guard let protobufData = data else { return nil }
         do {
-            return try Proto_Container(serializedData: protobufData)
+            return try Clients_Container(serializedData: protobufData)
         }
         catch {
             DDLogError("NotificationMetadata/protobuf/error Invalid protobuf. \(error)")

@@ -15,12 +15,12 @@ final public class ProtoWhisperUploadRequest : ProtoRequest {
     public init(keyBundle: XMPPWhisperKey, completion: @escaping ServiceRequestCompletion<Void>) {
         self.completion = completion
 
-        var keys = PBwhisper_keys()
+        var keys = Server_WhisperKeys()
 
         // todo: error if following conditionals fail?
 
         if let identity = keyBundle.identity {
-            var protoIdentityKey = Proto_IdentityKey()
+            var protoIdentityKey = Clients_IdentityKey()
             protoIdentityKey.publicKey = identity
 
             if let data = try? protoIdentityKey.serializedData() {
@@ -29,7 +29,7 @@ final public class ProtoWhisperUploadRequest : ProtoRequest {
         }
 
         if let signed = keyBundle.signed, let signature = keyBundle.signature {
-            var protoSignedPreKey = Proto_SignedPreKey()
+            var protoSignedPreKey = Clients_SignedPreKey()
             protoSignedPreKey.id = signed.id
             protoSignedPreKey.publicKey = signed.publicKey
             protoSignedPreKey.signature = signature
@@ -40,7 +40,7 @@ final public class ProtoWhisperUploadRequest : ProtoRequest {
         }
 
         keys.oneTimeKeys = keyBundle.oneTime.compactMap { oneTimeKey in
-            var protoOneTimePreKey = Proto_OneTimePreKey()
+            var protoOneTimePreKey = Clients_OneTimePreKey()
             protoOneTimePreKey.id = oneTimeKey.id
             protoOneTimePreKey.publicKey = oneTimeKey.publicKey
             return try? protoOneTimePreKey.serializedData()
@@ -48,12 +48,12 @@ final public class ProtoWhisperUploadRequest : ProtoRequest {
 
         keys.action = .set
 
-        let packet = PBpacket.iqPacket(type: .set, payload: .whisperKeys(keys))
+        let packet = Server_Packet.iqPacket(type: .set, payload: .whisperKeys(keys))
 
         super.init(packet: packet, id: packet.iq.id)
     }
 
-    public override func didFinish(with response: PBpacket) {
+    public override func didFinish(with response: Server_Packet) {
         completion(.success(()))
     }
 
@@ -69,21 +69,21 @@ final public class ProtoWhisperAddOneTimeKeysRequest : ProtoRequest {
     public init(whisperKeyBundle: XMPPWhisperKey, completion: @escaping ServiceRequestCompletion<Void>) {
         self.completion = completion
 
-        var keys = PBwhisper_keys()
+        var keys = Server_WhisperKeys()
         keys.action = .add
         keys.oneTimeKeys = whisperKeyBundle.oneTime.compactMap { oneTimeKey in
-            var protoOneTimePreKey = Proto_OneTimePreKey()
+            var protoOneTimePreKey = Clients_OneTimePreKey()
             protoOneTimePreKey.id = oneTimeKey.id
             protoOneTimePreKey.publicKey = oneTimeKey.publicKey
             return try? protoOneTimePreKey.serializedData()
         }
 
-        let packet = PBpacket.iqPacket(type: .set, payload: .whisperKeys(keys))
+        let packet = Server_Packet.iqPacket(type: .set, payload: .whisperKeys(keys))
 
         super.init(packet: packet, id: packet.iq.id)
     }
 
-    public override func didFinish(with response: PBpacket) {
+    public override func didFinish(with response: Server_Packet) {
         DDLogInfo("whisper uploader response: \(response)")
         self.completion(.success(()))
     }
@@ -99,25 +99,25 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest {
     public init(targetUserId: String, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>) {
         self.completion = completion
         
-        var keys = PBwhisper_keys()
+        var keys = Server_WhisperKeys()
         keys.action = .get
         if let uid = Int64(targetUserId) {
             keys.uid = uid
         }
 
-        let packet = PBpacket.iqPacket(type: .get, payload: .whisperKeys(keys))
+        let packet = Server_Packet.iqPacket(type: .get, payload: .whisperKeys(keys))
 
         super.init(packet: packet, id: packet.iq.id)
     }
 
-    public override func didFinish(with response: PBpacket) {
+    public override func didFinish(with response: Server_Packet) {
         let pbKey = response.iq.whisperKeys
-        let protoContainer: Proto_SignedPreKey
-        if let container = try? Proto_SignedPreKey(serializedData: pbKey.signedKey) {
+        let protoContainer: Clients_SignedPreKey
+        if let container = try? Clients_SignedPreKey(serializedData: pbKey.signedKey) {
             // Binary data
             protoContainer = container
         } else if let decodedData = Data(base64Encoded: pbKey.signedKey, options: .ignoreUnknownCharacters),
-            let container = try? Proto_SignedPreKey(serializedData: decodedData) {
+            let container = try? Clients_SignedPreKey(serializedData: decodedData) {
             // Legacy Base64 protocol
             protoContainer = container
         } else {
@@ -127,12 +127,12 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest {
         }
 
         let oneTimeKeys: [PreKey] = pbKey.oneTimeKeys.compactMap { data in
-            let protoKey: Proto_OneTimePreKey
-            if let key = try? Proto_OneTimePreKey(serializedData: data) {
+            let protoKey: Clients_OneTimePreKey
+            if let key = try? Clients_OneTimePreKey(serializedData: data) {
                 // Binary data
                 protoKey = key
             } else if let decodedData = Data(base64Encoded: pbKey.signedKey, options: .ignoreUnknownCharacters),
-                let key = try? Proto_OneTimePreKey(serializedData: decodedData)
+                let key = try? Clients_OneTimePreKey(serializedData: decodedData)
             {
                 // Legacy Base64 protocol
                 protoKey = key
@@ -143,11 +143,11 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest {
             return PreKey(id: protoKey.id, privateKey: nil, publicKey: protoKey.publicKey)
         }
 
-        let protoIdentity: Proto_IdentityKey
-        if let identity = try? Proto_IdentityKey(serializedData: pbKey.identityKey) {
+        let protoIdentity: Clients_IdentityKey
+        if let identity = try? Clients_IdentityKey(serializedData: pbKey.identityKey) {
             protoIdentity = identity
         } else if let decodedData = Data(base64Encoded: pbKey.identityKey, options: .ignoreUnknownCharacters),
-                  let identity = try? Proto_IdentityKey(serializedData: decodedData)
+                  let identity = try? Clients_IdentityKey(serializedData: decodedData)
         {
             protoIdentity = identity
         } else {
@@ -178,18 +178,18 @@ public class ProtoWhisperGetCountOfOneTimeKeysRequest : ProtoRequest {
     public init(completion: @escaping ServiceRequestCompletion<Int32>) {
         self.completion = completion
 
-        var keys = PBwhisper_keys()
+        var keys = Server_WhisperKeys()
         keys.action = .count
         if let uid = Int64(AppContext.shared.userData.userId) {
             keys.uid = uid
         }
 
-        let packet = PBpacket.iqPacket(type: .get, payload: .whisperKeys(keys))
+        let packet = Server_Packet.iqPacket(type: .get, payload: .whisperKeys(keys))
 
         super.init(packet: packet, id: packet.iq.id)
     }
 
-    public override func didFinish(with response: PBpacket) {
+    public override func didFinish(with response: Server_Packet) {
         completion(.success(response.iq.whisperKeys.otpKeyCount))
     }
 

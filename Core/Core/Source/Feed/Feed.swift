@@ -51,30 +51,30 @@ public protocol FeedItemProtocol {
 
     func xmppElement(withData: Bool) -> XMPPElement
 
-    func protoFeedItem(withData: Bool) -> PBfeed_item.OneOf_Item
+    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item
 }
 
 public extension FeedItemProtocol {
 
-    func oldFormatProtoContainer(withData: Bool) -> Proto_Container {
-        var container = Proto_Container()
+    func oldFormatProtoContainer(withData: Bool) -> Clients_Container {
+        var container = Clients_Container()
         switch Self.itemType {
         case .post:
-            container.post = self.oldFormatProtoMessage(withData: withData) as! Proto_Post
+            container.post = self.oldFormatProtoMessage(withData: withData) as! Clients_Post
         case .comment:
-            container.comment = self.oldFormatProtoMessage(withData: withData) as! Proto_Comment
+            container.comment = self.oldFormatProtoMessage(withData: withData) as! Clients_Comment
         }
         return container
     }
 
-    var protoContainer: Proto_Container {
+    var protoContainer: Clients_Container {
         get {
-            var container = Proto_Container()
+            var container = Clients_Container()
             switch Self.itemType {
             case .post:
-                container.post = protoMessage as! Proto_Post
+                container.post = protoMessage as! Clients_Post
             case .comment:
-                container.comment = protoMessage as! Proto_Comment
+                container.comment = protoMessage as! Clients_Comment
             }
             return container
         }
@@ -94,9 +94,9 @@ public protocol FeedMentionProtocol {
 
 
 extension FeedMentionProtocol {
-    var protoMention: Proto_Mention {
+    var protoMention: Clients_Mention {
         get {
-            var mention = Proto_Mention()
+            var mention = Clients_Mention()
             mention.index = Int32(index)
             mention.userID = userID
             mention.name = name
@@ -124,9 +124,9 @@ public protocol FeedMediaProtocol {
 
 extension FeedMediaProtocol {
 
-    var protoMessage: Proto_Media {
+    var protoMessage: Clients_Media {
         get {
-            var media = Proto_Media()
+            var media = Clients_Media()
             media.type = {
                 switch type {
                 case .image: return .image
@@ -222,7 +222,7 @@ public protocol FeedPostProtocol: FeedItemProtocol {
 public extension FeedPostProtocol {
 
     func oldFormatProtoMessage(withData: Bool) -> Message {
-        var post = Proto_Post()
+        var post = Clients_Post()
         if withData {
             if text != nil {
                 post.text = text!
@@ -235,7 +235,7 @@ public extension FeedPostProtocol {
 
     var protoMessage: SwiftProtobuf.Message {
         get {
-            var post = Proto_Post()
+            var post = Clients_Post()
             if let text = text {
                 post.text = text
             }
@@ -245,8 +245,8 @@ public extension FeedPostProtocol {
         }
     }
 
-    var pbPost: PBpost {
-        var post = PBpost()
+    var serverPost: Server_Post {
+        var post = Server_Post()
 
         if let uid = Int64(userId) {
             post.publisherUid = uid
@@ -259,8 +259,8 @@ public extension FeedPostProtocol {
         return post
     }
 
-    func protoFeedItem(withData: Bool) -> PBfeed_item.OneOf_Item {
-        .post(pbPost)
+    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item {
+        .post(serverPost)
     }
 }
 
@@ -282,7 +282,7 @@ public protocol FeedCommentProtocol: FeedItemProtocol {
 public extension FeedCommentProtocol {
 
     func oldFormatProtoMessage(withData: Bool) -> Message {
-        var comment = Proto_Comment()
+        var comment = Clients_Comment()
         if withData {
             comment.text = text
             comment.mentions = orderedMentions.map { $0.protoMention }
@@ -296,7 +296,7 @@ public extension FeedCommentProtocol {
 
     var protoMessage: Message {
         get {
-            var comment = Proto_Comment()
+            var comment = Clients_Comment()
             comment.text = text
             comment.feedPostID = feedPostId
             if let parentId = parentId {
@@ -307,8 +307,8 @@ public extension FeedCommentProtocol {
         }
     }
 
-    var pbComment: PBcomment {
-        var comment = PBcomment()
+    var serverComment: Server_Comment {
+        var comment = Server_Comment()
         comment.id = id
         if let parentID = parentId {
             comment.parentCommentID = parentID
@@ -322,7 +322,7 @@ public extension FeedCommentProtocol {
         return comment
     }
 
-    func protoFeedItem(withData: Bool) -> PBfeed_item.OneOf_Item {
-        .comment(pbComment)
+    func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item {
+        .comment(serverComment)
     }
 }

@@ -19,10 +19,10 @@ open class ProtoRequest {
     internal var state: State = .ready
     internal var retriesRemaining = 0
     private(set) var requestId: String
-    internal var packet: PBpacket
-    private(set) var response: PBpacket?
+    internal var packet: Server_Packet
+    private(set) var response: Server_Packet?
 
-    public init(packet: PBpacket, id: String) {
+    public init(packet: Server_Packet, id: String) {
         self.packet = packet
         self.requestId = id
     }
@@ -71,7 +71,7 @@ open class ProtoRequest {
         return true
     }
 
-    func process(response: PBpacket) {
+    func process(response: Server_Packet) {
         guard self.state == .sending else { return }
         self.state = .finished
         self.response = response
@@ -79,7 +79,7 @@ open class ProtoRequest {
         self.didFinish(with: response)
     }
 
-    open func didFinish(with response: PBpacket) { }
+    open func didFinish(with response: Server_Packet) { }
 
     open func didFail(with error: Error) { }
 }
@@ -87,18 +87,18 @@ open class ProtoRequest {
 open class ProtoStandardRequest<T>: ProtoRequest {
 
     /// Transform response packet into preferred format
-    private let transform: (PBpacket) -> Result<T, Error>
+    private let transform: (Server_Packet) -> Result<T, Error>
 
     /// Handle transformed response
     private let completion: ServiceRequestCompletion<T>
 
-    public init(packet: PBpacket, transform: @escaping (PBpacket) -> Result<T, Error>, completion: @escaping ServiceRequestCompletion<T> ) {
+    public init(packet: Server_Packet, transform: @escaping (Server_Packet) -> Result<T, Error>, completion: @escaping ServiceRequestCompletion<T> ) {
         self.transform = transform
         self.completion = completion
         super.init(packet: packet, id: packet.requestID ?? UUID().uuidString)
     }
 
-    public override func didFinish(with response: PBpacket) {
+    public override func didFinish(with response: Server_Packet) {
         switch transform(response) {
         case .success(let output):
             completion(.success(output))

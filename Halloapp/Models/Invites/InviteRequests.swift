@@ -122,7 +122,7 @@ class XMPPRegisterInvitesRequest: XMPPRequest {
 class ProtoGetInviteAllowanceRequest: ProtoStandardRequest<(Int, Date)> {
     init(completion: @escaping ServiceRequestCompletion<(Int, Date)>) {
         super.init(
-            packet: PBpacket.iqPacket(type: .get, payload: .invitesRequest(PBinvites_request())),
+            packet: Server_Packet.iqPacket(type: .get, payload: .invitesRequest(Server_InvitesRequest())),
             transform: { response in
                 let invites = Int(response.iq.invitesResponse.invitesLeft)
                 let timeUntilRefresh = TimeInterval(response.iq.invitesResponse.timeUntilRefresh)
@@ -133,15 +133,15 @@ class ProtoGetInviteAllowanceRequest: ProtoStandardRequest<(Int, Date)> {
 
 class ProtoRegisterInvitesRequest: ProtoStandardRequest<InviteResponse> {
     init(phoneNumbers: [ABContact.NormalizedPhoneNumber], completion: @escaping ServiceRequestCompletion<InviteResponse>) {
-        var request = PBinvites_request()
+        var request = Server_InvitesRequest()
         request.invites = phoneNumbers.map {
-            var invite = PBinvite()
+            var invite = Server_Invite()
             invite.phone = $0
             return invite
         }
 
         super.init(
-            packet: PBpacket.iqPacket(type: .set, payload: .invitesRequest(request)),
+            packet: Server_Packet.iqPacket(type: .set, payload: .invitesRequest(request)),
             transform: { response in
                 let invitesResponse = response.iq.invitesResponse
                 let invitesLeft = Int(invitesResponse.invitesLeft)

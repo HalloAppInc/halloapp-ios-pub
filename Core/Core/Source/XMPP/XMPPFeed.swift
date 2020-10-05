@@ -68,14 +68,14 @@ enum XMPPFeedMediaType: String {
     case video = "video"
 }
 
-extension Proto_Container {
+extension Clients_Container {
 
-    static func feedItemContainer(from itemElement: XMLElement) -> Proto_Container? {
+    static func feedItemContainer(from itemElement: XMLElement) -> Clients_Container? {
 
         guard let base64String = itemElement.stringValue,
             let data = Data(base64Encoded: base64String, options: .ignoreUnknownCharacters) else { return nil }
         do {
-            let protoContainer = try Proto_Container(serializedData: data)
+            let protoContainer = try Clients_Container(serializedData: data)
             if protoContainer.hasComment || protoContainer.hasPost {
                 return protoContainer
             }
@@ -109,23 +109,23 @@ public struct XMPPFeedPost: FeedPostProtocol {
     public let media: [XMPPFeedMedia]
     public let mentions: [XMPPFeedMention]
 
-    public init?(_ pbPost: PBpost) {
-        let protoPost: Proto_Post
-        if let protoContainer = try? Proto_Container(serializedData: pbPost.payload), protoContainer.hasPost {
+    public init?(_ serverPost: Server_Post) {
+        let protoPost: Clients_Post
+        if let protoContainer = try? Clients_Container(serializedData: serverPost.payload), protoContainer.hasPost {
             protoPost = protoContainer.post
-        } else if let decodedData = Data(base64Encoded: pbPost.payload), let protoContainer = try? Proto_Container(serializedData: decodedData), protoContainer.hasPost {
+        } else if let decodedData = Data(base64Encoded: serverPost.payload), let protoContainer = try? Clients_Container(serializedData: decodedData), protoContainer.hasPost {
             protoPost = protoContainer.post
         } else {
             DDLogError("Could not deserialize post")
             return nil
         }
 
-        self.id = pbPost.id
-        self.userId = UserID(pbPost.publisherUid)
+        self.id = serverPost.id
+        self.userId = UserID(serverPost.publisherUid)
         self.text = protoPost.text.isEmpty ? nil : protoPost.text
-        self.media = protoPost.media.enumerated().compactMap { XMPPFeedMedia(id: "\(pbPost.id)-\($0)", protoMedia: $1) }
+        self.media = protoPost.media.enumerated().compactMap { XMPPFeedMedia(id: "\(serverPost.id)-\($0)", protoMedia: $1) }
         self.mentions = protoPost.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
-        self.timestamp = Date(timeIntervalSince1970: TimeInterval(pbPost.timestamp))
+        self.timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
     }
 
     /**
@@ -136,7 +136,7 @@ public struct XMPPFeedPost: FeedPostProtocol {
     public init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id"),
             let userId = item.attributeStringValue(forName: "uid"),
-            let protoContainer = Proto_Container.feedItemContainer(from: item), protoContainer.hasPost else { return nil }
+            let protoContainer = Clients_Container.feedItemContainer(from: item), protoContainer.hasPost else { return nil }
 
         let timestamp = item.attributeDoubleValue(forName: "timestamp")
         guard timestamp > 0 else { return nil }
@@ -168,7 +168,7 @@ public struct XMPPFeedMedia: FeedMediaProtocol {
     public let key: String
     public let sha256: String
 
-    public init?(id: String, protoMedia: Proto_Media) {
+    public init?(id: String, protoMedia: Clients_Media) {
         guard let type: FeedMediaType = {
             switch protoMedia.type {
             case .image: return .image
@@ -207,11 +207,11 @@ public struct XMPPComment: FeedCommentProtocol {
 
     public let mentions: [XMPPFeedMention]
 
-    public init?(_ pbComment: PBcomment) {
-        let protoComment: Proto_Comment
-        if let protoContainer = try? Proto_Container(serializedData: pbComment.payload), protoContainer.hasComment {
+    public init?(_ serverComment: Server_Comment) {
+        let protoComment: Clients_Comment
+        if let protoContainer = try? Clients_Container(serializedData: serverComment.payload), protoContainer.hasComment {
             protoComment = protoContainer.comment
-        } else if let decodedData = Data(base64Encoded: pbComment.payload), let protoContainer = try? Proto_Container(serializedData: decodedData), protoContainer.hasComment {
+        } else if let decodedData = Data(base64Encoded: serverComment.payload), let protoContainer = try? Clients_Container(serializedData: decodedData), protoContainer.hasComment {
             protoComment = protoContainer.comment
         } else {
             DDLogError("Could not deserialize comment")
@@ -219,16 +219,16 @@ public struct XMPPComment: FeedCommentProtocol {
         }
 
         // Fall back to IDs from payload if missing from top level
-        let postID = pbComment.postID.isEmpty ? protoComment.feedPostID : pbComment.postID
-        let parentID = pbComment.parentCommentID.isEmpty ? protoComment.parentCommentID : pbComment.parentCommentID
+        let postID = serverComment.postID.isEmpty ? protoComment.feedPostID : serverComment.postID
+        let parentID = serverComment.parentCommentID.isEmpty ? protoComment.parentCommentID : serverComment.parentCommentID
 
-        self.id = pbComment.id
-        self.userId = UserID(pbComment.publisherUid)
+        self.id = serverComment.id
+        self.userId = UserID(serverComment.publisherUid)
         self.feedPostId = postID
         self.parentId = parentID.isEmpty ? nil : parentID
         self.text = protoComment.text
         self.mentions = protoComment.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
-        self.timestamp = Date(timeIntervalSince1970: TimeInterval(pbComment.timestamp))
+        self.timestamp = Date(timeIntervalSince1970: TimeInterval(serverComment.timestamp))
     }
 
     /**
@@ -239,7 +239,7 @@ public struct XMPPComment: FeedCommentProtocol {
     public init?(itemElement item: XMLElement) {
         guard let id = item.attributeStringValue(forName: "id"),
             let userId = item.attributeStringValue(forName: "publisher_uid"),
-            let protoContainer = Proto_Container.feedItemContainer(from: item), protoContainer.hasComment else { return nil }
+            let protoContainer = Clients_Container.feedItemContainer(from: item), protoContainer.hasComment else { return nil }
 
         let timestamp = item.attributeDoubleValue(forName: "timestamp")
         guard timestamp > 0 else { return nil }

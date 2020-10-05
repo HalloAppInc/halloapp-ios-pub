@@ -22,19 +22,6 @@
 		24AA69D924DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D724DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift */; };
 		24AA69DA24DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */; };
 		24D743C724AEA821001111BF /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D743C624AEA821001111BF /* AvatarView.swift */; };
-		682F79E424F72F630084AF42 /* avatar.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79D724F72F620084AF42 /* avatar.pb.swift */; };
-		682F79E524F72F630084AF42 /* feed_items.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79D824F72F620084AF42 /* feed_items.pb.swift */; };
-		682F79E624F72F630084AF42 /* client_info.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79D924F72F620084AF42 /* client_info.pb.swift */; };
-		682F79E724F72F630084AF42 /* privacy_list.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79DA24F72F620084AF42 /* privacy_list.pb.swift */; };
-		682F79E824F72F630084AF42 /* ha_auth.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79DB24F72F620084AF42 /* ha_auth.pb.swift */; };
-		682F79E924F72F630084AF42 /* media_upload.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79DC24F72F630084AF42 /* media_upload.pb.swift */; };
-		682F79EA24F72F630084AF42 /* client_log.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79DD24F72F630084AF42 /* client_log.pb.swift */; };
-		682F79EB24F72F630084AF42 /* push.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79DE24F72F630084AF42 /* push.pb.swift */; };
-		682F79EC24F72F630084AF42 /* group_stanzas.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79DF24F72F630084AF42 /* group_stanzas.pb.swift */; };
-		682F79ED24F72F630084AF42 /* receipts.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E024F72F630084AF42 /* receipts.pb.swift */; };
-		682F79EE24F72F630084AF42 /* contact.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E124F72F630084AF42 /* contact.pb.swift */; };
-		682F79EF24F72F630084AF42 /* packets.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E224F72F630084AF42 /* packets.pb.swift */; };
-		682F79F024F72F630084AF42 /* whisper_keys.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682F79E324F72F630084AF42 /* whisper_keys.pb.swift */; };
 		6832F50124FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50024FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift */; };
 		6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50224FEE9CB00A9C202 /* CoreService.swift */; };
 		6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */; };
@@ -42,8 +29,9 @@
 		6832F50B24FEE9DF00A9C202 /* ProtoStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50624FEE9DF00A9C202 /* ProtoStream.swift */; };
 		6832F50C24FEE9DF00A9C202 /* ProtoServiceCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */; };
 		6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */; };
+		686814AE252BA91E003C8784 /* clients.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AC252BA91E003C8784 /* clients.pb.swift */; };
+		686814AF252BA91E003C8784 /* server.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AD252BA91E003C8784 /* server.pb.swift */; };
 		6888CBBE25001CFF0049FF0E /* XMPP+CoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */; };
-		6888CBC8250034A00049FF0E /* cert.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBC72500349F0049FF0E /* cert.pb.swift */; };
 		688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1D24ED979400258BB9 /* MentionText.swift */; };
 		688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */; };
 		68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E7F24D2128300F40F1F /* NSAttributedString.swift */; };
@@ -51,9 +39,6 @@
 		68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */; };
 		68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */; };
 		68D2915525096F9400AF5061 /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2915425096F9400AF5061 /* Mentions.swift */; };
-		68D2915B250AE49400AF5061 /* server_props.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D29159250AE49300AF5061 /* server_props.pb.swift */; };
-		68D2915C250AE49400AF5061 /* invite.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2915A250AE49400AF5061 /* invite.pb.swift */; };
-		68E965682522536A0076B76C /* retract.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E965672522536A0076B76C /* retract.pb.swift */; };
 		7605EA1F24F475A800CAD9AB /* Privacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7605EA1E24F475A800CAD9AB /* Privacy.swift */; };
 		762EE69B24F62886008765A5 /* XMPPElementRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */; };
 		7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7656F93124BCE66500F00AF7 /* LogFileManager.swift */; };
@@ -74,7 +59,6 @@
 		76812409248614F1008C5216 /* XMPPRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76812408248614F1008C5216 /* XMPPRequest.swift */; };
 		7681240D24861634008C5216 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 7681240C24861634008C5216 /* SwiftProtobuf */; };
 		768124132486193E008C5216 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768124122486193E008C5216 /* Feed.swift */; };
-		76812417248619BB008C5216 /* schema.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76812416248619BB008C5216 /* schema.pb.swift */; };
 		7681241F2486C178008C5216 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681241E2486C178008C5216 /* String.swift */; };
 		768124222486CF8E008C5216 /* PhoneNumberKit in Frameworks */ = {isa = PBXBuildFile; productRef = 768124212486CF8E008C5216 /* PhoneNumberKit */; };
 		7681242B2486D4E6008C5216 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 7681242A2486D4E6008C5216 /* CryptoSwift */; };
@@ -124,19 +108,6 @@
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
 		5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.debug.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.debug.xcconfig"; sourceTree = "<group>"; };
-		682F79D724F72F620084AF42 /* avatar.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = avatar.pb.swift; sourceTree = "<group>"; };
-		682F79D824F72F620084AF42 /* feed_items.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = feed_items.pb.swift; sourceTree = "<group>"; };
-		682F79D924F72F620084AF42 /* client_info.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = client_info.pb.swift; sourceTree = "<group>"; };
-		682F79DA24F72F620084AF42 /* privacy_list.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = privacy_list.pb.swift; sourceTree = "<group>"; };
-		682F79DB24F72F620084AF42 /* ha_auth.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ha_auth.pb.swift; sourceTree = "<group>"; };
-		682F79DC24F72F630084AF42 /* media_upload.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = media_upload.pb.swift; sourceTree = "<group>"; };
-		682F79DD24F72F630084AF42 /* client_log.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = client_log.pb.swift; sourceTree = "<group>"; };
-		682F79DE24F72F630084AF42 /* push.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = push.pb.swift; sourceTree = "<group>"; };
-		682F79DF24F72F630084AF42 /* group_stanzas.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = group_stanzas.pb.swift; sourceTree = "<group>"; };
-		682F79E024F72F630084AF42 /* receipts.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = receipts.pb.swift; sourceTree = "<group>"; };
-		682F79E124F72F630084AF42 /* contact.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = contact.pb.swift; sourceTree = "<group>"; };
-		682F79E224F72F630084AF42 /* packets.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = packets.pb.swift; sourceTree = "<group>"; };
-		682F79E324F72F630084AF42 /* whisper_keys.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = whisper_keys.pb.swift; sourceTree = "<group>"; };
 		6832F50024FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ChatMessageProtocol+Encryption.swift"; sourceTree = "<group>"; };
 		6832F50224FEE9CB00A9C202 /* CoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreService.swift; sourceTree = "<group>"; };
 		6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequest.swift; sourceTree = "<group>"; };
@@ -144,8 +115,9 @@
 		6832F50624FEE9DF00A9C202 /* ProtoStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoStream.swift; sourceTree = "<group>"; };
 		6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoServiceCore.swift; sourceTree = "<group>"; };
 		6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoCommonRequests.swift; sourceTree = "<group>"; };
+		686814AC252BA91E003C8784 /* clients.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = clients.pb.swift; sourceTree = "<group>"; };
+		686814AD252BA91E003C8784 /* server.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = server.pb.swift; sourceTree = "<group>"; };
 		6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XMPP+CoreService.swift"; sourceTree = "<group>"; };
-		6888CBC72500349F0049FF0E /* cert.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = cert.pb.swift; sourceTree = "<group>"; };
 		688D8A1D24ED979400258BB9 /* MentionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MentionText.swift; sourceTree = "<group>"; };
 		688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Proto+Mentions.swift"; sourceTree = "<group>"; };
 		68A64E7F24D2128300F40F1F /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
@@ -153,9 +125,6 @@
 		68A64E8324D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		68A64E8524D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SharedFeedMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		68D2915425096F9400AF5061 /* Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mentions.swift; sourceTree = "<group>"; };
-		68D29159250AE49300AF5061 /* server_props.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = server_props.pb.swift; sourceTree = "<group>"; };
-		68D2915A250AE49400AF5061 /* invite.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = invite.pb.swift; sourceTree = "<group>"; };
-		68E965672522536A0076B76C /* retract.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = retract.pb.swift; sourceTree = "<group>"; };
 		7605EA1E24F475A800CAD9AB /* Privacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privacy.swift; sourceTree = "<group>"; };
 		762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPElementRepresentable.swift; sourceTree = "<group>"; };
 		7656F93124BCE66500F00AF7 /* LogFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileManager.swift; sourceTree = "<group>"; };
@@ -177,7 +146,6 @@
 		76812404248614BA008C5216 /* XMPPReceipt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMPPReceipt.swift; sourceTree = "<group>"; };
 		76812408248614F1008C5216 /* XMPPRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMPPRequest.swift; sourceTree = "<group>"; };
 		768124122486193E008C5216 /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
-		76812416248619BB008C5216 /* schema.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = schema.pb.swift; sourceTree = "<group>"; };
 		7681241E2486C178008C5216 /* String.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		76925CF924871506008333FA /* UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaults.swift; sourceTree = "<group>"; };
 		76925CFD24872E85008333FA /* Halloapp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Halloapp.xcdatamodel; sourceTree = "<group>"; };
@@ -420,29 +388,13 @@
 		76812415248619BB008C5216 /* Proto */ = {
 			isa = PBXGroup;
 			children = (
-				68E965672522536A0076B76C /* retract.pb.swift */,
-				68D2915A250AE49400AF5061 /* invite.pb.swift */,
-				68D29159250AE49300AF5061 /* server_props.pb.swift */,
-				6888CBC72500349F0049FF0E /* cert.pb.swift */,
+				686814AC252BA91E003C8784 /* clients.pb.swift */,
+				686814AD252BA91E003C8784 /* server.pb.swift */,
 				6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */,
 				6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */,
 				6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */,
 				6832F50624FEE9DF00A9C202 /* ProtoStream.swift */,
 				6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */,
-				682F79D724F72F620084AF42 /* avatar.pb.swift */,
-				682F79D924F72F620084AF42 /* client_info.pb.swift */,
-				682F79DD24F72F630084AF42 /* client_log.pb.swift */,
-				682F79E124F72F630084AF42 /* contact.pb.swift */,
-				682F79D824F72F620084AF42 /* feed_items.pb.swift */,
-				682F79DF24F72F630084AF42 /* group_stanzas.pb.swift */,
-				682F79DB24F72F620084AF42 /* ha_auth.pb.swift */,
-				682F79DC24F72F630084AF42 /* media_upload.pb.swift */,
-				682F79E224F72F630084AF42 /* packets.pb.swift */,
-				682F79DA24F72F620084AF42 /* privacy_list.pb.swift */,
-				682F79DE24F72F630084AF42 /* push.pb.swift */,
-				682F79E024F72F630084AF42 /* receipts.pb.swift */,
-				682F79E324F72F630084AF42 /* whisper_keys.pb.swift */,
-				76812416248619BB008C5216 /* schema.pb.swift */,
 			);
 			path = Proto;
 			sourceTree = "<group>";
@@ -618,27 +570,23 @@
 				EAAE7B4924DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift in Sources */,
 				768124132486193E008C5216 /* Feed.swift in Sources */,
 				249028A124C5DFDE0019C4D5 /* FeedPost+CoreDataClass.swift in Sources */,
+				686814AE252BA91E003C8784 /* clients.pb.swift in Sources */,
 				246A8B7B24902A3E00CE0429 /* Avatars.xcdatamodeld in Sources */,
-				682F79EB24F72F630084AF42 /* push.pb.swift in Sources */,
 				768123D72485DC4F008C5216 /* AppContext.swift in Sources */,
 				EAAE7B5124DD2C3000946B77 /* MessageKey+CoreDataClass.swift in Sources */,
 				EAAE7B5024DD2C3000946B77 /* OneTimePreKey+CoreDataProperties.swift in Sources */,
 				76E00DF124F786A100E06252 /* Data.swift in Sources */,
 				2490287524C524250019C4D5 /* XMPPCommonRequests.swift in Sources */,
 				EAAE7B3924DCDEBB00946B77 /* KeyStore.swift in Sources */,
-				682F79E724F72F630084AF42 /* privacy_list.pb.swift in Sources */,
 				76F45E0024D226D300EFA301 /* ServerProperties.swift in Sources */,
 				246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */,
 				68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */,
 				6832F50A24FEE9DF00A9C202 /* ProtoWhisperRequests.swift in Sources */,
-				682F79EA24F72F630084AF42 /* client_log.pb.swift in Sources */,
 				76812409248614F1008C5216 /* XMPPRequest.swift in Sources */,
 				EAAE7B4B24DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift in Sources */,
 				6888CBBE25001CFF0049FF0E /* XMPP+CoreService.swift in Sources */,
 				768123FE248612E7008C5216 /* XMPPController.swift in Sources */,
 				249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */,
-				682F79E424F72F630084AF42 /* avatar.pb.swift in Sources */,
-				682F79E824F72F630084AF42 /* ha_auth.pb.swift in Sources */,
 				7681240224861487008C5216 /* XMPPError.swift in Sources */,
 				6832F50124FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift in Sources */,
 				768123F924861068008C5216 /* ABContact+CoreDataClass.swift in Sources */,
@@ -647,51 +595,40 @@
 				688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */,
 				EAF47E0B251D80930056196F /* GroupAvatar+CoreDataProperties.swift in Sources */,
 				24D743C724AEA821001111BF /* AvatarView.swift in Sources */,
-				682F79E924F72F630084AF42 /* media_upload.pb.swift in Sources */,
 				768123F824861068008C5216 /* Contacts.xcdatamodeld in Sources */,
 				249028A324C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift in Sources */,
 				76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */,
 				7605EA1F24F475A800CAD9AB /* Privacy.swift in Sources */,
 				6832F50C24FEE9DF00A9C202 /* ProtoServiceCore.swift in Sources */,
 				768123F124860F67008C5216 /* UserData.swift in Sources */,
-				682F79EC24F72F630084AF42 /* group_stanzas.pb.swift in Sources */,
 				246A8B8224902BA600CE0429 /* Avatar+CoreDataProperties.swift in Sources */,
 				68A64E8624D2399D00F40F1F /* SharedFeedMention+CoreDataProperties.swift in Sources */,
 				68D2915525096F9400AF5061 /* Mentions.swift in Sources */,
 				EAAE7B5224DD2C3000946B77 /* MessageKey+CoreDataProperties.swift in Sources */,
 				EAAE7B4E24DD2C3000946B77 /* SignedPreKey+CoreDataProperties.swift in Sources */,
-				682F79E624F72F630084AF42 /* client_info.pb.swift in Sources */,
 				7681240024861481008C5216 /* XMPPAck.swift in Sources */,
 				EAAE7B4C24DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift in Sources */,
 				76812406248614BA008C5216 /* XMPPReceipt.swift in Sources */,
 				6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */,
 				6832F50B24FEE9DF00A9C202 /* ProtoStream.swift in Sources */,
 				EAF47E0A251D80930056196F /* GroupAvatar+CoreDataClass.swift in Sources */,
-				76812417248619BB008C5216 /* schema.pb.swift in Sources */,
-				682F79ED24F72F630084AF42 /* receipts.pb.swift in Sources */,
 				768123D32485DBE2008C5216 /* LogFormatter.swift in Sources */,
 				24AA69DA24DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift in Sources */,
 				76E5153824A18171003F1273 /* Digest.swift in Sources */,
 				24AA69D924DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift in Sources */,
+				686814AF252BA91E003C8784 /* server.pb.swift in Sources */,
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
-				6888CBC8250034A00049FF0E /* cert.pb.swift in Sources */,
 				6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */,
 				EAAE7B3E24DD04ED00946B77 /* XMPPWhisper.swift in Sources */,
-				682F79EE24F72F630084AF42 /* contact.pb.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
-				68D2915C250AE49400AF5061 /* invite.pb.swift in Sources */,
 				688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */,
-				68E965682522536A0076B76C /* retract.pb.swift in Sources */,
 				EAAE7B3C24DD039900946B77 /* XMPPWhisperRequests.swift in Sources */,
-				682F79EF24F72F630084AF42 /* packets.pb.swift in Sources */,
 				246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */,
 				76608ECD24EC2B5100DD61C3 /* Chat.swift in Sources */,
 				68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */,
-				682F79F024F72F630084AF42 /* whisper_keys.pb.swift in Sources */,
 				76C7429624A155E900C7D945 /* FeedDownloadManager.swift in Sources */,
 				249028A024C5DFDE0019C4D5 /* Media+CoreDataClass.swift in Sources */,
 				6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */,
-				68D2915B250AE49400AF5061 /* server_props.pb.swift in Sources */,
 				7681241F2486C178008C5216 /* String.swift in Sources */,
 				76812405248614BA008C5216 /* XMPPFeed.swift in Sources */,
 				762EE69B24F62886008765A5 /* XMPPElementRepresentable.swift in Sources */,
@@ -700,7 +637,6 @@
 				EAAE7B4A24DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift in Sources */,
 				7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */,
 				768123F724861068008C5216 /* ABContact+CoreDataProperties.swift in Sources */,
-				682F79E524F72F630084AF42 /* feed_items.pb.swift in Sources */,
 				EAAE7B3724DCD98C00946B77 /* Keys.xcdatamodeld in Sources */,
 				249028AB24C5E0600019C4D5 /* SharedDataStore.swift in Sources */,
 				EAAE7B4D24DD2C3000946B77 /* SignedPreKey+CoreDataClass.swift in Sources */,

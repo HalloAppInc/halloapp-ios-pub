@@ -89,7 +89,7 @@ public final class ProtoStream: XMPPStream {
     /// Similiar to `authenticateWithPassword:error:`, this method sends out an authentication request using AuthRequest.
     /// - Parameter password: the password
     public func sendAuthRequestWithPassword(password: String) {
-        var authRequest = PBauth_request()
+        var authRequest = Server_AuthRequest()
 
         if let myJID = myJID, let uid = Int64(myJID.user ?? ""), let resource = myJID.resource {
             authRequest.uid = uid
@@ -97,8 +97,8 @@ public final class ProtoStream: XMPPStream {
         }
 
         authRequest.pwd = password
-        authRequest.cm.mode = passiveMode ? .passive : .active
-        authRequest.cv.version = clientVersion as String
+        authRequest.clientMode.mode = passiveMode ? .passive : .active
+        authRequest.clientVersion.version = clientVersion as String
 
         let data = try! authRequest.serializedData()
         send(data)
@@ -111,7 +111,7 @@ public final class ProtoStream: XMPPStream {
     /// - Parameter data: A serialized data of the ProtoBuf AuthResult
     func handleAuth(data: Data) {
         do {
-            let authResult = try PBauth_result(serializedData: data)
+            let authResult = try Server_AuthResult(serializedData: data)
 
             // TODO: Make serverPropertiesVersion writable in XMPPFramework
             //serverPropertiesVersion = authResult.propsHash.toHexString()
@@ -136,7 +136,7 @@ public final class ProtoStream: XMPPStream {
     /// - Parameter data: A serialized data of the ProtoBuf Packet
     func handlePacket(data: Data) {
         do {
-            let packet = try PBpacket(serializedData: data)
+            let packet = try Server_Packet(serializedData: data)
 
             if let requestID = packet.requestID {
                 protoService?.didReceive(packet: packet, requestID: requestID)
@@ -154,15 +154,15 @@ public final class ProtoStream: XMPPStream {
     }
 }
 
-public extension PBpacket {
-    static func iqPacketWithID() -> PBpacket {
-        var packet = PBpacket()
+public extension Server_Packet {
+    static func iqPacketWithID() -> Server_Packet {
+        var packet = Server_Packet()
         packet.iq.id = XMPPIQ.generateUniqueIdentifier()
         return packet
     }
 
-    static func iqPacket(type: PBiq.TypeEnum, payload: PBiq.OneOf_Payload) -> PBpacket {
-        var packet = PBpacket.iqPacketWithID()
+    static func iqPacket(type: Server_Iq.TypeEnum, payload: Server_Iq.OneOf_Payload) -> Server_Packet {
+        var packet = Server_Packet.iqPacketWithID()
         packet.iq.type = type
         packet.iq.payload = payload
         return packet
@@ -172,28 +172,28 @@ public extension PBpacket {
         from: UserID,
         to: UserID,
         id: String = UUID().uuidString,
-        type: PBmsg.TypeEnum = .normal,
-        payload: PBmsg.OneOf_Payload) -> PBpacket
+        type: Server_Msg.TypeEnum = .normal,
+        payload: Server_Msg.OneOf_Payload) -> Server_Packet
     {
-        var msg = PBmsg()
+        var msg = Server_Msg()
 
         if let fromUID = Int64(from) {
             msg.fromUid = fromUID
         } else {
-            DDLogError("PBpacket/\(id)/error invalid from user ID \(from)")
+            DDLogError("Server_Packet/\(id)/error invalid from user ID \(from)")
         }
 
         if let toUID = Int64(to) {
             msg.toUid = toUID
         } else {
-            DDLogError("PBpacket/\(id)/error invalid to user ID \(to)")
+            DDLogError("Server_Packet/\(id)/error invalid to user ID \(to)")
         }
 
         msg.type = type
         msg.id = id
         msg.payload = payload
 
-        var packet = PBpacket()
+        var packet = Server_Packet()
         packet.msg = msg
 
         return packet

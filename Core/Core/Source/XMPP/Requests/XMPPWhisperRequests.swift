@@ -25,7 +25,7 @@ public enum WhisperMessage {
         }
     }
 
-    public init?(_ pbKeys: PBwhisper_keys) {
+    public init?(_ pbKeys: Server_WhisperKeys) {
         switch pbKeys.action {
         case .normal:
             self = .normal(keyCount: pbKeys.otpKeyCount)

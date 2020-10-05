@@ -81,7 +81,7 @@ struct XMPPGroup {
         self.members = membersEl.compactMap({ XMPPGroupMember(xmlElement: $0) })
     }
 
-    init?(protoGroup: PBgroup_stanza) {
+    init?(protoGroup: Server_GroupStanza) {
         self.sender = String(protoGroup.senderUid)
         self.senderName = protoGroup.senderName
         self.groupId = protoGroup.gid
@@ -146,7 +146,7 @@ struct XMPPGroupMember {
         self.action = action
     }
 
-    init?(protoMember: PBgroup_member) {
+    init?(protoMember: Server_GroupMember) {
         self.userId = String(protoMember.uid)
         self.name = protoMember.name
 
@@ -205,15 +205,15 @@ struct XMPPChatGroupMessage {
     }
 
     // init inbound message
-    init?(_ pbGroupChat: PBgroup_chat, id: String) {
-        let protoChat: Proto_ChatMessage
-        if let protoContainer = try? Proto_Container(serializedData: pbGroupChat.payload),
+    init?(_ pbGroupChat: Server_GroupChat, id: String) {
+        let protoChat: Clients_ChatMessage
+        if let protoContainer = try? Clients_Container(serializedData: pbGroupChat.payload),
             protoContainer.hasChatMessage
         {
             // Binary protocol
             protoChat = protoContainer.chatMessage
         } else if let decodedData = Data(base64Encoded: pbGroupChat.payload),
-            let protoContainer = try? Proto_Container(serializedData: decodedData),
+            let protoContainer = try? Clients_Container(serializedData: decodedData),
             protoContainer.hasChatMessage
         {
             // Legacy Base64 protocol
@@ -247,7 +247,7 @@ struct XMPPChatGroupMessage {
         
         var text: String?, media: [XMPPChatMedia] = []
         
-        if let protoContainer = Proto_Container.chatMessageContainer(from: groupChat) {
+        if let protoContainer = Clients_Container.chatMessageContainer(from: groupChat) {
             if protoContainer.hasChatMessage {
                 text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
                 DDLogInfo("ChatData/group/XMPPChatGroupMessage/plainText: \(text ?? "")")
@@ -286,16 +286,16 @@ struct XMPPChatGroupMessage {
         return message
     }
     
-    var protoContainer: Proto_Container {
+    var protoContainer: Clients_Container {
         get {
-            var protoChatMessage = Proto_ChatMessage()
+            var protoChatMessage = Clients_ChatMessage()
             if let text = text {
                 protoChatMessage.text = text
             }
 
             protoChatMessage.media = orderedMedia.map { $0.protoMessage }
 
-            var protoContainer = Proto_Container()
+            var protoContainer = Clients_Container()
             protoContainer.chatMessage = protoChatMessage
             return protoContainer
         }

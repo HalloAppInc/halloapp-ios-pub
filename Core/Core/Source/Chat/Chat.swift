@@ -33,9 +33,9 @@ public protocol ChatMessageProtocol {
 }
 
 public extension ChatMessageProtocol {
-    var protoContainer: Proto_Container {
+    var protoContainer: Clients_Container {
         get {
-            var protoChatMessage = Proto_ChatMessage()
+            var protoChatMessage = Clients_ChatMessage()
             if let text = text {
                 protoChatMessage.text = text
             }
@@ -47,7 +47,7 @@ public extension ChatMessageProtocol {
 
             protoChatMessage.media = orderedMedia.map { $0.protoMessage }
 
-            var protoContainer = Proto_Container()
+            var protoContainer = Clients_Container()
             protoContainer.chatMessage = protoChatMessage
             return protoContainer
         }
@@ -80,9 +80,9 @@ public protocol ChatMediaProtocol {
 }
 
 public extension ChatMediaProtocol {
-    var protoMessage: Proto_Media {
+    var protoMessage: Clients_Media {
         get {
-            var media = Proto_Media()
+            var media = Clients_Media()
             media.type = {
                 switch mediaType {
                 case .image: return .image

@@ -8,9 +8,9 @@
 
 import Foundation
 
-public extension Proto_Container {
+public extension Clients_Container {
     func mentionPushName(for userID: UserID) -> String? {
-        var mentions = [Proto_Mention]()
+        var mentions = [Clients_Mention]()
         if hasPost {
             mentions += post.mentions
         }
@@ -22,7 +22,7 @@ public extension Proto_Container {
     }
 }
 
-public extension Proto_Post {
+public extension Clients_Post {
     var mentionText: MentionText {
         MentionText(
             collapsedText: text,
@@ -30,7 +30,7 @@ public extension Proto_Post {
     }
 }
 
-public extension Proto_Comment {
+public extension Clients_Comment {
     var mentionText: MentionText {
         MentionText(
             collapsedText: text,

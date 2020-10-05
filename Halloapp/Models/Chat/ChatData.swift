@@ -2738,7 +2738,7 @@ extension XMPPChatMessage {
         
         var text: String?, media: [XMPPChatMedia] = [], feedPostId: String?, feedPostMediaIndex: Int32 = 0
         
-        if let protoContainer = Proto_Container.unwrapMessage(for: fromUserId, from: chat) {
+        if let protoContainer = Clients_Container.unwrapMessage(for: fromUserId, from: chat) {
             if protoContainer.hasChatMessage {
                 text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
                 
@@ -2751,7 +2751,7 @@ extension XMPPChatMessage {
             }
         }
             
-        else if let protoContainer = Proto_Container.chatMessageContainer(from: chat) {
+        else if let protoContainer = Clients_Container.chatMessageContainer(from: chat) {
             if protoContainer.hasChatMessage {
                 text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
                 DDLogInfo("ChatData/XMPPChatMessage/plainText: \(text ?? "")")
@@ -2775,23 +2775,23 @@ extension XMPPChatMessage {
         self.timestamp = chat.attributeDoubleValue(forName: "timestamp")
     }
 
-    init?(_ pbChat: PBchat_stanza, from fromUserID: UserID, to toUserID: UserID, id: String) {
+    init?(_ pbChat: Server_ChatStanza, from fromUserID: UserID, to toUserID: UserID, id: String) {
         self.id = id
         self.fromUserId = fromUserID
         self.toUserId = toUserID
         self.timestamp = TimeInterval(pbChat.timestamp)
 
-        let protoChat: Proto_ChatMessage
+        let protoChat: Clients_ChatMessage
         if false {
             // TODO: Handle encrypted payloads
             return nil
-        } else if let protoContainer = try? Proto_Container(serializedData: pbChat.payload),
+        } else if let protoContainer = try? Clients_Container(serializedData: pbChat.payload),
             protoContainer.hasChatMessage
         {
             // Binary protocol
             protoChat = protoContainer.chatMessage
         } else if let decodedData = Data(base64Encoded: pbChat.payload, options: .ignoreUnknownCharacters),
-            let protoContainer = try? Proto_Container(serializedData: decodedData),
+            let protoContainer = try? Clients_Container(serializedData: decodedData),
             protoContainer.hasChatMessage
         {
             // Legacy Base64 protocol
@@ -2811,11 +2811,11 @@ extension XMPPChatMessage {
 }
 
 
-extension Proto_Container {
-    static func unwrapMessage(for userId: String, from entry: XMLElement) -> Proto_Container? {
+extension Clients_Container {
+    static func unwrapMessage(for userId: String, from entry: XMLElement) -> Clients_Container? {
         guard let protoContainerData = MainAppContext.shared.keyData.unwrapMessage(for: userId, from: entry) else { return nil }
         do {
-            let protoContainer = try Proto_Container(serializedData: protoContainerData)
+            let protoContainer = try Clients_Container(serializedData: protoContainerData)
             return protoContainer
         } catch {
             DDLogError("xmpp/chatmessage/unwrapMessage/invalid-protobuf")

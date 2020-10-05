@@ -108,9 +108,9 @@ final class ProtoService: ProtoServiceCore {
     }
 
     private func sendAck(messageID: String) {
-        var ack = PBack()
+        var ack = Server_Ack()
         ack.id = messageID
-        var packet = PBpacket()
+        var packet = Server_Packet()
         packet.stanza = .ack(ack)
         if let data = try? packet.serializedData() {
             stream.send(data)
@@ -141,7 +141,7 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    private func handleFeedItems(_ items: [PBfeed_item], messageID: String) {
+    private func handleFeedItems(_ items: [Server_FeedItem], messageID: String) {
         guard let delegate = feedDelegate else {
             sendAck(messageID: messageID)
             return
@@ -150,25 +150,25 @@ final class ProtoService: ProtoServiceCore {
         var retracts = [FeedRetract]()
         items.forEach { pbFeedItem in
             switch pbFeedItem.item {
-            case .post(let pbPost):
+            case .post(let serverPost):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    if let post = XMPPFeedPost(pbPost) {
+                    if let post = XMPPFeedPost(serverPost) {
                         elements.append(.post(post))
                     }
                 case .retract:
-                    retracts.append(.post(pbPost.id))
+                    retracts.append(.post(serverPost.id))
                 case .UNRECOGNIZED(let action):
                         DDLogError("ProtoService/handleFeedItems/error unrecognized post action \(action)")
                 }
-            case .comment(let pbComment):
+            case .comment(let serverComment):
                 switch pbFeedItem.action {
                 case .publish, .share:
-                    if let comment = XMPPComment(pbComment) {
-                        elements.append(.comment(comment, publisherName: pbComment.publisherName))
+                    if let comment = XMPPComment(serverComment) {
+                        elements.append(.comment(comment, publisherName: serverComment.publisherName))
                     }
                 case .retract:
-                    retracts.append(.comment(pbComment.id))
+                    retracts.append(.comment(serverComment.id))
                 case .UNRECOGNIZED(let action):
                     DDLogError("ProtoService/handleFeedItems/error unrecognized comment action \(action)")
                 }
@@ -187,7 +187,7 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    override func didReceive(packet: PBpacket, requestID: String) {
+    override func didReceive(packet: Server_Packet, requestID: String) {
         super.didReceive(packet: packet, requestID: requestID)
 
         switch packet.stanza {
@@ -501,12 +501,12 @@ extension ProtoService: HalloService {
             return
         }
 
-        var packet = PBpacket()
+        var packet = Server_Packet()
         packet.msg.fromUid = fromUID
         packet.msg.id = message.id
         packet.msg.type = .groupchat
 
-        var chat = PBgroup_chat()
+        var chat = Server_GroupChat()
         chat.payload = messageData
         chat.gid = message.groupId
         if let groupName = message.groupName {
@@ -569,16 +569,16 @@ private protocol ReceivedReceipt {
     var receiptType: HalloReceipt.`Type` { get }
 }
 
-extension PBdelivery_receipt: ReceivedReceipt {
+extension Server_DeliveryReceipt: ReceivedReceipt {
     var receiptType: HalloReceipt.`Type` { .delivery }
 }
 
-extension PBseen_receipt: ReceivedReceipt {
+extension Server_SeenReceipt: ReceivedReceipt {
     var receiptType: HalloReceipt.`Type` { .read }
 }
 
 extension PresenceType {
-    init?(_ pbPresenceType: PBpresence.TypeEnum) {
+    init?(_ pbPresenceType: Server_Presence.TypeEnum) {
         switch pbPresenceType {
         case .away:
             self = .away

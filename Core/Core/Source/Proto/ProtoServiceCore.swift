@@ -221,7 +221,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         resendAllPendingRequests()
     }
 
-    open func didReceive(packet: PBpacket, requestID: String) {
+    open func didReceive(packet: Server_Packet, requestID: String) {
         DDLogInfo("proto/didReceivePacket/\(requestID)")
         func removeRequest(with id: String, outOf requests: inout [ProtoRequest]) -> [ProtoRequest] {
             let filteredSequence = requests.enumerated().filter { $0.element.requestId == id }
@@ -383,13 +383,13 @@ extension ProtoServiceCore: CoreService {
             return
         }
 
-        var packet = PBpacket()
+        var packet = Server_Packet()
         packet.msg.toUid = toUID
         packet.msg.fromUid = fromUID
         packet.msg.id = message.id
         packet.msg.type = .chat
 
-        var chat = PBchat_stanza()
+        var chat = Server_ChatStanza()
         chat.payload = messageData
 
         if let encrypt = encryption {

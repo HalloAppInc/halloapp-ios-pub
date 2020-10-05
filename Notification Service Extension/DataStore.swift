@@ -12,7 +12,7 @@ import CoreData
 
 class DataStore: NotificationServiceExtensionDataStore {
 
-    func save(protoPost: Proto_Post, notificationMetadata: NotificationMetadata) -> SharedFeedPost {
+    func save(protoPost: Clients_Post, notificationMetadata: NotificationMetadata) -> SharedFeedPost {
         let managedObjectContext = persistentContainer.viewContext
 
         let userId = notificationMetadata.fromId

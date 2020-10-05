@@ -13,7 +13,7 @@ import XMPPFramework
 
 final class ProtoAvatarRequest: ProtoStandardRequest<AvatarInfo> {
     init(userID: UserID, completion: @escaping ServiceRequestCompletion<AvatarInfo>) {
-        var avatar = PBavatar()
+        var avatar = Server_Avatar()
         if let uid = Int64(userID) {
             avatar.uid = uid
         } else {
@@ -30,7 +30,7 @@ final class ProtoAvatarRequest: ProtoStandardRequest<AvatarInfo> {
 final class ProtoUpdateAvatarRequest: ProtoStandardRequest<String?> {
     init(data: Data?, completion: @escaping ServiceRequestCompletion<String?>) {
 
-        var uploadAvatar = PBupload_avatar()
+        var uploadAvatar = Server_UploadAvatar()
         if let data = data {
             uploadAvatar.data = data
         }
@@ -45,11 +45,11 @@ final class ProtoUpdateAvatarRequest: ProtoStandardRequest<String?> {
 final class ProtoPushTokenRequest: ProtoStandardRequest<Void> {
     init(token: String, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var pushToken = PBpush_token()
+        var pushToken = Server_PushToken()
         pushToken.token = token
         pushToken.os = .ios
 
-        var pushRegister = PBpush_register()
+        var pushRegister = Server_PushRegister()
         pushRegister.pushToken = pushToken
 
         super.init(
@@ -62,7 +62,7 @@ final class ProtoPushTokenRequest: ProtoStandardRequest<Void> {
 final class ProtoSharePostsRequest: ProtoStandardRequest<Void> {
     init(postIDs: [FeedPostID], userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var share = PBshare_stanza()
+        var share = Server_ShareStanza()
         share.postIds = postIDs
         if let uid = Int64(userID) {
             share.uid = uid
@@ -70,7 +70,7 @@ final class ProtoSharePostsRequest: ProtoStandardRequest<Void> {
             DDLogError("ProtoSharePostsRequest/error invalid userID \(userID)")
         }
 
-        var item = PBfeed_item()
+        var item = Server_FeedItem()
         item.action = .share
         item.shareStanzas = [share]
 
@@ -84,12 +84,12 @@ final class ProtoSharePostsRequest: ProtoStandardRequest<Void> {
 final class ProtoRetractItemRequest: ProtoStandardRequest<Void> {
     init(feedItem: FeedItemProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var pbFeedItem = PBfeed_item()
-        pbFeedItem.item = feedItem.protoFeedItem(withData: false)
-        pbFeedItem.action = .retract
+        var serverFeedItem = Server_FeedItem()
+        serverFeedItem.item = feedItem.protoFeedItem(withData: false)
+        serverFeedItem.action = .retract
 
         super.init(
-            packet: .iqPacket(type: .set, payload: .feedItem(pbFeedItem)),
+            packet: .iqPacket(type: .set, payload: .feedItem(serverFeedItem)),
             transform: { _ in .success(()) },
             completion: completion)
     }
@@ -105,7 +105,7 @@ final class ProtoContactSyncRequest: ProtoStandardRequest<[HalloContact]> {
         completion: @escaping ServiceRequestCompletion<[HalloContact]>) where T.Iterator.Element == HalloContact
     {
 
-        var contactList = PBcontact_list()
+        var contactList = Server_ContactList()
         contactList.type = {
             switch type {
             case .full:
@@ -122,12 +122,12 @@ final class ProtoContactSyncRequest: ProtoStandardRequest<[HalloContact]> {
             contactList.isLast = isLastBatch
         }
         contactList.contacts = contacts.map { contact in
-            var pbContact = PBcontact()
-            pbContact.action = contact.isDeletedContact ? .delete : .add
-            if let raw = contact.raw { pbContact.raw = raw }
-            if let normalized = contact.normalized { pbContact.normalized = normalized }
-            if let userID = contact.userid, let numericID = Int64(userID) { pbContact.uid = numericID }
-            return pbContact
+            var serverContact = Server_Contact()
+            serverContact.action = contact.isDeletedContact ? .delete : .add
+            if let raw = contact.raw { serverContact.raw = raw }
+            if let normalized = contact.normalized { serverContact.normalized = normalized }
+            if let userID = contact.userid, let numericID = Int64(userID) { serverContact.uid = numericID }
+            return serverContact
         }
 
         super.init(
@@ -142,14 +142,14 @@ final class ProtoContactSyncRequest: ProtoStandardRequest<[HalloContact]> {
 final class ProtoPresenceSubscribeRequest: ProtoStandardRequest<Void> {
     init(userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var presence = PBpresence()
+        var presence = Server_Presence()
         presence.id = UUID().uuidString
         presence.type = .subscribe
         if let uid = Int64(userID) {
             presence.uid = uid
         }
 
-        var packet = PBpacket()
+        var packet = Server_Packet()
         packet.stanza = .presence(presence)
 
         super.init(packet: packet, transform: { _ in .success(())}, completion: completion)
@@ -159,7 +159,7 @@ final class ProtoPresenceSubscribeRequest: ProtoStandardRequest<Void> {
 final class ProtoPresenceUpdate: ProtoStandardRequest<Void> {
     init(status: PresenceType, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var presence = PBpresence()
+        var presence = Server_Presence()
         presence.id = UUID().uuidString
         presence.type = {
             switch status {
@@ -173,7 +173,7 @@ final class ProtoPresenceUpdate: ProtoStandardRequest<Void> {
             presence.uid = uid
         }
 
-        var packet = PBpacket()
+        var packet = Server_Packet()
         packet.presence = presence
 
         super.init(packet: packet, transform: { _ in .success(()) }, completion: completion)
@@ -198,15 +198,15 @@ final class ProtoSendReceipt: ProtoStandardRequest<Void> {
             }
         }()
 
-        let payloadContent: PBmsg.OneOf_Payload = {
+        let payloadContent: Server_Msg.OneOf_Payload = {
             switch type {
             case .delivery:
-                var receipt = PBdelivery_receipt()
+                var receipt = Server_DeliveryReceipt()
                 receipt.id = itemID
                 receipt.threadID = threadID
                 return .deliveryReceipt(receipt)
             case .read:
-                var receipt = PBseen_receipt()
+                var receipt = Server_SeenReceipt()
                 receipt.id = itemID
                 receipt.threadID = threadID
                 return .seenReceipt(receipt)
@@ -220,7 +220,7 @@ final class ProtoSendReceipt: ProtoStandardRequest<Void> {
             }
         }()
 
-        let packet = PBpacket.msgPacket(
+        let packet = Server_Packet.msgPacket(
             from: fromUserID,
             to: toUserID,
             id: messageID ?? "\(typeString)-\(itemID)",
@@ -233,11 +233,11 @@ final class ProtoSendReceipt: ProtoStandardRequest<Void> {
 final class ProtoSendNameRequest: ProtoStandardRequest<Void> {
     init(name: String, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var pbName = PBname()
-        pbName.name = name
+        var serverName = Server_Name()
+        serverName.name = name
 
         super.init(
-            packet: .iqPacket(type: .set, payload: .name(pbName)),
+            packet: .iqPacket(type: .set, payload: .name(serverName)),
             transform: { _ in .success(()) },
             completion: completion)
     }
@@ -246,7 +246,7 @@ final class ProtoSendNameRequest: ProtoStandardRequest<Void> {
 final class ProtoClientVersionCheck: ProtoStandardRequest<TimeInterval> {
     init(version: String, completion: @escaping ServiceRequestCompletion<TimeInterval>) {
 
-        var clientVersion = PBclient_version()
+        var clientVersion = Server_ClientVersion()
         clientVersion.version = "HalloApp/iOS\(version)"
 
         super.init(
@@ -261,10 +261,10 @@ final class ProtoClientVersionCheck: ProtoStandardRequest<TimeInterval> {
 final class ProtoGroupCreateRequest: ProtoStandardRequest<Void> {
     init(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var group = PBgroup_stanza()
+        var group = Server_GroupStanza()
         group.action = .create
         group.name = name
-        group.members = members.compactMap { PBgroup_member(userID: $0) }
+        group.members = members.compactMap { Server_GroupMember(userID: $0) }
 
         super.init(
             packet: .iqPacket(type: .set, payload: .groupStanza(group)),
@@ -276,7 +276,7 @@ final class ProtoGroupCreateRequest: ProtoStandardRequest<Void> {
 final class ProtoGroupInfoRequest: ProtoStandardRequest<HalloGroup> {
     init(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>) {
 
-        var group = PBgroup_stanza()
+        var group = Server_GroupStanza()
         group.gid = groupID
         group.action = .get
 
@@ -294,7 +294,7 @@ final class ProtoGroupInfoRequest: ProtoStandardRequest<HalloGroup> {
 final class ProtoGroupLeaveRequest: ProtoStandardRequest<Void> {
     init(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var group = PBgroup_stanza()
+        var group = Server_GroupStanza()
         group.gid = groupID
         group.action = .leave
 
@@ -308,10 +308,10 @@ final class ProtoGroupLeaveRequest: ProtoStandardRequest<Void> {
 final class ProtoGroupModifyRequest: ProtoStandardRequest<Void> {
     init(groupID: GroupID, members: [UserID], groupAction: ChatGroupAction, action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var group = PBgroup_stanza()
+        var group = Server_GroupStanza()
         group.gid = groupID
         group.action = .init(groupAction)
-        group.members = members.compactMap { PBgroup_member(userID: $0, action: .init(action)) }
+        group.members = members.compactMap { Server_GroupMember(userID: $0, action: .init(action)) }
 
         super.init(
             packet: .iqPacket(type: .set, payload: .groupStanza(group)),
@@ -323,13 +323,13 @@ final class ProtoGroupModifyRequest: ProtoStandardRequest<Void> {
 final class ProtoChangeGroupNameRequest: ProtoStandardRequest<Void> {
     init(groupID: GroupID, name: String, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var group = PBgroup_stanza()
+        var group = Server_GroupStanza()
         group.gid = groupID
         group.action = .changeName
         group.name = name
         
         super.init(
-            packet: PBpacket.iqPacket(type: .set, payload: .groupStanza(group)),
+            packet: Server_Packet.iqPacket(type: .set, payload: .groupStanza(group)),
             transform: { _ in .success(()) },
             completion: completion)
     }
@@ -338,7 +338,7 @@ final class ProtoChangeGroupNameRequest: ProtoStandardRequest<Void> {
 final class ProtoChangeGroupAvatarRequest: ProtoStandardRequest<String> {
     init(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<String>) {
 
-        var group = PBgroup_stanza()
+        var group = Server_GroupStanza()
         group.gid = groupID
         group.action = .changeAvatar
         
@@ -352,7 +352,7 @@ final class ProtoChangeGroupAvatarRequest: ProtoStandardRequest<String> {
             completion: completion)
         
 //        super.init(
-//            packet: PBpacket.iqPacket(type: .set, payload: .groupStanza(group)),
+//            packet: Server_Packet.iqPacket(type: .set, payload: .groupStanza(group)),
 //            transform: { _ in .success(()) },
 //            completion: completion)
     }
@@ -360,9 +360,9 @@ final class ProtoChangeGroupAvatarRequest: ProtoStandardRequest<String> {
 
 final class ProtoUpdateNotificationSettingsRequest: ProtoStandardRequest<Void> {
     init(settings: [NotificationSettings.ConfigKey: Bool], completion: @escaping ServiceRequestCompletion<Void>) {
-        var prefs = PBnotification_prefs()
+        var prefs = Server_NotificationPrefs()
         prefs.pushPrefs = settings.map {
-            var pref = PBpush_pref()
+            var pref = Server_PushPref()
             pref.name = .init($0.key)
             pref.value = $0.value
             return pref
@@ -371,7 +371,7 @@ final class ProtoUpdateNotificationSettingsRequest: ProtoStandardRequest<Void> {
     }
 }
 
-extension PBpush_pref.Name {
+extension Server_PushPref.Name {
     init(_ configKey: NotificationSettings.ConfigKey) {
         switch configKey {
         case .post: self = .post
@@ -380,7 +380,7 @@ extension PBpush_pref.Name {
     }
 }
 
-extension PBgroup_stanza.Action {
+extension Server_GroupStanza.Action {
     init(_ groupAction: ChatGroupAction) {
         switch groupAction {
         case .create: self = .create
@@ -394,7 +394,7 @@ extension PBgroup_stanza.Action {
     }
 }
 
-extension PBgroup_member {
+extension Server_GroupMember {
     init?(userID: UserID, action: Action? = nil) {
         guard let uid = Int64(userID) else { return nil }
         self.init()
@@ -405,7 +405,7 @@ extension PBgroup_member {
     }
 }
 
-extension PBgroup_member.Action {
+extension Server_GroupMember.Action {
     init(_ memberAction: ChatGroupMemberAction) {
         switch memberAction {
         case .add: self = .add

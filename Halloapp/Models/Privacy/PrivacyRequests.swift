@@ -142,19 +142,19 @@ class ProtoGetPrivacyListsRequest: ProtoRequest {
     init(listTypes: [PrivacyListType], completion: @escaping ServiceRequestCompletion<([PrivacyListProtocol], PrivacyListType)>) {
         self.completion = completion
 
-        var privacyLists = PBprivacy_lists()
+        var privacyLists = Server_PrivacyLists()
         privacyLists.lists = listTypes.map { listType in
-            var list = PBprivacy_list()
+            var list = Server_PrivacyList()
             list.type = .init(listType)
             return list
         }
 
-        let packet = PBpacket.iqPacket(type: .get, payload: .privacyLists(privacyLists))
+        let packet = Server_Packet.iqPacket(type: .get, payload: .privacyLists(privacyLists))
 
         super.init(packet: packet, id: packet.iq.id)
     }
 
-    override func didFinish(with response: PBpacket) {
+    override func didFinish(with response: Server_Packet) {
 
         let pbPrivacyLists = response.iq.privacyLists
         let lists: [PrivacyListProtocol] = pbPrivacyLists.lists.compactMap { pbList in
@@ -193,14 +193,14 @@ class ProtoGetPrivacyListsRequest: ProtoRequest {
 class ProtoUpdatePrivacyListRequest: ProtoStandardRequest<Void> {
     init(update: PrivacyListUpdateProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
 
-        var list = PBprivacy_list()
-        list.type = PBprivacy_list.TypeEnum(update.type)
+        var list = Server_PrivacyList()
+        list.type = Server_PrivacyList.TypeEnum(update.type)
         list.uidElements = update.updates.compactMap { (userID, action) in
             guard let uid = Int64(userID) else {
                 DDLogError("ProtoUpdatePrivacyListRequest/error invalid userID \(userID)")
                 return nil
             }
-            var element = PBuid_element()
+            var element = Server_UidElement()
             element.uid = uid
             element.action = {
                 switch action {
@@ -212,13 +212,13 @@ class ProtoUpdatePrivacyListRequest: ProtoStandardRequest<Void> {
         }
 
         super.init(
-            packet: PBpacket.iqPacket(type: .set, payload: .privacyList(list)),
+            packet: Server_Packet.iqPacket(type: .set, payload: .privacyList(list)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-extension PBuid_element.Action {
+extension Server_UidElement.Action {
     var privacyListItemState: PrivacyListItem.State? {
         switch self {
         case .add: return .added
@@ -228,7 +228,7 @@ extension PBuid_element.Action {
     }
 }
 
-extension PBprivacy_list.TypeEnum {
+extension Server_PrivacyList.TypeEnum {
     init(_ privacyListType: PrivacyListType) {
         switch privacyListType {
         case .all: self = .all
