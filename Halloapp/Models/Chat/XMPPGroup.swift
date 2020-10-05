@@ -37,32 +37,41 @@ enum ChatGroupMemberAction: String {
 }
 
 struct XMPPGroup {
-    var messageId: String? = nil
-    let sender: UserID?
-    let senderName: String?
-    let groupId: String
+    let groupId: GroupID
     let name: String
-    let action: ChatGroupAction? // getGroupInfo has no action
     var avatarID: String? = nil
-    let members: [XMPPGroupMember]
+
+    private(set) var messageId: String? = nil
+    private(set) var sender: UserID? = nil
+    private(set) var senderName: String? = nil
+    private(set) var action: ChatGroupAction? = nil // getGroupInfo has no action
+    private(set) var members: [XMPPGroupMember]? = nil
+
+    init(id: GroupID, name: String) {
+        self.groupId = id
+        self.name = name
+    }
 
     // inbound
     init?(itemElement item: XMLElement, messageId: String? = nil) {
-        if let messageId = messageId {
-            self.messageId = messageId
+        guard let groupId: GroupID = item.attributeStringValue(forName: "gid"),
+              let groupName = item.attributeStringValue(forName: "name") else
+        {
+            return nil
         }
-        guard let groupId = item.attributeStringValue(forName: "gid") else { return nil }
-        guard let name = item.attributeStringValue(forName: "name") else { return nil }
+
+        self.init(id: groupId, name: groupName)
         
-        if let avatarID = item.attributeStringValue(forName: "avatar"), avatarID != "" {
+        if let avatarID = item.attributeStringValue(forName: "avatar"), !avatarID.isEmpty {
             self.avatarID = avatarID
         }
+
+        self.messageId = messageId
         self.sender = item.attributeStringValue(forName: "sender")
         self.senderName = item.attributeStringValue(forName: "sender_name")
         
         let actionStr = item.attributeStringValue(forName: "action")
-        
-        let action: ChatGroupAction? = {
+        self.action = {
             switch actionStr {
             case "create": return .create
             case "leave": return .leave
@@ -73,12 +82,7 @@ struct XMPPGroup {
             default: return nil
             }}()
         
-        let membersEl = item.elements(forName: "member")
-        
-        self.groupId = groupId
-        self.name = name
-        self.action = action
-        self.members = membersEl.compactMap({ XMPPGroupMember(xmlElement: $0) })
+        self.members = item.elements(forName: "member").compactMap({ XMPPGroupMember(xmlElement: $0) })
     }
 
     init?(protoGroup: Server_GroupStanza) {

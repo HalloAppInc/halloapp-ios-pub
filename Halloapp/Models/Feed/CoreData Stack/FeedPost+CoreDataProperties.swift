@@ -33,6 +33,7 @@ extension FeedPost {
     @NSManaged public var text: String?
     @NSManaged public var timestamp: Date
     @NSManaged public var userId: UserID
+    @NSManaged public var groupId: GroupID?
     @NSManaged var comments: Set<FeedPostComment>?
     @NSManaged var media: Set<FeedPostMedia>?
     @NSManaged var mentions: Set<FeedMention>?

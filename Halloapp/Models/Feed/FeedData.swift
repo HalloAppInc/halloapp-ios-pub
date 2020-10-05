@@ -442,11 +442,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     let didReceiveFeedPostComment = PassthroughSubject<FeedPostComment, Never>()
 
-    @discardableResult private func process(posts xmppPosts: [FeedPostProtocol], using managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
+    @discardableResult private func process(posts xmppPosts: [FeedPostProtocol], receivedIn group: HalloGroup?, using managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
         guard !xmppPosts.isEmpty else { return [] }
 
         let postIds = Set(xmppPosts.map{ $0.id })
-        let existingPosts = self.feedPosts(with: postIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+        let existingPosts = feedPosts(with: postIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         var newPosts: [FeedPost] = []
         for xmppPost in xmppPosts {
             guard existingPosts[xmppPost.id] == nil else {
@@ -459,6 +459,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
             feedPost.id = xmppPost.id
             feedPost.userId = xmppPost.userId
+            feedPost.groupId = group?.groupId
             feedPost.text = xmppPost.text
             feedPost.timestamp = xmppPost.timestamp
             
@@ -502,7 +503,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             newPosts.append(feedPost)
         }
         DDLogInfo("FeedData/process-posts/finished  \(newPosts.count) new items.  \(xmppPosts.count - newPosts.count) duplicates.")
-        self.save(managedObjectContext)
+        save(managedObjectContext)
 
         try? managedObjectContext.obtainPermanentIDs(for: newPosts)
         let postObjectIDs = newPosts.map { $0.objectID }
@@ -529,13 +530,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newPosts
     }
 
-    @discardableResult private func process(comments xmppComments: [FeedCommentProtocol], using managedObjectContext: NSManagedObjectContext) -> [FeedPostComment] {
+    @discardableResult private func process(comments xmppComments: [FeedCommentProtocol], receivedIn group: HalloGroup?, using managedObjectContext: NSManagedObjectContext) -> [FeedPostComment] {
         guard !xmppComments.isEmpty else { return [] }
 
         let feedPostIds = Set(xmppComments.map{ $0.feedPostId })
-        let feedPosts = self.feedPosts(with: feedPostIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+        let posts = feedPosts(with: feedPostIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         let commentIds = Set(xmppComments.map{ $0.id }).union(Set(xmppComments.compactMap{ $0.parentId }))
-        var comments = self.feedComments(with: commentIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
+        var comments = feedComments(with: commentIds, in: managedObjectContext).reduce(into: [:]) { $0[$1.id] = $1 }
         var ignoredCommentIds: Set<String> = []
         var xmppCommentsMutable = [FeedCommentProtocol](xmppComments)
         var newComments: [FeedPostComment] = []
@@ -550,8 +551,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
 
                 // Find comment's post.
-                guard let feedPost = feedPosts[xmppComment.feedPostId] else {
+                guard let feedPost = posts[xmppComment.feedPostId] else {
                     DDLogError("FeedData/process-comments/missing-post [\(xmppComment.feedPostId)]")
+                    ignoredCommentIds.insert(xmppComment.id)
+                    continue
+                }
+
+                // Additional check: post's groupId must match groupId of the comment.
+                guard feedPost.groupId == group?.groupId else {
+                    DDLogError("FeedData/process-comments/incorrect-group-id post:[\(feedPost.groupId ?? "")] comment:[\(group?.groupId ?? "")]")
                     ignoredCommentIds.insert(xmppComment.id)
                     continue
                 }
@@ -615,7 +623,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             numRuns += 1
         }
         DDLogInfo("FeedData/process-comments/finished  \(newComments.count) new items.  \(duplicateCount) duplicates.  \(ignoredCommentIds.count) ignored.")
-        self.save(managedObjectContext)
+        save(managedObjectContext)
 
         try? managedObjectContext.obtainPermanentIDs(for: newComments)
         let commentObjectIDs = newComments.map { $0.objectID }
@@ -635,7 +643,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newComments
     }
 
-    func halloService(_ halloService: HalloService, didReceiveFeedItems items: [FeedElement], ack: (() -> Void)?) {
+    func halloService(_ halloService: HalloService, didReceiveFeedItems items: [FeedElement], group: HalloGroup?, ack: (() -> Void)?) {
         var feedPosts = [FeedPostProtocol]()
         var comments = [FeedCommentProtocol]()
         var contactNames = [UserID:String]()
@@ -657,10 +665,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
         
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let posts = self.process(posts: feedPosts, using: managedObjectContext)
+            let posts = self.process(posts: feedPosts, receivedIn: group, using: managedObjectContext)
             self.generateNotifications(for: posts, using: managedObjectContext)
 
-            let comments = self.process(comments: comments, using: managedObjectContext)
+            let comments = self.process(comments: comments, receivedIn: group, using: managedObjectContext)
             self.generateNotifications(for: comments, using: managedObjectContext)
 
             ack?()
@@ -1029,7 +1037,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func halloService(_ halloService: HalloService, didReceiveFeedRetracts items: [FeedRetract], ack: (() -> Void)?) {
+    func halloService(_ halloService: HalloService, didReceiveFeedRetracts items: [FeedRetract], group: HalloGroup?, ack: (() -> Void)?) {
         /**
          Example:
          <retract timestamp="1587161372" publisher="1000000000354803885@s.halloapp.net/android" type="feedpost" id="b2d888ecfe2343d9916173f2f416f4ae"><entry xmlns="http://halloapp.com/published-entry"><feedpost/><s1>CgA=</s1></entry></retract>
@@ -1039,12 +1047,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             switch item {
             case .post(let postID):
                 processingGroup.enter()
-                self.processPostRetract(postID) {
+                processPostRetract(postID) {
                     processingGroup.leave()
                 }
             case .comment(let commentID):
                 processingGroup.enter()
-                self.processCommentRetract(commentID) {
+                processCommentRetract(commentID) {
                     processingGroup.leave()
                 }
             }

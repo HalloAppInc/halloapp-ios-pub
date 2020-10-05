@@ -1694,7 +1694,7 @@ extension ChatData {
             
             // look for users that are not members anymore
             chatGroup.orderedMembers.forEach { currentMember in
-                let foundMember = xmppGroup.members.first(where: { $0.userId == currentMember.userId })
+                let foundMember = xmppGroup.members?.first(where: { $0.userId == currentMember.userId })
                 
                 if foundMember == nil {
                     chatGroup.managedObjectContext!.delete(currentMember)
@@ -1704,7 +1704,7 @@ extension ChatData {
             var contactNames = [UserID:String]()
             
             // see if there are new members added or needs to be updated
-            xmppGroup.members.forEach { inboundMember in
+            xmppGroup.members?.forEach { inboundMember in
                 let foundMember = chatGroup.members?.first(where: { $0.userId == inboundMember.userId })
                 
                 // member already exists
@@ -2392,7 +2392,7 @@ extension ChatData {
         }
 
         // Add new Group members to database
-        for (_, xmppGroupMember) in xmppGroup.members.enumerated() {
+        for xmppGroupMember in xmppGroup.members ?? [] {
             DDLogDebug("ChatData/group/process/new/add-member [\(xmppGroupMember.userId)]")
             processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
             
@@ -2413,7 +2413,7 @@ extension ChatData {
         
         _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
         
-        for (_, xmppGroupMember) in xmppGroup.members.enumerated() {
+        for xmppGroupMember in xmppGroup.members ?? [] {
             DDLogDebug("ChatData/group/process/new/add-member [\(xmppGroupMember.userId)]")
             guard xmppGroupMember.action == .leave else { continue }
             deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)
@@ -2432,7 +2432,7 @@ extension ChatData {
         _ = processGroupCreateIfNotExist(xmppGroup: xmppGroup, in: managedObjectContext)
         
         var syncGroup = false
-        for (_, xmppGroupMember) in xmppGroup.members.enumerated() {
+        for xmppGroupMember in xmppGroup.members ?? [] {
             DDLogDebug("ChatData/group/process/modifyMembers [\(xmppGroupMember.userId)]")
             
             if xmppGroupMember.action == .remove {

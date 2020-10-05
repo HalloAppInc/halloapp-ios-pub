@@ -317,16 +317,38 @@ class XMPPControllerMain: XMPPController {
 
         // Feed Items
         if let feed = message.element(forName: "feed"), feed.xmlns() == "halloapp:feed",
-            let action = feed.attributeStringValue(forName: "action"),
-            let delegate = feedDelegate {
+           let action = feed.attributeStringValue(forName: "action"),
+           let delegate = feedDelegate {
 
             var postsAndComments = feed.elements(forName: "post")
             postsAndComments.append(contentsOf: feed.elements(forName: "comment"))
 
             if action == "publish" || action == "share" {
-                delegate.halloService(self, didReceiveFeedItems: postsAndComments.compactMap { FeedElement($0) }, ack: { self.sendAck(for: message) })
+                delegate.halloService(self, didReceiveFeedItems: postsAndComments.compactMap { FeedElement($0) }, group: nil, ack: { self.sendAck(for: message) })
             } else if action == "retract" {
-                delegate.halloService(self, didReceiveFeedRetracts: postsAndComments.compactMap { FeedRetract($0) }, ack: { self.sendAck(for: message) })
+                delegate.halloService(self, didReceiveFeedRetracts: postsAndComments.compactMap { FeedRetract($0) }, group: nil, ack: { self.sendAck(for: message) })
+            } else {
+                sendAck(for: message)
+            }
+            return
+        }
+
+        // Group Feed Items
+        if let feed = message.element(forName: "group_feed"), feed.xmlns() == "halloapp:group:feed",
+           let action = feed.attributeStringValue(forName: "action"),
+           let groupId = feed.attributeStringValue(forName: "gid"), let groupName = feed.attributeStringValue(forName: "name"),
+           let delegate = feedDelegate {
+
+            var group = HalloGroup(id: groupId, name: groupName)
+            group.avatarID = feed.attributeStringValue(forName: "avatar_id")
+
+            var postsAndComments = feed.elements(forName: "post")
+            postsAndComments.append(contentsOf: feed.elements(forName: "comment"))
+
+            if action == "publish" || action == "share" {
+                delegate.halloService(self, didReceiveFeedItems: postsAndComments.compactMap { FeedElement($0) }, group: group, ack: { self.sendAck(for: message) })
+            } else if action == "retract" {
+                delegate.halloService(self, didReceiveFeedRetracts: postsAndComments.compactMap { FeedRetract($0) }, group: group, ack: { self.sendAck(for: message) })
             } else {
                 sendAck(for: message)
             }

@@ -177,12 +177,59 @@ final class ProtoService: ProtoServiceCore {
             }
         }
         if !elements.isEmpty {
-            delegate.halloService(self, didReceiveFeedItems: elements, ack: { self.sendAck(messageID: messageID) })
+            delegate.halloService(self, didReceiveFeedItems: elements, group: nil, ack: { self.sendAck(messageID: messageID) })
         }
         if !retracts.isEmpty {
-            delegate.halloService(self, didReceiveFeedRetracts: retracts, ack: { self.sendAck(messageID: messageID) })
+            delegate.halloService(self, didReceiveFeedRetracts: retracts, group: nil, ack: { self.sendAck(messageID: messageID) })
         }
         if elements.isEmpty && retracts.isEmpty {
+            sendAck(messageID: messageID)
+        }
+    }
+
+    private func handleGroupFeedItem(_ item: Server_GroupFeedItem, messageID: String) {
+        guard let delegate = feedDelegate else {
+            sendAck(messageID: messageID)
+            return
+        }
+        var group = HalloGroup(id: item.gid, name: item.name)
+        group.avatarID = item.avatarID
+
+        var element: FeedElement?
+        var retract: FeedRetract?
+        switch item.item {
+        case .post(let pbPost):
+            switch item.action {
+            case .publish:
+                if let post = XMPPFeedPost(pbPost) {
+                    element = .post(post)
+                }
+            case .retract:
+                retract = .post(pbPost.id)
+            case .UNRECOGNIZED(let action):
+                    DDLogError("ProtoService/handleFeedItems/error unrecognized post action \(action)")
+            }
+        case .comment(let pbComment):
+            switch item.action {
+            case .publish:
+                if let comment = XMPPComment(pbComment) {
+                    element = .comment(comment, publisherName: pbComment.publisherName)
+                }
+            case .retract:
+                retract = .comment(pbComment.id)
+            case .UNRECOGNIZED(let action):
+                DDLogError("ProtoService/handleFeedItems/error unrecognized comment action \(action)")
+            }
+        case .none:
+            DDLogError("ProtoService/handleFeedItems/error missing item")
+        }
+        if let element = element {
+            delegate.halloService(self, didReceiveFeedItems: [element], group: group, ack: { self.sendAck(messageID: messageID) })
+        }
+        else if let retract = retract {
+            delegate.halloService(self, didReceiveFeedRetracts: [retract], group: group, ack: { self.sendAck(messageID: messageID) })
+        }
+        else {
             sendAck(messageID: messageID)
         }
     }
@@ -215,7 +262,7 @@ final class ProtoService: ProtoServiceCore {
                 break
             }
             switch payload {
-            case .chatRetract(_),  .groupchatRetract(_), .groupFeedItem(_):
+            case .chatRetract(_), .groupchatRetract(_):
                 break
             case .contactList(let pbContactList):
                 let contacts = pbContactList.contacts.compactMap { HalloContact($0) }
@@ -247,6 +294,8 @@ final class ProtoService: ProtoServiceCore {
                 handleFeedItems([pbFeedItem], messageID: msg.id)
             case .feedItems(let pbFeedItems):
                 handleFeedItems(pbFeedItems.items, messageID: msg.id)
+            case .groupFeedItem(let pbGroupFeedItem):
+                handleGroupFeedItem(pbGroupFeedItem, messageID: msg.id)
             case .contactHash(let pbContactHash):
                 if pbContactHash.hash.isEmpty {
                     // Trigger full sync

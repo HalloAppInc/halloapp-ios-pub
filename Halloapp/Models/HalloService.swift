@@ -81,8 +81,8 @@ protocol HalloService: CoreService {
 }
 
 protocol HalloFeedDelegate: AnyObject {
-    func halloService(_ halloService: HalloService, didReceiveFeedItems items: [FeedElement], ack: (() -> Void)?)
-    func halloService(_ halloService: HalloService, didReceiveFeedRetracts items: [FeedRetract], ack: (() -> Void)?)
+    func halloService(_ halloService: HalloService, didReceiveFeedItems items: [FeedElement], group: HalloGroup?, ack: (() -> Void)?)
+    func halloService(_ halloService: HalloService, didReceiveFeedRetracts items: [FeedRetract], group: HalloGroup?, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didReceiveFeedReceipt receipt: HalloReceipt, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt)
 }
