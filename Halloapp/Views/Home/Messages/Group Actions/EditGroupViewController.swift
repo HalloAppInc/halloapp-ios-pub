@@ -118,7 +118,7 @@ class EditGroupViewController: UIViewController {
                 controller.dismiss(animated: true)
             } else {
                 let edit = MediaEditViewController(cropToCircle: true, allowMore: false, mediaToEdit: media, selected: 0) { controller, media, index, cancel in
-//                    controller.dismiss(animated: true)
+                    controller.dismiss(animated: true)
 
                     if !cancel && media.count > 0 {
                         
@@ -135,7 +135,6 @@ class EditGroupViewController: UIViewController {
                             guard let self = self else { return }
                             switch result {
                             case .success:
-//                                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                                 DispatchQueue.main.async() {
                                     self.avatarView.configureGroupAvatar(for: self.chatGroup.groupId, using: MainAppContext.shared.avatarStore)
                                     controller.dismiss(animated: true)
@@ -148,6 +147,8 @@ class EditGroupViewController: UIViewController {
                         self.dismiss(animated: true)
                     }
                 }
+                
+                edit.modalPresentationStyle = .fullScreen
                 controller.present(edit, animated: true)
             }
         }
