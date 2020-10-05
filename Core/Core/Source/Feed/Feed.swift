@@ -45,8 +45,6 @@ public protocol FeedItemProtocol {
 
     // MARK: Serialization
 
-    func oldFormatProtoMessage(withData: Bool) -> SwiftProtobuf.Message
-
     var protoMessage: SwiftProtobuf.Message { get }
 
     func xmppElement(withData: Bool) -> XMPPElement
@@ -55,17 +53,6 @@ public protocol FeedItemProtocol {
 }
 
 public extension FeedItemProtocol {
-
-    func oldFormatProtoContainer(withData: Bool) -> Clients_Container {
-        var container = Clients_Container()
-        switch Self.itemType {
-        case .post:
-            container.post = self.oldFormatProtoMessage(withData: withData) as! Clients_Post
-        case .comment:
-            container.comment = self.oldFormatProtoMessage(withData: withData) as! Clients_Comment
-        }
-        return container
-    }
 
     var protoContainer: Clients_Container {
         get {
@@ -221,18 +208,6 @@ public protocol FeedPostProtocol: FeedItemProtocol {
 
 public extension FeedPostProtocol {
 
-    func oldFormatProtoMessage(withData: Bool) -> Message {
-        var post = Clients_Post()
-        if withData {
-            if text != nil {
-                post.text = text!
-            }
-            post.mentions = orderedMentions.map { $0.protoMention }
-            post.media = orderedMedia.compactMap{ $0.protoMessage }
-        }
-        return post
-    }
-
     var protoMessage: SwiftProtobuf.Message {
         get {
             var post = Clients_Post()
@@ -253,14 +228,20 @@ public extension FeedPostProtocol {
         }
         post.id = id
         post.timestamp = Int64(timestamp.timeIntervalSince1970)
-        if let payload = try? oldFormatProtoContainer(withData: true).serializedData() {
+        if let payload = try? protoContainer.serializedData() {
             post.payload = payload
         }
         return post
     }
 
     func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item {
-        .post(serverPost)
+        if withData {
+            return .post(serverPost)
+        } else {
+            var post = Server_Post()
+            post.id = id
+            return .post(post)
+        }
     }
 }
 
@@ -280,19 +261,6 @@ public protocol FeedCommentProtocol: FeedItemProtocol {
 }
 
 public extension FeedCommentProtocol {
-
-    func oldFormatProtoMessage(withData: Bool) -> Message {
-        var comment = Clients_Comment()
-        if withData {
-            comment.text = text
-            comment.mentions = orderedMentions.map { $0.protoMention }
-        }
-        comment.feedPostID = feedPostId
-        if let parentId = parentId {
-            comment.parentCommentID = parentId
-        }
-        return comment
-    }
 
     var protoMessage: Message {
         get {
@@ -315,7 +283,7 @@ public extension FeedCommentProtocol {
         }
         comment.postID = feedPostId
         comment.timestamp = Int64(timestamp.timeIntervalSince1970)
-        if let payload = try? oldFormatProtoContainer(withData: true).serializedData() {
+        if let payload = try? protoContainer.serializedData() {
             comment.payload = payload
         }
 
@@ -323,6 +291,13 @@ public extension FeedCommentProtocol {
     }
 
     func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item {
-        .comment(serverComment)
+        if withData {
+            return .comment(serverComment)
+        } else {
+            var comment = Server_Comment()
+            comment.id = id
+            comment.postID = feedPostId
+            return .comment(comment)
+        }
     }
 }

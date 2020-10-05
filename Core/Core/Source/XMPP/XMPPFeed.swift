@@ -10,28 +10,6 @@ import Foundation
 import SwiftProtobuf
 import XMPPFramework
 
-public extension FeedItemProtocol {
-
-    func oldFormatXmppElement(withData: Bool) -> XMPPElement {
-        let type: String = {
-            switch Self.itemType {
-            case .post: return "feedpost"
-            case .comment: return "comment"
-            }}()
-        let item = XMPPElement(name: "item")
-        item.addAttribute(withName: "id", stringValue: id)
-        item.addAttribute(withName: "type", stringValue: type)
-        item.addChild({
-            let entry = XMPPElement(name: "entry")
-            if let protobufData = try? self.oldFormatProtoContainer(withData: withData).serializedData() {
-                entry.addChild(XMPPElement(name: "s1", stringValue: protobufData.base64EncodedString()))
-            }
-            return entry
-            }())
-        return item
-    }
-}
-
 public extension FeedPostProtocol {
 
     func xmppElement(withData: Bool) -> XMPPElement {
