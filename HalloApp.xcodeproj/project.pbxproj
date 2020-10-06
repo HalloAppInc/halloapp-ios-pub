@@ -66,6 +66,8 @@
 		761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761EE21D24B5135400B30632 /* MFMessageComposeView.swift */; };
 		7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */; };
 		7626CCDE24C738F50023FC2E /* CrashlyticsLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7626CCDD24C738F50023FC2E /* CrashlyticsLogger.swift */; };
+		76271384252D24AD00389FBC /* FeedPostTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76271383252D24AD00389FBC /* FeedPostTableViewCell.swift */; };
+		76271389252D250E00389FBC /* FacePileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76271388252D250E00389FBC /* FacePileView.swift */; };
 		762AE3A725199FEC00DC1505 /* SendLogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762AE3A525199FEC00DC1505 /* SendLogsView.swift */; };
 		762EDBCA244E2EB700986617 /* Gotham-BlackIta.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */; };
 		762EDBCB244E2EB700986617 /* Gotham-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 762EDBBB244E2EB500986617 /* Gotham-Medium.otf */; };
@@ -359,6 +361,8 @@
 		761EE21D24B5135400B30632 /* MFMessageComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MFMessageComposeView.swift; path = HalloApp/Components/Views/MFMessageComposeView.swift; sourceTree = SOURCE_ROOT; };
 		7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CircularProgressView.swift; path = HalloApp/Components/Views/CircularProgressView.swift; sourceTree = SOURCE_ROOT; };
 		7626CCDD24C738F50023FC2E /* CrashlyticsLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CrashlyticsLogger.swift; path = HalloApp/Logging/CrashlyticsLogger.swift; sourceTree = SOURCE_ROOT; };
+		76271383252D24AD00389FBC /* FeedPostTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPostTableViewCell.swift; path = HalloApp/Views/Home/Feed/Post/FeedPostTableViewCell.swift; sourceTree = SOURCE_ROOT; };
+		76271388252D250E00389FBC /* FacePileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FacePileView.swift; path = HalloApp/Views/Home/Feed/Post/FacePileView.swift; sourceTree = SOURCE_ROOT; };
 		762AE3A525199FEC00DC1505 /* SendLogsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SendLogsView.swift; path = HalloApp/Views/Settings/SendLogsView.swift; sourceTree = SOURCE_ROOT; };
 		762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-BlackIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-BlackIta.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBBB244E2EB500986617 /* Gotham-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-Medium.otf"; path = "HalloApp/Resources/Fonts/Gotham-Medium.otf"; sourceTree = SOURCE_ROOT; };
@@ -379,7 +383,7 @@
 		762EDBDA244E344300986617 /* UIFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIFont.swift; path = HalloApp/Components/Extensions/UIFont.swift; sourceTree = SOURCE_ROOT; };
 		762EDBDC244E5A7800986617 /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeViewController.swift; path = HalloApp/Views/Home/HomeViewController.swift; sourceTree = SOURCE_ROOT; };
 		7639BA38251944920023850E /* NextLevelSessionExporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NextLevelSessionExporter.swift; path = "HalloApp/Components/Third Party/NextLevelSessionExporter.swift"; sourceTree = SOURCE_ROOT; };
-		763B42AB243274F400FF0E82 /* FeedTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedTableViewController.swift; path = HalloApp/Views/Home/Feed/FeedList/FeedTableViewController.swift; sourceTree = SOURCE_ROOT; };
+		763B42AB243274F400FF0E82 /* FeedTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedTableViewController.swift; path = Halloapp/Views/Home/Feed/FeedTableViewController.swift; sourceTree = SOURCE_ROOT; };
 		763B42AD2435A74E00FF0E82 /* Date.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Date.swift; path = HalloApp/Components/Extensions/Date.swift; sourceTree = SOURCE_ROOT; };
 		76407DF7245CA3F00031F96A /* UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIViewController.swift; path = HalloApp/Components/Extensions/UIViewController.swift; sourceTree = SOURCE_ROOT; };
 		76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhoneInputViewController.swift; path = HalloApp/Views/Registration/PhoneInputViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -733,6 +737,15 @@
 			path = Logging;
 			sourceTree = "<group>";
 		};
+		76271381252D247700389FBC /* Post */ = {
+			isa = PBXGroup;
+			children = (
+				76271388252D250E00389FBC /* FacePileView.swift */,
+				76271383252D24AD00389FBC /* FeedPostTableViewCell.swift */,
+			);
+			path = Post;
+			sourceTree = "<group>";
+		};
 		7639BA2D251944400023850E /* Third Party */ = {
 			isa = PBXGroup;
 			children = (
@@ -936,12 +949,13 @@
 		EA38843423A15C9D00E8BF92 /* Feed */ = {
 			isa = PBXGroup;
 			children = (
-				6829F78524D0A61100207F6B /* User */,
-				EA5414D723EE16EB00390EF6 /* FeedList */,
 				EA5414D623EE16D500390EF6 /* Comment */,
 				EA5414D423EE164C00390EF6 /* Media */,
 				EA5414D523EE169E00390EF6 /* MediaSlider */,
+				76271381252D247700389FBC /* Post */,
 				764F774F246225E30063645A /* Seen By */,
+				6829F78524D0A61100207F6B /* User */,
+				763B42AB243274F400FF0E82 /* FeedTableViewController.swift */,
 				76A92443244E659600794859 /* FeedViewController.swift */,
 				76654789252BE44C00379BEF /* GroupFeedViewController.swift */,
 			);
@@ -1003,14 +1017,6 @@
 				76B95CE3242A7A3F007435AC /* CommentInputView.swift */,
 			);
 			path = Comment;
-			sourceTree = "<group>";
-		};
-		EA5414D723EE16EB00390EF6 /* FeedList */ = {
-			isa = PBXGroup;
-			children = (
-				763B42AB243274F400FF0E82 /* FeedTableViewController.swift */,
-			);
-			path = FeedList;
 			sourceTree = "<group>";
 		};
 		EA5414D923EE1D2B00390EF6 /* Feed */ = {
@@ -1670,6 +1676,7 @@
 				EABBF73524E7901300FE1F1F /* XMPPGroupRequests.swift in Sources */,
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
+				76271384252D24AD00389FBC /* FeedPostTableViewCell.swift in Sources */,
 				EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */,
 				EAA424FD24ECF1480025CBBE /* ChatGroupMessage+CoreDataProperties.swift in Sources */,
 				764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */,
@@ -1751,6 +1758,7 @@
 				EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */,
 				EAD476F22458F03700EF8591 /* ChatMedia+CoreDataClass.swift in Sources */,
 				766103A42461E65300728870 /* Receipt.swift in Sources */,
+				76271389252D250E00389FBC /* FacePileView.swift in Sources */,
 				EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */,
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				761BD0FE24B3EE0A00B567F6 /* InvitePeopleView.swift in Sources */,
