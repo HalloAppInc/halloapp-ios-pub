@@ -1391,13 +1391,13 @@ private class FacePileView: UIControl {
     }
     
     func configure(with post: FeedPost) {
-        let seenByUsers = MainAppContext.shared.feedData.seenByUsers(for: post)
+        let seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: post)
         
         var usersWithAvatars: [UserAvatar] = []
         var usersWithoutAvatar: [UserAvatar] = []
         
-        for user in seenByUsers {
-            let userAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: user.userId)
+        for receipt in seenReceipts {
+            let userAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: receipt.userId)
             if !userAvatar.isEmpty {
                 usersWithAvatars.append(userAvatar)
             } else {

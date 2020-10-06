@@ -165,7 +165,7 @@ class ProfileViewController: FeedTableViewController {
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
-        let newPostViewController = NewPostViewController(source: source) {
+        let newPostViewController = NewPostViewController(source: source, destination: .userFeed) {
             self.dismiss(animated: true)
         }
         newPostViewController.modalPresentationStyle = .fullScreen

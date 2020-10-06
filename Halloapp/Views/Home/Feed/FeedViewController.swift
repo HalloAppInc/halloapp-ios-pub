@@ -295,7 +295,7 @@ class FeedViewController: FeedTableViewController {
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
-        let newPostViewController = NewPostViewController(source: source) {
+        let newPostViewController = NewPostViewController(source: source, destination: .userFeed) {
             self.dismiss(animated: true)
         }
         newPostViewController.modalPresentationStyle = .fullScreen
@@ -336,11 +336,11 @@ class FeedViewController: FeedTableViewController {
             DDLogWarn("FeedViewController/notification/process/warning Missing post with id=[\(feedPostId)]")
         }
 
-        self.navigationController?.popToRootViewController(animated: false)
+        navigationController?.popToRootViewController(animated: false)
 
         switch metadata.contentType {
         case .comment:
-            self.showCommentsView(for: feedPostId, highlighting: metadata.contentId)
+            showCommentsView(for: feedPostId, highlighting: metadata.contentId)
 
         case .feedpost:
             if let feedPost = feedPost {

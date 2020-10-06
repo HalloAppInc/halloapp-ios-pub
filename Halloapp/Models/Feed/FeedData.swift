@@ -961,7 +961,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     // MARK: Retracts
 
     private func processPostRetract(_ postId: FeedPostID, completion: @escaping () -> Void) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
             managedObjectContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
 
             guard let feedPost = self.feedPost(with: postId, in: managedObjectContext) else {
@@ -1004,7 +1004,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func processCommentRetract(_ commentId: FeedPostCommentID, completion: @escaping () -> Void) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let feedComment = self.feedComment(with: commentId, in: managedObjectContext) else {
                 DDLogError("FeedData/retract-comment/error Missing comment. [\(commentId)]")
                 completion()
@@ -1066,7 +1066,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Mark post as "being retracted"
         feedPost.status = .retracting
-        self.save(self.viewContext)
+        save(viewContext)
 
         // Request to retract.
         service.retractFeedItem(feedPost) { result in
@@ -1087,7 +1087,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Mark comment as "being retracted".
         comment.status = .retracting
-        self.save(self.viewContext)
+        save(viewContext)
 
         // Request to retract.
         service.retractFeedItem(comment) { result in
@@ -1174,7 +1174,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
     
-    func seenByUsers(for feedPost: FeedPost) -> [FeedPostReceipt] {
+    func seenReceipts(for feedPost: FeedPost) -> [FeedPostReceipt] {
         let allContacts = contactStore.allRegisteredContacts(sorted: false)
         
         // Contacts that have seen the post go into the first section.
@@ -1198,6 +1198,31 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         users.sort(by: { $0.timestamp > $1.timestamp })
 
         return users
+    }
+
+    func sentReceipts(from userIds: Set<UserID>) -> [FeedPostReceipt] {
+
+        var unknownContactIDs = userIds
+
+        // Known contacts go first, sorted using Address Book sort.
+        var receipts: [FeedPostReceipt] = []
+        let knownContacts = contactStore.sortedContacts(withUserIds: Array(userIds))
+        for abContact in knownContacts {
+            receipts.append(FeedPostReceipt(userId: abContact.userId!, type: .sent, contactName: abContact.fullName, phoneNumber: abContact.phoneNumber, timestamp: Date()))
+            unknownContactIDs.remove(abContact.userId!)
+        }
+
+        // Unknown contacts are at the end, sorted by push name.
+        var receiptsForUnknownContacts: [FeedPostReceipt] = []
+        for userId in unknownContactIDs {
+            let contactName = contactStore.fullName(for: userId)
+            receiptsForUnknownContacts.append(FeedPostReceipt(userId: userId, type: .sent, contactName: contactName, phoneNumber: nil, timestamp: Date()))
+        }
+        receiptsForUnknownContacts.sort(by: { $0.contactName! < $1.contactName! })
+
+        receipts.append(contentsOf: receiptsForUnknownContacts)
+
+        return receipts
     }
 
     // MARK: Feed Media
@@ -1335,7 +1360,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Posting
 
-    func post(text: MentionText, media: [PendingMedia]) {
+    func post(text: MentionText, media: [PendingMedia], to destination: FeedPostDestination) {
         let postId: FeedPostID = UUID().uuidString
 
         // Create and save new FeedPost object.
@@ -1344,6 +1369,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
         feedPost.id = postId
         feedPost.userId = AppContext.shared.userData.userId
+        if case .groupFeed(let groupId) = destination {
+            feedPost.groupId = groupId
+        }
         feedPost.text = text.collapsedText
         feedPost.status = .sending
         feedPost.timestamp = Date()
@@ -1381,15 +1409,18 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
         }
 
-        // Save current audience in FeedPostInfo.
-        let postAudience = try! MainAppContext.shared.privacySettings.currentFeedAudience()
-        let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
-            receipts[userId] = Receipt()
+        // For items posted to user's feed we save current audience in FeedPostInfo.
+        // Not pre-populating audience for groups - will be querying participants from ChatData.
+        if case .userFeed = destination {
+            let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
+            let postAudience = try! MainAppContext.shared.privacySettings.currentFeedAudience()
+            let receipts = postAudience.userIds.reduce(into: [UserID : Receipt]()) { (receipts, userId) in
+                receipts[userId] = Receipt()
+            }
+            feedPostInfo.receipts = receipts
+            feedPostInfo.privacyListType = postAudience.privacyListType
+            feedPost.info = feedPostInfo
         }
-        let feedPostInfo = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as! FeedPostInfo
-        feedPostInfo.privacyListType = postAudience.privacyListType
-        feedPostInfo.receipts = receipts
-        feedPost.info = feedPostInfo
 
         save(managedObjectContext)
 
@@ -1436,7 +1467,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.save(managedObjectContext)
 
         // Now send data over the wire.
-        self.send(comment: feedComment)
+        send(comment: feedComment)
 
         return commentId
     }
@@ -1461,14 +1492,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         // Change status to "sending" and send.
         comment.status = .sending
-        self.save(managedObjectContext)
+        save(managedObjectContext)
 
-        self.send(comment: comment)
+        send(comment: comment)
     }
 
     private func send(comment: FeedPostComment) {
         let commentId = comment.id
-        service.publishComment(comment, groupId: nil) { result in
+        let groupId = comment.post.groupId
+        service.publishComment(comment, groupId: groupId) { result in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPostComment(with: commentId) { (feedComment) in
@@ -1487,15 +1519,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func send(post: FeedPost) {
-        guard let postAudience = post.audience else {
-            DDLogError("FeedData/send-post/\(post.id) No audience set")
-            post.status = .sendError
-            save(post.managedObjectContext!)
-            return
+        let feed: Feed
+        if let groupId = post.groupId {
+            feed = .group(groupId)
+        } else {
+            guard let postAudience = post.audience else {
+                DDLogError("FeedData/send-post/\(post.id) No audience set")
+                post.status = .sendError
+                save(post.managedObjectContext!)
+                return
+            }
+            feed = .personal(postAudience)
         }
 
         let postId = post.id
-        service.publishPost(post, feed: .personal(postAudience)) { result in
+        service.publishPost(post, feed: feed) { result in
             switch result {
             case .success(let timestamp):
                 self.updateFeedPost(with: postId) { (feedPost) in
@@ -1519,7 +1557,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             return
         }
 
-        let predicate = NSPredicate(format: "statusValue == %d AND timestamp > %@", FeedPost.Status.sent.rawValue, NSDate(timeIntervalSinceNow: -Date.days(7)))
+        let predicate = NSPredicate(format: "statusValue == %d AND groupId == nil AND timestamp > %@", FeedPost.Status.sent.rawValue, NSDate(timeIntervalSinceNow: -Date.days(7)))
         let posts = feedPosts(predicate: predicate, in: viewContext)
 
         var postsToShare: [FeedPost] = []

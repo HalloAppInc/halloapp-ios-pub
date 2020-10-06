@@ -194,35 +194,37 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
     }
 
     private func reloadData(from feedPost: FeedPost) {
-        let allContacts: [ABContact]
-        // Only use userIds from receipts if privacy list was actually saved into feedPost.info.
-        if let receiptUserIds = feedPost.info?.receipts?.keys, feedPost.info?.privacyListType != nil {
-            allContacts = MainAppContext.shared.contactStore.sortedContacts(withUserIds: Array(receiptUserIds))
+        let postAudience: Set<UserID>
+        if let groupId = feedPost.groupId {
+            if let groupMembers = MainAppContext.shared.chatData.chatGroup(groupId: groupId)?.members {
+                postAudience = Set(groupMembers.map({ $0.userId }))
+            } else {
+                postAudience = []
+            }
         } else {
-            allContacts = MainAppContext.shared.contactStore.allInNetworkContacts(sorted: true)
-        }
-
-        let seenRows: [FeedPostReceipt] = MainAppContext.shared.feedData.seenByUsers(for: feedPost)
-
-        var addedUserIds = Set(seenRows.map(\.userId))
-
-        // Hide self.
-        addedUserIds.insert(AppContext.shared.userData.userId)
-
-        // All other contacts go into "delivered" section.
-        var deliveredRows = [FeedPostReceipt]()
-        allContacts.forEach { (abContact) in
-            if addedUserIds.insert(abContact.userId!).inserted {
-                deliveredRows.append(FeedPostReceipt(userId: abContact.userId!, type: .sent, contactName: abContact.fullName, phoneNumber: abContact.phoneNumber, timestamp: Date()))
+            // Only use userIds from receipts if privacy list was actually saved into feedPost.info.
+            if let receiptUserIds = feedPost.info?.receipts?.keys, feedPost.info?.privacyListType != nil {
+                postAudience = Set(receiptUserIds)// MainAppContext.shared.contactStore.sortedContacts(withUserIds: Array(receiptUserIds))
+            } else {
+                postAudience = Set(MainAppContext.shared.contactStore.allInNetworkContactIDs())
             }
         }
 
+        let seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: feedPost)
+
+        // Filter out usedIds in "Seen by" section from "Sent to" section.
+        var userIdsInSeenBySection = Set(seenReceipts.map(\.userId))
+        userIdsInSeenBySection.insert(AppContext.shared.userData.userId)
+
+        // All other contacts go into "Sent to" section.
+        let sentReceipts = MainAppContext.shared.feedData.sentReceipts(from: postAudience.subtracting(userIdsInSeenBySection))
+
         var snapshot = NSDiffableDataSourceSnapshot<FeedPostReceipt.ReceiptType, FeedPostReceipt>()
         snapshot.appendSections([ .seen ])
-        snapshot.appendItems(seenRows, toSection: .seen)
-        if !deliveredRows.isEmpty {
+        snapshot.appendItems(seenReceipts, toSection: .seen)
+        if !sentReceipts.isEmpty {
             snapshot.appendSections([ .sent ])
-            snapshot.appendItems(deliveredRows, toSection: .sent)
+            snapshot.appendItems(sentReceipts, toSection: .sent)
         }
         dataSource?.apply(snapshot, animatingDifferences: viewIfLoaded?.window != nil)
     }

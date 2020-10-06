@@ -121,6 +121,7 @@
 		766492232450DDB9009BC368 /* BadgedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492222450DDB9009BC368 /* BadgedButton.swift */; };
 		766492252450E04D009BC368 /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492242450E04D009BC368 /* BadgeView.swift */; };
 		76649227245119F2009BC368 /* FeedNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76649226245119F2009BC368 /* FeedNotifications.swift */; };
+		7665478A252BE44C00379BEF /* GroupFeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76654789252BE44C00379BEF /* GroupFeedViewController.swift */; };
 		76714DD9250AC3B800779C4E /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76714DD8250AC3B800779C4E /* DataStore.swift */; };
 		768123972485A240008C5216 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123962485A240008C5216 /* NotificationService.swift */; };
 		7681239B2485A240008C5216 /* Notification Service Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 768123942485A240008C5216 /* Notification Service Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -413,6 +414,7 @@
 		766492222450DDB9009BC368 /* BadgedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgedButton.swift; path = HalloApp/Components/Views/BadgedButton.swift; sourceTree = SOURCE_ROOT; };
 		766492242450E04D009BC368 /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgeView.swift; path = HalloApp/Components/Views/BadgeView.swift; sourceTree = SOURCE_ROOT; };
 		76649226245119F2009BC368 /* FeedNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedNotifications.swift; path = HalloApp/Models/Feed/FeedNotifications.swift; sourceTree = SOURCE_ROOT; };
+		76654789252BE44C00379BEF /* GroupFeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GroupFeedViewController.swift; path = HalloApp/Views/Home/Feed/GroupFeedViewController.swift; sourceTree = SOURCE_ROOT; };
 		76714DD8250AC3B800779C4E /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
 		768123942485A240008C5216 /* Notification Service Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Notification Service Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		768123962485A240008C5216 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
@@ -941,6 +943,7 @@
 				EA5414D523EE169E00390EF6 /* MediaSlider */,
 				764F774F246225E30063645A /* Seen By */,
 				76A92443244E659600794859 /* FeedViewController.swift */,
+				76654789252BE44C00379BEF /* GroupFeedViewController.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -1683,6 +1686,7 @@
 				76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */,
 				766103AA2461F08A00728870 /* FeedPostInfo+CoreDataClass.swift in Sources */,
 				76538092243D4B33000AD9A1 /* FeedPostComment+CoreDataClass.swift in Sources */,
+				7665478A252BE44C00379BEF /* GroupFeedViewController.swift in Sources */,
 				76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */,
 				EACC34CC24FA0322007D6FC6 /* ChatGroupMessageInfo+CoreDataProperties.swift in Sources */,
 				76B5B52F2501EEBE0055E712 /* UNExtensions.swift in Sources */,

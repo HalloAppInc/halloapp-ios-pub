@@ -525,10 +525,18 @@ class ChatGroupViewController: UIViewController, UITableViewDelegate, ChatInputV
 }
 
 extension ChatGroupViewController: TitleViewDelegate {
-    fileprivate func titleView(_ titleView: TitleView) {
+    fileprivate func titleViewRequestsOpenGroupInfo(_ titleView: TitleView) {
         let vc = GroupInfoViewController(for: groupId)
         vc.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(vc, animated: true)
+    }
+
+    fileprivate func titleViewRequestsOpenGroupFeed(_ titleView: TitleView) {
+        if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+            let vc = GroupFeedViewController(groupId: groupId, groupName: group.name)
+            vc.hidesBottomBarWhenPushed = true
+            navigationController?.pushViewController(vc, animated: true)
+        }
     }
 }
 
@@ -587,7 +595,8 @@ fileprivate struct TrackedChatGroupMessage {
 }
 
 fileprivate protocol TitleViewDelegate: AnyObject {
-    func titleView(_ titleView: TitleView)
+    func titleViewRequestsOpenGroupInfo(_ titleView: TitleView)
+    func titleViewRequestsOpenGroupFeed(_ titleView: TitleView)
 }
 
 fileprivate class TitleView: UIView {
@@ -625,9 +634,16 @@ fileprivate class TitleView: UIView {
         hStack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoGroupInfo(_:)))
         isUserInteractionEnabled = true
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap(gesture:)))
         addGestureRecognizer(tapGesture)
+
+        let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(gesture:)))
+        doubleTapGesture.numberOfTapsRequired = 2
+        addGestureRecognizer(doubleTapGesture)
+
+        tapGesture.require(toFail: doubleTapGesture)
     }
     
     private lazy var avatarView: AvatarView = {
@@ -661,8 +677,16 @@ fileprivate class TitleView: UIView {
         return label
     }()
     
-    @objc func gotoGroupInfo(_ sender: UIView) {
-        delegate?.titleView(self)
+    @objc func handleSingleTap(gesture: UITapGestureRecognizer) {
+        if gesture.state == .ended {
+            delegate?.titleViewRequestsOpenGroupInfo(self)
+        }
+    }
+
+    @objc func handleDoubleTap(gesture: UITapGestureRecognizer) {
+        if gesture.state == .ended {
+            delegate?.titleViewRequestsOpenGroupFeed(self)
+        }
     }
 }
 

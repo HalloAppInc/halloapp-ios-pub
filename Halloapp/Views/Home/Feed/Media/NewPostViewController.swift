@@ -35,9 +35,10 @@ typealias DidPickVideoCallback = (URL) -> Void
 
 final class NewPostViewController: UIViewController {
 
-    init(source: NewPostMediaSource, didFinish: @escaping (() -> Void)) {
+    init(source: NewPostMediaSource, destination: FeedPostDestination, didFinish: @escaping (() -> Void)) {
         self.didFinish = didFinish
         self.state = NewPostState(mediaSource: source)
+        self.destination = destination
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -58,6 +59,7 @@ final class NewPostViewController: UIViewController {
 
     private let didFinish: (() -> Void)
     private var state: NewPostState
+    private let destination: FeedPostDestination
 
     private lazy var containedNavigationController = {
         return makeNavigationController()
@@ -81,6 +83,7 @@ final class NewPostViewController: UIViewController {
     private func makeComposerViewController() -> UIViewController {
         return PostComposerViewController(
             mediaToPost: state.pendingMedia,
+            destination: destination,
             initialInput: state.pendingInput,
             showCancelButton: state.isPostComposerCancellable,
             willDismissWithInput: { [weak self] input in self?.state.pendingInput = input },

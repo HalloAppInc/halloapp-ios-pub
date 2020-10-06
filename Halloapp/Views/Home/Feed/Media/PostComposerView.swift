@@ -35,6 +35,7 @@ class PostComposerViewController: UIViewController {
     private let showCancelButton: Bool
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
+    private let destination: FeedPostDestination
     private var shouldAutoPlay = GenericObservable(false)
     private var postComposerView: PostComposerView?
     private var shareButton: UIBarButtonItem!
@@ -44,12 +45,14 @@ class PostComposerViewController: UIViewController {
 
     init(
         mediaToPost media: [PendingMedia],
+        destination: FeedPostDestination,
         initialInput: MentionInput,
         showCancelButton: Bool,
         willDismissWithInput: ((MentionInput) -> Void)? = nil,
         didFinish: @escaping (Bool, [PendingMedia]) -> Void)
     {
         self.mediaItems.value = media
+        self.destination = destination
         self.showCancelButton = showCancelButton
         self.willDismissWithInput = willDismissWithInput
         self.didFinish = didFinish
@@ -127,7 +130,7 @@ class PostComposerViewController: UIViewController {
 
     @objc private func shareAction() {
         let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
-        MainAppContext.shared.feedData.post(text: mentionText, media: mediaItems.value)
+        MainAppContext.shared.feedData.post(text: mentionText, media: mediaItems.value, to: destination)
         didFinish(false, [])
     }
 

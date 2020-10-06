@@ -16,6 +16,11 @@ import UIKit
 
 public typealias FeedPostID = String
 
+public enum FeedPostDestination {
+    case userFeed
+    case groupFeed(GroupID)
+}
+
 public typealias FeedPostCommentID = String
 
 public enum FeedMediaType: Int {
