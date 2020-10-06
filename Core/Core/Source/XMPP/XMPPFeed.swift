@@ -112,9 +112,13 @@ public struct XMPPFeedPost: FeedPostProtocol {
      </post >
      */
     public init?(itemElement item: XMLElement) {
+        // Feed uses "uid" (legacy name) while group feed uses "publisher_uid".
         guard let id = item.attributeStringValue(forName: "id"),
-            let userId = item.attributeStringValue(forName: "uid"),
-            let protoContainer = Clients_Container.feedItemContainer(from: item), protoContainer.hasPost else { return nil }
+              let userId = item.attributeStringValue(forName: "uid") ?? item.attributeStringValue(forName: "publisher_uid"),
+              let protoContainer = Clients_Container.feedItemContainer(from: item), protoContainer.hasPost else
+        {
+            return nil
+        }
 
         let timestamp = item.attributeDoubleValue(forName: "timestamp")
         guard timestamp > 0 else { return nil }
