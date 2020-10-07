@@ -611,12 +611,8 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     func makeUIView(context: Context) -> MediaCarouselView {
         let feedMedia = context.coordinator.parent.feedMediaItems
         let carouselView = MediaCarouselView(media: feedMedia, configuration: MediaCarouselViewConfiguration.default)
-        carouselView.indexChangeDelegate = context.coordinator
+        carouselView.delegate = context.coordinator
         carouselView.shouldAutoPlay = context.coordinator.parent.shouldAutoPlay.value
-
-        let gestureRecognizer = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped))
-        carouselView.addGestureRecognizer(gestureRecognizer)
-
         return carouselView
     }
 
@@ -631,18 +627,18 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         Coordinator(self)
     }
 
-    class Coordinator: MediaIndexChangeListener {
+    class Coordinator: MediaCarouselViewDelegate {
         var parent: MediaPreviewSlider
 
         init(_ view: MediaPreviewSlider) {
             parent = view
         }
 
-        func indexChanged(position: Int) {
-            parent.currentPosition.value = position
+        func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
+            parent.currentPosition.value = newIndex
         }
 
-        @objc func tapped(gesture: UITapGestureRecognizer) {
+        func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
             PostComposerView.stopTextEdit()
         }
     }

@@ -11,8 +11,9 @@ import Combine
 import Core
 import UIKit
 
-protocol MediaIndexChangeListener: class {
-    func indexChanged(position: Int)
+protocol MediaCarouselViewDelegate: AnyObject {
+    func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int)
+    func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int)
 }
 
 struct MediaCarouselViewConfiguration {
@@ -53,7 +54,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     public var shouldAutoPlay = false
 
     private var collectionBottomConstraint: NSLayoutConstraint!
-    weak var indexChangeDelegate: MediaIndexChangeListener?
+    weak var delegate: MediaCarouselViewDelegate?
 
     private var currentIndex = 0 {
         didSet {
@@ -69,8 +70,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                     playCurrentVideo()
                 }
 
-                if let delegate = indexChangeDelegate {
-                    delegate.indexChanged(position: currentIndex)
+                if let delegate = delegate {
+                    delegate.mediaCarouselView(self, indexChanged: currentIndex)
                 }
             }
         }
@@ -125,6 +126,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         collectionView.isPagingEnabled = configuration.isPagingEnabled
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .clear
+        collectionView.allowsSelection = true
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
     }()
@@ -353,6 +355,12 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             currentIndex = media.count - 1 - pageIndex
         } else {
             currentIndex = pageIndex
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if let delegate = delegate {
+            delegate.mediaCarouselView(self, didTapMediaAtIndex: indexPath.item)
         }
     }
 
