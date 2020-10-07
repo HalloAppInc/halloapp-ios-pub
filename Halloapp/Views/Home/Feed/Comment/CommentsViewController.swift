@@ -216,8 +216,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         tableView.tableHeaderView = headerView
 
         if let mediaView = headerView.mediaView {
-            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(showPostViewController))
-            mediaView.addGestureRecognizer(tapGesture)
+            mediaView.delegate = self
         }
 
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
@@ -350,14 +349,6 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
             showUserFeed(for: feedPost.userId)
         }
-    }
-
-    @objc private func showPostViewController() {
-        let postViewController = FeedPostViewController(feedPostId: feedPostId)
-        postViewController.modalPresentationStyle = .overFullScreen
-        postViewController.modalTransitionStyle = .crossDissolve
-        postViewController.delegate = self
-        present(postViewController, animated: true)
     }
 
     private func showUserFeed(for userID: UserID) {
@@ -721,6 +712,25 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
     func textLabelDidRequestToExpand(_ label: TextLabel) {
         // Text in comments is never collapsed.
+    }
+}
+
+extension CommentsViewController: MediaCarouselViewDelegate {
+
+    func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
+        if let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPostId) {
+            feedDataItem.currentMediaIndex = index
+        }
+        let postViewController = FeedPostViewController(feedPostId: feedPostId)
+        postViewController.modalPresentationStyle = .overFullScreen
+        postViewController.modalTransitionStyle = .crossDissolve
+        postViewController.delegate = self
+        present(postViewController, animated: true)
+
+    }
+
+    func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
+
     }
 }
 
