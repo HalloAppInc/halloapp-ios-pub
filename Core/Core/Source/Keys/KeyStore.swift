@@ -5,12 +5,13 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Combine
+import CoreData
 import CryptoKit
 import CryptoSwift
 import Foundation
 import Sodium
-import XMPPFramework
 
 open class KeyStore {
     public let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.keys")
@@ -425,31 +426,15 @@ extension KeyStore {
         
         return keyBundle
     }
-    
-    public func receiveSessionSetup(for userId: UserID, from entry: XMLElement) -> KeyBundle? {
+
+    public func receiveSessionSetup(for userId: UserID, from encryptedPayload: Data, publicKey inboundIdentityPublicEdKey: Data, oneTimeKeyID: Int?) -> KeyBundle? {
         DDLogInfo("KeyStore/receiveSessionSetup \(userId)")
         let sodium = Sodium()
-        
-        guard let enc = entry.element(forName: "enc") else { return nil }
-        guard let encStringValue = enc.stringValue else { return nil }
-        
-        var inboundOneTimePreKeyId: Int = -1
-        
-        guard let inboundIdentityPublicEdKeyBase64 = enc.attributeStringValue(forName: "identity_key") else {
-            DDLogInfo("KeyStore/receiveSessionSetup/user/\(userId)/invalidIdentitykey")
-            return nil
-        }
-        
-        guard let inboundIdentityPublicEdKey = Data(base64Encoded: inboundIdentityPublicEdKeyBase64) else { return nil }
+
+        let inboundOneTimePreKeyId = oneTimeKeyID ?? -1
         
         guard let x25519Key = sodium.sign.convertToX25519PublicKey(publicKey: [UInt8](inboundIdentityPublicEdKey)) else { return nil }
         let I_initiator = Data(x25519Key)
-        
-        if let inboundOneTimePreKeyIdStr = enc.attributeStringValue(forName: "one_time_pre_key_id") {
-            inboundOneTimePreKeyId = Int(inboundOneTimePreKeyIdStr) ??  -1
-        }
-        
-        guard let encryptedPayload = Data(base64Encoded: encStringValue, options: .ignoreUnknownCharacters) else { return nil }
         
         let inboundEphemeralPublicKey = encryptedPayload[0...31]
         let inboundEphemeralKeyId = encryptedPayload[32...35]
@@ -605,21 +590,15 @@ extension KeyStore {
         }
         return nil
     }
-    
-    public func decryptMessage(for userId: String, from entry: XMLElement, keyBundle: KeyBundle, isNewReceiveSession: Bool) -> Data? {
-        DDLogInfo("KeyStore/decryptMessage/for/\(userId)")
-        
-        guard let enc = entry.element(forName: "enc") else {
-            DDLogDebug("KeyStore/decryptMessage/no enc")
+
+    public func decryptMessage(for userId: String, encryptedPayload: Data, keyBundle: KeyBundle, isNewReceiveSession: Bool) -> Data? {
+
+        // 44 byte header + 32 byte HMAC
+        guard encryptedPayload.count >= 76 else {
+            DDLogError("KeyStore/decryptMessage/error encryptedPayload too small [\(encryptedPayload.count)]")
             return nil
         }
-        guard let encStringValue = enc.stringValue else { return nil }
-        guard !encStringValue.isEmpty else {
-            DDLogDebug("KeyStore/decryptMessage/empty enc")
-            return nil
-        }
-        guard let encryptedPayload = Data(base64Encoded: encStringValue, options: .ignoreUnknownCharacters) else { return nil }
-        
+
         let inboundEphemeralPublicKey = encryptedPayload[0...31]
         let inboundEphemeralKeyId = encryptedPayload[32...35]
         let inboundPreviousChainLength = encryptedPayload[36...39]
@@ -746,8 +725,9 @@ extension KeyStore {
         }
         
         /*TODO: End section needs refactoring */
-        
-        guard !messageKey.isEmpty else {
+
+        // 32 byte AES + 32 byte HMAC + 16 byte IV
+        guard messageKey.count >= 80 else {
             DDLogInfo("KeyStore/decryptMessage/invalidMessageKey")
             return nil
         }
@@ -950,5 +930,35 @@ public struct KeyBundle {
 
         self.outboundIdentityPublicEdKey = outboundIdentityPublicEdKey
         self.outboundOneTimePreKeyId = outboundOneTimePreKeyId
+    }
+}
+
+public extension MessageKeyBundle {
+    var keyBundle: KeyBundle? {
+        guard let inboundIdentityPublicEdKey = inboundIdentityPublicEdKey else {
+            DDLogInfo("MessageKeyBundle/keyBundle missing inboundIdentityPublicEdKey")
+            return nil
+        }
+        return KeyBundle(
+            userId: userId,
+            inboundIdentityPublicEdKey: inboundIdentityPublicEdKey,
+
+            inboundEphemeralPublicKey: inboundEphemeralPublicKey,
+            inboundEphemeralKeyId: inboundEphemeralKeyId,
+            inboundChainKey: inboundChainKey,
+            inboundPreviousChainLength: inboundPreviousChainLength,
+            inboundChainIndex: inboundChainIndex,
+
+            rootKey: rootKey,
+
+            outboundEphemeralPrivateKey: outboundEphemeralPrivateKey,
+            outboundEphemeralPublicKey: outboundEphemeralPublicKey,
+            outboundEphemeralKeyId: outboundEphemeralKeyId,
+            outboundChainKey: outboundChainKey,
+            outboundPreviousChainLength: outboundPreviousChainLength,
+            outboundChainIndex: outboundChainIndex,
+
+            outboundIdentityPublicEdKey: outboundIdentityPublicEdKey,
+            outboundOneTimePreKeyId: outboundOneTimePreKeyId)
     }
 }

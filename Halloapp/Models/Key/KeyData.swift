@@ -211,28 +211,9 @@ extension KeyData {
         group.enter()
 
         self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            if let savedMessageKeyBundle = self.keyStore.messageKeyBundle(for: userId) {
+            if let savedKeyBundle = self.keyStore.messageKeyBundle(for: userId)?.keyBundle {
 
-                keyBundle = KeyBundle(userId: savedMessageKeyBundle.userId,
-                                      inboundIdentityPublicEdKey: savedMessageKeyBundle.inboundIdentityPublicEdKey!,
-
-                                      inboundEphemeralPublicKey: savedMessageKeyBundle.inboundEphemeralPublicKey,
-                                      inboundEphemeralKeyId: savedMessageKeyBundle.inboundEphemeralKeyId,
-                                      inboundChainKey: savedMessageKeyBundle.inboundChainKey,
-                                      inboundPreviousChainLength: savedMessageKeyBundle.inboundPreviousChainLength,
-                                      inboundChainIndex: savedMessageKeyBundle.inboundChainIndex,
-
-                                      rootKey: savedMessageKeyBundle.rootKey,
-
-                                      outboundEphemeralPrivateKey: savedMessageKeyBundle.outboundEphemeralPrivateKey,
-                                      outboundEphemeralPublicKey: savedMessageKeyBundle.outboundEphemeralPublicKey,
-                                      outboundEphemeralKeyId: savedMessageKeyBundle.outboundEphemeralKeyId,
-                                      outboundChainKey: savedMessageKeyBundle.outboundChainKey,
-                                      outboundPreviousChainLength: savedMessageKeyBundle.outboundPreviousChainLength,
-                                      outboundChainIndex: savedMessageKeyBundle.outboundChainIndex,
-
-                                      outboundIdentityPublicEdKey: savedMessageKeyBundle.outboundIdentityPublicEdKey,
-                                      outboundOneTimePreKeyId: savedMessageKeyBundle.outboundOneTimePreKeyId)
+                keyBundle = savedKeyBundle
 
                 group.leave()
 
@@ -263,42 +244,60 @@ extension KeyData {
     }
 
     public func unwrapMessage(for userId: String, from entry: XMLElement) -> Data? {
+        DDLogInfo("KeyData/unwrapMessage/for/\(userId)")
 
-        guard let enc = entry.element(forName: "enc") else { return nil }
-        guard enc.stringValue != nil else { return nil }
+        guard let enc = entry.element(forName: "enc") else {
+            DDLogDebug("KeyData/unwrapMessage/no enc")
+            return nil
+        }
+        guard let encStringValue = enc.stringValue, !encStringValue.isEmpty else {
+            DDLogDebug("KeyData/unwrapMessage/empty enc")
+            return nil
+        }
+        guard let encryptedPayload = Data(base64Encoded: encStringValue, options: .ignoreUnknownCharacters) else {
+            DDLogError("KeyData/unwrapMessage/error base64 decoding failed")
+            return nil
+        }
 
-        var keyBundle: KeyBundle? = nil
-        var isNewReceiveSession = false
+        let oneTimeKeyID: Int? = {
+            guard let inboundOneTimePreKeyIdStr = enc.attributeStringValue(forName: "one_time_pre_key_id") else {
+                return nil
+            }
+            return Int(inboundOneTimePreKeyIdStr)
+        }()
 
-        if let messageKeyBundle = self.keyStore.messageKeyBundle(for: userId) {
+        let publicKey: Data? = {
+            guard let inboundIdentityPublicEdKeyBase64 = enc.attributeStringValue(forName: "identity_key") else {
+                return nil
+            }
+            return Data(base64Encoded: inboundIdentityPublicEdKeyBase64)
+        }()
 
-            keyBundle = KeyBundle(userId: messageKeyBundle.userId,
-                                  inboundIdentityPublicEdKey: messageKeyBundle.inboundIdentityPublicEdKey!,
+        return decryptPayload(for: userId, encryptedPayload: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID)
+    }
 
-                                  inboundEphemeralPublicKey: messageKeyBundle.inboundEphemeralPublicKey,
-                                  inboundEphemeralKeyId: messageKeyBundle.inboundEphemeralKeyId,
-                                  inboundChainKey: messageKeyBundle.inboundChainKey,
-                                  inboundPreviousChainLength: messageKeyBundle.inboundPreviousChainLength,
-                                  inboundChainIndex: messageKeyBundle.inboundChainIndex,
+    public func decryptPayload(for userId: String, encryptedPayload: Data, publicKey: Data?, oneTimeKeyID: Int?) -> Data? {
 
-                                  rootKey: messageKeyBundle.rootKey,
+        var keyBundle: KeyBundle
+        var isNewReceiveSession: Bool
 
-                                  outboundEphemeralPrivateKey: messageKeyBundle.outboundEphemeralPrivateKey,
-                                  outboundEphemeralPublicKey: messageKeyBundle.outboundEphemeralPublicKey,
-                                  outboundEphemeralKeyId: messageKeyBundle.outboundEphemeralKeyId,
-                                  outboundChainKey: messageKeyBundle.outboundChainKey,
-                                  outboundPreviousChainLength: messageKeyBundle.outboundPreviousChainLength,
-                                  outboundChainIndex: messageKeyBundle.outboundChainIndex)
+        if let savedKeyBundle = self.keyStore.messageKeyBundle(for: userId)?.keyBundle {
+            keyBundle = savedKeyBundle
+            isNewReceiveSession = false
         } else {
-            keyBundle = self.keyStore.receiveSessionSetup(for: userId, from: entry)
+            guard let publicKey = publicKey else {
+                DDLogError("KeyData/decryptPayload/error missing public key")
+                return nil
+            }
+            guard let newKeyBundle = keyStore.receiveSessionSetup(for: userId, from: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID) else {
+                DDLogError("KeyData/decryptPayload/error receiveSessionSetup failed")
+                return nil
+            }
+            keyBundle = newKeyBundle
             isNewReceiveSession = true
         }
 
-        if let keyBundle = keyBundle {
-            return self.keyStore.decryptMessage(for: userId, from: entry, keyBundle: keyBundle, isNewReceiveSession: isNewReceiveSession)
-        }
-
-        return nil
+        return keyStore.decryptMessage(for: userId, encryptedPayload: encryptedPayload, keyBundle: keyBundle, isNewReceiveSession: isNewReceiveSession)
     }
 
 }

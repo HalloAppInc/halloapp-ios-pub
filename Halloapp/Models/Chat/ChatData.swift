@@ -2803,9 +2803,16 @@ extension XMPPChatMessage {
         self.timestamp = TimeInterval(pbChat.timestamp)
 
         let protoChat: Clients_ChatMessage
-        if false {
-            // TODO: Handle encrypted payloads
-            return nil
+        if let decryptedData = MainAppContext.shared.keyData.decryptPayload(
+            for: fromUserID,
+            encryptedPayload: pbChat.encPayload,
+            publicKey: pbChat.publicKey,
+            oneTimeKeyID: Int(pbChat.oneTimePreKeyID)),
+           let protoContainer = try? Clients_Container(serializedData: decryptedData),
+           protoContainer.hasChatMessage
+        {
+            // Decrypted message
+            protoChat = protoContainer.chatMessage
         } else if let protoContainer = try? Clients_Container(serializedData: pbChat.payload),
             protoContainer.hasChatMessage
         {
