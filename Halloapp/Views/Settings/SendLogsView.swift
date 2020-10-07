@@ -53,7 +53,7 @@ struct EmailLogsView: UIViewControllerRepresentable {
         let timeStr = formatter.string(from: Date())
 
         let vc = MFMailComposeViewController()
-        vc.setSubject("iOS Logs \(timeStr)")
+        vc.setSubject("iOS Logs \(timeStr) [\(MainAppContext.appVersionForXMPP)]")
         vc.setToRecipients(["iphone-support@halloapp.com"])
         vc.setMessageBody("short description of issue (if needed): \n", isHTML:false)
         vc.mailComposeDelegate = context.coordinator
