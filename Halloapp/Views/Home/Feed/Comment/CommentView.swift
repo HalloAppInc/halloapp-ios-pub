@@ -201,6 +201,8 @@ class CommentsTableHeaderView: UIView {
         return label
     }()
 
+    private(set) var mediaView: MediaCarouselView?
+
     let textLabel: TextLabel = {
         let label = TextLabel()
         label.numberOfLines = 0
@@ -268,6 +270,11 @@ class CommentsTableHeaderView: UIView {
         contactNameLabel.text = MainAppContext.shared.contactStore.fullName(for: feedPost.userId)
 
         // Media
+        if let mediaView = mediaView {
+            vStack.removeArrangedSubview(mediaView)
+            mediaView.removeFromSuperview()
+            self.mediaView = nil
+        }
         if !feedPost.orderedMedia.isEmpty, let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id) {
             feedDataItem.loadImages()
 
@@ -282,6 +289,7 @@ class CommentsTableHeaderView: UIView {
                 return constraint
             }())
             vStack.insertArrangedSubview(mediaView, at: vStack.arrangedSubviews.count - 1)
+            self.mediaView = mediaView
         }
 
         // Text

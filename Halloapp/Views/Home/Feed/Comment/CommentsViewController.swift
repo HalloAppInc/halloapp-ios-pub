@@ -215,6 +215,11 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         headerView.profilePictureButton.addTarget(self, action: #selector(showUserFeedForPostAuthor), for: .touchUpInside)
         tableView.tableHeaderView = headerView
 
+        if let mediaView = headerView.mediaView {
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(showPostViewController))
+            mediaView.addGestureRecognizer(tapGesture)
+        }
+
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "post.id = %@", feedPostId)
         fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPostComment.timestamp, ascending: true) ]
@@ -345,6 +350,14 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
             showUserFeed(for: feedPost.userId)
         }
+    }
+
+    @objc private func showPostViewController() {
+        let postViewController = FeedPostViewController(feedPostId: feedPostId)
+        postViewController.modalPresentationStyle = .overFullScreen
+        postViewController.modalTransitionStyle = .crossDissolve
+        postViewController.delegate = self
+        present(postViewController, animated: true)
     }
 
     private func showUserFeed(for userID: UserID) {
@@ -708,6 +721,24 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
     func textLabelDidRequestToExpand(_ label: TextLabel) {
         // Text in comments is never collapsed.
+    }
+}
+
+extension CommentsViewController: FeedPostViewControllerDelegate {
+
+    func feedPostViewController(_ viewController: FeedPostViewController, didRequestShowProfileFor userId: UserID) {
+        showUserFeed(for: userId)
+    }
+
+    func feedPostViewController(_ viewController: FeedPostViewController, didRequestShowCommentsFor postId: FeedPostID) {
+        commentsInputView.showKeyboard(from: self)
+    }
+
+    func feedPostViewController(_ viewController: FeedPostViewController, didRequestMessagePublisherOf postId: FeedPostID) {
+        if let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId),
+           let navigationController = navigationController {
+            navigationController.pushViewController(ChatViewController(for: feedDataItem.userId, with: postId, at: Int32(feedDataItem.currentMediaIndex ?? 0)), animated: true)
+        }
     }
 }
 
