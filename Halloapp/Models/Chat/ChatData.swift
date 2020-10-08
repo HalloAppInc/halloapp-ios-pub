@@ -984,6 +984,19 @@ extension ChatData {
             quoted.text = feedPost.text
             quoted.message = chatMessage
 
+            quoted.mentions = {
+                guard let feedMentions = feedPost.mentions, !feedMentions.isEmpty else { return nil }
+                var chatMentions = Set<ChatMention>()
+                for feedMention in feedMentions {
+                    let chatMention = NSEntityDescription.insertNewObject(forEntityName: ChatMention.entity().name!, into: managedObjectContext) as! ChatMention
+                    chatMention.index = feedMention.index
+                    chatMention.userID = feedMention.userID
+                    chatMention.name = feedMention.name
+                    chatMentions.insert(chatMention)
+                }
+                return chatMentions
+            }()
+
             if let feedPostMedia = feedPost.media?.first(where: { $0.order == feedPostMediaIndex }) {
                 let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
                 if feedPostMedia.type == .image {
@@ -1357,6 +1370,19 @@ extension ChatData {
                 quoted.userId = feedPost.userId
                 quoted.text = feedPost.text
                 quoted.message = chatMessage
+
+                quoted.mentions = {
+                    guard let feedMentions = feedPost.mentions, !feedMentions.isEmpty else { return nil }
+                    var chatMentions = Set<ChatMention>()
+                    for feedMention in feedMentions {
+                        let chatMention = NSEntityDescription.insertNewObject(forEntityName: ChatMention.entity().name!, into: managedObjectContext) as! ChatMention
+                        chatMention.index = feedMention.index
+                        chatMention.userID = feedMention.userID
+                        chatMention.name = feedMention.name
+                        chatMentions.insert(chatMention)
+                    }
+                    return chatMentions
+                }()
                 
                 if feedPost.media != nil {
                     if let feedPostMedia = feedPost.media!.first(where: { $0.order == xmppChatMessage.feedPostMediaIndex}) {

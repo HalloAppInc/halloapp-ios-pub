@@ -24,6 +24,7 @@ extension ChatQuoted {
     @NSManaged var text: String?
     @NSManaged var userId: String?
     @NSManaged var media: Set<ChatQuotedMedia>?
+    @NSManaged var mentions: Set<ChatMention>?
     @NSManaged var message: ChatMessage
     
     var type: ChatQuoteType {
@@ -39,6 +40,13 @@ extension ChatQuoted {
         get {
             guard let media = self.media else { return [] }
             return media.sorted { $0.order < $1.order }
+        }
+    }
+
+    public var orderedMentions: [ChatMention] {
+        get {
+            guard let mentions = self.mentions else { return [] }
+            return mentions.sorted { $0.index < $1.index }
         }
     }
     

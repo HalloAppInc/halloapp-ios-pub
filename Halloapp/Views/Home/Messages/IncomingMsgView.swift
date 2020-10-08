@@ -327,7 +327,11 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
             if let userId = quoted.userId {
                 quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
             }
-            quotedTextView.text = quoted.text ?? ""
+
+            let mentionText = MainAppContext.shared.contactStore.textWithMentions(
+                quoted.text,
+                orderedMentions: quoted.orderedMentions)
+            quotedTextView.attributedText = mentionText?.with(font: quotedTextView.font, color: quotedTextView.textColor)
 
             // TODO: need to optimize
             if let media = quoted.media {
