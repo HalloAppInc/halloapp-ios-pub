@@ -323,10 +323,14 @@ class XMPPControllerMain: XMPPController {
             var postsAndComments = feed.elements(forName: "post")
             postsAndComments.append(contentsOf: feed.elements(forName: "comment"))
 
+            let messageRetryCount = message.attributeIntValue(forName: "retry_count")
+
             if action == "publish" || action == "share" {
-                delegate.halloService(self, didReceiveFeedItems: postsAndComments.compactMap { FeedElement($0) }, group: nil, ack: { self.sendAck(for: message) })
+                let payload = HalloServiceFeedPayload(content: .newItems(postsAndComments.compactMap { FeedElement($0) }), group: nil, isPushSent: messageRetryCount > 0)
+                delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(for: message) })
             } else if action == "retract" {
-                delegate.halloService(self, didReceiveFeedRetracts: postsAndComments.compactMap { FeedRetract($0) }, group: nil, ack: { self.sendAck(for: message) })
+                let payload = HalloServiceFeedPayload(content: .retracts(postsAndComments.compactMap { FeedRetract($0) }), group: nil, isPushSent: messageRetryCount > 0)
+                delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(for: message) })
             } else {
                 sendAck(for: message)
             }
@@ -345,10 +349,14 @@ class XMPPControllerMain: XMPPController {
             var postsAndComments = feed.elements(forName: "post")
             postsAndComments.append(contentsOf: feed.elements(forName: "comment"))
 
+            let messageRetryCount = message.attributeIntValue(forName: "retry_count")
+
             if action == "publish" || action == "share" {
-                delegate.halloService(self, didReceiveFeedItems: postsAndComments.compactMap { FeedElement($0) }, group: group, ack: { self.sendAck(for: message) })
+                let payload = HalloServiceFeedPayload(content: .newItems(postsAndComments.compactMap { FeedElement($0) }), group: group, isPushSent: messageRetryCount > 0)
+                delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(for: message) })
             } else if action == "retract" {
-                delegate.halloService(self, didReceiveFeedRetracts: postsAndComments.compactMap { FeedRetract($0) }, group: group, ack: { self.sendAck(for: message) })
+                let payload = HalloServiceFeedPayload(content: .retracts(postsAndComments.compactMap { FeedRetract($0) }), group: group, isPushSent: messageRetryCount > 0)
+                delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(for: message) })
             } else {
                 sendAck(for: message)
             }

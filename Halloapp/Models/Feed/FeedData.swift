@@ -14,7 +14,7 @@ import CoreData
 import Foundation
 import SwiftUI
 
-class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate, HalloFeedDelegate {
+class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetchedResultsControllerDelegate {
 
     private let userData: UserData
     private let contactStore: ContactStoreMain
@@ -442,7 +442,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     let didReceiveFeedPostComment = PassthroughSubject<FeedPostComment, Never>()
 
-    @discardableResult private func process(posts xmppPosts: [FeedPostProtocol], receivedIn group: HalloGroup?, using managedObjectContext: NSManagedObjectContext) -> [FeedPost] {
+    @discardableResult private func process(posts xmppPosts: [FeedPostProtocol],
+                                            receivedIn group: HalloGroup?,
+                                            using managedObjectContext: NSManagedObjectContext,
+                                            presentLocalNotifications: Bool) -> [FeedPost] {
         guard !xmppPosts.isEmpty else { return [] }
 
         let postIds = Set(xmppPosts.map{ $0.id })
@@ -519,7 +522,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             }
 
             // Show local notifications if necessary.
-            if NotificationSettings.current.isPostsEnabled {
+            if presentLocalNotifications && NotificationSettings.current.isPostsEnabled {
                 self.presentLocalNotifications(forFeedPosts: feedPosts)
             }
 
@@ -530,7 +533,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newPosts
     }
 
-    @discardableResult private func process(comments xmppComments: [FeedCommentProtocol], receivedIn group: HalloGroup?, using managedObjectContext: NSManagedObjectContext) -> [FeedPostComment] {
+    @discardableResult private func process(comments xmppComments: [FeedCommentProtocol],
+                                            receivedIn group: HalloGroup?,
+                                            using managedObjectContext: NSManagedObjectContext,
+                                            presentLocalNotifications: Bool) -> [FeedPostComment] {
         guard !xmppComments.isEmpty else { return [] }
 
         let feedPostIds = Set(xmppComments.map{ $0.feedPostId })
@@ -632,7 +638,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let feedPostComments = commentObjectIDs.compactMap{ try? managedObjectContext.existingObject(with: $0) as? FeedPostComment }
 
             // Show local notifications.
-            if NotificationSettings.current.isCommentsEnabled {
+            if presentLocalNotifications && NotificationSettings.current.isCommentsEnabled {
                 self.presentLocalNotifications(forComments: feedPostComments)
             }
             
@@ -643,7 +649,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return newComments
     }
 
-    func halloService(_ halloService: HalloService, didReceiveFeedItems items: [FeedElement], group: HalloGroup?, ack: (() -> Void)?) {
+    private func processIncomingFeedItems(_ items: [FeedElement], group: HalloGroup?, presentLocalNotifications: Bool, ack: (() -> Void)?) {
         var feedPosts = [FeedPostProtocol]()
         var comments = [FeedCommentProtocol]()
         var contactNames = [UserID:String]()
@@ -661,14 +667,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         if !contactNames.isEmpty {
-            self.contactStore.addPushNames(contactNames)
+            contactStore.addPushNames(contactNames)
         }
         
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let posts = self.process(posts: feedPosts, receivedIn: group, using: managedObjectContext)
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let posts = self.process(posts: feedPosts, receivedIn: group, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
             self.generateNotifications(for: posts, using: managedObjectContext)
 
-            let comments = self.process(comments: comments, receivedIn: group, using: managedObjectContext)
+            let comments = self.process(comments: comments, receivedIn: group, using: managedObjectContext, presentLocalNotifications: presentLocalNotifications)
             self.generateNotifications(for: comments, using: managedObjectContext)
 
             ack?()
@@ -1037,14 +1043,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func halloService(_ halloService: HalloService, didReceiveFeedRetracts items: [FeedRetract], group: HalloGroup?, ack: (() -> Void)?) {
-        /**
-         Example:
-         <retract timestamp="1587161372" publisher="1000000000354803885@s.halloapp.net/android" type="feedpost" id="b2d888ecfe2343d9916173f2f416f4ae"><entry xmlns="http://halloapp.com/published-entry"><feedpost/><s1>CgA=</s1></entry></retract>
-         */
+    private func processIncomingFeedRetracts(_ retracts: [FeedRetract], group: HalloGroup?, ack: (() -> Void)?) {
         let processingGroup = DispatchGroup()
-        for item in items {
-            switch item {
+        for retract in retracts {
+            switch retract {
             case .post(let postID):
                 processingGroup.enter()
                 processPostRetract(postID) {
@@ -1105,35 +1107,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Read Receipts
 
-    func halloService(_ halloService: HalloService, didReceiveFeedReceipt receipt: HalloReceipt, ack: (() -> Void)?) {
-        DDLogInfo("FeedData/seen-receipt/incoming itemId=[\(receipt.itemId)]")
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            guard let feedPost = self.feedPost(with: receipt.itemId, in: managedObjectContext) else {
-                DDLogError("FeedData/seen-receipt/missing-post [\(receipt.itemId)]")
-                ack?()
-                return
-            }
-            feedPost.willChangeValue(forKey: "info")
-            if feedPost.info == nil {
-                feedPost.info = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as? FeedPostInfo
-            }
-            var receipts = feedPost.info!.receipts ?? [:]
-            if receipts[receipt.userId] == nil {
-                receipts[receipt.userId] = Receipt()
-            }
-            receipts[receipt.userId]!.seenDate = receipt.timestamp
-            DDLogInfo("FeedData/seen-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
-            feedPost.info!.receipts = receipts
-            feedPost.didChangeValue(forKey: "info")
-
-            if managedObjectContext.hasChanges {
-                self.save(managedObjectContext)
-            }
-
-            ack?()
-        }
-    }
-
     private func resendPendingReadReceipts() {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             let feedPosts = self.feedPosts(predicate: NSPredicate(format: "statusValue == %d", FeedPost.Status.seenSending.rawValue), in: managedObjectContext)
@@ -1166,14 +1139,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt) {
-        updateFeedPost(with: receipt.itemId) { (feedPost) in
-            if !feedPost.isPostRetracted {
-                feedPost.status = .seen
-            }
-        }
-    }
-    
     func seenReceipts(for feedPost: FeedPost) -> [FeedPostReceipt] {
         let allContacts = contactStore.allRegisteredContacts(sorted: false)
         
@@ -1855,6 +1820,56 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         sharedDataStore.delete(posts: posts) {
             completion()
+        }
+    }
+}
+
+extension FeedData: HalloFeedDelegate {
+
+    func halloService(_ halloService: HalloService, didReceiveFeedPayload payload: HalloServiceFeedPayload, ack: (() -> Void)?) {
+        switch payload.content {
+        case .newItems(let feedItems):
+            processIncomingFeedItems(feedItems, group: payload.group, presentLocalNotifications: !payload.isPushSent, ack: ack)
+
+        case .retracts(let retracts):
+            processIncomingFeedRetracts(retracts, group: payload.group, ack: ack)
+        }
+    }
+
+    func halloService(_ halloService: HalloService, didReceiveFeedReceipt receipt: HalloReceipt, ack: (() -> Void)?) {
+        DDLogInfo("FeedData/seen-receipt/incoming itemId=[\(receipt.itemId)]")
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let feedPost = self.feedPost(with: receipt.itemId, in: managedObjectContext) else {
+                DDLogError("FeedData/seen-receipt/missing-post [\(receipt.itemId)]")
+                ack?()
+                return
+            }
+            feedPost.willChangeValue(forKey: "info")
+            if feedPost.info == nil {
+                feedPost.info = NSEntityDescription.insertNewObject(forEntityName: FeedPostInfo.entity().name!, into: managedObjectContext) as? FeedPostInfo
+            }
+            var receipts = feedPost.info!.receipts ?? [:]
+            if receipts[receipt.userId] == nil {
+                receipts[receipt.userId] = Receipt()
+            }
+            receipts[receipt.userId]!.seenDate = receipt.timestamp
+            DDLogInfo("FeedData/seen-receipt/update  userId=[\(receipt.userId)]  ts=[\(receipt.timestamp!)]  itemId=[\(receipt.itemId)]")
+            feedPost.info!.receipts = receipts
+            feedPost.didChangeValue(forKey: "info")
+
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+
+            ack?()
+        }
+    }
+
+    func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt) {
+        updateFeedPost(with: receipt.itemId) { (feedPost) in
+            if !feedPost.isPostRetracted {
+                feedPost.status = .seen
+            }
         }
     }
 }

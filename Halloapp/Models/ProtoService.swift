@@ -141,7 +141,9 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    private func handleFeedItems(_ items: [Server_FeedItem], messageID: String) {
+    private func handleFeedItems(_ items: [Server_FeedItem], message: Server_Msg) {
+        let messageID = message.id
+
         guard let delegate = feedDelegate else {
             sendAck(messageID: messageID)
             return
@@ -177,17 +179,21 @@ final class ProtoService: ProtoServiceCore {
             }
         }
         if !elements.isEmpty {
-            delegate.halloService(self, didReceiveFeedItems: elements, group: nil, ack: { self.sendAck(messageID: messageID) })
+            let payload = HalloServiceFeedPayload(content: .newItems(elements), group: nil, isPushSent: message.retryCount > 0)
+            delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: messageID) })
         }
         if !retracts.isEmpty {
-            delegate.halloService(self, didReceiveFeedRetracts: retracts, group: nil, ack: { self.sendAck(messageID: messageID) })
+            let payload = HalloServiceFeedPayload(content: .retracts(retracts), group: nil, isPushSent: message.retryCount > 0)
+            delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: messageID) })
         }
         if elements.isEmpty && retracts.isEmpty {
             sendAck(messageID: messageID)
         }
     }
 
-    private func handleGroupFeedItem(_ item: Server_GroupFeedItem, messageID: String) {
+    private func handleGroupFeedItem(_ item: Server_GroupFeedItem, message: Server_Msg) {
+        let messageID = message.id
+
         guard let delegate = feedDelegate else {
             sendAck(messageID: messageID)
             return
@@ -224,10 +230,12 @@ final class ProtoService: ProtoServiceCore {
             DDLogError("ProtoService/handleFeedItems/error missing item")
         }
         if let element = element {
-            delegate.halloService(self, didReceiveFeedItems: [element], group: group, ack: { self.sendAck(messageID: messageID) })
+            let payload = HalloServiceFeedPayload(content: .newItems([ element ]), group: group, isPushSent: message.retryCount > 0)
+            delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: messageID) })
         }
         else if let retract = retract {
-            delegate.halloService(self, didReceiveFeedRetracts: [retract], group: group, ack: { self.sendAck(messageID: messageID) })
+            let payload = HalloServiceFeedPayload(content: .retracts([ retract ]), group: group, isPushSent: message.retryCount > 0)
+            delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: messageID) })
         }
         else {
             sendAck(messageID: messageID)
@@ -291,11 +299,11 @@ final class ProtoService: ProtoServiceCore {
                 }
                 sendAck(messageID: msg.id)
             case .feedItem(let pbFeedItem):
-                handleFeedItems([pbFeedItem], messageID: msg.id)
+                handleFeedItems([pbFeedItem], message: msg)
             case .feedItems(let pbFeedItems):
-                handleFeedItems(pbFeedItems.items, messageID: msg.id)
+                handleFeedItems(pbFeedItems.items, message: msg)
             case .groupFeedItem(let pbGroupFeedItem):
-                handleGroupFeedItem(pbGroupFeedItem, messageID: msg.id)
+                handleGroupFeedItem(pbGroupFeedItem, message: msg)
             case .contactHash(let pbContactHash):
                 if pbContactHash.hash.isEmpty {
                     // Trigger full sync

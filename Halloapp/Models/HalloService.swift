@@ -14,6 +14,17 @@ public enum PresenceType: String {
     case away = "away"
 }
 
+public struct HalloServiceFeedPayload {
+    enum Content {
+        case newItems([FeedElement])
+        case retracts([FeedRetract])
+    }
+
+    let content: Content
+    let group: HalloGroup?
+    let isPushSent: Bool
+}
+
 protocol HalloService: CoreService {
 
     // MARK: Delegates
@@ -81,8 +92,7 @@ protocol HalloService: CoreService {
 }
 
 protocol HalloFeedDelegate: AnyObject {
-    func halloService(_ halloService: HalloService, didReceiveFeedItems items: [FeedElement], group: HalloGroup?, ack: (() -> Void)?)
-    func halloService(_ halloService: HalloService, didReceiveFeedRetracts items: [FeedRetract], group: HalloGroup?, ack: (() -> Void)?)
+    func halloService(_ halloService: HalloService, didReceiveFeedPayload payload: HalloServiceFeedPayload, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didReceiveFeedReceipt receipt: HalloReceipt, ack: (() -> Void)?)
     func halloService(_ halloService: HalloService, didSendFeedReceipt receipt: HalloReceipt)
 }
