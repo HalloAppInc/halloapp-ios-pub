@@ -500,7 +500,7 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
 
     private func detectSystemDataTypes(in text: String, ignoredRanges: [Range<String.Index>]) -> [AttributedTextLink] {
         var results: [AttributedTextLink] = []
-        let matches = TextLabel.dataDetector.matches(in: text, options: [], range: NSRange(location: 0, length: text.count))
+        let matches = TextLabel.dataDetector.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count))
         for match in matches {
             if let range = Range(match.range, in: text) {
                 if ignoredRanges.contains(where: { $0.overlaps(range) }) {
