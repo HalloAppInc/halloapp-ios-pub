@@ -133,7 +133,7 @@ class ChatData: ObservableObject {
                         DDLogInfo("ChatData/onConnect/processPending/chatMessages \($0.id)")
                         let xmppChatMessage = XMPPChatMessage(chatMessage: $0)
                         self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) {
-                            MainAppContext.shared.service.sendChatMessage(xmppChatMessage, encryption: nil)
+                            self.send(message: xmppChatMessage)
                         }
                         timeDelay += 1.0
                     }
@@ -1049,7 +1049,7 @@ extension ChatData {
 
         // Either all media has already been uploaded or post does not contain media.
         guard let mediaItemsToUpload = message.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
-            send(message: message)
+            send(message: XMPPChatMessage(chatMessage: message))
             return
         }
 
@@ -1109,14 +1109,13 @@ extension ChatData {
                     chatMessage.outgoingStatus = .error
                 }
             } else if let chatMessage = self.chatMessage(with: messageId) {
-                self.send(message: chatMessage)
+                self.send(message: XMPPChatMessage(chatMessage: chatMessage))
             }
         }
     }
 
-    private func send(message: ChatMessage) {
-        let xmppMessage = XMPPChatMessage(chatMessage: message)
-        service.sendChatMessage(xmppMessage, encryption: MainAppContext.shared.keyData.encryptOperation(for: message.toUserId))
+    private func send(message: ChatMessageProtocol) {
+        service.sendChatMessage(message, encryption: MainAppContext.shared.keyData.encryptOperation(for: message.toUserId))
     }
     
     // MARK: 1-1 Presence
