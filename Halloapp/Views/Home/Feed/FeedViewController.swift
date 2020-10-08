@@ -316,7 +316,7 @@ class FeedViewController: FeedTableViewController {
     }
 
     private func processNotification(metadata: NotificationMetadata) {
-        guard metadata.contentType == .comment || metadata.contentType == .feedpost else {
+        guard metadata.isFeedNotification else {
             return
         }
 
@@ -328,8 +328,10 @@ class FeedViewController: FeedTableViewController {
             DDLogError("FeedViewController/notification/process/error Invalid protobuf")
             return
         }
-
-        let feedPostId = protoContainer.hasPost ? metadata.contentId : protoContainer.comment.feedPostID
+        guard let feedPostId = protoContainer.hasComment ? protoContainer.comment.feedPostID : metadata.feedPostId else {
+            DDLogError("FeedViewController/notification/process/error Can't find postId")
+            return
+        }
 
         let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId)
         if feedPost == nil {
@@ -339,10 +341,12 @@ class FeedViewController: FeedTableViewController {
         navigationController?.popToRootViewController(animated: false)
 
         switch metadata.contentType {
-        case .comment:
-            showCommentsView(for: feedPostId, highlighting: metadata.contentId)
+        case .feedComment, .groupFeedComment:
+            if let commentId = metadata.feedPostCommentId {
+                showCommentsView(for: feedPostId, highlighting: commentId)
+            }
 
-        case .feedpost:
+        case .feedPost:
             if let feedPost = feedPost {
                 DDLogDebug("FeedViewController/scroll-to-post/immediate \(feedPostId)")
                 // Scroll to feed post now.
@@ -356,6 +360,10 @@ class FeedViewController: FeedTableViewController {
                     tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
                 }
             }
+
+        case .groupFeedPost:
+            // TODO: open group feed
+            break
 
         default:
             break

@@ -10,11 +10,15 @@ import CocoaLumberjack
 import Core
 import UserNotifications
 
-public enum NotificationContentType: String, RawRepresentable {
+enum NotificationContentType: String, RawRepresentable {
+    case feedPost = "feedpost"
+    case groupFeedPost = "group_post"
+
+    case feedComment = "comment"
+    case groupFeedComment = "group_comment"
+
     case chatMessage = "chat"
     case groupChatMessage = "group_chat"
-    case comment
-    case feedpost
 }
 
 class NotificationMetadata {
@@ -41,10 +45,11 @@ class NotificationMetadata {
     let contentId: String
     let contentType: NotificationContentType
     let fromId: UserID
-    let threadId: String?
-    let threadName: String?
     let timestamp: Date?
     let data: Data?
+
+    private var threadId: String? = nil
+    private var threadName: String? = nil
 
     var rawData: [String: String] {
         get {
@@ -133,12 +138,10 @@ class NotificationMetadata {
         self.threadName = metadata[Keys.threadName]
     }
 
-    init(contentId: String, contentType: NotificationContentType, fromId: UserID, threadId: String? = nil, threadName: String? = nil, data: Data?, timestamp: Date?) {
+    init(contentId: String, contentType: NotificationContentType, fromId: UserID, data: Data?, timestamp: Date?) {
         self.contentId = contentId
         self.contentType = contentType
         self.fromId = fromId
-        self.threadId = threadId
-        self.threadName = threadName
         self.data = data
         self.timestamp = timestamp
     }
@@ -168,3 +171,72 @@ class NotificationMetadata {
         UserDefaults.standard.removeObject(forKey: Self.userDefaultsKey)
     }
 }
+
+extension NotificationMetadata {
+
+    var isFeedNotification: Bool {
+        switch contentType {
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment:
+            return true
+        case .chatMessage, .groupChatMessage:
+            return false
+        }
+    }
+
+    var isChatNotification: Bool {
+        return contentType == .chatMessage || contentType == .groupChatMessage
+    }
+
+    var isGroupNotification: Bool {
+        switch contentType {
+        case .groupFeedPost, .groupFeedComment, .groupChatMessage:
+            return true
+        case .feedPost, .feedComment, .chatMessage:
+            return false
+        }
+    }
+
+    var feedPostId: FeedPostID? {
+        if contentType == .feedPost || contentType == .groupFeedPost {
+            return contentId
+        }
+        return nil
+    }
+
+    var feedPostCommentId: FeedPostCommentID? {
+        if contentType == .feedComment || contentType == .groupFeedComment {
+            return contentId
+        }
+        return nil
+    }
+
+    var messageId: String? {
+        if isChatNotification {
+            return contentId
+        }
+        return nil
+    }
+
+    var groupName: String? {
+        get {
+            return isGroupNotification ? threadName : nil
+        }
+        set {
+            if isGroupNotification {
+                threadName = newValue
+            }
+        }
+    }
+
+    var groupId: GroupID? {
+        get {
+            return isGroupNotification ? threadId : nil
+        }
+        set {
+            if isGroupNotification {
+                threadId = newValue
+            }
+        }
+    }
+}
+

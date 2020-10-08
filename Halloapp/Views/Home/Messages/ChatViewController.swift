@@ -223,10 +223,10 @@ class ChatViewController: UIViewController, UITableViewDelegate, ChatInputViewDe
             MainAppContext.shared.chatData.updateUnreadMessageCount()
             MainAppContext.shared.chatData.subscribeToPresence(to: chatWithUserId)
             MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
+
+            UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
         }
         self.chatInputView.didAppear(in: self)
-        
-        UNUserNotificationCenter.current().removeDeliveredNotifications(forType: .chatMessage, fromId: self.fromUserId!)
     }
 
     override func viewWillDisappear(_ animated: Bool) {

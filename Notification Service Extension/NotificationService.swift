@@ -47,11 +47,13 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             return
         }
 
-        // Populate contact name early because `userId` is stored outside of protobuf container (which isn't guaranteed).
+        // Title:
+        // "Contact" for feed posts / comments and 1-1 chat messages.
+        // "Contact @ Group" for group feed posts / comments and group chat messages.
         let userId = metadata.fromId
         let contactName = AppExtensionContext.shared.contactStore.fullName(for: userId)
-        bestAttemptContent.title = contactName
-        DDLogVerbose("didReceiveRequest/ Got contact name: \(contactName)")
+        bestAttemptContent.title = [contactName, metadata.groupName].compactMap({ $0 }).joined(separator: " @ ")
+        DDLogVerbose("didReceiveRequest/ Updated title: \(bestAttemptContent.title)")
 
         guard let protoContainer = metadata.protoContainer else {
             DDLogError("didReceiveRequest/error Invalid protobuf.")
@@ -65,17 +67,17 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         })
 
         var invokeHandler = true
-        if protoContainer.hasPost {
+        if protoContainer.hasPost && metadata.feedPostId != nil {
             let feedPost = dataStore.save(protoPost: protoContainer.post, notificationMetadata: metadata)
             if let firstMediaItem = feedPost.orderedMedia.first as? SharedMedia {
                 let downloadTask = startDownloading(media: firstMediaItem)
                 downloadTask?.feedMediaObjectId = firstMediaItem.objectID
                 invokeHandler = downloadTask == nil
             }
-        } else if protoContainer.hasChatMessage {
-            let messageId = metadata.contentId
+        }
+        if let messageId = metadata.messageId, protoContainer.hasChatMessage {
             if let chatMedia = protoContainer.chatMessage.media.first,
-                let xmppMedia = XMPPFeedMedia(id: "\(messageId)", protoMedia: chatMedia) {
+               let xmppMedia = XMPPFeedMedia(id: "\(messageId)", protoMedia: chatMedia) {
                 let downloadTask = startDownloading(media: xmppMedia)
                 invokeHandler = downloadTask == nil
             }

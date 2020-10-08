@@ -12,9 +12,20 @@ import UserNotifications
 
 private extension UNNotificationRequest {
 
-    func contentId(forContentType requestedContentType: NotificationContentType) -> String? {
-        if let (contentId, contentType) = NotificationMetadata.parseIds(from: self), contentType == requestedContentType {
-            return contentId
+    var feedPostId: FeedPostID? {
+        if let (contentId, contentType) = NotificationMetadata.parseIds(from: self) {
+            if contentType == .feedPost || contentType == .groupFeedPost {
+                return contentId
+            }
+        }
+        return nil
+    }
+
+    var feedPostCommentId: FeedPostCommentID? {
+        if let (contentId, contentType) = NotificationMetadata.parseIds(from: self) {
+            if contentType == .feedComment || contentType == .groupFeedComment {
+                return contentId
+            }
         }
         return nil
     }
@@ -77,11 +88,6 @@ extension UNMutableNotificationContent {
         } else if protoContainer.hasChatMessage {
             let protoMessage = protoContainer.chatMessage
 
-            // "Contact @ Group"
-            if let groupName = notificationMetadata.threadName, !groupName.isEmpty, notificationMetadata.contentType == .groupChatMessage {
-                title = "\(title) @ \(groupName)"
-            }
-
             body = protoMessage.text
             if !protoMessage.media.isEmpty {
                 // Display how many photos and videos message contains if there's no caption.
@@ -97,54 +103,30 @@ extension UNMutableNotificationContent {
 
 }
 
-public extension UNUserNotificationCenter {
-    /**
-     - returns: IDs of posts / comments / messages for which there were notifications presented.
-     */
-    func getContentIdsForDeliveredNotifications(ofType contentType: NotificationContentType, completion: @escaping ([String]) -> ()) {
+extension UNUserNotificationCenter {
+
+    func getFeedPostIdsForDeliveredNotifications(completion: @escaping ([FeedPostID]) -> ()) {
         getDeliveredNotifications { (notifications) in
-            completion(notifications.compactMap({ $0.request.contentId(forContentType: contentType) }))
+            let ids = notifications.compactMap({ $0.request.feedPostId })
+            completion(ids)
         }
     }
 
-    func removeDeliveredNotifications(forType type: NotificationContentType, fromId: String? = nil, contentId: String? = nil, threadId: String? = nil) {
-        switch type {
-        case .chatMessage:
-            guard fromId != nil else {
-                DDLogError("Notification/removeDelivered/chatMessage fromId should not be nil")
-                return
-            }
-        case .groupChatMessage:
-            guard threadId != nil else {
-                DDLogError("Notification/removeDelivered/groupChatMessage threadId should not be nil")
-                return
-            }
-        case .feedpost, .comment:
-            guard contentId != nil else {
-                DDLogError("Notification/removeDelivered contentId should not be nil")
-                return
-            }
+    func getFeedCommentIdsForDeliveredNotifications(completion: @escaping ([FeedPostCommentID]) -> ()) {
+        getDeliveredNotifications { (notifications) in
+            let ids = notifications.compactMap({ $0.request.feedPostCommentId })
+            completion(ids)
         }
+    }
 
+    private func removeDeliveredNotifications(matching predicate: @escaping (NotificationMetadata) -> (Bool)) {
         getDeliveredNotifications { (notifications) in
             guard !notifications.isEmpty else { return }
 
-            var identifiersToRemove = [String]()
+            var identifiersToRemove: [String] = []
             for notification in notifications {
-                guard let metadata = NotificationMetadata(notificationRequest: notification.request), metadata.contentType == type else { continue }
-
-                let match: Bool = {
-                    switch type {
-                    case .chatMessage:
-                        return metadata.fromId == fromId!
-                    case .groupChatMessage:
-                        return metadata.threadId == threadId!
-                    case .feedpost, .comment:
-                        return metadata.contentId == contentId!
-                    }
-                }()
-
-                if match {
+                guard let metadata = NotificationMetadata(notificationRequest: notification.request) else { continue }
+                if predicate(metadata) {
                     DDLogDebug("Notification/removeDelivered \(notification.request.identifier) will be removed")
                     identifiersToRemove.append(notification.request.identifier)
                 }
@@ -154,6 +136,33 @@ public extension UNUserNotificationCenter {
                 DDLogInfo("Notification/removeDelivered/\(identifiersToRemove.count)")
                 self.removeDeliveredNotifications(withIdentifiers: identifiersToRemove)
             }
+        }
+    }
+
+    func removeDeliveredFeedNotifications(postId: FeedPostID) {
+        removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
+            return notificationMetadata.feedPostId == postId
+        }
+    }
+
+    func removeDeliveredFeedNotifications(commentIds: [FeedPostCommentID]) {
+        removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
+            guard let commentId = notificationMetadata.feedPostCommentId else {
+                return false
+            }
+            return commentIds.contains(commentId)
+        }
+    }
+
+    func removeDeliveredChatNotifications(fromUserId: UserID) {
+        removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
+            return notificationMetadata.fromId == fromUserId
+        }
+    }
+
+    func removeDeliveredChatNotifications(groupId: GroupID) {
+        removeDeliveredNotifications { (notificationMetadata) -> (Bool) in
+            return notificationMetadata.groupId == groupId
         }
     }
 }

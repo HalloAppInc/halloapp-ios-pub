@@ -64,14 +64,12 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         cancellableSet.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
                 guard let self = self else { return }
-                guard metadata.contentType == .chatMessage || metadata.contentType == .groupChatMessage else { return }
                 self.processNotification(metadata: metadata)
             }
         )
 
         // When the user was not on this view, and HomeView sends user to here
-        if let metadata = NotificationMetadata.fromUserDefaults(),
-            metadata.contentType == .chatMessage || metadata.contentType == .groupChatMessage {
+        if let metadata = NotificationMetadata.fromUserDefaults() {
             processNotification(metadata: metadata)
         }
     }
@@ -343,6 +341,10 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     // MARK: Tap Notification
     
     private func processNotification(metadata: NotificationMetadata) {
+        guard metadata.isChatNotification else {
+            return
+        }
+
         // If the user tapped on a notification, move to the chat view
         DDLogInfo("ChatListViewController/notification/open-chat \(metadata.fromId)")
 
@@ -350,7 +352,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         if metadata.contentType == .chatMessage {
             navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
-        } else if metadata.contentType == .groupChatMessage, let groupId = metadata.threadId {
+        } else if metadata.contentType == .groupChatMessage, let groupId = metadata.groupId {
             navigationController?.pushViewController(ChatGroupViewController(for: groupId), animated: true)
         }
         metadata.removeFromUserDefaults()

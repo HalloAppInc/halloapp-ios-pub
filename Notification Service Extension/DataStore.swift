@@ -16,7 +16,7 @@ class DataStore: NotificationServiceExtensionDataStore {
         let managedObjectContext = persistentContainer.viewContext
 
         let userId = notificationMetadata.fromId
-        let postId: FeedPostID = notificationMetadata.contentId
+        let postId = notificationMetadata.feedPostId!
 
         DDLogInfo("DataStore/post/\(postId)/create")
 

@@ -2675,10 +2675,10 @@ extension ChatData {
         let metadata = NotificationMetadata(contentId: xmppChatGroupMessage.id,
                                             contentType: .groupChatMessage,
                                             fromId: userID,
-                                            threadId: xmppChatGroupMessage.groupId,
-                                            threadName: xmppChatGroupMessage.groupName,
                                             data: protobufData,
                                             timestamp: xmppChatGroupMessage.timestamp)
+        metadata.groupId = xmppChatGroupMessage.groupId
+        metadata.groupName = xmppChatGroupMessage.groupName
         
         let notification = UNMutableNotificationContent()
         notification.title = AppContext.shared.contactStore.fullName(for: userID)

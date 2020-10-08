@@ -197,10 +197,9 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
         let metadata = NotificationMetadata(contentId: contentId,
                                             contentType: notificationType,
                                             fromId: contentId, // not used by groups
-                                            threadId: groupID,
                                             data: nil,
                                             timestamp: nil)
-        
+        metadata.groupId = groupID
         metadata.saveToUserDefaults()
         MainAppContext.shared.didTapNotification.send(metadata)
         
