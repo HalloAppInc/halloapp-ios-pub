@@ -1756,6 +1756,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost
             feedPost.id = post.id
             feedPost.userId = post.userId
+            feedPost.groupId = post.groupId
             feedPost.text = post.text
             feedPost.status = {
                 switch post.status {

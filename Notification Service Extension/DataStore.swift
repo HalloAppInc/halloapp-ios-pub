@@ -23,6 +23,7 @@ class DataStore: NotificationServiceExtensionDataStore {
         let feedPost = NSEntityDescription.insertNewObject(forEntityName: SharedFeedPost.entity().name!, into: managedObjectContext) as! SharedFeedPost
         feedPost.id = postId
         feedPost.userId = userId
+        feedPost.groupId = notificationMetadata.groupId
         feedPost.text = protoPost.text.isEmpty ? nil : protoPost.text
         feedPost.status = .received
         feedPost.timestamp = notificationMetadata.timestamp ?? Date()

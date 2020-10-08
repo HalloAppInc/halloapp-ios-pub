@@ -27,6 +27,7 @@ extension SharedFeedPost {
     @NSManaged public var mentions: Set<SharedFeedMention>?
     @NSManaged public var timestamp: Date
     @NSManaged public var userId: UserID
+    @NSManaged public var groupId: GroupID?
     @NSManaged public var media: Set<SharedMedia>?
     @NSManaged private var privacyListTypeValue: String?
     @NSManaged public var audienceUserIds: [UserID]?
