@@ -57,10 +57,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         let xmppReconnect = XMPPReconnect()
         xmppReconnect.addDelegate(self, delegateQueue: DispatchQueue.main)
         xmppReconnect.activate(stream)
-
-        let xmppPing = XMPPPing()
-        xmppPing.addDelegate(self, delegateQueue: DispatchQueue.main)
-        xmppPing.activate(stream)
     }
 
     // MARK: Connection management
@@ -336,17 +332,6 @@ extension ProtoServiceCore: XMPPReconnectDelegate {
 
     open func xmppReconnect(_ sender: XMPPReconnect, shouldAttemptAutoReconnect connectionFlags: SCNetworkConnectionFlags) -> Bool {
         return true
-    }
-}
-
-extension ProtoServiceCore: XMPPPingDelegate {
-
-    public func xmppPing(_ sender: XMPPPing!, didReceivePong pong: XMPPIQ!, withRTT rtt: TimeInterval) {
-        DDLogInfo("proto/ping/didReceivePong")
-    }
-
-    public func xmppPing(_ sender: XMPPPing!, didNotReceivePong pingID: String!, dueToTimeout timeout: TimeInterval) {
-        DDLogInfo("proto/ping/didNotReceivePong")
     }
 }
 

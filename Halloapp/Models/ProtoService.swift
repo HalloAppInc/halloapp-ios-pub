@@ -357,8 +357,20 @@ final class ProtoService: ProtoServiceCore {
         case .chatState:
             DDLogInfo("proto/chatState/\(requestID) ignored")
         case .iq:
-            // NB: Should be handled by superclass implementation
-            break
+            // NB: Only respond to pings (other IQ should be responses handled by superclass)
+            if case .ping(let ping) = packet.iq.payload {
+                DDLogInfo("proto/ping/\(requestID)")
+                var pong = Server_Packet()
+                pong.iq.type = .result
+                pong.iq.id = packet.iq.id
+                pong.iq.ping = ping
+                do {
+                    try stream.send(pong.serializedData())
+                    DDLogInfo("proto/ping/\(requestID)/pong")
+                } catch {
+                    DDLogError("proto/ping/\(requestID)/error could not serialize pong")
+                }
+            }
         case nil:
             DDLogError("proto/didReceive/unknown-packet \(requestID)")
         }
