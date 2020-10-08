@@ -793,6 +793,7 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.3;
+				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Core;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -823,6 +824,7 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.3;
+				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Core;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -912,6 +914,7 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.3;
+				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.halloapp.hallo.Core;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;

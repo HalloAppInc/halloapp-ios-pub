@@ -605,7 +605,7 @@ public class GroupAvatarData {
         }
         
         DDLogInfo("GroupAvatarData/init \(groupID)")
-        DDLogInfo("GroupAvatarData/init avatarID: \(avatarId)")
+        DDLogInfo("GroupAvatarData/init avatarID: \(avatarId ?? "<none>")")
     }
     
     init(groupID: GroupID) {
