@@ -255,6 +255,7 @@ extension KeyData {
             return nil
         }
         guard let encryptedPayload = Data(base64Encoded: encStringValue, options: .ignoreUnknownCharacters) else {
+            AppContext.shared.eventMonitor.observe(.decryption(error: .invalidPayload))
             DDLogError("KeyData/unwrapMessage/error base64 decoding failed")
             return nil
         }
@@ -273,10 +274,17 @@ extension KeyData {
             return Data(base64Encoded: inboundIdentityPublicEdKeyBase64)
         }()
 
-        return decryptPayload(for: userId, encryptedPayload: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID)
+        switch decryptPayload(for: userId, encryptedPayload: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID) {
+        case .success(let data):
+            // Don't report decryption success yet (wait until it's validated against plaintext)
+            return data
+        case .failure(let error):
+            AppContext.shared.eventMonitor.observe(.decryption(error: error))
+            return nil
+        }
     }
 
-    public func decryptPayload(for userId: String, encryptedPayload: Data, publicKey: Data?, oneTimeKeyID: Int?) -> Data? {
+    public func decryptPayload(for userId: String, encryptedPayload: Data, publicKey: Data?, oneTimeKeyID: Int?) -> Result<Data, DecryptionError> {
 
         var keyBundle: KeyBundle
         var isNewReceiveSession: Bool
@@ -287,11 +295,11 @@ extension KeyData {
         } else {
             guard let publicKey = publicKey else {
                 DDLogError("KeyData/decryptPayload/error missing public key")
-                return nil
+                return .failure(.missingPublicKey)
             }
             guard let newKeyBundle = keyStore.receiveSessionSetup(for: userId, from: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID) else {
                 DDLogError("KeyData/decryptPayload/error receiveSessionSetup failed")
-                return nil
+                return .failure(.other)
             }
             keyBundle = newKeyBundle
             isNewReceiveSession = true

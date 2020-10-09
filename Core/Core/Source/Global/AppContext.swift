@@ -63,6 +63,7 @@ open class AppContext {
     public let keyStore: KeyStore
     public let fileLogger: DDFileLogger
     public let phoneNumberFormatter = PhoneNumberKit(metadataCallback: AppContext.phoneNumberKitMetadataCallback)
+    public let eventMonitor = EventMonitor()
 
     public var coreService: CoreService
 
@@ -70,6 +71,54 @@ open class AppContext {
     open var contactStore: ContactStore {
         get {
             contactStoreImpl
+        }
+    }
+
+    // MARK: Event monitoring
+
+    public func startReportingEvents() {
+
+        guard eventMonitorTimer == nil else {
+            DDLogInfo("AppContext/startReportingEvents already started")
+            return
+        }
+
+        let interval = TimeInterval(30)
+        DDLogInfo("AppContext/startReportingEvents [interval=\(interval)]")
+
+        let timer = DispatchSource.makeTimerSource(flags: [], queue: .main)
+        timer.setEventHandler(handler: { [weak self] in
+            self?.sendEventReport()
+        })
+        timer.schedule(deadline: .now() + interval, repeating: interval)
+        timer.resume()
+        eventMonitorTimer = timer
+    }
+
+    public func stopReportingEvents() {
+        DDLogInfo("AppContext/stopReportingEvents")
+        eventMonitorTimer?.cancel()
+        eventMonitorTimer = nil
+    }
+
+    private var eventMonitorTimer: DispatchSourceTimer?
+
+    private func sendEventReport() {
+        DDLogInfo("AppContext/sendEventReport")
+        eventMonitor.generateReport { [weak self] events in
+            guard !events.isEmpty else {
+                DDLogInfo("AppContext/sendEventReport skipping (no events)")
+                return
+            }
+            self?.coreService.log(events: events) { [weak self] result in
+                switch result {
+                case .success:
+                    DDLogInfo("AppContext/sendEventReport/success [\(events.count)]")
+                case .failure(let error):
+                    DDLogError("AppContext/sendEventReport/error \(error)")
+                    self?.eventMonitor.observe(events)
+                }
+            }
         }
     }
     

@@ -269,6 +269,7 @@ class XMPPControllerMain: XMPPController {
         queryAvatarForCurrentUserIfNecessary()
         requestServerPropertiesIfNecessary()
         NotificationSettings.current.sendConfigIfNecessary(using: self)
+        MainAppContext.shared.startReportingEvents()
     }
 
     override func didReceive(message: XMPPMessage) {

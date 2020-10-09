@@ -42,4 +42,11 @@ extension XMPPController: CoreService {
             self.enqueue(request: request)
         }
     }
+
+    public func log(events: [CountableEvent], completion: @escaping ServiceRequestCompletion<Void>) {
+        let request = XMPPLogEventsRequest(events: events, completion: completion)
+        execute(whenConnectionStateIs: .connected, onQueue: .main) {
+            self.enqueue(request: request)
+        }
+    }
 }

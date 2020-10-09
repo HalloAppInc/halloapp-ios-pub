@@ -371,10 +371,14 @@ extension ProtoServiceCore: CoreService {
 
         if let encrypt = encryption {
             encrypt(messageData) { encryptedData in
+                let includesEncryptedPayload: Bool
+
                 if let encryptedPayload = encryptedData.data {
                     chat.encPayload = encryptedPayload
+                    includesEncryptedPayload = true
                 } else {
                     DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error encrypted data missing!")
+                    includesEncryptedPayload = false
                 }
 
                 if let publicKey = encryptedData.identityKey {
@@ -386,10 +390,13 @@ extension ProtoServiceCore: CoreService {
                 chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
                 packet.msg.payload = .chatStanza(chat)
                 guard let packetData = try? packet.serializedData() else {
+                    AppContext.shared.eventMonitor.observe(.encryption(error: .other))
                     DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
                     return
                 }
-                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (encrypted)")
+                let encryptionError: EncryptionError? = includesEncryptedPayload ? nil : .other
+                AppContext.shared.eventMonitor.observe(.encryption(error: encryptionError))
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(includesEncryptedPayload ? "encrypted" : "unencrypted"))")
                 self.stream.send(packetData)
             }
         } else {
@@ -401,5 +408,9 @@ extension ProtoServiceCore: CoreService {
             DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (unencrypted)")
             stream.send(packetData)
         }
+    }
+
+    public func log(events: [CountableEvent], completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoLoggingRequest(events: events, completion: completion))
     }
 }

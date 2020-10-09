@@ -2783,9 +2783,20 @@ extension XMPPChatMessage {
         guard let chat = item.element(forName: "chat") else { return nil }
         
         var text: String?, media: [XMPPChatMedia] = [], feedPostId: String?, feedPostMediaIndex: Int32 = 0
+
+        let decryptedContainer = Clients_Container.unwrapMessage(for: fromUserId, from: chat)
+        let plainTextContainer = Clients_Container.chatMessageContainer(from: chat)
         
-        if let protoContainer = Clients_Container.unwrapMessage(for: fromUserId, from: chat) {
+        if let protoContainer = decryptedContainer {
             if protoContainer.hasChatMessage {
+                if let plainText = plainTextContainer?.chatMessage.text {
+                    // Report decryption success or mismatch
+                    let error: DecryptionError? = plainText != protoContainer.chatMessage.text ? .plainTextMismatch : nil
+                    AppContext.shared.eventMonitor.observe(.decryption(error: error))
+                } else {
+                    // Report decryption success if no plaintext exists for comparison
+                    AppContext.shared.eventMonitor.observe(.decryption(error: nil))
+                }
                 text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
                 
                 DDLogInfo("ChatData/XMPPChatMessage/decryptedMessage: \(text ?? "")")
@@ -2797,7 +2808,7 @@ extension XMPPChatMessage {
             }
         }
             
-        else if let protoContainer = Clients_Container.chatMessageContainer(from: chat) {
+        else if let protoContainer = plainTextContainer {
             if protoContainer.hasChatMessage {
                 text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
                 DDLogInfo("ChatData/XMPPChatMessage/plainText: \(text ?? "")")
@@ -2828,30 +2839,39 @@ extension XMPPChatMessage {
         self.timestamp = TimeInterval(pbChat.timestamp)
 
         let protoChat: Clients_ChatMessage
-        if let decryptedData = MainAppContext.shared.keyData.decryptPayload(
+        let plainTextMessage = Clients_ChatMessage(containerData: pbChat.payload)
+        let decryptionResult = MainAppContext.shared.keyData.decryptPayload(
             for: fromUserID,
             encryptedPayload: pbChat.encPayload,
             publicKey: pbChat.publicKey,
-            oneTimeKeyID: Int(pbChat.oneTimePreKeyID)),
-           let protoContainer = try? Clients_Container(serializedData: decryptedData),
-           protoContainer.hasChatMessage
-        {
-            // Decrypted message
-            protoChat = protoContainer.chatMessage
-        } else if let protoContainer = try? Clients_Container(serializedData: pbChat.payload),
-            protoContainer.hasChatMessage
-        {
-            // Binary protocol
-            protoChat = protoContainer.chatMessage
-        } else if let decodedData = Data(base64Encoded: pbChat.payload, options: .ignoreUnknownCharacters),
-            let protoContainer = try? Clients_Container(serializedData: decodedData),
-            protoContainer.hasChatMessage
-        {
-            // Legacy Base64 protocol
-            protoChat = protoContainer.chatMessage
-        } else {
-            DDLogError("proto/error could not read chat message")
-            return nil
+            oneTimeKeyID: Int(pbChat.oneTimePreKeyID))
+
+        switch decryptionResult {
+        case .success(let decryptedData):
+            let decryptedMessage = Clients_ChatMessage(containerData: decryptedData)
+            switch (plainTextMessage, decryptedMessage) {
+            case (nil, nil):
+                // Decryption deserialization failed, no plaintext to fall back to
+                AppContext.shared.eventMonitor.observe(.decryption(error: .other))
+                return nil
+            case (.some(let plainText), nil):
+                // Decryption deserialization failed, fall back to plaintext
+                AppContext.shared.eventMonitor.observe(.decryption(error: .other))
+                protoChat = plainText
+            case (nil, .some(let decrypted)):
+                // Decryption deserialization succeeded, no plaintext to compare
+                AppContext.shared.eventMonitor.observe(.decryption(error: nil))
+                protoChat = decrypted
+            case (.some(let plainText), .some(let decrypted)):
+                // Decryption deserialization succeeded, compare against plaintext
+                let error: DecryptionError? = (plainText.text != decrypted.text) ? .plainTextMismatch : nil
+                AppContext.shared.eventMonitor.observe(.decryption(error: error))
+                protoChat = plainText
+            }
+        case .failure(let error):
+            AppContext.shared.eventMonitor.observe(.decryption(error: error))
+            guard let plainText = plainTextMessage else { return nil }
+            protoChat = plainText
         }
 
         text = protoChat.text.isEmpty ? nil : protoChat.text
@@ -2874,5 +2894,24 @@ extension Clients_Container {
             DDLogError("xmpp/chatmessage/unwrapMessage/invalid-protobuf")
         }
         return nil
+    }
+}
+
+extension Clients_ChatMessage {
+    init?(containerData: Data) {
+        if let protoContainer = try? Clients_Container(serializedData: containerData),
+            protoContainer.hasChatMessage
+        {
+            // Binary protocol
+            self = protoContainer.chatMessage
+        } else if let decodedData = Data(base64Encoded: containerData, options: .ignoreUnknownCharacters),
+            let protoContainer = try? Clients_Container(serializedData: decodedData),
+            protoContainer.hasChatMessage
+        {
+            // Legacy Base64 protocol
+            self = protoContainer.chatMessage
+        } else {
+            return nil
+        }
     }
 }

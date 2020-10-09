@@ -13,6 +13,20 @@ import CryptoSwift
 import Foundation
 import Sodium
 
+public enum DecryptionError: String, Error {
+    case hmacMismatch
+    case invalidPayload
+    case keyGenerationFailure
+    case missingPublicKey
+    case plainTextMismatch = "plaintext mismatch"
+    case ratchetFailure
+    case other = "decryption failure"
+}
+
+public enum EncryptionError: String, Error {
+    case other = "encryption failed"
+}
+
 open class KeyStore {
     public let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.keys")
     public let userData: UserData
@@ -591,12 +605,12 @@ extension KeyStore {
         return nil
     }
 
-    public func decryptMessage(for userId: String, encryptedPayload: Data, keyBundle: KeyBundle, isNewReceiveSession: Bool) -> Data? {
+    public func decryptMessage(for userId: String, encryptedPayload: Data, keyBundle: KeyBundle, isNewReceiveSession: Bool) -> Result<Data, DecryptionError> {
 
         // 44 byte header + 32 byte HMAC
         guard encryptedPayload.count >= 76 else {
             DDLogError("KeyStore/decryptMessage/error encryptedPayload too small [\(encryptedPayload.count)]")
-            return nil
+            return .failure(.invalidPayload)
         }
 
         let inboundEphemeralPublicKey = encryptedPayload[0...31]
@@ -643,7 +657,7 @@ extension KeyStore {
             isOutOfOrderMessage = true
             guard let msgKey = self.messageKey(for: userId, eId: inboundEphemeralKeyIdInt, iId: inboundChainIndexInt) else {
                 DDLogInfo("KeyStore/decryptMessage/isOutOfOrderMessage/priorEphemeralKeyId/can't find messageKey")
-                return nil
+                return .failure(.other)
             }
             messageKey = [UInt8](msgKey)
             self.deleteMessageKey(for: userId, eId: inboundEphemeralKeyIdInt, iId: inboundChainIndexInt)
@@ -652,7 +666,7 @@ extension KeyStore {
             isOutOfOrderMessage = true
             guard let msgKey = self.messageKey(for: userId, eId: inboundEphemeralKeyIdInt, iId: inboundChainIndexInt) else {
                 DDLogInfo("KeyStore/decryptMessage/isOutOfOrderMessage/priorChainIndex/can't find messageKey")
-                return nil
+                return .failure(.other)
             }
             messageKey = [UInt8](msgKey)
             self.deleteMessageKey(for: userId, eId: inboundEphemeralKeyIdInt, iId: inboundChainIndexInt)
@@ -674,7 +688,7 @@ extension KeyStore {
                     
                     while catchupChainIndex < inboundPreviousChainIndex {
                         DDLogInfo("KeyStore/decryptMessage/newEphermeralKey/catchup/index \(catchupChainIndex)")
-                        guard let symmetricRachet = self.symmetricRachet(chainKey: inboundChainKey) else { return nil }
+                        guard let symmetricRachet = self.symmetricRachet(chainKey: inboundChainKey) else { return .failure(.ratchetFailure) }
                         messageKey = symmetricRachet.messageKey
                         inboundChainKey = symmetricRachet.updatedChainKey
                         
@@ -685,19 +699,19 @@ extension KeyStore {
                     }
                 }
                 
-                guard let inboundAsymmetricRachet = self.asymmetricRachet(privateKey: keyBundle.outboundEphemeralPrivateKey, publicKey: Data(inboundEphemeralPublicKey), rootKey: rootKey) else { return nil }
+                guard let inboundAsymmetricRachet = self.asymmetricRachet(privateKey: keyBundle.outboundEphemeralPrivateKey, publicKey: Data(inboundEphemeralPublicKey), rootKey: rootKey) else { return .failure(.ratchetFailure) }
                 rootKey = inboundAsymmetricRachet.updatedRootKey
                 inboundChainKey = inboundAsymmetricRachet.updatedChainKey
                 
                 savedInboundChainIndex = -1
                 
                 // generate new key pair and update outbound key
-                guard let newOutboundEphemeralKeyPair = sodium.box.keyPair() else { return nil }
+                guard let newOutboundEphemeralKeyPair = sodium.box.keyPair() else { return .failure(.keyGenerationFailure) }
                 outboundEphemeralPrivateKey = Data(newOutboundEphemeralKeyPair.secretKey)
                 outboundEphemeralPublicKey = Data(newOutboundEphemeralKeyPair.publicKey)
                 outboundEphemeralKeyId += 1
                 
-                guard let outboundAsymmetricRachet = self.asymmetricRachet(privateKey: outboundEphemeralPrivateKey, publicKey: Data(inboundEphemeralPublicKey), rootKey: rootKey) else { return nil }
+                guard let outboundAsymmetricRachet = self.asymmetricRachet(privateKey: outboundEphemeralPrivateKey, publicKey: Data(inboundEphemeralPublicKey), rootKey: rootKey) else { return .failure(.ratchetFailure) }
                 rootKey = outboundAsymmetricRachet.updatedRootKey
                 outboundChainKey = outboundAsymmetricRachet.updatedChainKey
                 
@@ -711,7 +725,7 @@ extension KeyStore {
             
             while savedInboundChainIndex < inboundChainIndexInt {
                 DDLogInfo("KeyStore/decryptMessage/symmetricRachet/currentChainIndex \(savedInboundChainIndex)")
-                guard let symmetricRachet = self.symmetricRachet(chainKey: inboundChainKey) else { return nil }
+                guard let symmetricRachet = self.symmetricRachet(chainKey: inboundChainKey) else { return .failure(.ratchetFailure) }
                 messageKey = symmetricRachet.messageKey
                 inboundChainKey = symmetricRachet.updatedChainKey
                 
@@ -729,7 +743,7 @@ extension KeyStore {
         // 32 byte AES + 32 byte HMAC + 16 byte IV
         guard messageKey.count >= 80 else {
             DDLogInfo("KeyStore/decryptMessage/invalidMessageKey")
-            return nil
+            return .failure(.other)
         }
         
         let AESKey = Array(messageKey[0...31])
@@ -739,7 +753,7 @@ extension KeyStore {
         
         guard [UInt8](inboundHMAC) == calculatedHMAC else {
             DDLogInfo("KeyStore/decryptMessage/hmacMismatch")
-            return nil
+            return .failure(.hmacMismatch)
         }
         
         do {
@@ -768,11 +782,11 @@ extension KeyStore {
                 }
                 self.save(managedObjectContext)
             }
-            return data
+            return .success(data)
         } catch {
             DDLogError("KeyStore/decryptMessage/error \(error)")
+            return .failure(.other)
         }
-        return nil
     }
 
     

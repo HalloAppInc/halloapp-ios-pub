@@ -171,3 +171,25 @@ public class ProtoGetServerPropertiesRequest: ProtoStandardRequest<ServerPropert
     }
 }
 
+public class ProtoLoggingRequest: ProtoStandardRequest<Void> {
+    public init(events: [CountableEvent], completion: @escaping ServiceRequestCompletion<Void>) {
+        var clientLog = Server_ClientLog()
+        clientLog.counts = events.map { event in
+            var count = Server_Count()
+            count.namespace = event.namespace
+            count.metric = event.metric
+            count.count = Int64(event.count)
+            count.dims = event.dimensions.map { (name, value) in
+                var dim = Server_Dim()
+                dim.name = name
+                dim.value = value
+                return dim
+            }
+            return count
+        }
+        super.init(
+            packet: .iqPacket(type: .set, payload: .clientLog(clientLog)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}

@@ -306,7 +306,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DDLogInfo("appdelegate/bg-task Disconnect timer fired. Connection state: [\(service.connectionState)]")
 
         disconnectTimer = nil
+
         MainAppContext.shared.service.disconnect()
+        MainAppContext.shared.stopReportingEvents()
         MainAppContext.shared.feedData.suspendMediaDownloads()
     }
 

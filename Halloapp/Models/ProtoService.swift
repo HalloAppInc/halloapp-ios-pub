@@ -51,6 +51,7 @@ final class ProtoService: ProtoServiceCore {
         queryAvatarForCurrentUserIfNecessary()
         requestServerPropertiesIfNecessary()
         NotificationSettings.current.sendConfigIfNecessary(using: self)
+        MainAppContext.shared.startReportingEvents()
     }
 
     override func authenticationSucceeded(with authResult: Server_AuthResult) {

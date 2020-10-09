@@ -50,6 +50,9 @@ public protocol CoreService {
     // MARK: Chat
     func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?)
 
+    // MARK: Event Logging
+    func log(events: [CountableEvent], completion: @escaping ServiceRequestCompletion<Void>)
+
     // MARK: Delegates
     var avatarDelegate: ServiceAvatarDelegate? { get set }
 }

@@ -178,3 +178,40 @@ public class XMPPGetServerPropertiesRequest: XMPPRequest {
         self.completion(.failure(error))
     }
 }
+
+public class XMPPLogEventsRequest: XMPPRequest {
+    public typealias Completion = (Result<Void, Error>) -> ()
+
+    private let completion: Completion
+
+    public init(events: [CountableEvent], completion: @escaping Completion) {
+        self.completion = completion
+
+        let logElement = XMPPElement(name: "client_log", xmlns: "halloapp:client_log")
+        for event in events {
+            let eventElement = XMPPElement(name: "count")
+            eventElement.addAttribute(withName: "namespace", stringValue: event.namespace)
+            eventElement.addAttribute(withName: "metric", stringValue: event.metric)
+            eventElement.addAttribute(withName: "count", integerValue: event.count)
+            for dim in event.dimensions {
+                let dimElement = XMPPElement(name: "dim")
+                dimElement.addAttribute(withName: "name", stringValue: dim.key)
+                dimElement.addAttribute(withName: "value", stringValue: dim.value)
+                eventElement.addChild(dimElement)
+            }
+            logElement.addChild(eventElement)
+        }
+        let iq = XMPPIQ(iqType: .set, to: XMPPJID(string: XMPPIQDefaultTo))
+        iq.addChild(logElement)
+
+        super.init(iq: iq)
+    }
+
+    public override func didFinish(with response: XMPPIQ) {
+        self.completion(.success(()))
+    }
+
+    public override func didFail(with error: Error) {
+        self.completion(.failure(error))
+    }
+}

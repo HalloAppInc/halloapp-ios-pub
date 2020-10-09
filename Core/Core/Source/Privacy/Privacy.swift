@@ -166,7 +166,7 @@ open class PrivacySettings {
         muted = PrivacyList(type: .muted, fileUrl: privacyListsDirectory.appendingPathComponent("list3.json", isDirectory: false))
         blocked = PrivacyList(type: .blocked, fileUrl: privacyListsDirectory.appendingPathComponent("list4.json", isDirectory: false))
 
-        if let listType = PrivacyListType(rawValue: AppContext.shared.userDefaults.string(forKey: Constants.UserDefaultsKeyActiveListType) ?? "") {
+        if let listType = PrivacyListType(rawValue: AppContext.userDefaultsForAppGroup.string(forKey: Constants.UserDefaultsKeyActiveListType) ?? "") {
             DDLogInfo("privacy/feed Loaded current feed setting: [\(listType)]")
             activeType = listType
         }
