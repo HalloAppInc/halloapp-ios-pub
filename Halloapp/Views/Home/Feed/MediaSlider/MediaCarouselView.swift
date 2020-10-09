@@ -20,6 +20,7 @@ struct MediaCarouselViewConfiguration {
     var isPagingEnabled = true
     var isZoomEnabled = true
     var showVideoPlaybackControls = true
+    var disablePlayback = false
     var alwaysScaleToFitContent = false
     var cellSpacing: CGFloat = 20
     var cornerRadius: CGFloat = 15
@@ -128,6 +129,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         collectionView.backgroundColor = .clear
         collectionView.allowsSelection = true
         collectionView.translatesAutoresizingMaskIntoConstraints = false
+
         return collectionView
     }()
 
@@ -207,6 +209,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 cell.downloadProgressViewSize = self.configuration.downloadProgressViewSize
                 if let videoCell = cell as? MediaCarouselVideoCollectionViewCell {
                     videoCell.showsVideoPlaybackControls = self.configuration.showVideoPlaybackControls
+                    videoCell.disablePlayback = self.configuration.disablePlayback
                 }
                 cell.configure(with: feedMedia)
                 if self.shouldAutoPlay,
@@ -559,18 +562,15 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     private var avPlayerViewController: AVPlayerViewController!
     private var avPlayerContext = 0
     private var avPlayerVCContext = 0
+    private var playButton: UIButton!
 
     private var videoLoadingCancellable: AnyCancellable?
     private var videoPlaybackCancellable: AnyCancellable?
 
-    var showsVideoPlaybackControls: Bool {
-        get { avPlayerViewController.showsPlaybackControls }
-
-        set {
-            if newValue != showsVideoPlaybackControls && avPlayerViewController.player != nil {
-                assert(false, "Cannot change visibility of video playback controls after video was loaded.")
-            }
-            avPlayerViewController.showsPlaybackControls = newValue
+    var showsVideoPlaybackControls = true
+    var disablePlayback = false {
+        didSet {
+            playButton.isUserInteractionEnabled = !disablePlayback
         }
     }
 
@@ -589,11 +589,15 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
 
         if avPlayerViewController.player != nil {
             avPlayerViewController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.rate), context: &avPlayerContext)
+            avPlayerViewController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.status), context: &avPlayerContext)
             avPlayerViewController.player = nil
         }
 
         avPlayerViewController.view.frame = self.bounds
         avPlayerViewController.view.layer.mask = nil
+        avPlayerViewController.showsPlaybackControls = false
+
+        playButton.isHidden = true
     }
 
     private func commonInit() {
@@ -610,9 +614,44 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.view.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         avPlayerViewController.view.isHidden = true
         avPlayerViewController.view.backgroundColor = .clear
+        avPlayerViewController.showsPlaybackControls = false
         contentView.addSubview(avPlayerViewController.view)
 
         avPlayerViewController.addObserver(self, forKeyPath: #keyPath(AVPlayerViewController.videoBounds), options: [ ], context:&avPlayerVCContext)
+
+        initPlayButton()
+    }
+
+    private func initPlayButton() {
+        let size: CGFloat = 60
+        let config = UIImage.SymbolConfiguration(pointSize: 22)
+        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(.white, renderingMode: .alwaysOriginal)
+
+        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
+        blur.translatesAutoresizingMaskIntoConstraints = false
+        blur.isUserInteractionEnabled = false
+
+        let button = UIButton.systemButton(with: icon, target: self, action: #selector(startPlayback))
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.layer.cornerRadius = size / 2
+        button.clipsToBounds = true
+        button.insertSubview(blur, at: 0)
+
+        contentView.addSubview(button)
+
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(equalToConstant: size),
+            button.heightAnchor.constraint(equalToConstant: size),
+            button.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            button.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            blur.leadingAnchor.constraint(equalTo: button.leadingAnchor),
+            blur.trailingAnchor.constraint(equalTo: button.trailingAnchor),
+            blur.topAnchor.constraint(equalTo: button.topAnchor),
+            blur.bottomAnchor.constraint(equalTo: button.bottomAnchor),
+        ])
+
+        playButton = button
+        playButton.isHidden = true
     }
 
     override func configure(with media: FeedMedia) {
@@ -638,15 +677,14 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         assert(videoPlaybackCancellable == nil)
 
         self.videoURL = videoURL
-
-        let avPlayer = AVPlayer(url: videoURL)
-        avPlayerViewController.player = avPlayer
         avPlayerViewController.view.isHidden = false
-
         placeholderImageView.isHidden = true
 
+        let avPlayer = AVPlayer(url: videoURL)
         // Monitor when this cell's video starts playing and send out broadcast when it does.
         avPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.rate), options: [ .new ], context: &avPlayerContext)
+        // Monitor when the video is ready for playing and only then attach the player to the controller
+        avPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), options: [ .new ], context: &avPlayerContext)
 
         // Cancel playback when other video starts playing.
         videoPlaybackCancellable = Self.videoDidStartPlaying.sink { [weak self] (videoURL) in
@@ -670,8 +708,14 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.player?.pause()
     }
 
-    func startPlayback() {
+    @objc func startPlayback() {
+        guard !disablePlayback else { return }
+
         if avPlayerViewController.player?.timeControlStatus == AVPlayer.TimeControlStatus.paused {
+            if showsVideoPlaybackControls {
+                playButton.isHidden = true
+                avPlayerViewController.showsPlaybackControls = true
+            }
             avPlayerViewController.player?.seek(to: .zero)
             avPlayerViewController.player?.play()
         }
@@ -722,6 +766,16 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
             if let rate = change?[.newKey] as? NSNumber {
                 if rate.doubleValue == 1 {
                     Self.videoDidStartPlaying.send(videoURL!)
+                }
+            }
+        }
+
+        if keyPath == #keyPath(AVPlayer.status) {
+            if let player = object as? AVPlayer, player.status == .readyToPlay {
+                self.avPlayerViewController.player = player
+
+                if showsVideoPlaybackControls {
+                    self.playButton.isHidden = false
                 }
             }
         }

@@ -375,7 +375,7 @@ final class DeletedPostTableViewCell: FeedPostTableViewCellBase {
 }
 
 
-final class FeedItemContentView: UIView {
+final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private var postId: FeedPostID? = nil
 
@@ -436,7 +436,9 @@ final class FeedItemContentView: UIView {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
             var mediaViewConfiguration = MediaCarouselViewConfiguration.default
             mediaViewConfiguration.gutterWidth = gutterWidth
+            mediaViewConfiguration.disablePlayback = true
             let mediaView = MediaCarouselView(feedDataItem: feedDataItem, configuration: mediaViewConfiguration)
+            mediaView.delegate = self
             mediaView.addConstraint({
                 let constraint = mediaView.heightAnchor.constraint(equalToConstant: mediaViewHeight)
                 constraint.priority = .required - 10
@@ -480,6 +482,32 @@ final class FeedItemContentView: UIView {
         if let mediaView = mediaView {
             mediaView.stopPlayback()
         }
+    }
+
+    func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
+    }
+
+    func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
+        guard let postId = postId else { return }
+        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else { return }
+
+        let explorerController = MediaExplorerController(media: feedDataItem.media, index: index)
+        let naviController = UINavigationController(rootViewController: explorerController)
+        naviController.modalPresentationStyle = .fullScreen
+
+        if let controller = findController() {
+            controller.present(naviController, animated: true)
+        }
+    }
+
+    func findController() -> UIViewController? {
+        var current: UIResponder? = self
+
+        while current != nil && !(current is UIViewController) {
+            current = current?.next
+        }
+
+        return current as? UIViewController
     }
 }
 
