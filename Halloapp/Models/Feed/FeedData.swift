@@ -1192,9 +1192,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         // Known contacts go first, sorted using Address Book sort.
         var receipts: [FeedPostReceipt] = []
         let knownContacts = contactStore.sortedContacts(withUserIds: Array(userIds))
+        var uniqueUserIDs: Set<UserID> = [] // Contacts need to be de-duped by userId.
         for abContact in knownContacts {
-            receipts.append(FeedPostReceipt(userId: abContact.userId!, type: .sent, contactName: abContact.fullName, phoneNumber: abContact.phoneNumber, timestamp: Date()))
-            unknownContactIDs.remove(abContact.userId!)
+            if let userId = abContact.userId, uniqueUserIDs.insert(userId).inserted {
+                receipts.append(FeedPostReceipt(userId: userId, type: .sent, contactName: abContact.fullName, phoneNumber: abContact.phoneNumber, timestamp: Date()))
+                unknownContactIDs.remove(userId)
+            }
         }
 
         // Unknown contacts are at the end, sorted by push name.
