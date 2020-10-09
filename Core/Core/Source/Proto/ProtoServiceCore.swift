@@ -133,15 +133,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         callbacks.forEach{ $0.work(group) }
     }
 
-    // MARK: Acks
-
-    public func sendAck(for message: XMPPMessage) {
-        if let ack = XMPPAck.ack(for: message) {
-            DDLogDebug("connection/send-ack id=[\(ack.id)] to=[\(ack.to)] from=[\(ack.from)]")
-            stream.send(ack.xmlElement)
-        }
-    }
-
     // MARK: Requests
 
     private var requestsInFlight: [ProtoRequest] = []
