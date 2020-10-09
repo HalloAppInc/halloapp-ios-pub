@@ -198,7 +198,12 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     // MARK: Override points for subclasses.
 
-    open func authenticationFailed() {
+    open func authenticationSucceeded(with authResult: Server_AuthResult) {
+        connectionState = .connected
+        performOnConnect()
+    }
+
+    open func authenticationFailed(with authResult: Server_AuthResult) {
         DDLogInfo("ProtoServiceCore/authenticationFailed")
         userData.logout()
     }
@@ -290,15 +295,11 @@ extension ProtoServiceCore: XMPPStreamDelegate {
     }
 
     public func xmppStreamDidAuthenticate(_ sender: XMPPStream) {
-        DDLogInfo("proto/stream/didAuthenticate")
-
-        connectionState = .connected
-        performOnConnect()
+        DDLogError("proto/stream/didAuthenticate/error this delegate method should not be used")
     }
 
     public func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: DDXMLElement) {
-        DDLogInfo("proto/stream/didNotAuthenticate")
-        authenticationFailed()
+        DDLogError("proto/stream/didNotAuthenticate/error \(error)")
     }
 
     public func xmppStream(_ sender: XMPPStream, didReceiveError error: DDXMLElement) {

@@ -53,6 +53,13 @@ final class ProtoService: ProtoServiceCore {
         NotificationSettings.current.sendConfigIfNecessary(using: self)
     }
 
+    override func authenticationSucceeded(with authResult: Server_AuthResult) {
+        // Update props hash before calling super so it's available for `performOnConnect`
+        propsHash = authResult.propsHash.toHexString()
+
+        super.authenticationSucceeded(with: authResult)
+    }
+
     private var cancellableSet = Set<AnyCancellable>()
 
     weak var chatDelegate: HalloChatDelegate?
@@ -65,11 +72,14 @@ final class ProtoService: ProtoServiceCore {
 
     // MARK: Server Properties
 
+    private var propsHash: String?
+
     private func requestServerPropertiesIfNecessary() {
-        // TODO: Only check when necessary (requires setting serverPropertiesVersion in handleAuth)
-        //guard ServerProperties.shouldQuery(forVersion: stream.serverPropertiesVersion) else {
-        //    return
-        //}
+        guard ServerProperties.shouldQuery(forVersion: propsHash) else {
+            DDLogInfo("proto/serverprops/skipping [\(propsHash ?? "hash unavailable")]")
+            return
+        }
+
         DDLogInfo("proto/serverprops/request")
         getServerProperties { (result) in
             switch result {

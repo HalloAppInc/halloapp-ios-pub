@@ -113,19 +113,16 @@ public final class ProtoStream: XMPPStream {
         do {
             let authResult = try Server_AuthResult(serializedData: data)
 
-            // TODO: Make serverPropertiesVersion writable in XMPPFramework
-            //serverPropertiesVersion = authResult.propsHash.toHexString()
-
             if authResult.result == "success" {
                 isAuthenticated = true
                 state = XMPPStreamState.STATE_XMPP_CONNECTED
 
                 DispatchQueue.main.async {
-                    self.protoService?.xmppStreamDidAuthenticate(self)
+                    self.protoService?.authenticationSucceeded(with: authResult)
                 }
             } else {
                 state = XMPPStreamState.STATE_XMPP_DISCONNECTED
-                protoService?.authenticationFailed()
+                protoService?.authenticationFailed(with: authResult)
             }
         } catch {
             DDLogError("ProtoStream/handleAuth/error could not deserialize packet")
