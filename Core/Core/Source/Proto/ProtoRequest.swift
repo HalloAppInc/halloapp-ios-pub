@@ -48,7 +48,9 @@ open class ProtoRequest {
         }
         DDLogWarn("protorequest/\(self.requestId)/failed: not-connected")
         self.state = .cancelled
-        self.didFail(with: XMPPError.notConnected)
+        DispatchQueue.main.async {
+            self.didFail(with: XMPPError.notConnected)
+        }
     }
 
     func cancelAndPrepareFor(retry willRetry: Bool) -> Bool {
@@ -59,7 +61,9 @@ open class ProtoRequest {
         case .ready, .sending:
             if !willRetry || self.retriesRemaining <= 0 {
                 self.state = .cancelled
-                self.didFail(with: XMPPError.aborted)
+                DispatchQueue.main.async {
+                    self.didFail(with: XMPPError.aborted)
+                }
                 return false
             }
         }
@@ -76,7 +80,9 @@ open class ProtoRequest {
         self.state = .finished
         self.response = response
         DDLogDebug("protorequest/\(self.requestId)/response \(response)")
-        self.didFinish(with: response)
+        DispatchQueue.main.async {
+            self.didFinish(with: response)
+        }
     }
 
     open func didFinish(with response: Server_Packet) { }
