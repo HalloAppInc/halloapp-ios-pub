@@ -677,17 +677,19 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     private func refreshCommentInputViewReplyPanel() {
-        if let context = self.replyContext {
+        if let context = replyContext {
             let contactName: String
             if context.userId == MainAppContext.shared.userData.userId {
                 contactName = "myself"
+                commentsInputView.removeReplyMentionIfPossible()
             } else {
                 contactName = AppContext.shared.contactStore.fullName(for: context.userId)
-                self.commentsInputView.addReplyMentionIfPossible(for: context.userId, name: contactName)
+                commentsInputView.addReplyMentionIfPossible(for: context.userId, name: contactName)
             }
-            self.commentsInputView.showReplyPanel(with: contactName)
+            commentsInputView.showReplyPanel(with: contactName)
         } else {
-            self.commentsInputView.removeReplyPanel()
+            commentsInputView.removeReplyMentionIfPossible()
+            commentsInputView.removeReplyPanel()
         }
     }
 

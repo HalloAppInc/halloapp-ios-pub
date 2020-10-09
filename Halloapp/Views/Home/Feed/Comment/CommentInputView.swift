@@ -149,7 +149,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         button.setImage(UIImage(named: "ReplyPanelClose"), for: .normal)
         button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
         button.tintColor = UIColor(white: 1, alpha: 0.8)
-        button.addTarget(self, action: #selector(self.closeReplyPanel), for: .touchUpInside)
+        button.addTarget(self, action: #selector(didTapCloseReplyPanel), for: .touchUpInside)
         button.setContentHuggingPriority(.required, for: .horizontal)
         return button
     }()
@@ -334,10 +334,19 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     // MARK: Reply Context
 
+    var textIsUneditedReplyMention = false
+
     func addReplyMentionIfPossible(for userID: UserID, name: String) {
-        if textView.text.isEmpty {
-            // Only add reply mention if the textfield is empty
+        if textView.text.isEmpty || textIsUneditedReplyMention {
+            clear()
             textView.addMention(name: name, userID: userID, in: NSRange(location: 0, length: 0))
+            textIsUneditedReplyMention = true
+        }
+    }
+
+    func removeReplyMentionIfPossible() {
+        if textIsUneditedReplyMention {
+            clear()
         }
     }
 
@@ -371,7 +380,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         self.setNeedsUpdateHeight()
     }
 
-    @objc private func closeReplyPanel() {
+    @objc private func didTapCloseReplyPanel() {
         self.delegate?.commentInputViewResetReplyContext(self)
     }
 
@@ -443,10 +452,11 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     // MARK: InputTextViewDelegate
 
     func inputTextViewDidChange(_ inputTextView: InputTextView) {
-        self.postButton.isEnabled = isPostButtonEnabled
-        self.placeholder.isHidden = !inputTextView.text.isEmpty
+        textIsUneditedReplyMention = false
+        postButton.isEnabled = isPostButtonEnabled
+        placeholder.isHidden = !inputTextView.text.isEmpty
 
-        self.updateMentionPickerContent()
+        updateMentionPickerContent()
     }
 
     func inputTextViewDidChangeSelection(_ inputTextView: InputTextView) {
