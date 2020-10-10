@@ -552,6 +552,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     deinit {
         if avPlayerViewController.player != nil {
             avPlayerViewController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.rate), context: &avPlayerContext)
+            avPlayerViewController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.status), context: &avPlayerContext)
             avPlayerViewController.player = nil
         }
         avPlayerViewController.removeObserver(self, forKeyPath: #keyPath(AVPlayerViewController.videoBounds), context:&avPlayerVCContext)
