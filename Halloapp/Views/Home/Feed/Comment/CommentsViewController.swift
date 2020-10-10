@@ -445,33 +445,39 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             return
         }
 
-        func insert(comment: FeedPostComment) {
-            var currentRoot = comment
+        func insert(_ newComment: FeedPostComment) {
+            var currentRoot = newComment
             while let parent = currentRoot.parent {
                 currentRoot = parent
             }
-            var commentIndex = self.sortedComments.endIndex
-            if let nextRootCommentIndex = self.sortedComments.firstIndex(where: { $0.parent == nil && $0.timestamp > currentRoot.timestamp }) {
+            var commentIndex = sortedComments.endIndex
+            if let nextRootCommentIndex = sortedComments.firstIndex(where: { $0.parent == nil && $0.timestamp > currentRoot.timestamp }) {
                 commentIndex = nextRootCommentIndex
             }
-            sortedComments.insert(comment, at: commentIndex)
-            DDLogDebug("CommentsView/frc/insert Position: [\(commentIndex)] Comment: [\(comment)]")
+            sortedComments.insert(newComment, at: commentIndex)
+            DDLogDebug("CommentsView/frc/insert Position: [\(commentIndex)] Comment: [\(newComment)]")
             tableView.insertRows(at: [ IndexPath(row: commentIndex, section: Self.sectionMain) ], with: .none)
         }
 
+        let comment = anObject as! FeedPostComment
         switch type {
         case .insert:
-            insert(comment: anObject as! FeedPostComment)
+            insert(comment)
             numberOfInsertedItems += 1
             needsScrollToTargetAfterTableUpdates = true
 
-        case .delete, .move:
+        case .move:
             // Delete and Move should not happen at this time.
             assert(false, "Unexpected FRC operation.")
 
+        case .delete:
+            guard let commentIndex = sortedComments.firstIndex(where: { $0 == comment }) else { return }
+            DDLogDebug("CommentsView/frc/delete Position: [\(commentIndex)]  Comment: [\(comment)] ")
+            sortedComments.remove(at: commentIndex)
+            tableView.deleteRows(at: [ IndexPath(row: commentIndex, section: Self.sectionMain) ], with: .none)
+
         case .update:
-            guard let comment = anObject as? FeedPostComment,
-                let commentIndex = sortedComments.firstIndex(where: { $0 == comment }) else { return }
+            guard let commentIndex = sortedComments.firstIndex(where: { $0 == comment }) else { return }
 
             DDLogDebug("CommentsView/frc/update Position: [\(commentIndex)]  Comment: [\(comment)] ")
             // Update cell directly if there are animations attached to the UITableView.
@@ -524,6 +530,18 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         if needsNotify && notifyImmediately {
             needsNotify = false
             didUpdateCommentsTableAfterControllerDidChangeContent()
+        }
+
+        // Navigate back if the post was deleted.
+        if let post = MainAppContext.shared.feedData.feedPost(with: feedPostId), post.isPostRetracted {
+            DDLogInfo("CommentsView/\(feedPostId) Post deleted - popping view controller.")
+            if let presentedVC = presentedViewController {
+                presentedVC.dismiss(animated: false) {
+                    self.navigationController?.popViewController(animated: true)
+                }
+            } else {
+                navigationController?.popViewController(animated: true)
+            }
         }
     }
 
