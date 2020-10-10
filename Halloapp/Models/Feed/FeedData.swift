@@ -1160,29 +1160,32 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     func seenReceipts(for feedPost: FeedPost) -> [FeedPostReceipt] {
-        let allContacts = contactStore.allRegisteredContacts(sorted: false)
-        
-        // Contacts that have seen the post go into the first section.
-        var users = [FeedPostReceipt]()
-        
-        if let seenReceipts = feedPost.info?.receipts {
-            for (userId, receipt) in seenReceipts {
-                guard let seenDate = receipt.seenDate else { continue }
-
-                var contactName: String?, phoneNumber: String?
-                if let contact = allContacts.first(where: { $0.userId == userId }) {
-                    contactName = contact.fullName
-                    phoneNumber = contact.phoneNumber
-                }
-                if contactName == nil {
-                    contactName = contactStore.fullName(for: userId)
-                }
-                users.append(FeedPostReceipt(userId: userId, type: .seen, contactName: contactName!, phoneNumber: phoneNumber, timestamp: seenDate))
-            }
+        guard let seenReceipts = feedPost.info?.receipts else {
+            return []
         }
-        users.sort(by: { $0.timestamp > $1.timestamp })
 
-        return users
+        let contacts = contactStore.contacts(withUserIds: Array(seenReceipts.keys))
+        let contactsMap = contacts.reduce(into: [UserID: ABContact]()) { (map, contact) in
+            map[contact.userId!] = contact
+        }
+
+        var receipts = [FeedPostReceipt]()
+        for (userId, receipt) in seenReceipts {
+            guard let seenDate = receipt.seenDate else { continue }
+
+            var contactName: String?, phoneNumber: String?
+            if let contact = contactsMap[userId] {
+                contactName = contact.fullName
+                phoneNumber = contact.phoneNumber
+            }
+            if contactName == nil {
+                contactName = contactStore.fullName(for: userId)
+            }
+            receipts.append(FeedPostReceipt(userId: userId, type: .seen, contactName: contactName!, phoneNumber: phoneNumber, timestamp: seenDate))
+        }
+        receipts.sort(by: { $0.timestamp > $1.timestamp })
+
+        return receipts
     }
 
     func sentReceipts(from userIds: Set<UserID>) -> [FeedPostReceipt] {
