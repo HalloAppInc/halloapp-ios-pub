@@ -237,7 +237,7 @@ fileprivate class MediaEdit : ObservableObject {
         }
 
         if cropToCircle {
-            let size = min(image.size.width, image.size.height) * 0.90
+            let size = min(image.size.width, image.size.height) * 0.96
             self.cropRect = CGRect(x: image.size.width / 2 - size / 2, y: image.size.height / 2  - size / 2, width: size, height: size)
         } else {
             var crop = CGRect(x: offset, y: offset, width: image.size.width - 2 * offset, height: image.size.height - 2 * offset)
@@ -247,9 +247,6 @@ fileprivate class MediaEdit : ObservableObject {
 
             self.cropRect = crop;
         }
-
-        
-
     }
     
     func reset() {
@@ -401,7 +398,6 @@ fileprivate struct CropRegion: View {
                 }
             }
             .stroke(Color.white, lineWidth: CropRegion.borderThickness)
-            .contentShape(Rectangle()) // Apply gesture on the whole region and not just the border
         }
     }
 }
@@ -691,81 +687,86 @@ fileprivate struct CropImage: View {
     }
     
     var body: some View {
-        media.image.map { image in
+        if media.image != nil {
             GeometryReader { outer in
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .scaleEffect(self.media.scale)
-                    .offset(self.scaleOffset(self.media.offset, containerSize: outer.size, imageSize: image.size))
-                    .clipped()
-                    .overlay(GeometryReader { inner in
-                        CropRegion(cropToCircle: self.cropToCircle, region: self.scaleCropRegion(self.media.cropRect, from: image.size, to: inner.size))
-                    })
-                    .overlay(GeometryReader { inner in
-                        CropGestureView()
-                            .onZoomChanged { v in
-                                if !self.isZooming {
-                                    self.isZooming = true
-                                    self.startingScale = self.media.scale
-                                }
-                                
-                                self.media.zoom(self.startingScale * v)
-                            }
-                            .onZoomEnded { v in
-                                self.isZooming = false
-                            }
-                            .onPinchDragChanged { v in
-                                if !self.isPinchDragging {
-                                    self.isPinchDragging = true
-                                    self.startingOffset = self.media.offset
-                                }
-                                
-                                let scale = image.size.width / inner.size.width
-                                let real = v.applying(CGAffineTransform(scaleX: scale, y: scale))
-                                let offset = self.startingOffset.applying(CGAffineTransform(translationX: real.x, y: real.y))
-
-                                self.media.move(offset)
-                            }
-                            .onPinchDragEnded { v in
-                                self.isPinchDragging = false
-                            }
-                            .onDragChanged { v in
-                                var crop = self.scaleCropRegion(self.media.cropRect, from: image.size, to: inner.size)
-                                
-                                if !self.isDragging {
-                                    self.lastLocation = v
-                                    self.lastCropSection = self.findCropSection(crop, location: v)
-
-                                    if self.cropToCircle && self.lastCropSection == .inside {
-                                        self.isDragging = true
-                                    } else if !self.cropToCircle && self.lastCropSection != .none {
-                                        self.isDragging = true
-                                    } else {
-                                        return
+                VStack {
+                    Spacer()
+                    Image(uiImage: self.media.image!)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .allowsHitTesting(false)
+                        .scaleEffect(self.media.scale)
+                        .offset(self.scaleOffset(self.media.offset, containerSize: outer.size, imageSize: self.media.image!.size))
+                        .clipped()
+                        .overlay(GeometryReader { inner in
+                            CropRegion(cropToCircle: self.cropToCircle, region: self.scaleCropRegion(self.media.cropRect, from: self.media.image!.size, to: inner.size))
+                        })
+                        .overlay(GeometryReader { inner in
+                            CropGestureView(x: Int(inner.size.width))
+                                .onZoomChanged { v in
+                                    if !self.isZooming {
+                                        self.isZooming = true
+                                        self.startingScale = self.media.scale
                                     }
+
+                                    self.media.zoom(self.startingScale * v)
                                 }
-                                
-                                let deltaX = v.x - self.lastLocation.x
-                                let deltaY = v.y - self.lastLocation.y
-                                self.lastLocation = v
-                                
-                                var result = self.newCropRegion(crop, deltaX: deltaX)
-                                if self.isCropRegionValid(result, limit: inner.size) {
-                                    crop = result
+                                .onZoomEnded { v in
+                                    self.isZooming = false
                                 }
-                                
-                                result = self.newCropRegion(crop, deltaY: deltaY)
-                                if self.isCropRegionValid(result, limit: inner.size) {
-                                    crop = result
+                                .onPinchDragChanged { v in
+                                    if !self.isPinchDragging {
+                                        self.isPinchDragging = true
+                                        self.startingOffset = self.media.offset
+                                    }
+
+                                    let scale = self.media.image!.size.width / inner.size.width
+                                    let real = v.applying(CGAffineTransform(scaleX: scale, y: scale))
+                                    let offset = self.startingOffset.applying(CGAffineTransform(translationX: real.x, y: real.y))
+
+                                    self.media.move(offset)
                                 }
-                                
-                                self.media.cropRect = self.scaleCropRegion(crop, from: inner.size, to: image.size)
-                            }
-                            .onDragEnded { v in
-                                self.isDragging = false
-                            }
-                    })
+                                .onPinchDragEnded { v in
+                                    self.isPinchDragging = false
+                                }
+                                .onDragChanged { v in
+                                    var crop = self.scaleCropRegion(self.media.cropRect, from: self.media.image!.size, to: inner.size)
+
+                                    if !self.isDragging {
+                                        self.lastLocation = v
+                                        self.lastCropSection = self.findCropSection(crop, location: v)
+
+                                        if self.cropToCircle && self.lastCropSection == .inside {
+                                            self.isDragging = true
+                                        } else if !self.cropToCircle && self.lastCropSection != .none {
+                                            self.isDragging = true
+                                        } else {
+                                            return
+                                        }
+                                    }
+
+                                    let deltaX = v.x - self.lastLocation.x
+                                    let deltaY = v.y - self.lastLocation.y
+                                    self.lastLocation = v
+
+                                    var result = self.newCropRegion(crop, deltaX: deltaX)
+                                    if self.isCropRegionValid(result, limit: inner.size) {
+                                        crop = result
+                                    }
+
+                                    result = self.newCropRegion(crop, deltaY: deltaY)
+                                    if self.isCropRegionValid(result, limit: inner.size) {
+                                        crop = result
+                                    }
+
+                                    self.media.cropRect = self.scaleCropRegion(crop, from: inner.size, to: self.media.image!.size)
+                                }
+                                .onDragEnded { v in
+                                    self.isDragging = false
+                                }
+                        })
+                    Spacer()
+                }
             }
         }
     }
@@ -941,26 +942,19 @@ fileprivate struct MediaEditView : View {
             }
         }
     }
-    
+
     var body: some View {
         ZStack {
             Rectangle()
                 .foregroundColor(.black)
-                .edgesIgnoringSafeArea(.top)
-            
+                .edgesIgnoringSafeArea(.all)
+
             VStack {
                 topBar
-
                 CropImage(cropToCircle: cropToCircle, media: selected)
-
                 previews
                 bottomBar
-                Spacer()
-                    .frame(height: 30)
             }
-            
         }
-        .background(Color.black)
-        .edgesIgnoringSafeArea(.bottom)
     }
 }
