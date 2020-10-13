@@ -77,8 +77,7 @@ class FeedViewController: FeedTableViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        installNUXHeaderViewIfNecessary()
-        showActivityCenterNUXIfNecessary()
+        showNUXIfNecessary()
     }
 
     deinit {
@@ -166,6 +165,12 @@ class FeedViewController: FeedTableViewController {
 
     private var isShowingNUXHeaderView = false
 
+    private func showNUXIfNecessary() {
+        installNUXHeaderViewIfNecessary()
+        showActivityCenterNUXIfNecessary()
+        showFloatingMenuNUXIfNecessary()
+    }
+
     private func installNUXHeaderViewIfNecessary() {
         guard MainAppContext.shared.nux.isIncomplete(.homeFeedIntro), !isShowingNUXHeaderView else {
             return
@@ -190,7 +195,7 @@ class FeedViewController: FeedTableViewController {
                         self?.tableView.tableHeaderView = nil
                         self?.tableView.layoutIfNeeded() },
                     completion: { [weak self] _ in
-                        self?.showActivityCenterNUXIfNecessary()
+                        self?.showNUXIfNecessary()
                     })
         })
         nuxItem.frame.size = nuxItem.systemLayoutSizeFitting(
@@ -231,6 +236,26 @@ class FeedViewController: FeedTableViewController {
 
         overlay = sheet
         overlayContainer.display(sheet)
+    }
+
+    private func showFloatingMenuNUXIfNecessary() {
+        guard overlay == nil && !isShowingNUXHeaderView &&
+                MainAppContext.shared.nux.isIncomplete(.newPostButton) else
+        {
+            return
+        }
+
+        let popover = NUXPopover(
+            NUX.newPostButtonContent,
+            targetRect: floatingMenu.permanentButton.bounds,
+            targetSpace: floatingMenu.permanentButton.coordinateSpace,
+            showButton: false) { [weak self] in
+            MainAppContext.shared.nux.didComplete(.newPostButton)
+            self?.overlay = nil
+        }
+
+        overlay = popover
+        overlayContainer.display(popover)
     }
 
     private func showActivityCenterNUXIfNecessary() {
@@ -306,7 +331,7 @@ class FeedViewController: FeedTableViewController {
 
     private func updateNotificationCount(_ unreadCount: Int) {
         notificationButton?.isBadgeHidden = unreadCount == 0
-        showActivityCenterNUXIfNecessary()
+        showNUXIfNecessary()
     }
 
     private func scrollTo(post feedPost: FeedPost) {

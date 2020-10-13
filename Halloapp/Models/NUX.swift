@@ -14,6 +14,7 @@ final class NUX {
         case chatListIntro
         case profileIntro
         case activityCenterIcon
+        case newPostButton
         case feedPostWhoWillSee
     }
 
@@ -43,6 +44,7 @@ final class NUX {
     static let activityCenterIconContent = "This is your activity center. Tap to see your most recent activity."
     static let profileContent = "This is your profile. Your own posts will collect here. Each post expires in 30 days."
     static let chatIntroContent = "This is where you’ll find messages from your friends & family. When someone new joins HalloApp you can see them here."
+    static let newPostButtonContent = "Tap to share an update with your friends & family on HalloApp"
     static let homeFeedIntroContent = "Welcome to your home feed! This is where you can see posts from your phone contacts who use HalloApp."
     static let homeFeedDetailsTitle = "About HalloApp"
     static let homeFeedDetailsBody = """

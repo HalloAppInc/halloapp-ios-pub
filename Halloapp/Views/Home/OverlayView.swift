@@ -168,6 +168,7 @@ final class NUXPopover: UIView, Overlay {
     private let completion: (() -> Void)?
     private let targetRect: CGRect?
     private let targetSpace: UICoordinateSpace?
+    private let arrowSpacing: CGFloat = 8
 
     @objc
     func didTapButton() {
@@ -198,13 +199,13 @@ final class NUXPopover: UIView, Overlay {
                 topAnchor.constraint(greaterThanOrEqualTo: container.layoutMarginsGuide.topAnchor).isActive = true
                 arrow.transform = .init(scaleX: 1, y: -1)
                 arrow.topAnchor.constraint(equalTo: panel.bottomAnchor).isActive = true
-                arrow.constrain(anchor: .bottom, to: self)
+                arrow.constrain(anchor: .bottom, to: self, constant: -arrowSpacing)
                 panel.constrain(anchor: .top, to: self)
             } else {
                 topAnchor.constraint(equalTo: container.topAnchor, constant: convertedRect.maxY).isActive = true
                 bottomAnchor.constraint(lessThanOrEqualTo: container.layoutMarginsGuide.bottomAnchor).isActive = true
                 arrow.bottomAnchor.constraint(equalTo: panel.topAnchor).isActive = true
-                arrow.constrain(anchor: .top, to: self)
+                arrow.constrain(anchor: .top, to: self, constant: arrowSpacing)
                 panel.constrain(anchor: .bottom, to: self)
             }
         } else {
