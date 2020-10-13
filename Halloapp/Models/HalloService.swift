@@ -57,7 +57,7 @@ protocol HalloService: CoreService {
 
     // MARK: Groups
     func sendGroupChatMessage(_ message: HalloGroupChatMessage)
-    func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>)
+    func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<String>)
     func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>)
     func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>)
     func modifyGroup(groupID: GroupID, with members: [UserID], groupAction: ChatGroupAction,

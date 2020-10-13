@@ -303,7 +303,7 @@ final class ProtoService: ProtoServiceCore {
             case .deliveryReceipt(let pbReceipt):
                 handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
             case .chatStanza(let pbChat):
-                if let chat = XMPPChatMessage(pbChat, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id) {
+                if let chat = XMPPChatMessage(pbChat, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount) {
                     didGetNewChatMessage.send(chat)
                 } else {
                     DDLogError("ProtoService/didReceive/\(requestID)/error could not read chat")
@@ -332,14 +332,14 @@ final class ProtoService: ProtoServiceCore {
                     }
                 }
             case .groupStanza(let pbGroup):
-                if let group = HalloGroup(protoGroup: pbGroup) {
+                if let group = HalloGroup(protoGroup: pbGroup, msgId: msg.id) {
                     chatDelegate?.halloService(self, didReceiveGroupMessage: group)
                 } else {
                     DDLogError("ProtoService/didReceive/\(requestID)/error could not read group stanza")
                 }
                 sendAck(messageID: msg.id)
             case .groupChat(let pbGroupChat):
-                if let groupChatMessage = HalloGroupChatMessage(pbGroupChat, id: msg.id) {
+                if let groupChatMessage = HalloGroupChatMessage(pbGroupChat, id: msg.id, retryCount: msg.retryCount) {
                     chatDelegate?.halloService(self, didReceiveGroupChatMessage: groupChatMessage)
                 } else {
                     DDLogError("ProtoService/didReceive/\(requestID)/error could not read group chat message")
@@ -594,6 +594,7 @@ extension ProtoService: HalloService {
         }
 
         packet.msg.payload = .groupChat(chat)
+        
         guard let packetData = try? packet.serializedData() else {
             DDLogError("ProtoServiceCore/sendGroupChatMessage/\(message.id)/error could not serialize packet")
             return
@@ -604,7 +605,7 @@ extension ProtoService: HalloService {
 
     }
 
-    func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>) {
+    func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {
         enqueue(request: ProtoGroupCreateRequest(name: name, members: members, completion: completion))
     }
 

@@ -77,6 +77,18 @@ extension SharedChatMessage: ChatMessageProtocol {
         0
     }
 
+    public var chatReplyMessageID: String? {
+        nil
+    }
+    
+    public var chatReplyMessageSenderID: UserID? {
+        nil
+    }
+    
+    public var chatReplyMessageMediaIndex: Int32 {
+        0
+    }
+    
     public var timeIntervalSince1970: TimeInterval? {
         timestamp.timeIntervalSince1970
     }

@@ -234,7 +234,7 @@ private class TableHeaderView: UIView {
 
         button = UIButton(type: .system)
         button.titleLabel?.font = .gothamFont(forTextStyle: .headline, weight: .medium)
-        button.setTitle("New Group", for: .normal)
+        button.setTitle("Create New Group", for: .normal)
         button.tintColor = .systemBlue
         button.contentHorizontalAlignment = .leading
         button.contentEdgeInsets = UIEdgeInsets(top: 8, left: layoutMargins.left, bottom: 8, right: layoutMargins.right)

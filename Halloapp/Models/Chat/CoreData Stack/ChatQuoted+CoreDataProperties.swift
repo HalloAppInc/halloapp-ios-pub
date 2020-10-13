@@ -25,7 +25,8 @@ extension ChatQuoted {
     @NSManaged var userId: String?
     @NSManaged var media: Set<ChatQuotedMedia>?
     @NSManaged var mentions: Set<ChatMention>?
-    @NSManaged var message: ChatMessage
+    @NSManaged var message: ChatMessage?
+    @NSManaged var groupMessage: ChatGroupMessage?
     
     var type: ChatQuoteType {
         get {

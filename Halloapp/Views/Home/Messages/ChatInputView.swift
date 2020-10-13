@@ -6,9 +6,13 @@
 //
 
 import AVKit
-import Core
 import CocoaLumberjack
+import Core
 import UIKit
+
+fileprivate struct Constants {
+    static let QuotedMediaSize: CGFloat = 80
+}
 
 fileprivate protocol ContainerViewDelegate: AnyObject {
     func containerView(_ containerView: ChatInputView.ContainerView, preferredHeightFor layoutWidth: CGFloat) -> CGFloat
@@ -73,7 +77,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         } else {
             resignFirstResponderOnDisappear(in: viewController)
         }
-
     }
     
     private func setup() {
@@ -135,9 +138,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
             super.init(frame: frame)
         }
 
-        required init?(coder: NSCoder) {
-            super.init(coder: coder)
-        }
+        required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
         func setupView() {
             translatesAutoresizingMaskIntoConstraints = false
@@ -174,57 +175,37 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     private lazy var contentView: UIStackView = {
         let view = UIStackView()
         view.axis = .vertical
+        view.spacing = 8
         view.translatesAutoresizingMaskIntoConstraints = false
         view.preservesSuperviewLayoutMargins = true
-        view.spacing = 8
-
+        
         return view
     }()
+    
+    private lazy var vStack: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [quoteFeedPanel, textInputRow ])
+        view.axis = .vertical
+        view.alignment = .trailing
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var quoteFeedPanel: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ quoteFeedPanelTextMediaContent, quoteFeedPanelCloseButton ])
+        view.axis = .horizontal
+        view.alignment = .top
+        view.spacing = 8
 
-    private lazy var quoteFeedPanelNameLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.label
-        label.numberOfLines = 1
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
-        return label
-    }()
-    
-    private lazy var quoteFeedPanelTextLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.secondaryLabel
-        label.numberOfLines = 2
-        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
-        return label
-    }()
-    
-    private lazy var quoteFeedPanelTextContent: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [ self.quoteFeedPanelNameLabel, self.quoteFeedPanelTextLabel ])
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 10, right: 0)
-        stackView.isLayoutMarginsRelativeArrangement = true
-        stackView.axis = .vertical
-        stackView.spacing = 3
-        return stackView
-    }()
-    
-    private lazy var quoteFeedPanelImage: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFill
-        
-        imageView.layer.cornerRadius = 10
-        imageView.layer.masksToBounds = true
-        imageView.isHidden = true
-        
-        return imageView
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true
+        return view
     }()
     
     private lazy var quoteFeedPanelTextMediaContent: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ quoteFeedPanelTextContent, quoteFeedPanelImage ])
-        view.translatesAutoresizingMaskIntoConstraints = false
-
         view.axis = .horizontal
-        view.spacing = 3
         view.alignment = .top
+        view.spacing = 3
         
         view.layoutMargins = UIEdgeInsets(top: 10, left: 5, bottom: 10, right: 10)
         view.isLayoutMarginsRelativeArrangement = true
@@ -236,12 +217,56 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         subView.layer.borderColor = UIColor.link.cgColor
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
-        
         view.insertSubview(subView, at: 0)
         
+        view.translatesAutoresizingMaskIntoConstraints = false
+        quoteFeedPanelImage.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize).isActive = true
+        quoteFeedPanelImage.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize).isActive = true
+
         return view
     }()
     
+    private lazy var quoteFeedPanelTextContent: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ quoteFeedPanelNameLabel, quoteFeedPanelTextLabel ])
+        view.axis = .vertical
+        view.spacing = 3
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 10, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var quoteFeedPanelNameLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.textColor = UIColor.label
+        
+        return label
+    }()
+    
+    private lazy var quoteFeedPanelTextLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 2
+        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
+        label.textColor = UIColor.secondaryLabel
+        
+        return label
+    }()
+    
+    private lazy var quoteFeedPanelImage: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        
+        imageView.layer.cornerRadius = 10
+        imageView.layer.masksToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        imageView.isHidden = true
+        
+        return imageView
+    }()
+
     private lazy var quoteFeedPanelCloseButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setImage(UIImage(systemName: "xmark"), for: .normal)
@@ -252,17 +277,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         return button
     }()
     
-    private lazy var quoteFeedPanel: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [ self.quoteFeedPanelTextMediaContent, self.quoteFeedPanelCloseButton ])
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.axis = .horizontal
-        stackView.alignment = .top
-        stackView.spacing = 8
-
-        stackView.isHidden = true
-        return stackView
-    }()
-
     private var textViewContainerHeightConstraint: NSLayoutConstraint?
     
     private lazy var textView: UITextView = {
@@ -344,14 +358,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         
         view.translatesAutoresizingMaskIntoConstraints = false
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        return view
-    }()
-    
-    private lazy var vStack: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [quoteFeedPanel, textInputRow ])
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.axis = .vertical
-        view.alignment = .trailing
         return view
     }()
     
@@ -479,38 +485,30 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         }
     }
     
-    func showQuoteFeedPanel(with userId: String, text: String, mediaType: FeedMediaType?, mediaUrl: String?, from viewController: UIViewController) {
-        self.quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
-        self.quoteFeedPanelTextLabel.text = text
-        if self.vStack.arrangedSubviews.contains(self.quoteFeedPanel) {
-            self.quoteFeedPanel.isHidden = false
-        } else {
-            self.vStack.insertArrangedSubview(self.quoteFeedPanel, at: 0)
-        }
+    func showQuoteFeedPanel(with userId: String, text: String, mediaType: ChatMessageMediaType?, mediaUrl: URL?, from viewController: UIViewController) {
+        quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
+        quoteFeedPanelTextLabel.text = text
         
         if mediaType != nil && mediaUrl != nil {
-            let fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(mediaUrl ?? "", isDirectory: false)
+            guard let fileUrl = mediaUrl else { return }
             
             if mediaType == .image {
-                if let image = UIImage(contentsOfFile: fileURL.path) {
-                    self.quoteFeedPanelImage.image = image
+                if let image = UIImage(contentsOfFile: fileUrl.path) {
+                    quoteFeedPanelImage.image = image
                 }
             } else if mediaType == .video {
-                if let image = self.videoPreviewImage(url: fileURL) {
-                    self.quoteFeedPanelImage.image = image
+                if let image = videoPreviewImage(url: fileUrl) {
+                    quoteFeedPanelImage.image = image
                 }
             }
             
-            let imageSize: CGFloat = 80.0
-            
-            NSLayoutConstraint(item: self.quoteFeedPanelImage, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
-            NSLayoutConstraint(item: self.quoteFeedPanelImage, attribute: .height, relatedBy: .equal, toItem: self.quoteFeedPanelImage, attribute: .width, multiplier: 1, constant: 0).isActive = true
-            self.quoteFeedPanelImage.isHidden = false
-            
+            quoteFeedPanelImage.isHidden = false
         } else {
-            self.quoteFeedPanelImage.isHidden = true
+            quoteFeedPanelImage.isHidden = true
         }
     
+        quoteFeedPanel.isHidden = false
+        
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.9) {
             guard self.isVisible else { return }
             self.textView.becomeFirstResponder()
@@ -519,8 +517,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
 
     @objc func closeQuoteFeedPanel() {
-        self.quoteFeedPanel.isHidden = true
-        self.delegate?.chatInputViewCloseQuotePanel(self)
+        quoteFeedPanel.isHidden = true
+        delegate?.chatInputViewCloseQuotePanel(self)
     }
     
     // MARK: Text view

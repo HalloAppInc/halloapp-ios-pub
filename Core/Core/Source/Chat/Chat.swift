@@ -28,6 +28,10 @@ public protocol ChatMessageProtocol {
     var orderedMedia: [ChatMediaProtocol] { get }
     var feedPostId: FeedPostID? { get }
     var feedPostMediaIndex: Int32 { get }
+    
+    var chatReplyMessageID: String? { get }
+    var chatReplyMessageSenderID: UserID? { get }
+    var chatReplyMessageMediaIndex: Int32 { get }
 
     var timeIntervalSince1970: TimeInterval? { get }
 }
@@ -43,6 +47,12 @@ public extension ChatMessageProtocol {
             if let feedPostId = feedPostId {
                 protoChatMessage.feedPostID = feedPostId
                 protoChatMessage.feedPostMediaIndex = feedPostMediaIndex
+            }
+            
+            if let chatReplyMessageID = chatReplyMessageID, let chatReplyMessageSenderID = chatReplyMessageSenderID {
+                protoChatMessage.chatReplyMessageID = chatReplyMessageID
+                protoChatMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
+                protoChatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
             }
 
             protoChatMessage.media = orderedMedia.map { $0.protoMessage }

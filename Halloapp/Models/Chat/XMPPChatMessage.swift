@@ -10,7 +10,6 @@ import Core
 import UIKit
 import XMPPFramework
 
-
 struct XMPPChatMessage {
     let id: String
     let fromUserId: UserID
@@ -20,6 +19,9 @@ struct XMPPChatMessage {
     let media: [XMPPChatMedia]
     let feedPostId: String?
     let feedPostMediaIndex: Int32
+    let chatReplyMessageID: String?
+    let chatReplyMessageSenderID: String?
+    let chatReplyMessageMediaIndex: Int32
     var timestamp: TimeInterval?
 }
 

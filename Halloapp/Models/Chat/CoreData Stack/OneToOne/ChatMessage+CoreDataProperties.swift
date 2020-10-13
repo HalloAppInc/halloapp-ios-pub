@@ -8,8 +8,8 @@
 //
 
 import Foundation
+import Core
 import CoreData
-
 
 extension ChatMessage {
 
@@ -41,6 +41,10 @@ extension ChatMessage {
     
     @NSManaged var feedPostId: String?
     @NSManaged var feedPostMediaIndex: Int32
+    
+    @NSManaged var chatReplyMessageID: String?
+    @NSManaged var chatReplyMessageSenderID: UserID?
+    @NSManaged var chatReplyMessageMediaIndex: Int32
     
     @NSManaged var quoted: ChatQuoted?
     

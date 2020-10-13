@@ -1,7 +1,8 @@
 //
+//  OutboundMsgView.swift
 //  HalloApp
 //
-//  Created by Tony Jiang on 4/21/20.
+//  Created by Tony Jiang on 10/9/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
@@ -10,37 +11,57 @@ import UIKit
 
 fileprivate struct Constants {
     static let TextFontStyle: UIFont.TextStyle = .subheadline
+    static let MaxWidthOfMsgBubble:CGFloat = UIScreen.main.bounds.width * 0.8
 }
 
-protocol OutgoingMsgViewDelegate: AnyObject {
-    func outgoingMsgView(_ outgoingMsgView: OutgoingMsgView, previewType: MediaPreviewController.PreviewType, mediaIndex: Int)
+protocol OutboundMsgViewCellDelegate: AnyObject {
+    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewType: MediaPreviewController.PreviewType, mediaIndex: Int)
+    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, didLongPressOn msgId: String)
 }
 
-class OutgoingMsgView: UIView {
+class OutboundMsgViewCell: UITableViewCell {
     
-    weak var delegate: OutgoingMsgViewDelegate?
+    weak var delegate: OutboundMsgViewCellDelegate?
+    public var messageID: String? = nil
+    public var indexPath: IndexPath? = nil
+    
+    public var mediaIndex: Int {
+        get {
+            return mediaImageView.currentPage
+        }
+    }
  
     // MARK: Lifecycle
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        reset()
+    }
+    
     private func setup() {
-        backgroundColor = .clear
-        layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 0, right: 0)
-        addSubview(mainView)
+        selectionStyle = .none
+        backgroundColor = UIColor.feedBackground
         
-        mainView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
-        mainView.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
-        mainView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
-        let mainViewBottomConstraint = mainView.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor)
+        contentView.preservesSuperviewLayoutMargins = false
+        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 3, right: 18)
         
+        contentView.addSubview(mainView)
+
+        mainView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor).isActive = true
+        mainView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
+
+        let mainViewBottomConstraint = mainView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor)
         mainViewBottomConstraint.priority = UILayoutPriority(rawValue: 999)
         mainViewBottomConstraint.isActive = true
+        
+        mainView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(Constants.MaxWidthOfMsgBubble).rounded()).isActive = true
     }
     
     private lazy var mainView: UIStackView = {
@@ -99,11 +120,11 @@ class OutgoingMsgView: UIView {
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
         let view = UIStackView(arrangedSubviews: [ quotedNameLabel, quotedTextView, spacer ])
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
         view.axis = .vertical
         view.spacing = 3
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.translatesAutoresizingMaskIntoConstraints = false
         view.isHidden = true
         return view
     }()
@@ -143,10 +164,29 @@ class OutgoingMsgView: UIView {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoQuotedPreview(_:)))
         view.isUserInteractionEnabled = true
         view.addGestureRecognizer(tapGesture)
+        
+        view.isHidden = true
         return view
     }()
     
     // MARK: Media Row
+    
+    private lazy var mediaRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ mediaImageView ])
+        view.axis = .horizontal
+        view.isLayoutMarginsRelativeArrangement = true
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        view.spacing = 0
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoMediaPreview(_:)))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
+        
+        view.isHidden = false
+        return view
+    }()
     
     private lazy var mediaImageView: ChatMediaSlider = {
         let view = ChatMediaSlider()
@@ -158,23 +198,22 @@ class OutgoingMsgView: UIView {
         return view
     }()
     
-    private lazy var mediaRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.mediaImageView ])
-        view.axis = .horizontal
-        view.isLayoutMarginsRelativeArrangement = true
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        view.spacing = 0
-        view.isHidden = false
+    // MARK: Text Row
+    
+    private lazy var textRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
         
+        let view = UIStackView(arrangedSubviews: [ spacer, textStackView ])
         view.translatesAutoresizingMaskIntoConstraints = false
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoMediaPreview(_:)))
-        view.isUserInteractionEnabled = true
-        view.addGestureRecognizer(tapGesture)
+        view.axis = .horizontal
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.alignment = .bottom
+        view.spacing = 1
+
         return view
     }()
-    
-    // MARK: Text Row
     
     private lazy var textStackView: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ textView ])
@@ -207,22 +246,6 @@ class OutgoingMsgView: UIView {
         return textView
     }()
     
-
-    private lazy var textRow: UIStackView = {
-        let spacer = UIView()
-        spacer.translatesAutoresizingMaskIntoConstraints = false
-        
-        let view = UIStackView(arrangedSubviews: [ spacer, textStackView ])
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.axis = .horizontal
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-        view.isLayoutMarginsRelativeArrangement = true
-        view.alignment = .bottom
-        view.spacing = 1
-
-        return view
-    }()
-    
     private lazy var timeAndStatusRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ timeAndStatusLabel ])
         view.axis = .vertical
@@ -251,7 +274,15 @@ class OutgoingMsgView: UIView {
     // MARK: Update
     
     func updateWithChatMessage(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
-        let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, feedPostMediaIndex: Int(chatMessage.feedPostMediaIndex))
+        var quoteMediaIndex: Int = 0
+        if chatMessage.feedPostId != nil {
+            quoteMediaIndex = Int(chatMessage.feedPostMediaIndex)
+        }
+        if chatMessage.chatReplyMessageID != nil {
+            quoteMediaIndex = Int(chatMessage.chatReplyMessageMediaIndex)
+        }
+        let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, mediaIndex: quoteMediaIndex)
+        
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
@@ -260,31 +291,46 @@ class OutgoingMsgView: UIView {
                    media: chatMessage.media,
                    timestamp: chatMessage.timestamp,
                    statusIcon: statusIcon(chatMessage.outgoingStatus))
-        
-//        updateChatMessageOutboundStatus(chatMessage.outgoingStatus)
+
     }
     
     func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
+        messageID = chatGroupMessage.id
+
+        var quoteMediaIndex: Int = 0
+        if chatGroupMessage.chatReplyMessageID != nil {
+            quoteMediaIndex = Int(chatGroupMessage.chatReplyMessageMediaIndex)
+        }
+        let isQuotedMessage = updateQuoted(chatQuoted: chatGroupMessage.quoted, mediaIndex: quoteMediaIndex, groupID: chatGroupMessage.groupId)
+        
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
-                   isQuotedMessage: false,
+                   isQuotedMessage: isQuotedMessage,
                    text: chatGroupMessage.text,
                    media: chatGroupMessage.media,
                    timestamp: chatGroupMessage.timestamp,
                    statusIcon: statusIcon(chatGroupMessage.outboundStatus))
         
-//        updateChatGroupMessageOutboundStatus(chatGroupMessage.outboundStatus)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
+        bubbleRow.isUserInteractionEnabled = true
+        bubbleRow.addGestureRecognizer(tapGesture)
     }
     
-    func updateQuoted(chatQuoted: ChatQuoted?, feedPostMediaIndex: Int) -> Bool {
+    func updateQuoted(chatQuoted: ChatQuoted?, mediaIndex: Int, groupID: GroupID? = nil) -> Bool {
 
         var isQuotedMessage = false
         
         if let quoted = chatQuoted {
             isQuotedMessage = true
-            if let userId = quoted.userId {
-                quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
+            
+            guard let userID = quoted.userId else { return false }
+            
+            quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
+            
+            if let groupID = groupID, userID != MainAppContext.shared.userData.userId {
+                quotedNameLabel.textColor = getNameColor(for: userID, name: quotedNameLabel.text ?? "", groupId: groupID)
+                quotedRow.subviews[0].backgroundColor = quotedNameLabel.textColor.withAlphaComponent(0.1)
             }
 
             let mentionText = MainAppContext.shared.contactStore.textWithMentions(
@@ -295,7 +341,7 @@ class OutgoingMsgView: UIView {
             // TODO: need to optimize
             if let media = quoted.media {
 
-                if let med = media.first(where: { $0.order == feedPostMediaIndex }) {
+                if let med = media.first(where: { $0.order == mediaIndex }) {
                     let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
 
                     if med.type == .image {
@@ -310,12 +356,12 @@ class OutgoingMsgView: UIView {
 
                     let imageSize: CGFloat = 80.0
 
-                    NSLayoutConstraint(item: self.quotedImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
-                    NSLayoutConstraint(item: self.quotedImageView, attribute: .height, relatedBy: .equal, toItem: quotedImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
+                    NSLayoutConstraint(item: quotedImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
+                    NSLayoutConstraint(item: quotedImageView, attribute: .height, relatedBy: .equal, toItem: quotedImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
 
                     quotedImageView.isHidden = false
                 }
-
+                
             }
             
             quotedTextVStack.isHidden = false
@@ -328,9 +374,9 @@ class OutgoingMsgView: UIView {
     func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, media: Set<ChatMedia>?, timestamp: Date?, statusIcon: UIImage?) {
 
         if isNextMsgSameSender {
-            layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 0, right: 0)
+            contentView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 3, right: 18)
         } else {
-            layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 5, right: 0)
+            contentView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 12, right: 18)
         }
         
         // media
@@ -429,14 +475,20 @@ class OutgoingMsgView: UIView {
     // MARK: Reuse
     
     func reset() {
-        layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 0, right: 0)
+        messageID = nil
+        indexPath = nil
         
+        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 3, right: 18)
+        
+        quotedRow.subviews[0].backgroundColor = UIColor.systemBlue.withAlphaComponent(0.1)
+        quotedRow.isHidden = true
+        quotedNameLabel.textColor = .label
         quotedNameLabel.text = ""
         quotedTextView.text = ""
         quotedTextVStack.isHidden = true
         quotedImageView.isHidden = true
-        quotedRow.isHidden = true
-        
+        quotedImageView.removeConstraints(quotedImageView.constraints)
+
         mediaImageView.reset()
         mediaImageView.removeConstraints(mediaImageView.constraints)
         mediaRow.isHidden = true
@@ -453,7 +505,8 @@ class OutgoingMsgView: UIView {
         guard !media.isEmpty else { return CGSize(width: 0, height: 0) }
         
         let maxRatio: CGFloat = 5/4 // height/width
-        let maxWidth = CGFloat(UIScreen.main.bounds.width * 0.8)
+        // should be smaller than bubble width to avoid constraint conflicts
+        let maxWidth = Constants.MaxWidthOfMsgBubble - 10
         let maxHeight = maxWidth*maxRatio
         
         var tallest: CGFloat = 0
@@ -471,23 +524,47 @@ class OutgoingMsgView: UIView {
         widest = min(widest, maxWidth)
         return CGSize(width: widest, height: tallest)
     }
+        
+    func getNameColor(for userId: UserID, name: String, groupId: GroupID) -> UIColor {
+        let groupIdSuffix = String(groupId.suffix(4))
+        let userIdSuffix = String(userId.suffix(8))
+        let str = "\(groupIdSuffix)\(userIdSuffix)\(name)"
+        let colorInt = str.utf8.reduce(0) { return $0 + Int($1) } % 14
+        
+        // cyan not good
+        let color: UIColor = {
+            switch colorInt {
+            case 0: return UIColor.systemBlue
+            case 1: return UIColor.systemGreen
+            case 2: return UIColor.systemIndigo
+            case 3: return UIColor.systemOrange
+            case 4: return UIColor.systemPink
+            case 5: return UIColor.systemPurple
+            case 6: return UIColor.systemRed
+            case 7: return UIColor.systemTeal
+            case 8: return UIColor.systemYellow
+            case 9: return UIColor.systemGray
+            case 10: return UIColor.systemBlue.withAlphaComponent(0.5)
+            case 11: return UIColor.systemGreen.withAlphaComponent(0.5)
+            case 12: return UIColor.brown
+            case 13: return UIColor.magenta
+            default: return UIColor.secondaryLabel
+            }
+        }()
+        
+        return color
+    }
     
     @objc func gotoQuotedPreview(_ sender: UIView) {
-        self.delegate?.outgoingMsgView(self, previewType: .quoted, mediaIndex: 0)
+        delegate?.outboundMsgViewCell(self, previewType: .quoted, mediaIndex: 0)
     }
     
     @objc func gotoMediaPreview(_ sender: UIView) {
-        self.delegate?.outgoingMsgView(self, previewType: .media, mediaIndex: self.mediaImageView.currentPage)
+        delegate?.outboundMsgViewCell(self, previewType: .media, mediaIndex: mediaImageView.currentPage)
     }
-}
-
-class UnselectableUITextView: UITextView {
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        guard let pos = closestPosition(to: point) else { return false }
-        guard let range = tokenizer.rangeEnclosingPosition(pos, with: .character, inDirection: .layout(.left)) else {
-            return false
-        }
-        let startIndex = offset(from: beginningOfDocument, to: range.start)
-        return attributedText.attribute(.link, at: startIndex, effectiveRange: nil) != nil
+    
+    @objc func gotoMsgInfo(_ sender: UIView) {
+        guard let messageID = messageID else { return }
+        delegate?.outboundMsgViewCell(self, didLongPressOn: messageID)
     }
 }

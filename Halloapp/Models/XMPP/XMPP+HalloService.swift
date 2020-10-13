@@ -147,12 +147,12 @@ extension XMPPControllerMain: HalloService {
         xmppStream.send(message.xmppElement)
     }
 
-    func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: XMPPGroupCreateRequest(name: name, members: members) { (_, error) in
-            if let error = error {
-                completion(.failure(error))
+    func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {
+        enqueue(request: XMPPGroupCreateRequest(name: name, members: members) { (xml, error) in
+            if let xml = xml, let group = xml.forName("group"), let groupID = group.attributeStringValue(forName: "gid") {
+                completion(.success(groupID))
             } else {
-                completion(.success(()))
+                completion(.failure(error ?? XMPPError.malformed))
             }
         })
     }

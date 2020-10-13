@@ -47,6 +47,12 @@ extension ChatGroupMessage {
     @NSManaged var media: Set<ChatMedia>?
     @NSManaged var info: Set<ChatGroupMessageInfo>?
     
+    @NSManaged var chatReplyMessageID: String?
+    @NSManaged var chatReplyMessageSenderID: UserID?
+    @NSManaged var chatReplyMessageMediaIndex: Int32
+    
+    @NSManaged var quoted: ChatQuoted?
+    
     @NSManaged var event: ChatGroupMessageEvent?
     
     @NSManaged var cellHeight: Int16

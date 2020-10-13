@@ -47,8 +47,13 @@ final class ProtoPushTokenRequest: ProtoStandardRequest<Void> {
 
         var pushToken = Server_PushToken()
         pushToken.token = token
+        
+        #if DEBUG
+        pushToken.os = .iosDev
+        #else
         pushToken.os = .ios
-
+        #endif
+        
         var pushRegister = Server_PushRegister()
         pushRegister.pushToken = pushToken
 
@@ -258,8 +263,8 @@ final class ProtoClientVersionCheck: ProtoStandardRequest<TimeInterval> {
     }
 }
 
-final class ProtoGroupCreateRequest: ProtoStandardRequest<Void> {
-    init(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<Void>) {
+final class ProtoGroupCreateRequest: ProtoStandardRequest<String> {
+    init(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {
 
         var group = Server_GroupStanza()
         group.action = .create
@@ -268,7 +273,11 @@ final class ProtoGroupCreateRequest: ProtoStandardRequest<Void> {
 
         super.init(
             packet: .iqPacket(type: .set, payload: .groupStanza(group)),
-            transform: { _ in .success(()) },
+            transform: {
+                guard let group = HalloGroup(protoGroup: $0.iq.groupStanza) else {
+                    return .failure(ProtoServiceError.unexpectedResponseFormat)
+                }
+                return .success(group.groupId) },
             completion: completion)
     }
 }
@@ -325,7 +334,7 @@ final class ProtoChangeGroupNameRequest: ProtoStandardRequest<Void> {
 
         var group = Server_GroupStanza()
         group.gid = groupID
-        group.action = .changeName
+        group.action = .setName
         group.name = name
         
         super.init(
@@ -350,11 +359,6 @@ final class ProtoChangeGroupAvatarRequest: ProtoStandardRequest<String> {
                 }
                 return .success(avatarID) },
             completion: completion)
-        
-//        super.init(
-//            packet: Server_Packet.iqPacket(type: .set, payload: .groupStanza(group)),
-//            transform: { _ in .success(()) },
-//            completion: completion)
     }
 }
 

@@ -1,7 +1,8 @@
 //
+//  File.swift
 //  HalloApp
 //
-//  Created by Tony Jiang on 4/10/20.
+//  Created by Tony Jiang on 10/11/20.
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
@@ -12,13 +13,25 @@ import UIKit
 fileprivate struct Constants {
     static let SpaceBetweenBubbles:CGFloat = 7
     static let TextFontStyle: UIFont.TextStyle = .subheadline
+    static let MaxWidthOfMsgBubble:CGFloat = UIScreen.main.bounds.width * 0.8
 }
 
-protocol IncomingMsgViewDelegate: AnyObject {
-    func incomingMsgView(_ incomingMsgView: IncomingMsgView, previewType: MediaPreviewController.PreviewType, mediaIndex: Int)
+protocol InboundMsgViewCellDelegate: AnyObject {
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewType: MediaPreviewController.PreviewType, mediaIndex: Int)
 }
 
-class IncomingMsgView: UIView, ChatMediaSliderDelegate {
+class InboundMsgViewCell: UITableViewCell {
+    
+    weak var delegate: InboundMsgViewCellDelegate?
+    public var messageID: String? = nil
+    public var indexPath: IndexPath? = nil
+    
+    public var mediaIndex: Int {
+        get {
+            return mediaImageView.currentPage
+        }
+    }
+    
     var currentPage: Int = 0
 
     func chatMediaSlider(_ view: ChatMediaSlider, currentPage: Int) {
@@ -26,30 +39,37 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         MainAppContext.shared.chatData.currentPage = self.currentPage
     }
     
-    weak var delegate: IncomingMsgViewDelegate?
-    
     // MARK: Lifecycle
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
     }
-
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        reset()
+    }
+    
     private func setup() {
-        backgroundColor = .clear
-        layoutMargins = UIEdgeInsets(top: Constants.SpaceBetweenBubbles, left: 0, bottom: 0, right: 0)
-        addSubview(mainView)
+        selectionStyle = .none
+        backgroundColor = UIColor.feedBackground
         
-        mainView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
-        mainView.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
-        mainView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
-        let mainViewBottomConstraint = mainView.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor)
+        contentView.preservesSuperviewLayoutMargins = false
+        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 0)
         
-        // lower the priority so nested stackviews can be hidden without conflicts
+        contentView.addSubview(mainView)
+        
+        mainView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        mainView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor).isActive = true
+        mainView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = false
+        
+        let mainViewBottomConstraint = mainView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor)
         mainViewBottomConstraint.priority = UILayoutPriority(rawValue: 999)
         mainViewBottomConstraint.isActive = true
+        
+        mainView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(Constants.MaxWidthOfMsgBubble).rounded()).isActive = true
     }
 
     private lazy var mainView: UIStackView = {
@@ -64,7 +84,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     }()
     
     private lazy var bubbleRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameRow, quotedRow, textRow ])
+        let view = UIStackView(arrangedSubviews: [ quotedRow, nameRow, mediaRow, textRow ])
         view.axis = .vertical
         view.spacing = 0
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -84,7 +104,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     
     // MARK: Name Row
     private lazy var nameRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.nameLabel ])
+        let view = UIStackView(arrangedSubviews: [ nameLabel ])
         view.axis = .vertical
         view.spacing = 0
         view.layoutMargins = UIEdgeInsets(top: 10, left: 15, bottom: 5, right: 15)
@@ -224,37 +244,31 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         return view
     }()
     
+    private lazy var mediaRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ mediaImageView ])
+        view.axis = .horizontal
+        view.isLayoutMarginsRelativeArrangement = true
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        view.spacing = 5
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMediaPreview(_:)))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
+        
+        view.isHidden = true
+        return view
+    }()
+    
     private lazy var mediaImageView: ChatMediaSlider = {
         let view = ChatMediaSlider()
         view.layer.cornerRadius = 20
         view.layer.masksToBounds = true
 
-//        view.layer.shadowColor = UIColor.black.cgColor
-//        view.layer.shadowOpacity = 1
-//        view.layer.shadowOffset = .zero
-//        view.layer.shadowRadius = 10
-        
         view.isHidden = true
         
-        view.delegate = self
-        
         view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private lazy var mediaRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.mediaImageView ])
-        view.axis = .horizontal
-        view.isLayoutMarginsRelativeArrangement = true
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        view.spacing = 5
-        view.isHidden = false
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoMediaPreview(_:)))
-        view.isUserInteractionEnabled = true
-        view.addGestureRecognizer(tapGesture)
         return view
     }()
     
@@ -287,7 +301,17 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     // MARK: Updates
 
     func updateWithChatMessage(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
-        let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, feedPostMediaIndex: Int(chatMessage.feedPostMediaIndex))
+        messageID = chatMessage.id
+        
+        var quoteMediaIndex: Int = 0
+        if chatMessage.feedPostId != nil {
+            quoteMediaIndex = Int(chatMessage.feedPostMediaIndex)
+        }
+        if chatMessage.chatReplyMessageID != nil {
+            quoteMediaIndex = Int(chatMessage.chatReplyMessageMediaIndex)
+        }
+        let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, mediaIndex: quoteMediaIndex)
+
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
@@ -298,7 +322,8 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     }
     
     func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
-
+        messageID = chatGroupMessage.id
+        
         if !isPreviousMsgSameSender, let userId = chatGroupMessage.userId {
             nameLabel.text = AppContext.shared.contactStore.fullName(for: userId)
             nameLabel.textColor = getNameColor(for: userId, name: nameLabel.text ?? "", groupId: chatGroupMessage.groupId)
@@ -309,25 +334,38 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
             }
         }
         
+        var quoteMediaIndex: Int = 0
+        if chatGroupMessage.chatReplyMessageID != nil {
+            quoteMediaIndex = Int(chatGroupMessage.chatReplyMessageMediaIndex)
+        }
+        let isQuotedMessage = updateQuoted(chatQuoted: chatGroupMessage.quoted, mediaIndex: quoteMediaIndex, groupID: chatGroupMessage.groupId)
+        
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
-                   isQuotedMessage: false,
+                   isQuotedMessage: isQuotedMessage,
                    text: chatGroupMessage.text,
                    media: chatGroupMessage.media,
                    timestamp: chatGroupMessage.timestamp)
     }
         
-    func updateQuoted(chatQuoted: ChatQuoted?, feedPostMediaIndex: Int) -> Bool {
+    func updateQuoted(chatQuoted: ChatQuoted?, mediaIndex: Int, groupID: GroupID? = nil) -> Bool {
 
         var isQuotedMessage = false
         
         if let quoted = chatQuoted {
             isQuotedMessage = true
-            if let userId = quoted.userId {
-                quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
+            
+            guard let userID = quoted.userId else { return false }
+            
+            quotedNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userID)
+            
+            if let groupID = groupID, userID != MainAppContext.shared.userData.userId {
+                quotedNameLabel.textColor = getNameColor(for: userID, name: quotedNameLabel.text ?? "", groupId: groupID)
+                quotedRow.subviews[1].backgroundColor = quotedNameLabel.textColor.withAlphaComponent(0.1)
+                quotedTextView.textColor = UIColor.label
             }
-
+            
             let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.text,
                 orderedMentions: quoted.orderedMentions)
@@ -336,7 +374,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
             // TODO: need to optimize
             if let media = quoted.media {
 
-                if let med = media.first(where: { $0.order == feedPostMediaIndex }) {
+                if let med = media.first(where: { $0.order == mediaIndex }) {
                     let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(med.relativeFilePath ?? "", isDirectory: false)
 
                     if med.type == .image {
@@ -374,9 +412,9 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, media: Set<ChatMedia>?, timestamp: Date?) {
         
         if isNextMsgSameSender {
-            layoutMargins = UIEdgeInsets(top: Constants.SpaceBetweenBubbles, left: 0, bottom: 0, right: 0)
+            contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 0)
         } else {
-            layoutMargins = UIEdgeInsets(top: Constants.SpaceBetweenBubbles, left: 0, bottom: Constants.SpaceBetweenBubbles, right: 0)
+            contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 12, right: 0)
         }
                 
         // text
@@ -423,8 +461,7 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
             }
             
             if !media.isEmpty {
-                bubbleRow.insertArrangedSubview(self.mediaRow, at: 1)
-                
+
                 var preferredHeight = preferredSize.height
                 if media.count > 1 {
                     preferredHeight += 25
@@ -456,15 +493,22 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     // MARK: reuse
     
     func reset() {
-        layoutMargins = UIEdgeInsets(top: Constants.SpaceBetweenBubbles, left: 0, bottom: 0, right: 0)
+        messageID = nil
+        indexPath = nil
+        
+        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 13, right: 0)
         
         nameRow.isHidden = true
         nameLabel.text = ""
         nameLabel.textColor = .secondaryLabel
         
+        quotedRow.subviews[1].backgroundColor = .secondarySystemGroupedBackground
         quotedRow.isHidden = true
         quotedNameLabel.text = ""
+        quotedNameLabel.textColor = UIColor.label
         quotedImageView.isHidden = true
+        quotedImageView.removeConstraints(quotedImageView.constraints)
+        quotedTextView.textColor = UIColor.systemBlue
         quotedTextView.text = ""
         quotedTextVStack.isHidden = true
         
@@ -489,7 +533,8 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
         guard !media.isEmpty else { return CGSize(width: 0, height: 0) }
         
         let maxRatio: CGFloat = 5/4 // height/width
-        let maxWidth = CGFloat(UIScreen.main.bounds.width * 0.8)
+        // should be smaller than bubble width to avoid constraint conflicts
+        let maxWidth = Constants.MaxWidthOfMsgBubble - 10
         let maxHeight = maxWidth*maxRatio
         
         var tallest: CGFloat = 0
@@ -539,11 +584,10 @@ class IncomingMsgView: UIView, ChatMediaSliderDelegate {
     }
     
     @objc func gotoQuotedPreview(_ sender: UIView) {
-        delegate?.incomingMsgView(self, previewType: .quoted, mediaIndex: 0)
+        delegate?.inboundMsgViewCell(self, previewType: .quoted, mediaIndex: 0)
     }
     
     @objc func gotoMediaPreview(_ sender: UIView) {
-        delegate?.incomingMsgView(self, previewType: .media, mediaIndex: mediaImageView.currentPage)
+        delegate?.inboundMsgViewCell(self, previewType: .media, mediaIndex: mediaImageView.currentPage)
     }
 }
-

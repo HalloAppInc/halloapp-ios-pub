@@ -109,11 +109,11 @@ class ChatData: ObservableObject {
             service.didConnect.sink { [weak self] in
                 guard let self = self else { return }
                 DDLogInfo("ChatData/onConnect")
-                
+
                 if (UIApplication.shared.applicationState == .active) {
                     DDLogInfo("ChatData/onConnect/sendPresence")
                     self.sendPresence(type: .available)
-                    
+
                     if let currentUser = self.currentlyChattingWithUserId {
                         if !self.isSubscribedToCurrentUser {
                             self.subscribeToPresence(to: currentUser)
@@ -122,10 +122,10 @@ class ChatData: ObservableObject {
                 } else {
                     DDLogDebug("ChatData/onConnect/appNotActive")
                 }
-                
+
                 self.performSeriallyOnBackgroundContext { (managedObjectContext) in
                     let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: managedObjectContext)
-                    
+
                     // inject delay between batch sends so that they won't be timestamped the same time,
                     // which causes display of messages to be in mixed order
                     var timeDelay = 0.0
@@ -145,7 +145,7 @@ class ChatData: ObservableObject {
                     }
                 }
                 //TODO: pending group
-                
+
                 // TODO: Eventually should move to checking for internet connectivity with a reachability manager instead of xmpp connection
                 if (UIApplication.shared.applicationState == .active) {
                     self.processPendingChatMessageMedia()
@@ -575,12 +575,12 @@ class ChatData: ObservableObject {
         return nil
     }
     
-    func copyMediaToQuotedMedia(fromPath: String?, to quotedMedia: ChatQuotedMedia) throws {
+    func copyMediaToQuotedMedia(fromDir: URL, fromPath: String?, to quotedMedia: ChatQuotedMedia) throws {
         guard let fromRelativePath = fromPath else {
             return
         }
-        
-        let fromURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(fromRelativePath, isDirectory: false)
+
+        let fromURL = fromDir.appendingPathComponent(fromRelativePath, isDirectory: false)
         
         // append unique id to allow multiple quoted messages of the same feedpost so each message can be deleted independently in the future
         
@@ -913,9 +913,8 @@ extension ChatData {
     }
 }
 
+// MARK: 1-1
 extension ChatData {
-    
-    // MARK: 1-1
     
     func setCurrentlyChattingWithUserId(for chatWithUserId: String?) {
         currentlyChattingWithUserId = chatWithUserId
@@ -924,7 +923,14 @@ extension ChatData {
             
     // MARK: 1-1 Sending Messages
     
-    func sendMessage(toUserId: String, text: String, media: [PendingMedia], feedPostId: String?, feedPostMediaIndex: Int32) {
+    func sendMessage(toUserId: String,
+                     text: String,
+                     media: [PendingMedia],
+                     feedPostId: String?,
+                     feedPostMediaIndex: Int32,
+                     chatReplyMessageID: String? = nil,
+                     chatReplyMessageSenderID: UserID? = nil,
+                     chatReplyMessageMediaIndex: Int32) {
         let messageId = UUID().uuidString
 
         // Create and save new ChatMessage object.
@@ -937,6 +943,9 @@ extension ChatData {
         chatMessage.text = text
         chatMessage.feedPostId = feedPostId
         chatMessage.feedPostMediaIndex = feedPostMediaIndex
+        chatMessage.chatReplyMessageID = chatReplyMessageID
+        chatMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
+        chatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
         chatMessage.incomingStatus = .none
         chatMessage.outgoingStatus = .pending
         chatMessage.timestamp = Date()
@@ -976,7 +985,7 @@ extension ChatData {
             }
         }
         
-        // Create and save Quoted
+        // Create and save Quoted FeedPost
         if let feedPostId = feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
             let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
             quoted.type = .feedpost
@@ -1010,7 +1019,38 @@ extension ChatData {
                 quotedMedia.quoted = quoted
 
                 do {
-                    try copyMediaToQuotedMedia(fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
+                    try copyMediaToQuotedMedia(fromDir: MainAppContext.mediaDirectoryURL, fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
+                }
+                catch {
+                    DDLogError("ChatData/new-msg/\(messageId)/quoted/copy-media/error [\(error)]")
+                }
+            }
+        }
+        
+        if let chatReplyMessageID = chatReplyMessageID,
+           let chatReplyMessageSenderID = chatReplyMessageSenderID,
+           let quotedChatMessage = MainAppContext.shared.chatData.chatMessage(with: chatReplyMessageID) {
+            
+            let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
+            quoted.type = .message
+            quoted.userId = chatReplyMessageSenderID
+            quoted.text = quotedChatMessage.text
+            quoted.message = chatMessage
+
+            if let quotedChatMessageMedia = quotedChatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
+                let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
+                if quotedChatMessageMedia.type == .image {
+                    quotedMedia.type = .image
+                } else {
+                    quotedMedia.type = .video
+                }
+                quotedMedia.order = quotedChatMessageMedia.order
+                quotedMedia.width = Float(quotedChatMessageMedia.size.width)
+                quotedMedia.height = Float(quotedChatMessageMedia.size.height)
+                quotedMedia.quoted = quoted
+
+                do {
+                    try copyMediaToQuotedMedia(fromDir: MainAppContext.chatMediaDirectoryURL, fromPath: quotedChatMessageMedia.relativeFilePath, to: quotedMedia)
                 }
                 catch {
                     DDLogError("ChatData/new-msg/\(messageId)/quoted/copy-media/error [\(error)]")
@@ -1042,11 +1082,9 @@ extension ChatData {
         save(managedObjectContext)
 
         uploadMediaAndSend(chatMessage)
-
     }
 
     private func uploadMediaAndSend(_ message: ChatMessage) {
-
         // Either all media has already been uploaded or post does not contain media.
         guard let mediaItemsToUpload = message.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
             send(message: XMPPChatMessage(chatMessage: message))
@@ -1291,10 +1329,13 @@ extension ChatData {
     // MARK: 1-1 Process Inbound Messages
     
     private func processInboundXMPPChatMessage(_ chatMessage: ChatMessageProtocol) {
-        let isAppActive = UIApplication.shared.applicationState == .active
-        
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            self.processInboundChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let isAppActive = UIApplication.shared.applicationState == .active
+            
+            self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+                self.processInboundChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
+            }
         }
     }
     
@@ -1321,6 +1362,11 @@ extension ChatData {
         chatMessage.text = xmppChatMessage.text
         chatMessage.feedPostId = xmppChatMessage.feedPostId
         chatMessage.feedPostMediaIndex = xmppChatMessage.feedPostMediaIndex
+        
+        chatMessage.chatReplyMessageID = xmppChatMessage.chatReplyMessageID
+        chatMessage.chatReplyMessageSenderID = xmppChatMessage.chatReplyMessageSenderID
+        chatMessage.chatReplyMessageMediaIndex = xmppChatMessage.chatReplyMessageMediaIndex
+        
         chatMessage.incomingStatus = .none
         chatMessage.outgoingStatus = .none
         
@@ -1361,7 +1407,7 @@ extension ChatData {
             chatMedia.message = chatMessage
         }
         
-        // Process Quoted
+        // Process Quoted Feedpost
         if xmppChatMessage.feedPostId != nil {
             if let feedPost = MainAppContext.shared.feedData.feedPost(with: xmppChatMessage.feedPostId!) {
                 let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
@@ -1396,7 +1442,41 @@ extension ChatData {
                         quotedMedia.height = Float(feedPostMedia.size.height)
                         quotedMedia.quoted = quoted
                         do {
-                            try copyMediaToQuotedMedia(fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
+                            try copyMediaToQuotedMedia(fromDir: MainAppContext.mediaDirectoryURL, fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
+                        }
+                        catch {
+                            DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Process Quoted Message
+        if xmppChatMessage.chatReplyMessageID != nil {
+            
+            if let quotedChatMessage = MainAppContext.shared.chatData.chatMessage(with: xmppChatMessage.chatReplyMessageID!) {
+                print("have a quoted")
+                let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
+                quoted.type = .message
+                quoted.userId = quotedChatMessage.fromUserId
+                quoted.text = quotedChatMessage.text
+                quoted.message = chatMessage
+
+                if quotedChatMessage.media != nil {
+                    if let quotedChatMessageMedia = quotedChatMessage.media!.first(where: { $0.order == xmppChatMessage.chatReplyMessageMediaIndex}) {
+                        let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
+                        if quotedChatMessageMedia.type == .image {
+                            quotedMedia.type = .image
+                        } else {
+                            quotedMedia.type = .video
+                        }
+                        quotedMedia.order = quotedChatMessageMedia.order
+                        quotedMedia.width = Float(quotedChatMessageMedia.size.width)
+                        quotedMedia.height = Float(quotedChatMessageMedia.size.height)
+                        quotedMedia.quoted = quoted
+                        do {
+                            try copyMediaToQuotedMedia(fromDir: MainAppContext.chatMediaDirectoryURL, fromPath: quotedChatMessageMedia.relativeFilePath, to: quotedMedia)
                         }
                         catch {
                             DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
@@ -1610,6 +1690,29 @@ extension ChatData {
     
     // MARK: Group Actions
     
+    public func createGroup(name: String, members: [UserID], data: Data?, completion: @escaping ServiceRequestCompletion<Void>) {
+        
+        MainAppContext.shared.service.createGroup(name: name, members: members) { [weak self] result in
+            guard let self = self else { return }
+
+            switch result {
+            case .success(let groupID):
+                if let data = data {
+                    self.changeGroupAvatar(groupID: groupID, data: data) { result in
+                        completion(.success(())) // the group can be created regardless if avatar update succeeds or not
+                    }
+                } else {
+                    completion(.success(()))
+                }
+            case .failure(let error):
+                DDLogError("ChatData/groups/createGroup/error \(error)")
+                completion(.failure(error))
+            }
+        }
+        
+        
+    }
+    
     private func updateGroupName(for groupID: GroupID, with name: String, completion: @escaping () -> ()) {
         let group = DispatchGroup()
             
@@ -1758,7 +1861,12 @@ extension ChatData {
     
     // MARK: Group Sending Messages
     
-    func sendGroupMessage(toGroupId: GroupID, text: String, media: [PendingMedia]) {
+    func sendGroupMessage(toGroupId: GroupID,
+                          text: String,
+                          media: [PendingMedia],
+                          chatReplyMessageID: String? = nil,
+                          chatReplyMessageSenderID: UserID? = nil,
+                          chatReplyMessageMediaIndex: Int32) {
         let groupMessageId = UUID().uuidString
 
         // Create and save new ChatGroupMessage object.
@@ -1769,6 +1877,9 @@ extension ChatData {
         chatGroupMessage.groupId = toGroupId
         chatGroupMessage.userId = AppContext.shared.userData.userId
         chatGroupMessage.text = text
+        chatGroupMessage.chatReplyMessageID = chatReplyMessageID
+        chatGroupMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
+        chatGroupMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
         chatGroupMessage.inboundStatus = .none
         chatGroupMessage.outboundStatus = .pending
         chatGroupMessage.timestamp = Date()
@@ -1821,6 +1932,38 @@ extension ChatData {
             }
             catch {
                 DDLogError("ChatData/group/new-msg/\(groupMessageId)/copy-media/error [\(error)]")
+            }
+        }
+        
+        
+        if let chatReplyMessageID = chatReplyMessageID,
+           let chatReplyMessageSenderID = chatReplyMessageSenderID,
+           let quotedChatGroupMessage = MainAppContext.shared.chatData.chatGroupMessage(with: chatReplyMessageID) {
+            
+            let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
+            quoted.type = .message
+            quoted.userId = chatReplyMessageSenderID
+            quoted.text = quotedChatGroupMessage.text
+            quoted.groupMessage = chatGroupMessage
+
+            if let quotedChatGroupMessageMedia = quotedChatGroupMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
+                let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
+                if quotedChatGroupMessageMedia.type == .image {
+                    quotedMedia.type = .image
+                } else {
+                    quotedMedia.type = .video
+                }
+                quotedMedia.order = quotedChatGroupMessageMedia.order
+                quotedMedia.width = Float(quotedChatGroupMessageMedia.size.width)
+                quotedMedia.height = Float(quotedChatGroupMessageMedia.size.height)
+                quotedMedia.quoted = quoted
+
+                do {
+                    try copyMediaToQuotedMedia(fromDir: MainAppContext.chatMediaDirectoryURL, fromPath: quotedChatGroupMessageMedia.relativeFilePath, to: quotedMedia)
+                }
+                catch {
+                    DDLogError("ChatData/new-msg/\(groupMessageId)/quoted/copy-media/error [\(error)]")
+                }
             }
         }
         
@@ -1926,6 +2069,7 @@ extension ChatData {
     
     private func sendGroup(groupMessage: ChatGroupMessage) {
         let xmppGroupMessage = XMPPChatGroupMessage(chatGroupMessage: groupMessage)
+
         service.sendGroupChatMessage(xmppGroupMessage)
     }
 
@@ -2216,6 +2360,10 @@ extension ChatData {
         chatGroupMessage.groupId = xmppChatGroupMessage.groupId
         chatGroupMessage.userId = xmppChatGroupMessage.userId
         chatGroupMessage.text = xmppChatGroupMessage.text
+        chatGroupMessage.chatReplyMessageID = xmppChatGroupMessage.chatReplyMessageID
+        chatGroupMessage.chatReplyMessageSenderID = xmppChatGroupMessage.chatReplyMessageSenderID
+        chatGroupMessage.chatReplyMessageMediaIndex = xmppChatGroupMessage.chatReplyMessageMediaIndex
+        
         chatGroupMessage.inboundStatus = .none
         chatGroupMessage.outboundStatus = .none
         chatGroupMessage.timestamp = xmppChatGroupMessage.timestamp
@@ -2251,6 +2399,42 @@ extension ChatData {
             chatMedia.groupMessage = chatGroupMessage
         }
                 
+        // Process Quoted Message
+        
+        if xmppChatGroupMessage.chatReplyMessageID != nil {
+            
+            if let quotedChatGroupMessage = MainAppContext.shared.chatData.chatGroupMessage(with: xmppChatGroupMessage.chatReplyMessageID!) {
+                let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
+                quoted.type = .message
+                quoted.userId = quotedChatGroupMessage.userId
+                quoted.text = quotedChatGroupMessage.text
+                quoted.groupMessage = chatGroupMessage
+                
+                if quotedChatGroupMessage.media != nil {
+                    
+                    if let quotedChatMessageMedia = quotedChatGroupMessage.media!.first(where: { $0.order == xmppChatGroupMessage.chatReplyMessageMediaIndex}) {
+                        
+                        let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
+                        if quotedChatMessageMedia.type == .image {
+                            quotedMedia.type = .image
+                        } else {
+                            quotedMedia.type = .video
+                        }
+                        quotedMedia.order = quotedChatMessageMedia.order
+                        quotedMedia.width = Float(quotedChatMessageMedia.size.width)
+                        quotedMedia.height = Float(quotedChatMessageMedia.size.height)
+                        quotedMedia.quoted = quoted
+                        do {
+                            try copyMediaToQuotedMedia(fromDir: MainAppContext.chatMediaDirectoryURL, fromPath: quotedChatMessageMedia.relativeFilePath, to: quotedMedia)
+                        }
+                        catch {
+                            DDLogError("ChatData/new-msg/quoted/copy-media/error [\(error)]")
+                        }
+                    }
+                }
+            }
+        }
+        
         // Update Chat Thread
         if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
             chatThread.lastMsgId = chatGroupMessage.id
@@ -2534,6 +2718,9 @@ extension ChatData {
     
     private func recordGroupMessageEvent(xmppGroup: XMPPGroup, xmppGroupMember: XMPPGroupMember?, in managedObjectContext: NSManagedObjectContext) {
         let chatGroupMessage = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMessage.entity().name!, into: managedObjectContext) as! ChatGroupMessage
+
+        print("recording: \(xmppGroup)")
+
         if let messageId = xmppGroup.messageId {
             chatGroupMessage.id = messageId
         }
@@ -2739,10 +2926,13 @@ extension ChatData: HalloChatDelegate {
     }
     
     func halloService(_ halloService: HalloService, didReceiveGroupChatMessage message: HalloGroupChatMessage) {
-        let isAppActive = UIApplication.shared.applicationState == .active
-        
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            self.processInboundChatGroupMessage(xmppChatGroupMessage: message, using: managedObjectContext, isAppActive: isAppActive)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let isAppActive = UIApplication.shared.applicationState == .active
+            
+            self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+                self.processInboundChatGroupMessage(xmppChatGroupMessage: message, using: managedObjectContext, isAppActive: isAppActive)
+            }
         }
     }
 
@@ -2762,6 +2952,10 @@ extension XMPPChatMessage {
         self.text = chatMessage.text
         self.feedPostId = chatMessage.feedPostId
         self.feedPostMediaIndex = chatMessage.feedPostMediaIndex
+        
+        self.chatReplyMessageID = chatMessage.chatReplyMessageID
+        self.chatReplyMessageSenderID = chatMessage.chatReplyMessageSenderID
+        self.chatReplyMessageMediaIndex = chatMessage.chatReplyMessageMediaIndex
         
         if let media = chatMessage.media {
             self.media = media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) }
@@ -2783,6 +2977,7 @@ extension XMPPChatMessage {
         guard let chat = item.element(forName: "chat") else { return nil }
         
         var text: String?, media: [XMPPChatMedia] = [], feedPostId: String?, feedPostMediaIndex: Int32 = 0
+        var chatReplyMessageID: String?, chatReplyMessageSenderID: UserID?, chatReplyMessageMediaIndex: Int32 = 0
 
         let decryptedContainer = Clients_Container.unwrapMessage(for: fromUserId, from: chat)
         let plainTextContainer = Clients_Container.chatMessageContainer(from: chat)
@@ -2805,6 +3000,10 @@ extension XMPPChatMessage {
                 
                 feedPostId = protoContainer.chatMessage.feedPostID.isEmpty ? nil : protoContainer.chatMessage.feedPostID
                 feedPostMediaIndex = protoContainer.chatMessage.feedPostMediaIndex
+                
+                chatReplyMessageID = protoContainer.chatMessage.chatReplyMessageID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageID
+                chatReplyMessageSenderID = protoContainer.chatMessage.chatReplyMessageSenderID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageSenderID
+                chatReplyMessageMediaIndex = protoContainer.chatMessage.chatReplyMessageMediaIndex
             }
         }
             
@@ -2817,6 +3016,10 @@ extension XMPPChatMessage {
                 
                 feedPostId = protoContainer.chatMessage.feedPostID.isEmpty ? nil : protoContainer.chatMessage.feedPostID
                 feedPostMediaIndex = protoContainer.chatMessage.feedPostMediaIndex
+                
+                chatReplyMessageID = protoContainer.chatMessage.chatReplyMessageID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageID
+                chatReplyMessageSenderID = protoContainer.chatMessage.chatReplyMessageSenderID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageSenderID
+                chatReplyMessageMediaIndex = protoContainer.chatMessage.chatReplyMessageMediaIndex
             }
         }
         
@@ -2827,16 +3030,22 @@ extension XMPPChatMessage {
         
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex
+        
+        self.chatReplyMessageID = chatReplyMessageID
+        self.chatReplyMessageSenderID = chatReplyMessageSenderID
+        self.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
+        
         self.media = media
         
         self.timestamp = chat.attributeDoubleValue(forName: "timestamp")
     }
 
-    init?(_ pbChat: Server_ChatStanza, from fromUserID: UserID, to toUserID: UserID, id: String) {
+    init?(_ pbChat: Server_ChatStanza, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32) {
         self.id = id
         self.fromUserId = fromUserID
         self.toUserId = toUserID
         self.timestamp = TimeInterval(pbChat.timestamp)
+        self.retryCount = retryCount
 
         let protoChat: Clients_ChatMessage
         let plainTextMessage = Clients_ChatMessage(containerData: pbChat.payload)
@@ -2873,11 +3082,15 @@ extension XMPPChatMessage {
             guard let plainText = plainTextMessage else { return nil }
             protoChat = plainText
         }
-
+        
         text = protoChat.text.isEmpty ? nil : protoChat.text
         media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }
         feedPostId = protoChat.feedPostID.isEmpty ? nil : protoChat.feedPostID
         feedPostMediaIndex = protoChat.feedPostMediaIndex
+        
+        chatReplyMessageID = protoChat.chatReplyMessageID.isEmpty ? nil : protoChat.chatReplyMessageID
+        chatReplyMessageSenderID = protoChat.chatReplyMessageSenderID.isEmpty ? nil : protoChat.chatReplyMessageSenderID
+        chatReplyMessageMediaIndex = protoChat.chatReplyMessageMediaIndex
 
         DDLogDebug("ChatData/XMPPChatMessage/plainText: \(text ?? "")")
     }

@@ -702,7 +702,7 @@ fileprivate struct CropImage: View {
                             CropRegion(cropToCircle: self.cropToCircle, region: self.scaleCropRegion(self.media.cropRect, from: self.media.image!.size, to: inner.size))
                         })
                         .overlay(GeometryReader { inner in
-                            CropGestureView(x: Int(inner.size.width))
+                            CropGestureView()
                                 .onZoomChanged { v in
                                     if !self.isZooming {
                                         self.isZooming = true

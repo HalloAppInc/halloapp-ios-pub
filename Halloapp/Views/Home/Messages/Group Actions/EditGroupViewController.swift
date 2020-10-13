@@ -15,7 +15,7 @@ import UIKit
 
 fileprivate struct Constants {
     static let MaxNameLength = 25
-    static let AvatarSize: CGFloat = UIScreen.main.bounds.height * 0.30
+    static let AvatarSize: CGFloat = UIScreen.main.bounds.height * 0.25
 }
 
 protocol EditGroupViewControllerDelegate: AnyObject {
@@ -23,16 +23,11 @@ protocol EditGroupViewControllerDelegate: AnyObject {
 }
 
 class EditGroupViewController: UIViewController {
-
     weak var delegate: EditGroupViewControllerDelegate?
     
     private var chatGroup: ChatGroup
     private let originalName: String
     
-    var canUpdate: Bool {
-        return !textView.text.isEmpty && textView.text != originalName
-    }
-
     init(chatGroup: ChatGroup) {
         self.chatGroup = chatGroup
         self.originalName = chatGroup.name
@@ -51,114 +46,23 @@ class EditGroupViewController: UIViewController {
         
         navigationItem.title = "Edit Group"
         navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.systemGray6
+        navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         
         setupView()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        DDLogInfo("EditGroupViewController/viewWillAppear")
-        super.viewWillAppear(animated)
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        DDLogInfo("EditGroupViewController/viewDidAppear")
-        super.viewDidAppear(animated)
-    }
-    
     deinit {
         DDLogDebug("CreateGroupViewController/deinit ")
     }
 
-    // MARK: Top Nav Button Actions
-
-    @objc private func updateAction() {
-        navigationItem.rightBarButtonItem?.isEnabled = false
-        
-        let name = textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        
-        MainAppContext.shared.chatData.changeGroupName(groupID: chatGroup.groupId, name: name) { [weak self] result in
-            guard let self = self else { return }
-
-            switch result {
-            case .success:
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0) {
-                    self.navigationController?.popViewController(animated: true)
-                }
-            case .failure(let error):
-                DDLogError("CreateGroupViewController/createAction/error \(error)")
-            }
-        }
-
-    }
-    
-    @objc private func openEditAvatarOptions() {
-        
-        let actionSheet = UIAlertController(title: "Edit Group Photo", message: nil, preferredStyle: .actionSheet)
-
-        actionSheet.addAction(UIAlertAction(title: "Take or Choose Photo", style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            self.presentPhotoLibraryPickerNew()
-        })
-        
-//        actionSheet.addAction(UIAlertAction(title: "Delete Photo", style: .destructive) { _ in
-//
-//        })
-        
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        self.present(actionSheet, animated: true)
-        
-    }
-
-    private func presentPhotoLibraryPickerNew() {
-        let pickerController = MediaPickerViewController(filter: .image, multiselect: false, camera: true) { [weak self] controller, media, cancel in
-            guard let self = self else { return }
-
-            if cancel || media.count == 0 {
-                controller.dismiss(animated: true)
-            } else {
-                let edit = MediaEditViewController(cropToCircle: true, allowMore: false, mediaToEdit: media, selected: 0) { controller, media, index, cancel in
-                    controller.dismiss(animated: true)
-
-                    if !cancel && media.count > 0 {
-                        
-                        guard let image = media[0].image else { return }
-                        
-                        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
-                            DDLogError("EditGroupViewController/resizeImage error resize failed")
-                            return
-                        }
-
-                        let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
-                        
-                        MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.chatGroup.groupId, data: data) { [weak self] result in
-                            guard let self = self else { return }
-                            switch result {
-                            case .success:
-                                DispatchQueue.main.async() {
-                                    self.avatarView.configureGroupAvatar(for: self.chatGroup.groupId, using: MainAppContext.shared.avatarStore)
-                                    controller.dismiss(animated: true)
-                                }
-                            case .failure(let error):
-                                DDLogError("CreateGroupViewController/createAction/error \(error)")
-                            }
-                        }
-                        
-                        self.dismiss(animated: true)
-                    }
-                }
-                
-                edit.modalPresentationStyle = .fullScreen
-                controller.present(edit, animated: true)
-            }
-        }
-        
-        self.present(UINavigationController(rootViewController: pickerController), animated: true)
+    private var canUpdate: Bool {
+        return !textView.text.isEmpty && textView.text != originalName
     }
     
     func setupView() {
         view.addSubview(mainView)
-        view.backgroundColor = UIColor.systemGray6
+        view.backgroundColor = UIColor.feedBackground
+        
         mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
@@ -225,9 +129,9 @@ class EditGroupViewController: UIViewController {
         view.delegate = self
         
         view.textAlignment = .center
-        view.backgroundColor = UIColor.lightText
+        view.backgroundColor = .secondarySystemGroupedBackground
         view.font = UIFont.preferredFont(forTextStyle: .body)
-        view.tintColor = .lavaOrange
+        view.tintColor = .systemBlue
         
         view.translatesAutoresizingMaskIntoConstraints = false
         
@@ -256,23 +160,102 @@ class EditGroupViewController: UIViewController {
         return label
     }()
     
-    func updateCount() {
+    
+    // MARK: Actions
+
+    @objc private func updateAction() {
+        navigationItem.rightBarButtonItem?.isEnabled = false
         
+        let name = textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        
+        MainAppContext.shared.chatData.changeGroupName(groupID: chatGroup.groupId, name: name) { [weak self] result in
+            guard let self = self else { return }
+
+            switch result {
+            case .success:
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0) {
+                    self.navigationController?.popViewController(animated: true)
+                }
+            case .failure(let error):
+                DDLogError("CreateGroupViewController/createAction/error \(error)")
+            }
+        }
+    }
+    
+    @objc private func openEditAvatarOptions() {
+        let actionSheet = UIAlertController(title: "Edit Group Photo", message: nil, preferredStyle: .actionSheet)
+
+        actionSheet.addAction(UIAlertAction(title: "Take or Choose Photo", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.presentPhotoLibraryPickerNew()
+        })
+        
+//        actionSheet.addAction(UIAlertAction(title: "Delete Photo", style: .destructive) { _ in
+//
+//        })
+        
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        self.present(actionSheet, animated: true)
+    }
+
+    // MARK: Helpers
+    private func updateCount() {
         textView.text = String(textView.text.prefix(Constants.MaxNameLength))
         let label = String(textView.text.count)
         characterCounter.text = "\(label)/\(Constants.MaxNameLength)"
     }
+    
+    private func presentPhotoLibraryPickerNew() {
+        let pickerController = MediaPickerViewController(filter: .image, multiselect: false, camera: true) { [weak self] controller, media, cancel in
+            guard let self = self else { return }
+
+            if cancel || media.count == 0 {
+                controller.dismiss(animated: true)
+            } else {
+                let edit = MediaEditViewController(cropToCircle: true, allowMore: false, mediaToEdit: media, selected: 0) { controller, media, index, cancel in
+                    controller.dismiss(animated: true)
+
+                    if !cancel && media.count > 0 {
+                        
+                        guard let image = media[0].image else { return }
+                        
+                        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
+                            DDLogError("EditGroupViewController/resizeImage error resize failed")
+                            return
+                        }
+
+                        let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
+                        
+                        MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.chatGroup.groupId, data: data) { [weak self] result in
+                            guard let self = self else { return }
+                            switch result {
+                            case .success:
+                                DispatchQueue.main.async() {
+                                    self.avatarView.configureGroupAvatar(for: self.chatGroup.groupId, using: MainAppContext.shared.avatarStore)
+                                    controller.dismiss(animated: true)
+                                }
+                            case .failure(let error):
+                                DDLogError("CreateGroupViewController/createAction/error \(error)")
+                            }
+                        }
+                        
+                        self.dismiss(animated: true)
+                    }
+                }
+                
+                edit.modalPresentationStyle = .fullScreen
+                controller.present(edit, animated: true)
+            }
+        }
+        
+        self.present(UINavigationController(rootViewController: pickerController), animated: true)
+    }
+
 }
 
-
 extension EditGroupViewController: UITextViewDelegate {
-    
-    // Delegates
-    
     func textViewDidChange(_ textView: UITextView) {
         updateCount()
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
-        
     }
-    
 }

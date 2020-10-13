@@ -333,7 +333,7 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
         searchController.isActive = false
         searchController.searchBar.text = ""
     }
-    
+        
     func isDuplicate(_ abContact: ABContact) -> Bool {
         guard let identifier = abContact.identifier else { return false }
         guard let phoneNumber = abContact.phoneNumber else { return false }

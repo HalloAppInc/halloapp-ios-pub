@@ -85,14 +85,19 @@ struct XMPPGroup {
         self.members = item.elements(forName: "member").compactMap({ XMPPGroupMember(xmlElement: $0) })
     }
 
-    init?(protoGroup: Server_GroupStanza) {
+    // used for inbound and outbound
+    init?(protoGroup: Server_GroupStanza, msgId: String? = nil) {
+        // msgId used only for inbound group events
+        if let msgId = msgId {
+            self.messageId = msgId
+        }
         self.sender = String(protoGroup.senderUid)
         self.senderName = protoGroup.senderName
         self.groupId = protoGroup.gid
         self.name = protoGroup.name
         self.avatarID = protoGroup.avatarID
         self.members = protoGroup.members.compactMap { XMPPGroupMember(protoMember: $0) }
-        // TODO: Which of these actions do we expect to exist?
+
         self.action = {
             switch protoGroup.action {
             case .set: return nil
@@ -100,8 +105,8 @@ struct XMPPGroup {
             case .create: return .create
             case .delete: return nil
             case .leave: return .leave
-            case .changeAvatar: return nil
-            case .changeName: return nil
+            case .changeAvatar: return .changeAvatar
+            case .changeName: return .changeName
             case .modifyAdmins: return .modifyAdmins
             case .modifyMembers: return .modifyMembers
             case .setName: return nil
@@ -186,6 +191,9 @@ struct XMPPChatGroupMessage {
     var retryCount: Int32? = nil
     let text: String?
     let media: [XMPPChatMedia]
+    let chatReplyMessageID: String?
+    let chatReplyMessageSenderID: String?
+    let chatReplyMessageMediaIndex: Int32
     var timestamp: Date?
     
     var orderedMedia: [ChatMediaProtocol] {
@@ -201,6 +209,10 @@ struct XMPPChatGroupMessage {
         self.groupName = nil
         self.userName = nil
         
+        self.chatReplyMessageID = chatGroupMessage.chatReplyMessageID
+        self.chatReplyMessageSenderID = chatGroupMessage.chatReplyMessageSenderID
+        self.chatReplyMessageMediaIndex = chatGroupMessage.chatReplyMessageMediaIndex
+        
         if let media = chatGroupMessage.media {
             self.media = media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) }
         } else {
@@ -209,7 +221,7 @@ struct XMPPChatGroupMessage {
     }
 
     // init inbound message
-    init?(_ pbGroupChat: Server_GroupChat, id: String) {
+    init?(_ pbGroupChat: Server_GroupChat, id: String, retryCount: Int32) {
         let protoChat: Clients_ChatMessage
         if let protoContainer = try? Clients_Container(serializedData: pbGroupChat.payload),
             protoContainer.hasChatMessage
@@ -227,6 +239,7 @@ struct XMPPChatGroupMessage {
         }
 
         self.id = id
+        self.retryCount = retryCount
         self.groupId = pbGroupChat.gid
         self.groupName = pbGroupChat.name
         self.userId = UserID(pbGroupChat.senderUid)
@@ -234,6 +247,10 @@ struct XMPPChatGroupMessage {
         self.text = protoChat.text.isEmpty ? nil : protoChat.text
         self.media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }
         self.timestamp = Date(timeIntervalSince1970: TimeInterval(pbGroupChat.timestamp))
+
+        self.chatReplyMessageID = protoChat.chatReplyMessageID.isEmpty ? nil : protoChat.chatReplyMessageID
+        self.chatReplyMessageSenderID = protoChat.chatReplyMessageSenderID.isEmpty ? nil : protoChat.chatReplyMessageSenderID
+        self.chatReplyMessageMediaIndex = protoChat.chatReplyMessageMediaIndex
     }
     
     // init inbound message
@@ -252,12 +269,17 @@ struct XMPPChatGroupMessage {
         let timestamp = groupChat.attributeDoubleValue(forName: "timestamp")
         
         var text: String?, media: [XMPPChatMedia] = []
+        var chatReplyMessageID: String?, chatReplyMessageSenderID: UserID?, chatReplyMessageMediaIndex: Int32 = 0
         
         if let protoContainer = Clients_Container.chatMessageContainer(from: groupChat) {
             if protoContainer.hasChatMessage {
                 text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
                 DDLogInfo("ChatData/group/XMPPChatGroupMessage/plainText: \(text ?? "")")
                 media = protoContainer.chatMessage.media.compactMap { XMPPChatMedia(protoMedia: $0) }
+                
+                chatReplyMessageID = protoContainer.chatMessage.chatReplyMessageID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageID
+                chatReplyMessageSenderID = protoContainer.chatMessage.chatReplyMessageSenderID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageSenderID
+                chatReplyMessageMediaIndex = protoContainer.chatMessage.chatReplyMessageMediaIndex
             }
         }
         
@@ -268,6 +290,11 @@ struct XMPPChatGroupMessage {
         self.userName = userName
         self.text = text
         self.media = media
+
+        self.chatReplyMessageID = chatReplyMessageID
+        self.chatReplyMessageSenderID = chatReplyMessageSenderID
+        self.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
+        
         self.timestamp = Date(timeIntervalSince1970: TimeInterval(timestamp))
     }
     
@@ -297,6 +324,12 @@ struct XMPPChatGroupMessage {
                 protoChatMessage.text = text
             }
 
+            if let chatReplyMessageID = chatReplyMessageID, let chatReplyMessageSenderID = chatReplyMessageSenderID {
+                protoChatMessage.chatReplyMessageID = chatReplyMessageID
+                protoChatMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
+                protoChatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
+            }
+            
             protoChatMessage.media = orderedMedia.map { $0.protoMessage }
 
             var protoContainer = Clients_Container()
