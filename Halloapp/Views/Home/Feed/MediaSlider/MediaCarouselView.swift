@@ -549,24 +549,17 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         commonInit()
     }
 
-    deinit {
-        if avPlayerViewController.player != nil {
-            avPlayerViewController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.rate), context: &avPlayerContext)
-            avPlayerViewController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.status), context: &avPlayerContext)
-            avPlayerViewController.player = nil
-        }
-        avPlayerViewController.removeObserver(self, forKeyPath: #keyPath(AVPlayerViewController.videoBounds), context:&avPlayerVCContext)
-    }
-
     private var placeholderImageView: UIImageView!
     private var videoURL: URL?
     private var avPlayerViewController: AVPlayerViewController!
-    private var avPlayerContext = 0
-    private var avPlayerVCContext = 0
     private var playButton: UIButton!
 
     private var videoLoadingCancellable: AnyCancellable?
     private var videoPlaybackCancellable: AnyCancellable?
+
+    private var avPlayerRateObservation: NSKeyValueObservation?
+    private var avPlayerStatusObservation: NSKeyValueObservation?
+    private var avPlayerVCVideoBoundsObservation: NSKeyValueObservation?
 
     var showsVideoPlaybackControls = true
     var disablePlayback = false {
@@ -588,9 +581,10 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         videoPlaybackCancellable?.cancel()
         videoPlaybackCancellable = nil
 
+        avPlayerStatusObservation = nil
+        avPlayerRateObservation = nil
+
         if avPlayerViewController.player != nil {
-            avPlayerViewController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.rate), context: &avPlayerContext)
-            avPlayerViewController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.status), context: &avPlayerContext)
             avPlayerViewController.player = nil
         }
 
@@ -618,7 +612,10 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.showsPlaybackControls = false
         contentView.addSubview(avPlayerViewController.view)
 
-        avPlayerViewController.addObserver(self, forKeyPath: #keyPath(AVPlayerViewController.videoBounds), options: [ ], context:&avPlayerVCContext)
+        avPlayerVCVideoBoundsObservation = avPlayerViewController.observe(\.videoBounds, options: [ ], changeHandler: { [weak self] (_, _) in
+            guard let self = self else { return }
+            self.updatePlayerViewFrame()
+        })
 
         initPlayButton()
     }
@@ -677,15 +674,30 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         assert(avPlayerViewController.player == nil)
         assert(videoPlaybackCancellable == nil)
 
+        assert(avPlayerRateObservation == nil)
+        assert(avPlayerStatusObservation == nil)
+
         self.videoURL = videoURL
         avPlayerViewController.view.isHidden = false
         placeholderImageView.isHidden = true
 
         let avPlayer = AVPlayer(url: videoURL)
         // Monitor when this cell's video starts playing and send out broadcast when it does.
-        avPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.rate), options: [ .new ], context: &avPlayerContext)
-        // Monitor when the video is ready for playing and only then attach the player to the controller
-        avPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), options: [ .new ], context: &avPlayerContext)
+        avPlayerRateObservation = avPlayer.observe(\.rate, options: [ ], changeHandler: { (player, change) in
+            if player.rate == 1 {
+                Self.videoDidStartPlaying.send(videoURL)
+            }
+        })
+        // Monitor when the video is ready for playing and only then attach the player to the view controller.
+        avPlayerStatusObservation = avPlayer.observe(\.status, options: [ .new ], changeHandler: { [weak self] (player, change) in
+            guard let self = self else { return }
+            if player.status == .readyToPlay {
+                self.avPlayerViewController.player = player
+                if self.showsVideoPlaybackControls {
+                    self.playButton.isHidden = false
+                }
+            }
+        })
 
         // Cancel playback when other video starts playing.
         videoPlaybackCancellable = Self.videoDidStartPlaying.sink { [weak self] (videoURL) in
@@ -755,35 +767,6 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         let maskLayer = CAShapeLayer()
         maskLayer.path = UIBezierPath(roundedRect: avPlayerViewController.view.bounds, cornerRadius: cornerRadius).cgPath
         avPlayerViewController.view.layer.mask = maskLayer
-    }
-
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        guard context == &avPlayerContext || context == &avPlayerVCContext else {
-            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
-            return
-        }
-
-        if keyPath == #keyPath(AVPlayer.rate) {
-            if let rate = change?[.newKey] as? NSNumber {
-                if rate.doubleValue == 1 {
-                    Self.videoDidStartPlaying.send(videoURL!)
-                }
-            }
-        }
-
-        if keyPath == #keyPath(AVPlayer.status) {
-            if let player = object as? AVPlayer, player.status == .readyToPlay {
-                self.avPlayerViewController.player = player
-
-                if showsVideoPlaybackControls {
-                    self.playButton.isHidden = false
-                }
-            }
-        }
-
-        if keyPath == #keyPath(AVPlayerViewController.videoBounds) {
-            updatePlayerViewFrame()
-        }
     }
 
 }
