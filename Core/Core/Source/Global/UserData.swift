@@ -25,6 +25,9 @@ public final class UserData: ObservableObject {
     public var useProtobuf: Bool {
         // NB: We use the static user defaults since this is accessed during AppContext initialization
         get {
+            if AppContext.userDefaultsForAppGroup.value(forKey: "UseProtobuf") == nil {
+                return true
+            }
             return AppContext.userDefaultsForAppGroup.bool(forKey: "UseProtobuf")
         }
         set {
