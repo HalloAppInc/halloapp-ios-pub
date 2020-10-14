@@ -10,6 +10,7 @@ import Core
 import UIKit
 
 fileprivate let cellReuseIdentifier = "ContactCell"
+fileprivate let sectionHeaderReuseIdentifier = "SectionHeaderView"
 
 @objc protocol IndexableContact {
     var collationName: String { get }
@@ -65,7 +66,7 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
             apply(dataSourceSnapshot, animatingDifferences: animatingDifferences)
         }
 
-        override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        func titleForSection(_ section: Int) -> String? {
             guard isSectioningEnabled else { return nil }
             return snapshot().sectionIdentifiers[section]
         }
@@ -103,6 +104,7 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
         super.viewDidLoad()
 
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
+        tableView.register(ContactTableViewSectionHeaderView.self, forHeaderFooterViewReuseIdentifier: sectionHeaderReuseIdentifier)
         
         dataSource = DataSource(tableView: tableView, cellProvider: { [weak self] (tableView, indexPath, contact) -> UITableViewCell? in
             guard let self = self else { return nil }
@@ -140,5 +142,48 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
 
         let finalCompoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: andPredicates)
         resultsController.contacts = contacts.filter { finalCompoundPredicate.evaluate(with: $0) }
+    }
+
+    // MARK: Section Headers
+
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        guard let title = dataSource.titleForSection(section) else {
+            return nil
+        }
+
+        var view: ContactTableViewSectionHeaderView! = tableView.dequeueReusableHeaderFooterView(withIdentifier: sectionHeaderReuseIdentifier) as? ContactTableViewSectionHeaderView
+        if view == nil {
+            view = ContactTableViewSectionHeaderView(reuseIdentifier: sectionHeaderReuseIdentifier)
+        }
+        view.titleLabel.text = title
+        return view
+    }
+}
+
+private class ContactTableViewSectionHeaderView: UITableViewHeaderFooterView {
+    private(set) var titleLabel: UILabel!
+
+    override init(reuseIdentifier: String?) {
+        super.init(reuseIdentifier: reuseIdentifier)
+        commonInit()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        commonInit()
+    }
+
+    private func commonInit() {
+        preservesSuperviewLayoutMargins = true
+        layoutMargins.top = 16
+
+        backgroundView = UIView()
+        backgroundView?.backgroundColor = .feedBackground
+
+        titleLabel = UILabel()
+        titleLabel.font = .gothamFont(forTextStyle: .headline, weight: .semibold)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(titleLabel)
+        titleLabel.constrainMargins(to: self)
     }
 }
