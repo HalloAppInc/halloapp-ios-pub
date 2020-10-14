@@ -81,7 +81,7 @@ class PrivacyListViewController: PrivacyListTableViewController {
         let selfUserId = MainAppContext.shared.userData.userId
         var uniqueUserIds = Set<UserID>()
         var contacts = [PrivacyListTableRow]()
-        for contact in MainAppContext.shared.contactStore.allRegisteredContacts(sorted: true) {
+        for contact in MainAppContext.shared.contactStore.allInNetworkContacts(sorted: true) {
             guard let userId = contact.userId else { continue }
             guard !uniqueUserIds.contains(userId) else { continue }
             guard userId != selfUserId else { continue }
@@ -95,7 +95,9 @@ class PrivacyListViewController: PrivacyListTableViewController {
             entry.isSelected = selectedContactIds.contains(entry.userId)
         }
         // Append contacts that aren't in user's address book (if any).
-        contacts.append(contentsOf: selectedContactIds.subtracting(uniqueUserIds).map({ PrivacyListTableRow(userId: $0, isSelected: true) }))
+        let unknownUserIds = selectedContactIds.subtracting(uniqueUserIds)
+        let namesForUnknownContacts = MainAppContext.shared.contactStore.fullNames(forUserIds: unknownUserIds)
+        contacts.append(contentsOf: unknownUserIds.map({ PrivacyListTableRow(userId: $0, name: namesForUnknownContacts[$0] ?? "Unknown Contact", isSelected: true) }))
         super.init(contacts: contacts)
     }
 
