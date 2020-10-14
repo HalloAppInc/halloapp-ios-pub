@@ -126,6 +126,7 @@ class ContactTableViewCell: UITableViewCell {
         vStack = UIStackView(arrangedSubviews: [ nameLabel, subtitleLabel ])
         vStack.distribution = .fillProportionally
         vStack.axis = .vertical
+        vStack.spacing = 3
 
         hStack = UIStackView(arrangedSubviews: [ vStack, accessoryLabel ])
         hStack.spacing = 8
@@ -197,20 +198,6 @@ class ContactTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         contactImage.prepareForReuse()
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-
-        let verticalSpacing: CGFloat = subtitleLabel.text?.isEmpty ?? true ? 0 : 3 // matches UITableViewCell's spacing
-        if vStack.spacing != verticalSpacing {
-            vStack.spacing = verticalSpacing
-        }
-
-        let horizontalSpacing: CGFloat = accessoryLabel.text?.isEmpty ?? true ? 0 : 8
-        if hStack.spacing != horizontalSpacing {
-            hStack.spacing = horizontalSpacing
-        }
     }
 
 }
