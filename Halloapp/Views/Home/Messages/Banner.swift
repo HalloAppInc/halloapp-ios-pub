@@ -82,7 +82,7 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
         } else if let groupID = groupID {
             self.type = .group
             self.groupID = groupID
-            avatarView.configureGroupAvatar(for: groupID, using: avatarStore)
+            avatarView.configure(groupId: groupID, using: avatarStore)
         }
         
         titleLabel.text = title

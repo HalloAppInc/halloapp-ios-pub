@@ -249,6 +249,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         self.feedNotifications = FeedNotifications(self.viewContext)
+
+        reloadGroupFeedUnreadCounts()
     }
 
     private lazy var fetchedResultsController: NSFetchedResultsController<FeedPost> = newFetchedResultsController()
@@ -326,6 +328,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         } else {
             self.isFeedEmpty = self.feedDataItems.isEmpty
         }
+
+        setNeedsReloadGroupFeedUnreadCounts()
     }
 
     // MARK: Fetching Feed Data
@@ -384,6 +388,43 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         catch {
             DDLogError("FeedData/fetch-comments/error  [\(error)]")
             fatalError("Failed to fetch feed post comments.")
+        }
+    }
+
+    // MARK: Group Feed
+
+    private(set) var groupFeedUnreadCounts = CurrentValueSubject<[GroupID: Int], Never>([:])
+
+    private func reloadGroupFeedUnreadCounts() {
+        let countDesc = NSExpressionDescription()
+        countDesc.expression = NSExpression(forFunction: "count:", arguments: [ NSExpression(forKeyPath: \FeedPost.groupId) ])
+        countDesc.name = "count"
+        countDesc.expressionResultType = .integer64AttributeType
+
+        let fetchRequest: NSFetchRequest<NSDictionary> = NSFetchRequest(entityName: FeedPost.entity().name!)
+        fetchRequest.returnsObjectsAsFaults = false
+        fetchRequest.predicate = NSPredicate(format: "groupId != nil AND statusValue == %d", FeedPost.Status.incoming.rawValue)
+        fetchRequest.propertiesToGroupBy = [ "groupId" ]
+        fetchRequest.propertiesToFetch = [ "groupId", countDesc ]
+        fetchRequest.resultType = .dictionaryResultType
+        do {
+            let results = try viewContext.fetch(fetchRequest)
+            var counts: [GroupID: Int] = [:]
+            for result in results {
+                guard let groupId = result["groupId"] as? GroupID, let count = result["count"] as? Int else { continue }
+                counts[groupId] = count
+            }
+            groupFeedUnreadCounts.send(counts)
+        }
+        catch {
+            DDLogError("FeedData/fetch-posts/error  [\(error)]")
+            fatalError("Failed to fetch feed posts.")
+        }
+    }
+
+    private func setNeedsReloadGroupFeedUnreadCounts() {
+        DispatchQueue.main.async {
+            self.reloadGroupFeedUnreadCounts()
         }
     }
 

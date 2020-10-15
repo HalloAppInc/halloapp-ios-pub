@@ -705,7 +705,7 @@ fileprivate class TitleView: UIView {
             self.nameLabel.text = chatGroup.name
         }
         
-        avatarView.configureGroupAvatar(for: groupId, using: MainAppContext.shared.avatarStore)
+        avatarView.configure(groupId: groupId, using: MainAppContext.shared.avatarStore)
     }
 
     private func setup() {

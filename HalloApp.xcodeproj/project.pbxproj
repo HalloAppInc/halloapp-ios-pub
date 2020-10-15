@@ -149,6 +149,7 @@
 		76B95CD72429331D007435AC /* CommentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CD62429331D007435AC /* CommentsViewController.swift */; };
 		76B95CDE24295AB5007435AC /* CommentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CDD24295AB5007435AC /* CommentView.swift */; };
 		76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B95CE3242A7A3F007435AC /* CommentInputView.swift */; };
+		76C1F50B2537D6FD0060FBF5 /* AvatarViewButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C1F50A2537D6FD0060FBF5 /* AvatarViewButton.swift */; };
 		76C2D1F924AA6B9700930320 /* PrivacyListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */; };
 		76C64E0D24E5AD85007C0F6F /* MediaUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C64E0C24E5AD85007C0F6F /* MediaUploader.swift */; };
 		76C64E0E24E5AD85007C0F6F /* MediaUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C64E0C24E5AD85007C0F6F /* MediaUploader.swift */; };
@@ -445,6 +446,7 @@
 		76B95CD62429331D007435AC /* CommentsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentsViewController.swift; path = HalloApp/Views/Home/Feed/Comment/CommentsViewController.swift; sourceTree = SOURCE_ROOT; };
 		76B95CDD24295AB5007435AC /* CommentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentView.swift; sourceTree = SOURCE_ROOT; };
 		76B95CE3242A7A3F007435AC /* CommentInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CommentInputView.swift; path = HalloApp/Views/Home/Feed/Comment/CommentInputView.swift; sourceTree = SOURCE_ROOT; };
+		76C1F50A2537D6FD0060FBF5 /* AvatarViewButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AvatarViewButton.swift; path = HalloApp/Components/Views/AvatarViewButton.swift; sourceTree = SOURCE_ROOT; };
 		76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyListViewController.swift; path = HalloApp/Views/Settings/Privacy/PrivacyListViewController.swift; sourceTree = SOURCE_ROOT; };
 		76C64E0C24E5AD85007C0F6F /* MediaUploader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MediaUploader.swift; path = HalloApp/Network/MediaUploader.swift; sourceTree = SOURCE_ROOT; };
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
@@ -725,16 +727,17 @@
 		761C6166242D89D70028AE19 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				761C6167242D89F90028AE19 /* TextLabel.swift */,
-				76A92448244EBCB600794859 /* ShapeView.swift */,
+				76C1F50A2537D6FD0060FBF5 /* AvatarViewButton.swift */,
 				766492222450DDB9009BC368 /* BadgedButton.swift */,
 				766492242450E04D009BC368 /* BadgeView.swift */,
-				761905A22459EB07008FC600 /* InputTextView.swift */,
-				764F774D246224C30063645A /* ContactTableViewCell.swift */,
-				761EE21D24B5135400B30632 /* MFMessageComposeView.swift */,
 				7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */,
-				765EB4EA24D92404002FA5D9 /* SafariView.swift */,
 				76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */,
+				764F774D246224C30063645A /* ContactTableViewCell.swift */,
+				761905A22459EB07008FC600 /* InputTextView.swift */,
+				761EE21D24B5135400B30632 /* MFMessageComposeView.swift */,
+				765EB4EA24D92404002FA5D9 /* SafariView.swift */,
+				76A92448244EBCB600794859 /* ShapeView.swift */,
+				761C6167242D89F90028AE19 /* TextLabel.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1707,6 +1710,7 @@
 				EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */,
 				EAD476CD245513EF00EF8591 /* ChatListViewController.swift in Sources */,
 				76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */,
+				76C1F50B2537D6FD0060FBF5 /* AvatarViewButton.swift in Sources */,
 				766103AA2461F08A00728870 /* FeedPostInfo+CoreDataClass.swift in Sources */,
 				76538092243D4B33000AD9A1 /* FeedPostComment+CoreDataClass.swift in Sources */,
 				7665478A252BE44C00379BEF /* GroupFeedViewController.swift in Sources */,

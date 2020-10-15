@@ -71,7 +71,7 @@ class EditGroupViewController: UIViewController {
         textView.becomeFirstResponder()
         
         updateCount()
-        avatarView.configureGroupAvatar(for: chatGroup.groupId, using: MainAppContext.shared.avatarStore)
+        avatarView.configure(groupId: chatGroup.groupId, using: MainAppContext.shared.avatarStore)
     }
     
     private lazy var mainView: UIStackView = {
@@ -231,7 +231,7 @@ class EditGroupViewController: UIViewController {
                             switch result {
                             case .success:
                                 DispatchQueue.main.async() {
-                                    self.avatarView.configureGroupAvatar(for: self.chatGroup.groupId, using: MainAppContext.shared.avatarStore)
+                                    self.avatarView.configure(groupId: self.chatGroup.groupId, using: MainAppContext.shared.avatarStore)
                                     controller.dismiss(animated: true)
                                 }
                             case .failure(let error):

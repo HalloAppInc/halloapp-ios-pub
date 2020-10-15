@@ -186,12 +186,9 @@ public class AvatarView: UIView {
 
 extension AvatarView {
     
-    public func configureGroupAvatar(for groupID: GroupID, using avatarStore: AvatarStore) {
-        let groupAvatarData = avatarStore.groupAvatarData(for: groupID)
-        configureGroupAvatar(with: groupAvatarData, using: avatarStore)
-    }
-    
-    public func configureGroupAvatar(with groupAvatarData: GroupAvatarData, using avatarStore: AvatarStore) {
+    public func configure(groupId: GroupID, using avatarStore: AvatarStore) {
+        let groupAvatarData = avatarStore.groupAvatarData(for: groupId)
+
         if let image = groupAvatarData.image {
             avatar.image = image
         } else {
@@ -209,50 +206,6 @@ extension AvatarView {
             } else {
                 self.avatar.image = AvatarView.defaultGroupImage
             }
-        }
-    }
-}
-
-public class AvatarViewButton: UIButton {
-
-    public let avatarView = AvatarView()
-
-    private override init(frame: CGRect) {
-        super.init(frame: frame)
-        commonInit()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        commonInit()
-    }
-
-    private func commonInit() {
-        addSubview(avatarView)
-    }
-
-    public override func layoutSubviews() {
-        super.layoutSubviews()
-        avatarView.frame = bounds
-        avatarView.isUserInteractionEnabled = false
-    }
-
-    public override var intrinsicContentSize: CGSize {
-        // Something random but rational.
-        get { CGSize(width: 32, height: 32) }
-    }
-
-    public override var isEnabled: Bool {
-        didSet {
-            // Value is chosen to mimic behavior of UIButton with type "system".
-            avatarView.alpha = isEnabled ? 1 : 0.35
-        }
-    }
-
-    public override var isHighlighted: Bool {
-        didSet {
-            // Value is chosen to mimic behavior of UIButton with type "system".
-            avatarView.alpha = isHighlighted ? 0.2 : 1
         }
     }
 }

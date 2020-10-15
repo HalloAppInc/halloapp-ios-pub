@@ -296,6 +296,20 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ChatListTableViewCell
         cell.configure(with: chatThread)
+        switch chatThread.type {
+        case .oneToOne:
+            cell.avatarTappedAction = { [weak self] in
+                guard let self = self, let userId = chatThread.chatWithUserId else { return }
+                self.openProfile(forUserId: userId)
+            }
+        case .group:
+            let groupId = chatThread.groupId
+            let groupName = chatThread.title
+            cell.avatarTappedAction = { [weak self] in
+                guard let self = self, let groupId = groupId, let groupName = groupName else { return }
+                self.openFeed(forGroupId: groupId, groupName: groupName)
+            }
+        }
         return cell
     }
 
@@ -356,6 +370,16 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             navigationController?.pushViewController(ChatGroupViewController(for: groupId), animated: true)
         }
         metadata.removeFromUserDefaults()
+    }
+
+    private func openFeed(forGroupId groupId: GroupID, groupName: String) {
+        let viewController = GroupFeedViewController(groupId: groupId, groupName: groupName)
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+
+    private func openProfile(forUserId userId: UserID) {
+        let viewController = UserFeedViewController(userID: userId)
+        navigationController?.pushViewController(viewController, animated: true)
     }
 }
 
@@ -445,7 +469,7 @@ private class ChatListTableViewCell: UITableViewCell {
         lastMsgLabel.text = nil
         unreadCountView.isHidden = true
         
-        avatarView.prepareForReuse()
+        avatarView.avatarView.prepareForReuse()
     }
 
     // 14 points for font
@@ -552,15 +576,17 @@ private class ChatListTableViewCell: UITableViewCell {
         }
         
         if chatThread.type == .oneToOne {
-            avatarView.configure(with: chatThread.chatWithUserId ?? "", using: MainAppContext.shared.avatarStore)
+            avatarView.configure(userId: chatThread.chatWithUserId ?? "", using: MainAppContext.shared.avatarStore)
         } else {
-            avatarView.configureGroupAvatar(for: chatThread.groupId ?? "", using: MainAppContext.shared.avatarStore)
+            avatarView.configure(groupId: chatThread.groupId ?? "", using: MainAppContext.shared.avatarStore)
         }
     }
     
     private func setup() {
         backgroundColor = .clear
 
+        avatarView = AvatarViewButton(type: .custom)
+        avatarView.hasNewPostsIndicator = true
         avatarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(avatarView)
 
@@ -581,10 +607,10 @@ private class ChatListTableViewCell: UITableViewCell {
         contentView.addSubview(vStack)
 
         contentView.addConstraints([
-            avatarView.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize),
+            avatarView.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize + 2*AvatarViewButton.newPostsIndicatorRingWidth),
             avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor),
             avatarView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            avatarView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            avatarView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: -AvatarViewButton.newPostsIndicatorRingWidth),
             avatarView.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8),
             
             vStack.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 10),
@@ -592,11 +618,17 @@ private class ChatListTableViewCell: UITableViewCell {
             vStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             vStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor)
         ])
+
+        avatarView.addTarget(self, action: #selector(avatarButtonTapped), for: .touchUpInside)
     }
 
-    private lazy var avatarView: AvatarView = {
-        return AvatarView()
-    }()
+    private var avatarView: AvatarViewButton!
+
+    var avatarTappedAction: (() -> ())?
+
+    @objc private func avatarButtonTapped() {
+        avatarTappedAction?()
+    }
     
     // 16 points for font
     private lazy var nameLabel: UILabel = {

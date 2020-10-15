@@ -353,7 +353,7 @@ class GroupInfoHeaderView: UIView {
         guard let chatGroup = chatGroup else { return }
         groupNameLabel.text = chatGroup.name
         
-        avatarView.configureGroupAvatar(for: chatGroup.groupId, using: MainAppContext.shared.avatarStore)
+        avatarView.configure(groupId: chatGroup.groupId, using: MainAppContext.shared.avatarStore)
     }
     
     public func setIsAdmin(_ isAdmin: Bool) {
