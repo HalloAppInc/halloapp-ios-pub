@@ -15,8 +15,7 @@ import UIKit
 
 // MARK: Constraint Constants
 fileprivate struct Constants {
-    static let AvatarSize: CGFloat = 35
-    static let WidthOfMsgBubble:CGFloat = 0.9
+    static let WidthOfMsgBubble: CGFloat = 0.9
 }
 
 fileprivate class ChatGroupDataSource: UITableViewDiffableDataSource<Int, ChatGroupMessage> {
@@ -690,6 +689,11 @@ fileprivate protocol TitleViewDelegate: AnyObject {
 }
 
 fileprivate class TitleView: UIView {
+
+    private struct LayoutConstants {
+        static let avatarSize: CGFloat = 30
+        static let avatarRingWidth: CGFloat = 3
+    }
     
     weak var delegate: TitleViewDelegate?
     
@@ -709,9 +713,13 @@ fileprivate class TitleView: UIView {
     }
 
     private func setup() {
-        avatarView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
+        avatarView = AvatarViewButton(type: .custom)
+        avatarView.hasNewPostsIndicator = true
+        avatarView.newPostsIndicatorRingWidth = LayoutConstants.avatarRingWidth
+        avatarView.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize + 2*LayoutConstants.avatarRingWidth).isActive = true
         avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
-        
+        avatarView.addTarget(self, action: #selector(avatarButtonTapped), for: .touchUpInside)
+
         let hStack = UIStackView(arrangedSubviews: [ avatarView, nameColumn ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.axis = .horizontal
@@ -728,17 +736,9 @@ fileprivate class TitleView: UIView {
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap(gesture:)))
         addGestureRecognizer(tapGesture)
-
-        let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(gesture:)))
-        doubleTapGesture.numberOfTapsRequired = 2
-        addGestureRecognizer(doubleTapGesture)
-
-        tapGesture.require(toFail: doubleTapGesture)
     }
     
-    private lazy var avatarView: AvatarView = {
-        return AvatarView()
-    }()
+    private var avatarView: AvatarViewButton!
     
     private lazy var nameColumn: UIStackView = {
         let view = UIStackView(arrangedSubviews: [nameLabel, lastSeenLabel])
@@ -773,10 +773,8 @@ fileprivate class TitleView: UIView {
         }
     }
 
-    @objc func handleDoubleTap(gesture: UITapGestureRecognizer) {
-        if gesture.state == .ended {
-            delegate?.titleViewRequestsOpenGroupFeed(self)
-        }
+    @objc private func avatarButtonTapped() {
+        delegate?.titleViewRequestsOpenGroupFeed(self)
     }
 }
 
