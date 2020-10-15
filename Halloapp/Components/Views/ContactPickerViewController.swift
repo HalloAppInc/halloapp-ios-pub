@@ -90,6 +90,7 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
             }
         }
     }
+    private(set) var searchController: UISearchController!
 
     init(contacts: [ContactType]) {
         self.contacts = contacts
@@ -112,16 +113,31 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
             self.configure(cell: cell, with: contact)
             return cell
         })
-        dataSource.isSectioningEnabled = Self.showSections
+        dataSource.isSectioningEnabled = !Self.isSearchResultsController
         dataSource.reload(contacts: contacts, animatingDifferences: false)
+
+        // Search Results Controller doesn't have search bar.
+        if !Self.isSearchResultsController {
+            let searchResultsController = makeSearchResultsController()
+            searchController = UISearchController(searchResultsController: searchResultsController)
+            searchController.searchResultsUpdater = self
+            searchController.searchBar.autocapitalizationType = .none
+            searchController.definesPresentationContext = true
+            navigationItem.searchController = searchController
+            navigationItem.hidesSearchBarWhenScrolling = false
+        }
     }
 
     // MARK: Customization Points
 
-    class var showSections: Bool { true }
+    class var isSearchResultsController: Bool { false }
 
     func configure(cell: ContactTableViewCell, with contact: ContactType) {
 
+    }
+
+    func makeSearchResultsController() -> ContactPickerViewController<ContactType> {
+        fatalError("Not implemented")
     }
 
     // MARK: UISearchResultsUpdating
@@ -146,7 +162,17 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
 
     // MARK: Section Headers
 
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        guard !Self.isSearchResultsController else {
+            return 0
+        }
+        return UITableView.automaticDimension
+    }
+
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        guard !Self.isSearchResultsController else {
+            return nil
+        }
         guard let title = dataSource.titleForSection(section) else {
             return nil
         }

@@ -50,8 +50,6 @@ class NewChatViewController: NewChatTableViewController {
 
     private var fetchedResultsController: NSFetchedResultsController<ABContact>!
 
-    private var searchController: UISearchController!
-
     init(delegate: NewChatViewControllerDelegate) {
         self.delegate = delegate
         super.init(contacts: [])
@@ -87,21 +85,18 @@ class NewChatViewController: NewChatTableViewController {
         } catch {
             fatalError("Failed to fetch contacts. \(error)")
         }
-
-        let searchResultsController = NewChatSearchResultsController(delegate: self)
-        searchController = UISearchController(searchResultsController: searchResultsController)
-        searchController.searchResultsUpdater = self
-        searchController.searchBar.autocapitalizationType = .none
-        searchController.definesPresentationContext = true
-        
-        navigationItem.searchController = searchController
-        navigationItem.hidesSearchBarWhenScrolling = false
         
         if ServerProperties.isInternalUser || ServerProperties.isGroupsEnabled {
             let headerView = TableHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 44))
             headerView.button.addTarget(self, action: #selector(createNewGroup), for: .touchUpInside)
             tableView.tableHeaderView = headerView
         }
+    }
+
+    // MARK: ContactPickerViewController
+
+    override func makeSearchResultsController() -> ContactPickerViewController<ABContact> {
+        return NewChatSearchResultsController(delegate: self)
     }
 
     // MARK: Appearance
@@ -206,7 +201,7 @@ private class NewChatSearchResultsController: NewChatTableViewController {
 
     // MARK: ContactPickerViewController
 
-    override class var showSections: Bool { false }
+    override class var isSearchResultsController: Bool { true }
 
     // MARK: NewChatTableViewController
 

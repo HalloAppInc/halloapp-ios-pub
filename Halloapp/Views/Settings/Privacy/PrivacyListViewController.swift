@@ -111,14 +111,11 @@ class PrivacyListViewController: PrivacyListTableViewController {
         navigationItem.title = PrivacyList.name(forPrivacyListType: privacyList.type)
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelAction))
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneAction))
+        navigationItem.searchController?.delegate = self
+    }
 
-        // Search
-        let searchResultsController = PrivacyListSearchResultsViewController(contacts: [])
-        let searchController = UISearchController(searchResultsController: searchResultsController)
-        searchController.delegate = self
-        searchController.searchResultsUpdater = self
-        searchController.searchBar.autocapitalizationType = .none
-        navigationItem.searchController = searchController
+    override func makeSearchResultsController() -> ContactPickerViewController<PrivacyListTableRow> {
+        return PrivacyListSearchResultsViewController(contacts: [])
     }
 
     /**
@@ -153,5 +150,5 @@ extension PrivacyListViewController: UISearchControllerDelegate {
 
 private class PrivacyListSearchResultsViewController: PrivacyListTableViewController {
 
-    override class var showSections: Bool { false }
+    override class var isSearchResultsController: Bool { true }
 }

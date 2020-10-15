@@ -78,8 +78,6 @@ class InvitePeopleViewController: InvitePeopleTableViewController {
 
     private var fetchedResultsController: NSFetchedResultsController<ABContact>!
 
-    private var searchController: UISearchController!
-
     override init(didSelectContact: @escaping (ABContact) -> ()) {
         super.init(didSelectContact: didSelectContact)
     }
@@ -90,8 +88,6 @@ class InvitePeopleViewController: InvitePeopleTableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        tableView.backgroundColor = .feedBackground
 
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "statusValue == %d OR statusValue == %d", ABContact.Status.out.rawValue, ABContact.Status.in.rawValue)
@@ -108,16 +104,15 @@ class InvitePeopleViewController: InvitePeopleTableViewController {
         catch {
             fatalError("Failed to fetch contacts. \(error)")
         }
+    }
 
-        let resultsController = InvitePeopleSearchResultsController(didSelectContact: didSelectContact)
-        searchController = UISearchController(searchResultsController: resultsController)
-        searchController.searchResultsUpdater = self
-        searchController.searchBar.autocapitalizationType = .none
+    override func makeSearchResultsController() -> ContactPickerViewController<ABContact> {
+        return InvitePeopleSearchResultsController(didSelectContact: didSelectContact)
     }
 
     override func didMove(toParent parent: UIViewController?) {
         super.didMove(toParent: parent)
-        if let parent = parent {
+        if !Self.isSearchResultsController, let parent = parent {
             parent.navigationItem.searchController = searchController
         }
     }
@@ -137,5 +132,5 @@ extension InvitePeopleViewController: NSFetchedResultsControllerDelegate {
 
 private class InvitePeopleSearchResultsController: InvitePeopleTableViewController {
 
-    override class var showSections: Bool { false }
+    override class var isSearchResultsController: Bool { true }
 }
