@@ -19,7 +19,7 @@ class ShapeView: UIView {
 
     var shapeLayer: CAShapeLayer {
         get {
-            return self.layer as! CAShapeLayer
+            return layer as! CAShapeLayer
         }
     }
 
@@ -72,7 +72,7 @@ class CircleView: ShapeView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         if frame != .zero {
-            self.path = UIBezierPath(ovalIn: self.bounds)
+            path = UIBezierPath(ovalIn: bounds)
         }
     }
 
@@ -82,16 +82,16 @@ class CircleView: ShapeView {
 
     override var bounds: CGRect {
         didSet {
-            if oldValue != self.bounds {
-                self.path = UIBezierPath(ovalIn: self.bounds)
+            if oldValue != bounds {
+                path = UIBezierPath(ovalIn: bounds)
             }
         }
     }
 
     override var frame: CGRect {
         didSet {
-            if oldValue != self.frame {
-                self.path = UIBezierPath(ovalIn: self.bounds)
+            if oldValue != frame {
+                path = UIBezierPath(ovalIn: bounds)
             }
         }
     }
@@ -112,7 +112,7 @@ class PillView: ShapeView {
 
     override var bounds: CGRect {
         didSet {
-            if oldValue != self.bounds {
+            if oldValue != bounds {
                 reloadPath()
             }
         }
@@ -120,13 +120,50 @@ class PillView: ShapeView {
 
     override var frame: CGRect {
         didSet {
-            if oldValue != self.frame {
+            if oldValue != frame {
                 reloadPath()
             }
         }
     }
 
     private func reloadPath() {
-        self.path = UIBezierPath(roundedRect: self.bounds, cornerRadius: min(self.bounds.height / 2, self.bounds.width / 2).rounded())
+        let radius = min(bounds.height / 2, bounds.width / 2).rounded()
+        path = UIBezierPath(roundedRect: bounds, cornerRadius: radius)
     }
+}
+
+class RingView: ShapeView {
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        if frame != .zero {
+            reloadPath()
+        }
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+
+    override var bounds: CGRect {
+        didSet {
+            if oldValue != bounds {
+                reloadPath()
+            }
+        }
+    }
+
+    override var frame: CGRect {
+        didSet {
+            if oldValue != frame {
+                reloadPath()
+            }
+        }
+    }
+
+    private func reloadPath() {
+        let radius = min(bounds.height / 2, bounds.width / 2) - 0.5*lineWidth
+        path = UIBezierPath(arcCenter: center, radius: radius, startAngle: 0, endAngle: 2*CGFloat.pi, clockwise: true)
+    }
+
 }
