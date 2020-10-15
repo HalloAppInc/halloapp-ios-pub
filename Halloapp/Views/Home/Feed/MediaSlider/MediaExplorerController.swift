@@ -12,6 +12,8 @@ import UIKit
 
 class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate {
 
+    private let spaceBetweenPages: CGFloat = 20
+
     private let media: [FeedMedia]
     private var collectionView: UICollectionView!
     private var pageControl: UIPageControl!
@@ -68,8 +70,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            collectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor),
-            collectionView.rightAnchor.constraint(equalTo: self.view.rightAnchor),
+            collectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: -spaceBetweenPages),
+            collectionView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: spaceBetweenPages),
             collectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
         ])
 
@@ -480,6 +482,9 @@ fileprivate class VideoCell: UICollectionViewCell {
         return String(describing: VideoCell.self)
     }
 
+    private var statusObservation: NSKeyValueObservation?
+    private var videoBoundsObservation: NSKeyValueObservation?
+
     private lazy var playerController: AVPlayerViewController = {
         let controller = AVPlayerViewController()
         controller.view.backgroundColor = .clear
@@ -496,18 +501,25 @@ fileprivate class VideoCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
 
+        statusObservation = nil
+        videoBoundsObservation = nil
         url = nil
-        playerController.view.frame = bounds.insetBy(dx: 20, dy: 20)
+        playerController.view.frame = bounds.insetBy(dx: 20, dy: 0)
     }
 
     var url: URL! {
         didSet {
             if url != nil {
                 let player = AVPlayer(url: url)
-                player.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), options: [.new], context: nil)
+
+                statusObservation = player.observe(\.status) { [weak self] player, change in
+                    guard let self = self else { return }
+                    guard player.status == .readyToPlay else { return }
+                    self.playerController.player = player
+                }
             } else {
                 playerController.player?.pause()
-                playerController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.status))
+                statusObservation = nil
                 playerController.player = nil
             }
         }
@@ -516,36 +528,21 @@ fileprivate class VideoCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        playerController.view.frame = bounds.insetBy(dx: 20, dy: 20)
+        playerController.view.frame = bounds.insetBy(dx: 20, dy: 0)
         contentView.addSubview(playerController.view)
+        videoBoundsObservation = playerController.observe(\.videoBounds) { controller, change in
+            guard controller.videoBounds.size != .zero else { return }
 
-        playerController.addObserver(self, forKeyPath: #keyPath(AVPlayerViewController.videoBounds), options: [.new], context: nil)
+            let x = controller.view.frame.midX - controller.videoBounds.width / 2
+            let y = controller.view.frame.midY - controller.videoBounds.height / 2
+            let bounds = controller.videoBounds
+
+            controller.view.frame = CGRect(x: x, y: y, width: bounds.width, height: bounds.height)
+        }
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    deinit {
-        playerController.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.status))
-        playerController.removeObserver(self, forKeyPath: #keyPath(AVPlayerViewController.videoBounds))
-    }
-
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == #keyPath(AVPlayer.status) {
-            if let player = object as? AVPlayer, player.status == .readyToPlay {
-                playerController.player = player
-            }
-        } else if keyPath == #keyPath(AVPlayerViewController.videoBounds) {
-            guard playerController.videoBounds.size != .zero else { return }
-
-            let x = playerController.view.frame.midX - playerController.videoBounds.width / 2
-            let y = playerController.view.frame.midY - playerController.videoBounds.height / 2
-
-            playerController.view.frame = CGRect(x: x, y: y, width: playerController.videoBounds.width, height: playerController.videoBounds.height)
-        } else {
-            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
-        }
     }
 
     func play() {

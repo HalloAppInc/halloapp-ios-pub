@@ -14,6 +14,8 @@ import UIKit
 protocol MediaCarouselViewDelegate: AnyObject {
     func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int)
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int)
+    func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int)
+    func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat)
 }
 
 struct MediaCarouselViewConfiguration {
@@ -41,7 +43,7 @@ fileprivate struct LayoutConstants {
     static let pageControlSpacingBottom: CGFloat = -12
 }
 
-class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIGestureRecognizerDelegate {
 
     private let configuration: MediaCarouselViewConfiguration
 
@@ -231,6 +233,22 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
         dataSource.apply(snapshot, animatingDifferences: false)
         self.dataSource = dataSource
+
+        // Use this instead of `didSelectItemAt` as the latter is activated by multi finger
+        // tapping or even when lifting fingers after a pinch gesture
+        let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapAction))
+        tapRecognizer.numberOfTouchesRequired = 1
+        tapRecognizer.numberOfTapsRequired = 1
+        tapRecognizer.delegate = self
+        collectionView.addGestureRecognizer(tapRecognizer)
+
+        let doubleTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(doubleTapAction))
+        doubleTapRecognizer.numberOfTouchesRequired = 1
+        doubleTapRecognizer.numberOfTapsRequired = 2
+        collectionView.addGestureRecognizer(doubleTapRecognizer)
+
+        let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(zoomAction))
+        collectionView.addGestureRecognizer(zoomRecognizer)
     }
 
     private func updatePageControl() {
@@ -288,6 +306,19 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     @objc private func pageControlAction() {
         setCurrentIndex(pageControl?.currentPage ?? 0, animated: true)
+    }
+
+    @objc private func tapAction() {
+        stopPlayback()
+        delegate?.mediaCarouselView(self, didTapMediaAtIndex: currentIndex)
+    }
+
+    @objc private func doubleTapAction() {
+        delegate?.mediaCarouselView(self, didDoubleTapMediaAtIndex: currentIndex)
+    }
+
+    @objc private func zoomAction(sender: UIPinchGestureRecognizer) {
+        delegate?.mediaCarouselView(self, didZoomMediaAtIndex: currentIndex, withScale: sender.scale)
     }
 
     override func willMove(toWindow newWindow: UIWindow?) {
@@ -361,12 +392,16 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
     }
 
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if let delegate = delegate {
-            delegate.mediaCarouselView(self, didTapMediaAtIndex: indexPath.item)
+    // MARK: UIGestureRecognizerDelegate
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if let current = gestureRecognizer as? UITapGestureRecognizer, current.numberOfTapsRequired == 1, current.numberOfTouchesRequired == 1 {
+            if let other = otherGestureRecognizer as? UITapGestureRecognizer  {
+                return other.numberOfTapsRequired > 1
+            }
         }
-    }
 
+        return false
+    }
 }
 
 fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
@@ -687,6 +722,10 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
             if player.rate == 1 {
                 Self.videoDidStartPlaying.send(videoURL)
             }
+
+            if player.rate == 0 && self.showsVideoPlaybackControls {
+                self.playButton.isHidden = false
+            }
         })
         // Monitor when the video is ready for playing and only then attach the player to the view controller.
         avPlayerStatusObservation = avPlayer.observe(\.status, options: [ .new ], changeHandler: { [weak self] (player, change) in
@@ -727,10 +766,15 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         if avPlayerViewController.player?.timeControlStatus == AVPlayer.TimeControlStatus.paused {
             if showsVideoPlaybackControls {
                 playButton.isHidden = true
-                avPlayerViewController.showsPlaybackControls = true
             }
-            avPlayerViewController.player?.seek(to: .zero)
-            avPlayerViewController.player?.play()
+
+            if let player = avPlayerViewController.player {
+                if player.currentTime() == player.currentItem?.duration {
+                    player.seek(to: .zero)
+                }
+
+                player.play()
+            }
         }
     }
 

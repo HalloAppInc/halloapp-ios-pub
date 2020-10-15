@@ -377,6 +377,7 @@ final class DeletedPostTableViewCell: FeedPostTableViewCellBase {
 
 final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
+    private let scaleThreshold: CGFloat = 1.3
     private var postId: FeedPostID? = nil
 
     override init(frame: CGRect) {
@@ -436,7 +437,6 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
             let mediaViewHeight = MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
             var mediaViewConfiguration = MediaCarouselViewConfiguration.default
             mediaViewConfiguration.gutterWidth = gutterWidth
-            mediaViewConfiguration.disablePlayback = true
             let mediaView = MediaCarouselView(feedDataItem: feedDataItem, configuration: mediaViewConfiguration)
             mediaView.delegate = self
             mediaView.addConstraint({
@@ -490,8 +490,30 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
         guard let postId = postId else { return }
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else { return }
+        guard feedDataItem.media[index].type == .image else { return }
 
-        let explorerController = MediaExplorerController(media: feedDataItem.media, index: index)
+        presentExplorer(media: feedDataItem.media, index: index)
+    }
+
+    func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
+        guard let postId = postId else { return }
+        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else { return }
+        guard feedDataItem.media[index].type == .video else { return }
+
+        presentExplorer(media: feedDataItem.media, index: index)
+    }
+
+    func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
+        guard let postId = postId else { return }
+        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else { return }
+        guard feedDataItem.media[index].type == .video else { return }
+        guard scale > scaleThreshold else { return }
+
+        presentExplorer(media: feedDataItem.media, index: index)
+    }
+
+    private func presentExplorer(media: [FeedMedia], index: Int) {
+        let explorerController = MediaExplorerController(media: media, index: index)
         let naviController = UINavigationController(rootViewController: explorerController)
         naviController.modalPresentationStyle = .fullScreen
 
@@ -500,7 +522,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         }
     }
 
-    func findController() -> UIViewController? {
+    private func findController() -> UIViewController? {
         var current: UIResponder? = self
 
         while current != nil && !(current is UIViewController) {

@@ -641,5 +641,13 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
             PostComposerView.stopTextEdit()
         }
+
+        func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
+
+        }
+
+        func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
+
+        }
     }
 }

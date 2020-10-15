@@ -752,6 +752,14 @@ extension CommentsViewController: MediaCarouselViewDelegate {
     func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
 
     }
+
+    func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
+
+    }
+
+    func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
+
+    }
 }
 
 extension CommentsViewController: FeedPostViewControllerDelegate {
