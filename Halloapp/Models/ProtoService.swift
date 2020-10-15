@@ -497,10 +497,6 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoWhisperGetCountOfOneTimeKeysRequest(completion: completion))
     }
 
-    func requestWhisperKeyBundle(userID: UserID, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>) {
-        enqueue(request: ProtoWhisperGetBundleRequest(targetUserId: userID, completion: completion))
-    }
-
     func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID) {
         let receipt = HalloReceipt(itemId: itemID, userId: fromUserID, type: type, timestamp: nil, thread: thread)
         sendReceipt(receipt, to: toUserID)

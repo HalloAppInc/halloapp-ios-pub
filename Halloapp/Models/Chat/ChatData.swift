@@ -1153,7 +1153,7 @@ extension ChatData {
     }
 
     private func send(message: ChatMessageProtocol) {
-        service.sendChatMessage(message, encryption: MainAppContext.shared.keyData.encryptOperation(for: message.toUserId))
+        service.sendChatMessage(message, encryption: AppContext.shared.encryptOperation(for: message.toUserId)) { _ in }
     }
     
     // MARK: 1-1 Presence
@@ -3049,7 +3049,7 @@ extension XMPPChatMessage {
 
         let protoChat: Clients_ChatMessage
         let plainTextMessage = Clients_ChatMessage(containerData: pbChat.payload)
-        let decryptionResult = MainAppContext.shared.keyData.decryptPayload(
+        let decryptionResult = AppContext.shared.keyStore.decryptPayload(
             for: fromUserID,
             encryptedPayload: pbChat.encPayload,
             publicKey: pbChat.publicKey,

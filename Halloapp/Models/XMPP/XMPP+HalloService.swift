@@ -9,11 +9,6 @@
 import Core
 import XMPPFramework
 
-enum XMPPControllerError: Error {
-    case responseMissingKeyCount
-    case responseMissingKeys
-}
-
 extension XMPPControllerMain: HalloService {
     public func retractFeedItem(_ feedItem: FeedItemProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: XMPPRetractItemRequest(feedItem: feedItem, completion: completion))
@@ -51,17 +46,6 @@ extension XMPPControllerMain: HalloService {
                 completion(.failure(error ?? XMPPControllerError.responseMissingKeyCount))
             }
         })
-    }
-
-    public func requestWhisperKeyBundle(userID: UserID, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>) {
-        enqueue(request: XMPPWhisperGetBundleRequest(targetUserId: userID) { (iq, error) in
-            if let iq = iq, let keys = WhisperKeyBundle(itemElement: iq) {
-                completion(.success(keys))
-            } else {
-                completion(.failure(error ?? XMPPControllerError.responseMissingKeys))
-            }
-        })
-
     }
 
     public func sendReceipt(itemID: String, thread: HalloReceipt.Thread, type: HalloReceipt.`Type`, fromUserID: UserID, toUserID: UserID) {

@@ -74,6 +74,12 @@ open class AppContext {
         }
     }
 
+    // MARK: Encryption
+
+    public func encryptOperation(for userID: UserID) -> EncryptOperation {
+        return keyStore.encryptOperation(for: userID, with: coreService)
+    }
+
     // MARK: Event monitoring
 
     public func startReportingEvents() {

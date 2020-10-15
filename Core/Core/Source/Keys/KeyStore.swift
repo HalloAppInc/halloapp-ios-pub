@@ -976,3 +976,72 @@ public extension MessageKeyBundle {
             outboundOneTimePreKeyId: outboundOneTimePreKeyId)
     }
 }
+
+extension KeyStore {
+    public func encryptOperation(for userID: UserID, with service: CoreService) -> EncryptOperation {
+        return { data, completion in
+            self.wrapMessage(for: userID, with: service, unencrypted: data, completion: completion)
+        }
+    }
+
+    public func wrapMessage(for userId: String, with service: CoreService, unencrypted: Data, completion: @escaping (EncryptedData) -> Void) {
+        DDLogInfo("KeyStore/wrapMessage")
+        var keyBundle: KeyBundle? = nil
+        let group = DispatchGroup()
+        group.enter()
+
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            if let savedKeyBundle = self.messageKeyBundle(for: userId)?.keyBundle {
+                keyBundle = savedKeyBundle
+                group.leave()
+            } else {
+                service.requestWhisperKeyBundle(userID: userId) { result in
+                    switch result {
+                    case .success(let keys):
+                        keyBundle = self.initiateSessionSetup(for: userId, with: keys)
+                    case .failure(let error):
+                        DDLogInfo("KeyStore/wrapMessage/error \(error)")
+                    }
+                    group.leave()
+                }
+            }
+        }
+
+        group.notify(queue: backgroundProcessingQueue) {
+            var encryptedData: Data? = nil, identityKey: Data? = nil, oneTimeKey: Int32 = 0
+            if let keyBundle = keyBundle {
+                encryptedData = self.encryptMessage(for: userId, unencrypted: unencrypted, keyBundle: keyBundle)
+                if let outboundIdentityKey = keyBundle.outboundIdentityPublicEdKey {
+                    identityKey = outboundIdentityKey
+                    oneTimeKey = keyBundle.outboundOneTimePreKeyId
+                }
+            }
+            completion((encryptedData, identityKey, oneTimeKey))
+        }
+    }
+
+    public func decryptPayload(for userId: String, encryptedPayload: Data, publicKey: Data?, oneTimeKeyID: Int?) -> Result<Data, DecryptionError> {
+
+        var keyBundle: KeyBundle
+        var isNewReceiveSession: Bool
+
+        if let savedKeyBundle = messageKeyBundle(for: userId)?.keyBundle {
+            keyBundle = savedKeyBundle
+            isNewReceiveSession = false
+        } else {
+            guard let publicKey = publicKey else {
+                DDLogError("KeyData/decryptPayload/error missing public key")
+                return .failure(.missingPublicKey)
+            }
+            guard let newKeyBundle = receiveSessionSetup(for: userId, from: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID) else {
+                DDLogError("KeyData/decryptPayload/error receiveSessionSetup failed")
+                return .failure(.other)
+            }
+            keyBundle = newKeyBundle
+            isNewReceiveSession = true
+        }
+
+        return decryptMessage(for: userId, encryptedPayload: encryptedPayload, keyBundle: keyBundle, isNewReceiveSession: isNewReceiveSession)
+    }
+
+}

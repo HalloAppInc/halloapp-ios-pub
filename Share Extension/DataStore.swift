@@ -270,10 +270,14 @@ class DataStore: ShareExtensionDataStore {
             save(managedObjectContext)
         }
 
-        service.sendChatMessage(message, encryption: nil)
-
-        // TODO: Find a way to detect send error
-        completion(.success(message.id))
+        service.sendChatMessage(message, encryption: AppContext.shared.encryptOperation(for: message.toUserId)) { result in
+            switch result {
+            case .success:
+                completion(.success(message.id))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
     }
 }
 

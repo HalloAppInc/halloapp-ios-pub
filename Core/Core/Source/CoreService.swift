@@ -47,8 +47,11 @@ public protocol CoreService {
     func publishPost(_ post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date?>)
     func publishComment(_ comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date?>)
 
+    // MARK: Keys
+    func requestWhisperKeyBundle(userID: UserID, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>)
+
     // MARK: Chat
-    func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?)
+    func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Event Logging
     func log(events: [CountableEvent], completion: @escaping ServiceRequestCompletion<Void>)

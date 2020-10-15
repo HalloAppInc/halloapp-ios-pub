@@ -8,14 +8,21 @@
 
 import Foundation
 
+public enum XMPPControllerError: Error {
+    case responseMissingKeyCount
+    case responseMissingKeys
+}
+
 extension XMPPController: CoreService {
-    public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?) {
+    public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?, completion: @escaping ServiceRequestCompletion<Void>) {
         if let encryption = encryption {
             message.encryptXMPPElement(encryption) { encryptedMessage in
                 self.xmppStream.send(encryptedMessage)
+                completion(.success(()))
             }
         } else {
             xmppStream.send(message.xmppElement)
+            completion(.success(()))
         }
     }
 
@@ -25,6 +32,16 @@ extension XMPPController: CoreService {
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
             self.enqueue(request: request)
         }
+    }
+
+    public func requestWhisperKeyBundle(userID: UserID, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>) {
+        enqueue(request: XMPPWhisperGetBundleRequest(targetUserId: userID) { (iq, error) in
+            if let iq = iq, let keys = WhisperKeyBundle(itemElement: iq) {
+                completion(.success(keys))
+            } else {
+                completion(.failure(error ?? XMPPControllerError.responseMissingKeys))
+            }
+        })
     }
 
     public func publishPost(_ post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date?>) {

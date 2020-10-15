@@ -13,6 +13,7 @@ import XMPPFramework
 
 enum ProtoServiceCoreError: Error {
     case deserialization
+    case serialization
 }
 
 open class ProtoServiceCore: NSObject, ObservableObject {
@@ -335,6 +336,10 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func requestWhisperKeyBundle(userID: UserID, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>) {
+        enqueue(request: ProtoWhisperGetBundleRequest(targetUserId: userID, completion: completion))
+    }
+
     public func publishPost(_ post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date?>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
@@ -351,12 +356,13 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?) {
+    public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?, completion: @escaping ServiceRequestCompletion<Void>) {
 
         guard let messageData = try? message.protoContainer.serializedData(),
             let fromUID = Int64(userData.userId),
             let toUID = Int64(message.toUserId) else
         {
+            completion(.failure(ProtoServiceCoreError.serialization))
             return
         }
 
@@ -392,21 +398,25 @@ extension ProtoServiceCore: CoreService {
                 guard let packetData = try? packet.serializedData() else {
                     AppContext.shared.eventMonitor.observe(.encryption(error: .other))
                     DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
+                    completion(.failure(ProtoServiceCoreError.serialization))
                     return
                 }
                 let encryptionError: EncryptionError? = includesEncryptedPayload ? nil : .other
                 AppContext.shared.eventMonitor.observe(.encryption(error: encryptionError))
                 DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(includesEncryptedPayload ? "encrypted" : "unencrypted"))")
                 self.stream.send(packetData)
+                completion(.success(()))
             }
         } else {
             packet.msg.payload = .chatStanza(chat)
             guard let packetData = try? packet.serializedData() else {
                 DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
+                completion(.failure(ProtoServiceCoreError.serialization))
                 return
             }
             DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (unencrypted)")
             stream.send(packetData)
+            completion(.success(()))
         }
     }
 

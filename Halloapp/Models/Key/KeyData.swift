@@ -48,7 +48,6 @@ class KeyData {
                 }
             }
         )
-
     }
     
     private func uploadWhisperKeyBundle() {
@@ -198,50 +197,6 @@ class KeyData {
 }
 
 extension KeyData {
-    public func encryptOperation(for userID: UserID) -> EncryptOperation {
-        return { data, completion in
-            self.wrapMessage(for: userID, unencrypted: data, completion: completion)
-        }
-    }
-
-    public func wrapMessage(for userId: String, unencrypted: Data, completion: @escaping (EncryptedData) -> Void) {
-        DDLogInfo("KeyData/wrapMessage")
-        var keyBundle: KeyBundle? = nil
-        let group = DispatchGroup()
-        group.enter()
-
-        self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            if let savedKeyBundle = self.keyStore.messageKeyBundle(for: userId)?.keyBundle {
-
-                keyBundle = savedKeyBundle
-
-                group.leave()
-
-            } else {
-                self.service.requestWhisperKeyBundle(userID: userId) { result in
-                    switch result {
-                    case .success(let keys):
-                        keyBundle = self.keyStore.initiateSessionSetup(for: userId, with: keys)
-                    case .failure(let error):
-                        DDLogInfo("KeyData/wrapMessage/error \(error)")
-                    }
-                    group.leave()
-                }
-            }
-        }
-
-        group.notify(queue: self.keyStore.backgroundProcessingQueue) {
-            var encryptedData: Data? = nil, identityKey: Data? = nil, oneTimeKey: Int32 = 0
-            if let keyBundle = keyBundle {
-                encryptedData = self.keyStore.encryptMessage(for: userId, unencrypted: unencrypted, keyBundle: keyBundle)
-                if let outboundIdentityKey = keyBundle.outboundIdentityPublicEdKey {
-                    identityKey = outboundIdentityKey
-                    oneTimeKey = keyBundle.outboundOneTimePreKeyId
-                }
-            }
-            completion((encryptedData, identityKey, oneTimeKey))
-        }
-    }
 
     public func unwrapMessage(for userId: String, from entry: XMLElement) -> Data? {
         DDLogInfo("KeyData/unwrapMessage/for/\(userId)")
@@ -274,7 +229,7 @@ extension KeyData {
             return Data(base64Encoded: inboundIdentityPublicEdKeyBase64)
         }()
 
-        switch decryptPayload(for: userId, encryptedPayload: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID) {
+        switch keyStore.decryptPayload(for: userId, encryptedPayload: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID) {
         case .success(let data):
             // Don't report decryption success yet (wait until it's validated against plaintext)
             return data
@@ -283,31 +238,6 @@ extension KeyData {
             return nil
         }
     }
-
-    public func decryptPayload(for userId: String, encryptedPayload: Data, publicKey: Data?, oneTimeKeyID: Int?) -> Result<Data, DecryptionError> {
-
-        var keyBundle: KeyBundle
-        var isNewReceiveSession: Bool
-
-        if let savedKeyBundle = self.keyStore.messageKeyBundle(for: userId)?.keyBundle {
-            keyBundle = savedKeyBundle
-            isNewReceiveSession = false
-        } else {
-            guard let publicKey = publicKey else {
-                DDLogError("KeyData/decryptPayload/error missing public key")
-                return .failure(.missingPublicKey)
-            }
-            guard let newKeyBundle = keyStore.receiveSessionSetup(for: userId, from: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID) else {
-                DDLogError("KeyData/decryptPayload/error receiveSessionSetup failed")
-                return .failure(.other)
-            }
-            keyBundle = newKeyBundle
-            isNewReceiveSession = true
-        }
-
-        return keyStore.decryptMessage(for: userId, encryptedPayload: encryptedPayload, keyBundle: keyBundle, isNewReceiveSession: isNewReceiveSession)
-    }
-
 }
 
 extension KeyData: HalloKeyDelegate {
