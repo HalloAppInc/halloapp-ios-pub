@@ -714,11 +714,16 @@ fileprivate class TitleView: UIView {
 
     private func setup() {
         avatarView = AvatarViewButton(type: .custom)
-        avatarView.hasNewPostsIndicator = true
+        avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
         avatarView.newPostsIndicatorRingWidth = LayoutConstants.avatarRingWidth
-        avatarView.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize + 2*LayoutConstants.avatarRingWidth).isActive = true
+        let avatarButtonWidth: CGFloat = LayoutConstants.avatarSize + (avatarView.hasNewPostsIndicator ? 2*LayoutConstants.avatarRingWidth : 0)
+        avatarView.widthAnchor.constraint(equalToConstant: avatarButtonWidth).isActive = true
         avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
-        avatarView.addTarget(self, action: #selector(avatarButtonTapped), for: .touchUpInside)
+        if ServerProperties.isGroupFeedEnabled {
+            avatarView.addTarget(self, action: #selector(avatarButtonTapped), for: .touchUpInside)
+        } else {
+            avatarView.isUserInteractionEnabled = false
+        }
 
         let hStack = UIStackView(arrangedSubviews: [ avatarView, nameColumn ])
         hStack.translatesAutoresizingMaskIntoConstraints = false

@@ -22,11 +22,16 @@ class AvatarViewButton: UIButton {
 
     var newPostsIndicatorRingWidth: CGFloat {
         get {
-            ringView!.lineWidth
+            if let ringView = ringView {
+                return ringView.lineWidth
+            }
+            return 0
         }
         set {
-            ringView!.lineWidth = newValue
-            setNeedsLayout()
+            if let ringView = ringView {
+                ringView.lineWidth = newValue
+                setNeedsLayout()
+            }
         }
     }
 
@@ -126,6 +131,7 @@ class AvatarViewButton: UIButton {
         }
 
         avatarView.configure(with: userId, using: avatarStore)
+        
         newPostsIndicatorState = .noPosts
     }
 
@@ -136,12 +142,15 @@ class AvatarViewButton: UIButton {
         }
 
         avatarView.configure(groupId: groupId, using: avatarStore)
-        newGroupPostsCancellable = MainAppContext.shared.feedData
-            .groupFeedStates
-            .map({ $0[groupId] ?? .noPosts })
-            .sink(receiveValue: { [weak self] (state) in
-                guard let self = self else { return }
-                self.newPostsIndicatorState = state
-            })
+
+        if hasNewPostsIndicator {
+            newGroupPostsCancellable = MainAppContext.shared.feedData
+                .groupFeedStates
+                .map({ $0[groupId] ?? .noPosts })
+                .sink(receiveValue: { [weak self] (state) in
+                    guard let self = self else { return }
+                    self.newPostsIndicatorState = state
+                })
+        }
     }
 }

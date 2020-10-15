@@ -587,7 +587,7 @@ private class ChatListTableViewCell: UITableViewCell {
         backgroundColor = .clear
 
         avatarView = AvatarViewButton(type: .custom)
-        avatarView.hasNewPostsIndicator = true
+        avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
         avatarView.newPostsIndicatorRingWidth = LayoutConstants.avatarRingWidth
         avatarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(avatarView)
@@ -608,11 +608,12 @@ private class ChatListTableViewCell: UITableViewCell {
         vStack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(vStack)
 
+        let avatarSize: CGFloat = LayoutConstants.avatarSize + (avatarView.hasNewPostsIndicator ? 2*LayoutConstants.avatarRingWidth : 0)
         contentView.addConstraints([
-            avatarView.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize + 2*LayoutConstants.avatarRingWidth),
+            avatarView.widthAnchor.constraint(equalToConstant: avatarSize),
             avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor),
             avatarView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            avatarView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: -LayoutConstants.avatarRingWidth),
+            avatarView.centerXAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: 0.5*LayoutConstants.avatarSize),
             avatarView.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8),
             
             vStack.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 10),
@@ -621,7 +622,11 @@ private class ChatListTableViewCell: UITableViewCell {
             vStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor)
         ])
 
-        avatarView.addTarget(self, action: #selector(avatarButtonTapped), for: .touchUpInside)
+        if ServerProperties.isGroupFeedEnabled {
+            avatarView.addTarget(self, action: #selector(avatarButtonTapped), for: .touchUpInside)
+        } else {
+            avatarView.isUserInteractionEnabled = false
+        }
     }
 
     private var avatarView: AvatarViewButton!
