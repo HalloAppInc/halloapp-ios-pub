@@ -52,7 +52,21 @@ extension UIView {
         case height
         case width
     }
-    
+
+    @discardableResult
+    func constrain(dimension: ConstraintDimension, to otherView: UIView, constant: CGFloat = 0, priority: UILayoutPriority = .required) -> NSLayoutConstraint {
+        let constraint: NSLayoutConstraint
+        switch dimension {
+        case .height:
+            constraint = heightAnchor.constraint(equalTo: otherView.heightAnchor, constant: constant)
+        case .width:
+            constraint = widthAnchor.constraint(equalTo: otherView.widthAnchor, constant: constant)
+        }
+        constraint.priority = priority
+        constraint.isActive = true
+        return constraint
+    }
+
     @discardableResult
     func constrain(anchor: ConstraintAnchor, to otherView: UIView, constant: CGFloat = 0, priority: UILayoutPriority = .required) -> NSLayoutConstraint {
         let constraint: NSLayoutConstraint
@@ -76,21 +90,21 @@ extension UIView {
     }
 
     @discardableResult
-    func constrainMargin(anchor: ConstraintAnchor, to otherView: UIView, constant: CGFloat = 0, priority: UILayoutPriority = .required) -> NSLayoutConstraint {
+    func constrain(anchor: ConstraintAnchor, to layoutGuide: UILayoutGuide, constant: CGFloat = 0, priority: UILayoutPriority = .required) -> NSLayoutConstraint {
         let constraint: NSLayoutConstraint
         switch anchor {
         case .top:
-            constraint = topAnchor.constraint(equalTo: otherView.layoutMarginsGuide.topAnchor, constant: constant)
+            constraint = topAnchor.constraint(equalTo: layoutGuide.topAnchor, constant: constant)
         case .bottom:
-            constraint = bottomAnchor.constraint(equalTo: otherView.layoutMarginsGuide.bottomAnchor, constant: constant)
+            constraint = bottomAnchor.constraint(equalTo: layoutGuide.bottomAnchor, constant: constant)
         case .leading:
-            constraint = leadingAnchor.constraint(equalTo: otherView.layoutMarginsGuide.leadingAnchor, constant: constant)
+            constraint = leadingAnchor.constraint(equalTo: layoutGuide.leadingAnchor, constant: constant)
         case .trailing:
-            constraint = trailingAnchor.constraint(equalTo: otherView.layoutMarginsGuide.trailingAnchor, constant: constant)
+            constraint = trailingAnchor.constraint(equalTo: layoutGuide.trailingAnchor, constant: constant)
         case .centerX:
-            constraint = centerXAnchor.constraint(equalTo: otherView.layoutMarginsGuide.centerXAnchor, constant: constant)
+            constraint = centerXAnchor.constraint(equalTo: layoutGuide.centerXAnchor, constant: constant)
         case .centerY:
-            constraint = centerYAnchor.constraint(equalTo: otherView.layoutMarginsGuide.centerYAnchor, constant: constant)
+            constraint = centerYAnchor.constraint(equalTo: layoutGuide.centerYAnchor, constant: constant)
         }
         constraint.priority = priority
         constraint.isActive = true
@@ -106,4 +120,15 @@ extension UIView {
     func constrainMargins(_ anchors: [ConstraintAnchor] = [.top, .bottom, .leading, .trailing], to otherView: UIView, priority: UILayoutPriority = .required) -> [NSLayoutConstraint] {
         return anchors.map { constrainMargin(anchor: $0, to: otherView, priority: priority) }
     }
+
+    @discardableResult
+    func constrain(_ anchors: [ConstraintAnchor] = [.top, .bottom, .leading, .trailing], to layoutGuide: UILayoutGuide, priority: UILayoutPriority = .required) -> [NSLayoutConstraint] {
+        return anchors.map { constrain(anchor: $0, to: layoutGuide, priority: priority) }
+    }
+
+    @discardableResult
+    func constrainMargin(anchor: ConstraintAnchor, to otherView: UIView, constant: CGFloat = 0, priority: UILayoutPriority = .required) -> NSLayoutConstraint {
+        return constrain(anchor: anchor, to: otherView.layoutMarginsGuide, constant: constant, priority: priority)
+    }
+
 }

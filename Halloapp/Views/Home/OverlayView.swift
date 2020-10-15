@@ -259,10 +259,21 @@ final class BottomSheet: UIView, Overlay {
         backgroundColor = .systemBackground
         layer.cornerRadius = 15
 
-        // TODO: Create scrollable container for innerview
-        addSubview(innerView)
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.preservesSuperviewLayoutMargins = true
+        addSubview(scrollView)
+        scrollView.constrain(to: self)
+
         innerView.translatesAutoresizingMaskIntoConstraints = false
-        innerView.constrainMargins(to: self)
+        innerView.preservesSuperviewLayoutMargins = true
+        scrollView.addSubview(innerView)
+
+        innerView.constrain(to: scrollView.contentLayoutGuide)
+        innerView.constrain(dimension: .width, to: self)
+
+        // Lower priority so content can scroll when it gets too long
+        innerView.constrain(dimension: .height, to: scrollView, priority: .defaultHigh)
     }
 
     required init?(coder: NSCoder) {

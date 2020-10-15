@@ -166,16 +166,19 @@ class FeedViewController: FeedTableViewController {
     private var isShowingNUXHeaderView = false
 
     private func showNUXIfNecessary() {
-        installNUXHeaderViewIfNecessary()
-        showActivityCenterNUXIfNecessary()
-        showFloatingMenuNUXIfNecessary()
+        if isShowingNUXHeaderView || overlay != nil {
+            // only show one NUX item at a time
+            return
+        } else if MainAppContext.shared.nux.isIncomplete(.homeFeedIntro) {
+            installNUXHeaderView()
+        } else if MainAppContext.shared.nux.isIncomplete(.activityCenterIcon) && notificationCount > 0 {
+            showActivityCenterNUX()
+        } else if MainAppContext.shared.nux.isIncomplete(.newPostButton) {
+            showFloatingMenuNUX()
+        }
     }
 
-    private func installNUXHeaderViewIfNecessary() {
-        guard MainAppContext.shared.nux.isIncomplete(.homeFeedIntro), !isShowingNUXHeaderView else {
-            return
-        }
-
+    private func installNUXHeaderView() {
         let nuxItem = NUXItem(
             message: NUX.homeFeedIntroContent,
             icon: UIImage(named: "NUXSpeechBubble"),
@@ -208,43 +211,51 @@ class FeedViewController: FeedTableViewController {
 
     private func showNUXDetails(completion: (() -> Void)?) {
         let titleLabel = UILabel()
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = NUX.homeFeedDetailsTitle
         titleLabel.numberOfLines = 0
         titleLabel.font = .systemFont(forTextStyle: .title3, weight: .medium)
         titleLabel.textColor = UIColor.label
 
         let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
         label.text = NUX.homeFeedDetailsBody
         label.numberOfLines = 0
         label.font = .systemFont(forTextStyle: .callout)
         label.textColor = UIColor.label.withAlphaComponent(0.5)
 
         let button = UIButton()
-        button.contentHorizontalAlignment = .trailing
+        button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentCompressionResistancePriority(.required, for: .vertical)
         button.setTitle("OK", for: .normal)
         button.setTitleColor(UIColor.nux, for: .normal)
         button.titleLabel?.font = .systemFont(forTextStyle: .callout, weight: .bold)
         button.addTarget(self, action: #selector(dismissOverlay), for: .touchUpInside)
 
-        let stackView = UIStackView(arrangedSubviews: [titleLabel, label, button])
-        stackView.spacing = 15
-        stackView.axis = .vertical
-        stackView.alignment = .fill
+        let contentView = UIView()
+        contentView.translatesAutoresizingMaskIntoConstraints = false
 
-        let sheet = BottomSheet(innerView: stackView, completion: completion)
+        contentView.addSubview(titleLabel)
+        contentView.addSubview(label)
+        contentView.addSubview(button)
+
+        titleLabel.constrainMargins([.top, .leading, .trailing], to: contentView)
+
+        label.setContentCompressionResistancePriority(.required, for: .vertical)
+        label.constrainMargins([.leading, .trailing], to: contentView)
+        label.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 15).isActive = true
+
+        button.constrainMargins([.trailing, .bottom], to: contentView)
+        button.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 15).isActive = true
+        button.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor).isActive = true
+
+        let sheet = BottomSheet(innerView: contentView, completion: completion)
 
         overlay = sheet
         overlayContainer.display(sheet)
     }
 
-    private func showFloatingMenuNUXIfNecessary() {
-        guard overlay == nil && !isShowingNUXHeaderView &&
-                MainAppContext.shared.nux.isIncomplete(.newPostButton) else
-        {
-            return
-        }
-
+    private func showFloatingMenuNUX() {
         let popover = NUXPopover(
             NUX.newPostButtonContent,
             targetRect: floatingMenu.permanentButton.bounds,
@@ -258,14 +269,10 @@ class FeedViewController: FeedTableViewController {
         overlayContainer.display(popover)
     }
 
-    private func showActivityCenterNUXIfNecessary() {
-        guard let notificationButton = notificationButton,
-              overlay == nil && !isShowingNUXHeaderView && notificationCount > 0 &&
-                MainAppContext.shared.nux.isIncomplete(.activityCenterIcon) else
-        {
+    private func showActivityCenterNUX() {
+        guard let notificationButton = notificationButton else {
             return
         }
-
         let popover = NUXPopover(
             NUX.activityCenterIconContent,
             targetRect: notificationButton.bounds,
