@@ -393,9 +393,21 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Group Feed
 
-    private(set) var groupFeedUnreadCounts = CurrentValueSubject<[GroupID: Int], Never>([:])
+    /**
+     Overview of the feed for a group.
+     */
+    enum GroupFeedState {
+        case noPosts
+        case seenPosts(Int)     // total number of posts in group's feed
+        case newPosts(Int, Int) // number of new posts, total number of posts
+    }
+
+    private(set) var groupFeedStates = CurrentValueSubject<[GroupID: GroupFeedState], Never>([:])
 
     private func reloadGroupFeedUnreadCounts() {
+        var results: [GroupID: GroupFeedState] = [:]
+
+        // Count posts in all groups.
         let countDesc = NSExpressionDescription()
         countDesc.expression = NSExpression(forFunction: "count:", arguments: [ NSExpression(forKeyPath: \FeedPost.groupId) ])
         countDesc.name = "count"
@@ -403,23 +415,41 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         let fetchRequest: NSFetchRequest<NSDictionary> = NSFetchRequest(entityName: FeedPost.entity().name!)
         fetchRequest.returnsObjectsAsFaults = false
-        fetchRequest.predicate = NSPredicate(format: "groupId != nil AND statusValue == %d", FeedPost.Status.incoming.rawValue)
+        fetchRequest.predicate = NSPredicate(format: "groupId != nil")
         fetchRequest.propertiesToGroupBy = [ "groupId" ]
         fetchRequest.propertiesToFetch = [ "groupId", countDesc ]
         fetchRequest.resultType = .dictionaryResultType
         do {
-            let results = try viewContext.fetch(fetchRequest)
-            var counts: [GroupID: Int] = [:]
-            for result in results {
+            let fetchResults = try viewContext.fetch(fetchRequest)
+            for result in fetchResults {
                 guard let groupId = result["groupId"] as? GroupID, let count = result["count"] as? Int else { continue }
-                counts[groupId] = count
+                results[groupId] = .seenPosts(count)
             }
-            groupFeedUnreadCounts.send(counts)
         }
         catch {
             DDLogError("FeedData/fetch-posts/error  [\(error)]")
             fatalError("Failed to fetch feed posts.")
         }
+
+        // Count new posts in groups.
+        fetchRequest.predicate = NSPredicate(format: "groupId != nil AND statusValue == %d", FeedPost.Status.incoming.rawValue)
+        do {
+            let fetchResults = try viewContext.fetch(fetchRequest)
+            for result in fetchResults {
+                guard let groupId = result["groupId"] as? GroupID, let count = result["count"] as? Int else { continue }
+                if case .seenPosts(let totalPostsCount) = results[groupId] {
+                    results[groupId] = .newPosts(count, totalPostsCount)
+                } else {
+                    assert(false, "No total post count for group [\(groupId)]")
+                }
+            }
+        }
+        catch {
+            DDLogError("FeedData/fetch-posts/error  [\(error)]")
+            fatalError("Failed to fetch feed posts.")
+        }
+
+        groupFeedStates.send(results)
     }
 
     private func setNeedsReloadGroupFeedUnreadCounts() {

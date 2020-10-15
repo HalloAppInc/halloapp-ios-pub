@@ -16,6 +16,7 @@ import UIKit
 // MARK: Constraint Constants
 fileprivate struct LayoutConstants {
     static let avatarSize: CGFloat = 50
+    static let avatarRingWidth: CGFloat = 5
 }
 
 fileprivate enum ChatListViewSection {
@@ -587,6 +588,7 @@ private class ChatListTableViewCell: UITableViewCell {
 
         avatarView = AvatarViewButton(type: .custom)
         avatarView.hasNewPostsIndicator = true
+        avatarView.newPostsIndicatorRingWidth = LayoutConstants.avatarRingWidth
         avatarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(avatarView)
 
@@ -607,10 +609,10 @@ private class ChatListTableViewCell: UITableViewCell {
         contentView.addSubview(vStack)
 
         contentView.addConstraints([
-            avatarView.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize + 2*AvatarViewButton.newPostsIndicatorRingWidth),
+            avatarView.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize + 2*LayoutConstants.avatarRingWidth),
             avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor),
             avatarView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            avatarView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: -AvatarViewButton.newPostsIndicatorRingWidth),
+            avatarView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: -LayoutConstants.avatarRingWidth),
             avatarView.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8),
             
             vStack.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 10),

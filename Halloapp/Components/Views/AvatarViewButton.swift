@@ -14,11 +14,45 @@ class AvatarViewButton: UIButton {
 
     private(set) var avatarView: AvatarView!
 
+    // MARK: New Posts Indicator
+
     private var newGroupPostsCancellable: AnyCancellable?
 
-    static let newPostsIndicatorRingWidth: CGFloat = 5
-
     private var ringView: RingView?
+
+    var newPostsIndicatorRingWidth: CGFloat {
+        get {
+            ringView!.lineWidth
+        }
+        set {
+            ringView!.lineWidth = newValue
+            setNeedsLayout()
+        }
+    }
+
+    private enum NewPostsIndicatorState {
+        case noIndicator
+        case newPosts
+        case noNewPosts
+    }
+
+    private var newPostsIndicatorState: FeedData.GroupFeedState = .noPosts {
+        didSet {
+            guard let ringView = ringView else { return }
+            switch newPostsIndicatorState {
+            case .noPosts:
+                ringView.isHidden = true
+
+            case .newPosts(_,_):
+                ringView.isHidden = false
+                ringView.strokeColor = .lavaOrange
+
+            case .seenPosts(_):
+                ringView.isHidden = false
+                ringView.strokeColor = UIColor.systemGray.withAlphaComponent(0.3)
+            }
+        }
+    }
 
     var hasNewPostsIndicator: Bool = false {
         didSet {
@@ -27,7 +61,7 @@ class AvatarViewButton: UIButton {
                     let ringView = RingView(frame: bounds)
                     ringView.strokeColor = .lavaOrange
                     ringView.fillColor = .clear
-                    ringView.lineWidth = Self.newPostsIndicatorRingWidth - 1
+                    ringView.lineWidth = 3
                     ringView.isUserInteractionEnabled = false
                     insertSubview(ringView, belowSubview: avatarView)
                     self.ringView = ringView
@@ -56,7 +90,7 @@ class AvatarViewButton: UIButton {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        let avatarViewRectInset = hasNewPostsIndicator ? Self.newPostsIndicatorRingWidth : 0
+        let avatarViewRectInset = hasNewPostsIndicator ? newPostsIndicatorRingWidth : 0
         avatarView.frame = bounds.insetBy(dx: avatarViewRectInset, dy: avatarViewRectInset)
 
         if let ringView = ringView {
@@ -92,9 +126,7 @@ class AvatarViewButton: UIButton {
         }
 
         avatarView.configure(with: userId, using: avatarStore)
-        if let ringView = ringView {
-            ringView.isHidden = true
-        }
+        newPostsIndicatorState = .noPosts
     }
 
     func configure(groupId: GroupID, using avatarStore: AvatarStore) {
@@ -104,16 +136,12 @@ class AvatarViewButton: UIButton {
         }
 
         avatarView.configure(groupId: groupId, using: avatarStore)
-        if let ringView = ringView {
-            ringView.isHidden = false
-
-            newGroupPostsCancellable = MainAppContext.shared.feedData
-                .groupFeedUnreadCounts
-                .map({ $0[groupId] ?? 0 })
-                .sink(receiveValue: { [weak self] (unreadCount) in
-                    guard let self = self else { return }
-                    self.ringView?.strokeColor = unreadCount > 0 ? .lavaOrange : UIColor.systemGray.withAlphaComponent(0.3)
-                })
-        }
+        newGroupPostsCancellable = MainAppContext.shared.feedData
+            .groupFeedStates
+            .map({ $0[groupId] ?? .noPosts })
+            .sink(receiveValue: { [weak self] (state) in
+                guard let self = self else { return }
+                self.newPostsIndicatorState = state
+            })
     }
 }
