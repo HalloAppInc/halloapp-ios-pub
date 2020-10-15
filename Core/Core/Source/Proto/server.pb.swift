@@ -1164,6 +1164,28 @@ public struct Server_ChatStanza {
   public init() {}
 }
 
+/// clients should decrypt, report stats, and then drop this message
+public struct Server_SilentChatStanza {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var chatStanza: Server_ChatStanza {
+    get {return _chatStanza ?? Server_ChatStanza()}
+    set {_chatStanza = newValue}
+  }
+  /// Returns true if `chatStanza` has been explicitly set.
+  public var hasChatStanza: Bool {return self._chatStanza != nil}
+  /// Clears the value of `chatStanza`. Subsequent reads from it will return its default value.
+  public mutating func clearChatStanza() {self._chatStanza = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _chatStanza: Server_ChatStanza? = nil
+}
+
 public struct Server_Ping {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1694,6 +1716,22 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .groupFeedItem(newValue)}
   }
 
+  public var rerequest: Server_Rerequest {
+    get {
+      if case .rerequest(let v)? = _storage._payload {return v}
+      return Server_Rerequest()
+    }
+    set {_uniqueStorage()._payload = .rerequest(newValue)}
+  }
+
+  public var silentChatStanza: Server_SilentChatStanza {
+    get {
+      if case .silentChatStanza(let v)? = _storage._payload {return v}
+      return Server_SilentChatStanza()
+    }
+    set {_uniqueStorage()._payload = .silentChatStanza(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -1718,6 +1756,8 @@ public struct Server_Msg {
     case groupchatRetract(Server_GroupChatRetract)
     case chatRetract(Server_ChatRetract)
     case groupFeedItem(Server_GroupFeedItem)
+    case rerequest(Server_Rerequest)
+    case silentChatStanza(Server_SilentChatStanza)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -1738,6 +1778,8 @@ public struct Server_Msg {
       case (.groupchatRetract(let l), .groupchatRetract(let r)): return l == r
       case (.chatRetract(let l), .chatRetract(let r)): return l == r
       case (.groupFeedItem(let l), .groupFeedItem(let r)): return l == r
+      case (.rerequest(let l), .rerequest(let r)): return l == r
+      case (.silentChatStanza(let l), .silentChatStanza(let r)): return l == r
       default: return false
       }
     }
@@ -2407,6 +2449,20 @@ public struct Server_NotificationPrefs {
   // methods supported on all messages.
 
   public var pushPrefs: [Server_PushPref] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Server_Rerequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var id: String = String()
+
+  public var identityKey: Data = SwiftProtobuf.Internal.emptyData
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -4149,6 +4205,35 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   }
 }
 
+extension Server_SilentChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SilentChatStanza"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "chat_stanza"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularMessageField(value: &self._chatStanza)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if let v = self._chatStanza {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_SilentChatStanza, rhs: Server_SilentChatStanza) -> Bool {
+    if lhs._chatStanza != rhs._chatStanza {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_Ping: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Ping"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
@@ -4614,6 +4699,8 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     18: .standard(proto: "groupchat_retract"),
     19: .standard(proto: "chat_retract"),
     20: .standard(proto: "group_feed_item"),
+    22: .same(proto: "rerequest"),
+    23: .standard(proto: "silent_chat_stanza"),
     21: .standard(proto: "retry_count"),
   ]
 
@@ -4784,6 +4871,22 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
           try decoder.decodeSingularMessageField(value: &v)
           if let v = v {_storage._payload = .groupFeedItem(v)}
         case 21: try decoder.decodeSingularInt32Field(value: &_storage._retryCount)
+        case 22:
+          var v: Server_Rerequest?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .rerequest(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .rerequest(v)}
+        case 23:
+          var v: Server_SilentChatStanza?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .silentChatStanza(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .silentChatStanza(v)}
         default: break
         }
       }
@@ -4838,9 +4941,18 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case .groupFeedItem(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
       case nil: break
+      default: break
       }
       if _storage._retryCount != 0 {
         try visitor.visitSingularInt32Field(value: _storage._retryCount, fieldNumber: 21)
+      }
+      switch _storage._payload {
+      case .rerequest(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
+      case .silentChatStanza(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 23)
+      case nil: break
+      default: break
       }
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -5465,6 +5577,41 @@ extension Server_NotificationPrefs: SwiftProtobuf.Message, SwiftProtobuf._Messag
 
   public static func ==(lhs: Server_NotificationPrefs, rhs: Server_NotificationPrefs) -> Bool {
     if lhs.pushPrefs != rhs.pushPrefs {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_Rerequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Rerequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .standard(proto: "identity_key"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularStringField(value: &self.id)
+      case 2: try decoder.decodeSingularBytesField(value: &self.identityKey)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if !self.identityKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.identityKey, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_Rerequest, rhs: Server_Rerequest) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.identityKey != rhs.identityKey {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

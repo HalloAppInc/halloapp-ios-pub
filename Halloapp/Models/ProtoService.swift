@@ -309,6 +309,16 @@ final class ProtoService: ProtoServiceCore {
                     DDLogError("ProtoService/didReceive/\(requestID)/error could not read chat")
                 }
                 sendAck(messageID: msg.id)
+            case .silentChatStanza(let silent):
+                if let _ = XMPPChatMessage(silent.chatStanza, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount) {
+                    DDLogInfo("ProtoService/didReceive/\(requestID) ignoring silent chat")
+                } else {
+                    DDLogError("ProtoService/didReceive/\(requestID)/error could not read silent chat")
+                }
+                sendAck(messageID: msg.id)
+            case .rerequest(let rerequest):
+                DDLogInfo("ProtoService/didReceive/\(requestID)/rerequest/\(rerequest.id) unimplemented")
+                sendAck(messageID: msg.id)
             case .feedItem(let pbFeedItem):
                 handleFeedItems([pbFeedItem], message: msg)
             case .feedItems(let pbFeedItems):
