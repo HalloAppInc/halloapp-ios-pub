@@ -394,7 +394,9 @@ class FeedViewController: FeedTableViewController {
             }
 
         case .groupFeedPost:
-            // TODO: open group feed
+            if let groupId = metadata.groupId, let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                navigationController?.pushViewController(GroupFeedViewController(groupId: groupId, groupName: group.name), animated: false)
+            }
             break
 
         default:
