@@ -17,6 +17,7 @@ public struct ServerProperties {
         case internalUser = "dev"
         case groups
         case maxGroupSize = "max_group_size"
+        case groupFeed = "group_feed"
     }
 
     private struct UserDefaultsKey {
@@ -32,6 +33,7 @@ public struct ServerProperties {
     private struct Defaults {
         static let internalUser = false
         static let groups = false
+        static let groupFeed = false
         static let maxGroupSize = 25
     }
 
@@ -161,15 +163,19 @@ public struct ServerProperties {
     // MARK: Getters
 
     public static var isInternalUser: Bool {
-        get { ServerProperties.bool(forKey: .internalUser) ?? Defaults.internalUser }
+        ServerProperties.bool(forKey: .internalUser) ?? Defaults.internalUser
     }
 
     public static var isGroupsEnabled: Bool {
-        get { ServerProperties.bool(forKey: .groups) ?? Defaults.groups }
+        ServerProperties.bool(forKey: .groups) ?? Defaults.groups
+    }
+
+    public static var isGroupFeedEnabled: Bool {
+        ServerProperties.bool(forKey: .groupFeed) ?? Defaults.groupFeed
     }
 
     public static var maxGroupSize: Int {
-        get { ServerProperties.integer(forKey: .maxGroupSize) ?? Defaults.maxGroupSize }
+        ServerProperties.integer(forKey: .maxGroupSize) ?? Defaults.maxGroupSize
     }
 
 }
