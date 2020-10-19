@@ -18,6 +18,7 @@ fileprivate struct Constants {
 
 protocol InboundMsgViewCellDelegate: AnyObject {
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewType: MediaPreviewController.PreviewType, mediaIndex: Int)
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String)
 }
 
 class InboundMsgViewCell: UITableViewCell {
@@ -145,7 +146,7 @@ class InboundMsgViewCell: UITableViewCell {
         label.numberOfLines = 1
         
         label.font = UIFont.preferredFont(forTextStyle: .caption2)
-        label.textColor = .secondaryLabel
+        label.textColor = UIColor.chatTime
         
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -179,7 +180,7 @@ class InboundMsgViewCell: UITableViewCell {
         subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
-        subView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.1)
+        subView.backgroundColor = UIColor.chatOwnBubbleBg
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(subView, at: 1)
         
@@ -193,12 +194,13 @@ class InboundMsgViewCell: UITableViewCell {
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
         let view = UIStackView(arrangedSubviews: [ quotedNameLabel, quotedTextView, spacer ])
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
         view.axis = .vertical
         view.spacing = 3
-        view.isHidden = true
+        
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
@@ -212,8 +214,8 @@ class InboundMsgViewCell: UITableViewCell {
         return label
     }()
     
-    private lazy var quotedTextView: UITextView = {
-        let view = UITextView()
+    private lazy var quotedTextView: UnselectableUITextView = {
+        let view = UnselectableUITextView()
         view.isScrollEnabled = false
         view.isEditable = false
         view.isSelectable = true
@@ -223,8 +225,7 @@ class InboundMsgViewCell: UITableViewCell {
         view.textContainer.lineFragmentPadding = 0
         view.backgroundColor = .clear
         view.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
-        view.tintColor = UIColor.label
-        view.textColor = UIColor.systemBlue
+        view.tintColor = UIColor.link
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -319,6 +320,10 @@ class InboundMsgViewCell: UITableViewCell {
                    text: chatMessage.text,
                    media: chatMessage.media,
                    timestamp: chatMessage.timestamp)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
+        bubbleRow.isUserInteractionEnabled = true
+        bubbleRow.addGestureRecognizer(tapGesture)
     }
     
     func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
@@ -347,6 +352,10 @@ class InboundMsgViewCell: UITableViewCell {
                    text: chatGroupMessage.text,
                    media: chatGroupMessage.media,
                    timestamp: chatGroupMessage.timestamp)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
+        bubbleRow.isUserInteractionEnabled = true
+        bubbleRow.addGestureRecognizer(tapGesture)
     }
         
     func updateQuoted(chatQuoted: ChatQuoted?, mediaIndex: Int, groupID: GroupID? = nil) -> Bool {
@@ -363,7 +372,6 @@ class InboundMsgViewCell: UITableViewCell {
             if let groupID = groupID, userID != MainAppContext.shared.userData.userId {
                 quotedNameLabel.textColor = getNameColor(for: userID, name: quotedNameLabel.text ?? "", groupId: groupID)
                 quotedRow.subviews[1].backgroundColor = quotedNameLabel.textColor.withAlphaComponent(0.1)
-                quotedTextView.textColor = UIColor.label
             }
             
             let mentionText = MainAppContext.shared.contactStore.textWithMentions(
@@ -371,6 +379,11 @@ class InboundMsgViewCell: UITableViewCell {
                 orderedMentions: quoted.orderedMentions)
             quotedTextView.attributedText = mentionText?.with(font: quotedTextView.font, color: quotedTextView.textColor)
 
+            let text = quotedTextView.text ?? ""
+            if text.count <= 3 && text.containsOnlyEmoji {
+                quotedTextView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+            }
+            
             // TODO: need to optimize
             if let media = quoted.media {
 
@@ -401,7 +414,6 @@ class InboundMsgViewCell: UITableViewCell {
 
             }
             
-            quotedTextVStack.isHidden = false
             quotedRow.isHidden = false
         }
         
@@ -502,15 +514,14 @@ class InboundMsgViewCell: UITableViewCell {
         nameLabel.text = ""
         nameLabel.textColor = .secondaryLabel
         
-        quotedRow.subviews[1].backgroundColor = .secondarySystemGroupedBackground
+        quotedRow.subviews[1].backgroundColor = UIColor.chatOwnBubbleBg
         quotedRow.isHidden = true
-        quotedNameLabel.text = ""
         quotedNameLabel.textColor = UIColor.label
-        quotedImageView.isHidden = true
-        quotedImageView.removeConstraints(quotedImageView.constraints)
-        quotedTextView.textColor = UIColor.systemBlue
+        quotedNameLabel.text = ""
+        quotedTextView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
         quotedTextView.text = ""
-        quotedTextVStack.isHidden = true
+        quotedImageView.removeConstraints(quotedImageView.constraints)
+        quotedImageView.isHidden = true
         
         mediaRow.isHidden = true
         mediaRow.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
@@ -589,5 +600,10 @@ class InboundMsgViewCell: UITableViewCell {
     
     @objc func gotoMediaPreview(_ sender: UIView) {
         delegate?.inboundMsgViewCell(self, previewType: .media, mediaIndex: mediaImageView.currentPage)
+    }
+    
+    @objc func gotoMsgInfo(_ sender: UIView) {
+        guard let messageID = messageID else { return }
+        delegate?.inboundMsgViewCell(self, didLongPressOn: messageID)
     }
 }

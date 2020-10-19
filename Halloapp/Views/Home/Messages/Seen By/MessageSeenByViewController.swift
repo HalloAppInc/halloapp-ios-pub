@@ -135,34 +135,35 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
     private func reloadData(from chatGroupMessage: ChatGroupMessage) {
 
         var seenRows = [ChatGroupMessageReceipt]()
-        var deliveredRows = [ChatGroupMessageReceipt]()
+        var sentToRows = [ChatGroupMessageReceipt]()
         
         chatGroupMessage.info?.forEach { (info) in
             let abContact = MainAppContext.shared.contactStore.sortedContacts(withUserIds: [info.userId]).first
             let name = MainAppContext.shared.contactStore.fullName(for: info.userId)
             let phone = abContact?.phoneNumber
 
-            if info.outboundStatus == .delivered {
-                deliveredRows.append(ChatGroupMessageReceipt(userId: info.userId,
-                                                             type: .delivered,
-                                                     contactName: name,
-                                                     phoneNumber: phone,
-                                                     timestamp: info.timestamp))
-            } else if info.outboundStatus == .seen {
+            if info.outboundStatus == .seen {
                seenRows.append(ChatGroupMessageReceipt(userId: info.userId,
                                                             type: .seen,
                                                     contactName: name,
                                                     phoneNumber: phone,
                                                     timestamp: info.timestamp))
+            } else if chatGroupMessage.outboundStatus != .pending && info.outboundStatus != .error {
+                sentToRows.append(ChatGroupMessageReceipt(userId: info.userId,
+                                                             type: .sentTo,
+                                                     contactName: name,
+                                                     phoneNumber: phone,
+                                                     timestamp: info.timestamp))
             }
+            
         }
 
         var snapshot = NSDiffableDataSourceSnapshot<ChatGroupMessageReceipt.ReceiptType, ChatGroupMessageReceipt>()
         snapshot.appendSections([ .seen ])
         snapshot.appendItems(seenRows, toSection: .seen)
-        if !deliveredRows.isEmpty {
-            snapshot.appendSections([ .delivered ])
-            snapshot.appendItems(deliveredRows, toSection: .delivered)
+        if !sentToRows.isEmpty {
+            snapshot.appendSections([ .sentTo ])
+            snapshot.appendItems(sentToRows, toSection: .sentTo)
         }
         dataSource?.apply(snapshot, animatingDifferences: viewIfLoaded?.window != nil)
     }
@@ -208,7 +209,7 @@ class MessageSeenByCell: UITableViewCell {
         avatar.configure(with: receipt.userId, using: avatarStore)
         nameLabel.text = receipt.contactName
         subtitleLabel.text = receipt.phoneNumber
-        timeLabel.text = receipt.timestamp.chatTimestamp()
+//        timeLabel.text = receipt.timestamp.chatTimestamp()
     }
     
     private func setup() {
@@ -292,7 +293,7 @@ class MessageSeenByCell: UITableViewCell {
 struct ChatGroupMessageReceipt: Hashable, Equatable {
     enum ReceiptType: Int {
         case seen = 0
-        case delivered = 1
+        case sentTo = 1
     }
 
     let userId: UserID

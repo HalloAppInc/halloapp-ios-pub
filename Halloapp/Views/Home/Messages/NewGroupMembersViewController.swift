@@ -14,7 +14,7 @@ protocol NewGroupMembersViewControllerDelegate: AnyObject {
     func newGroupMembersViewController(_ inputView: NewGroupMembersViewController, selected: [UserID])
 }
 
-class NewGroupMembersViewController: UITableViewController, NSFetchedResultsControllerDelegate {
+class NewGroupMembersViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     weak var delegate: NewGroupMembersViewControllerDelegate?
     
@@ -39,34 +39,40 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
     private var alreadyHaveMembers: Bool = false
     private var currentMembers: [UserID] = []
     
+//    init(currentMembers: [UserID] = []) {
+//        self.currentMembers = currentMembers
+//        self.alreadyHaveMembers = self.currentMembers.count > 0 ? true : false
+//        super.init(style: .plain)
+//    }
+
     init(currentMembers: [UserID] = []) {
         self.currentMembers = currentMembers
         self.alreadyHaveMembers = self.currentMembers.count > 0 ? true : false
-        super.init(style: .plain)
+        super.init(nibName: nil, bundle: nil)
     }
-
+        
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
         DDLogInfo("NewGroupMembersViewController/viewDidLoad")
 
         if alreadyHaveMembers {
-            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", style: .plain, target: self, action: #selector(addAction))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", style: .plain, target: self, action: #selector(addAction))
         } else {
-            self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
-            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .plain, target: self, action: #selector(nextAction))
+            navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .plain, target: self, action: #selector(nextAction))
         }
-        self.navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
+        navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
 //        self.navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
         
-        self.navigationItem.title = "Add Members"
-        self.navigationItem.standardAppearance = .opaqueAppearance
+        navigationItem.title = "Select Members"
+        navigationItem.standardAppearance = .opaqueAppearance
 
         let backButton = UIBarButtonItem(title: "Back", style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem = backButton
 
-        self.tableView.backgroundColor = .feedBackground
-        self.tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
+        tableView.backgroundColor = .feedBackground
+        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         
         searchController = UISearchController(searchResultsController: nil)
         searchController.delegate = self
@@ -75,10 +81,16 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.definesPresentationContext = true
         
-        self.navigationItem.searchController = searchController
-        self.navigationItem.hidesSearchBarWhenScrolling = false
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
         
+        searchController.searchBar.searchTextField.layer.cornerRadius = 20
+        searchController.searchBar.searchTextField.layer.masksToBounds = true
         
+        searchController.searchBar.setSearchFieldBackgroundImage(UIImage(), for: .normal)
+        searchController.searchBar.backgroundColor = .feedBackground
+        searchController.searchBar.searchTextField.backgroundColor = .secondarySystemGroupedBackground
+
         let newGroupMembersHeaderView = NewGroupMembersHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 0))
         //        headerView.configure(withPost: feedPost)
         //        headerView.textLabel.delegate = self
@@ -87,12 +99,84 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
         newGroupMembersHeaderView.delegate = self
         tableView.tableHeaderView = newGroupMembersHeaderView
         
-        self.setupFetchedResultsController()
+
+        view.addSubview(mainView)
+        view.backgroundColor = UIColor.feedBackground
+        mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+        mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         
         
-        
+        setupFetchedResultsController()
     }
 
+    
+    private lazy var mainView: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        
+        let view = UIStackView(arrangedSubviews: [ tableView ])
+        view.axis = .vertical
+  
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        return view
+    }()
+    
+    
+    private lazy var memberAvatarsRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ groupMemberAvatars ])
+        
+        view.axis = .horizontal
+
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.heightAnchor.constraint(equalToConstant: 80).isActive = true
+        
+        let subView = UIView(frame: view.bounds)
+        subView.layer.cornerRadius = 20
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        subView.backgroundColor = UIColor.red
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(subView, at: 0)
+        
+        
+        return view
+    }()
+    
+    private lazy var groupMemberAvatars: GroupMemberAvatars = {
+        let view = GroupMemberAvatars()
+        view.delegate = self
+        return view
+    }()
+    
+    
+    private lazy var tableView: UITableView = {
+        let view = UITableView()
+        
+        view.backgroundColor = .feedBackground
+        view.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
+        view.delegate = self
+        view.dataSource = self
+        
+        view.tableFooterView = UIView()
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        return view
+    }()
+    
+    
+    
+    
     // MARK: Appearance
 
     override func viewWillAppear(_ animated: Bool) {
@@ -223,14 +307,31 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
             self.tableView.reloadData()
         }
     }
+        
+    func isDuplicate(_ abContact: ABContact) -> Bool {
+        guard let identifier = abContact.identifier else { return false }
+        guard let phoneNumber = abContact.phoneNumber else { return false }
+        guard let normalizedPhoneNumber = abContact.normalizedPhoneNumber else { return false }
+        let id = "\(identifier)-\(phoneNumber)" // account for contacts that have multiple registered numbers
+        if trackedContacts[id] == nil {
+            var trackedContact = TrackedContact(with: abContact)
+            if trackedContacts.keys.first(where: { trackedContacts[$0]?.normalizedPhone == normalizedPhoneNumber }) != nil {
+                trackedContact.isDuplicate = true
+            }
+            trackedContacts[id] = trackedContact
+        }
+        return trackedContacts[id]?.isDuplicate ?? false
+    }
+}
 
-    // MARK: UITableView Delegates
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
+// MARK: UITableView Delegates
+extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSource {
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
         return self.fetchedResultsController?.sections?.count ?? 0
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         guard let sections = self.fetchedResultsController?.sections else { return 0 }
         if isFiltering {
           return filteredContacts.count
@@ -238,7 +339,7 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
         return sections[section].numberOfObjects
     }
 
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
 
         let abContact: ABContact?
@@ -259,7 +360,7 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
         return cell
     }
 
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         var contact: ABContact?
         
         if isFiltering {
@@ -279,7 +380,7 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
         return UITableView.automaticDimension
     }
 
-    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         var contact: ABContact?
 
         if isFiltering {
@@ -298,7 +399,7 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
     }
 
     
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let cell = tableView.cellForRow(at: indexPath) as? ContactTableViewCell else { return }
 //        guard let contact = fetchedResultsController?.object(at: indexPath) else { return }
         let abContact: ABContact?
@@ -322,6 +423,7 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
             }
             
             selectedMembers.append(userId)
+//            groupMemberAvatars.insert(with: [userId])
             isSelected = true
         } else {
             selectedMembers.removeAll(where: {$0 == userId})
@@ -332,21 +434,6 @@ class NewGroupMembersViewController: UITableViewController, NSFetchedResultsCont
 
         searchController.isActive = false
         searchController.searchBar.text = ""
-    }
-        
-    func isDuplicate(_ abContact: ABContact) -> Bool {
-        guard let identifier = abContact.identifier else { return false }
-        guard let phoneNumber = abContact.phoneNumber else { return false }
-        guard let normalizedPhoneNumber = abContact.normalizedPhoneNumber else { return false }
-        let id = "\(identifier)-\(phoneNumber)" // account for contacts that have multiple registered numbers
-        if trackedContacts[id] == nil {
-            var trackedContact = TrackedContact(with: abContact)
-            if trackedContacts.keys.first(where: { trackedContacts[$0]?.normalizedPhone == normalizedPhoneNumber }) != nil {
-                trackedContact.isDuplicate = true
-            }
-            trackedContacts[id] = trackedContact
-        }
-        return trackedContacts[id]?.isDuplicate ?? false
     }
 }
 
@@ -384,6 +471,17 @@ extension NewGroupMembersViewController: UISearchResultsUpdating {
 extension NewGroupMembersViewController: NewGroupMembersHeaderViewDelegate {
     func newGroupMembersHeaderView(_ newGroupMembersHeaderView: NewGroupMembersHeaderView) {
         //TODO: for removal of selected members
+    }
+}
+
+extension NewGroupMembersViewController: GroupMemberAvatarsDelegate {
+    
+    func groupMemberAvatarsDelegate(_ view: GroupMemberAvatars, selectedUser: String) {
+     
+        selectedMembers.removeAll(where: { $0 == selectedUser })
+        
+//        membersLabel.text = "MEMBERS: (\(String(selectedMembers.count)))"
+        
     }
 }
 
@@ -456,5 +554,6 @@ private extension ContactTableViewCell {
         if let userId = abContact.userId {
             contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
         }
+
     }
 }

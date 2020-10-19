@@ -84,7 +84,7 @@ class OutboundMsgViewCell: UITableViewCell {
         subView.layer.cornerRadius = 20
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
-        subView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.1)
+        subView.backgroundColor = UIColor.chatOwnBubbleBg
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(subView, at: 0)
         
@@ -101,15 +101,24 @@ class OutboundMsgViewCell: UITableViewCell {
         view.isLayoutMarginsRelativeArrangement = true
         view.translatesAutoresizingMaskIntoConstraints = false
         
-        let subView = UIView(frame: view.bounds)
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        subView.backgroundColor = .secondarySystemGroupedBackground
+        let baseSubView = UIView(frame: view.bounds)
+        baseSubView.layer.cornerRadius = 20
+        baseSubView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        baseSubView.layer.masksToBounds = true
+        baseSubView.clipsToBounds = true
+        baseSubView.backgroundColor = UIColor.feedBackground
+        baseSubView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(baseSubView, at: 0)
+        
+        let subView = UIView(frame: baseSubView.bounds)
         subView.layer.cornerRadius = 20
         subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
+        subView.backgroundColor = .secondarySystemGroupedBackground
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(subView, at: 1)
         
-        view.insertSubview(subView, at: 0)
         view.isHidden = true
         
         return view
@@ -125,7 +134,6 @@ class OutboundMsgViewCell: UITableViewCell {
         view.layoutMargins = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.isHidden = true
         return view
     }()
     
@@ -138,8 +146,8 @@ class OutboundMsgViewCell: UITableViewCell {
         return label
     }()
             
-    private lazy var quotedTextView: UITextView = {
-        let view = UITextView()
+    private lazy var quotedTextView: UnselectableUITextView = {
+        let view = UnselectableUITextView()
         view.isScrollEnabled = false
         view.isEditable = false
         view.isSelectable = true
@@ -161,11 +169,11 @@ class OutboundMsgViewCell: UITableViewCell {
         view.layer.cornerRadius = 10
         view.layer.masksToBounds = true
         view.isHidden = true
+        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoQuotedPreview(_:)))
         view.isUserInteractionEnabled = true
         view.addGestureRecognizer(tapGesture)
         
-        view.isHidden = true
         return view
     }()
     
@@ -240,7 +248,7 @@ class OutboundMsgViewCell: UITableViewCell {
         textView.backgroundColor = .clear
         textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
         textView.tintColor = UIColor.label
-        textView.textColor = UIColor.systemBlue
+        textView.textColor = UIColor.chatOwnMsg
 
         textView.translatesAutoresizingMaskIntoConstraints = false
         return textView
@@ -263,7 +271,7 @@ class OutboundMsgViewCell: UITableViewCell {
         label.numberOfLines = 1
         
         label.font = UIFont.preferredFont(forTextStyle: .caption2)
-        label.textColor = .secondaryLabel
+        label.textColor = UIColor.chatTime
         
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -274,6 +282,8 @@ class OutboundMsgViewCell: UITableViewCell {
     // MARK: Update
     
     func updateWithChatMessage(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
+        messageID = chatMessage.id
+        
         var quoteMediaIndex: Int = 0
         if chatMessage.feedPostId != nil {
             quoteMediaIndex = Int(chatMessage.feedPostMediaIndex)
@@ -292,6 +302,9 @@ class OutboundMsgViewCell: UITableViewCell {
                    timestamp: chatMessage.timestamp,
                    statusIcon: statusIcon(chatMessage.outgoingStatus))
 
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
+        bubbleRow.isUserInteractionEnabled = true
+        bubbleRow.addGestureRecognizer(tapGesture)
     }
     
     func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
@@ -330,14 +343,19 @@ class OutboundMsgViewCell: UITableViewCell {
             
             if let groupID = groupID, userID != MainAppContext.shared.userData.userId {
                 quotedNameLabel.textColor = getNameColor(for: userID, name: quotedNameLabel.text ?? "", groupId: groupID)
-                quotedRow.subviews[0].backgroundColor = quotedNameLabel.textColor.withAlphaComponent(0.1)
+                quotedRow.subviews[1].backgroundColor = quotedNameLabel.textColor.withAlphaComponent(0.1)
             }
-
+            
             let mentionText = MainAppContext.shared.contactStore.textWithMentions(
                 quoted.text,
                 orderedMentions: quoted.orderedMentions)
             quotedTextView.attributedText = mentionText?.with(font: quotedTextView.font, color: quotedTextView.textColor)
 
+            let text = quotedTextView.text ?? ""
+            if text.count <= 3 && text.containsOnlyEmoji {
+                quotedTextView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
+            }
+            
             // TODO: need to optimize
             if let media = quoted.media {
 
@@ -361,10 +379,8 @@ class OutboundMsgViewCell: UITableViewCell {
 
                     quotedImageView.isHidden = false
                 }
-                
             }
             
-            quotedTextVStack.isHidden = false
             quotedRow.isHidden = false
         }
         
@@ -445,30 +461,34 @@ class OutboundMsgViewCell: UITableViewCell {
         }
         
         // text
+        var isLargeFont = false
         let text = text ?? ""
         if text.count <= 3 && text.containsOnlyEmoji {
+            isLargeFont = true
             textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
         }
 
+        let textRatio = isLargeFont ? 0.8 : 1.7
+            
         var blanks = " \u{2800}" // extra space so links can work
         let numBlanks = timeAndStatusLabel.text?.count ?? 1
-        blanks += String(repeating: "\u{00a0}", count: Int(Double(numBlanks)*1.7)) // nonbreaking spaces
+        blanks += String(repeating: "\u{00a0}", count: Int(Double(numBlanks)*textRatio)) // nonbreaking spaces
         textView.text = text + blanks
     }
     
     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
         switch status {
-        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemBlue)
-        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(UIColor.systemGray3)
-        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(UIColor.systemGray3)
+        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
+        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
+        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
         default: return nil }
     }
     
     func statusIcon(_ status: ChatGroupMessage.OutboundStatus) -> UIImage? {
         switch status {
-        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemBlue)
-        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(UIColor.systemGray3)
-        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(UIColor.systemGray3)
+        case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
+        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
+        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
         default: return nil }
     }
     
@@ -480,14 +500,14 @@ class OutboundMsgViewCell: UITableViewCell {
         
         contentView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 3, right: 18)
         
-        quotedRow.subviews[0].backgroundColor = UIColor.systemBlue.withAlphaComponent(0.1)
+        quotedRow.subviews[1].backgroundColor = .secondarySystemGroupedBackground
         quotedRow.isHidden = true
         quotedNameLabel.textColor = .label
         quotedNameLabel.text = ""
+        quotedTextView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
         quotedTextView.text = ""
-        quotedTextVStack.isHidden = true
-        quotedImageView.isHidden = true
         quotedImageView.removeConstraints(quotedImageView.constraints)
+        quotedImageView.isHidden = true
 
         mediaImageView.reset()
         mediaImageView.removeConstraints(mediaImageView.constraints)

@@ -124,6 +124,9 @@ class ChatGroupViewController: UIViewController, ChatInputViewDelegate, NSFetche
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatGroupViewController.eventMsgTableViewCellReuseIdentifier, for: indexPath) as? EventMsgTableViewCell {
                     guard let text = chatGroupMessage.event?.text else { cell.isHidden = true; return cell }
                     cell.configure(with: text)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        self.titleView.update(with: self.groupId) // update for group name/avatar changes
+                    }
                     return cell
                 }
             } else if chatGroupMessage.userId == MainAppContext.shared.userData.userId {
@@ -146,12 +149,6 @@ class ChatGroupViewController: UIViewController, ChatInputViewDelegate, NSFetche
                                 isNextMsgSameTime: isNextMsgSameTime)
                     cell.delegate = self
 
-//                    if chatGroupMessage.media != nil {
-//                        cell.previewAction = { [weak self] previewType, mediaIndex in
-//                            guard let self = self else { return }
-//                            self.showPreviewView(previewType: previewType, media: chatGroupMessage.orderedMedia, quotedMedia: [], mediaIndex: mediaIndex)
-//                        }
-//                    }
                     return cell
                 }
             }
@@ -612,7 +609,24 @@ extension ChatGroupViewController: InboundMsgViewCellDelegate {
     }
     
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String) {
-        return
+        guard let indexPath = inboundMsgViewCell.indexPath else { return }
+        guard let chatGroupMessage = fetchedResultsController?.object(at: indexPath) else { return }
+        
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+
+        actionSheet.addAction(UIAlertAction(title: "Reply", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.handleQuotedReply(msg: chatGroupMessage, mediaIndex: inboundMsgViewCell.mediaIndex)
+         })
+        
+        actionSheet.addAction(UIAlertAction(title: "Copy", style: .default) { _ in
+            let pasteboard = UIPasteboard.general
+            pasteboard.string = chatGroupMessage.text
+         })
+                
+         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+         present(actionSheet, animated: true)
     }
 }
 
@@ -629,9 +643,21 @@ extension ChatGroupViewController: OutboundMsgViewCellDelegate {
     }
     
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, didLongPressOn msgId: String) {
+        guard let indexPath = outboundMsgViewCell.indexPath else { return }
+        guard let chatGroupMessage = fetchedResultsController?.object(at: indexPath) else { return }
         
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
+        actionSheet.addAction(UIAlertAction(title: "Reply", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.handleQuotedReply(msg: chatGroupMessage, mediaIndex: outboundMsgViewCell.mediaIndex)
+         })
+        
+        actionSheet.addAction(UIAlertAction(title: "Copy", style: .default) { _ in
+            let pasteboard = UIPasteboard.general
+            pasteboard.string = chatGroupMessage.text
+         })
+        
         actionSheet.addAction(UIAlertAction(title: "Info", style: .default) { [weak self] _ in
             guard let self = self else { return }
 

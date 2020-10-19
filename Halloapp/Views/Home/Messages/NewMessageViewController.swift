@@ -64,7 +64,7 @@ class NewChatViewController: NewChatTableViewController {
 
         DDLogInfo("NewMessageViewController/viewDidLoad")
 
-        navigationItem.title = "New Chat"
+        navigationItem.title = "New Message"
         navigationItem.standardAppearance = .opaqueAppearance
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
 
@@ -226,7 +226,8 @@ private class TableHeaderView: UIView {
 
     private func setup() {
         preservesSuperviewLayoutMargins = true
-
+        backgroundColor = UIColor.secondarySystemGroupedBackground
+        
         button = UIButton(type: .system)
         button.titleLabel?.font = .gothamFont(forTextStyle: .headline, weight: .medium)
         button.setTitle("Create New Group", for: .normal)

@@ -25,7 +25,7 @@ class CreateGroupViewController: UIViewController {
     weak var delegate: CreateGroupViewControllerDelegate?
     
     private var selectedMembers: [UserID] = []
-    private var placeholderText = "Group Name"
+    private var placeholderText = "Name your group"
     
     private var avatarData: Data? = nil
     
@@ -43,7 +43,7 @@ class CreateGroupViewController: UIViewController {
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
         navigationItem.rightBarButtonItem?.isEnabled = canCreate
         
-        navigationItem.title = "New Group"
+        navigationItem.title = "Group Info"
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         
@@ -72,8 +72,6 @@ class CreateGroupViewController: UIViewController {
         textView.becomeFirstResponder()
         textView.selectedTextRange = textView.textRange(from: textView.beginningOfDocument, to: textView.beginningOfDocument)
         
-        groupMemberAvatars.configure(with: selectedMembers)
-        
         updateCount()
     }
     
@@ -81,11 +79,12 @@ class CreateGroupViewController: UIViewController {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ avatarRow, textView, countRow, membersRow, spacer ])
+        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, textView, membersRow, tableView ])
         
         view.axis = .vertical
         view.spacing = 20
-        view.setCustomSpacing(0, after: textView)
+        view.setCustomSpacing(0, after: groupNameLabelRow)
+        view.setCustomSpacing(0, after: membersRow)
         
 
         view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
@@ -134,6 +133,27 @@ class CreateGroupViewController: UIViewController {
         return view
     }()
     
+    private lazy var groupNameLabelRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [groupNameLabel])
+        view.axis = .horizontal
+        
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 3, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        return view
+    }()
+    
+    private lazy var groupNameLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .left
+        label.textColor = .secondaryLabel
+        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.text = "GROUP NAME"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        return label
+    }()
+    
     private lazy var textView: UITextView = {
         let view = UITextView()
         view.isScrollEnabled = false
@@ -179,7 +199,7 @@ class CreateGroupViewController: UIViewController {
         view.axis = .horizontal
         view.spacing = 20
 
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 3, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -191,9 +211,9 @@ class CreateGroupViewController: UIViewController {
         let label = UILabel()
         label.numberOfLines = 1
         
-        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.font = UIFont.preferredFont(forTextStyle: .footnote)
         label.textColor = .secondaryLabel
-        label.text = "Members: \(String(selectedMembers.count))"
+        label.text = "MEMBERS (\(String(selectedMembers.count)))"
       
         label.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
       
@@ -202,27 +222,19 @@ class CreateGroupViewController: UIViewController {
         return label
     }()
 
-    private lazy var memberAvatarsRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ groupMemberAvatars ])
+    private let cellReuseIdentifier = "TableViewCell"
+    private lazy var tableView: UITableView = {
+        let view = UITableView()
         
-        view.axis = .horizontal
-        view.spacing = 20
-
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-        view.isLayoutMarginsRelativeArrangement = true
+        view.backgroundColor = .feedBackground
+        view.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
+        view.delegate = self
+        view.dataSource = self
+        
+        view.tableFooterView = UIView()
         
         view.translatesAutoresizingMaskIntoConstraints = false
         
-        let subView = UIView(frame: view.bounds)
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.insertSubview(subView, at: 0)
-        
-        return view
-    }()
-    
-    private lazy var groupMemberAvatars: GroupMemberAvatars = {
-        let view = GroupMemberAvatars()
-        view.delegate = self
         return view
     }()
     
@@ -346,15 +358,44 @@ extension CreateGroupViewController: UITextViewDelegate {
     
 }
 
-extension CreateGroupViewController: GroupMemberAvatarsDelegate {
-    
-    func groupMemberAvatarsDelegate(_ view: GroupMemberAvatars, selectedUser: String) {
-     
-        selectedMembers.removeAll(where: { $0 == selectedUser })
-        
-        membersLabel.text = "Members: \(String(selectedMembers.count))"
-        
+extension CreateGroupViewController: UITableViewDelegate, UITableViewDataSource {
+
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return selectedMembers.count
     }
     
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as? ContactTableViewCell else {
+            return UITableViewCell()
+        }
+        let index = indexPath.row
+        guard selectedMembers.count > index else { return cell }
+        let abContacts = MainAppContext.shared.contactStore.contacts(withUserIds: [selectedMembers[index]])
+        guard let contact = abContacts.first else { return cell }
+        cell.configure(with: contact)
+        return cell
+    }
     
+    // resign keyboard so the entire tableview can be seen
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        textView.resignFirstResponder()
+    }
+    
+}
+
+private extension ContactTableViewCell {
+
+    func configure(with abContact: ABContact) {
+
+        nameLabel.text = abContact.fullName
+        subtitleLabel.text = abContact.phoneNumber
+
+        if let userId = abContact.userId {
+            contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
+        }
+
+    }
 }

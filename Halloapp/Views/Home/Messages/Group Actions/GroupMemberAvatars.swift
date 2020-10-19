@@ -87,7 +87,66 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
         
     }
     
+    func insert(with avatars: [UserID]) {
+        avatarUserIDs = avatars
+        for (index, avatarUserID) in avatars.enumerated() {
 
+            let avatarView = AvatarView()
+            avatarView.configure(with: avatarUserID, using: MainAppContext.shared.avatarStore)
+            avatarView.translatesAutoresizingMaskIntoConstraints = false
+            avatarView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
+            avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
+            
+            let deleteButtonSize: CGFloat = 25
+            
+            let button = UIImageView()
+            button.image = UIImage(systemName: "xmark")?
+                .withRenderingMode(.alwaysTemplate)
+//                .withAlignmentRectInsets(UIEdgeInsets(top: 7, left: 7, bottom: 7, right: 7))
+                
+            button.contentMode = .center
+            button.tintColor = UIColor.white
+            button.backgroundColor = UIColor.systemGray
+            
+            button.layer.masksToBounds = false
+            button.layer.cornerRadius = deleteButtonSize/2
+            button.clipsToBounds = true
+            
+            button.frame = CGRect(x: avatarView.bounds.maxX - 15, y: -5, width: deleteButtonSize, height: deleteButtonSize)
+            button.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
+            
+            button.tag = index
+            
+            
+            button.isUserInteractionEnabled = true
+            let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.deleteImage(_:)))
+            button.addGestureRecognizer(tapGestureRecognizer)
+            
+            
+            avatarView.isUserInteractionEnabled = true
+            
+            avatarView.addSubview(button)
+            
+
+            avatarView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10);
+            
+            
+            innerStack.addArrangedSubview(avatarView)
+            
+        }
+        
+        // Set the scrollView contentSize
+        let contentSizeWidth = Constants.AvatarSize * CGFloat(avatars.count)
+
+        scrollView.contentSize = CGSize(width: contentSizeWidth, height: 100)
+        
+        
+        
+//        mainView.constrain(to: self) // constrain again since subviews were added to scrollview
+        
+        scrollView.contentSize.height = 1.0
+        
+    }
     
     private func setup() {
         

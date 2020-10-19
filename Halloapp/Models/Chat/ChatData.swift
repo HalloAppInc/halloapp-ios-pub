@@ -1456,7 +1456,6 @@ extension ChatData {
         if xmppChatMessage.chatReplyMessageID != nil {
             
             if let quotedChatMessage = MainAppContext.shared.chatData.chatMessage(with: xmppChatMessage.chatReplyMessageID!) {
-                print("have a quoted")
                 let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
                 quoted.type = .message
                 quoted.userId = quotedChatMessage.fromUserId
@@ -2719,8 +2718,6 @@ extension ChatData {
     private func recordGroupMessageEvent(xmppGroup: XMPPGroup, xmppGroupMember: XMPPGroupMember?, in managedObjectContext: NSManagedObjectContext) {
         let chatGroupMessage = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMessage.entity().name!, into: managedObjectContext) as! ChatGroupMessage
 
-        print("recording: \(xmppGroup)")
-
         if let messageId = xmppGroup.messageId {
             chatGroupMessage.id = messageId
         }
@@ -2801,7 +2798,7 @@ extension ChatData {
 extension ChatData {
     
     private func showGroupNotification(for xmppChatGroupMessage: XMPPChatGroupMessage) {
-        DDLogDebug("ChatData/showGroupNotification")
+        DDLogDebug("ChatData/showGroupNotification/id \(xmppChatGroupMessage.id)")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             guard !self.isAtChatListView() else { return }
@@ -2819,7 +2816,7 @@ extension ChatData {
     }
     
     private func presentGroupBanner(for xmppChatGroupMessage: XMPPChatGroupMessage) {
-        DDLogDebug("ChatData/presentGroupBanner")
+        DDLogDebug("ChatData/presentGroupBanner/id \(xmppChatGroupMessage.id)")
         let groupID = xmppChatGroupMessage.groupId
         guard let userID = xmppChatGroupMessage.userId else { return }
         guard let groupName = xmppChatGroupMessage.groupName else { return }
@@ -2851,7 +2848,7 @@ extension ChatData {
     }
     
     private func presentLocalGroupNotifications(for xmppChatGroupMessage: XMPPChatGroupMessage) {
-        DDLogDebug("ChatData/presentLocalGroupNotifications")
+        DDLogDebug("ChatData/presentLocalGroupNotifications/id \(xmppChatGroupMessage.id)")
         guard let userID = xmppChatGroupMessage.userId else { return }
         
         var notifications: [UNMutableNotificationContent] = []

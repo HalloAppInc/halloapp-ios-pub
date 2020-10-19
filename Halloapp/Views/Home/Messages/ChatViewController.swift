@@ -129,19 +129,10 @@ class ChatViewController: UIViewController, ChatInputViewDelegate, NSFetchedResu
                     return cell
                 }
             } else {
-
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.inboundMsgViewCellReuseIdentifier, for: indexPath) as? InboundMsgViewCell {
                     cell.indexPath = indexPath
                     cell.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
                     cell.delegate = self
-                    
-//                    if (chatMessage.media != nil) || (chatMessage.quoted != nil && chatMessage.quoted?.media != nil) {
-//                        cell.previewAction = { [weak self] previewType, mediaIndex in
-//                            guard let self = self else { return }
-//                            self.showPreviewView(previewType: previewType, media: chatMessage.orderedMedia, quotedMedia: chatMessage.quoted?.orderedMedia, mediaIndex: mediaIndex)
-//                        }
-//                    }
-
                     return cell
                 }
             }
@@ -392,6 +383,10 @@ class ChatViewController: UIViewController, ChatInputViewDelegate, NSFetchedResu
 
     // MARK: Input view
 
+    public func showKeyboard() {
+        chatInputView.showKeyboard(from: self)
+    }
+    
     lazy var chatInputView: ChatInputView = {
         let inputView = ChatInputView(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 90))
         inputView.delegate = self
@@ -584,9 +579,12 @@ extension ChatViewController {
             
             completionHandler(true)
         }
+        
         action.backgroundColor = .systemBlue
         
-        return UISwipeActionsConfiguration(actions: [action])
+        let configuration = UISwipeActionsConfiguration(actions: [action])
+
+        return configuration
     }
     
     private func handleQuotedReply(msg chatMessage: ChatMessage, mediaIndex: Int) {
@@ -631,7 +629,24 @@ extension ChatViewController: InboundMsgViewCellDelegate {
     }
     
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String) {
-        return
+        guard let indexPath = inboundMsgViewCell.indexPath else { return }
+        guard let chatMessage = fetchedResultsController?.object(at: indexPath) else { return }
+        
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+
+        actionSheet.addAction(UIAlertAction(title: "Reply", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.handleQuotedReply(msg: chatMessage, mediaIndex: inboundMsgViewCell.mediaIndex)
+         })
+        
+        actionSheet.addAction(UIAlertAction(title: "Copy", style: .default) { _ in
+            let pasteboard = UIPasteboard.general
+            pasteboard.string = chatMessage.text
+         })
+        
+         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+         self.present(actionSheet, animated: true)
     }
 }
 
@@ -649,8 +664,26 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
         }
     }
     
+
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, didLongPressOn msgId: String) {
-        return
+        guard let indexPath = outboundMsgViewCell.indexPath else { return }
+        guard let chatMessage = fetchedResultsController?.object(at: indexPath) else { return }
+        
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+
+        actionSheet.addAction(UIAlertAction(title: "Reply", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.handleQuotedReply(msg: chatMessage, mediaIndex: outboundMsgViewCell.mediaIndex)
+         })
+        
+        actionSheet.addAction(UIAlertAction(title: "Copy", style: .default) { _ in
+            let pasteboard = UIPasteboard.general
+            pasteboard.string = chatMessage.text
+         })
+        
+         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+         self.present(actionSheet, animated: true)
     }
 }
 
@@ -749,7 +782,7 @@ fileprivate class TitleView: UIView {
         let label = UILabel()
         label.numberOfLines = 1
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.font = UIFont.boldSystemFont(ofSize: 17)
         label.textColor = .label
         return label
     }()

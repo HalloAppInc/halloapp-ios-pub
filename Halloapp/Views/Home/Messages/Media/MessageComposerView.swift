@@ -164,7 +164,7 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
         button.clipsToBounds = true
         
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.widthAnchor.constraint(greaterThanOrEqualToConstant: 60).isActive = true
+        button.widthAnchor.constraint(greaterThanOrEqualToConstant: 70).isActive = true
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         button.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         
@@ -192,12 +192,12 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
     }()
     
     private lazy var textRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ self.textViewContainer, self.sendButton ])
+        let view = UIStackView(arrangedSubviews: [ textViewContainer, sendButton ])
         view.axis = .horizontal
-        view.spacing = 10
         view.alignment = .leading
+        view.spacing = 10
         
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -223,7 +223,7 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
         vSpacer.setContentHuggingPriority(.fittingSizeLevel, for: .vertical)
         vSpacer.setContentCompressionResistancePriority(.fittingSizeLevel, for: .vertical)
         
-        let vStack = UIStackView(arrangedSubviews: [ hStack, self.chatMediaSlider, self.textRow, vSpacer ])
+        let vStack = UIStackView(arrangedSubviews: [ hStack, chatMediaSlider, textRow, vSpacer ])
         
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical

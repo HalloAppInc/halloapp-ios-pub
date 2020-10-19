@@ -118,6 +118,10 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
         isUserInteractionEnabled = true
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoChat(_:)))
         addGestureRecognizer(tapGesture)
+        
+        let slideUp = UISwipeGestureRecognizer(target: self, action: #selector(dismiss(_:)))
+        slideUp.direction = .up
+        addGestureRecognizer(slideUp)
 
         return view
     }()
@@ -179,7 +183,6 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
         return label
     }()
     
-    
     @objc func gotoChat(_ sender: UIView) {
         var id: String? = nil
         var notificationType: NotificationContentType
@@ -201,10 +204,21 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
                                             timestamp: nil)
         metadata.groupId = groupID
         metadata.saveToUserDefaults()
+        
         MainAppContext.shared.didTapNotification.send(metadata)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.removeFromSuperview()
         }
+    }
+    
+    @objc func dismiss(_ sender: UIView) {
+        UIView.animate(withDuration: 0.2, animations: {
+            self.frame.origin.y -= self.frame.height
+        }, completion: { finished in
+            if finished {
+                self.removeFromSuperview()
+            }
+        })
     }
 }

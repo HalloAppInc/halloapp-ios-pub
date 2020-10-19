@@ -6,7 +6,6 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-
 import CocoaLumberjack
 import Combine
 import Core
@@ -15,9 +14,9 @@ import Foundation
 import UIKit
 
 fileprivate struct Constants {
-    static let AvatarSize: CGFloat = UIScreen.main.bounds.height * 0.10
-    static let HeaderHeight: CGFloat = UIScreen.main.bounds.height * 0.25
-    static let FooterHeight: CGFloat = 75
+    static let AvatarSize: CGFloat = 110
+    static let HeaderHeight: CGFloat = 275
+    static let FooterHeight: CGFloat = 100
 }
 
 class GroupInfoViewController: UITableViewController, NSFetchedResultsControllerDelegate {
@@ -47,7 +46,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
 
-        tableView.separatorStyle = .none
+        tableView.separatorStyle = .singleLine
         tableView.backgroundColor = UIColor.feedBackground
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         
@@ -424,7 +423,7 @@ class GroupInfoHeaderView: UIView {
         let view = UIStackView(arrangedSubviews: [ addMembersLabel ])
 
         view.axis = .horizontal
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 20)
+        view.layoutMargins = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -441,10 +440,10 @@ class GroupInfoHeaderView: UIView {
     
     private lazy var addMembersLabel: UILabel = {
         let label = UILabel()
-        label.font = .gothamFont(forTextStyle: .headline, weight: .medium)
+        label.font = .gothamFont(forTextStyle: .headline, weight: .regular)
         label.textColor = .systemBlue
-        label.textAlignment = .right
-        label.text = "Add Members"
+        label.textAlignment = .left
+        label.text = "Add members"
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.openAddGroupMemberView(_:)))
         label.isUserInteractionEnabled = true
@@ -508,7 +507,7 @@ class GroupInfoFooterView: UIView {
         view.axis = .vertical
         view.translatesAutoresizingMaskIntoConstraints = false
         
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 20)
+        view.layoutMargins = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
         view.isLayoutMarginsRelativeArrangement = true
         
         let subView = UIView(frame: view.bounds)
@@ -521,10 +520,10 @@ class GroupInfoFooterView: UIView {
     
     private lazy var leaveGroupLabel: UILabel = {
         let label = UILabel()
-        label.font = .gothamFont(forTextStyle: .headline, weight: .medium)
+        label.font = .gothamFont(forTextStyle: .headline, weight: .regular)
         label.textColor = .systemRed
-        label.textAlignment = .right
-        label.text = "Leave Group"
+        label.textAlignment = .left
+        label.text = "Leave group"
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.openAddGroupMemberView(_:)))
         label.isUserInteractionEnabled = true

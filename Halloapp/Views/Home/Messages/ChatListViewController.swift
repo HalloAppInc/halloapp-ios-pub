@@ -23,13 +23,22 @@ fileprivate enum ChatListViewSection {
     case main
 }
 
-class ChatListViewController: UIViewController, NSFetchedResultsControllerDelegate, UITableViewDelegate, UITableViewDataSource {
+class ChatListViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private static let cellReuseIdentifier = "ChatListViewCell"
     private static let inviteFriendsReuseIdentifier = "ChatListInviteFriendsCell"
     private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
     private var cancellableSet: Set<AnyCancellable> = []
     private let tableView = UITableView()
+
+    private var filteredChats: [ChatThread] = []
+    private var searchController: UISearchController!
+    var isSearchBarEmpty: Bool {
+      return searchController.searchBar.text?.isEmpty ?? true
+    }
+    var isFiltering: Bool {
+      return searchController.isActive && !isSearchBarEmpty
+    }
     
     // MARK: Lifecycle
     
@@ -42,6 +51,24 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     override func viewDidLoad() {
         DDLogInfo("ChatListViewController/viewDidLoad")
+
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"), style: .plain, target: self, action: #selector(openSearchAction))
+        navigationItem.standardAppearance = .transparentAppearance
+        navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
+        
+        searchController = UISearchController(searchResultsController: nil)
+        searchController.delegate = self
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.autocapitalizationType = .none
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.definesPresentationContext = true
+        
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchBar.layer.borderWidth = 1
+        searchController.searchBar.layer.borderColor = UIColor.feedBackground.cgColor
+        searchController.searchBar.barTintColor = UIColor.feedBackground
+        searchController.searchBar.tintColor = UIColor.systemBlue
+        searchController.searchBar.searchTextField.backgroundColor = UIColor.feedBackground
 
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -68,11 +95,11 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                 self.processNotification(metadata: metadata)
             }
         )
-
+        
         // When the user was not on this view, and HomeView sends user to here
         if let metadata = NotificationMetadata.fromUserDefaults() {
-            processNotification(metadata: metadata)
-        }
+            self.processNotification(metadata: metadata)
+        }        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -95,6 +122,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         super.viewWillDisappear(animated)
 
         floatingMenu.setState(.collapsed, animated: true)
+        
+        searchController.isActive = false
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -110,6 +139,12 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         }
     }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        if (traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection)) {
+            searchController.searchBar.layer.borderColor = UIColor.feedBackground.cgColor
+        }
+    }
+    
     // MARK: NUX
 
     private lazy var overlayContainer: OverlayContainer = {
@@ -198,6 +233,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         reloadTableViewInDidChangeContent = false
         trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
         DDLogDebug("ChatListView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+        
         if trackPerRowFRCChanges {
             tableView.beginUpdates()
         }
@@ -217,12 +253,13 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         case .delete:
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { break }
             DDLogDebug("ChatListView/frc/delete [\(chatThread)] at [\(indexPath)]")
+      
             if trackPerRowFRCChanges {
                 tableView.deleteRows(at: [ indexPath ], with: .left)
             } else {
                 reloadTableViewInDidChangeContent = true
             }
-
+            
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
             DDLogDebug("ChatListView/frc/move [\(chatThread)] from [\(fromIndexPath)] to [\(toIndexPath)]")
@@ -252,12 +289,20 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         if trackPerRowFRCChanges {
             tableView.endUpdates()
         }
-        if reloadTableViewInDidChangeContent {
+        if reloadTableViewInDidChangeContent || isFiltering {
             tableView.reloadData()
         }
     }
 
     private var lastCheckedForNewContacts: Date?
+    
+    // MARK: Actions
+    
+    @objc private func openSearchAction() {
+        present(searchController, animated: false, completion: nil)
+    }
+    
+    // MARK: Helpers
     
     private func populateWithSymmetricContacts() {
         var isTimeToCheck = true
@@ -271,10 +316,47 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             lastCheckedForNewContacts = Date()
         }
     }
+   
+    // MARK: Tap Notification
     
-    // MARK: UITableView Delegates
+    private func processNotification(metadata: NotificationMetadata) {
+        guard metadata.isChatNotification else {
+            return
+        }
 
+        // If the user tapped on a notification, move to the chat view
+        DDLogInfo("ChatListViewController/notification/open-chat \(metadata.fromId)")
+
+        navigationController?.popToRootViewController(animated: false)
+
+        if metadata.contentType == .chatMessage {
+            navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
+        } else if metadata.contentType == .groupChatMessage, let groupId = metadata.groupId {
+            navigationController?.pushViewController(ChatGroupViewController(for: groupId), animated: true)
+        }
+        metadata.removeFromUserDefaults()
+    }
+
+    private func openFeed(forGroupId groupId: GroupID, groupName: String) {
+        let viewController = GroupFeedViewController(groupId: groupId, groupName: groupName)
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+
+    private func openProfile(forUserId userId: UserID) {
+        let viewController = UserFeedViewController(userID: userId)
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+}
+
+// MARK: UITableView Delegates
+extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
+    
     func chatThread(at indexPath: IndexPath) -> ChatThread? {
+        
+        if isFiltering {
+            return filteredChats[indexPath.row]
+        }
+        
         guard let fetchedObjects = fetchedResultsController?.fetchedObjects, indexPath.row < fetchedObjects.count else {
             return nil
         }
@@ -282,10 +364,20 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 
     func numberOfSections(in tableView: UITableView) -> Int {
+        
+        if isFiltering {
+            return 1
+        }
+        
         return fetchedResultsController?.sections?.count ?? 0
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        
+        if isFiltering {
+            return filteredChats.count
+        }
+        
         guard let sections = fetchedResultsController?.sections else { return 0 }
         return sections[section].numberOfObjects + 1
     }
@@ -296,7 +388,15 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             return cell
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ChatListTableViewCell
+
         cell.configure(with: chatThread)
+  
+        if isFiltering {
+            let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
+            let searchItems = strippedString.components(separatedBy: " ")
+            cell.highlightTitle(searchItems)
+        }
+        
         switch chatThread.type {
         case .oneToOne:
             cell.avatarTappedAction = { [weak self] in
@@ -337,7 +437,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == .delete) {
             let actionSheet = UIAlertController(title: "Are you sure you want to delete this chat?", message: nil, preferredStyle: .actionSheet)
-            actionSheet.addAction(UIAlertAction(title: "Delete Chat", style: .destructive) { action in
+            actionSheet.addAction(UIAlertAction(title: "Delete Chat", style: .destructive) { [weak self] action in
+                guard let self = self else { return }
                 if let chatThread = self.chatThread(at: indexPath) {
                     if chatThread.type == .oneToOne {
                         guard let chatWithUserId = chatThread.chatWithUserId else { return }
@@ -347,47 +448,68 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
                         MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId)
                     }
                 }
+                
+                if self.isFiltering {
+                    self.filteredChats.remove(at: indexPath.row)
+                }
+                
             })
             actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
             present(actionSheet, animated: true)
         }
     }
-
-    // MARK: Tap Notification
     
-    private func processNotification(metadata: NotificationMetadata) {
-        guard metadata.isChatNotification else {
-            return
-        }
-
-        // If the user tapped on a notification, move to the chat view
-        DDLogInfo("ChatListViewController/notification/open-chat \(metadata.fromId)")
-
-        navigationController?.popToRootViewController(animated: false)
-
-        if metadata.contentType == .chatMessage {
-            navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
-        } else if metadata.contentType == .groupChatMessage, let groupId = metadata.groupId {
-            navigationController?.pushViewController(ChatGroupViewController(for: groupId), animated: true)
-        }
-        metadata.removeFromUserDefaults()
+    // resign keyboard so the entire tableview can be seen
+    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
+        searchController.searchBar.resignFirstResponder()
     }
+}
 
-    private func openFeed(forGroupId groupId: GroupID, groupName: String) {
-        let viewController = GroupFeedViewController(groupId: groupId, groupName: groupName)
-        navigationController?.pushViewController(viewController, animated: true)
+// MARK: Search Delegates
+extension ChatListViewController: UISearchControllerDelegate {
+    func willDismissSearchController(_ searchController: UISearchController) {
+        searchController.dismiss(animated: false)
+
     }
+}
 
-    private func openProfile(forUserId userId: UserID) {
-        let viewController = UserFeedViewController(userID: userId)
-        navigationController?.pushViewController(viewController, animated: true)
+// MARK: Search Updating Delegates
+extension ChatListViewController: UISearchResultsUpdating {
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let allChats = fetchedResultsController?.fetchedObjects else { return }
+        let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
+        let searchItems = strippedString.components(separatedBy: " ")
+        
+        filteredChats = allChats.filter {
+            var titleText: String? = nil
+            if $0.type == .group {
+                titleText = $0.title
+            } else {
+                titleText = MainAppContext.shared.contactStore.fullName(for: $0.chatWithUserId ?? "")
+            }
+
+            guard let title = titleText else { return false }
+        
+            for item in searchItems {
+                if title.lowercased().contains(item.lowercased()) {
+                    return true
+                }
+            }
+            return false
+        }
+        tableView.reloadData()
     }
 }
 
 extension ChatListViewController: NewChatViewControllerDelegate {
     func newChatViewController(_ controller: NewChatViewController, didSelect userId: UserID) {
         controller.dismiss(animated: true) {
-            self.navigationController?.pushViewController(ChatViewController(for: userId), animated: true)
+            let vc = ChatViewController(for: userId)
+            self.navigationController?.pushViewController(vc, animated: true)
+            DispatchQueue.main.async {
+                vc.showKeyboard()
+            }
         }
     }
 }
@@ -465,7 +587,8 @@ private class ChatListTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
 
-        nameLabel.text = nil
+        nameLabel.attributedText = nil
+        
         timeLabel.text = nil
         lastMsgLabel.text = nil
         unreadCountView.isHidden = true
@@ -509,13 +632,13 @@ private class ChatListTableViewCell: UITableViewCell {
         let messageStatusIcon: UIImage? = {
             switch chatThread.lastMsgStatus {
             case .seen:
-                return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemBlue)
+                return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
 
             case .delivered:
-                return UIImage(named: "CheckmarkDouble")?.withTintColor(textColor)
+                return UIImage(named: "CheckmarkDouble")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
 
             case .sentOut:
-                return UIImage(named: "CheckmarkSingle")?.withTintColor(textColor)
+                return UIImage(named: "CheckmarkSingle")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
 
             default:
                 return nil
@@ -581,6 +704,17 @@ private class ChatListTableViewCell: UITableViewCell {
         } else {
             avatarView.configure(groupId: chatThread.groupId ?? "", using: MainAppContext.shared.avatarStore)
         }
+    }
+    
+    func highlightTitle(_ searchItems: [String]) {
+        guard let title = nameLabel.text else { return }
+        let titleLowercased = title.lowercased() as NSString
+        let attributedString = NSMutableAttributedString(string: title)
+        for item in searchItems {
+            let range = titleLowercased.range(of: item.lowercased())
+            attributedString.addAttribute(.foregroundColor, value: UIColor.systemBlue, range: range)
+        }
+        nameLabel.attributedText = attributedString
     }
     
     private func setup() {
