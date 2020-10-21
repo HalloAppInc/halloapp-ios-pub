@@ -1155,7 +1155,32 @@ extension ChatData {
     private func send(message: ChatMessageProtocol) {
         service.sendChatMessage(message, encryption: AppContext.shared.encryptOperation(for: message.toUserId)) { _ in }
     }
-    
+
+    private func handleRerequest(for messageID: String, from userID: UserID) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let chatMessage = self.chatMessage(with: messageID, in: managedObjectContext) else {
+                DDLogError("ChatData/handleRerequest/\(messageID)/error could not find message")
+                return
+            }
+            guard userID == chatMessage.toUserId else {
+                DDLogError("ChatData/handleRerequest/\(messageID)/error user mismatch [original: \(chatMessage.toUserId)] [rerequest: \(userID)]")
+                return
+            }
+            guard chatMessage.resendAttempts < 5 else {
+                DDLogInfo("ChatData/handleRerequest/\(messageID)/skipping (\(chatMessage.resendAttempts) resend attempts)")
+                return
+            }
+
+            let xmppChatMessage = XMPPChatMessage(chatMessage: chatMessage)
+            self.backgroundProcessingQueue.async {
+                self.send(message: xmppChatMessage)
+            }
+
+            chatMessage.resendAttempts += 1
+            self.save(managedObjectContext)
+        }
+    }
+
     // MARK: 1-1 Presence
     
     func subscribeToPresence(to chatWithUserId: String) {
@@ -1341,7 +1366,8 @@ extension ChatData {
     
     private func processInboundChatMessage(xmppChatMessage: ChatMessageProtocol, using managedObjectContext: NSManagedObjectContext, isAppActive: Bool) {
         guard self.chatMessage(with: xmppChatMessage.id, in: managedObjectContext) == nil else {
-            DDLogError("ChatData/process/already-exists [\(xmppChatMessage.id)]")
+            // This is expected if we rerequest a message where decryption failed but a plaintext version was included
+            DDLogInfo("ChatData/process/already-exists [\(xmppChatMessage.id)]")
             return
         }
         
@@ -2902,6 +2928,13 @@ extension ChatData: HalloChatDelegate {
         ack?()
     }
 
+    func halloService(_ halloService: HalloService, didRerequestMessage messageID: String, from userID: UserID, ack: (() -> Void)?) {
+        DDLogDebug("ChatData/didRerequestMessage [\(messageID)]")
+
+        handleRerequest(for: messageID, from: userID)
+        ack?()
+    }
+
     func halloService(_ halloService: HalloService, didSendMessageReceipt receipt: HalloReceipt) {
         switch receipt.thread {
         case .none:
@@ -3037,48 +3070,12 @@ extension XMPPChatMessage {
         self.timestamp = chat.attributeDoubleValue(forName: "timestamp")
     }
 
-    init?(_ pbChat: Server_ChatStanza, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32) {
+    init(_ protoChat: Clients_ChatMessage, timestamp: Int64, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32) {
         self.id = id
         self.fromUserId = fromUserID
         self.toUserId = toUserID
-        self.timestamp = TimeInterval(pbChat.timestamp)
+        self.timestamp = TimeInterval(timestamp)
         self.retryCount = retryCount
-
-        let protoChat: Clients_ChatMessage
-        let plainTextMessage = Clients_ChatMessage(containerData: pbChat.payload)
-        let decryptionResult = AppContext.shared.keyStore.decryptPayload(
-            for: fromUserID,
-            encryptedPayload: pbChat.encPayload,
-            publicKey: pbChat.publicKey,
-            oneTimeKeyID: Int(pbChat.oneTimePreKeyID))
-
-        switch decryptionResult {
-        case .success(let decryptedData):
-            let decryptedMessage = Clients_ChatMessage(containerData: decryptedData)
-            switch (plainTextMessage, decryptedMessage) {
-            case (nil, nil):
-                // Decryption deserialization failed, no plaintext to fall back to
-                AppContext.shared.eventMonitor.observe(.decryption(error: .other))
-                return nil
-            case (.some(let plainText), nil):
-                // Decryption deserialization failed, fall back to plaintext
-                AppContext.shared.eventMonitor.observe(.decryption(error: .other))
-                protoChat = plainText
-            case (nil, .some(let decrypted)):
-                // Decryption deserialization succeeded, no plaintext to compare
-                AppContext.shared.eventMonitor.observe(.decryption(error: nil))
-                protoChat = decrypted
-            case (.some(let plainText), .some(let decrypted)):
-                // Decryption deserialization succeeded, compare against plaintext
-                let error: DecryptionError? = (plainText.text != decrypted.text) ? .plainTextMismatch : nil
-                AppContext.shared.eventMonitor.observe(.decryption(error: error))
-                protoChat = plainText
-            }
-        case .failure(let error):
-            AppContext.shared.eventMonitor.observe(.decryption(error: error))
-            guard let plainText = plainTextMessage else { return nil }
-            protoChat = plainText
-        }
         
         text = protoChat.text.isEmpty ? nil : protoChat.text
         media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }

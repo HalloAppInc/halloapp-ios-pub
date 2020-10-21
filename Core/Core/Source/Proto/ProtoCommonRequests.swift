@@ -171,6 +171,20 @@ public class ProtoGetServerPropertiesRequest: ProtoStandardRequest<ServerPropert
     }
 }
 
+public class ProtoMessageRerequest: ProtoStandardRequest<Void> {
+    public init(messageID: String, fromUserID: UserID, toUserID: UserID, identityKey: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+
+        var rerequest = Server_Rerequest()
+        rerequest.id = messageID
+        rerequest.identityKey = identityKey
+
+        super.init(
+            packet: .msgPacket(from: fromUserID, to: toUserID, id: messageID, type: .chat, payload: .rerequest(rerequest)),
+            transform: { _ in .success(()) },
+            completion: completion)
+    }
+}
+
 public class ProtoLoggingRequest: ProtoStandardRequest<Void> {
     public init(events: [CountableEvent], completion: @escaping ServiceRequestCompletion<Void>) {
         var clientLog = Server_ClientLog()

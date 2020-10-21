@@ -302,23 +302,37 @@ final class ProtoService: ProtoServiceCore {
                 handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
             case .deliveryReceipt(let pbReceipt):
                 handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
-            case .chatStanza(let pbChat):
-                if let chat = XMPPChatMessage(pbChat, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount) {
-                    didGetNewChatMessage.send(chat)
-                } else {
-                    DDLogError("ProtoService/didReceive/\(requestID)/error could not read chat")
+            case .chatStanza(let serverChat):
+                decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionError) in
+                    if let clientChat = clientChat {
+                        let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount)
+                        self.didGetNewChatMessage.send(chatMessage)
+                    }
+                    if decryptionError != nil {
+                        self.rerequestMessage(msg.id, senderID: UserID(msg.fromUid), identityKey: serverChat.publicKey) { _ in }
+                    }
+                    AppContext.shared.eventMonitor.observe(.decryption(error: decryptionError))
+                    self.sendAck(messageID: msg.id)
                 }
-                sendAck(messageID: msg.id)
             case .silentChatStanza(let silent):
-                if let _ = XMPPChatMessage(silent.chatStanza, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount) {
-                    DDLogInfo("ProtoService/didReceive/\(requestID) ignoring silent chat")
-                } else {
-                    DDLogError("ProtoService/didReceive/\(requestID)/error could not read silent chat")
+                // We ignore message content from silent messages (only interested in decryption success)
+                decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, decryptionError) in
+                    if decryptionError != nil {
+                        self.rerequestMessage(msg.id, senderID: UserID(msg.fromUid), identityKey: silent.chatStanza.publicKey) { _ in }
+                    }
+                    AppContext.shared.eventMonitor.observe(.decryption(error: decryptionError))
+                    self.sendAck(messageID: msg.id)
                 }
-                sendAck(messageID: msg.id)
             case .rerequest(let rerequest):
-                DDLogInfo("ProtoService/didReceive/\(requestID)/rerequest/\(rerequest.id) unimplemented")
-                sendAck(messageID: msg.id)
+                if let delegate = chatDelegate {
+                    // TODO: Verify identity key
+                    AppContext.shared.keyStore.deleteMessageKeyBundles(for: UserID(msg.fromUid))
+                    delegate.halloService(self, didRerequestMessage: rerequest.id, from: UserID(msg.fromUid)) {
+                        self.sendAck(messageID: msg.id)
+                    }
+                } else {
+                    sendAck(messageID: msg.id)
+                }
             case .feedItem(let pbFeedItem):
                 handleFeedItems([pbFeedItem], message: msg)
             case .feedItems(let pbFeedItems):
@@ -457,6 +471,46 @@ final class ProtoService: ProtoServiceCore {
             }
         })
     }
+
+    // MARK: Decryption
+
+    private let decryptionQueue = DispatchQueue(label: "com.halloapp.proto.decryption", qos: .userInitiated, attributes: [ .concurrent ])
+
+    /// May return a valid message with an error (i.e., there may be plaintext to fall back to even if decryption fails). Dispatches completion handler on main thread.
+    private func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (Clients_ChatMessage?, DecryptionError?) -> Void) {
+        decryptionQueue.async {
+            let (message, error) = self._decryptChat(serverChat, from: fromUserID)
+            DispatchQueue.main.async {
+                completion(message, error)
+            }
+        }
+    }
+
+    /// Internal decryption function. Should be called on decryption queue.
+    private func _decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID) -> (Clients_ChatMessage?, DecryptionError?) {
+        let plainTextMessage = Clients_ChatMessage(containerData: serverChat.payload)
+        let decryptionResult = AppContext.shared.keyStore.decryptPayload(
+            for: fromUserID,
+            encryptedPayload: serverChat.encPayload,
+            publicKey: serverChat.publicKey,
+            oneTimeKeyID: Int(serverChat.oneTimePreKeyID))
+
+        switch decryptionResult {
+        case .success(let decryptedData):
+            guard let decryptedMessage = Clients_ChatMessage(containerData: decryptedData) else {
+                // Decryption deserialization failed, fall back to plaintext if possible
+                return (plainTextMessage, .deserialization)
+            }
+            if let plainTextMessage = plainTextMessage, plainTextMessage.text != decryptedMessage.text {
+                // Decrypted message does not match plaintext
+                return (plainTextMessage, .plainTextMismatch)
+            }
+            return (decryptedMessage, nil)
+        case .failure(let error):
+            return (plainTextMessage, error)
+        }
+    }
+
 }
 
 extension ProtoService: HalloService {

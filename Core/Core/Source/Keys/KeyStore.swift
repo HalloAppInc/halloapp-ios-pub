@@ -14,6 +14,7 @@ import Foundation
 import Sodium
 
 public enum DecryptionError: String, Error {
+    case deserialization
     case hmacMismatch
     case invalidPayload
     case keyGenerationFailure

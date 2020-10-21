@@ -52,6 +52,7 @@ public protocol CoreService {
 
     // MARK: Chat
     func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?, completion: @escaping ServiceRequestCompletion<Void>)
+    func rerequestMessage(_ messageID: String, senderID: UserID, identityKey: Data, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Event Logging
     func log(events: [CountableEvent], completion: @escaping ServiceRequestCompletion<Void>)

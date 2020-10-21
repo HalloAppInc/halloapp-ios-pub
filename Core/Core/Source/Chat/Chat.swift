@@ -22,6 +22,7 @@ public protocol ChatMessageProtocol {
     var fromUserId: UserID { get }
     var toUserId: UserID { get }
 
+    /// 1 and higher means it's an offline message and that server has sent out a push notification already
     var retryCount: Int32? { get }
     
     var text: String? { get }

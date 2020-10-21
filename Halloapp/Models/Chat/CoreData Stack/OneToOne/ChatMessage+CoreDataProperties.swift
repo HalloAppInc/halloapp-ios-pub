@@ -50,6 +50,7 @@ extension ChatMessage {
     
     @NSManaged var incomingStatusValue: Int16
     @NSManaged var outgoingStatusValue: Int16
+    @NSManaged var resendAttempts: Int16
 
     @NSManaged var timestamp: Date?
     

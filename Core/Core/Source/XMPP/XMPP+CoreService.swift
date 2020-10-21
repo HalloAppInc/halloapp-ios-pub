@@ -11,6 +11,7 @@ import Foundation
 public enum XMPPControllerError: Error {
     case responseMissingKeyCount
     case responseMissingKeys
+    case unimplemented
 }
 
 extension XMPPController: CoreService {
@@ -24,6 +25,10 @@ extension XMPPController: CoreService {
             xmppStream.send(message.xmppElement)
             completion(.success(()))
         }
+    }
+
+    public func rerequestMessage(_ messageID: String, senderID: UserID, identityKey: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+        completion(.failure(XMPPControllerError.unimplemented))
     }
 
     public func requestMediaUploadURL(size: Int, completion: @escaping ServiceRequestCompletion<MediaURLInfo>) {

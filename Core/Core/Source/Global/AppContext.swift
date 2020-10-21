@@ -112,6 +112,10 @@ open class AppContext {
     private func sendEventReport() {
         DDLogInfo("AppContext/sendEventReport")
         eventMonitor.generateReport { [weak self] events in
+            #if DEBUG
+            DDLogInfo("AppContext/sendEventReport skipping (debug)")
+            return
+            #endif
             guard !events.isEmpty else {
                 DDLogInfo("AppContext/sendEventReport skipping (no events)")
                 return

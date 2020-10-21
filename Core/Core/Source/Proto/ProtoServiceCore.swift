@@ -420,6 +420,10 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
+    public func rerequestMessage(_ messageID: String, senderID: UserID, identityKey: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoMessageRerequest(messageID: messageID, fromUserID: userData.userId, toUserID: senderID,  identityKey: identityKey, completion: completion))
+    }
+
     public func log(events: [CountableEvent], completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoLoggingRequest(events: events, completion: completion))
     }
