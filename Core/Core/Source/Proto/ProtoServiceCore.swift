@@ -136,28 +136,22 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     // MARK: Requests
 
+    private let requestsQueue = DispatchQueue(label: "com.halloapp.proto.requests", qos: .userInitiated)
+
     private var requestsInFlight: [ProtoRequest] = []
 
     private var requestsToSend: [ProtoRequest] = []
 
-    private func isRequestPending(_ request: ProtoRequest) -> Bool {
-        if requestsInFlight.contains(where: { $0.requestId == request.requestId }) {
-            return true
-        }
-        if requestsToSend.contains(where: { $0.requestId == request.requestId }) {
-            return true
-        }
-        return false
-    }
-
     public func enqueue(request: ProtoRequest) {
-        if stream.isConnected {
-            request.send(using: self)
-            requestsInFlight.append(request)
-        } else if request.retriesRemaining > 0 {
-            requestsToSend.append(request)
-        } else {
-            request.failOnNoConnection()
+        requestsQueue.async {
+            if self.stream.isConnected {
+                request.send(using: self)
+                self.requestsInFlight.append(request)
+            } else if request.retriesRemaining > 0 {
+                self.requestsToSend.append(request)
+            } else {
+                request.failOnNoConnection()
+            }
         }
     }
 
@@ -165,34 +159,38 @@ open class ProtoServiceCore: NSObject, ObservableObject {
      All requests in the queue are automatically resent when the connection is opened.
      */
     func resendAllPendingRequests() {
-        guard !requestsToSend.isEmpty else {
-            return
-        }
-        guard stream.isConnected else {
-            DDLogWarn("connection/requests/resend/skipped [\(requestsToSend.count)] [no connection]")
-            return
-        }
+        requestsQueue.async {
+            guard !self.requestsToSend.isEmpty else {
+                return
+            }
+            guard self.stream.isConnected else {
+                DDLogWarn("connection/requests/resend/skipped [\(self.requestsToSend.count)] [no connection]")
+                return
+            }
 
-        let allRequests = requestsToSend
-        requestsToSend.removeAll()
+            let allRequests = self.requestsToSend
+            self.requestsToSend.removeAll()
 
-        DDLogInfo("connection/requests/resend [\(allRequests.count)]")
-        for request in allRequests {
-            request.send(using: self)
+            DDLogInfo("connection/requests/resend [\(allRequests.count)]")
+            for request in allRequests {
+                request.send(using: self)
+            }
+            self.requestsInFlight.append(contentsOf: allRequests)
         }
-        requestsInFlight.append(contentsOf: allRequests)
     }
 
     func cancelAllRequests() {
-        DDLogInfo("connection/requests/cancel/all [\(requestsInFlight.count)]")
+        requestsQueue.async {
+            DDLogInfo("connection/requests/cancel/all [\(self.requestsInFlight.count)]")
 
-        let allRequests = requestsInFlight + requestsToSend
-        requestsInFlight.removeAll()
-        requestsToSend.removeAll()
+            let allRequests = self.requestsInFlight + self.requestsToSend
+            self.requestsInFlight.removeAll()
+            self.requestsToSend.removeAll()
 
-        for request in allRequests {
-            if request.cancelAndPrepareFor(retry: true) {
-                requestsToSend.append(request)
+            for request in allRequests {
+                if request.cancelAndPrepareFor(retry: true) {
+                    self.requestsToSend.append(request)
+                }
             }
         }
     }
@@ -228,15 +226,17 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         // responses for requests that we have sent, but in case of accidentally
         // sending a duplicated request or delayed processing related to dropping
         // a connection, we should still check both arrays.
-        var matchingRequests: [ProtoRequest] = []
-        matchingRequests.append(contentsOf: removeRequest(with: requestID, outOf: &self.requestsInFlight))
-        matchingRequests.append(contentsOf: removeRequest(with: requestID, outOf: &self.requestsToSend))
-        if matchingRequests.count > 1 {
-            DDLogWarn("connection/response/\(requestID)/warning: found \(matchingRequests.count) requests")
-        }
-        for request in matchingRequests {
-            DDLogInfo("connection/response/\(type(of: request))/\(requestID)")
-            request.process(response: packet)
+        requestsQueue.async {
+            var matchingRequests: [ProtoRequest] = []
+            matchingRequests.append(contentsOf: removeRequest(with: requestID, outOf: &self.requestsInFlight))
+            matchingRequests.append(contentsOf: removeRequest(with: requestID, outOf: &self.requestsToSend))
+            if matchingRequests.count > 1 {
+                DDLogWarn("connection/response/\(requestID)/warning: found \(matchingRequests.count) requests")
+            }
+            for request in matchingRequests {
+                DDLogInfo("connection/response/\(type(of: request))/\(requestID)")
+                request.process(response: packet)
+            }
         }
     }
 }
