@@ -528,7 +528,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         textView.text = text
         textView.tag = 1
         textView.textColor = UIColor.label
-        postMediaButton.isHidden = true
         postButton.isEnabled = true
     }
     
@@ -548,7 +547,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
     func textViewDidChange(_ textView: UITextView) {
         postButton.isEnabled = !text.isEmpty
-        postMediaButton.isHidden = !text.isEmpty
         
         if textView.contentSize.height >= 115 {
             textViewContainerHeightConstraint?.constant = 115
