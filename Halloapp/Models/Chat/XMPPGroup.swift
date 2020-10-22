@@ -330,7 +330,7 @@ struct XMPPChatGroupMessage {
                 protoChatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
             }
             
-            protoChatMessage.media = orderedMedia.map { $0.protoMessage }
+            protoChatMessage.media = orderedMedia.compactMap { $0.protoMessage }
 
             var protoContainer = Clients_Container()
             protoContainer.chatMessage = protoChatMessage

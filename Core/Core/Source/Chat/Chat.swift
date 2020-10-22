@@ -56,7 +56,7 @@ public extension ChatMessageProtocol {
                 protoChatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
             }
 
-            protoChatMessage.media = orderedMedia.map { $0.protoMessage }
+            protoChatMessage.media = orderedMedia.compactMap { $0.protoMessage }
 
             var protoContainer = Clients_Container()
             protoContainer.chatMessage = protoChatMessage
@@ -91,8 +91,12 @@ public protocol ChatMediaProtocol {
 }
 
 public extension ChatMediaProtocol {
-    var protoMessage: Clients_Media {
+    var protoMessage: Clients_Media? {
         get {
+            guard let url = url else {
+                DDLogError("ChatMediaProtocol/protoMessage/error missing url!")
+                return nil
+            }
             var media = Clients_Media()
             media.type = {
                 switch mediaType {
@@ -104,7 +108,7 @@ public extension ChatMediaProtocol {
             media.height = Int32(size.height)
             media.encryptionKey = Data(base64Encoded: key)!
             media.plaintextHash = Data(base64Encoded: sha256)!
-            media.downloadURL = url!.absoluteString
+            media.downloadURL = url.absoluteString
             return media
         }
     }
