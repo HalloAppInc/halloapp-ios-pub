@@ -464,6 +464,7 @@ fileprivate struct TextView: UIViewRepresentable {
         let textView = UITextView()
         textView.delegate = context.coordinator
         textView.font = .preferredFont(forTextStyle: .body)
+        textView.inputAccessoryView = context.coordinator.mentionPicker
         textView.isScrollEnabled = false
         textView.isEditable = true
         textView.isUserInteractionEnabled = true
@@ -474,9 +475,6 @@ fileprivate struct TextView: UIViewRepresentable {
             textSize: input.value.text.count, isPostWithMedia: mediaItems.value.count > 0)
         textView.text = input.value.text
         textView.textContainerInset.bottom = PostComposerLayoutConstants.verticalPadding + PostComposerLayoutConstants.controlSpacing
-        if !areMentionsDisabled.value {
-            textView.inputAccessoryView = context.coordinator.mentionPicker
-        }
         return textView
     }
 
@@ -488,7 +486,7 @@ fileprivate struct TextView: UIViewRepresentable {
             uiView.font = fontToUse
         }
 
-        if !areMentionsDisabled.value, let mention = pendingMention {
+        if let mention = pendingMention {
             DispatchQueue.main.async {
                 var mentionInput = self.input.value
                 mentionInput.addMention(name: mention.name, userID: mention.userID, in: mention.range)
@@ -538,6 +536,8 @@ fileprivate struct TextView: UIViewRepresentable {
         }()
 
         private func updateMentionPickerContent() {
+            guard !parent.areMentionsDisabled.value else { return }
+
             let mentionableUsers = fetchMentionPickerContent(for: parent.input.value)
 
             mentionPicker.items = mentionableUsers
@@ -574,45 +574,39 @@ fileprivate struct TextView: UIViewRepresentable {
         // MARK: UITextViewDelegate
 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-            if !parent.areMentionsDisabled.value {
-                var mentionInput = parent.input.value
+            guard !parent.areMentionsDisabled.value else { return true }
 
-                // Treat mentions atomically (editing any part of the mention should remove the whole thing)
-                let rangeIncludingImpactedMentions = mentionInput
-                    .impactedMentionRanges(in: range)
-                    .reduce(range) { range, mention in NSUnionRange(range, mention) }
+            var mentionInput = parent.input.value
 
-                mentionInput.changeText(in: rangeIncludingImpactedMentions, to: text)
+            // Treat mentions atomically (editing any part of the mention should remove the whole thing)
+            let rangeIncludingImpactedMentions = mentionInput
+                .impactedMentionRanges(in: range)
+                .reduce(range) { range, mention in NSUnionRange(range, mention) }
 
-                if range == rangeIncludingImpactedMentions {
-                    // Update mentions and return true so UITextView can update text without breaking IME
-                    parent.input.value = mentionInput
-                    return true
-                } else {
-                    // Update content ourselves and return false so UITextView doesn't issue conflicting update
-                    textView.text = mentionInput.text
-                    textView.selectedRange = mentionInput.selectedRange
-                    parent.input.value = mentionInput
-                    return false
-                }
-            } else {
+            mentionInput.changeText(in: rangeIncludingImpactedMentions, to: text)
+
+            if range == rangeIncludingImpactedMentions {
+                // Update mentions and return true so UITextView can update text without breaking IME
+                parent.input.value = mentionInput
                 return true
+            } else {
+                // Update content ourselves and return false so UITextView doesn't issue conflicting update
+                textView.text = mentionInput.text
+                textView.selectedRange = mentionInput.selectedRange
+                parent.input.value = mentionInput
+                return false
             }
         }
 
         func textViewDidChange(_ textView: UITextView) {
             parent.input.value.text = textView.text ?? ""
             TextView.recomputeHeight(textView: textView, resultHeight: parent.$textHeight.value)
-            if !parent.areMentionsDisabled.value {
-                updateMentionPickerContent()
-            }
+            updateMentionPickerContent()
         }
 
         func textViewDidChangeSelection(_ textView: UITextView) {
-            if !parent.areMentionsDisabled.value {
-                parent.input.value.selectedRange = textView.selectedRange
-                updateMentionPickerContent()
-            }
+            parent.input.value.selectedRange = textView.selectedRange
+            updateMentionPickerContent()
         }
     }
 }

@@ -487,7 +487,9 @@ class ChatGroupViewController: UIViewController, ChatInputViewDelegate, NSFetche
     }
 
     private func dismissMediaPicker(animated: Bool) {
-        mediaPickerController?.dismiss(animated: animated)
+        if mediaPickerController != nil {
+            dismiss(animated: animated)
+        }
         mediaPickerController = nil
     }
 
