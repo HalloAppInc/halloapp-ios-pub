@@ -178,7 +178,13 @@ open class ContactStore {
         let fetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
         do {
             let results = try self.persistentContainer.viewContext.fetch(fetchRequest)
-            let names = results.reduce(into: [:]) { $0[$1.userId!] = $1.name }
+            let names: [UserID: String] = results.reduce(into: [:]) {
+                guard let userID = $1.userId else {
+                    DDLogError("contacts/push-name/fetch/error push name missing userID [\($1.name ?? "")]")
+                    return
+                }
+                $0[userID] = $1.name
+            }
             DDLogDebug("contacts/push-name/fetched  count=[\(names.count)]")
             return names
         }
