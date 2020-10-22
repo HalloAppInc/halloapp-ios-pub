@@ -43,6 +43,8 @@ class ChatGroupViewController: UIViewController, ChatInputViewDelegate, NSFetche
     static private let eventMsgTableViewCellReuseIdentifier = "EventMsgTableViewCell"
     
     private var cancellableSet: Set<AnyCancellable> = []
+
+    private var mediaPickerController: MediaPickerViewController?
     
     // MARK: Lifecycle
     
@@ -465,21 +467,40 @@ class ChatGroupViewController: UIViewController, ChatInputViewDelegate, NSFetche
     }
     
     func chatInputView(_ inputView: ChatInputView) {
-        presentPhotoLibraryPickerNew()
+        presentMediaPicker()
     }
 
-    private func presentPhotoLibraryPickerNew() {
-        let pickerController = MediaPickerViewController(camera: true) { [weak self] controller, media, cancel in
+    private func presentMediaPicker() {
+        guard mediaPickerController == nil else { return }
+
+        mediaPickerController = MediaPickerViewController(camera: true) { [weak self] controller, media, cancel in
             guard let self = self else { return }
 
-            controller.dismiss(animated: true) {
-                if !cancel {
-                    self.presentMessageComposer(with: media)
-                }
+            if cancel {
+                self.dismissMediaPicker(animated: true)
+            } else {
+                self.presentMediaComposer(pickerController: controller, media: media)
             }
         }
 
-        self.present(UINavigationController(rootViewController: pickerController), animated: true)
+        self.present(UINavigationController(rootViewController: mediaPickerController!), animated: true)
+    }
+
+    private func dismissMediaPicker(animated: Bool) {
+        if mediaPickerController != nil {
+            dismiss(animated: animated)
+        }
+        mediaPickerController = nil
+    }
+
+    private func presentMediaComposer(pickerController: MediaPickerViewController, media: [PendingMedia]) {
+        let composerController = PostComposerViewController(
+            mediaToPost: media,
+            initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
+            showCancelButton: false,
+            disableMentions: true,
+            delegate: self)
+        pickerController.present(UINavigationController(rootViewController: composerController), animated: false)
     }
 
     private func presentMessageComposer(with media: [PendingMedia]) {
@@ -488,9 +509,29 @@ class ChatGroupViewController: UIViewController, ChatInputViewDelegate, NSFetche
         vc.modalPresentationStyle = .fullScreen
         present(vc, animated: false, completion: nil)
     }
-    
+
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
         chatInputView.hideKeyboard()
+    }
+}
+
+// MARK: PostComposerView Delegates
+extension ChatGroupViewController: PostComposerViewDelegate {
+    func composerShareAction(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia]) {
+        sendGroupMessage(text: mentionText.trimmed().collapsedText, media: media)
+    }
+
+    func composerDidFinish(controller: PostComposerViewController, media: [PendingMedia], isBackAction: Bool) {
+        controller.dismiss(animated: false)
+        if isBackAction {
+            mediaPickerController?.reset(selected: media)
+        } else {
+            dismissMediaPicker(animated: false)
+        }
+    }
+
+    func willDismissWithInput(mentionInput: MentionInput) {
+        chatInputView.text = mentionInput.text
     }
 }
 

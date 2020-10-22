@@ -83,20 +83,9 @@ final class NewPostViewController: UIViewController {
     private func makeComposerViewController() -> UIViewController {
         return PostComposerViewController(
             mediaToPost: state.pendingMedia,
-            destination: destination,
             initialInput: state.pendingInput,
             showCancelButton: state.isPostComposerCancellable,
-            willDismissWithInput: { [weak self] input in self?.state.pendingInput = input },
-            didFinish: { [weak self] back, media in
-                if back {
-                    self?.containedNavigationController.popViewController(animated: true)
-
-                    guard let picker = self?.containedNavigationController.topViewController as? MediaPickerViewController else { return }
-                    picker.reset(selected: media)
-                } else {
-                    self?.didFinish()
-                }
-            })
+            delegate: self)
     }
 
     private func makeNewCameraViewController() -> UIViewController {
@@ -190,3 +179,27 @@ extension NewPostViewController: UIImagePickerControllerDelegate {
 }
 
 extension NewPostViewController: UINavigationControllerDelegate {}
+
+extension NewPostViewController: PostComposerViewDelegate {
+    func composerShareAction(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia]) {
+        MainAppContext.shared.feedData.post(text: mentionText, media: media, to: destination)
+    }
+
+    func composerDidFinish(controller: PostComposerViewController, media: [PendingMedia], isBackAction: Bool) {
+        if isBackAction {
+            containedNavigationController.popViewController(animated: true)
+
+            guard let picker = containedNavigationController.topViewController as? MediaPickerViewController else {
+                didFinish()
+                return
+            }
+            picker.reset(selected: media)
+        } else {
+            didFinish()
+        }
+    }
+
+    func willDismissWithInput(mentionInput: MentionInput) {
+        state.pendingInput = mentionInput
+    }
+}

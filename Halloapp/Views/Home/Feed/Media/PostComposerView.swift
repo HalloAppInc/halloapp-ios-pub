@@ -4,6 +4,12 @@ import Combine
 import SwiftUI
 import UIKit
 
+protocol PostComposerViewDelegate: AnyObject {
+    func composerShareAction(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia])
+    func composerDidFinish(controller: PostComposerViewController, media: [PendingMedia], isBackAction: Bool)
+    func willDismissWithInput(mentionInput: MentionInput)
+}
+
 fileprivate class GenericObservable<T>: ObservableObject {
     init(_ value: T) {
         self.value = value
@@ -33,31 +39,28 @@ class PostComposerViewController: UIViewController {
     fileprivate let imageServer = ImageServer()
 
     private let showCancelButton: Bool
+    private let areMentionsDisabled: GenericObservable<Bool>
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
-    private let destination: FeedPostDestination
     private var shouldAutoPlay = GenericObservable(false)
     private var postComposerView: PostComposerView?
     private var shareButton: UIBarButtonItem!
-    private let didFinish: ((Bool, [PendingMedia]) -> Void)
-    private let willDismissWithInput: ((MentionInput) -> Void)?
     private let isMediaPost: Bool
+    private weak var delegate: PostComposerViewDelegate?
 
     init(
         mediaToPost media: [PendingMedia],
-        destination: FeedPostDestination,
         initialInput: MentionInput,
         showCancelButton: Bool,
-        willDismissWithInput: ((MentionInput) -> Void)? = nil,
-        didFinish: @escaping (Bool, [PendingMedia]) -> Void)
+        disableMentions: Bool = false,
+        delegate: PostComposerViewDelegate)
     {
         self.mediaItems.value = media
-        self.destination = destination
         self.showCancelButton = showCancelButton
-        self.willDismissWithInput = willDismissWithInput
-        self.didFinish = didFinish
+        self.areMentionsDisabled = GenericObservable(disableMentions)
         self.inputToPost = GenericObservable(initialInput)
         self.isMediaPost = media.count > 0
+        self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -79,6 +82,7 @@ class PostComposerViewController: UIViewController {
             mediaItems: mediaItems,
             inputToPost: inputToPost,
             shouldAutoPlay: shouldAutoPlay,
+            areMentionsDisabled: areMentionsDisabled,
             crop: { [weak self] index in
                 guard let self = self else { return }
                 let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value) { controller, media, selected, cancel in
@@ -118,7 +122,7 @@ class PostComposerViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.shouldAutoPlay.value = false
-        willDismissWithInput?(inputToPost.value)
+        delegate?.willDismissWithInput(mentionInput: inputToPost.value)
     }
 
     override func willMove(toParent parent: UIViewController?) {
@@ -130,15 +134,16 @@ class PostComposerViewController: UIViewController {
 
     @objc private func shareAction() {
         let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
-        MainAppContext.shared.feedData.post(text: mentionText, media: mediaItems.value, to: destination)
-        didFinish(false, [])
+        delegate?.composerShareAction(controller: self, mentionText: mentionText, media: mediaItems.value)
+        inputToPost.value.text = ""
+        delegate?.composerDidFinish(controller: self, media: [], isBackAction: false)
     }
 
     @objc private func backAction() {
         if isMediaPost {
             imageServer.cancel()
         }
-        didFinish(isMediaPost, self.mediaItems.value)
+        delegate?.composerDidFinish(controller: self, media: self.mediaItems.value, isBackAction: true)
     }
 
     private func setShareVisibility(_ visibility: Bool) {
@@ -176,6 +181,7 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
+    @ObservedObject private var areMentionsDisabled: GenericObservable<Bool>
     private let crop: (_ index: GenericObservable<Int>) -> Void
     private let goBack: () -> Void
     private let setShareVisibility: (Bool) -> Void
@@ -231,6 +237,7 @@ fileprivate struct PostComposerView: View {
         mediaItems: ObservableMediaItems,
         inputToPost: GenericObservable<MentionInput>,
         shouldAutoPlay: GenericObservable<Bool>,
+        areMentionsDisabled: GenericObservable<Bool>,
         crop: @escaping (_ index: GenericObservable<Int>) -> Void,
         goBack: @escaping () -> Void,
         setShareVisibility: @escaping (_ visibility: Bool) -> Void)
@@ -239,6 +246,7 @@ fileprivate struct PostComposerView: View {
         self.mediaItems = mediaItems
         self.inputToPost = inputToPost
         self.shouldAutoPlay = shouldAutoPlay
+        self.areMentionsDisabled = areMentionsDisabled
         self.crop = crop
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
@@ -304,7 +312,7 @@ fileprivate struct PostComposerView: View {
                     .padding(.leading, 4)
                     .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260), alignment: .topLeading)
             }
-            TextView(mediaItems: mediaItems, input: inputToPost, textHeight: postTextHeight)
+            TextView(mediaItems: mediaItems, input: inputToPost, textHeight: postTextHeight, areMentionsDisabled: areMentionsDisabled)
                 .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260))
         }
         .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding + PostComposerLayoutConstants.controlSpacing)
@@ -445,6 +453,7 @@ fileprivate struct TextView: UIViewRepresentable {
     @ObservedObject var mediaItems: ObservableMediaItems
     @ObservedObject var input: GenericObservable<MentionInput>
     @ObservedObject var textHeight: GenericObservable<CGFloat>
+    @ObservedObject var areMentionsDisabled: GenericObservable<Bool>
     @State var pendingMention: PendingMention?
 
     func makeCoordinator() -> Coordinator {
@@ -527,6 +536,8 @@ fileprivate struct TextView: UIViewRepresentable {
         }()
 
         private func updateMentionPickerContent() {
+            guard !parent.areMentionsDisabled.value else { return }
+
             let mentionableUsers = fetchMentionPickerContent(for: parent.input.value)
 
             mentionPicker.items = mentionableUsers
@@ -563,6 +574,7 @@ fileprivate struct TextView: UIViewRepresentable {
         // MARK: UITextViewDelegate
 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            guard !parent.areMentionsDisabled.value else { return true }
 
             var mentionInput = parent.input.value
 
