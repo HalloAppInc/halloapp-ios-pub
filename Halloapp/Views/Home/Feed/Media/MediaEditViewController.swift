@@ -21,11 +21,9 @@ class MediaEditViewController: UIViewController {
     private let initialSelect: Int?
     private let didFinish: MediaEditViewControllerCallback
     private let cropToCircle: Bool
-    private let allowMore: Bool
     
-    init(cropToCircle: Bool = false, allowMore: Bool = true, mediaToEdit media: [PendingMedia], selected: Int?, didFinish: @escaping MediaEditViewControllerCallback) {
+    init(cropToCircle: Bool = false, mediaToEdit media: [PendingMedia], selected: Int?, didFinish: @escaping MediaEditViewControllerCallback) {
         self.cropToCircle = cropToCircle
-        self.allowMore = allowMore
         self.media = media
         self.initialSelect = selected
         self.didFinish = didFinish
@@ -51,7 +49,7 @@ class MediaEditViewController: UIViewController {
             return
         }
         
-        let mediaEditView = MediaEditView(cropToCircle: cropToCircle, allowMore: allowMore, media: items, selected: selected) { [weak self] media, selected, cancel in
+        let mediaEditView = MediaEditView(cropToCircle: cropToCircle, media: items, selected: selected) { [weak self] media, selected, cancel in
             guard let self = self else { return }
             self.didFinish(self, media.map { $0.process() }, selected, cancel)
         }
@@ -404,7 +402,7 @@ fileprivate struct CropRegion: View {
 
 fileprivate struct Preview: View {
     @ObservedObject var media: MediaEdit
-    let selected: Bool
+    @Binding var selected: MediaEdit
     
     var body: some View {
         ZStack {
@@ -414,7 +412,7 @@ fileprivate struct Preview: View {
                     .cornerRadius(3)
                     .aspectRatio(contentMode: .fit)
                     .padding(4)
-                    .opacity(selected ? 1.0 : 0.6)
+                    .opacity(selected === media ? 1.0 : 0.6)
             }
             
             if media.type == .video {
@@ -425,60 +423,158 @@ fileprivate struct Preview: View {
             }
         }
         .frame(width: 65, height: 80)
-        .background(Color(white: 1.0, opacity: selected ? 1.0 : 0.2))
+        .background(Color(white: 1.0, opacity: selected === media ? 1.0 : 0.2))
         .cornerRadius(5)
         .padding(5)
-        
+        .onTapGesture {
+            if selected !== media && media.type == .image {
+                selected = media
+            }
+        }
+    }
+}
+
+fileprivate struct PreviewCollection: UIViewControllerRepresentable {
+    typealias UIViewControllerType = UICollectionViewController
+
+    @Binding var media: [MediaEdit]
+    @Binding var selected: MediaEdit
+
+    func makeUIViewController(context: Context) -> UICollectionViewController {
+        let layout = UICollectionViewFlowLayout()
+        layout.minimumInteritemSpacing = 7
+        layout.scrollDirection = .horizontal
+        layout.itemSize = CGSize(width: 65, height: 80)
+
+        let controller = UICollectionViewController(collectionViewLayout: layout)
+        controller.collectionView.showsHorizontalScrollIndicator = false
+        controller.collectionView.register(PreviewCell.self, forCellWithReuseIdentifier: PreviewCell.reuseIdentifier)
+
+        controller.collectionView.dataSource = context.coordinator
+
+        controller.installsStandardGestureForInteractiveMovement = false
+        let recognizer = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleLongGesture(gesture:)))
+        controller.collectionView.addGestureRecognizer(recognizer)
+
+        return controller
+    }
+
+    func updateUIViewController(_ controller: UICollectionViewController, context: Context) {
+    }
+
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UICollectionViewDataSource {
+        private var parent: PreviewCollection
+
+        init(_ collection: PreviewCollection) {
+            parent = collection
+        }
+
+        func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+            return parent.media.count
+        }
+
+        func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PreviewCell.reuseIdentifier, for: indexPath) as! PreviewCell
+            cell.preview = Preview(media: parent.media[indexPath.row], selected: parent.$selected)
+            return cell
+        }
+
+        func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+            parent.media.swapAt(sourceIndexPath.row, destinationIndexPath.row)
+        }
+
+        @objc func handleLongGesture(gesture: UILongPressGestureRecognizer) {
+            guard let collectionView = gesture.view as? UICollectionView else { return }
+
+            switch(gesture.state) {
+            case .began:
+                guard let indexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) else { return }
+                collectionView.beginInteractiveMovementForItem(at: indexPath)
+            case .changed:
+                collectionView.updateInteractiveMovementTargetPosition(gesture.location(in: collectionView))
+            case .ended:
+                collectionView.endInteractiveMovement()
+            default:
+                collectionView.cancelInteractiveMovement()
+            }
+        }
+    }
+
+    class PreviewCell: UICollectionViewCell {
+        static var reuseIdentifier: String {
+            return String(describing: PreviewCell.self)
+        }
+
+        private var controller: UIHostingController<Preview>?
+        var preview: Preview? {
+            didSet {
+                if let preview = preview {
+                    if let controller = controller {
+                        controller.rootView = preview
+                    } else {
+                        controller = UIHostingController(rootView: preview)
+                        controller!.view.frame = contentView.bounds
+                        controller!.view.backgroundColor = .clear
+                        contentView.addSubview(controller!.view)
+                    }
+                }
+            }
+        }
+
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+            contentView.layer.cornerRadius = 5
+            contentView.layer.masksToBounds = true
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
     }
 }
 
 fileprivate struct CropGestureView: UIViewRepresentable {
-    private var view = UIView()
+    typealias UIViewType = UIView
+
+    private var actions = Actions()
     
-    var dragChangedAction: ((CGPoint) -> Void)?
-    var dragEndedAction: ((CGPoint) -> Void)?
-    var pinchDragChangedAction: ((CGPoint) -> Void)?
-    var pinchDragEndedAction: ((CGPoint) -> Void)?
-    var zoomChangedAction: ((CGFloat) -> Void)?
-    var zoomEndedAction: ((CGFloat) -> Void)?
-    
-    func onZoomChanged(_ action: ((CGFloat) -> Void)?) -> CropGestureView {
-        var copy = self;
-        copy.zoomChangedAction = action;
-        return copy;
+    func onZoomChanged(_ action: @escaping (CGFloat) -> Void) -> CropGestureView {
+        actions.zoomChangedAction = action
+        return self
     }
     
-    func onZoomEnded(_ action: ((CGFloat) -> Void)?) -> CropGestureView {
-        var copy = self;
-        copy.zoomEndedAction = action
-        return copy
+    func onZoomEnded(_ action: @escaping (CGFloat) -> Void) -> CropGestureView {
+        actions.zoomEndedAction = action
+        return self
     }
     
-    func onPinchDragChanged(_ action: ((CGPoint) -> Void)?) -> CropGestureView {
-        var copy = self
-        copy.pinchDragChangedAction = action
-        return copy
+    func onPinchDragChanged(_ action: @escaping (CGPoint) -> Void) -> CropGestureView {
+        actions.pinchDragChangedAction = action
+        return self
     }
     
-    func onPinchDragEnded(_ action: ((CGPoint) -> Void)?) -> CropGestureView {
-        var copy = self
-        copy.pinchDragEndedAction = action
-        return copy
+    func onPinchDragEnded(_ action: @escaping (CGPoint) -> Void) -> CropGestureView {
+        actions.pinchDragEndedAction = action
+        return self
     }
     
-    func onDragChanged(_ action: ((CGPoint) -> Void)?) -> CropGestureView {
-        var copy = self
-        copy.dragChangedAction = action
-        return copy
+    func onDragChanged(_ action: @escaping (CGPoint) -> Void) -> CropGestureView {
+        actions.dragChangedAction = action
+        return self
     }
     
-    func onDragEnded(_ action: ((CGPoint) -> Void)?) -> CropGestureView {
-        var copy = self
-        copy.dragEndedAction = action
-        return copy
+    func onDragEnded(_ action: @escaping (CGPoint) -> Void) -> CropGestureView {
+        actions.dragEndedAction = action
+        return self
     }
     
     func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+
         let dragRecognizer = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.onDrag))
         dragRecognizer.delegate = context.coordinator
         dragRecognizer.maximumNumberOfTouches = 1
@@ -497,45 +593,54 @@ fileprivate struct CropGestureView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UIView, context: Context) {
+        context.coordinator.actions = actions
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(self, view: view)
+        return Coordinator(self)
+    }
+
+    class Actions: NSObject {
+        var dragChangedAction: ((CGPoint) -> Void)?
+        var dragEndedAction: ((CGPoint) -> Void)?
+        var pinchDragChangedAction: ((CGPoint) -> Void)?
+        var pinchDragEndedAction: ((CGPoint) -> Void)?
+        var zoomChangedAction: ((CGFloat) -> Void)?
+        var zoomEndedAction: ((CGFloat) -> Void)?
     }
     
     class Coordinator: NSObject, UIGestureRecognizerDelegate {
         private let parent: CropGestureView
-        private let view: UIView
+
+        var actions: Actions?
         
-        init(_ parent: CropGestureView, view: UIView) {
-            self.parent = parent
-            self.view = view
-            super.init()
+        init(_ view: CropGestureView) {
+            parent = view
         }
         
         @objc func onDrag(sender: UIPanGestureRecognizer) {
-            let location = sender.location(in: view)
+            let location = sender.location(in: sender.view)
             if sender.state == .began || sender.state == .changed {
-                parent.dragChangedAction?(location)
+                actions?.dragChangedAction?(location)
             } else if sender.state == .ended {
-                parent.dragEndedAction?(location)
+                actions?.dragEndedAction?(location)
             }
         }
         
         @objc func onPinchDrag(sender: UIPanGestureRecognizer) {
-            let translation = sender.translation(in: view)
+            let translation = sender.translation(in: sender.view)
             if sender.state == .began || sender.state == .changed {
-                parent.pinchDragChangedAction?(translation)
+                actions?.pinchDragChangedAction?(translation)
             } else if sender.state == .ended {
-                parent.pinchDragEndedAction?(translation)
+                actions?.pinchDragEndedAction?(translation)
             }
         }
         
         @objc func onZoom(sender: UIPinchGestureRecognizer) {
             if sender.state == .began || sender.state == .changed {
-                parent.zoomChangedAction?(sender.scale)
+                actions?.zoomChangedAction?(sender.scale)
             } else if sender.state == .ended {
-                parent.zoomEndedAction?(sender.scale)
+                actions?.zoomEndedAction?(sender.scale)
             }
         }
         
@@ -766,38 +871,18 @@ fileprivate struct CropImage: View {
                                 }
                         })
                     Spacer()
-                }
+                }.frame(maxWidth: .infinity)
             }
         }
     }
 }
 
-fileprivate struct Picker: UIViewControllerRepresentable {
-    typealias UIViewControllerType = UINavigationController
-    
-    @State var media: [MediaEdit]
-    let complete: ([PendingMedia], Bool) -> Void
-    
-    func makeUIViewController(context: Context) -> UINavigationController {
-        let controller = MediaPickerViewController(selected: media.map { $0.media }) { controller, media, cancel in
-            self.complete(media, cancel)
-        }
-        
-        return UINavigationController(rootViewController: controller)
-    }
-    
-    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
-    }
-}
-
 fileprivate struct MediaEditView : View {
     let cropToCircle: Bool
-    let allowMore: Bool
     @State var media: [MediaEdit]
     @State var selected: MediaEdit
     var complete: (([MediaEdit], Int, Bool) -> Void)?
-    
-    @State private var showPicker = false
+
     @State private var showDiscardSheet = false
     
     var topBar: some View {
@@ -818,22 +903,6 @@ fileprivate struct MediaEditView : View {
             }
             
             Spacer()
-            
-            Button(action: {
-                self.media.removeAll { $0 === self.selected }
-                
-                guard let selected = MediaEditViewController.firstImage(items: self.media) else {
-                    self.complete?([], -1, false)
-                    return
-                }
-                
-                self.selected = selected
-            }) {
-                Image(systemName: "trash.fill")
-                    .foregroundColor(.white)
-                    .accessibility(label: Text("Remove"))
-                    .padding()
-            }
             
             Button(action: { self.selected.rotate() }) {
                 Image("Rotate")
@@ -857,6 +926,9 @@ fileprivate struct MediaEditView : View {
     
     var bottomBar: some View {
         HStack {
+            Spacer()
+                .frame(width: 40)
+
             Button(action: { self.selected.reset() }) {
                 Text("Reset")
                     .foregroundColor(.white)
@@ -874,72 +946,9 @@ fileprivate struct MediaEditView : View {
                     .fontWeight(.medium)
                     .padding()
             }
-        }
-    }
-    
-    var addMoreButton: some View {
-        Button(action: { self.showPicker = true }) {
-            Image(systemName: "plus.circle.fill")
-                .foregroundColor(.white)
-                .imageScale(.large)
-                .accessibility(label: Text("More"))
-                .padding()
-        }
-        .sheet(isPresented: $showPicker) {
-            Picker(media: self.media) { newMedia, cancel in
-                self.showPicker = false
-                guard !cancel else { return }
-                
-                var isItemSelected = false
-                var items = [MediaEdit]()
-                
-                outer: for m in newMedia {
-                    for item in self.media {
-                        if item.media.asset == m.asset {
-                            items.append(item)
-                            
-                            if item === self.selected {
-                                isItemSelected = true
-                            }
-                            
-                            continue outer
-                        }
-                    }
-                    
-                    items.append(MediaEdit(cropToCircle: self.cropToCircle, media: m))
-                }
-                
-                self.media.removeAll()
-                self.media.append(contentsOf: items)
-                
-                if !isItemSelected {
-                    if let item = MediaEditViewController.firstImage(items: items) {
-                        self.selected = item
-                    } else {
-                        self.complete?([], -1, false)
-                    }
-                }
-            }
-        }
-    }
-    
-    var previews: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(alignment: .center, spacing: 0) {
-                ForEach(0..<media.count, id: \.self) { i in
-                    Preview(media: self.media[i], selected: self.selected === self.media[i])
-                    .onTapGesture {
-                        if self.media[i].type == .image && self.selected !== self.media[i] {
-                            self.selected = self.media[i]
-                        }
-                    }
-                }
-                
-                // effectively display the button only when the initial selection was also from picker
-                if allowMore && media.allSatisfy { $0.media.asset != nil } {
-                    addMoreButton
-                }
-            }
+
+            Spacer()
+                .frame(width: 40)
         }
     }
 
@@ -952,7 +961,10 @@ fileprivate struct MediaEditView : View {
             VStack {
                 topBar
                 CropImage(cropToCircle: cropToCircle, media: selected)
-                previews
+                PreviewCollection(media: $media, selected: $selected)
+                    .frame(height: 80)
+                Spacer()
+                    .frame(height: 30)
                 bottomBar
             }
         }

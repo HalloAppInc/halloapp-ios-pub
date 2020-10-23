@@ -142,7 +142,7 @@ fileprivate struct ImagePickerNew: UIViewControllerRepresentable {
             if cancel || media.count == 0 {
                 self.presentationMode.wrappedValue.dismiss()
             } else {
-                let edit = MediaEditViewController(cropToCircle: true, allowMore: false, mediaToEdit: media, selected: 0) { controller, media, index, cancel in
+                let edit = MediaEditViewController(cropToCircle: true, mediaToEdit: media, selected: 0) { controller, media, index, cancel in
                     controller.dismiss(animated: true)
 
                     if !cancel && media.count > 0 {
