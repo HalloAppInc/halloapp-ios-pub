@@ -783,7 +783,7 @@ fileprivate class TitleView: UIView {
         avatarView = AvatarViewButton(type: .custom)
         avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
         avatarView.newPostsIndicatorRingWidth = LayoutConstants.avatarRingWidth
-        let avatarButtonWidth: CGFloat = LayoutConstants.avatarSize + (avatarView.hasNewPostsIndicator ? 2*LayoutConstants.avatarRingWidth : 0)
+        let avatarButtonWidth: CGFloat = LayoutConstants.avatarSize + (avatarView.hasNewPostsIndicator ? 2*(avatarView.newPostsIndicatorRingSpacing + avatarView.newPostsIndicatorRingWidth) : 0)
         avatarView.widthAnchor.constraint(equalToConstant: avatarButtonWidth).isActive = true
         avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
         if ServerProperties.isGroupFeedEnabled {

@@ -16,7 +16,7 @@ import UIKit
 // MARK: Constraint Constants
 fileprivate struct LayoutConstants {
     static let avatarSize: CGFloat = 50
-    static let avatarRingWidth: CGFloat = 5
+    static let avatarRingWidth: CGFloat = 4
 }
 
 fileprivate enum ChatListViewSection {
@@ -779,7 +779,7 @@ private class ChatListTableViewCell: UITableViewCell {
         vStack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(vStack)
 
-        let avatarSize: CGFloat = LayoutConstants.avatarSize + (avatarView.hasNewPostsIndicator ? 2*LayoutConstants.avatarRingWidth : 0)
+        let avatarSize: CGFloat = LayoutConstants.avatarSize + (avatarView.hasNewPostsIndicator ? 2*(avatarView.newPostsIndicatorRingSpacing + avatarView.newPostsIndicatorRingWidth) : 0)
         contentView.addConstraints([
             avatarView.widthAnchor.constraint(equalToConstant: avatarSize),
             avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor),

@@ -35,6 +35,8 @@ class AvatarViewButton: UIButton {
         }
     }
 
+    let newPostsIndicatorRingSpacing: CGFloat = 1
+
     private enum NewPostsIndicatorState {
         case noIndicator
         case newPosts
@@ -95,7 +97,7 @@ class AvatarViewButton: UIButton {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        let avatarViewRectInset = hasNewPostsIndicator ? newPostsIndicatorRingWidth : 0
+        let avatarViewRectInset = hasNewPostsIndicator ? newPostsIndicatorRingWidth + newPostsIndicatorRingSpacing : 0
         avatarView.frame = bounds.insetBy(dx: avatarViewRectInset, dy: avatarViewRectInset)
 
         if let ringView = ringView {
