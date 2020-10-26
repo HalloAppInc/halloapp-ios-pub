@@ -29,7 +29,6 @@ public extension FeedCommentProtocol {
         let commentElement = XMPPElement(name: "comment")
         commentElement.addAttribute(withName: "id", stringValue: id)
         commentElement.addAttribute(withName: "post_id", stringValue: feedPostId)
-        commentElement.addAttribute(withName: "post_uid", stringValue: feedPostUserId)
         if let parentCommentId = parentId {
             commentElement.addAttribute(withName: "parent_comment_id", stringValue: parentCommentId)
         }
