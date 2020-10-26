@@ -360,6 +360,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     private func openFeed(forGroupId groupId: GroupID, groupName: String) {
         let viewController = GroupFeedViewController(groupId: groupId, groupName: groupName)
+        viewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(viewController, animated: true)
     }
 
