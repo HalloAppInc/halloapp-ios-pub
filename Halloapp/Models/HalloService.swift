@@ -52,7 +52,9 @@ protocol HalloService: CoreService {
     var didGetNewChatMessage: PassthroughSubject<ChatMessageProtocol, Never> { get }
     var didGetChatAck: PassthroughSubject<ChatAck, Never> { get }
     var didGetPresence: PassthroughSubject<ChatPresenceInfo, Never> { get }
+    var didGetChatState: PassthroughSubject<ChatStateInfo, Never> { get }
     func sendPresenceIfPossible(_ presenceType: PresenceType)
+    func sendChatStateIfPossible(type: ChatType, id: String, state: ChatState)
 
     // MARK: Groups
     func sendGroupChatMessage(_ message: HalloGroupChatMessage)

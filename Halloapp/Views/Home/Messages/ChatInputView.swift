@@ -528,6 +528,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         textView.text = text
         textView.tag = 1
         textView.textColor = UIColor.label
+        postMediaButton.isHidden = true // hide media button when there's text
         postButton.isEnabled = true
     }
     
@@ -547,6 +548,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
 
     func textViewDidChange(_ textView: UITextView) {
         postButton.isEnabled = !text.isEmpty
+        postMediaButton.isHidden = !text.isEmpty // hide media button when there's text
         
         if textView.contentSize.height >= 115 {
             textViewContainerHeightConstraint?.constant = 115
@@ -615,6 +617,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     }
 
     func showKeyboard(from viewController: UIViewController) {
+        guard isVisible else { return }
         guard viewController.isFirstResponder || self.isKeyboardVisible else { return }
         
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.3) {

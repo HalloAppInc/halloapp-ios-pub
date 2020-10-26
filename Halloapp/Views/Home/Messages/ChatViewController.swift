@@ -186,6 +186,15 @@ class ChatViewController: UIViewController, ChatInputViewDelegate, NSFetchedResu
             }
         )
 
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] chatStateInfo in
+                DDLogInfo("ChatViewController/didGetChatStateInfo")
+//                guard let self = self else { return }
+//                guard let userId = self.fromUserId else { return }
+//                self.titleView.update(with: userId, status: status, lastSeen: ts)
+            }
+        )
+        
         guard let thread = MainAppContext.shared.chatData.chatThread(type: .oneToOne, id: fromUserId) else { return }
         guard thread.draft != "", let draft = thread.draft else { return }
         chatInputView.setDraftText(text: draft)
@@ -212,10 +221,12 @@ class ChatViewController: UIViewController, ChatInputViewDelegate, NSFetchedResu
             MainAppContext.shared.chatData.updateUnreadMessageCount()
             MainAppContext.shared.chatData.subscribeToPresence(to: chatWithUserId)
             MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
+            
+//            MainAppContext.shared.chatData.sendChatState(type: .oneToOne, id: chatWithUserId, state: .typing)
 
             UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
         }
-        self.chatInputView.didAppear(in: self)
+        chatInputView.didAppear(in: self)
     }
 
     override func viewWillDisappear(_ animated: Bool) {

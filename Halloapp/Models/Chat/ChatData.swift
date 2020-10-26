@@ -13,13 +13,10 @@ typealias ChatAck = (id: String, timestamp: Date?)
 
 typealias ChatPresenceInfo = (userID: UserID, presence: PresenceType?, lastSeen: Date?)
 
+typealias ChatStateInfo = (from: UserID, threadType: ChatType, threadID: String, type: ChatState)
+
 typealias ChatMessageID = String
 typealias ChatGroupMessageID = String
-
-public enum ChatType: Int16 {
-    case oneToOne = 0
-    case group = 1
-}
 
 public enum UserPresenceType: Int16 {
     case none = 0
@@ -33,6 +30,7 @@ class ChatData: ObservableObject {
     let didChangeUnreadThreadCount = PassthroughSubject<Int, Never>()
     let didChangeUnreadCount = PassthroughSubject<Int, Never>()
     let didGetCurrentChatPresence = PassthroughSubject<(UserPresenceType, Date?), Never>()
+    let didGetChatStateInfo = PassthroughSubject<ChatStateInfo, Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
@@ -159,6 +157,14 @@ class ChatData: ObservableObject {
                 DDLogInfo("ChatData/gotPresence \(xmppPresence)")
                 guard let self = self else { return }
                 self.processIncomingPresence(xmppPresence)
+            }
+        )
+        
+        cancellableSet.insert(
+            service.didGetChatState.sink { [weak self] chatStateInfo in
+                DDLogInfo("ChatData/didGetChatState \(chatStateInfo)")
+                guard let self = self else { return }
+                self.processIncomingChatState(chatStateInfo)
             }
         )
         
@@ -756,6 +762,14 @@ class ChatData: ObservableObject {
         MainAppContext.shared.applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1
     }
     
+    // MARK: Chat State
+    
+    func sendChatState(type: ChatType, id: String, state: ChatState) {
+        DDLogInfo("ChatData/sendChatState \(state) in \(id)")
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            self.service.sendChatStateIfPossible(type: type, id: id, state: state)
+        }
+    }
     
     // MARK: Helpers
     
@@ -910,6 +924,14 @@ extension ChatData {
                 self.save(managedObjectContext)
             }
         }
+    }
+}
+
+// MARK: Chat State
+extension ChatData {
+    
+    private func processIncomingChatState(_ chatStateInfo: ChatStateInfo) {
+        didGetChatStateInfo.send(chatStateInfo)
     }
 }
 

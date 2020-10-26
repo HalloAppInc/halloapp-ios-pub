@@ -40,11 +40,11 @@ class EditGroupViewController: UIViewController {
     override func viewDidLoad() {
         DDLogInfo("EditGroupViewController/viewDidLoad")
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Update", style: .plain, target: self, action: #selector(updateAction))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(updateAction))
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
         
-        navigationItem.title = "Edit Group"
+        navigationItem.title = "Edit"
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         
@@ -71,14 +71,13 @@ class EditGroupViewController: UIViewController {
         textView.becomeFirstResponder()
         
         updateCount()
-        avatarView.configure(groupId: chatGroup.groupId, using: MainAppContext.shared.avatarStore)
     }
     
     private lazy var mainView: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ avatarRow, textView, countRow, spacer ])
+        let view = UIStackView(arrangedSubviews: [ textView, spacer ])
         
         view.axis = .vertical
         view.spacing = 0
@@ -88,38 +87,6 @@ class EditGroupViewController: UIViewController {
         
         view.translatesAutoresizingMaskIntoConstraints = false
         
-        return view
-    }()
-    
-    private lazy var avatarRow: UIStackView = {
-        let leftSpacer = UIView()
-        leftSpacer.translatesAutoresizingMaskIntoConstraints = false
-    
-        let rightSpacer = UIView()
-        rightSpacer.translatesAutoresizingMaskIntoConstraints = false
-        
-        let view = UIStackView(arrangedSubviews: [ leftSpacer, avatarView, rightSpacer ])
-
-        view.axis = .horizontal
-        view.distribution = .equalCentering
-        
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 20, right: 0)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        avatarView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
-        avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.openEditAvatarOptions))
-        view.isUserInteractionEnabled = true
-        view.addGestureRecognizer(tapGesture)
-        
-        return view
-    }()
-    
-    private lazy var avatarView: AvatarView = {
-        let view = AvatarView()
         return view
     }()
     
@@ -182,22 +149,6 @@ class EditGroupViewController: UIViewController {
         }
     }
     
-    @objc private func openEditAvatarOptions() {
-        let actionSheet = UIAlertController(title: "Edit Group Photo", message: nil, preferredStyle: .actionSheet)
-
-        actionSheet.addAction(UIAlertAction(title: "Take or Choose Photo", style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            self.presentPhotoLibraryPickerNew()
-        })
-        
-//        actionSheet.addAction(UIAlertAction(title: "Delete Photo", style: .destructive) { _ in
-//
-//        })
-        
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        self.present(actionSheet, animated: true)
-    }
-
     // MARK: Helpers
     private func updateCount() {
         textView.text = String(textView.text.prefix(Constants.MaxNameLength))
@@ -205,52 +156,6 @@ class EditGroupViewController: UIViewController {
         characterCounter.text = "\(label)/\(Constants.MaxNameLength)"
     }
     
-    private func presentPhotoLibraryPickerNew() {
-        let pickerController = MediaPickerViewController(filter: .image, multiselect: false, camera: true) { [weak self] controller, media, cancel in
-            guard let self = self else { return }
-
-            if cancel || media.count == 0 {
-                controller.dismiss(animated: true)
-            } else {
-                let edit = MediaEditViewController(cropToCircle: true, allowMore: false, mediaToEdit: media, selected: 0) { controller, media, index, cancel in
-                    controller.dismiss(animated: true)
-
-                    if !cancel && media.count > 0 {
-                        
-                        guard let image = media[0].image else { return }
-                        
-                        guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
-                            DDLogError("EditGroupViewController/resizeImage error resize failed")
-                            return
-                        }
-
-                        let data = resizedImage.jpegData(compressionQuality: CGFloat(UserData.compressionQuality))!
-                        
-                        MainAppContext.shared.chatData.changeGroupAvatar(groupID: self.chatGroup.groupId, data: data) { [weak self] result in
-                            guard let self = self else { return }
-                            switch result {
-                            case .success:
-                                DispatchQueue.main.async() {
-                                    self.avatarView.configure(groupId: self.chatGroup.groupId, using: MainAppContext.shared.avatarStore)
-                                    controller.dismiss(animated: true)
-                                }
-                            case .failure(let error):
-                                DDLogError("CreateGroupViewController/createAction/error \(error)")
-                            }
-                        }
-                        
-                        self.dismiss(animated: true)
-                    }
-                }
-                
-                edit.modalPresentationStyle = .fullScreen
-                controller.present(edit, animated: true)
-            }
-        }
-        
-        self.present(UINavigationController(rootViewController: pickerController), animated: true)
-    }
-
 }
 
 extension EditGroupViewController: UITextViewDelegate {

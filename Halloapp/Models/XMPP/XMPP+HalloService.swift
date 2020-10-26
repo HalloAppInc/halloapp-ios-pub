@@ -111,6 +111,17 @@ extension XMPPControllerMain: HalloService {
         return true
     }
 
+    func sendChatStateIfPossible(type: ChatType, id: String, state: ChatState) {
+        guard isConnected else { return }
+        DDLogInfo("XMPP Service/sendChatStateIfPossible \(state.rawValue) in \(id)")
+        let chatState = XMPPElement(name: "chat_state")
+        chatState.addAttribute(withName: "to", stringValue: "s.halloapp.net")
+        chatState.addAttribute(withName: "thread_type", stringValue: type == .oneToOne ? "chat" : "group_chat")
+        chatState.addAttribute(withName: "thread_id", stringValue: id)
+        chatState.addAttribute(withName: "type", stringValue: state.rawValue)
+        xmppStream.send(chatState)
+    }
+    
     func checkVersionExpiration(completion: @escaping ServiceRequestCompletion<TimeInterval>) {
         enqueue(request: XMPPClientVersionRequest() { (iq, error) in
             guard let clientVersion = iq?.element(forName: "client_version"),

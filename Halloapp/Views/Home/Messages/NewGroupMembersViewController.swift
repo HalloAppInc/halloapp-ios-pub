@@ -34,7 +34,15 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     
     private var trackedContacts: [String:TrackedContact] = [:]
 
-    private var selectedMembers: [UserID] = []
+    private var selectedMembers: [UserID] = [] {
+        didSet {
+            if selectedMembers.count == 0 {
+                memberAvatarsRow.isHidden = true
+            } else {
+                memberAvatarsRow.isHidden = false
+            }
+        }
+    }
     
     private var alreadyHaveMembers: Bool = false
     private var currentMembers: [UserID] = []
@@ -116,7 +124,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ tableView ])
+        let view = UIStackView(arrangedSubviews: [ tableView, memberAvatarsRow ])
         view.axis = .vertical
   
         view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
@@ -127,27 +135,30 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         return view
     }()
     
-    
     private lazy var memberAvatarsRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ groupMemberAvatars ])
-        
         view.axis = .horizontal
 
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.layoutMargins = UIEdgeInsets(top: 15, left: 0, bottom: 10, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.heightAnchor.constraint(equalToConstant: 80).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 100).isActive = true
         
         let subView = UIView(frame: view.bounds)
-        subView.layer.cornerRadius = 20
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
-        subView.backgroundColor = UIColor.red
+        subView.backgroundColor = UIColor.feedBackground
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(subView, at: 0)
         
+        let topBorder = UIView(frame: view.bounds)
+        topBorder.frame.size.height = 1
+        topBorder.backgroundColor = UIColor.secondarySystemGroupedBackground
+        topBorder.autoresizingMask = [.flexibleWidth]
+        view.insertSubview(topBorder, at: 1)
+        
+        view.isHidden = true
         
         return view
     }()
@@ -423,10 +434,11 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
             }
             
             selectedMembers.append(userId)
-//            groupMemberAvatars.insert(with: [userId])
+            groupMemberAvatars.insert(with: [userId])
             isSelected = true
         } else {
             selectedMembers.removeAll(where: {$0 == userId})
+            groupMemberAvatars.removeUser(userId)
         }
         cell.setContact(selected: isSelected, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
@@ -477,10 +489,10 @@ extension NewGroupMembersViewController: NewGroupMembersHeaderViewDelegate {
 extension NewGroupMembersViewController: GroupMemberAvatarsDelegate {
     
     func groupMemberAvatarsDelegate(_ view: GroupMemberAvatars, selectedUser: String) {
-     
+        
         selectedMembers.removeAll(where: { $0 == selectedUser })
         
-//        membersLabel.text = "MEMBERS: (\(String(selectedMembers.count)))"
+        tableView.reloadData()
         
     }
 }

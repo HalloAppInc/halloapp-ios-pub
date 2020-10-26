@@ -64,7 +64,7 @@ open class XMPPController: NSObject, ObservableObject {
     open func configure(xmppStream: XMPPStream) {
         /* probably should be "required" once all servers including test servers are secured */
         xmppStream.startTLSPolicy = XMPPStreamStartTLSPolicy.preferred
-        xmppStream.registerCustomElementNames(["ack"])
+        xmppStream.registerCustomElementNames(["ack", "chat_state"])
         xmppStream.myJID = userData.userJID
         
         let appVersion = AppContext.appVersionForXMPP
@@ -252,6 +252,10 @@ open class XMPPController: NSObject, ObservableObject {
     open func didReceive(presence: XMPPPresence) {
         // Subclasses to implement.
     }
+    
+    open func didReceive(chatState: XMPPChatState) {
+        // Subclasses to implement.
+    }
 }
 
 extension XMPPController: XMPPStreamDelegate {
@@ -367,7 +371,14 @@ extension XMPPController: XMPPStreamDelegate {
             } else {
                 DDLogError("xmpp/ack/invalid [\(element)]")
             }
+        } else if element.name == "chat_state" {
+            if let chatState = XMPPChatState(xml: element) {
+                didReceive(chatState: chatState)
+            } else {
+                DDLogError("xmpp/chatState/invalid [\(element)]")
+            }
         }
+        
     }
 }
 

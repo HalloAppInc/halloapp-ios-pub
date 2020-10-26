@@ -210,8 +210,7 @@ public extension Server_Packet {
         case .presence(let presence):
             return presence.id
         case .chatState:
-            // TODO: do we need an ID here for anything?
-            return nil
+            return UUID().uuidString // throwaway id, chat states don't use them
         case .haError:
             return nil
         }

@@ -185,6 +185,37 @@ final class ProtoPresenceUpdate: ProtoStandardRequest<Void> {
     }
 }
 
+final class ProtoSendChatState: ProtoStandardRequest<Void> {
+    init(type: ChatType, id: String, state: ChatState, completion: @escaping ServiceRequestCompletion<Void>) {
+        var chatState = Server_ChatState()
+        chatState.threadType = {
+            switch type {
+            case .oneToOne:
+                return .chat
+            case .group:
+                return .groupChat
+            }
+        }()
+        chatState.threadID = id
+        chatState.type = {
+            switch state {
+            case .available:
+                return .available
+            case .typing:
+                return .typing
+            }
+        }()
+        if let uid = Int64(AppContext.shared.userData.userId) {
+            chatState.fromUid = uid
+        }
+
+        var packet = Server_Packet()
+        packet.chatState = chatState
+
+        super.init(packet: packet, transform: { _ in .success(()) }, completion: completion)
+    }
+}
+
 final class ProtoSendReceipt: ProtoStandardRequest<Void> {
     init(
         messageID: String? = nil,

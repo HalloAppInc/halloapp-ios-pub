@@ -6,7 +6,6 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import AVKit
 import Core
 import UIKit
 
@@ -29,127 +28,82 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-    
-    func configure(with avatars: [UserID]) {
-        avatarUserIDs = avatars
-        for (index, avatarUserID) in avatars.enumerated() {
 
-            let avatarView = AvatarView()
-            avatarView.configure(with: avatarUserID, using: MainAppContext.shared.avatarStore)
-            avatarView.translatesAutoresizingMaskIntoConstraints = false
-            avatarView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
-            avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
-            
-            let deleteButtonSize: CGFloat = 25
-            
-            let button = UIImageView()
-            button.image = UIImage(systemName: "xmark")?
-                .withRenderingMode(.alwaysTemplate)
-//                .withAlignmentRectInsets(UIEdgeInsets(top: 7, left: 7, bottom: 7, right: 7))
-                
-            button.contentMode = .center
-            button.tintColor = UIColor.white
-            button.backgroundColor = UIColor.systemGray
-            
-            button.layer.masksToBounds = false
-            button.layer.cornerRadius = deleteButtonSize/2
-            button.clipsToBounds = true
-            
-            button.frame = CGRect(x: avatarView.bounds.maxX - 15, y: -5, width: deleteButtonSize, height: deleteButtonSize)
-            button.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
-            
-            button.tag = index
-            
-            
-            button.isUserInteractionEnabled = true
-            let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.deleteImage(_:)))
-            button.addGestureRecognizer(tapGestureRecognizer)
-            
-            
-            avatarView.isUserInteractionEnabled = true
-            
-            avatarView.addSubview(button)
-            
-
-            avatarView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10);
-            
-            
-            innerStack.addArrangedSubview(avatarView)
-            
-        }
-        
-        // Set the scrollView contentSize
-        let contentSizeWidth = Constants.AvatarSize * CGFloat(avatars.count)
-
-        scrollView.contentSize = CGSize(width: contentSizeWidth, height: 100)
-        
-        mainView.constrain(to: self) // constrain again since subviews were added to scrollview
-        
-    }
-    
     func insert(with avatars: [UserID]) {
-        avatarUserIDs = avatars
-        for (index, avatarUserID) in avatars.enumerated() {
-
+        
+        for (_, avatarUserID) in avatars.enumerated() {
+            guard !avatarUserIDs.contains(avatarUserID) else { continue }
+            
+            avatarUserIDs.append(avatarUserID)
+            
+            // avatar image
             let avatarView = AvatarView()
             avatarView.configure(with: avatarUserID, using: MainAppContext.shared.avatarStore)
             avatarView.translatesAutoresizingMaskIntoConstraints = false
             avatarView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
             avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
             
-            let deleteButtonSize: CGFloat = 25
+            // delete icon
+            let deleteIconSize: CGFloat = 25
+            let deleteIcon = TaggableUIImageView()
+            deleteIcon.image = UIImage(systemName: "xmark")?.withRenderingMode(.alwaysTemplate)
+            deleteIcon.contentMode = .center
+            deleteIcon.tintColor = UIColor.secondarySystemGroupedBackground
+            deleteIcon.backgroundColor = UIColor.label
+            deleteIcon.layer.masksToBounds = false
+            deleteIcon.layer.cornerRadius = deleteIconSize/2
+            deleteIcon.clipsToBounds = true
+            deleteIcon.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
             
-            let button = UIImageView()
-            button.image = UIImage(systemName: "xmark")?
-                .withRenderingMode(.alwaysTemplate)
-//                .withAlignmentRectInsets(UIEdgeInsets(top: 7, left: 7, bottom: 7, right: 7))
-                
-            button.contentMode = .center
-            button.tintColor = UIColor.white
-            button.backgroundColor = UIColor.systemGray
+            deleteIcon.tagString = avatarUserID
             
-            button.layer.masksToBounds = false
-            button.layer.cornerRadius = deleteButtonSize/2
-            button.clipsToBounds = true
+            let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(deleteImage(_:)))
+            deleteIcon.addGestureRecognizer(tapGestureRecognizer)
+            deleteIcon.isUserInteractionEnabled = true
             
-            button.frame = CGRect(x: avatarView.bounds.maxX - 15, y: -5, width: deleteButtonSize, height: deleteButtonSize)
-            button.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
+            // name label
+            let nameLabel = UILabel()
+            nameLabel.numberOfLines = 1
+            nameLabel.font = .systemFont(ofSize: 11)
+            nameLabel.textColor = .label
+            nameLabel.textAlignment = .center
+            nameLabel.text = MainAppContext.shared.contactStore.firstName(for: avatarUserID)
+            nameLabel.translatesAutoresizingMaskIntoConstraints = false
             
-            button.tag = index
+            // main avatar container
+            let avatarBoxView = UIView()
             
+            avatarBoxView.translatesAutoresizingMaskIntoConstraints = false
+            avatarBoxView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize + 15).isActive = true
+            avatarBoxView.heightAnchor.constraint(equalToConstant: Constants.AvatarSize + 25).isActive = true
             
-            button.isUserInteractionEnabled = true
-            let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.deleteImage(_:)))
-            button.addGestureRecognizer(tapGestureRecognizer)
+            // add avatar image
+            avatarBoxView.addSubview(avatarView)
             
+            avatarView.centerXAnchor.constraint(equalTo: avatarBoxView.centerXAnchor).isActive = true
+            avatarView.topAnchor.constraint(equalTo: avatarBoxView.topAnchor, constant: 10).isActive = true
             
-            avatarView.isUserInteractionEnabled = true
+            // add delete icon
+            deleteIcon.frame = CGRect(x: avatarBoxView.bounds.maxX - deleteIconSize, y: 0, width: deleteIconSize, height: deleteIconSize)
+            avatarBoxView.addSubview(deleteIcon)
             
-            avatarView.addSubview(button)
+            // add name label
+            avatarBoxView.addSubview(nameLabel)
             
-
-            avatarView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10);
+            nameLabel.leadingAnchor.constraint(equalTo: avatarBoxView.leadingAnchor).isActive = true
+            nameLabel.trailingAnchor.constraint(equalTo: avatarBoxView.trailingAnchor).isActive = true
+            nameLabel.bottomAnchor.constraint(equalTo: avatarBoxView.bottomAnchor).isActive = true
             
-            
-            innerStack.addArrangedSubview(avatarView)
-            
+            // add main avatar container into scrollview
+            innerStack.addArrangedSubview(avatarBoxView)
         }
         
-        // Set the scrollView contentSize
-        let contentSizeWidth = Constants.AvatarSize * CGFloat(avatars.count)
-
-        scrollView.contentSize = CGSize(width: contentSizeWidth, height: 100)
-        
-        
-        
-//        mainView.constrain(to: self) // constrain again since subviews were added to scrollview
-        
-        scrollView.contentSize.height = 1.0
-        
+        DispatchQueue.main.async {
+            self.setContentSizeAndOffset()
+        }
     }
     
     private func setup() {
-        
         addSubview(mainView)
         mainView.constrain(to: self)
     }
@@ -176,7 +130,6 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
         view.showsVerticalScrollIndicator = false
         view.delegate = self
         
-
         view.addSubview(innerStack)
         
         innerStack.constrain(to: view)
@@ -190,30 +143,60 @@ class GroupMemberAvatars: UIView, UIScrollViewDelegate {
         view.spacing = 10
         
         view.isLayoutMarginsRelativeArrangement = true
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
         
         view.translatesAutoresizingMaskIntoConstraints = false
-        
-        
+
         return view
     }()
     
+    func removeUser(_ userID: UserID) {
+        guard let index = avatarUserIDs.firstIndex(where: {$0 == userID}) else { return }
+        
+        avatarUserIDs.removeAll(where: {$0 == userID})
+        
+        let subview = innerStack.arrangedSubviews[index]
+        innerStack.removeArrangedSubview(subview)
+        subview.removeFromSuperview()
+
+        setContentSizeAndOffset()
+    }
+    
     // MARK: Actions
     
-    @objc private func deleteImage(_ sender: AnyObject) {
+    @objc private func deleteImage(_ sender: UITapGestureRecognizer) {
+        guard let view = sender.view as? TaggableUIImageView else { return }
+        guard let userID = view.tagString else { return }
+       
+        avatarUserIDs.removeAll(where: {$0 == userID})
         
-    
-        let selectedUserID = avatarUserIDs[sender.view.tag]
+        delegate?.groupMemberAvatarsDelegate(self, selectedUser: userID)
         
-        delegate?.groupMemberAvatarsDelegate(self, selectedUser: selectedUserID)
-        
-        if let view2 = sender.view.superview {
-            view2.removeFromSuperview()
+        if let parent = view.superview {
+            parent.removeFromSuperview()
         }
+        
+        setContentSizeAndOffset()
+        
     }
     
     // MARK: Helpers
     
-
+    private func setContentSizeAndOffset() {
+        let contentSizeWidth = innerStack.bounds.width + 20
+        scrollView.contentSize = CGSize(width: contentSizeWidth, height: 1)
+        
+        let diff = self.scrollView.contentSize.width - self.scrollView.bounds.size.width
+        
+        let point = CGPoint(x: diff, y: 0)
+        
+        if diff > 0 {
+            scrollView.setContentOffset(point, animated: true)
+        }
+    }
+    
 }
 
+fileprivate class TaggableUIImageView:UIImageView {
+    var tagString: String?
+}

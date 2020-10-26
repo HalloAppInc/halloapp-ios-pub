@@ -12,6 +12,16 @@ import XMPPFramework
 
 public typealias GroupID = String
 
+public enum ChatType: Int16 {
+    case oneToOne = 0
+    case group = 1
+}
+
+public enum ChatState: String {
+    case available = "available"
+    case typing = "typing"
+}
+
 public enum ChatMessageMediaType: Int {
     case image = 0
     case video = 1

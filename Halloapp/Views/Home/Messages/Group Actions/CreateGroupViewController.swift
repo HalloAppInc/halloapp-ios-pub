@@ -6,15 +6,13 @@
 //
 
 import CocoaLumberjack
-import Combine
 import Core
-import CoreData
-import Foundation
 import UIKit
 
 fileprivate struct Constants {
     static let MaxNameLength = 25
-    static let AvatarSize: CGFloat = UIScreen.main.bounds.height * 0.10
+    static let AvatarSize: CGFloat = 100
+    static let PhotoIconSize: CGFloat = 40
 }
 
 protocol CreateGroupViewControllerDelegate: AnyObject {
@@ -86,7 +84,6 @@ class CreateGroupViewController: UIViewController {
         view.setCustomSpacing(0, after: groupNameLabelRow)
         view.setCustomSpacing(0, after: membersRow)
         
-
         view.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         
@@ -102,7 +99,7 @@ class CreateGroupViewController: UIViewController {
         let rightSpacer = UIView()
         rightSpacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ leftSpacer, avatarView, rightSpacer ])
+        let view = UIStackView(arrangedSubviews: [ leftSpacer, avatarBox, rightSpacer ])
 
         view.axis = .horizontal
         view.distribution = .equalCentering
@@ -112,12 +109,25 @@ class CreateGroupViewController: UIViewController {
         
         view.translatesAutoresizingMaskIntoConstraints = false
         
-        avatarView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
-        avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
+        return view
+    }()
+    
+    private lazy var avatarBox: UIView = {
+        let viewWidth = Constants.AvatarSize + 40
+        let viewHeight = Constants.AvatarSize
+        let view = UIView()
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.widthAnchor.constraint(equalToConstant: viewWidth).isActive = true
+        view.heightAnchor.constraint(equalToConstant: viewHeight).isActive = true
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(chooseAvatar))
-        view.isUserInteractionEnabled = true
-        view.addGestureRecognizer(tapGesture)
+        view.addSubview(avatarView)
+        
+        avatarView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        avatarView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        
+        photoIcon.frame = CGRect(x: 0 - Constants.PhotoIconSize, y: viewHeight - Constants.PhotoIconSize, width: Constants.PhotoIconSize, height: Constants.PhotoIconSize)
+        view.addSubview(photoIcon)
         
         return view
     }()
@@ -126,11 +136,37 @@ class CreateGroupViewController: UIViewController {
         let view = UIImageView()
         view.image = AvatarView.defaultGroupImage
         view.contentMode = .scaleAspectFit
-        view.tintColor = .systemGray
+        view.tintColor = UIColor.avatarPlaceholder
+        
         view.layer.masksToBounds = false
         view.layer.cornerRadius = Constants.AvatarSize/2
         view.clipsToBounds = true
+     
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.widthAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
+        view.heightAnchor.constraint(equalToConstant: Constants.AvatarSize).isActive = true
+        
         return view
+    }()
+    
+    private lazy var photoIcon: UIImageView = {
+        let icon = UIImageView()
+        let image = UIImage(named: "ProfileHeaderCamera")
+        icon.image = image?.imageResized(to: CGSize(width: 20, height: 20)).withRenderingMode(.alwaysTemplate)
+        
+        icon.contentMode = .center
+        icon.tintColor = UIColor.secondarySystemGroupedBackground
+        icon.backgroundColor = UIColor.systemBlue
+        icon.layer.masksToBounds = false
+        icon.layer.cornerRadius = Constants.PhotoIconSize/2
+        icon.clipsToBounds = true
+        icon.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(chooseAvatar))
+        icon.isUserInteractionEnabled = true
+        icon.addGestureRecognizer(tapGesture)
+        
+        return icon
     }()
     
     private lazy var groupNameLabelRow: UIStackView = {
@@ -265,7 +301,20 @@ class CreateGroupViewController: UIViewController {
     }
     
     @objc private func chooseAvatar() {
-        presentPhotoLibraryPickerNew()
+        let actionSheet = UIAlertController(title: "Group Photo", message: nil, preferredStyle: .actionSheet)
+        actionSheet.view.tintColor = UIColor.systemBlue
+        
+        actionSheet.addAction(UIAlertAction(title: "Take or Choose Photo", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.presentPhotoLibraryPicker()
+        })
+        
+//        actionSheet.addAction(UIAlertAction(title: "Delete Photo", style: .destructive) { _ in
+//
+//        })
+        
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        present(actionSheet, animated: true)
     }
     
     // MARK: Helpers
@@ -279,7 +328,7 @@ class CreateGroupViewController: UIViewController {
         characterCounter.text = "\(label)/\(Constants.MaxNameLength)"
     }
 
-    private func presentPhotoLibraryPickerNew() {
+    private func presentPhotoLibraryPicker() {
         let pickerController = MediaPickerViewController(filter: .image, multiselect: false, camera: true) { [weak self] controller, media, cancel in
             guard let self = self else { return }
 
@@ -397,5 +446,13 @@ private extension ContactTableViewCell {
             contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
         }
 
+    }
+}
+
+fileprivate extension UIImage {
+    func imageResized(to size: CGSize) -> UIImage {
+        return UIGraphicsImageRenderer(size: size).image { _ in
+            draw(in: CGRect(origin: .zero, size: size))
+        }
     }
 }

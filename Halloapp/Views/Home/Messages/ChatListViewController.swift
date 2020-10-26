@@ -32,7 +32,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     private let tableView = UITableView()
 
     private var filteredChats: [ChatThread] = []
-    private var searchController: UISearchController!
+    private var searchController: DismissableUISearchController!
     var isSearchBarEmpty: Bool {
       return searchController.searchBar.text?.isEmpty ?? true
     }
@@ -52,11 +52,10 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     override func viewDidLoad() {
         DDLogInfo("ChatListViewController/viewDidLoad")
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"), style: .plain, target: self, action: #selector(openSearchAction))
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         
-        searchController = UISearchController(searchResultsController: nil)
+        searchController = DismissableUISearchController(searchResultsController: nil)
         searchController.delegate = self
         searchController.searchResultsUpdater = self
         searchController.searchBar.autocapitalizationType = .none
@@ -69,7 +68,14 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         searchController.searchBar.barTintColor = UIColor.feedBackground
         searchController.searchBar.tintColor = UIColor.systemBlue
         searchController.searchBar.searchTextField.backgroundColor = UIColor.feedBackground
-
+        
+        if #available(iOS 14, *) {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"), style: .plain, target: self, action: #selector(openSearchAction))
+        } else {
+            // don't present searchbar in ios 13 since it jumps below the navbar when presented
+            navigationItem.searchController = searchController
+        }
+        
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.constrain(to: view)
@@ -85,8 +91,18 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         tableView.register(ChatListInviteFriendsTableViewCell.self, forCellReuseIdentifier: ChatListViewController.inviteFriendsReuseIdentifier)
         tableView.delegate = self
         tableView.dataSource = self
-
+        
+        let header = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 13))
+        tableView.tableHeaderView = header
+        
         setupFetchedResultsController()
+        
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] chatStateInfo in
+                guard let self = self else { return }
+                self.updateChatWithTypingIndicator(chatStateInfo: chatStateInfo)
+            }
+        )
         
         // When the user was on this view
         cancellableSet.insert(
@@ -124,6 +140,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         floatingMenu.setState(.collapsed, animated: true)
         
         searchController.isActive = false
+        searchController.searchBar.text = ""
+        searchController.dismiss(animated: false)
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -315,6 +333,9 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             MainAppContext.shared.chatData.populateThreadsWithSymmetricContacts()
             lastCheckedForNewContacts = Date()
         }
+    }
+    
+    private func updateChatWithTypingIndicator(chatStateInfo: ChatStateInfo) {
     }
    
     // MARK: Tap Notification
@@ -574,6 +595,8 @@ private class ChatListInviteFriendsTableViewCell: UITableViewCell {
 
 private class ChatListTableViewCell: UITableViewCell {
 
+    public var chatThread: ChatThread? = nil
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
@@ -587,6 +610,8 @@ private class ChatListTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
 
+        chatThread = nil
+        
         nameLabel.attributedText = nil
         
         timeLabel.text = nil
@@ -678,6 +703,8 @@ private class ChatListTableViewCell: UITableViewCell {
 
     func configure(with chatThread: ChatThread) {
         
+        self.chatThread = chatThread
+        
         if chatThread.type == .oneToOne {
             nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId ?? "")
         } else {
@@ -715,6 +742,16 @@ private class ChatListTableViewCell: UITableViewCell {
             attributedString.addAttribute(.foregroundColor, value: UIColor.systemBlue, range: range)
         }
         nameLabel.attributedText = attributedString
+    }
+    
+    func showTypingIndicator() {
+        
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 14, weight: .medium),
+            .foregroundColor: UIColor.systemBlue,
+        ]
+        let attributedString = NSMutableAttributedString(string: "Typing...", attributes: attributes)
+        lastMsgLabel.attributedText = attributedString
     }
     
     private func setup() {
@@ -845,5 +882,13 @@ private class UnreadBadgeView: UIView {
         addSubview(label)
         label.widthAnchor.constraint(greaterThanOrEqualTo: label.heightAnchor, multiplier: 1).isActive = true
         label.constrainMargins(to: self)
+    }
+}
+
+fileprivate class DismissableUISearchController: UISearchController {
+
+    // dismiss controller when switching tabs while searching
+    override func viewWillDisappear(_ animated: Bool) {
+        dismiss(animated: true)
     }
 }

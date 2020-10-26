@@ -45,6 +45,7 @@ class XMPPControllerMain: XMPPController {
     // MARK: Misc
     let didGetChatAck = PassthroughSubject<ChatAck, Never>()
     let didGetPresence = PassthroughSubject<ChatPresenceInfo, Never>()
+    let didGetChatState = PassthroughSubject<ChatStateInfo, Never>()
 
     private var cancellableSet: Set<AnyCancellable> = []
 
@@ -485,7 +486,13 @@ class XMPPControllerMain: XMPPController {
             presence: PresenceType(rawValue: presence.type ?? ""),
             lastSeen: Date(timeIntervalSince1970: presence.attributeDoubleValue(forName: "last_seen"))))
     }
-
+    
+    override func didReceive(chatState: XMPPChatState) {
+        guard let fromUserID = chatState.from.user else { return }
+        
+        didGetChatState.send((from: fromUserID, threadType: chatState.threadType, threadID: chatState.threadID, type: chatState.type))
+    }
+    
     // MARK: XMPPReconnectDelegate
 
     override func xmppReconnect(_ sender: XMPPReconnect, shouldAttemptAutoReconnect connectionFlags: SCNetworkConnectionFlags) -> Bool {

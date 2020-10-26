@@ -70,6 +70,7 @@ final class ProtoService: ProtoServiceCore {
     let didGetNewChatMessage = PassthroughSubject<ChatMessageProtocol, Never>()
     let didGetChatAck = PassthroughSubject<ChatAck, Never>()
     let didGetPresence = PassthroughSubject<ChatPresenceInfo, Never>()
+    let didGetChatState = PassthroughSubject<ChatStateInfo, Never>()
 
     // MARK: Server Properties
 
@@ -390,7 +391,13 @@ final class ProtoService: ProtoServiceCore {
                      lastSeen: Date(timeIntervalSince1970: TimeInterval(pbPresence.lastSeen))))
             }
         case .chatState:
-            DDLogInfo("proto/chatState/\(requestID) ignored")
+            DDLogInfo("proto/chatState/\(requestID)")
+            DispatchQueue.main.async {
+//                self.didGetChatState.send(
+//                    (userID: UserID(pbPresence.uid),
+//                     presence: PresenceType(pbPresence.type),
+//                     lastSeen: Date(timeIntervalSince1970: TimeInterval(pbPresence.lastSeen))))
+            }
         case .iq:
             // NB: Only respond to pings (other IQ should be responses handled by superclass)
             if case .ping(let ping) = packet.iq.payload {
@@ -566,7 +573,12 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoPresenceSubscribeRequest(userID: userID) { _ in })
         return true
     }
-
+    
+    func sendChatStateIfPossible(type: ChatType, id: String, state: ChatState) {
+        guard isConnected else { return }
+        enqueue(request: ProtoSendChatState(type: type, id: id, state: state) { _ in })
+    }
+    
     func requestInviteAllowance(completion: @escaping ServiceRequestCompletion<(Int, Date)>) {
         enqueue(request: ProtoGetInviteAllowanceRequest(completion: completion))
     }

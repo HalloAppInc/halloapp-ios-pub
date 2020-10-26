@@ -34,6 +34,10 @@ extension UIColor {
         get { UIColor(named: "CameraButton")! }
     }
     
+    class var avatarPlaceholder: UIColor {
+        get { UIColor(named: "AvatarPlaceholder")! }
+    }
+    
     class var chatOwnBubbleBg: UIColor {
         get { UIColor(named: "ChatOwnBubbleBg")! }
     }

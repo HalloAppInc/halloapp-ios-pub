@@ -88,7 +88,10 @@ class NewChatViewController: NewChatTableViewController {
         
         if ServerProperties.isInternalUser || ServerProperties.isGroupsEnabled {
             let headerView = TableHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 44))
-            headerView.button.addTarget(self, action: #selector(createNewGroup), for: .touchUpInside)
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(createNewGroup))
+            headerView.isUserInteractionEnabled = true
+            headerView.addGestureRecognizer(tapGesture)
+            
             tableView.tableHeaderView = headerView
         }
     }
@@ -109,19 +112,6 @@ class NewChatViewController: NewChatTableViewController {
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("NewMessageViewController/viewDidAppear")
         super.viewDidAppear(animated)
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-
-        guard let headerView = tableView.tableHeaderView else { return }
-        let size = headerView.systemLayoutSizeFitting(CGSize(width: tableView.frame.width, height: CGFloat.greatestFiniteMagnitude),
-                                                      withHorizontalFittingPriority: .required,
-                                                      verticalFittingPriority: .fittingSizeLevel)
-        if headerView.frame.height != size.height {
-            headerView.frame.size = size
-            tableView.tableHeaderView = headerView
-        }
     }
 
     // MARK: Top Nav Button Actions
@@ -218,8 +208,7 @@ private class TableHeaderView: UIView {
     }
 
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
+        fatalError("Use init(delegate:)")
     }
 
     private(set) var button: UIButton!
@@ -228,21 +217,42 @@ private class TableHeaderView: UIView {
         preservesSuperviewLayoutMargins = true
         backgroundColor = UIColor.secondarySystemGroupedBackground
         
+        let groupIcon = UIImageView()
+        groupIcon.image = AvatarView.defaultGroupImage
+        groupIcon.contentMode = .scaleAspectFit
+        groupIcon.tintColor = UIColor.systemBlue
+        
+        groupIcon.layer.masksToBounds = false
+        groupIcon.layer.cornerRadius = 30/2
+        groupIcon.clipsToBounds = true
+     
+        groupIcon.translatesAutoresizingMaskIntoConstraints = false
+        groupIcon.widthAnchor.constraint(equalToConstant: 30).isActive = true
+        groupIcon.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        
         button = UIButton(type: .system)
+        button.isUserInteractionEnabled = false
         button.titleLabel?.font = .gothamFont(forTextStyle: .headline, weight: .medium)
         button.setTitle("Create New Group", for: .normal)
         button.tintColor = .systemBlue
         button.contentHorizontalAlignment = .leading
-        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: layoutMargins.left, bottom: 8, right: layoutMargins.right)
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 10, bottom: 8, right: layoutMargins.right)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        
+        addSubview(groupIcon)
         addSubview(button)
-        button.constrain(to: self)
+        
+        groupIcon.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20).isActive = true
+        groupIcon.topAnchor.constraint(equalTo: topAnchor, constant: 7).isActive = true
+        
+        button.leadingAnchor.constraint(equalTo: groupIcon.trailingAnchor).isActive = true
+        button.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        button.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
+        button.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
     }
 
     override func layoutMarginsDidChange() {
         super.layoutMarginsDidChange()
-        button.contentEdgeInsets.left = layoutMargins.left
         button.contentEdgeInsets.right = layoutMargins.right
     }
 }
