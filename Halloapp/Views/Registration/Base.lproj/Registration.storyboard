@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Oqj-ba-nDJ">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17156" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Oqj-ba-nDJ">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17126"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -38,7 +40,7 @@
                                         <subviews>
                                             <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5di-zx-Iof" userLabel="Top Spacer">
                                                 <rect key="frame" x="47" y="0.0" width="240" height="187"/>
-                                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="240" id="gw3-yP-JxA"/>
                                                 </constraints>
@@ -82,7 +84,7 @@ HalloApp</string>
                                                                         </connections>
                                                                     </textField>
                                                                 </subviews>
-                                                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                                 <constraints>
                                                                     <constraint firstAttribute="bottomMargin" secondItem="2bM-7H-zU2" secondAttribute="bottom" id="3Um-ob-5sl"/>
                                                                     <constraint firstAttribute="trailingMargin" secondItem="2bM-7H-zU2" secondAttribute="trailing" id="M9q-aR-qUb"/>
@@ -93,7 +95,7 @@ HalloApp</string>
                                                             </view>
                                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="9zU-np-hAj">
                                                                 <rect key="frame" x="0.0" y="72" width="334" height="58.5"/>
-                                                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                                 <constraints>
                                                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="52" id="Xu0-ps-LpY"/>
                                                                 </constraints>
@@ -124,7 +126,7 @@ HalloApp</string>
                                             </stackView>
                                             <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wvE-6C-YnY" userLabel="Bottom Spacer">
                                                 <rect key="frame" x="47" y="615.5" width="240" height="186.5"/>
-                                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="240" id="IVX-HC-3FH"/>
                                                 </constraints>
@@ -155,14 +157,14 @@ HalloApp</string>
                                 <viewLayoutGuide key="frameLayoutGuide" id="AZk-Oz-rYN"/>
                             </scrollView>
                         </subviews>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <viewLayoutGuide key="safeArea" id="UXX-wx-SLs"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstAttribute="trailingMargin" secondItem="6Bd-O6-BXv" secondAttribute="trailing" constant="20" id="AOW-kv-PDK"/>
                             <constraint firstItem="UXX-wx-SLs" firstAttribute="bottom" secondItem="6Bd-O6-BXv" secondAttribute="bottom" constant="8" id="Ipk-tD-KE9"/>
                             <constraint firstItem="6Bd-O6-BXv" firstAttribute="top" secondItem="jx2-HE-MQ0" secondAttribute="topMargin" id="KgO-dz-xjo"/>
                             <constraint firstItem="6Bd-O6-BXv" firstAttribute="leading" secondItem="jx2-HE-MQ0" secondAttribute="leadingMargin" constant="20" id="uC2-Uc-cDB"/>
                         </constraints>
-                        <viewLayoutGuide key="safeArea" id="UXX-wx-SLs"/>
                     </view>
                     <navigationItem key="navigationItem" id="43z-rv-cC9"/>
                     <connections>
@@ -197,7 +199,7 @@ HalloApp</string>
                                         <subviews>
                                             <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="PYg-F9-TFJ" userLabel="Top Spacer">
                                                 <rect key="frame" x="47" y="0.0" width="240" height="201.5"/>
-                                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="240" id="XbQ-B9-eet"/>
                                                 </constraints>
@@ -227,7 +229,7 @@ HalloApp</string>
                                                                         </connections>
                                                                     </textField>
                                                                 </subviews>
-                                                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                                 <constraints>
                                                                     <constraint firstAttribute="bottomMargin" secondItem="TzO-zV-XRv" secondAttribute="bottom" id="274-q6-bnl"/>
                                                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="52" id="DK2-es-fGT"/>
@@ -239,7 +241,7 @@ HalloApp</string>
                                                             <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Code you entered is incorrect" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bdh-XD-wZ7">
                                                                 <rect key="frame" x="0.0" y="149" width="334" height="20.5"/>
                                                                 <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                                                <color key="textColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                                <color key="textColor" systemColor="systemRedColor"/>
                                                                 <nil key="highlightedColor"/>
                                                             </label>
                                                             <stackView hidden="YES" opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="V76-gE-hxX">
@@ -250,10 +252,10 @@ HalloApp</string>
                                                                         <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
-                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="suK-T5-G5X">
+                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="suK-T5-G5X">
                                                                         <rect key="frame" x="0.0" y="8" width="334" height="0.0"/>
                                                                         <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                                                        <color key="tintColor" systemColor="systemBlueColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                                        <color key="tintColor" systemColor="systemBlueColor"/>
                                                                         <state key="normal" title="Try Again"/>
                                                                         <connections>
                                                                             <action selector="tryAgainAction:" destination="i7r-7F-EcT" eventType="touchUpInside" id="zFs-Eq-MCg"/>
@@ -274,10 +276,10 @@ HalloApp</string>
                                                                         <nil key="textColor"/>
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
-                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="n0T-tf-gRF">
+                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="n0T-tf-gRF">
                                                                         <rect key="frame" x="0.0" y="28.5" width="334" height="33"/>
                                                                         <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                                                        <color key="tintColor" systemColor="systemBlueColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                                        <color key="tintColor" systemColor="systemBlueColor"/>
                                                                         <state key="normal" title="Enter Different Phone Number"/>
                                                                         <connections>
                                                                             <action selector="changePhoneNumberAction:" destination="i7r-7F-EcT" eventType="touchUpInside" id="7GW-9o-JVF"/>
@@ -327,7 +329,7 @@ HalloApp</string>
                                             </view>
                                             <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1ic-Z2-gGZ" userLabel="Bottom Spacer">
                                                 <rect key="frame" x="47" y="600.5" width="240" height="201.5"/>
-                                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="240" id="PYl-OM-Lgd"/>
                                                 </constraints>
@@ -360,14 +362,14 @@ HalloApp</string>
                                 <viewLayoutGuide key="frameLayoutGuide" id="EwT-12-iij"/>
                             </scrollView>
                         </subviews>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <viewLayoutGuide key="safeArea" id="8Um-Iw-bq1"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="96K-V9-b7j" firstAttribute="leading" secondItem="GL2-IZ-1As" secondAttribute="leadingMargin" constant="20" id="3bA-XJ-VSK"/>
                             <constraint firstItem="8Um-Iw-bq1" firstAttribute="bottom" secondItem="96K-V9-b7j" secondAttribute="bottom" constant="8" id="75V-m9-a1L"/>
                             <constraint firstItem="96K-V9-b7j" firstAttribute="top" secondItem="GL2-IZ-1As" secondAttribute="topMargin" id="LF8-uL-Sda"/>
                             <constraint firstAttribute="trailingMargin" secondItem="96K-V9-b7j" secondAttribute="trailing" constant="20" id="s3V-9r-b7y"/>
                         </constraints>
-                        <viewLayoutGuide key="safeArea" id="8Um-Iw-bq1"/>
                     </view>
                     <connections>
                         <outlet property="activityIndicatorView" destination="CGY-7H-wkl" id="Qlt-dW-9BF"/>
@@ -393,7 +395,16 @@ HalloApp</string>
     <color key="tintColor" name="Tint"/>
     <resources>
         <namedColor name="Tint">
-            <color red="0.10000000149011612" green="0.10000000149011612" blue="0.10000000149011612" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.0" green="0.0" blue="0.0" alpha="0.80000001192092896" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemBlueColor">
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+        <systemColor name="systemRedColor">
+            <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
     </resources>
 </document>

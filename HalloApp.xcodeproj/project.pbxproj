@@ -94,7 +94,7 @@
 		763B42AE2435A74E00FF0E82 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AD2435A74E00FF0E82 /* Date.swift */; };
 		76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DF7245CA3F00031F96A /* UIViewController.swift */; };
 		76407DFC245CBAD40031F96A /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */; };
-		76407DFE245CBAE30031F96A /* Registration.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 76407DFD245CBAE30031F96A /* Registration.storyboard */; };
+		76451C18254786F400B9E268 /* Registration.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 76451C1A254786F400B9E268 /* Registration.storyboard */; };
 		764A0E6524453FC900E1BDCE /* NotificationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */; };
 		764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41724A67A5C00D4E354 /* Privacy.swift */; };
 		764AB41A24A6A48400D4E354 /* PrivacyRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB41924A6A48400D4E354 /* PrivacyRequests.swift */; };
@@ -393,7 +393,8 @@
 		763B42AD2435A74E00FF0E82 /* Date.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Date.swift; path = HalloApp/Components/Extensions/Date.swift; sourceTree = SOURCE_ROOT; };
 		76407DF7245CA3F00031F96A /* UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIViewController.swift; path = HalloApp/Components/Extensions/UIViewController.swift; sourceTree = SOURCE_ROOT; };
 		76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhoneInputViewController.swift; path = HalloApp/Views/Registration/PhoneInputViewController.swift; sourceTree = SOURCE_ROOT; };
-		76407DFD245CBAE30031F96A /* Registration.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Registration.storyboard; path = HalloApp/Views/Registration/Registration.storyboard; sourceTree = SOURCE_ROOT; };
+		76451C19254786F400B9E268 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Registration.storyboard; sourceTree = "<group>"; };
+		76451C1F254786F700B9E268 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Registration.strings; sourceTree = "<group>"; };
 		764A0E6424453FC900E1BDCE /* NotificationsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationsViewController.swift; sourceTree = "<group>"; };
 		764AB41724A67A5C00D4E354 /* Privacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Privacy.swift; path = HalloApp/Models/Privacy/Privacy.swift; sourceTree = SOURCE_ROOT; };
 		764AB41924A6A48400D4E354 /* PrivacyRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyRequests.swift; path = HalloApp/Models/Privacy/PrivacyRequests.swift; sourceTree = SOURCE_ROOT; };
@@ -1091,7 +1092,7 @@
 				EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */,
 				76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */,
 				761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */,
-				76407DFD245CBAE30031F96A /* Registration.storyboard */,
+				76451C1A254786F400B9E268 /* Registration.storyboard */,
 			);
 			path = Registration;
 			sourceTree = "<group>";
@@ -1464,7 +1465,7 @@
 				762EDBCD244E2EB700986617 /* Gotham-XLightIta.otf in Resources */,
 				762EDBCF244E2EB700986617 /* Gotham-BoldIta.otf in Resources */,
 				762EDBD3244E2EB700986617 /* Gotham-BookIta.otf in Resources */,
-				76407DFE245CBAE30031F96A /* Registration.storyboard in Resources */,
+				76451C18254786F400B9E268 /* Registration.storyboard in Resources */,
 				EAF3A1CF2334192000805FF9 /* LaunchScreen.storyboard in Resources */,
 				762EDBD8244E2EB700986617 /* Gotham-Bold.otf in Resources */,
 				762EDBCC244E2EB700986617 /* Gotham-UltraIta.otf in Resources */,
@@ -1888,6 +1889,16 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		76451C1A254786F400B9E268 /* Registration.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				76451C19254786F400B9E268 /* Base */,
+				76451C1F254786F700B9E268 /* ru */,
+			);
+			name = Registration.storyboard;
+			path = HalloApp/Views/Registration;
+			sourceTree = SOURCE_ROOT;
+		};
 		EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
