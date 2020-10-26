@@ -1375,7 +1375,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 1150;
 				LastUpgradeCheck = 1200;
-				ORGANIZATIONNAME = "Halloapp, Inc.";
+				ORGANIZATIONNAME = "HalloApp, Inc.";
 				TargetAttributes = {
 					24D743D524B3D199001111BF = {
 						CreatedOnToolsVersion = 11.5;
