@@ -136,7 +136,6 @@ class CreateGroupViewController: UIViewController {
         let view = UIImageView()
         view.image = AvatarView.defaultGroupImage
         view.contentMode = .scaleAspectFit
-        view.tintColor = UIColor.avatarPlaceholder
         
         view.layer.masksToBounds = false
         view.layer.cornerRadius = Constants.AvatarSize/2

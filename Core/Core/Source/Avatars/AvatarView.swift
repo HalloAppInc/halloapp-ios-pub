@@ -10,8 +10,8 @@ import Combine
 import UIKit
 
 public class AvatarView: UIView {
-    public static let defaultImage = UIImage(named: "AvatarPlaceholder")
-    public static let defaultGroupImage = UIImage(named: "GroupAvatarPlaceholder")?.withRenderingMode(.alwaysTemplate)
+    public static let defaultImage = UIImage(named: "UserAvatar")
+    public static let defaultGroupImage = UIImage(named: "GroupAvatar")
     
     private let avatar = UIImageView()
     private let avatarContainerView = UIView()
@@ -92,7 +92,6 @@ public class AvatarView: UIView {
         
         avatar.contentMode = .scaleAspectFit
         avatar.image = AvatarView.defaultImage
-        avatar.tintColor = UIColor(named: "AvatarPlaceholder")
         avatarContainerView.addSubview(avatar)
         addSubview(avatarContainerView)
     }

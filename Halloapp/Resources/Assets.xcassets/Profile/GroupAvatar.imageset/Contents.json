@@ -1,19 +1,15 @@
 {
   "images" : [
     {
-      "idiom" : "universal"
-    },
-    {
+      "filename" : "GroupAvatar.pdf",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "AvatarPlaceholder@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "AvatarPlaceholder@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
@@ -23,6 +19,7 @@
     "version" : 1
   },
   "properties" : {
-    "preserves-vector-representation" : true
+    "preserves-vector-representation" : true,
+    "template-rendering-intent" : "original"
   }
 }

@@ -52,11 +52,11 @@ class AvatarViewButton: UIButton {
 
             case .newPosts(_,_):
                 ringView.isHidden = false
-                ringView.strokeColor = .lavaOrange
+                ringView.strokeColor = .systemBlue
 
             case .seenPosts(_):
                 ringView.isHidden = false
-                ringView.strokeColor = UIColor.systemGray.withAlphaComponent(0.3)
+                ringView.strokeColor = UIColor(named: "AvatarRingGray")
             }
         }
     }
