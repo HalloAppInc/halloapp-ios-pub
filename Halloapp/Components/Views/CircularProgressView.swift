@@ -33,9 +33,9 @@ class CircularProgressView : UIView {
     }
 
     private func commonInit() {
-        self.backgroundColor = .clear
-        self.isUserInteractionEnabled = false
-        self.contentMode = .redraw
+        backgroundColor = .clear
+        isUserInteractionEnabled = false
+        contentMode = .redraw
     }
 
     override class var layerClass: AnyClass {

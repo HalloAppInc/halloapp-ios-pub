@@ -10,18 +10,18 @@ import SwiftUI
 
 extension Color {
     static var feedBackground: Color {
-        get { Color("FeedBackground") }
+        Color("FeedBackground")
     }
 
     static var lavaOrange: Color {
-        get { Color("LavaOrange") }
+        Color("LavaOrange")
     }
 
     static var separator: Color {
-        get { Color("Separator") }
+        Color("Separator")
     }
 
     static var cameraButton: Color {
-        get { Color("CameraButton") }
+        Color("CameraButton")
     }
 }

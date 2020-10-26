@@ -11,38 +11,38 @@ import UIKit
 extension UIColor {
 
     class var feedBackground: UIColor {
-        get { UIColor(named: "FeedBackground")! }
+        UIColor(named: "FeedBackground")!
     }
 
     class var textFieldBackground: UIColor {
-        get { UIColor(named: "TextFieldBackground")! }
+        UIColor(named: "TextFieldBackground")!
     }
 
     class var lavaOrange: UIColor {
-        get { UIColor(named: "LavaOrange")! }
+        UIColor(named: "LavaOrange")!
     }
 
     class var nux: UIColor {
-        get { UIColor(named: "NUX")! }
+        UIColor(named: "NUX")!
     }
 
     class var separator: UIColor {
-        get { UIColor(named: "Separator")! }
+        UIColor(named: "Separator")!
     }
 
     class var cameraButton: UIColor {
-        get { UIColor(named: "CameraButton")! }
+        UIColor(named: "CameraButton")!
     }
         
     class var chatOwnBubbleBg: UIColor {
-        get { UIColor(named: "ChatOwnBubbleBg")! }
+        UIColor(named: "ChatOwnBubbleBg")!
     }
     
     class var chatOwnMsg: UIColor {
-        get { UIColor(named: "ChatOwnMsg")! }
+        UIColor(named: "ChatOwnMsg")!
     }
     
     class var chatTime: UIColor {
-        get { UIColor(named: "ChatTime")! }
+        UIColor(named: "ChatTime")!
     }
 }

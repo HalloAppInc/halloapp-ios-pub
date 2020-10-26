@@ -53,7 +53,6 @@
 		761442C3245CF4FC00DD9D1A /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C2245CF4FC00DD9D1A /* UIColor.swift */; };
 		761442C5245D32C200DD9D1A /* UIDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C4245D32C200DD9D1A /* UIDevice.swift */; };
 		761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442C8245D4DE500DD9D1A /* UIButton.swift */; };
-		761442CB245DF6A600DD9D1A /* CharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761442CA245DF6A600DD9D1A /* CharacterSet.swift */; };
 		761905A32459EB07008FC600 /* InputTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761905A22459EB07008FC600 /* InputTextView.swift */; };
 		761B3954241C38A300858251 /* XMPPCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3953241C38A300858251 /* XMPPCommonRequests.swift */; };
 		761B3957241D815800858251 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761B3956241D815800858251 /* SyncManager.swift */; };
@@ -355,7 +354,6 @@
 		761442C2245CF4FC00DD9D1A /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIColor.swift; path = HalloApp/Components/Extensions/UIColor.swift; sourceTree = SOURCE_ROOT; };
 		761442C4245D32C200DD9D1A /* UIDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIDevice.swift; path = HalloApp/Components/Extensions/UIDevice.swift; sourceTree = SOURCE_ROOT; };
 		761442C8245D4DE500DD9D1A /* UIButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIButton.swift; path = HalloApp/Components/Extensions/UIButton.swift; sourceTree = SOURCE_ROOT; };
-		761442CA245DF6A600DD9D1A /* CharacterSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CharacterSet.swift; path = HalloApp/Components/Extensions/CharacterSet.swift; sourceTree = SOURCE_ROOT; };
 		761905A22459EB07008FC600 /* InputTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InputTextView.swift; path = HalloApp/Components/Views/InputTextView.swift; sourceTree = SOURCE_ROOT; };
 		761B3953241C38A300858251 /* XMPPCommonRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPCommonRequests.swift; sourceTree = "<group>"; };
 		761B3956241D815800858251 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
@@ -1131,7 +1129,6 @@
 			isa = PBXGroup;
 			children = (
 				EA0B9916249C1FFB00B05094 /* Character.swift */,
-				761442CA245DF6A600DD9D1A /* CharacterSet.swift */,
 				764AB41E24A6C5F300D4E354 /* Color.swift */,
 				763B42AD2435A74E00FF0E82 /* Date.swift */,
 				EA0B991A249C228700B05094 /* DateFormatter.swift */,
@@ -1704,7 +1701,6 @@
 				EAF3A1C52334191E00805FF9 /* SceneDelegate.swift in Sources */,
 				6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */,
 				76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */,
-				761442CB245DF6A600DD9D1A /* CharacterSet.swift in Sources */,
 				F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */,
 				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,
 				EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */,

@@ -50,8 +50,8 @@ class InputTextView: UITextView, UITextViewDelegate {
 
         super.init(frame: frame, textContainer: textContainer)
 
-        self.delegate = self
-        self.showsHorizontalScrollIndicator = false
+        delegate = self
+        showsHorizontalScrollIndicator = false
     }
 
     required init?(coder: NSCoder) {
@@ -71,20 +71,20 @@ class InputTextView: UITextView, UITextViewDelegate {
     // MARK: Size Calculations
 
     override func sizeThatFits(_ size: CGSize) -> CGSize {
-        let height = self.bestHeight(for: self.attributedText)
+        let height = bestHeight(for: attributedText)
         return CGSize(width: size.width, height: min(size.height, height))
     }
 
     private func bestHeightForCurrentText() -> CGFloat {
-        return self.bestHeight(for: self.attributedText)
+        return bestHeight(for: attributedText)
     }
 
     private func bestHeightForCurrentText(in size: CGSize) -> CGFloat {
-        return self.bestHeight(for: self.attributedText, in: size)
+        return bestHeight(for: attributedText, in: size)
     }
 
     func bestHeight(for text: String?) -> CGFloat {
-        return self.bestHeight(for: text, in: CGSize(width: self.bounds.size.width, height: 1e6))
+        return bestHeight(for: text, in: CGSize(width: bounds.size.width, height: 1e6))
     }
 
     private func bestHeight(for text: String?, in size: CGSize, textAlignment: NSTextAlignment = .natural) -> CGFloat {
@@ -95,24 +95,24 @@ class InputTextView: UITextView, UITextViewDelegate {
             style.alignment = textAlignment;
             attributedText = NSAttributedString(string: text!, attributes: [ .font: font, .paragraphStyle: style ])
         }
-        return self.bestHeight(for: attributedText, in: size)
+        return bestHeight(for: attributedText, in: size)
     }
 
     private func bestHeight(for attributedText: NSAttributedString?) -> CGFloat {
-        return self.bestHeight(for: attributedText, in: self.textContainer.size)
+        return bestHeight(for: attributedText, in: textContainer.size)
     }
 
     private lazy var tc: NSTextContainer = NSTextContainer(size: .zero)
 
     private lazy var lm: NSLayoutManager = {
         let layoutManager = NSLayoutManager()
-        layoutManager.addTextContainer(self.tc)
+        layoutManager.addTextContainer(tc)
         return layoutManager
     }()
 
     private lazy var ts: NSTextStorage = {
         let textStorage = NSTextStorage()
-        textStorage.addLayoutManager(self.lm)
+        textStorage.addLayoutManager(lm)
         return textStorage
     }()
 
@@ -125,12 +125,12 @@ class InputTextView: UITextView, UITextViewDelegate {
             attrString = attributedText!
         }
 
-        self.ts.setAttributedString(attrString)
-        self.tc.size = size
-        self.tc.lineFragmentPadding = self.textContainer.lineFragmentPadding
-        self.tc.lineBreakMode = self.textContainer.lineBreakMode
-        let textRect = self.lm.usedRect(for: self.tc).integral
-        let textViewHeight = (textRect.maxY + self.textContainerInset.top + self.textContainerInset.bottom).rounded()
+        ts.setAttributedString(attrString)
+        tc.size = size
+        tc.lineFragmentPadding = textContainer.lineFragmentPadding
+        tc.lineBreakMode = textContainer.lineBreakMode
+        let textRect = lm.usedRect(for: tc).integral
+        let textViewHeight = (textRect.maxY + textContainerInset.top + textContainerInset.bottom).rounded()
         return textViewHeight
     }
 
@@ -139,61 +139,61 @@ class InputTextView: UITextView, UITextViewDelegate {
     override var contentSize: CGSize {
         didSet {
             if oldValue != contentSize {
-                self.updateTextViewMetrics()
+                updateTextViewMetrics()
             }
         }
     }
 
     override var frame: CGRect {
         didSet {
-            if self.isFirstResponder {
+            if isFirstResponder {
                 // Delay updating the content inset until after the scrolling has stopped.
-                self.scrollToVisibleRange(afterDelay: 0.25)
+                scrollToVisibleRange(afterDelay: 0.25)
             }
         }
     }
 
     override var font: UIFont? {
         didSet {
-            self.updateTextViewMetrics()
+            updateTextViewMetrics()
         }
     }
 
     override var text: String! {
         didSet {
-            self.updateTextViewMetrics()
+            updateTextViewMetrics()
         }
     }
 
     override var attributedText: NSAttributedString! {
         didSet {
-            self.updateTextViewMetrics()
+            updateTextViewMetrics()
         }
     }
 
     private func updateTextViewMetrics() {
-        let maxHeight = self.inputTextViewDelegate?.maximumHeight(for: self) ?? CGFloat.greatestFiniteMagnitude
+        let maxHeight = inputTextViewDelegate?.maximumHeight(for: self) ?? CGFloat.greatestFiniteMagnitude
 
-        let contentHeight = self.bestHeightForCurrentText()
+        let contentHeight = bestHeightForCurrentText()
         let newHeight = min(contentHeight, maxHeight)
-        if newHeight != self.lastReportedHeight {
-            self.lastReportedHeight = newHeight
-            self.inputTextViewDelegate?.inputTextView(self, needsHeightChangedTo: newHeight)
+        if newHeight != lastReportedHeight {
+            lastReportedHeight = newHeight
+            inputTextViewDelegate?.inputTextView(self, needsHeightChangedTo: newHeight)
         }
         if newHeight >= maxHeight {
-            if !self.scrollIndicatorsShown {
+            if !scrollIndicatorsShown {
                 DispatchQueue.main.async {
                     // Delay flashing to ensure that the scroll indicators are positioned correctly.
                     self.flashScrollIndicators()
                 }
-                self.scrollIndicatorsShown = true
+                scrollIndicatorsShown = true
             }
             // Don't change contentOffset during scrolling -- contentSize changes here could be due to lazy glyph layout.
-            if !self.isDragging && !self.isDecelerating {
-                self.scrollToVisibleRange(afterDelay: 0)
+            if !isDragging && !isDecelerating {
+                scrollToVisibleRange(afterDelay: 0)
             }
         } else {
-            self.scrollIndicatorsShown = false
+            scrollIndicatorsShown = false
         }
     }
 
@@ -208,36 +208,36 @@ class InputTextView: UITextView, UITextViewDelegate {
     }
 
     private func scrollToBottom(animated: Bool) {
-        let point = CGPoint(x: 0, y: self.contentSize.height - self.bounds.size.height + self.contentInset.bottom)
-        self.setContentOffset(point, animated: animated)
+        let point = CGPoint(x: 0, y: contentSize.height - bounds.size.height + contentInset.bottom)
+        setContentOffset(point, animated: animated)
     }
 
     // MARK: UITextViewDelegate Proxy
 
     func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
-        guard self.inputTextViewDelegate != nil else { return false }
-        return self.inputTextViewDelegate!.inputTextViewShouldBeginEditing(self)
+        guard inputTextViewDelegate != nil else { return false }
+        return inputTextViewDelegate!.inputTextViewShouldBeginEditing(self)
     }
 
     func textViewDidBeginEditing(_ textView: UITextView) {
-        self.inputTextViewDelegate?.inputTextViewDidBeginEditing(self)
+        inputTextViewDelegate?.inputTextViewDidBeginEditing(self)
     }
 
     func textViewShouldEndEditing(_ textView: UITextView) -> Bool {
-        guard self.inputTextViewDelegate != nil else { return true }
-        return self.inputTextViewDelegate!.inputTextViewShouldEndEditing(self)
+        guard inputTextViewDelegate != nil else { return true }
+        return inputTextViewDelegate!.inputTextViewShouldEndEditing(self)
     }
 
     func textViewDidEndEditing(_ textView: UITextView) {
-        self.inputTextViewDelegate?.inputTextViewDidEndEditing(self)
+        inputTextViewDelegate?.inputTextViewDidEndEditing(self)
     }
 
     func textViewDidChange(_ textView: UITextView) {
-        self.inputTextViewDelegate?.inputTextViewDidChange(self)
+        inputTextViewDelegate?.inputTextViewDidChange(self)
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
-        self.inputTextViewDelegate?.inputTextViewDidChangeSelection(self)
+        inputTextViewDelegate?.inputTextViewDidChangeSelection(self)
     }
 
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
@@ -268,9 +268,9 @@ class InputTextView: UITextView, UITextViewDelegate {
 
     /// Update all fields to match the input struct. This will interfere with active IME (e.g. Japanese kanji entry)
     private func update(from mentionInput: MentionInput) {
-        self.text = mentionInput.text
-        self.mentions = mentionInput.mentions
-        self.selectedRange = mentionInput.selectedRange
-        self.inputTextViewDelegate?.inputTextViewDidChange(self)
+        text = mentionInput.text
+        mentions = mentionInput.mentions
+        selectedRange = mentionInput.selectedRange
+        inputTextViewDelegate?.inputTextViewDidChange(self)
     }
 }

@@ -12,12 +12,12 @@ class BadgeView: CircleView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.setupView()
+        setupView()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        self.setupView()
+        setupView()
     }
 
     private let innerCircle: CircleView = {
@@ -28,21 +28,18 @@ class BadgeView: CircleView {
     }()
 
     private func setupView() {
-        self.layoutMargins = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
-        self.fillColor = .lavaOrange
+        layoutMargins = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
+        fillColor = .lavaOrange
 
-        self.addSubview(self.innerCircle)
-        self.innerCircle.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor).isActive = true
-        self.innerCircle.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor).isActive = true
-        self.innerCircle.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor).isActive = true
-        self.innerCircle.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor).isActive = true
+        addSubview(innerCircle)
+        innerCircle.constrainMargins(to: self)
     }
 
     // MARK: Public
 
     override var backgroundColor: UIColor? {
-        get { self.fillColor }
-        set { self.fillColor = newValue }
+        get { fillColor }
+        set { fillColor = newValue }
     }
 
 }
