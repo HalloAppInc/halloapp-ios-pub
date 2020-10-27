@@ -254,6 +254,18 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
+    private func rerequestMessage(_ message: Server_Msg) {
+        let keyStore = AppContext.shared.keyStore
+        keyStore.performSeriallyOnBackgroundContext { context in
+            guard let identityKey = keyStore.keyBundle(in: context)?.identityPublicEdKey else {
+                DDLogError("ProtoService/rerequestMessage/\(message.id)/error could not retrieve identity key")
+                return
+            }
+            DDLogInfo("ProtoService/rerequestMessage/\(message.id) rerequesting")
+            self.rerequestMessage(message.id, senderID: UserID(message.fromUid), identityKey: identityKey) { _ in }
+        }
+    }
+
     override func didReceive(packet: Server_Packet, requestID: String) {
         super.didReceive(packet: packet, requestID: requestID)
 
@@ -309,8 +321,9 @@ final class ProtoService: ProtoServiceCore {
                         let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount)
                         self.didGetNewChatMessage.send(chatMessage)
                     }
-                    if decryptionError != nil {
-                        self.rerequestMessage(msg.id, senderID: UserID(msg.fromUid), identityKey: serverChat.publicKey) { _ in }
+                    if let error = decryptionError {
+                        DDLogError("ProtoService/didReceive/\(requestID)/decrypt/error \(error)")
+                        self.rerequestMessage(msg)
                     }
                     AppContext.shared.eventMonitor.observe(.decryption(error: decryptionError))
                     self.sendAck(messageID: msg.id)
@@ -318,18 +331,32 @@ final class ProtoService: ProtoServiceCore {
             case .silentChatStanza(let silent):
                 // We ignore message content from silent messages (only interested in decryption success)
                 decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, decryptionError) in
-                    if decryptionError != nil {
-                        self.rerequestMessage(msg.id, senderID: UserID(msg.fromUid), identityKey: silent.chatStanza.publicKey) { _ in }
+                    if let error = decryptionError {
+                        DDLogError("ProtoService/didReceive/\(requestID)/decrypt-silent/error \(error)")
+                        self.rerequestMessage(msg)
                     }
                     AppContext.shared.eventMonitor.observe(.decryption(error: decryptionError))
                     self.sendAck(messageID: msg.id)
                 }
             case .rerequest(let rerequest):
                 if let delegate = chatDelegate {
-                    // TODO: Verify identity key
-                    AppContext.shared.keyStore.deleteMessageKeyBundles(for: UserID(msg.fromUid))
-                    delegate.halloService(self, didRerequestMessage: rerequest.id, from: UserID(msg.fromUid)) {
-                        self.sendAck(messageID: msg.id)
+                    let keyStore = AppContext.shared.keyStore
+                    let userID = UserID(msg.fromUid)
+                    keyStore.performSeriallyOnBackgroundContext { context in
+                        let needsNewIdentityKey: Bool = {
+                            guard let savedKey = keyStore.messageKeyBundle(for: userID)?.inboundIdentityPublicEdKey else {
+                                return true
+                            }
+                            return savedKey != rerequest.identityKey
+                        }()
+                        if needsNewIdentityKey {
+                            keyStore.deleteMessageKeyBundles(for: userID)
+                        }
+                        DispatchQueue.main.async {
+                            delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID) {
+                                self.sendAck(messageID: msg.id)
+                            }
+                        }
                     }
                 } else {
                     sendAck(messageID: msg.id)
