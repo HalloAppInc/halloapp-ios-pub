@@ -104,7 +104,7 @@ class HomeViewController: UITabBarController {
     }()
 
     private func feedNavigationController() -> UINavigationController {
-        let navigationController = UINavigationController(rootViewController: FeedViewController(title: "Home"))
+        let navigationController = UINavigationController(rootViewController: FeedViewController(title: Localizations.titleHome))
         navigationController.navigationBar.standardAppearance = .opaqueAppearance
         navigationController.tabBarItem.image = UIImage(named: "TabBarHome")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
@@ -112,7 +112,7 @@ class HomeViewController: UITabBarController {
     }
 
     private func chatNavigationController() -> UINavigationController {
-        let navigationController = UINavigationController(rootViewController: ChatListViewController(title: "Messages"))
+        let navigationController = UINavigationController(rootViewController: ChatListViewController(title: Localizations.titleMessages))
         navigationController.navigationBar.standardAppearance = .opaqueAppearance
         navigationController.tabBarItem.image = UIImage(named: "TabBarMessages")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
@@ -120,7 +120,7 @@ class HomeViewController: UITabBarController {
     }
     
     private func profileNavigationController() -> UINavigationController {
-        let navigationController = UINavigationController(rootViewController: ProfileViewController(title: "Profile"))
+        let navigationController = UINavigationController(rootViewController: ProfileViewController(title: Localizations.titleProfile))
         navigationController.navigationBar.standardAppearance = .opaqueAppearance
         navigationController.tabBarItem.image = UIImage(named: "TabBarProfile")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets

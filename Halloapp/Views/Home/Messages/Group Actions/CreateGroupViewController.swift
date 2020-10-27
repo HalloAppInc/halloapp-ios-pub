@@ -291,7 +291,7 @@ class CreateGroupViewController: UIViewController {
             case .failure(let error):
                 DDLogError("CreateGroupViewController/createAction/error \(error)")
                 let alert = UIAlertController(title: "No Internet Connection", message: "Please check if you have internet connectivity, then try again.", preferredStyle: UIAlertController.Style.alert)
-                alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+                alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: UIAlertAction.Style.default, handler: nil))
                 self.present(alert, animated: true, completion: nil)
 
                 self.navigationItem.rightBarButtonItem?.isEnabled = true
@@ -312,7 +312,7 @@ class CreateGroupViewController: UIViewController {
 //
 //        })
         
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true)
     }
     

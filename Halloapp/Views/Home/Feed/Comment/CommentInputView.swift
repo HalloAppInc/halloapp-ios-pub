@@ -128,7 +128,7 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
     private lazy var postButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Post", for: .normal)
+        button.setTitle(NSLocalizedString("comment.post", value: "Post", comment: "Button in comment input field. Verb."), for: .normal)
         button.isEnabled = false
         button.tintColor = .systemBlue
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
@@ -251,7 +251,9 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
 
         // Placeholder
         textViewContainer.addSubview(self.placeholder)
-        self.placeholder.text = "Add a comment"
+        self.placeholder.text = NSLocalizedString("comment.textfield.placeholder",
+                                                  value: "Add a comment",
+                                                  comment: "Text displayed in gray inside of the comment input field when there is no user input.")
         // Don't really understand why constants below but it works.
         self.placeholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor).isActive = true
         self.placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: textView.textContainerInset.top + 1).isActive = true

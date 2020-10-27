@@ -619,7 +619,7 @@ extension ChatViewController {
         guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else {
             return UISwipeActionsConfiguration(actions: [])
         }
-        let action = UIContextualAction(style: .normal, title: "Reply") { [weak self] (action, view, completionHandler) in
+        let action = UIContextualAction(style: .normal, title: Localizations.messageReply) { [weak self] (action, view, completionHandler) in
             
             if chatMessage.fromUserId == MainAppContext.shared.userData.userId {
                 guard let cell = tableView.cellForRow(at: indexPath) as? OutboundMsgViewCell else { return }
@@ -686,17 +686,17 @@ extension ChatViewController: InboundMsgViewCellDelegate {
         
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
-        actionSheet.addAction(UIAlertAction(title: "Reply", style: .default) { [weak self] _ in
+        actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.handleQuotedReply(msg: chatMessage, mediaIndex: inboundMsgViewCell.mediaIndex)
          })
         
-        actionSheet.addAction(UIAlertAction(title: "Copy", style: .default) { _ in
+        actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
             let pasteboard = UIPasteboard.general
             pasteboard.string = chatMessage.text
          })
         
-         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         
          self.present(actionSheet, animated: true)
     }
@@ -723,17 +723,17 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
         
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
-        actionSheet.addAction(UIAlertAction(title: "Reply", style: .default) { [weak self] _ in
+        actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.handleQuotedReply(msg: chatMessage, mediaIndex: outboundMsgViewCell.mediaIndex)
          })
         
-        actionSheet.addAction(UIAlertAction(title: "Copy", style: .default) { _ in
+        actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
             let pasteboard = UIPasteboard.general
             pasteboard.string = chatMessage.text
          })
         
-         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         
          self.present(actionSheet, animated: true)
     }

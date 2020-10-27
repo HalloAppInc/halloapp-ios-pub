@@ -20,6 +20,21 @@ fileprivate struct LayoutConstants {
     static let profilePictureTrailingSpaceNormal: CGFloat = 10
 }
 
+private extension Localizations {
+
+    static var commentReply: String {
+        NSLocalizedString("comment.reply", value: "Reply", comment: "Title for the button displayed under feed post comment. Verb.")
+    }
+
+    static var commentDeleted: String {
+        NSLocalizedString("comment.deleted", value: "This comment has been deleted", comment: "Text displayed in place of deleted comment.")
+    }
+
+    static var commentIsBeingDeleted: String {
+        NSLocalizedString("comment.deleting", value: "Deleting comment", comment: "Text displayed in place of a comment that is currently being deleted.")
+    }
+}
+
 class CommentView: UIView {
 
     // MARK: Variable Constraints
@@ -59,7 +74,7 @@ class CommentView: UIView {
         let button = UIButton(type: .custom)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setTitleColor(.secondaryLabel, for: .normal)
-        button.setTitle("Reply", for: .normal)
+        button.setTitle(Localizations.commentReply, for: .normal)
         let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .footnote)
         button.titleLabel?.font = .systemFont(ofSize: fontDescriptor.pointSize, weight: .bold)
         return button
@@ -168,7 +183,7 @@ class CommentView: UIView {
 
         if comment.isRetracted {
             self.deletedCommentView.isHidden = false
-            deletedCommentTextLabel.text = comment.status == .retracted ? "This comment has been deleted" : "Deleting comment"
+            deletedCommentTextLabel.text = comment.status == .retracted ? Localizations.commentDeleted : Localizations.commentIsBeingDeleted
             if self.deletedCommentView.superview == nil {
                 self.vStack.insertArrangedSubview(self.deletedCommentView, at: self.vStack.arrangedSubviews.firstIndex(of: self.textLabel)! + 1)
             }

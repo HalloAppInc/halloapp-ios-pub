@@ -44,6 +44,7 @@
 		68F9361C252E759200FA6E75 /* CommonEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F9361B252E759200FA6E75 /* CommonEvents.swift */; };
 		7605EA1F24F475A800CAD9AB /* Privacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7605EA1E24F475A800CAD9AB /* Privacy.swift */; };
 		762EE69B24F62886008765A5 /* XMPPElementRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */; };
+		76451C4C25479E5400B9E268 /* Localizations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76451C4B25479E5400B9E268 /* Localizations.swift */; };
 		7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7656F93124BCE66500F00AF7 /* LogFileManager.swift */; };
 		76608ECD24EC2B5100DD61C3 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608ECC24EC2B5100DD61C3 /* Chat.swift */; };
 		768123BD2485D9C7008C5216 /* Core.h in Headers */ = {isa = PBXBuildFile; fileRef = 768123BB2485D9C7008C5216 /* Core.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -134,6 +135,7 @@
 		68F9361B252E759200FA6E75 /* CommonEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonEvents.swift; sourceTree = "<group>"; };
 		7605EA1E24F475A800CAD9AB /* Privacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privacy.swift; sourceTree = "<group>"; };
 		762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPElementRepresentable.swift; sourceTree = "<group>"; };
+		76451C4B25479E5400B9E268 /* Localizations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localizations.swift; sourceTree = "<group>"; };
 		7656F93124BCE66500F00AF7 /* LogFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileManager.swift; sourceTree = "<group>"; };
 		76608ECC24EC2B5100DD61C3 /* Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chat.swift; sourceTree = "<group>"; };
 		768123B82485D9C7008C5216 /* Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -318,17 +320,17 @@
 		768123CF2485DA8B008C5216 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				68F935B9252BED9900FA6E75 /* Monitoring */,
-				6832F50224FEE9CB00A9C202 /* CoreService.swift */,
 				246A8B7824902A2200CE0429 /* Avatars */,
 				76608ECB24EC2B2100DD61C3 /* Chat */,
 				768123F224860FF3008C5216 /* Contacts */,
+				6832F50224FEE9CB00A9C202 /* CoreService.swift */,
 				7681241C2486C133008C5216 /* Extensions */,
 				768124112486191A008C5216 /* Feed */,
 				768123D52485DC0B008C5216 /* Global */,
 				EAAE7B2E24DBD47800946B77 /* Keys */,
 				768123D02485DB8D008C5216 /* Logging */,
 				688D8A1C24ED976900258BB9 /* Mentions */,
+				68F935B9252BED9900FA6E75 /* Monitoring */,
 				7605EA1D24F4759400CAD9AB /* Privacy */,
 				76812415248619BB008C5216 /* Proto */,
 				2490289924C5DDBD0019C4D5 /* ShareExtension */,
@@ -350,10 +352,11 @@
 			isa = PBXGroup;
 			children = (
 				768123D62485DC4F008C5216 /* AppContext.swift */,
+				76451C4B25479E5400B9E268 /* Localizations.swift */,
 				76C7429B24A1597000C7D945 /* MediaCrypter.swift */,
+				76F45DFF24D226D300EFA301 /* ServerProperties.swift */,
 				768123F024860F67008C5216 /* UserData.swift */,
 				76925CFC24872E85008333FA /* UserData.xcdatamodeld */,
-				76F45DFF24D226D300EFA301 /* ServerProperties.swift */,
 			);
 			path = Global;
 			sourceTree = "<group>";
@@ -597,6 +600,7 @@
 				EAAE7B5024DD2C3000946B77 /* OneTimePreKey+CoreDataProperties.swift in Sources */,
 				76E00DF124F786A100E06252 /* Data.swift in Sources */,
 				2490287524C524250019C4D5 /* XMPPCommonRequests.swift in Sources */,
+				76451C4C25479E5400B9E268 /* Localizations.swift in Sources */,
 				EAAE7B3924DCDEBB00946B77 /* KeyStore.swift in Sources */,
 				76F45E0024D226D300EFA301 /* ServerProperties.swift in Sources */,
 				246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */,

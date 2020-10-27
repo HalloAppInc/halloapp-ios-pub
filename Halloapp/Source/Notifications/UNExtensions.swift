@@ -71,7 +71,7 @@ extension UNMutableNotificationContent {
 
     func populate(withDataFrom protoContainer: Clients_Container, notificationMetadata: NotificationMetadata, mentionNameProvider: (UserID) -> String) {
         if protoContainer.hasPost {
-            subtitle = "New Post"
+            subtitle = NSLocalizedString("notification.new.post", value: "New Post", comment: "Title for the new feed post notification.")
             body = protoContainer.post.mentionText.expandedText(nameProvider: mentionNameProvider).string
             if !protoContainer.post.media.isEmpty {
                 // Display how many photos and videos post contains if there's no caption.
@@ -84,7 +84,7 @@ extension UNMutableNotificationContent {
             }
         } else if protoContainer.hasComment {
             let commentText = protoContainer.comment.mentionText.expandedText(nameProvider: mentionNameProvider).string
-            body = "Commented: \(commentText)"
+            body = String(format: NSLocalizedString("notification.commented.with.text", value: "Commented: %@", comment: "Push notification for a new comment. Parameter is the text of the comment"), commentText)
         } else if protoContainer.hasChatMessage {
             let protoMessage = protoContainer.chatMessage
 

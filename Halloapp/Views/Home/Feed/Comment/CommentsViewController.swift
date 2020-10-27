@@ -13,6 +13,43 @@ import CoreData
 import UIKit
 import XMPPFramework
 
+private extension Localizations {
+
+    static var titleComments: String {
+        NSLocalizedString("title.comments", value: "Comments", comment: "Title for the Comments screen.")
+    }
+
+    static var commentDelete: String {
+        NSLocalizedString("comment.delete",
+                          value: "Delete",
+                          comment: "Button revealed when user swipes on their comment.")
+    }
+
+    static var deleteCommentConfirmation: String {
+        NSLocalizedString("comment.delete.confirmation",
+                          value: "Delete this comment? This action cannot be undone.",
+                          comment: "Confirmation text displayed at comment deletion prompt")
+    }
+
+    static var deleteCommentAction: String {
+        NSLocalizedString("comment.delete.action",
+                          value: "Delete Comment",
+                          comment: "Title for the button in comment deletion confirmation prompt.")
+    }
+
+    static var resendCommentConfirmation: String {
+        NSLocalizedString("comment.resend.confirmation",
+                          value: "Resend Comment?",
+                          comment: "Confirmation prompt for when resending comment that previously failed to send.")
+    }
+
+    static var resendCommentAction: String {
+        NSLocalizedString("comment.resend.action",
+                          value:"Resend",
+                          comment: "Title for the button in comment resend confirmation prompt.")
+    }
+}
+
 class CommentsViewController: UITableViewController, CommentInputViewDelegate, NSFetchedResultsControllerDelegate, TextLabelDelegate {
 
     static private let cellReuseIdentifier = "CommentCell"
@@ -70,7 +107,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.navigationItem.title = "Comments"
+        self.navigationItem.title = Localizations.titleComments
         self.navigationItem.standardAppearance = .opaqueAppearance
 
         tableView.separatorStyle = .none
@@ -360,12 +397,12 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     private func retractComment(with commentId: FeedPostCommentID, completionHandler: @escaping (Bool) -> Void) {
-        let actionSheet = UIAlertController(title: nil, message: "Delete this comment? This action cannot be undone.", preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: "Delete Comment", style: .destructive) { _ in
+        let actionSheet = UIAlertController(title: nil, message: Localizations.deleteCommentConfirmation, preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: Localizations.deleteCommentAction, style: .destructive) { _ in
             self.reallyRetract(commentWithId: commentId)
             completionHandler(true)
         })
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel) { _ in
             completionHandler(false)
         })
         self.present(actionSheet, animated: true)
@@ -379,11 +416,11 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     private func confirmResending(commentWithId commentId: FeedPostCommentID) {
         guard  let comment = MainAppContext.shared.feedData.feedComment(with: commentId) else { return }
         guard comment.status == .sendError else { return }
-        let actionSheet = UIAlertController(title: nil, message: "Resend comment?", preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: "Resend", style: .default, handler: { _ in
+        let actionSheet = UIAlertController(title: nil, message: Localizations.resendCommentConfirmation, preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: Localizations.resendCommentAction, style: .default, handler: { _ in
             MainAppContext.shared.feedData.resend(commentWithId: commentId)
         }))
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         self.present(actionSheet, animated: true)
     }
 
@@ -602,7 +639,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         // allows in-cell Delete button to stay visible when confirmation (action sheet) is presented.
         let feedPostComment = self.sortedComments[indexPath.row]
         let commentId = feedPostComment.id
-        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (_, _, completionHandler) in
+        let deleteAction = UIContextualAction(style: .destructive, title: Localizations.commentDelete) { (_, _, completionHandler) in
             self.retractComment(with: commentId, completionHandler: completionHandler)
         }
         return UISwipeActionsConfiguration(actions: [ deleteAction ])
@@ -888,7 +925,9 @@ fileprivate class LoadingViewController: UIViewController {
         label.numberOfLines = 0
         label.isHidden = true
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "An error occured while trying to load this post. Please try again later."
+        label.text = NSLocalizedString("comments.post.loading.failed",
+                                       value: "An error occured while trying to load this post. Please try again later.",
+                                       comment: "Warning text displayed in Comments when post wasn't available.")
         return label
     }()
 

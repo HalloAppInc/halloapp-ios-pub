@@ -5,6 +5,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Core
 import Foundation
 import Photos
 import SwiftUI
@@ -95,7 +96,7 @@ fileprivate struct AlbumsView: View {
                 Button(action: { self.complete(nil, true) }) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 22, weight: .bold))
-                        .accessibility(label: Text("Cancel"))
+                        .accessibility(label: Text(Localizations.buttonCancel))
                         .padding()
                 }
                 

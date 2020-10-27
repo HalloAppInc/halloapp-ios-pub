@@ -105,7 +105,7 @@ struct InvitePeopleView: View {
             ])
         }
         .alert(isPresented: self.$isRedeemErrorAlertPresented) {
-            Alert(title: Text("Could not invite"), message: Text("Something went wrong. Please try again later."), dismissButton: .cancel(Text("OK")))
+            Alert(title: Text("Could not invite"), message: Text("Something went wrong. Please try again later."), dismissButton: .cancel(Text(Localizations.buttonOK)))
         }
         .sheet(isPresented: self.$isShareSheetPresented, onDismiss: {
             self.inviteManager.contactToInvite = nil

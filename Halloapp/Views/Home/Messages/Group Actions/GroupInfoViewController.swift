@@ -205,7 +205,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
 //
 //        })
         
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true)
     }
     
@@ -277,7 +277,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             
         })
         
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true) {
             deselectRow()
         }
@@ -398,7 +398,7 @@ extension GroupInfoViewController: GroupInfoFooterViewDelegate {
             guard let self = self else { return }
             MainAppContext.shared.service.leaveGroup(groupID: self.groupId) { result in }
          })
-         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
          self.present(actionSheet, animated: true)
     }
 }

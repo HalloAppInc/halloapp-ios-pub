@@ -798,8 +798,9 @@ final class FeedItemFooterView: UIView {
     // Gotham Medium, 15 pt (Subhead)
     lazy var commentButton: ButtonWithBadge = {
         let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 6 : -6
+        let stringComment = NSLocalizedString("feedpost.button.comment", value: "Comment", comment: "Button under someone's post. Verb.")
         let button = ButtonWithBadge(type: .system)
-        button.setTitle("Comment", for: .normal)
+        button.setTitle(stringComment, for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
         button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 21)
         button.titleLabel?.lineBreakMode = .byWordWrapping
@@ -813,8 +814,9 @@ final class FeedItemFooterView: UIView {
     // Gotham Medium, 15 pt (Subhead)
     lazy var messageButton: UIButton = {
         let spacing: CGFloat = self.effectiveUserInterfaceLayoutDirection == .leftToRight ? 8 : -8
+        let stringMessage = NSLocalizedString("feedpost.button.message", value: "Message", comment: "Button under someoneelse's post. Verb.")
         let button = UIButton(type: .system)
-        button.setTitle("Message", for: .normal)
+        button.setTitle(stringMessage, for: .normal)
         button.setImage(UIImage(named: "FeedPostMessage"), for: .normal)
         button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 21)
         button.titleLabel?.lineBreakMode = .byWordWrapping

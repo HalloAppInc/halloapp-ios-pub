@@ -113,7 +113,7 @@ class MessageComposerBodyView: UIView, UITextViewDelegate {
         button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .headline)
         button.contentEdgeInsets = UIEdgeInsets(top: 5, left: 10, bottom: 0, right: 0)
         button.setTitleColor(UIColor.systemGray, for: .normal)
-        button.setTitle("Cancel", for: .normal)
+        button.setTitle(Localizations.buttonCancel, for: .normal)
         button.tintColor = UIColor.systemGray
         return button
     }()

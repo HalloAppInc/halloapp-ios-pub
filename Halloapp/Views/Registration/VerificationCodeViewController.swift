@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjack
+import Core
 import UIKit
 
 protocol VerificationCodeViewControllerDelegate: AnyObject {
@@ -236,7 +237,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         if let codeRequestError = error as? VerificationCodeRequestError, case .notInvited = codeRequestError {
             let message = "We are currently in beta and by invitation only. Please have one of your friends who is a HalloApp user invite you."
             let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
             self.present(alert, animated: true)
         } else {
             viewCodeRequestError.isHidden = false

@@ -93,7 +93,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             return
         case .denied, .restricted:
             let alert = UIAlertController(title: "Photo Access Denied", message: "Please grant access from Settings", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
             self.present(alert, animated: true)
             return
         default:
@@ -603,7 +603,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             deselect(collectionView, cell: cell, asset: asset)
         } else if selected.count >= 10 {
             let alert = UIAlertController(title: "Maximum photos selected", message: "You can select up to 10 photos", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
             self.present(alert, animated: true)
         } else {
             select(collectionView, cell: cell, asset: asset)

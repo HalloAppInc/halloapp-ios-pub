@@ -7,6 +7,7 @@
 //
 
 import Combine
+import Core
 import UIKit
 
 final class NUXItem: UIView {
@@ -146,7 +147,7 @@ final class NUXPopover: UIView, Overlay {
         if showButton {
             panel.addSubview(button)
             button.translatesAutoresizingMaskIntoConstraints = false
-            button.setTitle("OK", for: .normal)
+            button.setTitle(Localizations.buttonOK, for: .normal)
             button.titleLabel?.font = .systemFont(forTextStyle: .callout, weight: .medium)
             button.setTitleColor(UIColor.white.withAlphaComponent(0.7), for: .normal)
             button.constrainMargins([.trailing, .bottom], to: panel)

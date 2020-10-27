@@ -105,7 +105,7 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.title = "Your Post"
+        navigationItem.title = NSLocalizedString("title.your.post", value: "Your Post", comment: "Title for the screen with information about who saw your post.")
         navigationItem.standardAppearance = .opaqueAppearance
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarTrashBinWithLid"), style: .plain, target: self, action: #selector(retractPostAction))
@@ -145,11 +145,13 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
     // MARK: Deleting Post
 
     @objc private func retractPostAction() {
-        let actionSheet = UIAlertController(title: nil, message: "Delete this post? This action cannot be undone.", preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: "Delete Post", style: .destructive) { _ in
+        let deletePostConfirmationPrompt = NSLocalizedString("your.post.deletepost.confirmation", value: "Delete this post? This action cannot be undone.", comment: "Post deletion confirmation. Displayed as action sheet title.")
+        let deletePostButtonTitle = NSLocalizedString("your.post.deletepost.button", value: "Delete Post", comment: "Title for the button that confirms intent to delete your own post.")
+        let actionSheet = UIAlertController(title: nil, message: deletePostConfirmationPrompt, preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: deletePostButtonTitle, style: .destructive) { _ in
             self.reallyRetractPost()
         })
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         self.present(actionSheet, animated: true)
     }
 
@@ -170,10 +172,10 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
         guard let receiptType = FeedPostReceipt.ReceiptType(rawValue: section) else { return nil }
         switch receiptType  {
         case .seen:
-            return "Viewed by"
+            return NSLocalizedString("your.post.viewed.by", value: "Viewed by", comment: "Your Post screen: title for group of contacts who has seen your post.")
 
         case .sent:
-            return "Sent to"
+            return NSLocalizedString("your.post.sent.to", value: "Sent to", comment: "Your Post screen: title for group of contacts who has not yet seen your post.")
         }
     }
 

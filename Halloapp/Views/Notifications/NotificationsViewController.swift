@@ -90,7 +90,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
         actionSheet.addAction(UIAlertAction(title: "Mark All as Read", style:.destructive) { _ in
             MainAppContext.shared.feedData.markNotificationsAsRead()
         })
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true)
     }
 }

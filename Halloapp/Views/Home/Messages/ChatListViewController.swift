@@ -476,7 +476,7 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
                 }
                 
             })
-            actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
             present(actionSheet, animated: true)
         }
     }
@@ -564,7 +564,7 @@ private class ChatListInviteFriendsTableViewCell: UITableViewCell {
     lazy var label: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Invite friends & family"
+        label.text = Localizations.inviteFriendsAndFamily
         label.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
         label.numberOfLines = 0
         label.textColor = .systemBlue

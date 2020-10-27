@@ -114,7 +114,7 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
         layoutManager.delegate = self
 
         readMoreButton = UILabel()
-        readMoreButton.text = "...more"
+        readMoreButton.text = NSLocalizedString("textlabel.more", value: "...more", comment: "Link to expand truncated text.")
         readMoreButton.textColor = .systemBlue
         readMoreButton.backgroundColor = backgroundColor
         readMoreButton.isHidden = true
@@ -587,6 +587,47 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
     // TODO: Add Accessibility support
 }
 
+private extension Localizations {
+
+    static var openLink: String {
+        return NSLocalizedString("textlabel.context.menu.open.link", value: "Open Link", comment: "One of the items in context menu presented upon long press on web link.")
+    }
+
+    static var addToReadingList: String {
+        return NSLocalizedString("textlabel.context.menu.add.reading.list", value: "Add to Reading List", comment: "One of the items in context menu presented upon long press on web link.")
+    }
+
+    static var copyLink: String {
+        return NSLocalizedString("textlabel.context.menu.copy.link", value: "Copy Link", comment: "One of the items in context menu presented upon long press on web link.")
+    }
+
+    static var share: String {
+        return NSLocalizedString("textlabel.context.menu.share", value: "Share...", comment: "One of the items in context menu presented upon long press on web link.")
+    }
+
+    static func call(_ phoneNumber: String) -> String {
+        return String(format: NSLocalizedString("textlabel.context.menu.call.number", value: "Call %@", comment: "One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number."),
+                      phoneNumber)
+    }
+
+    static var copyPhoneNumber: String {
+        return NSLocalizedString("textlabel.context.menu.copy.phone.number", value: "Copy Phone Number", comment: "One of the items in context menu presented upon long press on linkified phone number in text.")
+    }
+
+    static var getDirections: String {
+        return NSLocalizedString("textlabel.context.menu.get.directions", value: "Get Directions", comment: "One of the items in context menu presented upon long press on linkified address in text.")
+    }
+
+    static var openInMaps: String {
+        return NSLocalizedString("textlabel.context.menu.open.in.maps", value: "Open in Maps", comment: "One of the items in context menu presented upon long press on linkified address in text.")
+    }
+
+    static var copyAddress: String {
+        return NSLocalizedString("textlabel.context.menu.copy.address", value: "Copy Address", comment: "One of the items in context menu presented upon long press on linkified address in text.")
+    }
+
+}
+
 extension TextLabel: UIContextMenuInteractionDelegate {
 
     private func contextMenuItems(forWebLink link: AttributedTextLink) -> [UIMenuElement]? {
@@ -595,23 +636,23 @@ extension TextLabel: UIContextMenuInteractionDelegate {
         var items = [UIMenuElement]()
 
         // Open Link
-        items.append(UIAction(title: "Open Link", image: UIImage(systemName: "safari")) { (_) in
+        items.append(UIAction(title: Localizations.openLink, image: UIImage(systemName: "safari")) { (_) in
             UIApplication.shared.open(url)
         })
 
         // Add to Reading List
-        items.append(UIAction(title: "Add to Reading list", image: UIImage(systemName: "eyeglasses")) { (_) in
+        items.append(UIAction(title: Localizations.addToReadingList, image: UIImage(systemName: "eyeglasses")) { (_) in
             try? SSReadingList.default()?.addItem(with: url, title: nil, previewText: nil)
         })
 
         // Copy Link
-        items.append(UIAction(title: "Copy Link", image: UIImage(systemName: "doc.on.doc")) { (_) in
+        items.append(UIAction(title: Localizations.copyLink, image: UIImage(systemName: "doc.on.doc")) { (_) in
             UIPasteboard.general.string = link.text
             UIPasteboard.general.url = url
         })
 
         // Share
-        items.append(UIAction(title: "Share...", image: UIImage(systemName: "square.and.arrow.up")) { (_) in
+        items.append(UIAction(title: Localizations.share, image: UIImage(systemName: "square.and.arrow.up")) { (_) in
             MainAppContext.shared.activityViewControllerPresentRequest.send([url])
         })
 
@@ -623,7 +664,7 @@ extension TextLabel: UIContextMenuInteractionDelegate {
 
         // Call <phone number>
         if let url = URL(string: "tel:\(link.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)"), UIApplication.shared.canOpenURL(url) {
-            items.append(UIAction(title: "Call \(link.text)", image: UIImage(systemName: "phone")) { (_) in
+            items.append(UIAction(title: Localizations.call(link.text), image: UIImage(systemName: "phone")) { (_) in
                 UIApplication.shared.open(url)
             })
         }
@@ -631,7 +672,7 @@ extension TextLabel: UIContextMenuInteractionDelegate {
         /// TODO: "Add to Contacts"
 
         // Copy Phone Number
-        items.append(UIAction(title: "Copy Phone Number", image: UIImage(systemName: "doc.on.doc")) { (_) in
+        items.append(UIAction(title: Localizations.copyPhoneNumber, image: UIImage(systemName: "doc.on.doc")) { (_) in
             UIPasteboard.general.string = link.text
         })
 
@@ -644,7 +685,7 @@ extension TextLabel: UIContextMenuInteractionDelegate {
         // Get Directions
         if let directionsURL = URL(string: "https://maps.apple.com/?daddr=\(link.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)"),
             UIApplication.shared.canOpenURL(directionsURL) {
-            items.append(UIAction(title: "Get Directions", image: UIImage(systemName: "arrow.up.right.diamond")) { (_) in
+            items.append(UIAction(title: Localizations.getDirections, image: UIImage(systemName: "arrow.up.right.diamond")) { (_) in
                 UIApplication.shared.open(directionsURL)
             })
         }
@@ -652,7 +693,7 @@ extension TextLabel: UIContextMenuInteractionDelegate {
         // Open in Maps
         if let mapsURL = URL(string: "https://maps.apple.com/?address=\(link.text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!)"),
            UIApplication.shared.canOpenURL(mapsURL){
-            items.append(UIAction(title: "Open in Maps", image: UIImage(systemName: "map")) { (_) in
+            items.append(UIAction(title: Localizations.openInMaps, image: UIImage(systemName: "map")) { (_) in
                 UIApplication.shared.open(mapsURL)
             })
         }
@@ -660,7 +701,7 @@ extension TextLabel: UIContextMenuInteractionDelegate {
         /// TODO: "Add to Contacts"
 
         // Copy Address
-        items.append(UIAction(title: "Copy Address", image: UIImage(systemName: "doc.on.doc")) { (_) in
+        items.append(UIAction(title: Localizations.copyAddress, image: UIImage(systemName: "doc.on.doc")) { (_) in
             UIPasteboard.general.string = link.text
         })
 

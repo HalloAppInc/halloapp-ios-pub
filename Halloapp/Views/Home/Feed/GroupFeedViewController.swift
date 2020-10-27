@@ -41,15 +41,15 @@ class GroupFeedViewController: FeedTableViewController {
             expandedButtons: [
                 .standardActionButton(
                     iconTemplate: UIImage(named: "icon_fab_compose_image")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: "Photo",
+                    accessibilityLabel: Localizations.fabAccessibilityPhotoLibrary,
                     action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
                 .standardActionButton(
                     iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: "Camera",
+                    accessibilityLabel: Localizations.fabAccessibilityCamera,
                     action: { [weak self] in self?.presentNewPostViewController(source: .camera) }),
                 .standardActionButton(
                     iconTemplate: UIImage(named: "icon_fab_compose_text")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: "Text",
+                    accessibilityLabel: Localizations.fabAccessibilityTextPost,
                     action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
             ]
         )

@@ -113,7 +113,7 @@ class FeedViewController: FeedTableViewController {
     private let inviteFriendsButton = UIButton()
 
     private func installInviteFriendsButton() {
-        inviteFriendsButton.setTitle("Invite friends & family", for: .normal)
+        inviteFriendsButton.setTitle(Localizations.inviteFriendsAndFamily, for: .normal)
         inviteFriendsButton.setTitleColor(.systemBlue, for: .normal)
         inviteFriendsButton.titleLabel?.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
         inviteFriendsButton.titleLabel?.numberOfLines = 0
@@ -179,10 +179,11 @@ class FeedViewController: FeedTableViewController {
     }
 
     private func installNUXHeaderView() {
+        let stringLearnMore = NSLocalizedString("nux.learn.more", value: "Learn more", comment: "Action in NUX UI in Home screen.")
         let nuxItem = NUXItem(
             message: NUX.homeFeedIntroContent,
             icon: UIImage(named: "NUXSpeechBubble"),
-            link: (text: "Learn more", action: { [weak self] nuxItem in
+            link: (text: stringLearnMore, action: { [weak self] nuxItem in
                 self?.showNUXDetails { _ = nuxItem.dismiss() }
             }),
             didClose: { [weak self] in
@@ -227,7 +228,7 @@ class FeedViewController: FeedTableViewController {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setContentCompressionResistancePriority(.required, for: .vertical)
-        button.setTitle("OK", for: .normal)
+        button.setTitle(Localizations.buttonOK, for: .normal)
         button.setTitleColor(UIColor.nux, for: .normal)
         button.titleLabel?.font = .systemFont(forTextStyle: .callout, weight: .bold)
         button.addTarget(self, action: #selector(dismissOverlay), for: .touchUpInside)
@@ -304,15 +305,15 @@ class FeedViewController: FeedTableViewController {
             expandedButtons: [
                 .standardActionButton(
                     iconTemplate: UIImage(named: "icon_fab_compose_image")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: "Photo",
+                    accessibilityLabel: Localizations.fabAccessibilityPhotoLibrary,
                     action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
                 .standardActionButton(
                     iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: "Camera",
+                    accessibilityLabel: Localizations.fabAccessibilityCamera,
                     action: { [weak self] in self?.presentNewPostViewController(source: .camera) }),
                 .standardActionButton(
                     iconTemplate: UIImage(named: "icon_fab_compose_text")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: "Text",
+                    accessibilityLabel: Localizations.fabAccessibilityTextPost,
                     action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
             ]
         )

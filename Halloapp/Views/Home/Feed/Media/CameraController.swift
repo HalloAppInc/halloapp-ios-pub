@@ -7,6 +7,7 @@
 //
 
 import CocoaLumberjack
+import Core
 import UIKit
 import AVFoundation
 
@@ -164,11 +165,11 @@ class CameraController: UIViewController {
 
     private func showPermissionDeniedAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self] _ in
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { [weak self] _ in
             UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
             self?.cameraDelegate.goBack()
         }))
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { [weak self] _ in
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: { [weak self] _ in
             self?.cameraDelegate.goBack()
         }))
         present(alert, animated: true)
@@ -177,7 +178,7 @@ class CameraController: UIViewController {
     private func showCaptureSessionSetupErrorAlert(error: Error) {
         let message = (error as? CameraInitError)?.localizedDescription
         let alert = UIAlertController(title: "Initialization Error", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self] _ in
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { [weak self] _ in
             self?.cameraDelegate.goBack()
         }))
         present(alert, animated: true)
