@@ -16,7 +16,6 @@ struct VerificationVerifyCodeContext {
 }
 
 struct VerificationCompleteContext {
-    
 }
 
 class VerificationViewController: UINavigationController, PhoneInputViewControllerDelegate, VerificationCodeViewControllerDelegate {
@@ -26,9 +25,12 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
         case complete(VerificationCompleteContext)
     }
     var state: State?
+    var registrationManager: RegistrationManager?
 
-    class func loadedFromStoryboard() -> VerificationViewController {
-        return UIStoryboard(name: "Registration", bundle: nil).instantiateInitialViewController() as! VerificationViewController
+    class func loadedFromStoryboard(registrationManager: RegistrationManager = DefaultRegistrationManager()) -> VerificationViewController {
+        let vc = UIStoryboard(name: "Registration", bundle: nil).instantiateInitialViewController() as! VerificationViewController
+        vc.registrationManager = registrationManager
+        return vc
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -37,22 +39,21 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
             phoneInputViewController.delegate = self
         }
 
-        if MainAppContext.shared.userData.normalizedPhoneNumber.isEmpty {
-            self.move(to: .phoneInput(VerificationPhoneInputContext()))
+        if registrationManager?.hasRequestedVerificationCode ?? false {
+            move(to: .verifyCode(VerificationVerifyCodeContext(fromUserAction: false)))
         } else {
-            self.move(to: .verifyCode(VerificationVerifyCodeContext(fromUserAction: false)))
+            move(to: .phoneInput(VerificationPhoneInputContext()))
         }
     }
 
     private func move(to nextState: State) {
         switch nextState {
         case .complete(_):
-            MainAppContext.shared.userData.tryLogIn()
-            break
+            registrationManager?.didCompleteRegistrationFlow()
 
         default:
-            self.state = nextState
-            self.presentViewController(for: nextState)
+            state = nextState
+            presentViewController(for: nextState)
         }
     }
 
@@ -64,7 +65,7 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
 
         case let .verifyCode(verifyCodeContext):
             let verificationCodeVC = self.newVerificationCodeViewController()
-            self.pushViewController(verificationCodeVC, animated: verifyCodeContext.fromUserAction)
+            pushViewController(verificationCodeVC, animated: verifyCodeContext.fromUserAction)
             if verifyCodeContext.fromUserAction {
                 verificationCodeVC.requestVerificationCode()
             }
@@ -84,13 +85,31 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
 
     // MARK: PhoneInputViewControllerDelegate
 
-    func phoneInputViewControllerDidFinish(_ viewController: PhoneInputViewController) {
-        self.move(to: .verifyCode(VerificationVerifyCodeContext(fromUserAction: true)))
+    func phoneInputViewControllerDidFinish(_ viewController: PhoneInputViewController, countryCode: String, nationalNumber: String, name: String) {
+        registrationManager?.set(countryCode: countryCode, nationalNumber: nationalNumber, userName: name)
+        move(to: .verifyCode(VerificationVerifyCodeContext(fromUserAction: true)))
     }
 
     // MARK: VerificationCodeViewControllerDelegate
 
+    var formattedPhoneNumber: String? {
+        registrationManager?.formattedPhoneNumber
+    }
+
+    func requestVerificationCode(completion: @escaping (Result<Void, Error>) -> Void) {
+        registrationManager?.requestVerificationCode(completion: completion)
+    }
+
+    func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        registrationManager?.confirmVerificationCode(verificationCode, completion: completion)
+    }
+
+    func verificationCodeViewControllerDidRequestNewPhoneNumber(_ viewController: VerificationCodeViewController) {
+        registrationManager?.resetPhoneNumber()
+        popViewController(animated: true)
+    }
+
     func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController) {
-        self.move(to: .complete(VerificationCompleteContext()))
+        move(to: .complete(VerificationCompleteContext()))
     }
 }

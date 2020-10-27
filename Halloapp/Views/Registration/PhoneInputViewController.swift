@@ -10,7 +10,7 @@ import PhoneNumberKit
 import UIKit
 
 protocol PhoneInputViewControllerDelegate: AnyObject {
-    func phoneInputViewControllerDidFinish(_ viewController: PhoneInputViewController)
+    func phoneInputViewControllerDidFinish(_ viewController: PhoneInputViewController, countryCode: String, nationalNumber: String, name: String)
 }
 
 class PhoneInputViewController: UIViewController, UITextFieldDelegate {
@@ -168,12 +168,11 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
 
         switch userInputStatus {
         case let .valid(phoneNumber, userName):
-            let userData = MainAppContext.shared.userData
-            userData.countryCode = String(phoneNumber.countryCode)
-            userData.phoneInput = String(phoneNumber.nationalNumber)
-            userData.name = userName
-            userData.save()
-            self.delegate?.phoneInputViewControllerDidFinish(self)
+            delegate?.phoneInputViewControllerDidFinish(
+                self,
+                countryCode: String(phoneNumber.countryCode),
+                nationalNumber: String(phoneNumber.nationalNumber),
+                name: userName)
 
         case let .invalid(textField, _):
             textField.becomeFirstResponder()

@@ -11,23 +11,11 @@ import Core
 import UIKit
 
 protocol VerificationCodeViewControllerDelegate: AnyObject {
+    var formattedPhoneNumber: String? { get }
+    func requestVerificationCode(completion: @escaping (Result<Void, Error>) -> Void)
+    func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void)
+    func verificationCodeViewControllerDidRequestNewPhoneNumber(_ viewController: VerificationCodeViewController)
     func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController)
-}
-
-enum VerificationCodeRequestError: String, Error, RawRepresentable {
-    case notInvited = "not_invited"
-    case smsFailure = "sms_fail"
-    case malformedResponse // everything else
-}
-
-enum VerificationCodeValidationError: String, Error, RawRepresentable {
-    case incorrectCode = "wrong_sms_code" // The sms code provided does not match
-    case missingPhone = "missing_phone"   // Request is missing phone field
-    case missingCode = "missing_code"     // Request is missing code field
-    case missingName = "missing_name"     // Request is missing name field
-    case invalidName = "invalid_name"     // Invalid name in the request
-    case badRequest = "bad_request"       // Could be several reasons, one is UserAgent does not follow the HalloApp.
-    case malformedResponse                // Everything else
 }
 
 class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
@@ -88,7 +76,9 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         labelTitle.font = .gothamFont(forTextStyle: .title3, weight: .medium)
         textFieldCode.font = .monospacedDigitSystemFont(ofSize: UIFontDescriptor.preferredFontDescriptor(withTextStyle: .title3).pointSize, weight: .regular)
 
-        labelChangePhone.text = "Not \(MainAppContext.shared.userData.formattedPhoneNumber)?"
+        if let formattedPhoneNumber = delegate?.formattedPhoneNumber {
+            labelChangePhone.text = "Not \(formattedPhoneNumber)?"
+        }
 
         codeInputFieldBackground.backgroundColor = .textFieldBackground
         codeInputFieldBackground.layer.masksToBounds = true
@@ -158,10 +148,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     }
 
     @IBAction func changePhoneNumberAction(_ sender: Any) {
-        let userData = MainAppContext.shared.userData
-        userData.normalizedPhoneNumber = ""
-        userData.save()
-        self.navigationController?.popViewController(animated: true)
+        delegate?.verificationCodeViewControllerDidRequestNewPhoneNumber(self)
     }
 
     @IBAction func continueAction(_ sender: Any) {
@@ -181,171 +168,60 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     // MARK: Code Request
 
     func requestVerificationCode() {
+        guard let delegate = delegate else {
+            DDLogError("VerificationCodeViewController/validateCode/error missing delegate")
+            return
+        }
+
         isCodeRequestInProgress = true
 
-        let userData = MainAppContext.shared.userData
-        let phoneNumber = userData.countryCode.appending(userData.phoneInput)
+        delegate.requestVerificationCode() { [weak self] result in
+            self?.isCodeRequestInProgress = false
+            switch result {
+            case .success:
+                self?.labelTitle.isHidden = false
+                self?.viewCodeRequestError.isHidden = true
+                self?.viewChangePhone.isHidden = false
 
-        var request = URLRequest(url: URL(string: "https://api.halloapp.net/api/registration/request_sms")!)
-        request.httpMethod = "POST"
-        request.httpBody = try! JSONSerialization.data(withJSONObject: ["phone": phoneNumber])
-        DDLogInfo("reg/request-sms/begin url=[\(request.url!)]  phone=[\(phoneNumber)]")
-        let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
-            if let error = error {
-                DDLogError("reg/request-sms/error [\(error)]")
-                DispatchQueue.main.async {
-                    self.verificationCodeRequestFailed(withError: error)
+                self?.textFieldCode.becomeFirstResponder()
+
+            case .failure(let error):
+                self?.labelTitle.isHidden = true
+                self?.viewChangePhone.isHidden = false
+                if let codeRequestError = error as? VerificationCodeRequestError, case .notInvited = codeRequestError {
+                    let message = "We are currently in beta and by invitation only. Please have one of your friends who is a HalloApp user invite you."
+                    let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
+                    self?.present(alert, animated: true)
+                } else {
+                    self?.viewCodeRequestError.isHidden = false
                 }
-                return
-            }
-            guard let data = data else {
-                DDLogError("reg/request-sms/error Data is empty.")
-                DispatchQueue.main.async {
-                    self.verificationCodeRequestFailed(withError: VerificationCodeRequestError.malformedResponse)
-                }
-                return
-            }
-            guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                DDLogError("reg/request-sms/error Invalid response. [\(String(describing: urlResponse))]")
-                DispatchQueue.main.async {
-                    self.verificationCodeRequestFailed(withError: VerificationCodeRequestError.malformedResponse)
-                }
-                return
-            }
-            guard let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                DDLogError("reg/request-sms/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
-                DispatchQueue.main.async {
-                    self.verificationCodeRequestFailed(withError: VerificationCodeRequestError.malformedResponse)
-                }
-                return
-            }
-            DDLogInfo("reg/request-sms/http-response  status=[\(httpResponse.statusCode)]  response=[\(response)]")
-            DispatchQueue.main.async {
-                /// TODO: pass HTTP response code too?
-                self.verificationCodeRequestFinished(with: response)
             }
         }
-        task.resume()
-    }
-
-    private func verificationCodeRequestFailed(withError error: Error) {
-        isCodeRequestInProgress = false
-
-        labelTitle.isHidden = true
-        viewChangePhone.isHidden = false
-
-        if let codeRequestError = error as? VerificationCodeRequestError, case .notInvited = codeRequestError {
-            let message = "We are currently in beta and by invitation only. Please have one of your friends who is a HalloApp user invite you."
-            let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
-            self.present(alert, animated: true)
-        } else {
-            viewCodeRequestError.isHidden = false
-        }
-    }
-
-    private func verificationCodeRequestFinished(with response: [String : Any]) {
-        if let errorString = response["error"] as? String {
-            let error = VerificationCodeRequestError(rawValue: errorString) ?? .malformedResponse
-            verificationCodeRequestFailed(withError: error)
-            return
-        }
-
-        guard let normalizedPhoneNumber = response["phone"] as? String else {
-            verificationCodeRequestFailed(withError: VerificationCodeRequestError.malformedResponse)
-            return
-        }
-
-        let userData = MainAppContext.shared.userData
-        userData.normalizedPhoneNumber = normalizedPhoneNumber
-        userData.save()
-
-        isCodeRequestInProgress = false
-
-        labelTitle.isHidden = false
-        viewCodeRequestError.isHidden = true
-        viewChangePhone.isHidden = false
-
-        textFieldCode.becomeFirstResponder()
     }
 
     // MARK: Code Validation
 
     private func validateCode() {
+        guard let delegate = delegate else {
+            DDLogError("VerificationCodeViewController/validateCode/error missing delegate")
+            return
+        }
+
         isCodeValidationInProgress = true
 
-        let userData = MainAppContext.shared.userData
-        let json: [String : String] = [ "name": userData.name, "phone": userData.normalizedPhoneNumber, "code": verificationCode ]
-        var request = URLRequest(url: URL(string: "https://api.halloapp.net/api/registration/register")!)
-        request.httpMethod = "POST"
-        request.httpBody = try! JSONSerialization.data(withJSONObject: json, options: [])
-        DDLogInfo("reg/validate-code/begin url=[\(request.url!)]  data=[\(json)]")
-        let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
-            if let error = error {
-                DDLogError("reg/validate-code/error [\(error)]")
-                DispatchQueue.main.async {
-                    self.codeValidationFailed(withError: error)
-                }
-                return
-            }
-            guard let data = data else {
-                DDLogError("reg/validate-code/error Data is empty.")
-                DispatchQueue.main.async {
-                    self.codeValidationFailed(withError: VerificationCodeValidationError.malformedResponse)
-                }
-                return
-            }
-            guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                DDLogError("reg/validate-code/error Invalid response. [\(String(describing: urlResponse))]")
-                DispatchQueue.main.async {
-                    self.codeValidationFailed(withError: VerificationCodeValidationError.malformedResponse)
-                }
-                return
-            }
-            guard let response = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-                DDLogError("reg/validate-code/error Invalid response. [\(String(bytes: data, encoding: .utf8) ?? "")]")
-                DispatchQueue.main.async {
-                    self.codeValidationFailed(withError: VerificationCodeValidationError.malformedResponse)
-                }
-                return
-            }
-            DDLogInfo("reg/validate-code/finished  status=[\(httpResponse.statusCode)]  response=[\(response)]")
-            DispatchQueue.main.async {
-                self.codeValidationFinished(with: response)
+        delegate.confirmVerificationCode(verificationCode) { [weak self] result in
+            guard let self = self else { return }
+
+            self.isCodeValidationInProgress = false
+            switch result {
+            case .success:
+                self.delegate?.verificationCodeViewControllerDidFinish(self)
+            case .failure:
+                self.labelInvalidCode.alpha = 1
+                self.textFieldCode.text = ""
+                self.textFieldCode.becomeFirstResponder()
             }
         }
-        task.resume()
-    }
-
-    private func codeValidationFailed(withError error: Error) {
-        isCodeValidationInProgress = false
-    }
-
-    private func codeValidationFinished(with response: [String: Any]) {
-        isCodeValidationInProgress = false
-
-        if let errorString = response["error"] as? String {
-            let error = VerificationCodeValidationError(rawValue: errorString) ?? .malformedResponse
-            DDLogInfo("reg/validate-code/invalid [\(error)]")
-            labelInvalidCode.alpha = 1
-            textFieldCode.text = ""
-            textFieldCode.becomeFirstResponder()
-            return
-        }
-        guard let userId = response["uid"] as? String, let password = response["password"] as? String else {
-            DDLogInfo("reg/validate-code/invalid Missing userId or password")
-            labelInvalidCode.alpha = 1
-            textFieldCode.text = ""
-            textFieldCode.becomeFirstResponder()
-            return
-        }
-
-        DDLogInfo("reg/validate-code/success")
-
-        let userData = MainAppContext.shared.userData
-        userData.userId = userId
-        userData.password = password
-        userData.save()
-        self.delegate?.verificationCodeViewControllerDidFinish(self)
     }
 }

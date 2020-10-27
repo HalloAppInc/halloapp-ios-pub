@@ -13,6 +13,7 @@ struct DeveloperMenuView: View {
     @State var useTestServer: Bool
     @State var useProtobuf: Bool
     @State var showRestartAlert = false
+    @State var showRegistrationDemo = false
 
     var dismiss: (() -> ())?
 
@@ -100,6 +101,23 @@ struct DeveloperMenuView: View {
                         .background(Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(24)
+                }
+
+
+                Button(action: {
+                    showRegistrationDemo = true
+                }) {
+                    Text("Registration Demo")
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 12)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(24)
+                }
+                .sheet(isPresented: $showRegistrationDemo) {
+                    RegistrationDemo() {
+                        showRegistrationDemo = false
+                    }
                 }
 
                 Button(action: {
