@@ -1,4 +1,3 @@
-
 /* Class = "UITextField"; placeholder = "Your Name"; ObjectID = "2bM-7H-zU2"; */
 "2bM-7H-zU2.placeholder" = "Ваше имя";
 
@@ -7,15 +6,6 @@
 
 /* Class = "UILabel"; text = "Welcome to\nHalloApp"; ObjectID = "8WH-LZ-tee"; */
 "8WH-LZ-tee.text" = "Добро пожаловать в\nHalloApp";
-
-/* Class = "UIButton"; normalTitle = "Continue"; ObjectID = "KMM-Cw-xOy"; */
-"KMM-Cw-xOy.normalTitle" = "Продолжить";
-
-/* Class = "UITextField"; placeholder = "Verification Code"; ObjectID = "TzO-zV-XRv"; */
-"TzO-zV-XRv.placeholder" = "Код проверки";
-
-/* Class = "UILabel"; text = "Not +12395553000?"; ObjectID = "XGr-uY-Lyg"; */
-"XGr-uY-Lyg.text" = "Не +12395553000?";
 
 /* Class = "UILabel"; text = "Code you entered is incorrect"; ObjectID = "bdh-XD-wZ7"; */
 "bdh-XD-wZ7.text" = "Вы ввели неверный код";
@@ -26,6 +16,9 @@
 /* Class = "UIButton"; normalTitle = "Sign in"; ObjectID = "kGP-hU-J1E"; */
 "kGP-hU-J1E.normalTitle" = "Войти";
 
+/* Class = "UIButton"; normalTitle = "Continue"; ObjectID = "KMM-Cw-xOy"; */
+"KMM-Cw-xOy.normalTitle" = "Продолжить";
+
 /* Class = "UIButton"; normalTitle = "Enter Different Phone Number"; ObjectID = "n0T-tf-gRF"; */
 "n0T-tf-gRF.normalTitle" = "Введите другой номер телефона";
 
@@ -34,3 +27,10 @@
 
 /* Class = "UIButton"; normalTitle = "Try Again"; ObjectID = "suK-T5-G5X"; */
 "suK-T5-G5X.normalTitle" = "Повторить";
+
+/* Class = "UITextField"; placeholder = "Verification Code"; ObjectID = "TzO-zV-XRv"; */
+"TzO-zV-XRv.placeholder" = "Код проверки";
+
+/* Class = "UILabel"; text = "Not +12395553000?"; ObjectID = "XGr-uY-Lyg"; */
+"XGr-uY-Lyg.text" = "Не +12395553000?";
+

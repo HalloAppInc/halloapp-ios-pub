@@ -1,0 +1,120 @@
+/* Title for generic Cancel button. Mostly used in popups and as such. */
+"button.cancel" = "Отмена";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "ОК";
+
+/* Button revealed when user swipes on their comment. */
+"comment.delete" = "Удалить";
+
+/* Title for the button in comment deletion confirmation prompt. */
+"comment.delete.action" = "Удалить комментарий";
+
+/* Confirmation text displayed at comment deletion prompt */
+"comment.delete.confirmation" = "Удалить комментарий? Действие невозможно отменить.";
+
+/* Text displayed in place of deleted comment. */
+"comment.deleted" = "Комментарий был удален";
+
+/* Button in comment input field. Verb. */
+"comment.post" = "Пост";
+
+/* Title for the button displayed under feed post comment. Verb. */
+"comment.reply" = "Ответить";
+
+/* Text displayed in gray inside of the comment input field when there is no user input. */
+"comment.textfield.placeholder" = "Ваш комментарий";
+
+/* VoiceOver label for camera button in floating compose post menu in Feed view. */
+"fab.accessibility.camera" = "Камера";
+
+/* VoiceOver label for photo button in floating compose post menu in Feed view. */
+"fab.accessibility.photo.library" = "Фото";
+
+/* VoiceOver label for text post button in floating compose post menu in Feed view. */
+"fab.accessibility.text" = "Текст";
+
+/* Button under someone's post. Verb. */
+"feedpost.button.comment" = "Комментировать";
+
+/* Button under someoneelse's post. Verb. */
+"feedpost.button.message" = "Сообщение";
+
+/* Message action. Verb. */
+"message.copy" = "Скопировать";
+
+/* Message action. Verb. */
+"message.info" = "Инфо";
+
+/* Message action. Verb. */
+"message.reply" = "Ответить";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Комментарий: %@";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Новый пост";
+
+/* Action in NUX UI in Home screen. */
+"nux.learn.more" = "Узнать больше";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.add.reading.list" = "В список для чтения";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. Parameter is the phone number. */
+"textlabel.context.menu.call.number" = "Вызов %@";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.copy.address" = "Скопировать адрес";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.copy.link" = "Скопировать ссылку";
+
+/* One of the items in context menu presented upon long press on linkified phone number in text. */
+"textlabel.context.menu.copy.phone.number" = "Скопировать номер";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.get.directions" = "Навигация";
+
+/* One of the items in context menu presented upon long press on linkified address in text. */
+"textlabel.context.menu.open.in.maps" = "Открыть в Картах";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.open.link" = "Открыть ссылку";
+
+/* One of the items in context menu presented upon long press on web link. */
+"textlabel.context.menu.share" = "Поделиться...";
+
+/* Link to expand truncated text. */
+"textlabel.more" = "...еще";
+
+/* Title for the Comments screen. */
+"title.comments" = "Комментарии";
+
+/* First tab in the main app interface. */
+"title.home" = "Главная";
+
+/* Second tab in the main app interface. */
+"title.messages" = "Сообщения";
+
+/* Third tab in the main app interface. */
+"title.profile" = "Профиль";
+
+/* Title for the screen with information about who saw your post. */
+"title.your.post" = "Ваш пост";
+
+/* No comment provided by engineer. */
+"Version %@" = "Версия %@";
+
+/* Title for the button that confirms intent to delete your own post. */
+"your.post.deletepost.button" = "Удалить пост";
+
+/* Post deletion confirmation. Displayed as action sheet title. */
+"your.post.deletepost.confirmation" = "Удалить пост? Действие невозможно отменить.";
+
+/* Your Post screen: title for group of contacts who has not yet seen your post. */
+"your.post.sent.to" = "Отправлен";
+
+/* Your Post screen: title for group of contacts who has seen your post. */
+"your.post.viewed.by" = "Просмотрели";
+

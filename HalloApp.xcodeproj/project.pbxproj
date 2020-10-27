@@ -138,6 +138,9 @@
 		768123E12485DFB7008C5216 /* Core.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 768123DD2485DFA1008C5216 /* Core.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7681241924861C5D008C5216 /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681241824861C5D008C5216 /* XMPPController.swift */; };
 		7681242D2486EAC2008C5216 /* AppExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681242C2486EAC2008C5216 /* AppExtensionContext.swift */; };
+		7688FA4025489E26006B86B3 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7688FA3E25489E26006B86B3 /* Localizable.strings */; };
+		7688FA4325489E26006B86B3 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7688FA4125489E26006B86B3 /* Localizable.strings */; };
+		7688FA4625489E26006B86B3 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7688FA4425489E26006B86B3 /* Localizable.strings */; };
 		76936FB824F03C37006DBC2D /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A9244A244EC49000794859 /* UIView.swift */; };
 		76955DEA24746E4C0088BE8C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76A92444244E659600794859 /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A92443244E659600794859 /* FeedViewController.swift */; };
@@ -441,6 +444,9 @@
 		768123D82485DFA1008C5216 /* Core.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Core.xcodeproj; path = Core/Core.xcodeproj; sourceTree = "<group>"; };
 		7681241824861C5D008C5216 /* XMPPController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = XMPPController.swift; path = HalloApp/Models/XMPP/XMPPController.swift; sourceTree = SOURCE_ROOT; };
 		7681242C2486EAC2008C5216 /* AppExtensionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppExtensionContext.swift; sourceTree = "<group>"; };
+		7688FA3F25489E26006B86B3 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7688FA4225489E26006B86B3 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		7688FA4525489E26006B86B3 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76955DE924746E4C0088BE8C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = "GoogleService-Info.plist"; path = "HalloApp/GoogleService-Info.plist"; sourceTree = SOURCE_ROOT; };
 		76A92443244E659600794859 /* FeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedViewController.swift; path = HalloApp/Views/Home/Feed/FeedViewController.swift; sourceTree = SOURCE_ROOT; };
 		76A92448244EBCB600794859 /* ShapeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ShapeView.swift; path = HalloApp/Components/Views/ShapeView.swift; sourceTree = SOURCE_ROOT; };
@@ -635,6 +641,7 @@
 				24009EB924BE3FA200155DE2 /* DestinationView.swift */,
 				2446D66824C7E48E005BAD3C /* ExtensionPreprocessing.js */,
 				24D743DD24B3D199001111BF /* Info.plist */,
+				7688FA3E25489E26006B86B3 /* Localizable.strings */,
 				24009E8F24B6690E00155DE2 /* Share Extension.entitlements */,
 				24009E8C24B6643700155DE2 /* ShareExtensionContext.swift */,
 				24009E9024B66E6800155DE2 /* XMPPController.swift */,
@@ -835,6 +842,7 @@
 				7681242C2486EAC2008C5216 /* AppExtensionContext.swift */,
 				76714DD8250AC3B800779C4E /* DataStore.swift */,
 				768123982485A240008C5216 /* Info.plist */,
+				7688FA4125489E26006B86B3 /* Localizable.strings */,
 				76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */,
 				768123962485A240008C5216 /* NotificationService.swift */,
 			);
@@ -1252,6 +1260,7 @@
 				76955DE924746E4C0088BE8C /* GoogleService-Info.plist */,
 				EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */,
 				EAF3A1D02334192000805FF9 /* Info.plist */,
+				7688FA4425489E26006B86B3 /* Localizable.strings */,
 				EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */,
 			);
 			path = Halloapp;
@@ -1459,6 +1468,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				24009E8E24B667FA00155DE2 /* GoogleService-Info.plist in Resources */,
+				7688FA4025489E26006B86B3 /* Localizable.strings in Resources */,
 				24AA69DC24DDC6DA00ED65CE /* Assets.xcassets in Resources */,
 				2446D66924C7E48E005BAD3C /* ExtensionPreprocessing.js in Resources */,
 			);
@@ -1469,6 +1479,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */,
+				7688FA4325489E26006B86B3 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1489,6 +1500,7 @@
 				762EDBD9244E2EB700986617 /* Gotham-ThinIta.otf in Resources */,
 				765FE0FE2469C4E500806CED /* PhoneNumberMetadata.json in Resources */,
 				762EDBD1244E2EB700986617 /* Gotham-Book.otf in Resources */,
+				7688FA4625489E26006B86B3 /* Localizable.strings in Resources */,
 				762EDBD4244E2EB700986617 /* Gotham-Thin.otf in Resources */,
 				762EDBCA244E2EB700986617 /* Gotham-BlackIta.otf in Resources */,
 				762EDBD2244E2EB700986617 /* Gotham-Light.otf in Resources */,
@@ -1918,6 +1930,30 @@
 			name = Registration.storyboard;
 			path = HalloApp/Views/Registration;
 			sourceTree = SOURCE_ROOT;
+		};
+		7688FA3E25489E26006B86B3 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7688FA3F25489E26006B86B3 /* ru */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		7688FA4125489E26006B86B3 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7688FA4225489E26006B86B3 /* ru */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		7688FA4425489E26006B86B3 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7688FA4525489E26006B86B3 /* ru */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
 		};
 		EAF3A1CD2334192000805FF9 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;

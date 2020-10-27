@@ -1,0 +1,6 @@
+/* Title for generic Cancel button. Mostly used in popups and as such. */
+"button.cancel" = "Отмена";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "ОК";
+

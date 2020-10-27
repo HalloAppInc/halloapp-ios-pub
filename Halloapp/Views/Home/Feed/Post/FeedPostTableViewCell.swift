@@ -329,7 +329,7 @@ final class DeletedPostTableViewCell: FeedPostTableViewCellBase {
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         textLabel.textAlignment = .center
         textLabel.textColor = .secondaryLabel
-        textLabel.text = "This post has been deleted"
+        textLabel.text = NSLocalizedString("post.has.been.deleted", value: "This post has been deleted", comment: "Displayed in place of a deleted feed post.")
         textLabel.font = UIFont.preferredFont(forTextStyle: .body)
         let view = UIView()
         view.backgroundColor = .clear

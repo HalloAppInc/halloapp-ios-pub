@@ -1,0 +1,12 @@
+/* Title for generic Cancel button. Mostly used in popups and as such. */
+"button.cancel" = "Отмена";
+
+/* Title for generic OK button. Mostly used in popups and as such. */
+"button.ok" = "ОК";
+
+/* Push notification for a new comment. Parameter is the text of the comment */
+"notification.commented.with.text" = "Комментарий: %@";
+
+/* Title for the new feed post notification. */
+"notification.new.post" = "Новый пост";
+
