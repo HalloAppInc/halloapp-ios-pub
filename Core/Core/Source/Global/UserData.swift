@@ -37,9 +37,6 @@ public final class UserData: ObservableObject {
 
     public var useTestServer: Bool {
         get {
-            if useProtobuf {
-                return true
-            }
             #if DEBUG
             if UserDefaults.shared.value(forKey: "UseTestServer") == nil {
                 // Debug builds should default to test server

@@ -13,7 +13,6 @@ struct DeveloperMenuView: View {
     @State var useTestServer: Bool
     @State var useProtobuf: Bool
     @State var showRestartAlert = false
-    @State var showProtobufAlert = false
 
     var dismiss: (() -> ())?
 
@@ -89,25 +88,18 @@ struct DeveloperMenuView: View {
                 }
 
                 Button(action: {
-                    guard !useProtobuf else {
-                        showProtobufAlert = true
-                        return
-                    }
                     self.useTestServer = !self.useTestServer
                     self.userData.useTestServer = self.useTestServer
                     self.service.disconnectImmediately()
                     self.service.connect()
 
                 }) {
-                    Text("Use Dev Server \(self.useTestServer || self.useProtobuf ? "👍" : "👎")")
+                    Text("Use Dev Server \(self.useTestServer ? "👍" : "👎")")
                         .padding(.horizontal, 15)
                         .padding(.vertical, 12)
                         .background(Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(24)
-                }
-                .alert(isPresented: $showProtobufAlert) {
-                    Alert(title: Text("Dev server required for protobuf"))
                 }
 
                 Button(action: {
