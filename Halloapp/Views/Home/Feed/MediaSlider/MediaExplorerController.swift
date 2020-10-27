@@ -26,20 +26,29 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var swipeDownRecognizer: UIPanGestureRecognizer!
     private var swipeDownStart: CGPoint?
     private var isSystemUIHidden = false
+    private var isTransition = false
+    private var originalNavigationBarAppearance: UINavigationBarAppearance?
 
     private var currentIndex: Int {
         didSet {
             if oldValue != currentIndex {
                 pageControl?.currentPage = currentIndex
-                
-                if let cell = collectionView.cellForItem(at: IndexPath(item: oldValue, section: 0)) as? VideoCell {
+
+                let oldCell = collectionView.cellForItem(at: IndexPath(item: oldValue, section: 0))
+                let currentCell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0))
+
+                if let cell = oldCell as? VideoCell {
                     cell.pause()
-                } else if let cell = collectionView.cellForItem(at: IndexPath(item: oldValue, section: 0)) as? ImageCell {
+                } else if let cell = oldCell as? ImageCell {
                     cell.reset()
                 }
 
-                if let cell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0)) as? VideoCell {
+                if let cell = currentCell as? VideoCell {
+                    cell.resetVideoSize()
                     cell.play()
+                } else if let cell = currentCell as? ImageCell {
+                    cell.computeConstraints()
+                    cell.reset()
                 }
             }
         }
@@ -86,7 +95,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         fatalError("init(coder:) has not been implemented")
     }
 
-    func withNavigationController() -> UINavigationController {
+    func withNavigationController() -> UIViewController {
         let controller = UINavigationController(rootViewController: self)
         controller.modalPresentationStyle = .fullScreen
         controller.transitioningDelegate = self
@@ -95,13 +104,19 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 
     override func viewDidLoad() {
-        navigationController?.navigationBar.barStyle = .black
-        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        navigationController?.navigationBar.shadowImage = UIImage()
-        navigationController?.navigationBar.backgroundColor = .clear
+        super.viewDidLoad()
 
-        let backIcon = UIImage(systemName: "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: backIcon, style: .plain, target: self, action: #selector(backAction))
+        let backConfig = UIImage.SymbolConfiguration(weight: .bold).applying(UIImage.SymbolConfiguration(scale: .large))
+        let backIcon = UIImage(systemName: "chevron.left", withConfiguration: backConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal)
+        let backBtn = UIButton(type: .custom)
+        backBtn.addTarget(self, action: #selector(backAction), for: .touchUpInside)
+        backBtn.setImage(backIcon, for: .normal)
+        backBtn.layer.shadowColor = UIColor.black.cgColor
+        backBtn.layer.shadowOpacity = 1
+        backBtn.layer.shadowOffset = .zero
+        backBtn.layer.shadowRadius = 0.3
+
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backBtn)
 
         collectionView = makeCollectionView()
         self.view.addSubview(collectionView)
@@ -124,6 +139,27 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         }
 
         toggleSystemUI()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        originalNavigationBarAppearance = UINavigationBar.appearance().standardAppearance
+        UINavigationBar.appearance().standardAppearance = .transparentAppearance
+
+        navigationController?.navigationBar.overrideUserInterfaceStyle = .dark
+        navigationController?.navigationBar.barStyle = .black
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationController?.navigationBar.shadowImage = UIImage()
+        navigationController?.navigationBar.backgroundColor = .clear
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        if let appearance = originalNavigationBarAppearance {
+            UINavigationBar.appearance().standardAppearance = appearance
+        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -154,6 +190,56 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 cell.pause()
             }
         }
+    }
+
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        isTransition = true
+
+        let indexPath = IndexPath(item: currentIndex, section: 0)
+        var isPlaying = false
+        var time = CMTime.zero
+        if let cell = collectionView.cellForItem(at: indexPath) as? VideoCell {
+            isPlaying = cell.isPlaying()
+
+            if isPlaying {
+                time = cell.currentTime()
+                cell.pause()
+            }
+        }
+
+        coordinator.animate(alongsideTransition: { [weak self] context in
+            guard let self = self else { return }
+            let x = self.collectionView.frame.width * CGFloat(self.currentIndex)
+            self.collectionView.setContentOffset(CGPoint(x: x, y: self.collectionView.contentOffset.y), animated: false)
+
+            if let cell = self.collectionView.cellForItem(at: indexPath) as? VideoCell {
+                cell.resetVideoSize()
+            } else if let cell = self.collectionView.cellForItem(at: indexPath) as? ImageCell {
+                cell.computeConstraints()
+                cell.reset()
+            }
+        }) { [weak self] context in
+            guard let self = self else { return }
+
+            for cell in self.collectionView.visibleCells {
+                if let cell = cell as? VideoCell {
+                    cell.resetVideoSize()
+                } else if let cell = cell as? ImageCell {
+                    cell.computeConstraints()
+                    cell.reset()
+                }
+            }
+
+            if let cell = self.collectionView.cellForItem(at: indexPath) as? VideoCell {
+                if isPlaying {
+                    cell.play(time: time)
+                }
+            }
+
+            self.isTransition = false
+        }
+
+        super.viewWillTransition(to: size, with: coordinator)
     }
 
     private func makeCollectionView() -> UICollectionView {
@@ -192,14 +278,20 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private func makePageControl() -> UIPageControl {
         let pageControl = UIPageControl()
         pageControl.currentPageIndicatorTintColor = UIColor.lavaOrange.withAlphaComponent(0.7)
+        pageControl.pageIndicatorTintColor = .white
         pageControl.translatesAutoresizingMaskIntoConstraints = false
         pageControl.numberOfPages = media.count
+        pageControl.layer.shadowColor = UIColor.black.cgColor
+        pageControl.layer.shadowOpacity = 1
+        pageControl.layer.shadowOffset = .zero
+        pageControl.layer.shadowRadius = 0.3
         pageControl.addTarget(self, action: #selector(pageChangeAction), for: .valueChanged)
 
         return pageControl
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard !isTransition else { return }
         let rem = scrollView.contentOffset.x.truncatingRemainder(dividingBy: scrollView.frame.width)
 
         if rem == 0 {
@@ -277,7 +369,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     @objc private func backAction() {
         delegate?.scrollMediaToVisible(atPostion: currentIndex)
-        self.dismiss(animated: true)
+        dismiss(animated: true)
     }
 
     @objc private func pageChangeAction() {
@@ -338,6 +430,8 @@ fileprivate class ImageCell: UICollectionViewCell {
         return String(describing: ImageCell.self)
     }
 
+    private let spaceBetweenPages: CGFloat = 20
+
     public var scrollView: UIScrollView!
 
     private var previousScale = CGFloat(1.0)
@@ -358,17 +452,7 @@ fileprivate class ImageCell: UICollectionViewCell {
     private var imageConstraints: [NSLayoutConstraint] = []
     var image: UIImage! {
         didSet {
-            let scale = min((contentView.frame.width - 40) / image.size.width, contentView.frame.height / image.size.height)
-
-            NSLayoutConstraint.deactivate(imageConstraints)
-            imageConstraints = [
-                imageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-                imageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-                imageView.widthAnchor.constraint(equalToConstant: image.size.width * scale),
-                imageView.heightAnchor.constraint(equalToConstant: image.size.height * scale),
-            ]
-            NSLayoutConstraint.activate(imageConstraints)
-
+            computeConstraints()
             reset()
 
             imageView.image = image
@@ -397,6 +481,19 @@ fileprivate class ImageCell: UICollectionViewCell {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    func computeConstraints() {
+        let scale = min((contentView.frame.width - spaceBetweenPages * 2) / image.size.width, contentView.frame.height / image.size.height)
+
+        NSLayoutConstraint.deactivate(imageConstraints)
+        imageConstraints = [
+            imageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: image.size.width * scale),
+            imageView.heightAnchor.constraint(equalToConstant: image.size.height * scale),
+        ]
+        NSLayoutConstraint.activate(imageConstraints)
     }
 
     func reset() {
@@ -499,7 +596,7 @@ fileprivate class ImageCell: UICollectionViewCell {
         var y = CGFloat(0)
 
         if imageView.frame.width > bounds.width {
-            x = max(contentView.bounds.maxX - 20 - self.imageView.frame.maxX, 0) + min(contentView.bounds.minX + 20 - self.imageView.frame.minX, 0)
+            x = max(contentView.bounds.maxX - spaceBetweenPages - self.imageView.frame.maxX, 0) + min(contentView.bounds.minX + spaceBetweenPages - self.imageView.frame.minX, 0)
         } else {
             x = bounds.midX - imageView.frame.midX
         }
@@ -554,9 +651,9 @@ fileprivate class ImageCell: UICollectionViewCell {
         }
 
         if translation < 0 {
-            return imageView.frame.maxX > contentView.bounds.maxX - 20
+            return imageView.frame.maxX > contentView.bounds.maxX - spaceBetweenPages
         } else {
-            return imageView.frame.minX < contentView.bounds.minX + 20
+            return imageView.frame.minX < contentView.bounds.minX + spaceBetweenPages
         }
     }
 }
@@ -566,12 +663,15 @@ fileprivate class VideoCell: UICollectionViewCell {
         return String(describing: VideoCell.self)
     }
 
+    private let spaceBetweenPages: CGFloat = 20
+
     private var statusObservation: NSKeyValueObservation?
     private var videoBoundsObservation: NSKeyValueObservation?
 
     private lazy var playerController: AVPlayerViewController = {
         let controller = AVPlayerViewController()
         controller.view.backgroundColor = .clear
+        controller.allowsPictureInPicturePlayback = false
 
         return controller
     }()
@@ -588,7 +688,7 @@ fileprivate class VideoCell: UICollectionViewCell {
         statusObservation = nil
         videoBoundsObservation = nil
         url = nil
-        playerController.view.frame = bounds.insetBy(dx: 20, dy: 0)
+        playerController.view.frame = bounds.insetBy(dx: spaceBetweenPages, dy: 0)
     }
 
     var url: URL! {
@@ -612,14 +712,14 @@ fileprivate class VideoCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        playerController.view.frame = bounds.insetBy(dx: 20, dy: 0)
+        playerController.view.frame = bounds.insetBy(dx: spaceBetweenPages, dy: 0)
         contentView.addSubview(playerController.view)
         videoBoundsObservation = playerController.observe(\.videoBounds) { controller, change in
             guard controller.videoBounds.size != .zero else { return }
 
-            let x = controller.view.frame.midX - controller.videoBounds.width / 2
-            let y = controller.view.frame.midY - controller.videoBounds.height / 2
             let bounds = controller.videoBounds
+            let x = controller.view.frame.midX - bounds.width / 2
+            let y = controller.view.frame.midY - bounds.height / 2
 
             controller.view.frame = CGRect(x: x, y: y, width: bounds.width, height: bounds.height)
         }
@@ -629,13 +729,27 @@ fileprivate class VideoCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func play() {
-        playerController.player?.seek(to: .zero)
+    func resetVideoSize() {
+        playerController.view.frame = bounds.insetBy(dx: spaceBetweenPages, dy: 0)
+    }
+
+    func play(time: CMTime = .zero) {
+        playerController.player?.seek(to: time)
         playerController.player?.play()
     }
 
     func pause() {
         playerController.player?.pause()
+    }
+
+    func currentTime() -> CMTime {
+        guard let player = playerController.player else { return .zero }
+        return player.currentTime()
+    }
+
+    func isPlaying() -> Bool {
+        guard let player = playerController.player else { return false }
+        return player.rate > 0
     }
 }
 

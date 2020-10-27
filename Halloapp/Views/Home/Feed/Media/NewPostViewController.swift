@@ -35,6 +35,10 @@ typealias DidPickVideoCallback = (URL) -> Void
 
 final class NewPostViewController: UIViewController {
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait
+    }
+
     init(source: NewPostMediaSource, destination: FeedPostDestination, didFinish: @escaping (() -> Void)) {
         self.didFinish = didFinish
         self.state = NewPostState(mediaSource: source)

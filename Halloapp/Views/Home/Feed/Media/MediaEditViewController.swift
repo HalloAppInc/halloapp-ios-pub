@@ -21,6 +21,10 @@ class MediaEditViewController: UIViewController {
     private let initialSelect: Int?
     private let didFinish: MediaEditViewControllerCallback
     private let cropToCircle: Bool
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait
+    }
     
     init(cropToCircle: Bool = false, mediaToEdit media: [PendingMedia], selected: Int?, didFinish: @escaping MediaEditViewControllerCallback) {
         self.cropToCircle = cropToCircle
