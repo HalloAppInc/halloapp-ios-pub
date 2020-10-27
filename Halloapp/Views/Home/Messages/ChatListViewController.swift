@@ -358,8 +358,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         metadata.removeFromUserDefaults()
     }
 
-    private func openFeed(forGroupId groupId: GroupID, groupName: String) {
-        let viewController = GroupFeedViewController(groupId: groupId, groupName: groupName)
+    private func openFeed(forGroupId groupId: GroupID) {
+        let viewController = GroupFeedViewController(groupId: groupId)
         viewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(viewController, animated: true)
     }
@@ -427,10 +427,9 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
             }
         case .group:
             let groupId = chatThread.groupId
-            let groupName = chatThread.title
             cell.avatarTappedAction = { [weak self] in
-                guard let self = self, let groupId = groupId, let groupName = groupName else { return }
-                self.openFeed(forGroupId: groupId, groupName: groupName)
+                guard let self = self, let groupId = groupId else { return }
+                self.openFeed(forGroupId: groupId)
             }
         }
         return cell

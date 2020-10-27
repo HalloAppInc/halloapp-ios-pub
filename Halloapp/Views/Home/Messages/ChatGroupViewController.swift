@@ -627,8 +627,8 @@ extension ChatGroupViewController: TitleViewDelegate {
     }
 
     fileprivate func titleViewRequestsOpenGroupFeed(_ titleView: TitleView) {
-        if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-            let vc = GroupFeedViewController(groupId: groupId, groupName: group.name)
+        if MainAppContext.shared.chatData.chatGroup(groupId: groupId) != nil {
+            let vc = GroupFeedViewController(groupId: groupId)
             vc.hidesBottomBarWhenPushed = true
             navigationController?.pushViewController(vc, animated: true)
         }
