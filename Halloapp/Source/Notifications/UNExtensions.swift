@@ -47,26 +47,22 @@ extension UNMutableNotificationContent {
     private static func notificationBody(forMedia media: [Clients_Media]) -> String {
         let numPhotos = media.filter { $0.type == .image }.count
         let numVideos = media.filter { $0.type == .video }.count
-        var strings = [String]()
-        if numPhotos > 1 {
-            strings.append("📷 \(numPhotos) photos")
-        } else if numPhotos > 0 {
-            if numVideos > 0 {
-                strings.append("📷 1 photo")
-            } else {
-                strings.append("📷 photo")
-            }
+        if numPhotos == 1 && numVideos == 0 {
+            return NSLocalizedString("notification.one.photo", value: "📷 photo", comment: "New post notification text when post is one photo without caption.")
         }
-        if numVideos > 1 {
-            strings.append("📹 \(numVideos) videos")
-        } else if numVideos > 0 {
-            if numPhotos > 0 {
-                strings.append("📹 1 video")
-            } else {
-                strings.append("📹 video")
-            }
+        if numVideos == 1 && numPhotos == 0 {
+             return NSLocalizedString("notification.one.video", value: "📹 video", comment: "New post notification text when post is one video without caption.")
         }
-        return strings.joined(separator: ", ")
+        var strings: [String] = []
+        if numPhotos > 0 {
+            let format = NSLocalizedString("notification.n.photos", comment: "New post notification text when post is multiple photos without caption.")
+            strings.append(String.localizedStringWithFormat(format, numPhotos))
+        }
+        if numVideos > 0 {
+            let format = NSLocalizedString("notification.n.videos", comment: "New post notification text when post is multiple videos without caption.")
+            strings.append(String.localizedStringWithFormat(format, numVideos))
+        }
+        return ListFormatter.localizedString(byJoining: strings)
     }
 
     func populate(withDataFrom protoContainer: Clients_Container, notificationMetadata: NotificationMetadata, mentionNameProvider: (UserID) -> String) {
