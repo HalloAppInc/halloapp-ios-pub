@@ -542,6 +542,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         }
         set {
             textView.text = newValue
+            textView.sizeToFit()
             textViewDidChange(textView)
         }
     }
