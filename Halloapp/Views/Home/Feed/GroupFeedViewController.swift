@@ -180,7 +180,7 @@ private class GroupFeedTableHeaderView: UIView {
     func configure(withGroup group: ChatGroup) {
         avatarView.configure(groupId: group.groupId, using: MainAppContext.shared.avatarStore)
         groupNameLabel.text = group.name
-        groupParticipantCountLabel.text = String.localizedStringWithFormat(NSLocalizedString("group.feed.n.members", value: "%d members", comment: "Displays current group size in group feed screen"),
+        groupParticipantCountLabel.text = String.localizedStringWithFormat(NSLocalizedString("group.feed.n.members", comment: "Displays current group size in group feed screen"),
                                                                            group.members?.count ?? 0)
     }
 
