@@ -45,4 +45,8 @@ extension UIColor {
     class var chatTime: UIColor {
         UIColor(named: "ChatTime")!
     }
+
+    class var composerButton: UIColor {
+        get { UIColor(named: "ComposerButton")! }
+    }
 }
