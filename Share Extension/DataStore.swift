@@ -92,7 +92,7 @@ class DataStore: ShareExtensionDataStore {
     private func attach(media: PendingMedia, to target: PostOrMessage, using managedObjectContext: NSManagedObjectContext) {
         DDLogInfo("SharedDataStore/attach-media [\(media.fileURL!)]")
 
-        let feedMedia = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+        let feedMedia = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
         feedMedia.type = media.type
         feedMedia.url = media.url
         feedMedia.uploadUrl = media.uploadUrl
@@ -142,7 +142,7 @@ class DataStore: ShareExtensionDataStore {
 
         // 1. Save post to the db and copy media to permanent storage directory.
         let managedObjectContext = persistentContainer.viewContext
-        let feedPost = NSEntityDescription.insertNewObject(forEntityName: SharedFeedPost.entity().name!, into: managedObjectContext) as! SharedFeedPost
+        let feedPost = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedPost", into: managedObjectContext) as! SharedFeedPost
         feedPost.id = postId
         feedPost.text = text.collapsedText
         feedPost.timestamp = Date()
@@ -152,7 +152,7 @@ class DataStore: ShareExtensionDataStore {
         // Add mentions
         var mentionSet = Set<SharedFeedMention>()
         for (index, userID) in text.mentions {
-            let feedMention = NSEntityDescription.insertNewObject(forEntityName: SharedFeedMention.entity().name!, into: managedObjectContext) as! SharedFeedMention
+            let feedMention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
             feedMention.index = index
             feedMention.userID = userID
             feedMention.name = AppContext.shared.contactStore.pushNames[userID] ?? ""
@@ -233,7 +233,7 @@ class DataStore: ShareExtensionDataStore {
         
         // 1. Save message to the db and copy media to permanent storage directory.
         let managedObjectContext = persistentContainer.viewContext
-        let chatMessage = NSEntityDescription.insertNewObject(forEntityName: SharedChatMessage.entity().name!, into: managedObjectContext) as! SharedChatMessage
+        let chatMessage = NSEntityDescription.insertNewObject(forEntityName: "SharedChatMessage", into: managedObjectContext) as! SharedChatMessage
         chatMessage.id = messageId
         chatMessage.toUserId = userId
         chatMessage.fromUserId = AppContext.shared.userData.userId

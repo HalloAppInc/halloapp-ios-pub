@@ -20,7 +20,7 @@ class DataStore: NotificationServiceExtensionDataStore {
 
         DDLogInfo("DataStore/post/\(postId)/create")
 
-        let feedPost = NSEntityDescription.insertNewObject(forEntityName: SharedFeedPost.entity().name!, into: managedObjectContext) as! SharedFeedPost
+        let feedPost = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedPost", into: managedObjectContext) as! SharedFeedPost
         feedPost.id = postId
         feedPost.userId = userId
         feedPost.groupId = notificationMetadata.groupId
@@ -31,7 +31,7 @@ class DataStore: NotificationServiceExtensionDataStore {
         // Add mentions
         var mentions: Set<SharedFeedMention> = []
         for protoMention in protoPost.mentions {
-            let mention = NSEntityDescription.insertNewObject(forEntityName: SharedFeedMention.entity().name!, into: managedObjectContext) as! SharedFeedMention
+            let mention = NSEntityDescription.insertNewObject(forEntityName: "SharedFeedMention", into: managedObjectContext) as! SharedFeedMention
             mention.index = Int(protoMention.index)
             mention.userID = protoMention.userID
             mention.name = protoMention.name
@@ -54,7 +54,7 @@ class DataStore: NotificationServiceExtensionDataStore {
             let width = CGFloat(protoMedia.width), height = CGFloat(protoMedia.height)
             guard width > 0 && height > 0 else { continue }
 
-            let media = NSEntityDescription.insertNewObject(forEntityName: SharedMedia.entity().name!, into: managedObjectContext) as! SharedMedia
+            let media = NSEntityDescription.insertNewObject(forEntityName: "SharedMedia", into: managedObjectContext) as! SharedMedia
             media.type = mediaType
             media.status = .none
             media.url = url
