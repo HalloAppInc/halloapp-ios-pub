@@ -120,7 +120,7 @@ class HomeViewController: UITabBarController {
     }
     
     private func profileNavigationController() -> UINavigationController {
-        let navigationController = UINavigationController(rootViewController: ProfileViewController(title: Localizations.titleProfile))
+        let navigationController = UINavigationController(rootViewController: ProfileViewController())
         navigationController.navigationBar.standardAppearance = .opaqueAppearance
         navigationController.tabBarItem.image = UIImage(named: "TabBarProfile")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets

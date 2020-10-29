@@ -10,6 +10,25 @@ import CocoaLumberjack
 import Core
 import SwiftUI
 
+private struct ProfilePictureView: UIViewRepresentable {
+
+    typealias UIViewType = AvatarView
+
+    private let userId: UserID
+
+    init(userId: UserID) {
+        self.userId = userId
+    }
+
+    func makeUIView(context: Context) -> AvatarView {
+        let avatarView = AvatarView()
+        avatarView.configure(with: self.userId, using: MainAppContext.shared.avatarStore)
+        return avatarView
+    }
+
+    func updateUIView(_ uiView: AvatarView, context: Context) { }
+}
+
 struct ProfileEditView: View {
     var dismiss: (() -> ())?
     

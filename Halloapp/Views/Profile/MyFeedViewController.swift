@@ -1,9 +1,9 @@
 //
-//  ProfileView.swift
-//  Halloapp
+//  MyFeedViewController.swift
+//  HalloApp
 //
-//  Created by Tony Jiang on 10/9/19.
-//  Copyright © 2019 Halloapp, Inc. All rights reserved.
+//  Created by Igor Solomennikov on 10/28/20.
+//  Copyright © 2020 HalloApp, Inc. All rights reserved.
 //
 
 import CocoaLumberjack
@@ -13,7 +13,7 @@ import CoreData
 import SwiftUI
 import UIKit
 
-class ProfileViewController: FeedTableViewController {
+class MyFeedViewController: FeedTableViewController {
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -22,24 +22,14 @@ class ProfileViewController: FeedTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        installLargeTitleUsingGothamFont()
         installFloatingActionMenu()
-
-        var rightBarButtonItems = [ UIBarButtonItem(image: UIImage(named: "NavbarSettings"), style: .plain, target: self, action: #selector(presentSettingsScreen)) ]
-        #if DEBUG
-        let showDeveloperMenu = true
-        #else
-        let showDeveloperMenu = ServerProperties.isInternalUser
-        #endif
-        if showDeveloperMenu {
-            rightBarButtonItems.append(UIBarButtonItem(image: UIImage(systemName: "hammer"), style: .plain, target: self, action: #selector(presentDeveloperMenu)))
-        }
-        navigationItem.rightBarButtonItems = rightBarButtonItems
 
         let tableWidth = view.frame.width
         let headerView = UserProfileTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
         headerView.canEditProfile = true
         headerView.avatarViewButton.addTarget(self, action: #selector(presentProfileEditScreen), for: .touchUpInside)
+        let headerTapGesture = UITapGestureRecognizer(target: self, action: #selector(presentProfileEditScreen))
+        headerView.addGestureRecognizer(headerTapGesture)
         tableView.tableHeaderView = headerView
 
         cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
@@ -47,34 +37,12 @@ class ProfileViewController: FeedTableViewController {
             headerView.updateMyProfile(name: userName)
             self.view.setNeedsLayout()
         }))
-        
-        let headerTapGesture = UITapGestureRecognizer(target: self, action: #selector(presentProfileEditScreen))
-        headerView.addGestureRecognizer(headerTapGesture)
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        // This VC pushes SwiftUI views that hide the tab bar and use `navigationBarTitle` to display custom titles.
-        // These titles aren't reset when the SwiftUI views are dismissed, so we need to manually update the title
-        // here or the tab bar will show the wrong title when it reappears.
-        navigationController?.title = title
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
         floatingMenu.setState(.collapsed, animated: true)
-        if let currentOverlay = overlay {
-            overlayContainer.dismiss(currentOverlay)
-            overlay = nil
-        }
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        showNUXIfNecessary()
     }
 
     override func viewDidLayoutSubviews() {
@@ -92,46 +60,10 @@ class ProfileViewController: FeedTableViewController {
         }
     }
 
-    // MARK: UI Actions
-
-    @objc private func presentDeveloperMenu() {
-        let developerMenuView = DeveloperMenuView(
-            useTestServer: MainAppContext.shared.userData.useTestServer,
-            useProtobuf: MainAppContext.shared.userData.useProtobuf,
-            dismiss: { self.dismiss(animated: true) })
-        present(UIHostingController(rootView: developerMenuView), animated: true)
-    }
-
-    @objc private func presentSettingsScreen() {
-        let viewController = UIHostingController(rootView: SettingsView())
-        viewController.hidesBottomBarWhenPushed = true
-        navigationController?.pushViewController(viewController, animated: true)
-    }
-    
     @objc private func presentProfileEditScreen() {
         var profileEditView = ProfileEditView()
         profileEditView.dismiss = { self.dismiss(animated: true) }
         present(UIHostingController(rootView: NavigationView(content: { profileEditView } )), animated: true)
-    }
-
-    // MARK: NUX
-
-    private lazy var overlayContainer: OverlayContainer = {
-        let overlayContainer = OverlayContainer()
-        overlayContainer.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(overlayContainer)
-        overlayContainer.constrain(to: view)
-        return overlayContainer
-    }()
-
-    private var overlay: Overlay?
-
-    private func showNUXIfNecessary() {
-        if MainAppContext.shared.nux.isIncomplete(.profileIntro) {
-            let popover = NUXPopover(NUX.profileContent) { MainAppContext.shared.nux.didComplete(.profileIntro) }
-            overlayContainer.display(popover)
-            overlay = popover
-        }
     }
 
     // MARK: New post

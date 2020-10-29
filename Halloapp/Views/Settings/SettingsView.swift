@@ -7,29 +7,9 @@
 //
 
 import Core
-import MessageUI
 import SwiftUI
 
-struct ProfilePictureView: UIViewRepresentable {
-
-    typealias UIViewType = AvatarView
-
-    private let userId: UserID
-
-    init(userId: UserID) {
-        self.userId = userId
-    }
-
-    func makeUIView(context: Context) -> AvatarView {
-        let avatarView = AvatarView()
-        avatarView.configure(with: self.userId, using: MainAppContext.shared.avatarStore)
-        return avatarView
-    }
-
-    func updateUIView(_ uiView: AvatarView, context: Context) { }
-}
-
-struct TableViewCellChevron: View {
+private struct TableViewCellChevron: View {
     var body: some View {
         Image(systemName: "chevron.right")
             .font(.system(size: 14, weight: .medium))
@@ -39,18 +19,9 @@ struct TableViewCellChevron: View {
 
 struct SettingsView: View {
     @ObservedObject private var privacySettings = MainAppContext.shared.privacySettings
-    @ObservedObject private var userData = MainAppContext.shared.userData
-    @ObservedObject private var inviteManager = InviteManager.shared
     @ObservedObject private var notificationSettings = NotificationSettings.current
 
-    @State private var isShowingMailView = false
-    @State private var isShowingShareLogsView = false
-    @State private var mailViewResult: Result<MFMailComposeResult, Error>? = nil
-
-    @State private var isEditingProfile = false
     @State private var isBlockedListPresented = false
-    @State private var isTOSPagePresented = false
-    @State private var isInviteFriendsPresented = false
 
     init() {
         UITableView.appearance(whenContainedInInstancesOf: [ UIHostingController<SettingsView>.self ]).backgroundColor = .feedBackground
@@ -69,25 +40,6 @@ struct SettingsView: View {
             }
 
             Form {
-                // Profile
-                Section {
-                    NavigationLink(destination: ProfileEditView(dismiss: { self.isEditingProfile = false }), isActive: self.$isEditingProfile) {
-                        HStack(spacing: 15) {
-                            ProfilePictureView(userId: userData.userId)
-                                .frame(width: 60, height: 60)
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(userData.name)
-                                    .font(Font(UIFont.preferredFont(forTextStyle: .title3))).fontWeight(.medium)
-
-                                Text(userData.formattedPhoneNumber)
-                                    .font(.footnote)
-                            }
-                        }
-                        .padding(.vertical, 2) // default padding is 6pt - add 2 pt to make standard 8
-                    }
-                }
-
                 // Notifications
                 Section(header: Text("Notifications".uppercased())) {
                     Toggle("Posts", isOn: $notificationSettings.isPostsEnabled)
@@ -123,78 +75,8 @@ struct SettingsView: View {
                             .edgesIgnoringSafeArea(.bottom)
                     }
                 }
-
-                // Help / About
-                Section(header: Text("About".uppercased()),
-                        footer: VStack {
-                            Text("HalloApp")
-                            Text("Version \(MainAppContext.appVersion)")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                ) {
-                    // FAQ
-                    NavigationLink(destination: Text("Coming Soon")) {
-                        Text("FAQ")
-                    }
-
-                    // Send Logs
-                    if MFMailComposeViewController.canSendMail() {
-                        Button(action: {
-                            self.isShowingMailView = true
-                        }) {
-                            Text("Send Logs")
-                        }
-                        .sheet(isPresented: self.$isShowingMailView) {
-                            EmailLogsView(result: self.$mailViewResult)
-                        }
-                    }
-                    // Share Logs: Internal users or Mail unavailable
-                    if ServerProperties.isInternalUser || !MFMailComposeViewController.canSendMail() {
-                        Button(action: {
-                            self.isShowingShareLogsView = true
-                        }) {
-                            Text("Share Logs")
-                        }
-                        .sheet(isPresented: self.$isShowingShareLogsView) {
-                            ShareLogsView()
-                        }
-                    }
-                    
-                    // Privacy Policy
-                    Button(action: { self.isTOSPagePresented = true }) {
-                        HStack {
-                            Text("Terms & Privacy Policy")
-                            Spacer()
-                            TableViewCellChevron()
-                        }
-                    }
-                    .sheet(isPresented: self.$isTOSPagePresented) {
-                        SafariView(url: URL(string: "https://www.halloapp.com/")!)
-                            .edgesIgnoringSafeArea(.bottom)
-                    }
-
-                    // Invite Friends
-                    Button(action: { self.isInviteFriendsPresented = true }) {
-                        HStack {
-                            Text("Invite Friends")
-                            Spacer()
-                            Text(self.inviteManager.dataAvailable ? "\(self.inviteManager.numberOfInvitesAvailable) Invites" : "...")
-                                .foregroundColor(.secondary)
-                            TableViewCellChevron()
-                        }
-                    }
-                    .sheet(isPresented: self.$isInviteFriendsPresented) {
-                        NavigationView {
-                            InvitePeopleView(dismiss: { self.isInviteFriendsPresented = false })
-                        }
-                    }
-                }
             }
         }
-        .onAppear(perform: {
-            self.inviteManager.requestInvitesIfNecessary()
-        })
         .onDisappear(perform: {
             self.privacySettings.resetSyncError()
         })

@@ -9,7 +9,7 @@
 import Core
 import SwiftUI
 
-fileprivate struct InvitePeopleTableView: UIViewControllerRepresentable {
+private struct InvitePeopleTableView: UIViewControllerRepresentable {
 
     typealias UIViewControllerType = InvitePeopleTableViewController
 
@@ -23,7 +23,7 @@ fileprivate struct InvitePeopleTableView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }
 }
 
-fileprivate struct ActivityView: UIViewControllerRepresentable {
+private struct ActivityView: UIViewControllerRepresentable {
 
     typealias UIViewControllerType = UIActivityViewController
 

@@ -20,10 +20,6 @@ extension Localizations {
         NSLocalizedString("title.messages", value: "Messages", comment: "Second tab in the main app interface.")
     }
 
-    static var titleProfile: String {
-        NSLocalizedString("title.profile", value: "Profile", comment: "Third tab in the main app interface.")
-    }
-
     // MARK: FAB Accessibility
 
     static var fabAccessibilityCamera: String {

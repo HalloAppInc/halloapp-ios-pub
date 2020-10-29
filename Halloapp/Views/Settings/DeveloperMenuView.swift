@@ -21,23 +21,7 @@ struct DeveloperMenuView: View {
     private let service = MainAppContext.shared.service
 
     var body: some View {
-        VStack {
-            HStack {
-                Spacer()
-
-                Button(action: {
-                    if self.dismiss != nil {
-                        self.dismiss!()
-                    }
-                }) {
-                    Image("NavbarClose")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(Color.primary)
-                        .padding()
-                }
-            }
-
-            Spacer()
+        ScrollView(.vertical) { VStack {
 
             Image(systemName: "hammer")
                 .resizable()
@@ -146,7 +130,7 @@ struct DeveloperMenuView: View {
                         .cornerRadius(24)
                 }
             }
-            .padding(.bottom, 32)
-        }
+        }}
+        .background(Color.feedBackground)
     }
 }
