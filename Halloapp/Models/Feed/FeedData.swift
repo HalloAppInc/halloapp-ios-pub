@@ -93,7 +93,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 userIds.forEach({ self.sharePastPostsWith(userId: $0) })
             })
 
-        self.fetchFeedPosts()
+        fetchFeedPosts()
     }
 
     // MARK: CoreData stack
@@ -244,10 +244,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func fetchFeedPosts() {
         do {
-            try self.fetchedResultsController.performFetch()
-            if let feedPosts = self.fetchedResultsController.fetchedObjects {
-                self.reloadFeedDataItems(using: feedPosts)
-                DDLogInfo("FeedData/fetch/completed \(self.feedDataItems.count) posts")
+            try fetchedResultsController.performFetch()
+            if let feedPosts = fetchedResultsController.fetchedObjects {
+                reloadFeedDataItems(using: feedPosts)
+                DDLogInfo("FeedData/fetch/completed \(feedDataItems.count) posts")
 
                 // Turn tasks stuck in "sending" state into "sendError".
                 let idsOfTasksInProgress = mediaUploader.activeTaskGroupIdentifiers()
@@ -256,6 +256,19 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     stuckPosts.forEach({ $0.status = .sendError })
                     save(fetchedResultsController.managedObjectContext)
                 }
+
+                // Mitigate server bug when timestamps were sent in milliseconds.
+                let cutoffDate = Date(timeIntervalSinceNow: Date.days(1000))
+                let postsWithIncorrectTimestamps = feedPosts.filter({ $0.timestamp > cutoffDate })
+                if !postsWithIncorrectTimestamps.isEmpty {
+                    postsWithIncorrectTimestamps.forEach { (post) in
+                        let ts = post.timestamp.timeIntervalSince1970 / 1000
+                        let oldTimestamp = post.timestamp
+                        let newTImestamp = Date(timeIntervalSince1970: ts)
+                        DDLogWarn("FeedData/fetch/fix-timstamp [\(oldTimestamp)] -> [\(newTImestamp)]")
+                        post.timestamp = newTImestamp
+                    }
+                }
             }
         }
         catch {
@@ -263,7 +276,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             fatalError("Failed to fetch feed items \(error)")
         }
 
-        self.feedNotifications = FeedNotifications(self.viewContext)
+        feedNotifications = FeedNotifications(viewContext)
 
         reloadGroupFeedUnreadCounts()
     }
