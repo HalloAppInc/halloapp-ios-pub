@@ -27,6 +27,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     let willDestroyStore = PassthroughSubject<Void, Never>()
     let didReloadStore = PassthroughSubject<Void, Never>()
 
+    private struct UserDefaultsKey {
+        static let persistentStoreUserID = "feed.store.userID"
+    }
+
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.feed")
     private lazy var downloadManager: FeedDownloadManager = {
         let downloadManager = FeedDownloadManager(mediaDirectoryURL: MainAppContext.mediaDirectoryURL)
@@ -64,13 +68,24 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.deleteExpiredPosts()
 
                 self.resendPendingReadReceipts()
+
+                // NB: This value is used to retain posts when a user logs back in to the same account.
+                //     Earlier builds did not set it at login, so let's set it in didConnect to support already logged-in users.
+                AppContext.shared.userDefaults?.setValue(self.userData.userId, forKey: UserDefaultsKey.persistentStoreUserID)
             })
         
         cancellableSet.insert(
-            self.userData.didLogOff.sink {
-                DDLogInfo("Unloading feed data. \(self.feedDataItems.count) posts")
+            self.userData.didLogIn.sink {
+                if let previousID = AppContext.shared.userDefaults?.string(forKey: UserDefaultsKey.persistentStoreUserID),
+                      previousID == self.userData.userId
+                {
+                    DDLogInfo("FeedData/didLogIn Persistent store matches user ID. Not unloading.")
+                } else {
+                    DDLogInfo("FeedData/didLogin Persistent store / user ID mismatch. Unloading feed data. \(self.feedDataItems.count) posts")
+                    self.destroyStore()
+                    AppContext.shared.userDefaults?.setValue(self.userData.userId, forKey: UserDefaultsKey.persistentStoreUserID)
+                }
 
-                self.destroyStore()
             })
 
         cancellableSet.insert(
