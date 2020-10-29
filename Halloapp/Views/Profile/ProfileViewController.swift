@@ -220,14 +220,13 @@ class ProfileViewController: UITableViewController {
     }
 
     @objc private func openDeveloperMenu() {
-        let developerMenuView = DeveloperMenuView(
-            useTestServer: MainAppContext.shared.userData.useTestServer,
-            useProtobuf: MainAppContext.shared.userData.useProtobuf,
-            dismiss: {
-                self.navigationController?.popViewController(animated: true)
-            })
+        var developerMenuView = DeveloperMenuView()
+        developerMenuView.dismiss = {
+            self.navigationController?.popViewController(animated: true)
+        }
         let viewController = UIHostingController(rootView: developerMenuView)
         viewController.hidesBottomBarWhenPushed = true
+        viewController.title = "Developer Menu"
         navigationController?.pushViewController(viewController, animated: true)
     }
 

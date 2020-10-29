@@ -6,12 +6,24 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Combine
 import SwiftUI
+
+private enum MenuTitles {
+    static var server: String { "Server" }
+    static var userId: String { "User ID" }
+    static var useProtobuf: String { "Use Protobuf" }
+    static var useDevServer: String { "Use Dev Server" }
+    static var reSyncContacts: String { "Re-Sync Contacts" }
+    static var registrationDemo: String { "Registration Demo" }
+    static var resetNUXDemo: String { "Reset NUX Demo" }
+    static var logOut: String { "Log Out" }
+}
 
 struct DeveloperMenuView: View {
 
-    @State var useTestServer: Bool
-    @State var useProtobuf: Bool
+    @State var useTestServer = MainAppContext.shared.userData.useTestServer
+    @State var useProtobuf = MainAppContext.shared.userData.useProtobuf
     @State var showRestartAlert = false
     @State var showRegistrationDemo = false
 
@@ -20,83 +32,74 @@ struct DeveloperMenuView: View {
     private let userData = MainAppContext.shared.userData
     private let service = MainAppContext.shared.service
 
+    init() {
+        UITableView.appearance(whenContainedInInstancesOf: [ UIHostingController<DeveloperMenuView>.self ]).backgroundColor = .feedBackground
+    }
+
     var body: some View {
-        ScrollView(.vertical) { VStack {
+        Form {
+            // Connection Settings
+            Section {
 
-            Image(systemName: "hammer")
-                .resizable()
-                .foregroundColor(Color.secondary)
-                .frame(width: 120, height: 120, alignment: .center)
-
-            Spacer()
-
-            VStack(alignment: .center, spacing: 24) {
-
-                VStack(spacing: 4) {
-                    Text("Server: \(self.userData.hostName)")
-                        .frame(maxWidth: .infinity)
-
-                    Text("User ID: \(self.userData.userId)")
-                        .frame(maxWidth: .infinity)
+                // Current Server
+                HStack {
+                    Text(MenuTitles.server)
+                    Spacer()
+                    ///FIXME: this does not update in real time
+                    Text(self.userData.hostName)
                 }
 
+                // User ID
+                HStack {
+                    Text(MenuTitles.userId)
+                    Spacer()
+                    Text(self.userData.userId)
+                }
+
+                // Use Protobuf?
+                HStack {
+                    Toggle(MenuTitles.useProtobuf, isOn: $useProtobuf)
+                        .onReceive(Just(self.useProtobuf)) { value in
+                            if value != self.userData.useProtobuf {
+                                self.userData.useProtobuf = value
+                                self.service.disconnectImmediately()
+                                self.showRestartAlert = true
+                            }
+                        }
+                        .alert(isPresented: $showRestartAlert) {
+                            Alert(title: Text("Please restart the app for this to take effect"))
+                        }
+                }
+
+                // Use Dev Server?
+                HStack {
+                    Toggle(MenuTitles.useDevServer, isOn: $useTestServer)
+                        .onReceive(Just(self.useTestServer)) { value in
+                            if value != self.userData.useTestServer {
+                                self.userData.useTestServer = value
+                                self.service.disconnectImmediately()
+                                self.service.connect()
+                            }
+                        }
+                }
+            }
+
+            // Debug Actions
+            Section {
+
+                // Re-Sync Contacts
                 Button(action: {
                     MainAppContext.shared.syncManager.requestFullSync()
-
-                    if self.dismiss != nil {
-                        self.dismiss!()
-                    }
+                    self.dismiss?()
                 }) {
-                    Text("Re-Sync Contacts")
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(24)
+                    Text(MenuTitles.reSyncContacts)
                 }
 
-                Button(action: {
-                    useProtobuf = !useProtobuf
-                    userData.useProtobuf = useProtobuf
-                    service.disconnectImmediately()
-                    showRestartAlert = true
-                }) {
-                    Text("Use Protobuf \(self.useProtobuf ? "👍" : "👎")")
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(24)
-                }
-                .alert(isPresented: $showRestartAlert) {
-                    Alert(title: Text("Please restart the app for this to take effect"))
-                }
-
-                Button(action: {
-                    self.useTestServer = !self.useTestServer
-                    self.userData.useTestServer = self.useTestServer
-                    self.service.disconnectImmediately()
-                    self.service.connect()
-
-                }) {
-                    Text("Use Dev Server \(self.useTestServer ? "👍" : "👎")")
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(24)
-                }
-
-
+                // Show Reg Demo
                 Button(action: {
                     showRegistrationDemo = true
                 }) {
-                    Text("Registration Demo")
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(24)
+                    Text(MenuTitles.registrationDemo)
                 }
                 .sheet(isPresented: $showRegistrationDemo) {
                     RegistrationDemo() {
@@ -104,33 +107,22 @@ struct DeveloperMenuView: View {
                     }
                 }
 
+                // NUX Demo
                 Button(action: {
                     MainAppContext.shared.nux.startDemo()
                 }) {
-                    Text("Reset NUX demo")
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(24)
+                    Text(MenuTitles.resetNUXDemo)
                 }
 
+                // Log Out
                 Button(action: {
                     self.userData.logout()
-
-                    if self.dismiss != nil {
-                        self.dismiss!()
-                    }
+                    self.dismiss?()
                 }) {
-                    Text("Log out")
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(24)
+                    Text(MenuTitles.logOut)
                 }
             }
-        }}
-        .background(Color.feedBackground)
+            .foregroundColor(.blue)
+        }
     }
 }
