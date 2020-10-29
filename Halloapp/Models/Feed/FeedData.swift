@@ -268,6 +268,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         DDLogWarn("FeedData/fetch/fix-timstamp [\(oldTimestamp)] -> [\(newTImestamp)]")
                         post.timestamp = newTImestamp
                     }
+                    save(fetchedResultsController.managedObjectContext)
                 }
             }
         }
