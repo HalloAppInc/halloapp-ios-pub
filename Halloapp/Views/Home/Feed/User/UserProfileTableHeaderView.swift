@@ -23,15 +23,8 @@ final class UserProfileTableHeaderView: UIView {
 
     private var vStack: UIStackView!
     private(set) var avatarViewButton: AvatarViewButton!
-
-    private lazy var nameLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.label.withAlphaComponent(0.8)
-        label.numberOfLines = 0
-        label.textAlignment = .center
-        label.text = MainAppContext.shared.userData.name
-        return label
-    }()
+    private var nameLabel: UILabel!
+    private var phoneNumberLabel: UILabel!
 
     var isDisplayingName: Bool = true {
         didSet {
@@ -81,28 +74,43 @@ final class UserProfileTableHeaderView: UIView {
 
         avatarViewButton = AvatarViewButton(type: .custom)
         avatarViewButton.isUserInteractionEnabled = canEditProfile
+        avatarViewButton.translatesAutoresizingMaskIntoConstraints = false
+        avatarViewButton.addConstraints([
+            avatarViewButton.heightAnchor.constraint(equalToConstant: 100),
+            avatarViewButton.widthAnchor.constraint(equalTo: avatarViewButton.heightAnchor)
+        ])
 
+        nameLabel = UILabel()
+        nameLabel.textColor = UIColor.label.withAlphaComponent(0.8)
+        nameLabel.numberOfLines = 0
+        nameLabel.textAlignment = .center
+        nameLabel.text = MainAppContext.shared.userData.name
         reloadNameLabelFont()
         NotificationCenter.default.addObserver(forName: UIContentSizeCategory.didChangeNotification, object: nil, queue: .main) { [weak self] (notification) in
             guard let self = self else { return }
             self.reloadNameLabelFont()
         }
 
-        vStack = UIStackView(arrangedSubviews: [ avatarViewButton, nameLabel ])
+        phoneNumberLabel = UILabel()
+        phoneNumberLabel.numberOfLines = 0
+        phoneNumberLabel.textColor = .secondaryLabel
+        phoneNumberLabel.textAlignment = .center
+        phoneNumberLabel.font = .preferredFont(forTextStyle: .callout)
+
+        vStack = UIStackView(arrangedSubviews: [ avatarViewButton, nameLabel, phoneNumberLabel ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.spacing = 16
+        vStack.spacing = 8
         vStack.axis = .vertical
         vStack.alignment = .center
+        vStack.setCustomSpacing(12, after: avatarViewButton)
         addSubview(vStack)
         vStack.constrainMargins(to: self, priority: .required - 10) // because UIKit temporarily might set header view's width to zero.
-
-        addConstraints([ avatarViewButton.heightAnchor.constraint(equalToConstant: 70),
-                         avatarViewButton.widthAnchor.constraint(equalTo: avatarViewButton.heightAnchor) ])
     }
 
     func updateMyProfile(name: String) {
         avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
         nameLabel.text = name
+        phoneNumberLabel.text = MainAppContext.shared.userData.formattedPhoneNumber
     }
 
     func updateProfile(userID: UserID) {
