@@ -249,7 +249,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 reloadFeedDataItems(using: feedPosts)
                 DDLogInfo("FeedData/fetch/completed \(feedDataItems.count) posts")
 
-                // Turn tasks stuck in "sending" state into "sendError".
+                // 1. Turn tasks stuck in "sending" state into "sendError".
                 let idsOfTasksInProgress = mediaUploader.activeTaskGroupIdentifiers()
                 let stuckPosts = feedPosts.filter({ $0.status == .sending }).filter({ !idsOfTasksInProgress.contains($0.id) })
                 if !stuckPosts.isEmpty {
@@ -257,18 +257,39 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     save(fetchedResultsController.managedObjectContext)
                 }
 
-                // Mitigate server bug when timestamps were sent in milliseconds.
+                // 2. Mitigate server bug when timestamps were sent in milliseconds.
+                // 2.1 Posts
                 let cutoffDate = Date(timeIntervalSinceNow: Date.days(1000))
-                let postsWithIncorrectTimestamps = feedPosts.filter({ $0.timestamp > cutoffDate })
-                if !postsWithIncorrectTimestamps.isEmpty {
-                    postsWithIncorrectTimestamps.forEach { (post) in
+                let postsWithIncorrectTimestamp = feedPosts.filter({ $0.timestamp > cutoffDate })
+                if !postsWithIncorrectTimestamp.isEmpty {
+                    postsWithIncorrectTimestamp.forEach { (post) in
                         let ts = post.timestamp.timeIntervalSince1970 / 1000
                         let oldTimestamp = post.timestamp
                         let newTImestamp = Date(timeIntervalSince1970: ts)
-                        DDLogWarn("FeedData/fetch/fix-timstamp [\(oldTimestamp)] -> [\(newTImestamp)]")
+                        DDLogWarn("FeedData/fetch/fix-timestamp [\(oldTimestamp)] -> [\(newTImestamp)]")
                         post.timestamp = newTImestamp
                     }
                     save(fetchedResultsController.managedObjectContext)
+                }
+                // 2.2 Comments
+                let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "timestamp > %@", cutoffDate as NSDate)
+                do {
+                    let commentsWithIncorrectTimestamp = try viewContext.fetch(fetchRequest)
+                    if !commentsWithIncorrectTimestamp.isEmpty {
+                        commentsWithIncorrectTimestamp.forEach { (comment) in
+                            let ts = comment.timestamp.timeIntervalSince1970 / 1000
+                            let oldTimestamp = comment.timestamp
+                            let newTImestamp = Date(timeIntervalSince1970: ts)
+                            DDLogWarn("FeedData/fetch/fix-timestamp [\(oldTimestamp)] -> [\(newTImestamp)]")
+                            comment.timestamp = newTImestamp
+                        }
+                        save(fetchedResultsController.managedObjectContext)
+                    }
+                }
+                catch {
+                    DDLogError("FeedData/fetch/error [\(error)]")
+                    fatalError("Failed to fetch feed items \(error)")
                 }
             }
         }
