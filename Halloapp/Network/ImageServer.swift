@@ -30,6 +30,7 @@ class ImageServer {
 
     private let mediaProcessingQueue = DispatchQueue(label: "ImageServer.MediaProcessing")
     private let mediaProcessingGroup = DispatchGroup()
+    private let mediaProcessingSemaphore = DispatchSemaphore(value: 3) // Prevents having more than 3 instances of AVAssetReader
     private var isCancelled = false
 
     func prepare(mediaItems: [PendingMedia], completion: @escaping (Bool) -> ()) {
@@ -60,7 +61,8 @@ class ImageServer {
 
     private func prepare(mediaItem item: PendingMedia) {
         mediaProcessingGroup.enter()
-        mediaProcessingQueue.async {
+        mediaProcessingQueue.async { [weak self] in
+            guard let self = self else { return }
             // 1. Resize media as necessary.
             let mediaResizeGroup = DispatchGroup()
             switch item.type {
@@ -88,6 +90,7 @@ class ImageServer {
 
             case .video:
                 mediaResizeGroup.enter()
+                self.mediaProcessingSemaphore.wait()
                 self.resizeVideo(inMediaItem: item) { (result) in
                     switch (result) {
                     case .success(let (videoUrl, videoResolution)):
@@ -103,12 +106,12 @@ class ImageServer {
                     }
 
                     mediaResizeGroup.leave()
+                    self.mediaProcessingSemaphore.signal()
                 }
             }
 
             // 2. Encrypt media.
             mediaResizeGroup.notify(queue: self.mediaProcessingQueue) {
-
                 guard item.error == nil else {
                     self.mediaProcessingGroup.leave()
                     return

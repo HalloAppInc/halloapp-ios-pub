@@ -177,9 +177,15 @@ public class PendingMedia {
         guard let url = self.fileURL else { return }
         try? FileManager.default.removeItem(at: url)
     }
+
+    private func clearVideo() {
+        guard let url = self.videoURL else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
     
     deinit {
-        self.clearTemporaryMedia()
+        clearTemporaryMedia()
+        clearVideo()
     }
 }
 

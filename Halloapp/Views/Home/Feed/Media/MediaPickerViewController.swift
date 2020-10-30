@@ -6,6 +6,7 @@
 //
 
 import AVKit
+import CocoaLumberjack
 import Core
 import Foundation
 import Photos
@@ -484,17 +485,38 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     let media = PendingMedia(type: .video)
                     media.asset = asset
                     media.order = i + 1
-                    
+
+                    let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                    media.videoURL = base.appendingPathComponent("video-\(UUID().uuidString).mp4")
+
+                    let options = PHVideoRequestOptions()
+                    options.isNetworkAccessAllowed = true
+
                     group.enter()
-                    manager.requestAVAsset(forVideo: asset, options: nil) { (avAsset, _, _) in
-                        let video = avAsset as! AVURLAsset
-                        media.videoURL = video.url
-                        
-                        if let size = VideoUtils.resolutionForLocalVideo(url: video.url) {
-                            media.size = size
+                    manager.requestExportSession(forVideo: asset, options: options, exportPreset: AVAssetExportPresetPassthrough) { session, _ in
+                        guard let session = session else {
+                            DDLogError("MediaPicker/nextAction: missing video asset")
+                            result.removeAll { $0.asset == asset }
+                            group.leave()
+                            return
                         }
-                        
-                        group.leave()
+
+                        session.outputURL = media.videoURL
+                        session.outputFileType = .mp4
+                        session.exportAsynchronously {
+                            guard session.error == nil else {
+                                DDLogError("MediaPicker/nextAction/export: [\(session.error!)]")
+                                result.removeAll { $0.asset == asset }
+                                group.leave()
+                                return
+                            }
+
+                            if let size = VideoUtils.resolutionForLocalVideo(url: media.videoURL!) {
+                                media.size = size
+                            }
+
+                            group.leave()
+                        }
                     }
                     
                     result.append(media)
