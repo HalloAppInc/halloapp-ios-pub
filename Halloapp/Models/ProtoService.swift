@@ -52,6 +52,7 @@ final class ProtoService: ProtoServiceCore {
         requestServerPropertiesIfNecessary()
         NotificationSettings.current.sendConfigIfNecessary(using: self)
         MainAppContext.shared.startReportingEvents()
+        userData.migratePasswordToKeychain()
     }
 
     override func authenticationSucceeded(with authResult: Server_AuthResult) {
