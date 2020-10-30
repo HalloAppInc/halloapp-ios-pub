@@ -718,11 +718,11 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
 
         let avPlayer = AVPlayer(url: videoURL)
         // Monitor when this cell's video starts playing and send out broadcast when it does.
-        avPlayerRateObservation = avPlayer.observe(\.rate, options: [ ], changeHandler: { (player, change) in
+        avPlayerRateObservation = avPlayer.observe(\.rate, options: [ ], changeHandler: { [weak self] (player, change) in
             if player.rate == 1 {
                 Self.videoDidStartPlaying.send(videoURL)
             }
-
+            guard let self = self else { return }
             if player.rate == 0 && self.showsVideoPlaybackControls {
                 self.playButton.isHidden = false
             }
