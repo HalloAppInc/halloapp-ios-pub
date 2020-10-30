@@ -18,10 +18,13 @@ protocol FeedPostViewControllerDelegate: AnyObject {
 class FeedPostViewController: UIViewController {
 
     private let feedPostId: FeedPostID
+    private let isGroupPost: Bool
+
     weak var delegate: FeedPostViewControllerDelegate?
 
-    init(feedPostId: FeedPostID) {
+    init(feedPostId: FeedPostID, isGroupPost: Bool) {
         self.feedPostId = feedPostId
+        self.isGroupPost = isGroupPost
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -149,8 +152,8 @@ class FeedPostViewController: UIViewController {
     }
 
     @objc private func showPostSeenBy() {
-        let seenByViewController = FeedPostSeenByViewController(feedPostId: feedPostId)
-        present(UINavigationController(rootViewController: seenByViewController), animated: true)
+        let viewController = PostDashboardViewController(feedPostId: feedPostId, isGroupPost: isGroupPost)
+        present(UINavigationController(rootViewController: viewController), animated: true)
     }
 
 }

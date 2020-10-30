@@ -1,5 +1,5 @@
 //
-//  FeedPostSeenByViewController.swift
+//  PostDashboardViewController.swift
 //  HalloApp
 //
 //  Created by Igor Solomennikov on 5/5/20.
@@ -81,20 +81,56 @@ fileprivate class PostReceiptsDataSource: UITableViewDiffableDataSource<FeedPost
 
 }
 
-class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsControllerDelegate {
+private extension Localizations {
+
+    static var actionViewProfile: String {
+        NSLocalizedString("mypost.action.view.profile", value: "View Profile", comment: "One of the contact actions in My Post screen.")
+    }
+
+    static var actionMessage: String {
+        NSLocalizedString("mypost.action.message", value: "Message", comment: "One of the contact actions in My Post screen. Verb.")
+    }
+
+    static var actionHideMyPosts: String {
+        NSLocalizedString("mypost.action.hide.my.posts", value: "Hide My Posts", comment: "One of the contact actions in My Post screen.")
+    }
+
+    static func hideMyPostsConfirmation(contactName: String) -> String {
+        let format = NSLocalizedString("mypost.hide.posts.confirmation",
+                                       value: "Are you sure you want to hide all your future posts from %@? You can always change this later.",
+                                       comment: "Confirmation when hiding posts from a certain contact. Parameter is contact's full name.")
+        return String.localizedStringWithFormat(format, contactName)
+    }
+}
+
+protocol PostDashboardViewControllerDelegate: AnyObject {
+    func postDashboardViewController(_ controller: PostDashboardViewController, didRequestPerformAction action: PostDashboardViewController.UserAction)
+}
+
+class PostDashboardViewController: UITableViewController, NSFetchedResultsControllerDelegate {
+
+    enum UserAction {
+        case profile(UserID)
+        case message(UserID)
+        case blacklist(UserID)
+    }
 
     private struct Constants {
         static let cellReuseIdentifier = "contact-cell"
         static let headerReuseIdentifier = "header"
     }
 
-    private let feedPostId: FeedPostID
+    let feedPostId: FeedPostID
+    private let isGroupPost: Bool
 
     private var dataSource: PostReceiptsDataSource!
     private var fetchedResultsController: NSFetchedResultsController<FeedPost>!
 
-    required init(feedPostId: FeedPostID) {
+    weak var delegate: PostDashboardViewControllerDelegate?
+
+    required init(feedPostId: FeedPostID, isGroupPost: Bool) {
         self.feedPostId = feedPostId
+        self.isGroupPost = isGroupPost
         super.init(style: .plain)
     }
 
@@ -112,7 +148,6 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
 
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
         tableView.register(SectionHeaderView.self, forHeaderFooterViewReuseIdentifier: Constants.headerReuseIdentifier)
-        tableView.allowsSelection = false
         tableView.backgroundColor = .feedBackground
         tableView.delegate = self
 
@@ -229,6 +264,47 @@ class FeedPostSeenByViewController: UITableViewController, NSFetchedResultsContr
             snapshot.appendItems(sentReceipts, toSection: .sent)
         }
         dataSource?.apply(snapshot, animatingDifferences: viewIfLoaded?.window != nil)
+    }
+
+    // MARK: Contact Actions
+
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let receipt = dataSource.itemIdentifier(for: indexPath), delegate != nil else {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
+        }
+
+        let contactName = MainAppContext.shared.contactStore.fullName(for: receipt.userId)
+        let actionSheet = UIAlertController(title: contactName, message: nil, preferredStyle: .actionSheet)
+        // View Profile
+        actionSheet.addAction(UIAlertAction(title: Localizations.actionViewProfile, style: .default, handler: { (_) in
+            self.delegate?.postDashboardViewController(self, didRequestPerformAction: .profile(receipt.userId))
+        }))
+        // Message
+        actionSheet.addAction(UIAlertAction(title: Localizations.actionMessage, style: .default, handler: { (_) in
+            self.delegate?.postDashboardViewController(self, didRequestPerformAction: .message(receipt.userId))
+        }))
+        // Hide from Contact
+        // This options isn't shown for group feed posts to avoid confusion:
+        // blacklisted contacts still able to see user's posts in the group.
+        if !isGroupPost {
+            actionSheet.addAction(UIAlertAction(title: Localizations.actionHideMyPosts, style: .destructive, handler: { (_) in
+                self.promptToAddToBlacklist(userId: receipt.userId, contactName: contactName)
+            }))
+        }
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        present(actionSheet, animated: true) {
+            tableView.deselectRow(at: indexPath, animated: true)
+        }
+    }
+
+    private func promptToAddToBlacklist(userId: UserID, contactName: String) {
+        let actionSheet = UIAlertController(title: Localizations.hideMyPostsConfirmation(contactName: contactName), message: nil, preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: Localizations.actionHideMyPosts, style: .destructive, handler: { (_) in
+            self.delegate?.postDashboardViewController(self, didRequestPerformAction: .blacklist(userId))
+        }))
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        present(actionSheet, animated: true, completion: nil)
     }
 
 }

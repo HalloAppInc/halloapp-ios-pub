@@ -261,6 +261,7 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
         let cell = tableView.dequeueReusableCell(withIdentifier: cellReuseIdentifier, for: indexPath) as! FeedPostTableViewCellBase
 
         let postId = feedPost.id
+        let isGroupPost = feedPost.groupId != nil
         let contentWidth = tableView.frame.size.width - tableView.layoutMargins.left - tableView.layoutMargins.right
         let gutterWidth = (1 - FeedPostTableViewCell.LayoutConstants.backgroundPanelHMarginRatio) * tableView.layoutMargins.left
         cell.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth)
@@ -276,7 +277,7 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
             }
             activePostCell.showSeenByAction = { [weak self] in
                 guard let self = self else { return }
-                self.showSeenByView(for: postId)
+                self.showSeenByView(for: postId, isGroupPost: isGroupPost)
             }
             activePostCell.showUserAction = { [weak self] userID in
                 guard let self = self else { return }
@@ -343,9 +344,10 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
         }
     }
 
-    private func showSeenByView(for postId: FeedPostID) {
-        let seenByViewController = FeedPostSeenByViewController(feedPostId: postId)
-        present(UINavigationController(rootViewController: seenByViewController), animated: true)
+    private func showSeenByView(for postId: FeedPostID, isGroupPost: Bool) {
+        let viewController = PostDashboardViewController(feedPostId: postId, isGroupPost: isGroupPost)
+        viewController.delegate = self
+        present(UINavigationController(rootViewController: viewController), animated: true)
     }
 
     private func showUserFeed(for userID: UserID) {
@@ -398,5 +400,29 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
                 UNUserNotificationCenter.current().removeDeliveredFeedNotifications(postId: feedPost.id)
             }
         }
+    }
+}
+
+extension FeedTableViewController: PostDashboardViewControllerDelegate {
+
+    func postDashboardViewController(_ controller: PostDashboardViewController, didRequestPerformAction action: PostDashboardViewController.UserAction) {
+        let actionToPerformOnDashboardDismiss: () -> ()
+        switch action {
+        case .profile(let userId):
+            actionToPerformOnDashboardDismiss = {
+                self.showUserFeed(for: userId)
+            }
+
+        case .message(let userId):
+            actionToPerformOnDashboardDismiss = {
+                self.navigationController?.pushViewController(ChatViewController(for: userId, with: controller.feedPostId), animated: true)
+            }
+
+        case .blacklist(let userId):
+            actionToPerformOnDashboardDismiss = {
+                MainAppContext.shared.privacySettings.hidePostsFrom(userId: userId)
+            }
+        }
+        controller.dismiss(animated: true, completion: actionToPerformOnDashboardDismiss)
     }
 }

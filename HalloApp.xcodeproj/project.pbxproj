@@ -112,7 +112,7 @@
 		764AB42424A71D6900D4E354 /* PrivacyListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764AB42324A71D6900D4E354 /* PrivacyListView.swift */; };
 		764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */; };
 		764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F774D246224C30063645A /* ContactTableViewCell.swift */; };
-		764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F7750246226120063645A /* FeedPostSeenByViewController.swift */; };
+		764F7751246226120063645A /* PostDashboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F7750246226120063645A /* PostDashboardViewController.swift */; };
 		76538090243D4B33000AD9A1 /* FeedPost+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */; };
 		76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538089243D4B32000AD9A1 /* FeedNotification+CoreDataClass.swift */; };
 		76538092243D4B33000AD9A1 /* FeedPostComment+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808A243D4B32000AD9A1 /* FeedPostComment+CoreDataClass.swift */; };
@@ -424,7 +424,7 @@
 		764AB42324A71D6900D4E354 /* PrivacyListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyListView.swift; path = HalloApp/Views/Settings/Privacy/PrivacyListView.swift; sourceTree = SOURCE_ROOT; };
 		764D5AEB248F0F3B009295F3 /* UINavigationBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UINavigationBar.swift; path = HalloApp/Components/Extensions/UINavigationBar.swift; sourceTree = SOURCE_ROOT; };
 		764F774D246224C30063645A /* ContactTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactTableViewCell.swift; path = HalloApp/Components/Views/ContactTableViewCell.swift; sourceTree = SOURCE_ROOT; };
-		764F7750246226120063645A /* FeedPostSeenByViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPostSeenByViewController.swift; path = "HalloApp/Views/Home/Feed/Seen By/FeedPostSeenByViewController.swift"; sourceTree = SOURCE_ROOT; };
+		764F7750246226120063645A /* PostDashboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PostDashboardViewController.swift; path = Halloapp/Views/Home/Feed/Post/PostDashboardViewController.swift; sourceTree = SOURCE_ROOT; };
 		76538088243D4B32000AD9A1 /* FeedPost+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPost+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPost+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		76538089243D4B32000AD9A1 /* FeedNotification+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedNotification+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedNotification+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		7653808A243D4B32000AD9A1 /* FeedPostComment+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostComment+CoreDataClass.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostComment+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -782,6 +782,7 @@
 			children = (
 				76271388252D250E00389FBC /* FacePileView.swift */,
 				76271383252D24AD00389FBC /* FeedPostTableViewCell.swift */,
+				764F7750246226120063645A /* PostDashboardViewController.swift */,
 			);
 			path = Post;
 			sourceTree = "<group>";
@@ -833,14 +834,6 @@
 				76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */,
 			);
 			path = Privacy;
-			sourceTree = "<group>";
-		};
-		764F774F246225E30063645A /* Seen By */ = {
-			isa = PBXGroup;
-			children = (
-				764F7750246226120063645A /* FeedPostSeenByViewController.swift */,
-			);
-			path = "Seen By";
 			sourceTree = "<group>";
 		};
 		766103A22461E63200728870 /* Receipts */ = {
@@ -1016,7 +1009,6 @@
 				EA5414D423EE164C00390EF6 /* Media */,
 				EA5414D523EE169E00390EF6 /* MediaSlider */,
 				76271381252D247700389FBC /* Post */,
-				764F774F246225E30063645A /* Seen By */,
 				6829F78524D0A61100207F6B /* User */,
 				76E04207252D1ED100FE57AC /* FeedPostViewController.swift */,
 				763B42AB243274F400FF0E82 /* FeedTableViewController.swift */,
@@ -1824,7 +1816,7 @@
 				76451C3A254795F500B9E268 /* MainAppStrings.swift in Sources */,
 				EA5975DE252D3CF600810F48 /* GroupMemberAvatars.swift in Sources */,
 				EAD944F724F73E4C004A27B1 /* GroupInfoViewController.swift in Sources */,
-				764F7751246226120063645A /* FeedPostSeenByViewController.swift in Sources */,
+				764F7751246226120063645A /* PostDashboardViewController.swift in Sources */,
 				764D5AEC248F0F3B009295F3 /* UINavigationBar.swift in Sources */,
 				76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */,
 				761B3962241D9C4D00858251 /* SyncSession.swift in Sources */,

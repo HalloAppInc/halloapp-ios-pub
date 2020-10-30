@@ -775,10 +775,11 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 extension CommentsViewController: MediaCarouselViewDelegate {
 
     func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
+        guard let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) else { return }
         if let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: feedPostId) {
             feedDataItem.currentMediaIndex = index
         }
-        let postViewController = FeedPostViewController(feedPostId: feedPostId)
+        let postViewController = FeedPostViewController(feedPostId: feedPostId, isGroupPost: feedPost.groupId != nil)
         postViewController.modalPresentationStyle = .overFullScreen
         postViewController.modalTransitionStyle = .crossDissolve
         postViewController.delegate = self

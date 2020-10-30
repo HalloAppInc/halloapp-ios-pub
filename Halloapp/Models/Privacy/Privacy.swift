@@ -396,7 +396,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
     }
 
     func update<T>(privacyList: PrivacyList, with userIds: T) where T: Collection, T.Element == UserID {
-        DDLogDebug("privacy/update-list/\(privacyList.type)\nOld: \(privacyList.items.map({ $0.userId }))\nNew: \(userIds)")
+        DDLogInfo("privacy/update-list/\(privacyList.type)\nOld: \(privacyList.items.map({ $0.userId }))\nNew: \(userIds)")
 
         privacyList.update(with: userIds)
 
@@ -404,6 +404,42 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
             updateSettingValue(forPrivacyList: privacyList)
             upload(privacyList: privacyList)
         }
+    }
+
+    func hidePostsFrom(userId: UserID) {
+        DDLogInfo("privacy/hide-from/\(userId)")
+
+        // If "whitelist" is currently active and user is on the list:
+        //    remove user from the "whitelist", add to "blacklist", but keep "whitelist" active.
+        // Otherwise:
+        //    add contact to the "blacklist" and set it active.
+
+        var blacklistUserIds = Set(blacklist.userIds)
+
+        if activeType == .whitelist {
+            var whitelistUserIds = Set(whitelist.userIds)
+            if whitelistUserIds.remove(userId) != nil {
+                DDLogInfo("privacy/hide-from/\(userId) Removed contact from whitelist.")
+
+                update(privacyList: whitelist, with: whitelistUserIds)
+
+                // Also add userId to "blacklist" if user decides to choose that privacy setting later.
+                if blacklistUserIds.insert(userId).inserted {
+                    DDLogInfo("privacy/hide-from/\(userId) Added contact to blacklist without making blacklist active.")
+                    blacklist.update(with: blacklistUserIds)
+                }
+
+                return
+            }
+        }
+
+        if blacklistUserIds.insert(userId).inserted {
+            DDLogInfo("privacy/hide-from/\(userId) Added contact to blacklist.")
+        } else {
+            DDLogInfo("privacy/hide-from/\(userId) Contact is already in blacklist.")
+        }
+        DDLogWarn("privacy/hide-from/\(userId) Setting blacklist active.")
+        update(privacyList: blacklist, with: blacklistUserIds)
     }
 
     func setFeedSettingToAllContacts() {
