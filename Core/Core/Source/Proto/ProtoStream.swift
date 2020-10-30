@@ -63,25 +63,38 @@ public final class ProtoStream: XMPPStream {
     /// and let handleAuth or handlePacket to process them.
     public override func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) {
 
+        let buffer: Data = {
+            guard let socketBuffer = socketBuffer else { return data }
+            return socketBuffer + data
+        }()
+
         var offset = 0
         while offset < data.count {
-
             // The socket may have read multiple proto packets. Split them up using 4-byte length headers.
-            let lengthData = Data(bytes: Array(data.bytes[offset..<data.count]), count: 4)
+            let lengthData = Data(bytes: Array(buffer.bytes[offset..<buffer.count]), count: 4)
             let length = Int(UInt32(bigEndian: lengthData.withUnsafeBytes { $0.load(as: UInt32.self)}))
-            let packetMax = min(data.count, offset+length+4)
-            let packetData = data.subdata(in: (offset+4)..<packetMax)
-            offset += length + 4
+
+            let packetStart = offset + 4
+            let packetEnd = packetStart + length
+            if packetEnd > buffer.count {
+                break
+            }
+            let packetData = buffer.subdata(in: packetStart..<packetEnd)
 
             if (state == XMPPStreamState.STATE_XMPP_AUTH) {
                 handleAuth(data: packetData)
             } else {
                 handlePacket(data: packetData)
             }
+            offset = packetEnd
         }
+
+        socketBuffer = offset < buffer.count ? data.subdata(in: offset..<buffer.count) : nil
 
         asyncSocket.readData(withTimeout: -1, tag: 101)
     }
+
+    private var socketBuffer: Data?
 
     /// XMPPStream supports authentication mechanisms that confront to XMPPSASLAuthentication.
     /// Again, XMPPSASLAuthentication only supports NSXMLElement.
