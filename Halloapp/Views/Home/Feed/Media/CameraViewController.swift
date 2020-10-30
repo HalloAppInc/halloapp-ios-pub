@@ -336,7 +336,7 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
             !context.coordinator.parent.isTakingPhoto.value {
 
             context.coordinator.parent.isTakingPhoto.value = true
-            cameraController.takePhoto(context.coordinator.parent.cameraState.shouldUseFlashlight)
+            cameraController.takePhoto(useFlashlight: context.coordinator.parent.cameraState.shouldUseFlashlight)
         }
         if !context.coordinator.parent.cameraState.shouldTakePhoto &&
             cameraController.isRecordingMovie != context.coordinator.parent.cameraState.shouldRecordVideo {
