@@ -102,7 +102,7 @@ public final class UserData: ObservableObject {
             self.name = user.name ?? ""
         }
 
-        self.needsKeychainMigration = !password.isEmpty
+        let isPasswordStoredInCoreData = !password.isEmpty
 
         if let keychainPassword = Self.loadPasswordFromKeychain(userID: userId) {
             DDLogInfo("UserData/init/password loaded from keychain")
@@ -110,6 +110,8 @@ public final class UserData: ObservableObject {
         } else {
             DDLogInfo("UserData/init/password not found on keychain")
         }
+
+        self.needsKeychainMigration = isPasswordStoredInCoreData || Self.needsKeychainUpdate(userID: userId, password: password)
 
         userNamePublisher = CurrentValueSubject(name)
         if !self.userId.isEmpty && !self.password.isEmpty {
@@ -166,7 +168,7 @@ public final class UserData: ObservableObject {
     @discardableResult
     private static func savePasswordToKeychain(userID: UserID, password: String) -> Bool {
 
-        guard loadPasswordFromKeychain(userID: userID) != password else {
+        guard needsKeychainUpdate(userID: userID, password: password) else {
             // Existing entry is up to date
             return true
         }
@@ -182,6 +184,7 @@ public final class UserData: ObservableObject {
                 kSecAttrAccount: userID,
                 kSecAttrService: "hallo",
                 kSecAttrSynchronizable: kFalse,
+                kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
                 kSecValueData: passwordData,
             ] as CFDictionary
             let status = SecItemAdd(keychainItem, nil)
@@ -197,6 +200,7 @@ public final class UserData: ObservableObject {
             let update = [
                 kSecValueData: passwordData,
                 kSecAttrSynchronizable: kFalse,
+                kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
             ] as CFDictionary
 
             let status = SecItemUpdate(query, update)
@@ -213,6 +217,20 @@ public final class UserData: ObservableObject {
         ] as CFDictionary
         let status = SecItemDelete(keychainItem)
         return status == errSecSuccess
+    }
+
+    private static func needsKeychainUpdate(userID: UserID, password: String) -> Bool {
+        guard let item = loadKeychainItem(userID: userID) as? NSDictionary,
+              let data = item[kSecValueData] as? Data,
+              let accesibleSetting = item[kSecAttrAccessible] as? String,
+              let keychainPassword = String(data: data, encoding: .utf8),
+              keychainPassword == password,
+              accesibleSetting == kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly as String
+              else
+        {
+            return true
+        }
+        return false
     }
 
     private static func loadPasswordFromKeychain(userID: UserID) -> String? {
@@ -236,7 +254,8 @@ public final class UserData: ObservableObject {
         ] as CFDictionary
 
         var result: AnyObject?
-        SecItemCopyMatching(query, &result)
+        let status = SecItemCopyMatching(query, &result)
+        DDLogInfo("UserData/Keychain/load status [\(status)]")
 
         return result
     }
