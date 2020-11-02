@@ -26,16 +26,16 @@ private extension Localizations {
         NSLocalizedString("profile.row.archive", value: "Archive", comment: "Row in Profile screen.")
     }
 
-    static var settings: String {
-        NSLocalizedString("profile.row.settings", value: "Settings", comment: "Row in Profile screen.")
-    }
-
     static var inviteFriends: String {
         NSLocalizedString("profile.row.invite", value: "Invite Friends & Family", comment: "Row in Profile screen.")
     }
 
     static var help: String {
         NSLocalizedString("profile.row.help", value: "Help", comment: "Row in Profile screen.")
+    }
+
+    static var developerMenu: String {
+        "Developer Menu"
     }
 }
 
@@ -62,8 +62,8 @@ class ProfileViewController: UITableViewController {
     private var dataSource: UITableViewDiffableDataSource<Section, Row>!
     private let cellMyPosts = SettingsTableViewCell(text: Localizations.myPosts, image: UIImage(named: "profile.my.posts"))
     private let cellArchive = SettingsTableViewCell(text: Localizations.archive, image: UIImage(named: "profile.archive"))
-    private let cellSettings = SettingsTableViewCell(text: Localizations.settings, image: UIImage(named: "profile.settings"))
-    private let cellDeveloper = SettingsTableViewCell(text: "Developer Menu", image: UIImage(systemName: "hammer"))
+    private let cellSettings = SettingsTableViewCell(text: Localizations.titleSettings, image: UIImage(named: "profile.settings"))
+    private let cellDeveloper = SettingsTableViewCell(text: Localizations.developerMenu, image: UIImage(systemName: "hammer"))
     private let cellInviteFriends = SettingsTableViewCell(text: Localizations.inviteFriends, image: UIImage(named: "profile.invite"))
     private let cellHelp = SettingsTableViewCell(text: Localizations.help, image: UIImage(named: "profile.help"))
 
@@ -226,7 +226,7 @@ class ProfileViewController: UITableViewController {
         }
         let viewController = UIHostingController(rootView: developerMenuView)
         viewController.hidesBottomBarWhenPushed = true
-        viewController.title = "Developer Menu"
+        viewController.title = Localizations.developerMenu
         navigationController?.pushViewController(viewController, animated: true)
     }
 

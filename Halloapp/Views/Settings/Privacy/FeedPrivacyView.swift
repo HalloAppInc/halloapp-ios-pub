@@ -9,6 +9,27 @@
 import Core
 import SwiftUI
 
+private extension Localizations {
+
+    static var shareWithAllContacts: String {
+        return NSLocalizedString("feed.privacy.descr.all",
+                                 value: "Share with all of your contacts",
+                                 comment: "Describes what 'All Contacts' feed privacy setting means.")
+    }
+
+    static var shareWithContactsExcept: String {
+        return NSLocalizedString("feed.privacy.descr.except",
+                                 value: "Share with your contacts except people you select",
+                                 comment: "Describes what 'All Contacts' feed privacy setting means.")
+    }
+
+    static var shareWithSelected: String {
+        return NSLocalizedString("feed.privacy.descr.only",
+                                 value: "Only share with selected contacts",
+                                 comment: "Describes what 'All Contacts' feed privacy setting means.")
+    }
+}
+
 struct FeedPrivacyView: View {
     @EnvironmentObject var privacySettings: PrivacySettings
 
@@ -39,7 +60,7 @@ struct FeedPrivacyView: View {
                                 Text(PrivacyList.name(forPrivacyListType: .all))
                                     .font(self.privacySettings.activeType == .all ? Font.body.bold() : Font.body)
 
-                                Text("Share with all of your contacts")
+                                Text(Localizations.shareWithAllContacts)
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
                             }
@@ -58,7 +79,7 @@ struct FeedPrivacyView: View {
                                 Text(PrivacyList.name(forPrivacyListType: .blacklist))
                                     .font(self.privacySettings.activeType == .blacklist ? Font.body.bold() : Font.body)
 
-                                Text(self.privacySettings.activeType == .blacklist ? self.privacySettings.longFeedSetting : "Share with your contacts except people you select")
+                                Text(self.privacySettings.activeType == .blacklist ? self.privacySettings.longFeedSetting : Localizations.shareWithContactsExcept)
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
                             }
@@ -82,7 +103,7 @@ struct FeedPrivacyView: View {
                                 Text(PrivacyList.name(forPrivacyListType: .whitelist))
                                     .font(self.privacySettings.activeType == .whitelist ? Font.body.bold() : Font.body)
 
-                                Text(self.privacySettings.activeType == .whitelist ? self.privacySettings.longFeedSetting : "Only share with selected contacts")
+                                Text(self.privacySettings.activeType == .whitelist ? self.privacySettings.longFeedSetting : Localizations.shareWithSelected)
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
                             }
@@ -99,7 +120,6 @@ struct FeedPrivacyView: View {
                 }
             }
         }
-        .navigationBarTitle("Feed", displayMode: .inline)
         .background(Color.feedBackground)
         .edgesIgnoringSafeArea(.bottom)
     }

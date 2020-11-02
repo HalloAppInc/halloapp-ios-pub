@@ -132,15 +132,15 @@ extension PrivacyList {
     static func name(forPrivacyListType privacyListType: PrivacyListType) -> String {
         switch privacyListType {
         case .all:
-            return "My Contacts"
+            return NSLocalizedString("feed.privacy.list.all", value: "My Phone Contacts", comment: "Settings > Privacy > Posts: one of the possible setting values.")
         case .blacklist:
-            return "My Contacts Except..."
+            return NSLocalizedString("feed.privacy.list.except", value: "My Contacts Except...", comment: "Settings > Privacy > Posts: one of the possible setting values.")
         case .whitelist:
-            return "Only Share With..."
+            return NSLocalizedString("feed.privacy.list.only", value: "Only Share With...", comment: "Settings > Privacy > Posts: one of the possible setting values.")
         case .muted:
-            return "Muted"
+            return "Muted" // not in use currently
         case .blocked:
-            return "Blocked"
+            return NSLocalizedString("privacy.list.blocked", value: "Blocked", comment: "Settings > Privacy: Title for the list of blocked contact and also setting menu item.")
         }
     }
 
@@ -215,14 +215,18 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         }
         switch activeType {
         case .all:
-            shortFeedSetting = "My Phone Contacts"
+            shortFeedSetting = NSLocalizedString("feed.privacy.value.my.contacts", value: "My Phone Contacts", comment: "Possible Feed Privacy setting value.")
             longFeedSetting = shortFeedSetting
 
         case .whitelist:
             if whitelist.isLoaded {
                 let userCount = whitelist.userIds.count
-                shortFeedSetting = "\(userCount) Selected"
-                longFeedSetting = "\(userCount) Contacts Selected"
+                // "\(userCount) Selected"
+                let shortFormatString = NSLocalizedString("feed.privacy.value.n.selected", comment: "Possible Feed Privacy setting value. Keep short.")
+                shortFeedSetting = String.localizedStringWithFormat(shortFormatString, userCount)
+                // "\(userCount) Contacts Selected"
+                let fullFormatString = NSLocalizedString("feed.privacy.value.n.contacts.selected", comment: "Possible Feed Privacy setting value. Can be longer.")
+                longFeedSetting = String.localizedStringWithFormat(fullFormatString, userCount)
             } else {
                 shortFeedSetting = Constants.SettingLoading
                 longFeedSetting = shortFeedSetting
@@ -231,8 +235,12 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         case .blacklist:
             if blacklist.isLoaded {
                 let userCount = blacklist.userIds.count
-                shortFeedSetting = "\(userCount) Excluded"
-                longFeedSetting = "\(userCount) Contacts Excluded"
+                // "\(userCount) Excluded"
+                let shortFormatString = NSLocalizedString("feed.privacy.value.n.excluded", comment: "Possible Feed Privacy setting value. Keep short.")
+                shortFeedSetting = String.localizedStringWithFormat(shortFormatString, userCount)
+                // "\(userCount) Contacts Excluded"
+                let fullFormatString = NSLocalizedString("feed.privacy.value.n.contacts.excluded", comment: "Possible Feed Privacy setting value. Can be longer.")
+                longFeedSetting = String.localizedStringWithFormat(fullFormatString, userCount)
             } else {
                 shortFeedSetting = Constants.SettingLoading
                 longFeedSetting = shortFeedSetting
@@ -469,13 +477,9 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
 
     private static func settingValueText(forPrivacyList privacyList: PrivacyListProtocol) -> String {
         let userCount = privacyList.userIds.count
-        if userCount > 1 {
-            return "\(userCount) Contacts"
-        } else if userCount > 0 {
-            return "1 Contact"
-        } else {
-            return "None"
-        }
+        // "None" / "1 Contact" / "N Contacts"
+        let formatString = NSLocalizedString("privacy.n.contacts", comment: "Generic setting value telling how many contacts are blocked or muted.")
+        return String.localizedStringWithFormat(formatString, userCount)
     }
 
     private func updateSettingValue(forPrivacyList privacyList: PrivacyList) {

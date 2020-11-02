@@ -17,6 +17,29 @@ private struct TableViewCellChevron: View {
     }
 }
 
+private extension Localizations {
+
+    static var notifications: String {
+        NSLocalizedString("settings.notifications", value: "Notifications", comment: "Settings menu section.")
+    }
+
+    static var postNotifications: String {
+        NSLocalizedString("settings.notifications.posts", value: "Posts", comment: "Settings > Notifications: label for the toggle that turns new post notifications on or off.")
+    }
+
+    static var commentNotifications: String {
+        NSLocalizedString("settings.notifications.comments", value: "Comments", comment: "Settings > Notifications: label for the toggle that turns new comment notifications on or off.")
+    }
+
+    static var privacy: String {
+        NSLocalizedString("settings.privacy", value: "Privacy", comment: "Settings menu section")
+    }
+
+    static var postsPrivacy: String {
+        NSLocalizedString("settings.privacy.posts", value: "Posts", comment: "Settings > Privacy: name of a setting that defines who can see your posts.")
+    }
+}
+
 struct SettingsView: View {
     @ObservedObject private var privacySettings = MainAppContext.shared.privacySettings
     @ObservedObject private var notificationSettings = NotificationSettings.current
@@ -41,18 +64,20 @@ struct SettingsView: View {
 
             Form {
                 // Notifications
-                Section(header: Text("Notifications".uppercased())) {
-                    Toggle("Posts", isOn: $notificationSettings.isPostsEnabled)
+                Section(header: Text(Localizations.notifications.uppercased())) {
+                    Toggle(Localizations.postNotifications, isOn: $notificationSettings.isPostsEnabled)
 
-                    Toggle("Comments", isOn: $notificationSettings.isCommentsEnabled)
+                    Toggle(Localizations.commentNotifications, isOn: $notificationSettings.isCommentsEnabled)
                 }
 
                 // Privacy
-                Section(header: Text("Privacy".uppercased())) {
+                Section(header: Text(Localizations.privacy.uppercased())) {
                     // Feed
-                    NavigationLink(destination: FeedPrivacyView().environmentObject(self.privacySettings)) {
+                    NavigationLink(destination: FeedPrivacyView()
+                                    .navigationBarTitle(LocalizedStringKey(Localizations.postsPrivacy))
+                                    .environmentObject(self.privacySettings)) {
                         HStack {
-                            Text("Posts")
+                            Text(Localizations.postsPrivacy)
                             Spacer()
                             Text(self.privacySettings.shortFeedSetting).foregroundColor(.secondary)
                         }
@@ -80,7 +105,7 @@ struct SettingsView: View {
         .onDisappear(perform: {
             self.privacySettings.resetSyncError()
         })
-        .navigationBarTitle("Settings", displayMode: .inline)
+        .navigationBarTitle(LocalizedStringKey(Localizations.titleSettings), displayMode: .inline)
         .edgesIgnoringSafeArea(.bottom)
     }
 }
