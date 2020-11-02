@@ -61,17 +61,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private var needsAPNSToken = true
 
-    public func checkNotificationsAuthorizationStatus() {
+    func checkNotificationsAuthorizationStatus() {
         // Do not allow to ask about access to notifications until user is done with Contacts access prompt.
         guard !ContactStore.contactsAccessRequestNecessary else { return }
-        guard self.needsAPNSToken || !MainAppContext.shared.service.hasValidAPNSPushToken else { return }
-        guard UIApplication.shared.applicationState != .background else { return }
 
         DDLogInfo("appdelegate/notifications/authorization/request")
         UNUserNotificationCenter.current().requestAuthorization(options: [.sound, .alert, .badge]) { (granted, error) in
             DDLogInfo("appdelegate/notifications/authorization granted=[\(granted)]")
-            DispatchQueue.main.async {
-                UIApplication.shared.registerForRemoteNotifications()
+            if self.needsAPNSToken || !MainAppContext.shared.service.hasValidAPNSPushToken {
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
             }
         }
     }
@@ -161,10 +161,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func requestAccessToContactsAndNotifications() {
         guard !contactsAccessRequestInProgress else {
             DDLogWarn("appdelegate/contacts/access-request Already in progress")
-            return
-        }
-        guard UIApplication.shared.applicationState != .background else {
-            DDLogInfo("appdelegate/contacts/access-request App is inactive")
             return
         }
         contactsAccessRequestInProgress = true
