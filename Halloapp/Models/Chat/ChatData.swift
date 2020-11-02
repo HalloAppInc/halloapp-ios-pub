@@ -13,7 +13,7 @@ typealias ChatAck = (id: String, timestamp: Date?)
 
 typealias ChatPresenceInfo = (userID: UserID, presence: PresenceType?, lastSeen: Date?)
 
-typealias ChatStateInfo = (from: UserID, threadType: ChatType, threadID: String, type: ChatState)
+typealias ChatStateInfo = (from: UserID, threadType: ChatType, threadID: String, type: ChatState, timestamp: Date?)
 
 typealias ChatMessageID = String
 typealias ChatGroupMessageID = String
@@ -30,7 +30,7 @@ class ChatData: ObservableObject {
     let didChangeUnreadThreadCount = PassthroughSubject<Int, Never>()
     let didChangeUnreadCount = PassthroughSubject<Int, Never>()
     let didGetCurrentChatPresence = PassthroughSubject<(UserPresenceType, Date?), Never>()
-    let didGetChatStateInfo = PassthroughSubject<ChatStateInfo, Never>()
+    let didGetChatStateInfo = PassthroughSubject<Void, Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
@@ -46,6 +46,9 @@ class ChatData: ObservableObject {
     private var isSubscribedToCurrentUser: Bool = false
     
     private var currentlyChattingInGroup: GroupID? = nil
+    
+    private var chatStateInfoList: [ChatStateInfo] = []
+    private var chatStateDebounceTimer: Timer? = nil
     
     private var unreadThreadCount: Int = 0 {
         didSet {
@@ -164,7 +167,7 @@ class ChatData: ObservableObject {
             service.didGetChatState.sink { [weak self] chatStateInfo in
                 DDLogInfo("ChatData/didGetChatState \(chatStateInfo)")
                 guard let self = self else { return }
-                self.processIncomingChatState(chatStateInfo)
+                self.processInboundChatStateInBg(chatStateInfo)
             }
         )
         
@@ -484,6 +487,7 @@ class ChatData: ObservableObject {
     
     private func processIncomingChatAck(_ xmppChatAck: ChatAck) {
         var isGroupMessage: Bool = true
+        // todo: narrow search with at least the status instead of the whole table
         self.updateChatMessage(with: xmppChatAck.id) { (chatMessage) in
             DDLogError("ChatData/processAck/chatMessage/ [\(xmppChatAck.id)]")
             isGroupMessage = false
@@ -497,7 +501,7 @@ class ChatData: ObservableObject {
                     self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
                         chatThread.lastMsgStatus = .sentOut
                     }
-                    
+
                 }
                 if let serverTimestamp = xmppChatAck.timestamp {
                     chatMessage.timestamp = serverTimestamp
@@ -762,15 +766,6 @@ class ChatData: ObservableObject {
         MainAppContext.shared.applicationIconBadgeNumber = badgeNum == -1 ? 1 : badgeNum + 1
     }
     
-    // MARK: Chat State
-    
-    func sendChatState(type: ChatType, id: String, state: ChatState) {
-        DDLogInfo("ChatData/sendChatState \(state) in \(id)")
-        performSeriallyOnBackgroundContext { (managedObjectContext) in
-            self.service.sendChatStateIfPossible(type: type, id: id, state: state)
-        }
-    }
-    
     // MARK: Helpers
     
     private func isAtChatListView() -> Bool {
@@ -930,9 +925,103 @@ extension ChatData {
 // MARK: Chat State
 extension ChatData {
     
-    private func processIncomingChatState(_ chatStateInfo: ChatStateInfo) {
-        didGetChatStateInfo.send(chatStateInfo)
+    public func sendChatState(type: ChatType, id: String, state: ChatState) {
+        DDLogInfo("ChatData/sendChatState \(state) in \(id)")
+        backgroundProcessingQueue.async {
+            self.service.sendChatStateIfPossible(type: type, id: id, state: state)
+        }
     }
+
+    public func getTypingIndicatorString(type: ChatType, id: String?) -> String? {
+        guard let id = id else { return nil }
+        
+        var typingStr = ""
+        var chatStateList: [ChatStateInfo] = []
+        
+        switch type {
+        case .oneToOne:
+            chatStateList = chatStateInfoList.filter { $0.threadType == .oneToOne && $0.threadID == id }
+            typingStr = "Typing..."
+        case .group:
+            chatStateList = chatStateInfoList.filter { $0.threadType == .group && $0.threadID == id }
+        }
+        
+        guard chatStateList.count > 0 else { return nil }
+        
+        if type == .group {
+            let numUser = chatStateList.count
+
+            for (index, typingUser) in chatStateList.enumerated() {
+                let firstName = MainAppContext.shared.contactStore.firstName(for: typingUser.from)
+                var subStr: String = "\(firstName)"
+                let isLastItem: Bool = (index == numUser - 1)
+
+                if isLastItem {
+                    switch numUser {
+                    case 1: subStr += " is "
+                    default:
+                        subStr = " and \(subStr) are "
+                    }
+                } else {
+                    switch numUser {
+                    case 2: break
+                    default: subStr += ", "
+                    }
+                }
+                typingStr += subStr
+            }
+            typingStr += "typing..."
+        }
+        return typingStr
+    }
+    
+    // used for inbound messages/presence, in case the other client is not resetting/sending their available status properly
+    private func removeFromChatStateList(from: UserID, threadType: ChatType, threadID: String, type: ChatState) {
+        let chatStateInfo = ChatStateInfo(from: from, threadType: threadType, threadID: threadID, type: type, timestamp: Date())
+        processInboundChatStateInBg(chatStateInfo)
+    }
+    
+    private func processInboundChatStateInBg(_ chatStateInfo: ChatStateInfo?) {
+        backgroundProcessingQueue.async {
+            self.processInboundChatState(chatStateInfo)
+        }
+    }
+    
+    private func processInboundChatState(_ chatStateInfo: ChatStateInfo?) {
+        
+        let timeToRecheck: TimeInterval = 25
+        
+        // remove old indicators
+        chatStateInfoList.removeAll(where: {
+            guard let timestamp = $0.timestamp else { return false }
+            return abs(timestamp.timeIntervalSinceNow) >= Date.seconds(Int(timeToRecheck))
+        })
+        
+        if let chatStateInfo = chatStateInfo {
+            // remove indicators from the same user
+            chatStateInfoList.removeAll(where: {
+                $0.threadType == chatStateInfo.threadType && $0.threadID == chatStateInfo.threadID && $0.from == chatStateInfo.from
+            })
+            
+            // add new typing indicator
+            if chatStateInfo.type == .typing {
+                chatStateInfoList.append(chatStateInfo)
+            }
+        }
+        
+        didGetChatStateInfo.send()
+        
+        chatStateDebounceTimer?.invalidate()
+        
+        guard chatStateInfoList.count > 0 else { return }
+        
+        chatStateDebounceTimer = Timer.scheduledTimer(withTimeInterval: timeToRecheck, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            self.processInboundChatState(nil)
+        }
+        
+    }
+    
 }
 
 // MARK: 1-1
@@ -1106,6 +1195,11 @@ extension ChatData {
         uploadMediaAndSend(chatMessage)
     }
 
+    func deleteMessage(toUserID: UserID, retractMessageID: String) {
+        let messageID = UUID().uuidString
+        service.deleteMessage(messageID: messageID, toUserID: toUserID, retractMessageID: retractMessageID)
+    }
+    
     private func uploadMediaAndSend(_ message: ChatMessage) {
         // Either all media has already been uploaded or post does not contain media.
         guard let mediaItemsToUpload = message.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
@@ -1573,6 +1667,9 @@ extension ChatData {
         
         // download chat message media
         processPendingChatMessageMedia()
+        
+        // remove user from typing state
+        removeFromChatStateList(from: xmppChatMessage.fromUserId, threadType: .oneToOne, threadID: xmppChatMessage.fromUserId, type: .available)
     }
     
     // MARK: 1-1 Process Inbound Receipts
@@ -1633,7 +1730,12 @@ extension ChatData {
         // notify chatViewController
         guard let currentlyChattingWithUserId = self.currentlyChattingWithUserId else { return }
         guard currentlyChattingWithUserId == presenceInfo.userID else { return }
-        self.didGetCurrentChatPresence.send((presenceStatus, presenceLastSeen))
+        didGetCurrentChatPresence.send((presenceStatus, presenceLastSeen))
+        
+        // remove user from typing state
+        if presenceInfo.presence == .away {
+            removeFromChatStateList(from: currentlyChattingWithUserId, threadType: .oneToOne, threadID: currentlyChattingWithUserId, type: .available)
+        }
     }
 }
 
@@ -2533,6 +2635,10 @@ extension ChatData {
         
         // download chat group message media
         self.processPendingChatGroupMessageMedia()
+        
+        // remove user from typing state
+        guard let fromUserID = xmppChatGroupMessage.userId else { return }
+        removeFromChatStateList(from: fromUserID, threadType: .group, threadID: xmppChatGroupMessage.groupId, type: .available)
     }
     
     // MARK: Group Process Inbound Receipts

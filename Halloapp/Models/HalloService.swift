@@ -53,6 +53,7 @@ protocol HalloService: CoreService {
     var didGetChatAck: PassthroughSubject<ChatAck, Never> { get }
     var didGetPresence: PassthroughSubject<ChatPresenceInfo, Never> { get }
     var didGetChatState: PassthroughSubject<ChatStateInfo, Never> { get }
+    func deleteMessage(messageID: String, toUserID: UserID, retractMessageID: String)
     func sendPresenceIfPossible(_ presenceType: PresenceType)
     func sendChatStateIfPossible(type: ChatType, id: String, state: ChatState)
 

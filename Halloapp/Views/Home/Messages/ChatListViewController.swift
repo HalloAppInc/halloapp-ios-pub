@@ -98,9 +98,11 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         setupFetchedResultsController()
         
         cancellableSet.insert(
-            MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] chatStateInfo in
+            MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] in
                 guard let self = self else { return }
-                self.updateChatWithTypingIndicator(chatStateInfo: chatStateInfo)
+                DispatchQueue.main.async {
+                    self.updateVisibleCellsWithTypingIndicator()
+                }
             }
         )
         
@@ -335,7 +337,28 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         }
     }
     
-    private func updateChatWithTypingIndicator(chatStateInfo: ChatStateInfo) {
+    private func updateVisibleCellsWithTypingIndicator() {
+        for tableCell in tableView.visibleCells {
+            guard let cell = tableCell as? ChatListTableViewCell else { continue }
+            guard let chatThread = cell.chatThread else { continue }
+            updateCellWithChatState(cell: cell, chatThread: chatThread)
+        }
+    }
+    
+    private func updateCellWithChatState(cell: ChatListTableViewCell, chatThread: ChatThread) {
+        var typingIndicatorStr: String? = nil
+        
+        if chatThread.type == .oneToOne {
+            typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: chatThread.type, id: chatThread.chatWithUserId)
+        } else if chatThread.type == .group {
+            typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: chatThread.type, id: chatThread.groupId)
+        }
+
+        if typingIndicatorStr == nil && !cell.isShowingTypingIndicator {
+            return
+        }
+        
+        cell.configureTypingIndicator(typingIndicatorStr)
     }
    
     // MARK: Tap Notification
@@ -412,6 +435,7 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ChatListTableViewCell
 
         cell.configure(with: chatThread)
+        updateCellWithChatState(cell: cell, chatThread: chatThread)
   
         if isFiltering {
             let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
@@ -498,8 +522,11 @@ extension ChatListViewController: UISearchControllerDelegate {
 extension ChatListViewController: UISearchResultsUpdating {
     
     func updateSearchResults(for searchController: UISearchController) {
+        DDLogDebug("ChatListViewController/updateSearchResults")
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
-        let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
+        guard let searchBarText = searchController.searchBar.text else { return }
+        DDLogDebug("ChatListViewController/updateSearchResults/searchBarText \(searchBarText)")
+        let strippedString = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
         let searchItems = strippedString.components(separatedBy: " ")
         
         filteredChats = allChats.filter {
@@ -519,6 +546,7 @@ extension ChatListViewController: UISearchResultsUpdating {
             }
             return false
         }
+        DDLogDebug("ChatListViewController/updateSearchResults/filteredChats count \(filteredChats.count)")
         tableView.reloadData()
     }
 }
@@ -596,6 +624,7 @@ private class ChatListInviteFriendsTableViewCell: UITableViewCell {
 private class ChatListTableViewCell: UITableViewCell {
 
     public var chatThread: ChatThread? = nil
+    public var isShowingTypingIndicator: Bool = false
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -611,6 +640,7 @@ private class ChatListTableViewCell: UITableViewCell {
         super.prepareForReuse()
 
         chatThread = nil
+        isShowingTypingIndicator = false
         
         nameLabel.attributedText = nil
         
@@ -744,14 +774,24 @@ private class ChatListTableViewCell: UITableViewCell {
         nameLabel.attributedText = attributedString
     }
     
-    func showTypingIndicator() {
+    func configureTypingIndicator(_ typingIndicatorStr: String?) {
+        guard let chatThread = chatThread else { return }
+        
+        guard let typingIndicatorStr = typingIndicatorStr else {
+            isShowingTypingIndicator = false
+            configure(with: chatThread)
+            return
+        }
         
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14, weight: .medium),
-            .foregroundColor: UIColor.systemBlue,
+            .foregroundColor: UIColor.systemGray,
         ]
-        let attributedString = NSMutableAttributedString(string: "Typing...", attributes: attributes)
+        
+        let attributedString = NSMutableAttributedString(string: typingIndicatorStr, attributes: attributes)
         lastMsgLabel.attributedText = attributedString
+        
+        isShowingTypingIndicator = true
     }
     
     private func setup() {

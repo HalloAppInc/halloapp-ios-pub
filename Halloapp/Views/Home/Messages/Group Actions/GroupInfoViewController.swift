@@ -16,7 +16,7 @@ import UIKit
 fileprivate struct Constants {
     static let AvatarSize: CGFloat = 100
     static let PhotoIconSize: CGFloat = 40
-    static let HeaderHeight: CGFloat = 260
+    static let HeaderHeight: CGFloat = 255
     static let FooterHeight: CGFloat = 250
 }
 
@@ -448,12 +448,11 @@ class GroupInfoHeaderView: UIView {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, membersLabelRow, spacer ])
+        let view = UIStackView(arrangedSubviews: [ avatarRow, groupNameLabelRow, groupNameTextView, spacer, membersLabelRow ])
 
         view.axis = .vertical
-        view.spacing = 20
-        view.setCustomSpacing(0, after: groupNameLabelRow)
-        view.setCustomSpacing(0, after: membersLabelRow)
+        view.spacing = 0
+        view.setCustomSpacing(20, after: avatarRow)
         
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -543,7 +542,7 @@ class GroupInfoHeaderView: UIView {
         let label = UILabel()
         label.textAlignment = .left
         label.textColor = .secondaryLabel
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.font = .systemFont(ofSize: 11)
         label.text = "GROUP NAME"
         label.translatesAutoresizingMaskIntoConstraints = false
         
@@ -561,7 +560,7 @@ class GroupInfoHeaderView: UIView {
         view.textContainerInset = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 10)
         
         view.font = UIFont.preferredFont(forTextStyle: .body)
-        
+   
         view.translatesAutoresizingMaskIntoConstraints = false
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(editAction(_:)))
@@ -589,7 +588,7 @@ class GroupInfoHeaderView: UIView {
         let label = UILabel()
         label.numberOfLines = 1
         
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.font = .systemFont(ofSize: 11)
         label.textColor = .secondaryLabel
         
         label.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -725,7 +724,7 @@ class GroupInfoFooterView: UIView {
     
     private lazy var leaveGroupLabel: UILabel = {
         let label = UILabel()
-        label.font = .gothamFont(forTextStyle: .headline, weight: .regular)
+        label.font = .gothamFont(forTextStyle: .body, weight: .regular)
         label.textColor = .systemRed
         label.textAlignment = .left
         label.text = "Leave group"

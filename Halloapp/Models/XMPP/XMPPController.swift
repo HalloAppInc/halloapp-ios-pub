@@ -490,7 +490,7 @@ class XMPPControllerMain: XMPPController {
     override func didReceive(chatState: XMPPChatState) {
         guard let fromUserID = chatState.from.user else { return }
         
-        didGetChatState.send((from: fromUserID, threadType: chatState.threadType, threadID: chatState.threadID, type: chatState.type))
+        didGetChatState.send((from: fromUserID, threadType: chatState.threadType, threadID: chatState.threadID, type: chatState.type, timestamp: Date()))
     }
     
     // MARK: XMPPReconnectDelegate

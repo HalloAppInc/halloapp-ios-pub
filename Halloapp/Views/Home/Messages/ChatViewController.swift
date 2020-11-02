@@ -22,7 +22,7 @@ fileprivate class ChatDataSource: UITableViewDiffableDataSource<Int, ChatMessage
     }
 }
 
-class ChatViewController: UIViewController, ChatInputViewDelegate, NSFetchedResultsControllerDelegate {
+class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     private var fromUserId: String?
     private var feedPostId: FeedPostID?
@@ -182,18 +182,23 @@ class ChatViewController: UIViewController, ChatInputViewDelegate, NSFetchedResu
                 DDLogInfo("ChatViewController/didGetCurrentChatPresence")
                 guard let self = self else { return }
                 guard let userId = self.fromUserId else { return }
-                self.titleView.update(with: userId, status: status, lastSeen: ts)
+                DispatchQueue.main.async {
+                    self.titleView.update(with: userId, status: status, lastSeen: ts)
+                }
             }
         )
 
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] chatStateInfo in
                 DDLogInfo("ChatViewController/didGetChatStateInfo")
-//                guard let self = self else { return }
-//                guard let userId = self.fromUserId else { return }
-//                self.titleView.update(with: userId, status: status, lastSeen: ts)
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    self.configureTitleViewWithTypingIndicator()
+                }
             }
         )
+        
+        configureTitleViewWithTypingIndicator()
         
         guard let thread = MainAppContext.shared.chatData.chatThread(type: .oneToOne, id: fromUserId) else { return }
         guard thread.draft != "", let draft = thread.draft else { return }
@@ -221,8 +226,6 @@ class ChatViewController: UIViewController, ChatInputViewDelegate, NSFetchedResu
             MainAppContext.shared.chatData.updateUnreadMessageCount()
             MainAppContext.shared.chatData.subscribeToPresence(to: chatWithUserId)
             MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: chatWithUserId)
-            
-//            MainAppContext.shared.chatData.sendChatState(type: .oneToOne, id: chatWithUserId, state: .typing)
 
             UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
         }
@@ -394,6 +397,17 @@ class ChatViewController: UIViewController, ChatInputViewDelegate, NSFetchedResu
         }
     }
 
+    private func configureTitleViewWithTypingIndicator() {
+        guard let userID = self.fromUserId else { return }
+        let typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: .oneToOne, id: userID)
+        
+        if typingIndicatorStr == nil && !titleView.isShowingTypingIndicator {
+            return
+        }
+
+        titleView.showChatState(with: typingIndicatorStr)
+    }
+    
     // MARK: Input view
 
     public func showKeyboard() {
@@ -443,33 +457,6 @@ class ChatViewController: UIViewController, ChatInputViewDelegate, NSFetchedResu
         tableView.scrollIndicatorInsets = scrollIndicatorInsets
     }
 
-    // MARK: ChatInputView Delegates
-    
-    func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
-        var animationDuration = animationDuration
-        if transitionCoordinator != nil {
-            animationDuration = 0
-        }
-        var adjustContentOffset = true
-        // Prevent the content offset from changing when the user drags the keyboard down.
-        if tableView.panGestureRecognizer.state == .ended || self.tableView.panGestureRecognizer.state == .changed {
-            adjustContentOffset = false
-        }
-        
-        let updateBlock = {
-            self.updateTableViewContentInsets(with: inputView.bottomInset, adjustContentOffset: adjustContentOffset)
-        }
-        if animationDuration > 0 {
-            updateBlock()
-        } else {
-            UIView.performWithoutAnimation(updateBlock)
-        }
-    }
-
-    func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
-        sendMessage(text: text, media: [])
-    }
-    
     func sendMessage(text: String, media: [PendingMedia]) {
         guard let sendToUserId = self.fromUserId else { return }
         
@@ -494,19 +481,6 @@ class ChatViewController: UIViewController, ChatInputViewDelegate, NSFetchedResu
         chatInputView.text = ""
     }
     
-    func chatInputView(_ inputView: ChatInputView) {
-        presentMediaPicker()
-    }
-    
-    func chatInputViewCloseQuotePanel(_ inputView: ChatInputView) {
-        feedPostId = nil
-        feedPostMediaIndex = 0
-        
-        chatReplyMessageID = nil
-        chatReplyMessageSenderID = nil
-        chatReplyMessageMediaIndex = 0
-    }
-
     private func presentMediaPicker() {
         guard mediaPickerController == nil else { return }
 
@@ -733,9 +707,66 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
             pasteboard.string = chatMessage.text
          })
         
+//        actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
+//            guard let self = self else { return }
+//            guard let toUserID = self.fromUserId else { return }
+//            MainAppContext.shared.chatData.deleteMessage(toUserID: toUserID, retractMessageID: chatMessage.id)
+//        })
+        
          actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         
          self.present(actionSheet, animated: true)
+    }
+}
+
+// MARK: ChatInputView Delegates
+extension ChatViewController: ChatInputViewDelegate {
+    
+    func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
+        var animationDuration = animationDuration
+        if transitionCoordinator != nil {
+            animationDuration = 0
+        }
+        var adjustContentOffset = true
+        // Prevent the content offset from changing when the user drags the keyboard down.
+        if tableView.panGestureRecognizer.state == .ended || self.tableView.panGestureRecognizer.state == .changed {
+            adjustContentOffset = false
+        }
+        
+        let updateBlock = {
+            self.updateTableViewContentInsets(with: inputView.bottomInset, adjustContentOffset: adjustContentOffset)
+        }
+        if animationDuration > 0 {
+            updateBlock()
+        } else {
+            UIView.performWithoutAnimation(updateBlock)
+        }
+    }
+    
+    func chatInputView(_ inputView: ChatInputView, isTyping: Bool) {
+        guard let userID = fromUserId else { return }
+        if isTyping {
+            MainAppContext.shared.chatData.sendChatState(type: .oneToOne, id: userID, state: .typing)
+        } else {
+            MainAppContext.shared.chatData.sendChatState(type: .oneToOne, id: userID, state: .available)
+        }
+    }
+    
+    func chatInputViewCloseQuotePanel(_ inputView: ChatInputView) {
+        feedPostId = nil
+        feedPostMediaIndex = 0
+        
+        chatReplyMessageID = nil
+        chatReplyMessageSenderID = nil
+        chatReplyMessageMediaIndex = 0
+    }
+    
+    func chatInputView(_ inputView: ChatInputView) {
+        presentMediaPicker()
+    }
+    
+    func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
+        sendMessage(text: text, media: [])
     }
 }
 
@@ -785,6 +816,8 @@ fileprivate class TitleView: UIView {
     
     weak var delegate: TitleViewDelegate?
     
+    public var isShowingTypingIndicator: Bool = false
+    
     override init(frame: CGRect){
         super.init(frame: frame)
         setup()
@@ -796,6 +829,41 @@ fileprivate class TitleView: UIView {
         return AvatarView()
     }()
 
+    func update(with fromUserId: String, status: UserPresenceType, lastSeen: Date?) {
+        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: fromUserId)
+        
+        switch status {
+        case .away:
+            // prefer to show last seen over typing
+            if let lastSeen = lastSeen {
+                lastSeenLabel.text = lastSeen.lastSeenTimestamp()
+                typingLabel.isHidden = true
+                lastSeenLabel.isHidden = false
+            }
+        case .available:
+            // prefer to show typing over online
+            lastSeenLabel.isHidden = !isShowingTypingIndicator ? false : true
+            lastSeenLabel.text = "online"
+        default:
+            lastSeenLabel.isHidden = true
+            lastSeenLabel.text = ""
+        }
+
+        contactImageView.configure(with: fromUserId, using: MainAppContext.shared.avatarStore)
+    }
+    
+    func showChatState(with typingIndicatorStr: String?) {
+        let showTyping: Bool = typingIndicatorStr != nil
+        
+        lastSeenLabel.isHidden = showTyping
+        typingLabel.isHidden = !showTyping
+        isShowingTypingIndicator = showTyping
+        
+        guard let typingStr = typingIndicatorStr else { return }
+        typingLabel.text = typingStr
+        
+    }
+    
     private func setup() {
         let imageSize: CGFloat = 35
         contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
@@ -822,7 +890,7 @@ fileprivate class TitleView: UIView {
     }
 
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [nameLabel, lastSeenLabel])
+        let view = UIStackView(arrangedSubviews: [nameLabel, lastSeenLabel, typingLabel])
         view.axis = .vertical
         view.spacing = 0
         
@@ -849,25 +917,15 @@ fileprivate class TitleView: UIView {
         return label
     }()
     
-    func update(with fromUserId: String, status: UserPresenceType, lastSeen: Date?) {
-        nameLabel.text = MainAppContext.shared.contactStore.fullName(for: fromUserId)
-        
-        switch status {
-        case .away:
-            if let lastSeen = lastSeen {
-                lastSeenLabel.text = lastSeen.lastSeenTimestamp()
-                lastSeenLabel.isHidden = false
-            }
-        case .available:
-            lastSeenLabel.isHidden = false
-            lastSeenLabel.text = "online"
-        default:
-            lastSeenLabel.isHidden = true
-            lastSeenLabel.text = ""
-        }
-        
-        contactImageView.configure(with: fromUserId, using: MainAppContext.shared.avatarStore)
-    }
+    private lazy var typingLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.systemFont(ofSize: 12)
+        label.textColor = .secondaryLabel
+        label.isHidden = true
+        return label
+    }()
     
     @objc func gotoProfile(_ sender: UIView) {
         delegate?.titleView(self)

@@ -22,6 +22,7 @@ fileprivate protocol ContainerViewDelegate: AnyObject {
 protocol ChatInputViewDelegate: AnyObject {
     func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve)
     func chatInputView(_ inputView: ChatInputView, wantsToSend text: String)
+    func chatInputView(_ inputView: ChatInputView, isTyping: Bool)
     func chatInputView(_ inputView: ChatInputView)
     func chatInputViewCloseQuotePanel(_ inputView: ChatInputView)
 }
@@ -34,6 +35,14 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     private var placeholderText = "Type a message"
     
     private var isVisible: Bool = false
+    
+    // only send a typing indicator once in 10 seconds
+    private let typingThrottleInterval: TimeInterval = 10
+    private var typingThrottleTimer: Timer? = nil
+    
+    // only send a available indicator after 3 seconds of no typing
+    private let typingDebounceInterval: TimeInterval = 3
+    private var typingDebounceTimer: Timer? = nil
     
     // MARK: ChatInput Lifecycle
 
@@ -77,6 +86,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         } else {
             resignFirstResponderOnDisappear(in: viewController)
         }
+        
+        resetTypingTimers()
     }
     
     private func setup() {
@@ -521,6 +532,21 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         delegate?.chatInputViewCloseQuotePanel(self)
     }
     
+    private func resetTypingTimers() {
+        
+        // set typing indicator back to available first
+        if typingThrottleTimer != nil {
+            delegate?.chatInputView(self, isTyping: false)
+        }
+        
+        typingThrottleTimer?.invalidate()
+        typingThrottleTimer = nil
+
+        typingDebounceTimer?.invalidate()
+        typingDebounceTimer = nil
+        
+    }
+    
     // MARK: Text view
     
     func setDraftText(text: String) {
@@ -563,14 +589,39 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
                 textViewContainerHeightConstraint?.isActive = false
             }
         }
+        
+        if typingThrottleTimer == nil && !text.isEmpty {
+            delegate?.chatInputView(self, isTyping: true)
+            typingThrottleTimer = Timer.scheduledTimer(withTimeInterval: typingThrottleInterval, repeats: false) { [weak self] _ in
+                guard let self = self else { return }
+                self.typingThrottleTimer = nil
+            }
+        }
+
+        typingDebounceTimer?.invalidate()
+        typingDebounceTimer = Timer.scheduledTimer(withTimeInterval: typingDebounceInterval, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            self.delegate?.chatInputView(self, isTyping: false)
+            
+            self.typingThrottleTimer?.invalidate()
+            self.typingThrottleTimer = nil
+        }
     }
 
+
+    
     @objc func postButtonClicked() {
+        
+        resetTypingTimers()
+        
         delegate?.chatInputView(self, wantsToSend: text)
         closeQuoteFeedPanel()
     }
 
     @objc func postMediaButtonClicked() {
+        
+        resetTypingTimers()
+        
         delegate?.chatInputView(self)
     }
     

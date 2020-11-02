@@ -24,7 +24,7 @@ fileprivate class ChatGroupDataSource: UITableViewDiffableDataSource<Int, ChatGr
     }
 }
 
-class ChatGroupViewController: UIViewController, ChatInputViewDelegate, NSFetchedResultsControllerDelegate {
+class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDelegate {
   
     private var groupId: GroupID
     
@@ -177,6 +177,18 @@ class ChatGroupViewController: UIViewController, ChatInputViewDelegate, NSFetche
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.dismissKeyboard(_:)))
         self.view.addGestureRecognizer(tapGesture)
+        
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] in
+                DDLogInfo("ChatGroupViewController/didGetChatStateInfo")
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    self.configureTitleViewWithTypingIndicator()
+                }
+            }
+        )
+        
+        configureTitleViewWithTypingIndicator()
         
         guard let thread = MainAppContext.shared.chatData.chatThread(type: .group, id: groupId) else { return }
         guard thread.draft != "", let draft = thread.draft else { return }
@@ -373,6 +385,17 @@ class ChatGroupViewController: UIViewController, ChatInputViewDelegate, NSFetche
         }
     }
 
+    private func configureTitleViewWithTypingIndicator() {
+        let typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: .group, id: self.groupId)
+        
+        if typingIndicatorStr == nil && !self.titleView.isShowingTypingIndicator {
+            return
+        }
+
+        titleView.showChatState(with: typingIndicatorStr)
+    }
+    
+    
     // MARK: Input view
 
     lazy var chatInputView: ChatInputView = {
@@ -418,32 +441,6 @@ class ChatGroupViewController: UIViewController, ChatInputViewDelegate, NSFetche
         self.tableView.scrollIndicatorInsets = scrollIndicatorInsets
     }
 
-    // MARK: ChatInputView Delegates
-    
-    func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
-        var animationDuration = animationDuration
-        if self.transitionCoordinator != nil {
-            animationDuration = 0
-        }
-        var adjustContentOffset = true
-        // Prevent the content offset from changing when the user drags the keyboard down.
-        if self.tableView.panGestureRecognizer.state == .ended || self.tableView.panGestureRecognizer.state == .changed {
-            adjustContentOffset = false
-        }
-        
-        let updateBlock = {
-            self.updateTableViewContentInsets(with: inputView.bottomInset, adjustContentOffset: adjustContentOffset)
-        }
-        if animationDuration > 0 {
-            updateBlock()
-        } else {
-            UIView.performWithoutAnimation(updateBlock)
-        }
-    }
-
-    func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
-        sendGroupMessage(text: text, media: [])
-    }
     
     func sendGroupMessage(text: String, media: [PendingMedia]) {
         MainAppContext.shared.chatData.sendGroupMessage(toGroupId: groupId,
@@ -462,14 +459,6 @@ class ChatGroupViewController: UIViewController, ChatInputViewDelegate, NSFetche
         chatInputView.text = ""
     }
     
-    // TODO: move chatInputViewCloseQuotePanel to a separate protocol
-    func chatInputViewCloseQuotePanel(_ inputView: ChatInputView) {
-    }
-    
-    func chatInputView(_ inputView: ChatInputView) {
-        presentMediaPicker()
-    }
-
     private func presentMediaPicker() {
         guard mediaPickerController == nil else { return }
 
@@ -712,6 +701,51 @@ extension ChatGroupViewController: OutboundMsgViewCellDelegate {
     }
 }
 
+// MARK: ChatInputView Delegates
+extension ChatGroupViewController: ChatInputViewDelegate {
+
+    func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve) {
+        var animationDuration = animationDuration
+        if self.transitionCoordinator != nil {
+            animationDuration = 0
+        }
+        var adjustContentOffset = true
+        // Prevent the content offset from changing when the user drags the keyboard down.
+        if self.tableView.panGestureRecognizer.state == .ended || self.tableView.panGestureRecognizer.state == .changed {
+            adjustContentOffset = false
+        }
+        
+        let updateBlock = {
+            self.updateTableViewContentInsets(with: inputView.bottomInset, adjustContentOffset: adjustContentOffset)
+        }
+        if animationDuration > 0 {
+            updateBlock()
+        } else {
+            UIView.performWithoutAnimation(updateBlock)
+        }
+    }
+    
+    // TODO: move chatInputViewCloseQuotePanel to a separate protocol
+    func chatInputViewCloseQuotePanel(_ inputView: ChatInputView) {
+    }
+    
+    func chatInputView(_ inputView: ChatInputView, isTyping: Bool) {
+        if isTyping {
+            MainAppContext.shared.chatData.sendChatState(type: .group, id: groupId, state: .typing)
+        } else {
+            MainAppContext.shared.chatData.sendChatState(type: .group, id: groupId, state: .available)
+        }
+    }
+    
+    func chatInputView(_ inputView: ChatInputView) {
+        presentMediaPicker()
+    }
+
+    func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
+        sendGroupMessage(text: text, media: [])
+    }
+}
+
 extension ChatGroupViewController: MessageComposerViewDelegate {
     func messageComposerView(_ messageComposerView: MessageComposerView, text: String, media: [PendingMedia]) {
         self.sendGroupMessage(text: text, media: media)
@@ -764,6 +798,8 @@ fileprivate class TitleView: UIView {
     
     weak var delegate: TitleViewDelegate?
     
+    public var isShowingTypingIndicator: Bool = false
+    
     override init(frame: CGRect){
         super.init(frame: frame)
         setup()
@@ -779,6 +815,18 @@ fileprivate class TitleView: UIView {
         avatarView.configure(groupId: groupId, using: MainAppContext.shared.avatarStore)
     }
 
+    func showChatState(with typingIndicatorStr: String?) {
+        let show: Bool = typingIndicatorStr != nil
+        
+        lastSeenLabel.isHidden = show
+        typingLabel.isHidden = !show
+        isShowingTypingIndicator = show
+        
+        guard let typingStr = typingIndicatorStr else { return }
+        typingLabel.text = typingStr
+        
+    }
+    
     private func setup() {
         avatarView = AvatarViewButton(type: .custom)
         avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
@@ -813,7 +861,7 @@ fileprivate class TitleView: UIView {
     private var avatarView: AvatarViewButton!
     
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [nameLabel, lastSeenLabel])
+        let view = UIStackView(arrangedSubviews: [nameLabel, lastSeenLabel, typingLabel])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .vertical
         view.spacing = 0
@@ -830,6 +878,16 @@ fileprivate class TitleView: UIView {
     }()
     
     private lazy var lastSeenLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.systemFont(ofSize: 13)
+        label.textColor = .secondaryLabel
+        label.isHidden = true
+        return label
+    }()
+    
+    private lazy var typingLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
         label.translatesAutoresizingMaskIntoConstraints = false

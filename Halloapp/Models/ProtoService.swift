@@ -418,13 +418,14 @@ final class ProtoService: ProtoServiceCore {
                      presence: PresenceType(pbPresence.type),
                      lastSeen: Date(timeIntervalSince1970: TimeInterval(pbPresence.lastSeen))))
             }
-        case .chatState:
-            DDLogInfo("proto/chatState/\(requestID)")
+        case .chatState(let pbChatState):
             DispatchQueue.main.async {
-//                self.didGetChatState.send(
-//                    (userID: UserID(pbPresence.uid),
-//                     presence: PresenceType(pbPresence.type),
-//                     lastSeen: Date(timeIntervalSince1970: TimeInterval(pbPresence.lastSeen))))
+                self.didGetChatState.send((
+                                            from: UserID(pbChatState.fromUid),
+                                            threadType: pbChatState.threadType == .chat ? .oneToOne : .group,
+                                            threadID: pbChatState.threadID,
+                                            type: pbChatState.type == .typing ? .typing : .available,
+                                            timestamp: Date()))
             }
         case .iq:
             // NB: Only respond to pings (other IQ should be responses handled by superclass)
@@ -591,6 +592,35 @@ extension ProtoService: HalloService {
         sendReceipt(receipt, to: toUserID)
     }
 
+    func deleteMessage(messageID: String, toUserID: UserID, retractMessageID: String) {
+        guard let toUID = Int64(toUserID) else {
+            return
+        }
+        guard let fromUID = Int64(userData.userId) else {
+            DDLogError("ProtoService/deleteMessage/error invalid sender uid")
+            return
+        }
+        
+        var packet = Server_Packet()
+        packet.msg.toUid = toUID
+        packet.msg.fromUid = fromUID
+        packet.msg.id = messageID
+        packet.msg.type = .chat
+
+        var chatRetract = Server_ChatRetract()
+        chatRetract.id = retractMessageID
+
+        packet.msg.payload = .chatRetract(chatRetract)
+        
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoService/deleteMessage/error could not serialize packet")
+            return
+        }
+
+        DDLogInfo("ProtoService/deleteMessage")
+        stream.send(packetData)
+    }
+    
     func sendPresenceIfPossible(_ presenceType: PresenceType) {
         guard isConnected else { return }
         enqueue(request: ProtoPresenceUpdate(status: presenceType) { _ in })

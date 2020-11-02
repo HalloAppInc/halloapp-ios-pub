@@ -93,6 +93,9 @@ extension XMPPControllerMain: HalloService {
         enqueue(request: XMPPSendPushConfigRequest(config: settings, completion: completion))
     }
 
+    func deleteMessage(messageID: String, toUserID: UserID, retractMessageID: String) {
+    }
+    
     func sendPresenceIfPossible(_ presenceType: PresenceType) {
         guard isConnected else { return }
         DDLogInfo("ChatData/sendPresence \(presenceType.rawValue)")
