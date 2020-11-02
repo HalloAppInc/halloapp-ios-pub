@@ -10,3 +10,9 @@
 /* Title for the new feed post notification. */
 "notification.new.post" = "Новый пост";
 
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 фото";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 видео";
+

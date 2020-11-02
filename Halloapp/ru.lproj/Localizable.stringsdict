@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>feed.privacy.value.n.contacts.excluded</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_excluded@</string>
+		<key>n_excluded</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>Исключено контактов: %d</string>
+			<key>many</key>
+			<string>Исключено контактов: %d</string>
+			<key>one</key>
+			<string>Исключено контактов: %d</string>
+			<key>other</key>
+			<string>Исключено контактов: %d</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.contacts.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>Выбрано контактов: %d</string>
+			<key>many</key>
+			<string>Выбрано контактов: %d</string>
+			<key>one</key>
+			<string>Выбрано контактов: %d</string>
+			<key>other</key>
+			<string>Выбрано контактов: %d</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.excluded</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_excluded@</string>
+		<key>n_excluded</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>Исключено: %d</string>
+			<key>many</key>
+			<string>Исключено: %d</string>
+			<key>one</key>
+			<string>Исключено: %d</string>
+			<key>other</key>
+			<string>Исключено: %d</string>
+		</dict>
+	</dict>
+	<key>feed.privacy.value.n.selected</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_selected@</string>
+		<key>n_selected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>Выбрано: %d</string>
+			<key>many</key>
+			<string>Выбрано: %d</string>
+			<key>one</key>
+			<string>Выбрано: %d</string>
+			<key>other</key>
+			<string>Выбрано: %d</string>
+		</dict>
+	</dict>
+	<key>group.feed.n.members</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@n_members@</string>
+		<key>n_members</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d участника</string>
+			<key>many</key>
+			<string>%d участников</string>
+			<key>one</key>
+			<string>%d участник</string>
+			<key>other</key>
+			<string>%d участников</string>
+			<key>zero</key>
+			<string>Нет участников</string>
+		</dict>
+	</dict>
+	<key>notification.n.photos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_photos@</string>
+		<key>num_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>📷 %d фото</string>
+			<key>many</key>
+			<string>📷 %d фото</string>
+			<key>one</key>
+			<string>📷 %d фото</string>
+			<key>other</key>
+			<string>📷 %d фото</string>
+		</dict>
+	</dict>
+	<key>notification.n.videos</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@num_videos@</string>
+		<key>num_videos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>📹 %d видео</string>
+			<key>many</key>
+			<string>📹 %d видео</string>
+			<key>one</key>
+			<string>📹 %d видео</string>
+			<key>other</key>
+			<string>📹 %d видео</string>
+		</dict>
+	</dict>
+	<key>privacy.n.contacts</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>few</key>
+			<string>%d контакта</string>
+			<key>many</key>
+			<string>%d контактов</string>
+			<key>one</key>
+			<string>%d контакт</string>
+			<key>other</key>
+			<string>%d контактов</string>
+			<key>zero</key>
+			<string>Никто</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

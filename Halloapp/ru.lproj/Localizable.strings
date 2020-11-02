@@ -1,3 +1,6 @@
+/* No comment provided by engineer. */
+"Albums" = "Альбомы";
+
 /* Title for generic Cancel button. Mostly used in popups and as such. */
 "button.cancel" = "Отмена";
 
@@ -16,14 +19,26 @@
 /* Text displayed in place of deleted comment. */
 "comment.deleted" = "Комментарий был удален";
 
+/* Text displayed in place of a comment that is currently being deleted. */
+"comment.deleting" = "Комментарий удаляется";
+
 /* Button in comment input field. Verb. */
-"comment.post" = "Пост";
+"comment.post" = "Отпр.";
 
 /* Title for the button displayed under feed post comment. Verb. */
 "comment.reply" = "Ответить";
 
+/* Title for the button in comment resend confirmation prompt. */
+"comment.resend.action" = "Отправить";
+
+/* Confirmation prompt for when resending comment that previously failed to send. */
+"comment.resend.confirmation" = "Повторить отправку?";
+
 /* Text displayed in gray inside of the comment input field when there is no user input. */
-"comment.textfield.placeholder" = "Ваш комментарий";
+"comment.textfield.placeholder" = "Напишите комментарий";
+
+/* No comment provided by engineer. */
+"Done" = "Готово";
 
 /* VoiceOver label for camera button in floating compose post menu in Feed view. */
 "fab.accessibility.camera" = "Камера";
@@ -34,14 +49,41 @@
 /* VoiceOver label for text post button in floating compose post menu in Feed view. */
 "fab.accessibility.text" = "Текст";
 
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.all" = "Поделиться со всеми контактами";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.except" = "Поделиться со всеми, кроме";
+
+/* Describes what 'All Contacts' feed privacy setting means. */
+"feed.privacy.descr.only" = "Только выбранные контакты";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.all" = "Мои контакты";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.except" = "Контакты, кроме...";
+
+/* Settings > Privacy > Posts: one of the possible setting values. */
+"feed.privacy.list.only" = "Поделиться с";
+
+/* Possible Feed Privacy setting value. */
+"feed.privacy.value.my.contacts" = "Мои контакты";
+
 /* Button under someone's post. Verb. */
 "feedpost.button.comment" = "Комментировать";
 
 /* Button under someoneelse's post. Verb. */
 "feedpost.button.message" = "Сообщение";
 
+/* Displays current group size in group feed screen */
+"group.feed.n.members" = "";
+
 /* Message action. Verb. */
 "message.copy" = "Скопировать";
+
+/* Message action. Verb. */
+"message.delete" = "Удалить";
 
 /* Message action. Verb. */
 "message.info" = "Инфо";
@@ -49,14 +91,74 @@
 /* Message action. Verb. */
 "message.reply" = "Ответить";
 
+/* One of the contact actions in My Post screen. */
+"mypost.action.hide.my.posts" = "Скрыть мои посты";
+
+/* One of the contact actions in My Post screen. Verb. */
+"mypost.action.message" = "Написать";
+
+/* One of the contact actions in My Post screen. */
+"mypost.action.view.profile" = "Профиль";
+
+/* Confirmation when hiding posts from a certain contact. Parameter is contact's full name. */
+"mypost.hide.posts.confirmation" = "Вы уверены, что хотите скрыть свои будущие посты от: %@? Отмена возможна в любое время.";
+
 /* Push notification for a new comment. Parameter is the text of the comment */
 "notification.commented.with.text" = "Комментарий: %@";
 
 /* Title for the new feed post notification. */
 "notification.new.post" = "Новый пост";
 
+/* New post notification text when post is one photo without caption. */
+"notification.one.photo" = "📷 фото";
+
+/* New post notification text when post is one video without caption. */
+"notification.one.video" = "📹 видео";
+
 /* Action in NUX UI in Home screen. */
 "nux.learn.more" = "Узнать больше";
+
+/* Displayed in place of a deleted feed post. */
+"post.has.been.deleted" = "Пост был удален";
+
+/* Settings > Privacy: Title for the list of blocked contact and also setting menu item. */
+"privacy.list.blocked" = "Заблокированные";
+
+/* Item in Profile > Help screen. */
+"profile.help.faq" = "FAQ";
+
+/* Item in Profile > Help screen. */
+"profile.help.feedback" = "Напишите нам";
+
+/* Item in Profile > Help screen. */
+"profile.help.tos-pp" = "Условия и Политика конфиденциальности";
+
+/* Row in Profile screen. */
+"profile.row.archive" = "Архив";
+
+/* Row in Profile screen. */
+"profile.row.help" = "Помощь";
+
+/* Row in Profile screen. */
+"profile.row.invite" = "Пригласить друзей и семью";
+
+/* Row in Profile screen. */
+"profile.row.my.posts" = "Мои посты";
+
+/* Settings menu section. */
+"settings.notifications" = "Уведомления";
+
+/* Settings > Notifications: label for the toggle that turns new comment notifications on or off. */
+"settings.notifications.comments" = "Комментарии";
+
+/* Settings > Notifications: label for the toggle that turns new post notifications on or off. */
+"settings.notifications.posts" = "Посты";
+
+/* Settings menu section */
+"settings.privacy" = "Конфиденциальность";
+
+/* Settings > Privacy: name of a setting that defines who can see your posts. */
+"settings.privacy.posts" = "Посты";
 
 /* One of the items in context menu presented upon long press on web link. */
 "textlabel.context.menu.add.reading.list" = "В список для чтения";
@@ -74,7 +176,7 @@
 "textlabel.context.menu.copy.phone.number" = "Скопировать номер";
 
 /* One of the items in context menu presented upon long press on linkified address in text. */
-"textlabel.context.menu.get.directions" = "Навигация";
+"textlabel.context.menu.get.directions" = "Маршруты";
 
 /* One of the items in context menu presented upon long press on linkified address in text. */
 "textlabel.context.menu.open.in.maps" = "Открыть в Картах";
@@ -100,11 +202,11 @@
 /* Third tab in the main app interface. */
 "title.profile" = "Профиль";
 
+/* Row in Profile screen. */
+"title.settings" = "Настройки";
+
 /* Title for the screen with information about who saw your post. */
 "title.your.post" = "Ваш пост";
-
-/* No comment provided by engineer. */
-"Version %@" = "Версия %@";
 
 /* Title for the button that confirms intent to delete your own post. */
 "your.post.deletepost.button" = "Удалить пост";
