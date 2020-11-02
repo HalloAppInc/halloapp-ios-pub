@@ -51,7 +51,7 @@ public protocol CoreService {
     func requestWhisperKeyBundle(userID: UserID, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>)
 
     // MARK: Chat
-    func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?, completion: @escaping ServiceRequestCompletion<Void>)
+    func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>)
     func rerequestMessage(_ messageID: String, senderID: UserID, identityKey: Data, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Event Logging

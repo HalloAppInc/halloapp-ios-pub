@@ -15,14 +15,9 @@ public enum XMPPControllerError: Error {
 }
 
 extension XMPPController: CoreService {
-    public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?, completion: @escaping ServiceRequestCompletion<Void>) {
-        if let encryption = encryption {
-            message.encryptXMPPElement(encryption) { encryptedMessage in
-                self.xmppStream.send(encryptedMessage)
-                completion(.success(()))
-            }
-        } else {
-            xmppStream.send(message.xmppElement)
+    public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>) {
+        message.encryptXMPPElement(encryption) { encryptedMessage in
+            self.xmppStream.send(encryptedMessage)
             completion(.success(()))
         }
     }

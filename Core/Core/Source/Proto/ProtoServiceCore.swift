@@ -358,7 +358,7 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation?, completion: @escaping ServiceRequestCompletion<Void>) {
+    public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>) {
 
         guard let messageData = try? message.protoContainer.serializedData(),
             let fromUID = Int64(userData.userId),
@@ -377,47 +377,35 @@ extension ProtoServiceCore: CoreService {
         var chat = Server_ChatStanza()
         chat.payload = messageData
 
-        if let encrypt = encryption {
-            encrypt(messageData) { encryptedData in
-                let includesEncryptedPayload: Bool
+        encryption(messageData) { encryptedData in
+            let includesEncryptedPayload: Bool
 
-                if let encryptedPayload = encryptedData.data {
-                    chat.encPayload = encryptedPayload
-                    includesEncryptedPayload = true
-                } else {
-                    DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error encrypted data missing!")
-                    includesEncryptedPayload = false
-                }
-
-                if let publicKey = encryptedData.identityKey {
-                    chat.publicKey = publicKey
-                } else {
-                    DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error public key missing!")
-                }
-
-                chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
-                packet.msg.payload = .chatStanza(chat)
-                guard let packetData = try? packet.serializedData() else {
-                    AppContext.shared.eventMonitor.observe(.encryption(error: .other))
-                    DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
-                    completion(.failure(ProtoServiceCoreError.serialization))
-                    return
-                }
-                let encryptionError: EncryptionError? = includesEncryptedPayload ? nil : .other
-                AppContext.shared.eventMonitor.observe(.encryption(error: encryptionError))
-                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(includesEncryptedPayload ? "encrypted" : "unencrypted"))")
-                self.stream.send(packetData)
-                completion(.success(()))
+            if let encryptedPayload = encryptedData.data {
+                chat.encPayload = encryptedPayload
+                includesEncryptedPayload = true
+            } else {
+                DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error encrypted data missing!")
+                includesEncryptedPayload = false
             }
-        } else {
+
+            if let publicKey = encryptedData.identityKey {
+                chat.publicKey = publicKey
+            } else {
+                DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error public key missing!")
+            }
+
+            chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
             packet.msg.payload = .chatStanza(chat)
             guard let packetData = try? packet.serializedData() else {
+                AppContext.shared.eventMonitor.observe(.encryption(error: .other))
                 DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
                 completion(.failure(ProtoServiceCoreError.serialization))
                 return
             }
-            DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (unencrypted)")
-            stream.send(packetData)
+            let encryptionError: EncryptionError? = includesEncryptedPayload ? nil : .other
+            AppContext.shared.eventMonitor.observe(.encryption(error: encryptionError))
+            DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(includesEncryptedPayload ? "encrypted" : "unencrypted"))")
+            self.stream.send(packetData)
             completion(.success(()))
         }
     }
