@@ -35,6 +35,15 @@ extension DateFormatter {
         return dateFormatter
     }()
     
+    // 06/20/2020
+    static let dateTimeFormatterShortDate: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = NSLocale.current
+        dateFormatter.timeStyle = .none
+        dateFormatter.dateStyle = .short
+        return dateFormatter
+    }()
+
     // Jun 2020
     static let dateTimeFormatterMonthYear: DateFormatter = {
         let dateFormatter = DateFormatter()

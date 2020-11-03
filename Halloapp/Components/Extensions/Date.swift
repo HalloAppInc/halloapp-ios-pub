@@ -6,7 +6,23 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Core
 import Foundation
+
+private extension Localizations {
+
+    static var nowCapitalized: String {
+        NSLocalizedString("timestamp.now.capitalized", value: "Now", comment: "Capitalized translation of `Now` to be used as timestamp.")
+    }
+
+    static var nowLowercase: String {
+        NSLocalizedString("timestamp.now.lowercase", value: "now", comment: "Lowercase translation of `Now` to be used as timestamp.")
+    }
+
+    static var yesterday: String {
+        NSLocalizedString("timestamp.yesterday", value: "Yesterday", comment: "Timestamp: `Yesterday`")
+    }
+}
 
 extension Date {
     static func seconds(_ seconds: Int) -> TimeInterval { return TimeInterval(seconds) }
@@ -53,15 +69,15 @@ extension Date {
     func feedTimestamp() -> String {
         let seconds = -self.timeIntervalSinceNow
 
-        // TODO: Localize
         if seconds < Date.minutes(1) {
-            return "Now"
+            return Localizations.nowCapitalized
         } else if seconds < Date.hours(6) || Calendar.current.isDateInToday(self) {
             return DateFormatter.dateTimeFormatterTime.string(from: self)
         } else if seconds < Date.weeks(1) {
             return DateFormatter.dateTimeFormatterDayOfWeekTime.string(from: self)
         } else {
-            return "\(Date.toDays(seconds))d"
+            let format = NSLocalizedString("timestamp.n.days.short", comment: "Timestamp displaying age of feed post in days.")
+            return String.localizedStringWithFormat(format, Date.toDays(seconds))
         }
     }
 
@@ -69,12 +85,12 @@ extension Date {
         let seconds = -self.timeIntervalSinceNow
         
         if seconds < Date.minutes(1) {
-            return "Now"
+            return Localizations.nowCapitalized
         } else if Calendar.current.isDateInToday(self) {
             let dateFormatter = DateFormatter.dateTimeFormatterTime
             return dateFormatter.string(from: self)
         } else if Calendar.current.isDateInYesterday(self) {
-            return "Yesterday"
+            return Localizations.yesterday
         } else if seconds < Date.weeks(1) {
             let dateFormatter = DateFormatter.dateTimeFormatterDayOfWeek
             return dateFormatter.string(from: self)
@@ -91,7 +107,7 @@ extension Date {
         let seconds = -self.timeIntervalSinceNow
         
         if seconds < Date.minutes(1) {
-            return "now"
+            return Localizations.nowLowercase
         } else if Calendar.current.isDateInToday(self) {
             let dateFormatter = DateFormatter.dateTimeFormatterTime
             return dateFormatter.string(from: self)
@@ -111,25 +127,28 @@ extension Date {
         let seconds = -self.timeIntervalSinceNow
         
         if seconds < Date.minutes(1) {
-            return "Last seen less than a minute ago"
+            return NSLocalizedString("timestamp.last.seen.just.now", value: "Last seen less than a minute ago", comment: "Last seen timestamp.")
         } else if seconds < Date.hours(1) {
-            let unitTime = Date.toMinutes(seconds, rounded: true)
-            let plural = unitTime == 1 ? "" : "s"
-            return "Last seen \(unitTime) minute\(plural) ago"
-        } else if Calendar.current.isDateInToday(self) {
-            let dateFormatter = DateFormatter.dateTimeFormatterTime
-            return "Last seen today at \(dateFormatter.string(from: self))"
+            let formatString = NSLocalizedString("timestamp.last.seen.n.minutes", comment: "Last seen timestamp. Parameter is minutes.")
+            let minutes = Date.toMinutes(seconds, rounded: true)
+            return String.localizedStringWithFormat(formatString, minutes)
+        }
+
+        let time = DateFormatter.dateTimeFormatterTime.string(from: self)
+        if Calendar.current.isDateInToday(self) {
+            let formatString = NSLocalizedString("timestamp.last.seen.today.at", value: "Last seen today at %@", comment: "Last seen timestamp: today at specific time.")
+            return String(format: formatString, time)
         } else if Calendar.current.isDateInYesterday(self) {
-            let dateFormatter = DateFormatter.dateTimeFormatterTime
-            return "Last seen yesterday at \(dateFormatter.string(from: self))"
+            let formatString = NSLocalizedString("timestamp.last.seen.yesterday.at", value: "Last seen yesterday at %@", comment: "Last seen timestamp: yesterday at specific time.")
+            return String(format: formatString, time)
         } else if seconds < Date.weeks(1) {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "EEE 'at' h:mm a"
-            return "Last seen \(dateFormatter.string(from: self))"
+            let dayOfWeek = DateFormatter.dateTimeFormatterDayOfWeek.string(from: self)
+            let formatString = NSLocalizedString("timestamp.last.seen.dayofweek.at.time", value: "Last seen %1$@ at %2@", comment: "Last seen timestamp: day of week and time")
+            return String(format: formatString, dayOfWeek, time)
         } else {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "M/d/yy 'at' h:mm a"
-            return "Last seen \(dateFormatter.string(from: self))"
+            let date = DateFormatter.dateTimeFormatterShortDate.string(from: self)
+            let formatString = NSLocalizedString("timestamp.last.seen.date.at.time", value: "Last seen %1$@ at %2$@", comment: "Last seen timestamp: full date in short format and time")
+            return String(format: formatString, date, time)
         }
     }
 }
