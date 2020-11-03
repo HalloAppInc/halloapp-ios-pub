@@ -89,7 +89,7 @@ public final class ProtoStream: XMPPStream {
             offset = packetEnd
         }
 
-        socketBuffer = offset < buffer.count ? data.subdata(in: offset..<buffer.count) : nil
+        socketBuffer = offset < buffer.count ? buffer.subdata(in: offset..<buffer.count) : nil
 
         asyncSocket.readData(withTimeout: -1, tag: 101)
     }
