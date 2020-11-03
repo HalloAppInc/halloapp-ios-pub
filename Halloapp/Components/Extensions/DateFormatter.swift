@@ -23,7 +23,7 @@ extension DateFormatter {
     static let dateTimeFormatterDayOfWeek: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = NSLocale.current
-        dateFormatter.setLocalizedDateFormatFromTemplate("eee")
+        dateFormatter.setLocalizedDateFormatFromTemplate("E")
         return dateFormatter
     }()
 
@@ -31,7 +31,7 @@ extension DateFormatter {
     static let dateTimeFormatterMonthDay: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = NSLocale.current
-        dateFormatter.setLocalizedDateFormatFromTemplate("MMM d")
+        dateFormatter.setLocalizedDateFormatFromTemplate("dMMM")
         return dateFormatter
     }()
     
@@ -39,7 +39,7 @@ extension DateFormatter {
     static let dateTimeFormatterMonthYear: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = NSLocale.current
-        dateFormatter.setLocalizedDateFormatFromTemplate("MMM yyyy")
+        dateFormatter.setLocalizedDateFormatFromTemplate("MMMyyyy")
         return dateFormatter
     }()
     
@@ -47,7 +47,7 @@ extension DateFormatter {
     static let dateTimeFormatterDayOfWeekTime: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = NSLocale.current
-        dateFormatter.setLocalizedDateFormatFromTemplate("eee h:mm a")
+        dateFormatter.setLocalizedDateFormatFromTemplate("EHHmm")
         return dateFormatter
     }()
 
@@ -55,7 +55,7 @@ extension DateFormatter {
     static let dateTimeFormatterMonthDayTime: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = NSLocale.current
-        dateFormatter.setLocalizedDateFormatFromTemplate("MMM d h:mm a")
+        dateFormatter.setLocalizedDateFormatFromTemplate("dMMMHHmm")
         return dateFormatter
     }()
     
@@ -63,7 +63,7 @@ extension DateFormatter {
     static let dateTimeFormatterMonthDayYearTime: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = NSLocale.current
-        dateFormatter.setLocalizedDateFormatFromTemplate("MMM d yyyy h:mm a")
+        dateFormatter.setLocalizedDateFormatFromTemplate("dMMMyyyyHHmm")
         return dateFormatter
     }()
 }
