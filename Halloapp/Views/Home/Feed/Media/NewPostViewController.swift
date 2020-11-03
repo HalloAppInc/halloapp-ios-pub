@@ -49,6 +49,7 @@ final class NewPostViewController: UIViewController {
     override func loadView() {
         super.loadView()
 
+        view.backgroundColor = .feedBackground
         addChild(containedNavigationController)
         containedNavigationController.view.frame = view.bounds
         view.addSubview(containedNavigationController.view)
@@ -85,6 +86,7 @@ final class NewPostViewController: UIViewController {
             mediaToPost: state.pendingMedia,
             initialInput: state.pendingInput,
             showCancelButton: state.isPostComposerCancellable,
+            useTransparentNavigationBar: true,
             delegate: self)
     }
 

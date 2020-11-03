@@ -5,12 +5,12 @@
       "scale" : "1x"
     },
     {
-      "filename" : "crop-24px 4.png",
+      "filename" : "icon_crop@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "crop-24px 4-1.png",
+      "filename" : "icon_crop@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

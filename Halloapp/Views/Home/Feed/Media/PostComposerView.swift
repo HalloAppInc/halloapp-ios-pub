@@ -33,6 +33,13 @@ fileprivate class ObservableMediaState: ObservableObject {
     @Published var numberOfFailedItems: Int = 0
 }
 
+struct NavigationBarState {
+    var backgroundImage: UIImage?
+    var shadowImage: UIImage?
+    var isTranslucent: Bool
+    var backgroundColor: UIColor?
+}
+
 class PostComposerViewController: UIViewController {
     let backIcon = UIImage(named: "NavbarBack")
     let closeIcon = UIImage(named: "NavbarClose")
@@ -46,13 +53,18 @@ class PostComposerViewController: UIViewController {
     private var postComposerView: PostComposerView?
     private var shareButton: UIBarButtonItem!
     private let isMediaPost: Bool
+    private var useTransparentNavigationBar: Bool
     private weak var delegate: PostComposerViewDelegate?
+
+    private var barState: NavigationBarState?
+    private var blurView: UIVisualEffectView?
 
     init(
         mediaToPost media: [PendingMedia],
         initialInput: MentionInput,
         showCancelButton: Bool,
         disableMentions: Bool = false,
+        useTransparentNavigationBar: Bool = false,
         delegate: PostComposerViewDelegate)
     {
         self.mediaItems.value = media
@@ -61,6 +73,7 @@ class PostComposerViewController: UIViewController {
         self.inputToPost = GenericObservable(initialInput)
         self.isMediaPost = media.count > 0
         self.delegate = delegate
+        self.useTransparentNavigationBar = useTransparentNavigationBar
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -114,15 +127,55 @@ class PostComposerViewController: UIViewController {
         postComposerViewController.didMove(toParent: self)
     }
 
+    private func getStatusBarHeight() -> CGFloat {
+        // NOTE: Call this in viewDidAppear or later, else we get nil.
+        return view.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.shouldAutoPlay.value = true
+        shouldAutoPlay.value = true
+
+        guard useTransparentNavigationBar, let navigationController = navigationController else { return }
+        barState = NavigationBarState(
+            backgroundImage: navigationController.navigationBar.backgroundImage(for: .default),
+            shadowImage: navigationController.navigationBar.shadowImage,
+            isTranslucent: navigationController.navigationBar.isTranslucent,
+            backgroundColor: navigationController.navigationBar.backgroundColor)
+
+        navigationController.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationController.navigationBar.shadowImage = UIImage()
+        navigationController.navigationBar.isTranslucent = true
+        navigationController.navigationBar.backgroundColor = .clear
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        guard useTransparentNavigationBar, let navigationController = navigationController else { return }
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let blurredEffectView = UIVisualEffectView(effect: blurEffect)
+        blurredEffectView.frame = navigationController.navigationBar.bounds
+        blurredEffectView.frame.size.height += getStatusBarHeight()
+        blurredEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        let barViewIndex = navigationController.view.subviews.firstIndex(of: navigationController.navigationBar)
+        if barViewIndex != nil {
+            navigationController.view.insertSubview(blurredEffectView, at: barViewIndex!)
+            blurView = blurredEffectView
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.shouldAutoPlay.value = false
         delegate?.willDismissWithInput(mentionInput: inputToPost.value)
+        blurView?.removeFromSuperview()
+
+        guard useTransparentNavigationBar, let navigationController = navigationController, let barState = barState else { return }
+        navigationController.navigationBar.setBackgroundImage(barState.backgroundImage, for: .default)
+        navigationController.navigationBar.shadowImage = barState.shadowImage
+        navigationController.navigationBar.isTranslucent = barState.isTranslucent
+        navigationController.navigationBar.backgroundColor = barState.backgroundColor
     }
 
     override func willMove(toParent parent: UIViewController?) {
@@ -158,11 +211,18 @@ class PostComposerViewController: UIViewController {
 fileprivate struct PostComposerLayoutConstants {
     static let horizontalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
     static let verticalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
-    static let controlSpacing: CGFloat = 8
-    static let controlRadius: CGFloat = 15
-    static let controlXSpacing: CGFloat = 17
-    static let controlSize: CGFloat = 30
+    static let controlSpacing: CGFloat = 12
+    static let controlRadius: CGFloat = 18
+    static let controlXSpacing: CGFloat = 20
+    static let controlSize: CGFloat = 36
     static let backgroundRadius: CGFloat = 20
+
+    static let postTextHorizontalPadding = horizontalPadding + controlSpacing
+    static let postTextVerticalPadding = verticalPadding + controlSpacing
+
+    static let postTextNoMediaMinHeight: CGFloat = 265 - postTextVerticalPadding
+    static let postTextUnfocusedMinHeight: CGFloat = 100 - postTextVerticalPadding
+    static let postTextFocusedMinHeight: CGFloat = 80 - postTextVerticalPadding
 
     static let fontSize: CGFloat = 16
     static let fontSizeLarge: CGFloat = 20
@@ -190,7 +250,9 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var mediaState = ObservableMediaState()
     @ObservedObject private var currentPosition = GenericObservable(0)
     @ObservedObject private var postTextHeight = GenericObservable<CGFloat>(0)
+    @ObservedObject private var postTextMinHeight = GenericObservable<CGFloat>(0)
     @State private var keyboardHeight: CGFloat = 0
+    @State private var presentPicker = false
 
     private var keyboardHeightPublisher: AnyPublisher<CGFloat, Never> =
         Publishers.Merge3(
@@ -211,6 +273,7 @@ fileprivate struct PostComposerView: View {
 
     private var shareVisibilityPublisher: AnyPublisher<Bool, Never>!
     private var pageChangedPublisher: AnyPublisher<Bool, Never>!
+    private var postTextMinHeightPublisher: AnyPublisher<CGFloat, Never>!
 
     private var mediaCount: Int {
         mediaItems.value.count
@@ -251,6 +314,10 @@ fileprivate struct PostComposerView: View {
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
 
+        postTextMinHeight.value = self.mediaItems.value.count > 0 ?
+            PostComposerLayoutConstants.postTextUnfocusedMinHeight :
+            PostComposerLayoutConstants.postTextNoMediaMinHeight
+
         shareVisibilityPublisher =
             Publishers.CombineLatest4(
                 self.mediaItems.$value,
@@ -265,8 +332,20 @@ fileprivate struct PostComposerView: View {
             .removeDuplicates()
             .eraseToAnyPublisher()
 
-        self.pageChangedPublisher =
-            self.currentPosition.$value.removeDuplicates().map { _ in return true }.eraseToAnyPublisher()
+        pageChangedPublisher =
+            currentPosition.$value.removeDuplicates().map { _ in return true }.eraseToAnyPublisher()
+
+        postTextMinHeightPublisher =
+            Publishers.CombineLatest(
+                self.mediaItems.$value,
+                self.keyboardHeightPublisher
+            )
+            .map { (mediaItems, keyboardHeight) -> CGFloat in
+                guard mediaItems.count > 0 else { return PostComposerLayoutConstants.postTextNoMediaMinHeight }
+                return keyboardHeight > 0 ? PostComposerLayoutConstants.postTextFocusedMinHeight : PostComposerLayoutConstants.postTextUnfocusedMinHeight
+            }
+            .removeDuplicates()
+            .eraseToAnyPublisher()
     }
     
     private func getMediaSliderHeight(_ width: CGFloat) -> CGFloat {
@@ -284,17 +363,40 @@ fileprivate struct PostComposerView: View {
         .offset(y: 2 * PostComposerLayoutConstants.controlSpacing)
     }
 
+    var picker: some View {
+        Picker(mediaItems: mediaItems.value) { newMediaItems, cancel in
+            presentPicker = false
+            guard !cancel else { return }
+
+            mediaState.isReady = false
+            imageServer.cancel()
+
+            let lastAsset = mediaItems.value[currentPosition.value].asset
+            mediaItems.value = newMediaItems
+            currentPosition.value = newMediaItems.firstIndex { $0.asset == lastAsset } ?? 0
+
+            imageServer.prepare(mediaItems: mediaItems.value, isReady: $mediaState.isReady, numberOfFailedItems: $mediaState.numberOfFailedItems)
+        }
+    }
+
     var controls: some View {
         HStack {
-            Spacer()
-            Button(action: deleteMedia) {
-                ControlIconView(imageLabel: "ComposerDeleteMedia")
-            }
-            if (showCropButton) {
-                Button(action: cropMedia) {
-                    ControlIconView(imageLabel: "ComposerCropMedia")
+            if keyboardHeight == 0 {
+                Button(action: addMedia) {
+                    ControlIconView(imageLabel: "ComposerAddMedia")
+                }.sheet(isPresented: $presentPicker) {
+                    picker
                 }
-                .padding(.leading, PostComposerLayoutConstants.controlXSpacing)
+                Spacer()
+                Button(action: deleteMedia) {
+                    ControlIconView(imageLabel: "ComposerDeleteMedia")
+                }
+                if (showCropButton) {
+                    Button(action: cropMedia) {
+                        ControlIconView(imageLabel: "ComposerCropMedia")
+                    }
+                    .padding(.leading, PostComposerLayoutConstants.controlXSpacing)
+                }
             }
         }
         .padding(.horizontal, PostComposerLayoutConstants.controlSpacing)
@@ -310,74 +412,83 @@ fileprivate struct PostComposerView: View {
                     .foregroundColor(Color.primary.opacity(0.5))
                     .padding(.top, 8)
                     .padding(.leading, 4)
-                    .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260), alignment: .topLeading)
+                    .frame(height: max(postTextHeight.value, postTextMinHeight.value), alignment: .topLeading)
             }
             TextView(mediaItems: mediaItems, input: inputToPost, textHeight: postTextHeight, areMentionsDisabled: areMentionsDisabled)
-                .frame(height: max(postTextHeight.value, mediaCount > 0 ? 10 : 260))
+                .frame(height: max(postTextHeight.value, postTextMinHeight.value))
         }
-        .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding + PostComposerLayoutConstants.controlSpacing)
-        .padding(.top, PostComposerLayoutConstants.verticalPadding + PostComposerLayoutConstants.controlSpacing)
+        .background(Color(mediaCount == 0 ? .secondarySystemGroupedBackground : .clear))
+        .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
+        .padding(.top, PostComposerLayoutConstants.postTextVerticalPadding)
+        .background(Color(mediaCount > 0 ? .secondarySystemGroupedBackground : .clear))
     }
 
     var body: some View {
-        return GeometryReader { geometry in
-            ScrollView {
-                VStack {
-                    VStack (alignment: .center) {
-                        if self.mediaCount > 0 {
-                            ZStack(alignment: .bottom) {
-                                ZStack(alignment: .top) {
+        return VStack(spacing: 0) {
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack {
+                        VStack (alignment: .center) {
+                            if self.mediaCount > 0 {
+                                ZStack(alignment: .bottom) {
                                     MediaPreviewSlider(
                                         mediaItems: self.mediaItems,
                                         shouldAutoPlay: self.shouldAutoPlay,
                                         currentPosition: self.currentPosition)
                                     .frame(height: self.getMediaSliderHeight(geometry.size.width), alignment: .center)
 
-                                    self.pageIndex
+                                    self.controls
                                 }
+                                .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
+                                .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
 
-                                self.controls
-                            }
-                            .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
-                            .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
-
-                            Group {
-                                if self.mediaState.numberOfFailedItems > 1 {
-                                    Text("Failed to prepare \(self.mediaState.numberOfFailedItems) media items. Please try again or select a different photo / video.")
-                                } else if self.mediaState.numberOfFailedItems > 0 {
-                                    Text("Failed to prepare media. Please try again or select a different photo / video.")
+                                Group {
+                                    if self.mediaState.numberOfFailedItems > 1 {
+                                        Text("Failed to prepare \(self.mediaState.numberOfFailedItems) media items. Please try again or select a different photo / video.")
+                                    } else if self.mediaState.numberOfFailedItems > 0 {
+                                        Text("Failed to prepare media. Please try again or select a different photo / video.")
+                                    }
                                 }
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(.red)
+                                .padding(.horizontal)
+                            } else {
+                                self.postTextView
                             }
-                            .multilineTextAlignment(.center)
-                            .foregroundColor(.red)
-                            .padding(.horizontal)
                         }
-
-                        self.postTextView
-                    }
-                    .background(
-                        RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
-                            .fill(Color(.secondarySystemGroupedBackground))
-                            .shadow(color: Color.black.opacity(self.colorScheme == .dark ? 0 : 0.08), radius: 8, y: 8))
-                    .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
-                    .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
-                    .onAppear {
-                        if (self.mediaCount > 0) {
-                            self.imageServer.prepare(mediaItems: self.mediaItems.value, isReady: self.$mediaState.isReady, numberOfFailedItems: self.$mediaState.numberOfFailedItems)
-                        } else {
-                            self.mediaState.isReady = true
+                        .background(
+                            RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
+                                .fill(Color(.secondarySystemGroupedBackground))
+                                .shadow(color: Color.black.opacity(self.colorScheme == .dark ? 0 : 0.08), radius: 8, y: 8))
+                        .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
+                        .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
+                        .onAppear {
+                            if (self.mediaCount > 0) {
+                                self.imageServer.prepare(mediaItems: self.mediaItems.value, isReady: self.$mediaState.isReady, numberOfFailedItems: self.$mediaState.numberOfFailedItems)
+                            } else {
+                                self.mediaState.isReady = true
+                            }
                         }
+                        .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
+                        .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
+                        .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
+                        .onReceive(self.postTextMinHeightPublisher)  { self.postTextMinHeight.value = $0 }
                     }
-                    .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
-                    .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
-                    .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
+                    .frame(minHeight: geometry.size.height - self.keyboardHeight)
                 }
-                .frame(minHeight: geometry.size.height - self.keyboardHeight)
             }
-            .background(Color.feedBackground)
-            .padding(.bottom, self.keyboardHeight)
-            .edgesIgnoringSafeArea(.bottom)
+
+            if self.mediaCount > 0 {
+                self.postTextView
+            }
         }
+        .background(Color.feedBackground)
+        .padding(.bottom, self.keyboardHeight)
+        .edgesIgnoringSafeArea(.bottom)
+    }
+
+    private func addMedia() {
+        presentPicker = true
     }
 
     private func cropMedia() {
@@ -398,10 +509,12 @@ fileprivate struct ControlIconView: View {
 
     var body: some View {
         Image(imageLabel)
+            .renderingMode(.template)
+            .foregroundColor(.white)
             .frame(width: PostComposerLayoutConstants.controlSize, height: PostComposerLayoutConstants.controlSize)
             .background(
                 RoundedRectangle(cornerRadius: PostComposerLayoutConstants.controlRadius)
-                    .fill(Color(.systemGray6))
+                    .fill(Color(.composerButton))
             )
     }
 }
@@ -468,13 +581,13 @@ fileprivate struct TextView: UIViewRepresentable {
         textView.isScrollEnabled = false
         textView.isEditable = true
         textView.isUserInteractionEnabled = true
-        textView.backgroundColor = .textFieldBackground
         textView.backgroundColor = UIColor.clear
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.font = PostComposerLayoutConstants.getFontSize(
             textSize: input.value.text.count, isPostWithMedia: mediaItems.value.count > 0)
+        textView.textColor = UIColor.label.withAlphaComponent(0.5)
         textView.text = input.value.text
-        textView.textContainerInset.bottom = PostComposerLayoutConstants.verticalPadding + PostComposerLayoutConstants.controlSpacing
+        textView.textContainerInset.bottom = PostComposerLayoutConstants.postTextVerticalPadding
         return textView
     }
 
@@ -661,5 +774,23 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
 
         }
+    }
+}
+
+fileprivate struct Picker: UIViewControllerRepresentable {
+    typealias UIViewControllerType = UINavigationController
+
+    @State var mediaItems: [PendingMedia]
+    let complete: ([PendingMedia], Bool) -> Void
+
+    func makeUIViewController(context: Context) -> UINavigationController {
+        let controller = MediaPickerViewController(selected: mediaItems) { controller, media, cancel in
+            self.complete(media, cancel)
+        }
+
+        return UINavigationController(rootViewController: controller)
+    }
+
+    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
     }
 }
