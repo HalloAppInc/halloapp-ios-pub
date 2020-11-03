@@ -22,8 +22,6 @@ class MyFeedViewController: FeedTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        installFloatingActionMenu()
-
         let tableWidth = view.frame.width
         let headerView = UserProfileTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
         headerView.canEditProfile = true
@@ -37,12 +35,6 @@ class MyFeedViewController: FeedTableViewController {
             headerView.updateMyProfile(name: userName)
             self.view.setNeedsLayout()
         }))
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        floatingMenu.setState(.collapsed, animated: true)
     }
 
     override func viewDidLayoutSubviews() {
@@ -64,44 +56,6 @@ class MyFeedViewController: FeedTableViewController {
         var profileEditView = ProfileEditView()
         profileEditView.dismiss = { self.dismiss(animated: true) }
         present(UIHostingController(rootView: NavigationView(content: { profileEditView } )), animated: true)
-    }
-
-    // MARK: New post
-
-    private lazy var floatingMenu: FloatingMenu = {
-        FloatingMenu(
-            permanentButton: .rotatingToggleButton(
-                collapsedIconTemplate: UIImage(named: "icon_fab_compose_post")?.withRenderingMode(.alwaysTemplate),
-                expandedRotation: 45),
-            expandedButtons: [
-                .standardActionButton(
-                    iconTemplate: UIImage(named: "icon_fab_compose_image")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: Localizations.fabAccessibilityPhotoLibrary,
-                    action: { [weak self] in self?.presentNewPostViewController(source: .library) }),
-                .standardActionButton(
-                    iconTemplate: UIImage(named: "icon_fab_compose_camera")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: Localizations.fabAccessibilityCamera,
-                    action: { [weak self] in self?.presentNewPostViewController(source: .camera) }),
-                .standardActionButton(
-                    iconTemplate: UIImage(named: "icon_fab_compose_text")?.withRenderingMode(.alwaysTemplate),
-                    accessibilityLabel: Localizations.fabAccessibilityTextPost,
-                    action: { [weak self] in self?.presentNewPostViewController(source: .noMedia) }),
-            ]
-        )
-    }()
-
-    private func installFloatingActionMenu() {
-        floatingMenu.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(floatingMenu)
-        floatingMenu.constrain(to: view)
-    }
-
-    private func presentNewPostViewController(source: NewPostMediaSource) {
-        let newPostViewController = NewPostViewController(source: source, destination: .userFeed) {
-            self.dismiss(animated: true)
-        }
-        newPostViewController.modalPresentationStyle = .fullScreen
-        present(newPostViewController, animated: true)
     }
 
     // MARK: FeedTableViewController

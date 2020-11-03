@@ -19,8 +19,12 @@ private extension Localizations {
         NSLocalizedString("profile.help.faq", value: "FAQ", comment: "Item in Profile > Help screen.")
     }
 
-    static var tosPP: String {
-        NSLocalizedString("profile.help.tos-pp", value: "Terms & Privacy Policy", comment: "Item in Profile > Help screen.")
+    static var termsOfService: String {
+        NSLocalizedString("profile.help.tos", value: "Terms of Service", comment: "Item in Profile > Help screen.")
+    }
+
+    static var privacyPolicy: String {
+        NSLocalizedString("profile.help.pp", value: "Privacy Policy", comment: "Item in Profile > Help screen.")
     }
 
     static var feedback: String {
@@ -43,16 +47,31 @@ class HelpViewController: UITableViewController {
 
     private enum Row {
         case faq
-        case tos
+        case termsOfService
+        case privacyPolicy
         case feedback
         case shareLogs
     }
 
-    private var dataSource: UITableViewDiffableDataSource<Section, Row>!
+    private class HelpTableViewDataSource: UITableViewDiffableDataSource<Section, Row> {
+
+        override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+            let section = snapshot().sectionIdentifiers[section]
+            if section == .two {
+                let formatString = NSLocalizedString("settings.app.version", value: "HalloApp Version %@", comment: "App version text in Profile > Help.")
+                return String(format: formatString, MainAppContext.appVersion)
+            }
+            return nil
+        }
+    }
+
+    private var dataSource: HelpTableViewDataSource!
     private let cellFAQ = SettingsTableViewCell(text: Localizations.faq)
-    private let cellTOS = SettingsTableViewCell(text: Localizations.tosPP)
+    private let cellTOS = SettingsTableViewCell(text: Localizations.termsOfService)
+    private let cellPP = SettingsTableViewCell(text: Localizations.privacyPolicy)
     private let cellFeedback = SettingsTableViewCell(text: Localizations.feedback)
     private let cellShareLogs = SettingsTableViewCell(text: Localizations.shareLogs)
+
 
     // MARK: View Controller
 
@@ -69,19 +88,21 @@ class HelpViewController: UITableViewController {
         super.viewDidLoad()
 
         tableView.backgroundColor = .feedBackground
+        tableView.delegate = self
 
-        dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
+        dataSource = HelpTableViewDataSource(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
             guard let self = self else { return nil }
             switch row {
             case .faq: return self.cellFAQ
-            case .tos: return self.cellTOS
+            case .termsOfService: return self.cellTOS
+            case .privacyPolicy: return self.cellPP
             case .feedback: return self.cellFeedback
             case .shareLogs: return self.cellShareLogs
             }
         })
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         snapshot.appendSections([ .one, .two ])
-        snapshot.appendItems([ .faq, .tos ], toSection: .one)
+        snapshot.appendItems([ .faq, .termsOfService, .privacyPolicy ], toSection: .one)
         // Send Logs/Feedback via email composer.
         if MFMailComposeViewController.canSendMail() {
             snapshot.appendItems([ .feedback ], toSection: .two)
@@ -100,8 +121,10 @@ class HelpViewController: UITableViewController {
         switch row {
         case .faq:
             openFAQ()
-        case .tos:
-            openTOSPP()
+        case .termsOfService:
+            openTermsOfService()
+        case .privacyPolicy:
+            openPrivacyPolicy()
         case .feedback:
             sendLogs()
         case .shareLogs:
@@ -114,8 +137,13 @@ class HelpViewController: UITableViewController {
         present(viewController, animated: true)
     }
 
-    private func openTOSPP() {
-        let viewController = SFSafariViewController(url: URL(string: "https://www.halloapp.com/")!)
+    private func openTermsOfService() {
+        let viewController = SFSafariViewController(url: URL(string: "https://www.halloapp.com/terms-of-service")!)
+        present(viewController, animated: true)
+    }
+
+    private func openPrivacyPolicy() {
+        let viewController = SFSafariViewController(url: URL(string: "https://www.halloapp.com/privacy-policy")!)
         present(viewController, animated: true)
     }
 
