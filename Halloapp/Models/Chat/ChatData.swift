@@ -2748,8 +2748,8 @@ extension ChatData {
             groupCreator.type = .admin
             groupCreator.group = chatGroup
             
-            if let userId = xmppGroup.senderName, let name = xmppGroup.senderName {
-                contactNames[userId] = name
+            if let name = xmppGroup.senderName {
+                contactNames[sender] = name
             }
         }
 
