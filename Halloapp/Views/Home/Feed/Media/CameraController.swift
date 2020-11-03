@@ -142,10 +142,13 @@ class CameraController: UIViewController {
                 captureSession.startRunning()
 
                 DispatchQueue.main.async {
-                    guard let previewLayer = self.previewLayer else { return }
+                    if (self.previewLayer == nil) {
+                        DDLogInfo("CameraController/startCaptureSession create preview layer")
+                        self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+                    }
                     DDLogInfo("CameraController/startCaptureSession attach preview layer")
-                    self.view.layer.addSublayer(previewLayer)
-                    previewLayer.frame = self.view.layer.frame
+                    self.view.layer.addSublayer(self.previewLayer!)
+                    self.previewLayer!.frame = self.view.layer.frame
                 }
             }
         }
@@ -228,7 +231,6 @@ class CameraController: UIViewController {
 
         session.commitConfiguration()
         self.captureSession = session
-        previewLayer = AVCaptureVideoPreviewLayer(session: session)
 
         startCaptureSession()
     }
@@ -415,12 +417,14 @@ class CameraController: UIViewController {
         setFocusAndExposure(camera: isUsingBackCamera ? backCamera : frontCamera, point: convertedPoint)
     }
 
-    public func takePhoto(_ useFlashlight: Bool) {
+    public func takePhoto(useFlashlight: Bool) {
         guard let photoOutput = photoOutput else { return }
 
         DDLogInfo("CameraController/takePhoto")
-        let photoSettings = AVCapturePhotoSettings()
+        let photoSettings = AVCapturePhotoSettings.init(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])
         photoSettings.flashMode = useFlashlight ? .on : .off
+        photoSettings.isHighResolutionPhotoEnabled = false
+
         photoOutput.capturePhoto(with: photoSettings, delegate: cameraDelegate)
     }
 
