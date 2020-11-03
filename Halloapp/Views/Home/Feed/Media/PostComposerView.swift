@@ -341,9 +341,8 @@ fileprivate struct PostComposerView: View {
                 self.keyboardHeightPublisher
             )
             .map { (mediaItems, keyboardHeight) -> CGFloat in
-                return mediaItems.count > 0 ?
-                    (keyboardHeight > 0 ? PostComposerLayoutConstants.postTextFocusedMinHeight : PostComposerLayoutConstants.postTextUnfocusedMinHeight) :
-                    PostComposerLayoutConstants.postTextNoMediaMinHeight
+                guard mediaItems.count > 0 else { return PostComposerLayoutConstants.postTextNoMediaMinHeight }
+                return keyboardHeight > 0 ? PostComposerLayoutConstants.postTextFocusedMinHeight : PostComposerLayoutConstants.postTextUnfocusedMinHeight                   
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
