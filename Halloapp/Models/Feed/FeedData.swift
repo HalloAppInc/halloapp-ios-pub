@@ -272,17 +272,17 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     save(fetchedResultsController.managedObjectContext)
                 }
                 // 2.2 Comments
-                let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
-                fetchRequest.predicate = NSPredicate(format: "timestamp > %@", cutoffDate as NSDate)
+                let commentsFetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
+                commentsFetchRequest.predicate = NSPredicate(format: "timestamp > %@", cutoffDate as NSDate)
                 do {
-                    let commentsWithIncorrectTimestamp = try viewContext.fetch(fetchRequest)
+                    let commentsWithIncorrectTimestamp = try viewContext.fetch(commentsFetchRequest)
                     if !commentsWithIncorrectTimestamp.isEmpty {
                         commentsWithIncorrectTimestamp.forEach { (comment) in
                             let ts = comment.timestamp.timeIntervalSince1970 / 1000
                             let oldTimestamp = comment.timestamp
-                            let newTImestamp = Date(timeIntervalSince1970: ts)
-                            DDLogWarn("FeedData/fetch/fix-timestamp [\(oldTimestamp)] -> [\(newTImestamp)]")
-                            comment.timestamp = newTImestamp
+                            let newTimestamp = Date(timeIntervalSince1970: ts)
+                            DDLogWarn("FeedData/fetch/fix-timestamp [\(oldTimestamp)] -> [\(newTimestamp)]")
+                            comment.timestamp = newTimestamp
                         }
                         save(fetchedResultsController.managedObjectContext)
                     }
@@ -291,6 +291,28 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     DDLogError("FeedData/fetch/error [\(error)]")
                     fatalError("Failed to fetch feed items \(error)")
                 }
+
+                // 2.3 Notifications
+                let notificationsFetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
+                notificationsFetchRequest.predicate = NSPredicate(format: "timestamp > %@", cutoffDate as NSDate)
+                do {
+                    let notificationsWithIncorrectTimestamp = try viewContext.fetch(notificationsFetchRequest)
+                    if !notificationsWithIncorrectTimestamp.isEmpty {
+                        notificationsWithIncorrectTimestamp.forEach { (notification) in
+                            let ts = notification.timestamp.timeIntervalSince1970 / 1000
+                            let oldTimestamp = notification.timestamp
+                            let newTimestamp = Date(timeIntervalSince1970: ts)
+                            DDLogWarn("FeedData/fetch/fix-timestamp [\(oldTimestamp)] -> [\(newTimestamp)]")
+                            notification.timestamp = newTimestamp
+                        }
+                        save(fetchedResultsController.managedObjectContext)
+                    }
+                }
+                catch {
+                    DDLogError("FeedData/fetch/error [\(error)]")
+                    fatalError("Failed to fetch feed items \(error)")
+                }
+
             }
         }
         catch {
