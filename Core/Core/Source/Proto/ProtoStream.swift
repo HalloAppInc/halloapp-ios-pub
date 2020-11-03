@@ -69,7 +69,7 @@ public final class ProtoStream: XMPPStream {
         }()
 
         var offset = 0
-        while offset < data.count {
+        while offset < buffer.count {
             // The socket may have read multiple proto packets. Split them up using 4-byte length headers.
             let lengthData = Data(bytes: Array(buffer.bytes[offset..<buffer.count]), count: 4)
             let length = Int(UInt32(bigEndian: lengthData.withUnsafeBytes { $0.load(as: UInt32.self)}))
