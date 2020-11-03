@@ -88,39 +88,68 @@ extension FeedNotification {
             var eventText: String
             switch self.event {
             case .comment:
-                if self.text != nil {
-                    eventText = "<$author$> commented: <$text$>"
+                if !(self.text?.isEmpty ?? true) {
+                    eventText = NSLocalizedString("feed.notification.commented.w.text",
+                                                  value: "<$author$> commented: <$text$>",
+                                                  comment: "Text for feed notification displayed in Activity Center.")
                 } else {
-                    eventText =  "<$author$> commented on your post"
+                    eventText = NSLocalizedString("feed.notification.commented.no.text",
+                                                  value: "<$author$> commented on your post",
+                                                  comment: "Text for feed notification displayed in Activity Center.")
                 }
+
             case .reply:
-                eventText = "<$author$> replied to your comment"
+                if !(self.text?.isEmpty ?? true) {
+                    eventText = NSLocalizedString("feed.notification.replied.w.text",
+                                                  value: "<$author$> replied: <$text$>",
+                                                  comment: "Text for feed notification displayed in Activity Center.")
+                } else {
+                    eventText = NSLocalizedString("feed.notification.replied.no.text",
+                                                  value: "<$author$> replied to your comment",
+                                                  comment: "Text for feed notification displayed in Activity Center.")
+                }
 
             case .retractedComment:
-                eventText = "<$author$> deleted this comment"
+                eventText = NSLocalizedString("feed.notification.deleted.comment",
+                                              value: "<$author$> deleted their comment",
+                                              comment: "Text for feed notification displayed in Activity Center.")
 
             case .retractedPost:
-                eventText = "<$author$> deleted this post"
+                eventText = NSLocalizedString("feed.notification.deleted.post",
+                                              value: "<$author$> commented. This post has been deleted.",
+                                              comment: "Text for feed notification displayed in Activity Center.")
 
             case .otherComment:
-                if self.text != nil {
-                    eventText = "<$author$> also commented: <$text$>"
+                if !(self.text?.isEmpty ?? true) {
+                    eventText = NSLocalizedString("feed.notification.other.comment.w.text",
+                                                  value: "<$author$> also commented: <$text$>",
+                                                  comment: "Text for feed notification displayed in Activity Center.")
                 } else {
-                    eventText =  "<$author$> also commented"
+                    eventText =  NSLocalizedString("feed.notification..other.comment.no.text",
+                                                   value: "<$author$> also commented",
+                                                   comment: "Text for feed notification displayed in Activity Center.")
                 }
 
             case .mentionComment:
-                if self.text != nil {
-                    eventText = "<$author$> mentioned you in a comment: <$text$>"
+                if !(self.text?.isEmpty ?? true) {
+                    eventText = NSLocalizedString("feed.notification.mention.comment.w.text",
+                                                  value: "<$author$> mentioned you in a comment: <$text$>",
+                                                  comment: "Text for feed notification displayed in Activity Center.")
                 } else {
-                    eventText = "<$author$> mentioned you in a comment"
+                    eventText = NSLocalizedString("feed.notification.mention.comment.no.text",
+                                                  value: "<$author$> mentioned you in a comment",
+                                                  comment: "Text for feed notification displayed in Activity Center.")
                 }
 
             case .mentionPost:
-                if self.text != nil {
-                    eventText = "<$author$> mentioned you in a post: <$text$>"
+                if !(self.text?.isEmpty ?? true) {
+                    eventText = NSLocalizedString("feed.notification.mention.post.w.text",
+                                                  value: "<$author$> mentioned you in a post: <$text$>",
+                                                  comment: "Text for feed notification displayed in Activity Center.")
                 } else {
-                    eventText = "<$author$> mentioned you in a post"
+                    eventText = NSLocalizedString("feed.notification.mention.post.no.text",
+                                                  value: "<$author$> mentioned you in a post",
+                                                  comment: "Text for feed notification displayed in Activity Center.")
                 }
             }
 

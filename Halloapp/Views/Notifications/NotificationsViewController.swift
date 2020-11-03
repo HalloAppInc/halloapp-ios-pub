@@ -10,6 +10,21 @@ import Core
 import CoreData
 import UIKit
 
+private extension Localizations {
+
+    static var titleActivity: String {
+        NSLocalizedString("activity.center.title", value: "Activity", comment: "Title for the activity center screen.")
+    }
+
+    static var readAll: String {
+        NSLocalizedString("activity.center.button.read.all", value: "Read All", comment: "Short title for the button in activity center.")
+    }
+
+    static var markAllRead: String {
+        NSLocalizedString("activity.center.button.mark.all.read", value: "Mark All as Read", comment: "Longer title for the button that confirms marking all items in the activity center as read.")
+    }
+}
+
 class NotificationsViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
     private static let cellReuseIdentifier = "NotificationsTableViewCell"
@@ -22,9 +37,9 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.title = "Activity"
+        navigationItem.title = Localizations.titleActivity
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Read All", style: .plain, target: self, action: #selector(markAllNotificationsRead))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.readAll, style: .plain, target: self, action: #selector(markAllNotificationsRead))
 
         tableView.register(NotificationTableViewCell.self, forCellReuseIdentifier: NotificationsViewController.cellReuseIdentifier)
         tableView.separatorStyle = .none
@@ -87,7 +102,7 @@ class NotificationsViewController: UITableViewController, NSFetchedResultsContro
 
     @objc private func markAllNotificationsRead() {
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: "Mark All as Read", style:.destructive) { _ in
+        actionSheet.addAction(UIAlertAction(title: Localizations.markAllRead, style:.destructive) { _ in
             MainAppContext.shared.feedData.markNotificationsAsRead()
         })
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
