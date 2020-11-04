@@ -1516,7 +1516,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
             feedMention.index = index
             feedMention.userID = userID
-            feedMention.name = MainAppContext.shared.contactStore.pushNames[userID] ?? ""
+            feedMention.name = contactStore.pushNames[userID] ?? ""
             mentionSet.insert(feedMention)
         }
         feedPost.mentions = mentionSet
@@ -1584,7 +1584,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             let feedMention = NSEntityDescription.insertNewObject(forEntityName: FeedMention.entity().name!, into: managedObjectContext) as! FeedMention
             feedMention.index = index
             feedMention.userID = userID
-            feedMention.name = MainAppContext.shared.contactStore.pushNames[userID] ?? ""
+            feedMention.name = contactStore.pushNames[userID] ?? ""
             mentionSet.insert(feedMention)
         }
 
