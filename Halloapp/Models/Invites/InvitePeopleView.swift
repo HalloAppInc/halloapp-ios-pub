@@ -61,7 +61,7 @@ struct InvitePeopleView: View {
 
     var body: some View {
         Group {
-            if inviteManager.dataAvailable && inviteManager.numberOfInvitesAvailable > 0 {
+            if inviteManager.isDataCurrent && inviteManager.numberOfInvitesAvailable > 0 {
                 InvitePeopleTableView { (contact) in
                     self.inviteManager.contactToInvite = contact
                     self.isActionSheetPresented = true
@@ -72,7 +72,7 @@ struct InvitePeopleView: View {
                     .padding(.horizontal)
                     .opacity(self.inviteManager.redeemInProgress ? 1 : 0)
                 )
-            } else if inviteManager.dataAvailable {
+            } else if inviteManager.isDataCurrent {
                 Text("You're out of invites. Please check back after \(self.dateFormatter.string(from: inviteManager.nextRefreshDate!))")
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
