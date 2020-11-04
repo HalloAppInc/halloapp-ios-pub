@@ -40,11 +40,6 @@ class InviteManager: ObservableObject {
     func requestInvitesIfNecessary() {
         validateCachedData()
 
-        guard !isDataCurrent else {
-            DDLogInfo("invite-manager/fetch-request Not necessary")
-            return
-        }
-
         DDLogInfo("invite-manager/fetch-request/start")
         fetchError = false
 

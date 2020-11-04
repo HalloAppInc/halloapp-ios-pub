@@ -148,8 +148,6 @@ class ProfileViewController: UITableViewController {
         super.viewDidAppear(animated)
 
         showNUXIfNecessary()
-
-        InviteManager.shared.requestInvitesIfNecessary()
     }
 
     override func viewDidLayoutSubviews() {
@@ -204,6 +202,7 @@ class ProfileViewController: UITableViewController {
     }
 
     private func openInviteFriends() {
+        InviteManager.shared.requestInvitesIfNecessary()
         let inviteView = InvitePeopleView(dismiss: { [weak self] in self?.dismiss(animated: true, completion: nil) })
         let viewController = UIHostingController(rootView: inviteView)
         present(UINavigationController(rootViewController: viewController), animated: true) {
