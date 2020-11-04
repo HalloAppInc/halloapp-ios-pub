@@ -905,8 +905,8 @@ class ContactStoreMain: ContactStore {
 
     private var pushNameUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.push-name")
 
-    private func savePushNames(_ names: [UserID : String]) {
-        self.performOnBackgroundContextAndWait { (managedObjectContect) in
+    private func savePushNames(_ names: [UserID: String]) {
+        performOnBackgroundContextAndWait { (managedObjectContect) in
             var existingNames: [UserID : PushName] = [:]
 
             // Fetch existing names.
@@ -929,7 +929,7 @@ class ContactStoreMain: ContactStore {
                     }
                 } else {
                     DDLogDebug("contacts/push-name/new  userId=[\(userId)] name=[\(contactName)]")
-                    let newPushName = NSEntityDescription.insertNewObject(forEntityName: PushName.entity().name!, into: managedObjectContect) as! PushName
+                    let newPushName = NSEntityDescription.insertNewObject(forEntityName: "PushName", into: managedObjectContect) as! PushName
                     newPushName.userId = userId
                     newPushName.name = contactName
                 }
@@ -947,14 +947,12 @@ class ContactStoreMain: ContactStore {
         }
     }
 
-    func addPushNames(_ names: [UserID : String]) {
+    override func addPushNames(_ names: [UserID : String]) {
         guard !names.isEmpty else { return }
 
-        self.pushNames.merge(names) { (existingName, newName) -> String in
-            return newName
-        }
+        super.addPushNames(names)
 
-        self.pushNameUpdateQueue.async {
+        pushNameUpdateQueue.async {
             self.savePushNames(names)
         }
     }

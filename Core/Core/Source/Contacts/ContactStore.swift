@@ -170,14 +170,18 @@ open class ContactStore {
 
     // MARK: Push names
 
-    public lazy var pushNames: [UserID : String] = {
-        return fetchAllPushNames()
+    public private(set) lazy var pushNames: [UserID: String] = {
+        var pushNames: [UserID: String] = [:]
+        performOnBackgroundContextAndWait { (managedObjectContext) in
+            pushNames = self.fetchAllPushNames(using: managedObjectContext)
+        }
+        return pushNames
     }()
 
-    private func fetchAllPushNames() -> [UserID : String] {
+    private func fetchAllPushNames(using managedObjectContext: NSManagedObjectContext) -> [UserID: String] {
         let fetchRequest: NSFetchRequest<PushName> = PushName.fetchRequest()
         do {
-            let results = try self.persistentContainer.viewContext.fetch(fetchRequest)
+            let results = try managedObjectContext.fetch(fetchRequest)
             let names: [UserID: String] = results.reduce(into: [:]) {
                 guard let userID = $1.userId else {
                     DDLogError("contacts/push-name/fetch/error push name missing userID [\($1.name ?? "")]")
@@ -190,6 +194,12 @@ open class ContactStore {
         }
         catch {
             fatalError("Failed to fetch push names  [\(error)]")
+        }
+    }
+
+    open func addPushNames(_ names: [UserID: String]) {
+        pushNames.merge(names) { (existingName, newName) -> String in
+            return newName
         }
     }
 
