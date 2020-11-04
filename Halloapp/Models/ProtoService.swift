@@ -285,6 +285,9 @@ final class ProtoService: ProtoServiceCore {
                         delegate.halloService(self, didSendMessageReceipt: receipt)
                     }
                 }
+            } else if SilentChatMessage.forRerequest(incomingID: ack.id) != nil {
+                // No need to update chat data for silent messages
+                DDLogInfo("proto/didReceive/silentAck \(ack.id)")
             } else {
                 // If not a receipt, must be a chat ack.
                 didGetChatAck.send((id: ack.id, timestamp: timestamp))
@@ -354,8 +357,15 @@ final class ProtoService: ProtoServiceCore {
                             keyStore.deleteMessageKeyBundles(for: userID)
                         }
                         DispatchQueue.main.async {
-                            delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID) {
+                            if let silentChat = SilentChatMessage.forRerequest(incomingID: rerequest.id), silentChat.resendAttempts < 5 {
+                                DDLogInfo("Proto/didReceive/\(requestID)/rerequest/silent")
+                                self.sendSilentChatMessage(silentChat, encryption: AppContext.shared.encryptOperation(for: silentChat.toUserId)) { _ in }
                                 self.sendAck(messageID: msg.id)
+                            } else {
+                                DDLogInfo("Proto/didReceive/\(requestID)/rerequest/chat")
+                                delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID) {
+                                    self.sendAck(messageID: msg.id)
+                                }
                             }
                         }
                     }
@@ -732,7 +742,7 @@ extension ProtoService: HalloService {
 
         DDLogInfo("ProtoServiceCore/sendGroupChatMessage/\(message.id) sending (unencrypted)")
         stream.send(packetData)
-
+        sendSilentChats(ServerProperties.silentChatMessages)
     }
 
     func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {

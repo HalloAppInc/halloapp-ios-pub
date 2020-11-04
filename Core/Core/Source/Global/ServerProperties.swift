@@ -18,6 +18,7 @@ public struct ServerProperties {
         case groups
         case maxGroupSize = "max_group_size"
         case groupFeed = "group_feed"
+        case silentChatMessages = "silent_chat_messages"
     }
 
     private struct UserDefaultsKey {
@@ -35,6 +36,7 @@ public struct ServerProperties {
         static let groups = false
         static let groupFeed = false
         static let maxGroupSize = 25
+        static let silentChatMessages = 0
     }
 
     // MARK: Storage
@@ -176,6 +178,11 @@ public struct ServerProperties {
 
     public static var maxGroupSize: Int {
         ServerProperties.integer(forKey: .maxGroupSize) ?? Defaults.maxGroupSize
+    }
+
+    /// Number of silent chat messages to send alongside each user-initiated message
+    public static var silentChatMessages: Int {
+        ServerProperties.integer(forKey: .silentChatMessages) ?? Defaults.silentChatMessages
     }
 
 }

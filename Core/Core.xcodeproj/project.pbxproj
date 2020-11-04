@@ -31,6 +31,7 @@
 		6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */; };
 		686814AE252BA91E003C8784 /* clients.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AC252BA91E003C8784 /* clients.pb.swift */; };
 		686814AF252BA91E003C8784 /* server.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AD252BA91E003C8784 /* server.pb.swift */; };
+		686CDFD9254A3E0900DB7266 /* SilentChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFD8254A3E0900DB7266 /* SilentChat.swift */; };
 		6888CBBE25001CFF0049FF0E /* XMPP+CoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */; };
 		688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1D24ED979400258BB9 /* MentionText.swift */; };
 		688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */; };
@@ -122,6 +123,7 @@
 		6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoCommonRequests.swift; sourceTree = "<group>"; };
 		686814AC252BA91E003C8784 /* clients.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = clients.pb.swift; sourceTree = "<group>"; };
 		686814AD252BA91E003C8784 /* server.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = server.pb.swift; sourceTree = "<group>"; };
+		686CDFD8254A3E0900DB7266 /* SilentChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SilentChat.swift; sourceTree = "<group>"; };
 		6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XMPP+CoreService.swift"; sourceTree = "<group>"; };
 		688D8A1D24ED979400258BB9 /* MentionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MentionText.swift; sourceTree = "<group>"; };
 		688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Proto+Mentions.swift"; sourceTree = "<group>"; };
@@ -285,6 +287,7 @@
 			children = (
 				76608ECC24EC2B5100DD61C3 /* Chat.swift */,
 				6832F50024FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift */,
+				686CDFD8254A3E0900DB7266 /* SilentChat.swift */,
 			);
 			path = Chat;
 			sourceTree = "<group>";
@@ -664,6 +667,7 @@
 				76C7429C24A1597000C7D945 /* MediaCrypter.swift in Sources */,
 				EAAE7B4A24DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift in Sources */,
 				7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */,
+				686CDFD9254A3E0900DB7266 /* SilentChat.swift in Sources */,
 				768123F724861068008C5216 /* ABContact+CoreDataProperties.swift in Sources */,
 				EAAE7B3724DCD98C00946B77 /* Keys.xcdatamodeld in Sources */,
 				249028AB24C5E0600019C4D5 /* SharedDataStore.swift in Sources */,

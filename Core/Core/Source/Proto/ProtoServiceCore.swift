@@ -134,6 +134,54 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         callbacks.forEach{ $0.work(group) }
     }
 
+    // MARK: Silent chats
+
+    public func sendSilentChats(_ n: Int) {
+        let contactIDs = AppContext.shared.contactStore.allInNetworkContactIDs()
+        var messagesRemaining = n
+        while messagesRemaining > 0 {
+            guard let toUserID = contactIDs.randomElement() else {
+                DDLogError("Proto/sendSilentChats/error no contacts available")
+                return
+            }
+            let silentChat = SilentChatMessage(from: userData.userId, to: toUserID)
+            sendSilentChatMessage(silentChat, encryption: AppContext.shared.encryptOperation(for: toUserID)) { _ in }
+            messagesRemaining -= 1
+        }
+    }
+
+    public func sendSilentChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>) {
+        let fromUserID = userData.userId
+
+        makeChatStanza(message, encryption: encryption) { chat, error in
+            guard let chat = chat else {
+                completion(.failure(ProtoServiceCoreError.serialization))
+                return
+            }
+
+            var silentStanza = Server_SilentChatStanza()
+            silentStanza.chatStanza = chat
+            let packet = Server_Packet.msgPacket(
+                from: fromUserID,
+                to: message.toUserId,
+                id: message.id,
+                type: .chat,
+                payload: .silentChatStanza(silentStanza))
+
+            guard let packetData = try? packet.serializedData() else {
+                AppContext.shared.eventMonitor.observe(.encryption(error: .other))
+                DDLogError("ProtoServiceCore/sendSilentChatMessage/\(message.id)/error could not serialize chat message!")
+                completion(.failure(ProtoServiceCoreError.serialization))
+                return
+            }
+
+            AppContext.shared.eventMonitor.observe(.encryption(error: error))
+            DDLogInfo("ProtoServiceCore/sendSilentChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
+            self.stream.send(packetData)
+            completion(.success(()))
+        }
+    }
+
     // MARK: Requests
 
     private let requestsQueue = DispatchQueue(label: "com.halloapp.proto.requests", qos: .userInitiated)
@@ -358,26 +406,18 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>) {
-
-        guard let messageData = try? message.protoContainer.serializedData(),
-            let fromUID = Int64(userData.userId),
-            let toUID = Int64(message.toUserId) else
-        {
-            completion(.failure(ProtoServiceCoreError.serialization))
+    private func makeChatStanza(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping (Server_ChatStanza?, EncryptionError?) -> Void) {
+        guard let messageData = try? message.protoContainer.serializedData() else {
+            DDLogError("ProtoServiceCore/makeChatStanza/\(message.id)/error could not serialize chat message!")
+            completion(nil, nil)
             return
         }
 
-        var packet = Server_Packet()
-        packet.msg.toUid = toUID
-        packet.msg.fromUid = fromUID
-        packet.msg.id = message.id
-        packet.msg.type = .chat
-
-        var chat = Server_ChatStanza()
-        chat.payload = messageData
-
         encryption(messageData) { encryptedData in
+
+            var chat = Server_ChatStanza()
+            chat.payload = messageData
+
             let includesEncryptedPayload: Bool
 
             if let encryptedPayload = encryptedData.data {
@@ -395,17 +435,40 @@ extension ProtoServiceCore: CoreService {
             }
 
             chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
-            packet.msg.payload = .chatStanza(chat)
+
+            let encryptionError: EncryptionError? = includesEncryptedPayload ? nil : .other
+
+            completion(chat, encryptionError)
+        }
+    }
+
+    public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>) {
+        let fromUserID = userData.userId
+
+        makeChatStanza(message, encryption: encryption) { chat, error in
+            guard let chat = chat else {
+                completion(.failure(ProtoServiceCoreError.serialization))
+                return
+            }
+
+            let packet = Server_Packet.msgPacket(
+                from: fromUserID,
+                to: message.toUserId,
+                id: message.id,
+                type: .chat,
+                payload: .chatStanza(chat))
+
             guard let packetData = try? packet.serializedData() else {
                 AppContext.shared.eventMonitor.observe(.encryption(error: .other))
                 DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
                 completion(.failure(ProtoServiceCoreError.serialization))
                 return
             }
-            let encryptionError: EncryptionError? = includesEncryptedPayload ? nil : .other
-            AppContext.shared.eventMonitor.observe(.encryption(error: encryptionError))
-            DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(includesEncryptedPayload ? "encrypted" : "unencrypted"))")
+
+            AppContext.shared.eventMonitor.observe(.encryption(error: error))
+            DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
             self.stream.send(packetData)
+            self.sendSilentChats(ServerProperties.silentChatMessages)
             completion(.success(()))
         }
     }
