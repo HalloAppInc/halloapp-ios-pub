@@ -1319,7 +1319,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             var contactName: String?, phoneNumber: String?
             if let contact = contactsMap[userId] {
                 contactName = contact.fullName
-                phoneNumber = contact.phoneNumber
+                phoneNumber = contact.phoneNumber?.formattedPhoneNumber
             }
             if contactName == nil {
                 contactName = contactStore.fullName(for: userId)
@@ -1341,7 +1341,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         var uniqueUserIDs: Set<UserID> = [] // Contacts need to be de-duped by userId.
         for abContact in knownContacts {
             if let userId = abContact.userId, uniqueUserIDs.insert(userId).inserted {
-                receipts.append(FeedPostReceipt(userId: userId, type: .sent, contactName: abContact.fullName, phoneNumber: abContact.phoneNumber, timestamp: Date()))
+                let phoneNumber = abContact.phoneNumber?.formattedPhoneNumber
+                receipts.append(FeedPostReceipt(userId: userId, type: .sent, contactName: abContact.fullName, phoneNumber: phoneNumber, timestamp: Date()))
                 unknownContactIDs.remove(userId)
             }
         }

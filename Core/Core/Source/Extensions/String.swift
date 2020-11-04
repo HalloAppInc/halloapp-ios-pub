@@ -10,6 +10,7 @@ import CommonCrypto
 import CryptoKit
 import Foundation
 import NaturalLanguage
+import PhoneNumberKit
 
 extension String {
     /**
@@ -44,6 +45,23 @@ extension String {
             mutable.replaceOccurrences(of: string, with: "", options: .literal, range: NSRange(location: 0, length: mutable.length))
         }
         return String(mutable)
+    }
+
+    public var formattedPhoneNumber: String {
+        let phoneNumberFormatter = AppContext.shared.phoneNumberFormatter
+
+        let regionCode: String
+        if let countryCode = UInt64(AppContext.shared.userData.countryCode),
+           let mainCountryCode = phoneNumberFormatter.mainCountry(forCode: countryCode) {
+            regionCode = mainCountryCode
+        } else {
+            regionCode = PhoneNumberKit.defaultRegionCode()
+        }
+
+        guard let phoneNumber = try? AppContext.shared.phoneNumberFormatter.parse(self, withRegion: regionCode) else {
+            return self
+        }
+        return phoneNumberFormatter.format(phoneNumber, toType: .international)
     }
 
     public func sha256() -> Data? {
