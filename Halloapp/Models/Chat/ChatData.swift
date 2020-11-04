@@ -1997,7 +1997,7 @@ extension ChatData {
                 }
                 
                 // add to pushnames
-                if let name = inboundMember.name {
+                if let name = inboundMember.name, !name.isEmpty {
                     contactNames[inboundMember.userId] = name
                 }
             }
@@ -2625,7 +2625,7 @@ extension ChatData {
         }
         
         // add to pushnames
-        if let userId = xmppChatGroupMessage.userId, let name = xmppChatGroupMessage.userName {
+        if let userId = xmppChatGroupMessage.userId, let name = xmppChatGroupMessage.userName, !name.isEmpty {
             MainAppContext.shared.contactStore.addPushNames([userId: name])
         }
         
@@ -2759,7 +2759,7 @@ extension ChatData {
             processGroupAddMemberAction(chatGroup: chatGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
             
             // add to pushnames
-            if let name = xmppGroupMember.name {
+            if let name = xmppGroupMember.name, !name.isEmpty {
                 contactNames[xmppGroupMember.userId] = name
             }
         }
