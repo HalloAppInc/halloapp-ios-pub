@@ -10,18 +10,22 @@ import Core
 import Foundation
 import UIKit
 
-class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate {
+protocol MediaExplorerTransitionDelegate: AnyObject {
+    func getTransitionView(atPostion index: Int) -> UIView?
+    func scrollMediaToVisible(atPostion index: Int)
+}
+
+class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate, UIViewControllerTransitioningDelegate {
 
     private let spaceBetweenPages: CGFloat = 20
 
-    private let media: [FeedMedia]
+    private let media: [MediaExplorerMedia]
     private var collectionView: UICollectionView!
     private var pageControl: UIPageControl!
     private var tapRecorgnizer: UITapGestureRecognizer!
     private var swipeDownRecognizer: UIPanGestureRecognizer!
     private var swipeDownStart: CGPoint?
     private var isSystemUIHidden = false
-
 
     private var currentIndex: Int {
         didSet {
@@ -41,12 +45,38 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         }
     }
 
+    public weak var delegate: MediaExplorerTransitionDelegate?
+
     override var prefersStatusBarHidden: Bool {
         true
     }
 
     init(media: [FeedMedia], index: Int) {
-        self.media = media
+        self.media = media.map {
+            MediaExplorerMedia(url: $0.fileURL, image: $0.image, type: ($0.type == .image ? .image : .video), size: $0.size)
+        }
+        self.currentIndex = index
+
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    init(media: [ChatMedia], index: Int) {
+        self.media = media.map {
+            let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent($0.relativeFilePath ?? "", isDirectory: false)
+            let image: UIImage? = $0.type == .image ? UIImage(contentsOfFile: url.path) : nil
+            return MediaExplorerMedia(url: url, image: image, type: ($0.type == .image ? .image : .video), size: $0.size)
+        }
+        self.currentIndex = index
+
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    init(media: [ChatQuotedMedia], index: Int) {
+        self.media = media.map {
+            let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent($0.relativeFilePath ?? "", isDirectory: false)
+            let image: UIImage? = $0.type == .image ? UIImage(contentsOfFile: url.path) : nil
+            return MediaExplorerMedia(url: url, image: image, type: ($0.type == .image ? .image : .video), size: .zero)
+        }
         self.currentIndex = index
 
         super.init(nibName: nil, bundle: nil)
@@ -54,6 +84,14 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    func withNavigationController() -> UINavigationController {
+        let controller = UINavigationController(rootViewController: self)
+        controller.modalPresentationStyle = .fullScreen
+        controller.transitioningDelegate = self
+
+        return controller
     }
 
     override func viewDidLoad() {
@@ -84,6 +122,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 pageControl.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
             ])
         }
+
+        toggleSystemUI()
     }
 
     override func viewDidLayoutSubviews() {
@@ -190,7 +230,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             return cell
         case .video:
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoCell.reuseIdentifier, for: indexPath) as! VideoCell
-            cell.url = item.fileURL
+            cell.url = item.url
             return cell
         }
     }
@@ -236,7 +276,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 
     @objc private func backAction() {
-        dismiss(animated: true)
+        delegate?.scrollMediaToVisible(atPostion: currentIndex)
+        self.dismiss(animated: true)
     }
 
     @objc private func pageChangeAction() {
@@ -274,6 +315,22 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             }
         }
     }
+
+    // MARK: UIViewControllerTransitioningDelegate
+
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        let animator = Animator(media: media[currentIndex], atPosition: currentIndex, presenting: true)
+        animator.delegate = delegate
+
+        return animator
+    }
+
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        let animator = Animator(media: media[currentIndex], atPosition: currentIndex, presenting: false)
+        animator.delegate = delegate
+
+        return animator
+    }
 }
 
 fileprivate class ImageCell: UICollectionViewCell {
@@ -298,10 +355,23 @@ fileprivate class ImageCell: UICollectionViewCell {
         return imageView
     }()
 
+    private var imageConstraints: [NSLayoutConstraint] = []
     var image: UIImage! {
         didSet {
-            imageView.image = image
+            let scale = min((contentView.frame.width - 40) / image.size.width, contentView.frame.height / image.size.height)
+
+            NSLayoutConstraint.deactivate(imageConstraints)
+            imageConstraints = [
+                imageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+                imageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+                imageView.widthAnchor.constraint(equalToConstant: image.size.width * scale),
+                imageView.heightAnchor.constraint(equalToConstant: image.size.height * scale),
+            ]
+            NSLayoutConstraint.activate(imageConstraints)
+
             reset()
+
+            imageView.image = image
         }
     }
 
@@ -310,13 +380,6 @@ fileprivate class ImageCell: UICollectionViewCell {
 
         contentView.addSubview(imageView)
         contentView.clipsToBounds = true
-
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-        ])
 
         let zoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(onZoom(sender:)))
         imageView.addGestureRecognizer(zoomRecognizer)
@@ -552,5 +615,214 @@ fileprivate class VideoCell: UICollectionViewCell {
 
     func pause() {
         playerController.player?.pause()
+    }
+}
+
+fileprivate enum MediaExplorerMediaType {
+    case image, video
+}
+
+fileprivate struct MediaExplorerMedia {
+    var url: URL?
+    var image: UIImage?
+    var type: MediaExplorerMediaType
+    var size: CGSize
+
+    mutating func computeSize() {
+        guard size == .zero else { return }
+
+        if let image = image {
+            size = image.size
+        }
+
+        if let url = url, type == .video, let videoSize = VideoUtils.resolutionForLocalVideo(url: url) {
+            size = videoSize
+        }
+    }
+}
+
+fileprivate class VideoTransitionView: UIView {
+    var player: AVPlayer? {
+        get {
+            return playerLayer.player
+        }
+        set {
+            playerLayer.player = newValue
+        }
+    }
+
+    var playerLayer: AVPlayerLayer {
+        return layer as! AVPlayerLayer
+    }
+
+    override static var layerClass: AnyClass {
+        return AVPlayerLayer.self
+    }
+}
+
+fileprivate class Animator: NSObject, UIViewControllerTransitioningDelegate, UIViewControllerAnimatedTransitioning {
+    weak var delegate: MediaExplorerTransitionDelegate?
+
+    private var media: MediaExplorerMedia
+    private let index: Int
+    private let presenting: Bool
+
+    init(media: MediaExplorerMedia, atPosition index: Int, presenting: Bool) {
+        self.media = media
+        self.index = index
+        self.presenting = presenting
+
+        self.media.computeSize()
+    }
+
+    private func computeSize(containerSize: CGSize, contentSize: CGSize) -> CGSize {
+        var scale = CGFloat(1.0)
+        if contentSize.width > contentSize.height {
+            // .scaleAspectFit
+            scale = min(containerSize.width / contentSize.width, containerSize.height / contentSize.height)
+        } else {
+            // .scaleAspectFill
+            scale = max(containerSize.width / contentSize.width, containerSize.height / contentSize.height)
+        }
+
+        let width = min(containerSize.width, contentSize.width * scale)
+        let height = min(containerSize.height, contentSize.height * scale)
+
+        return CGSize(width: width, height: height)
+    }
+
+    private func computeScaleAspectFit(containerSize: CGSize, contentSize: CGSize, transitionSize: CGSize) -> CGFloat {
+        let contentFitScale = min(containerSize.width / contentSize.width, containerSize.height / contentSize.height)
+        let transitionFitScale = min(contentSize.width / transitionSize.width, contentSize.height / transitionSize.height)
+
+        return contentFitScale * transitionFitScale
+    }
+
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+        return 0.3
+    }
+
+    func getTransitionView() -> UIView? {
+        if media.type == .image {
+            guard let image = media.image else { return nil }
+
+            let imageView = UIImageView(image: image)
+            imageView.contentMode = media.size.width > media.size.height ? .scaleAspectFit : .scaleAspectFill
+            imageView.clipsToBounds = true
+
+            return imageView
+        } else if media.type == .video {
+            guard let url = media.url else { return nil }
+
+            let videoView = VideoTransitionView()
+            videoView.player = AVPlayer(url: url)
+            videoView.playerLayer.videoGravity = media.size.width > media.size.height ? .resizeAspect : .resizeAspectFill
+
+            return videoView
+        }
+
+        return nil
+    }
+
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        guard let delegate = delegate,
+              let toController = transitionContext.viewController(forKey: .to),
+              let fromController = transitionContext.viewController(forKey: .from),
+              let toView = transitionContext.view(forKey: .to),
+              let fromView = transitionContext.view(forKey: .from)
+        else {
+            transitionContext.completeTransition(true)
+            return
+        }
+
+        if presenting {
+            transitionContext.containerView.addSubview(toView)
+        } else {
+            transitionContext.containerView.addSubview(toView)
+            transitionContext.containerView.addSubview(fromView)
+        }
+
+        // Ensurees that the toView and fromView have rendered their transition views
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else {
+                transitionContext.completeTransition(true)
+                return
+            }
+
+            guard let transitionView = self.getTransitionView(),
+                  let originView = delegate.getTransitionView(atPostion: self.index),
+                  let originFrame = originView.superview?.convert(originView.frame, to: transitionContext.containerView)
+            else {
+                transitionContext.completeTransition(true)
+                return
+            }
+
+            let fromViewStartFrame = transitionContext.initialFrame(for: fromController)
+            let toViewFinalFrame = transitionContext.finalFrame(for: toController)
+            let originMediaSize = self.computeSize(containerSize: originFrame.size, contentSize: self.media.size)
+
+            var transitionViewFinalCenter = CGPoint.zero
+            var transitionViewFinalTransform = CGAffineTransform.identity
+            if self.presenting {
+                let scale = self.computeScaleAspectFit(containerSize: toViewFinalFrame.size, contentSize: self.media.size, transitionSize: originMediaSize)
+                transitionViewFinalTransform = CGAffineTransform(scaleX: scale, y: scale)
+
+                transitionView.frame.size = originMediaSize
+                transitionView.center = CGPoint(x: originFrame.midX, y: originFrame.midY)
+                toView.alpha = 0.0
+                transitionViewFinalCenter = CGPoint(x: toViewFinalFrame.midX, y: toViewFinalFrame.midY)
+            } else {
+                let scale = self.computeScaleAspectFit(containerSize: fromViewStartFrame.size, contentSize: self.media.size, transitionSize: originMediaSize)
+                transitionViewFinalTransform = CGAffineTransform(scaleX: 1 / scale, y: 1 / scale)
+
+                transitionView.frame.size = originMediaSize.applying(CGAffineTransform(scaleX: scale, y: scale))
+                transitionView.center = CGPoint(x: fromViewStartFrame.midX, y: fromViewStartFrame.midY)
+                transitionViewFinalCenter = CGPoint(x: originFrame.midX, y: originFrame.midY)
+            }
+
+            transitionContext.containerView.addSubview(transitionView)
+
+            UIView.animateKeyframes(withDuration: self.transitionDuration(using: nil), delay: 0, options: [], animations: {
+                if self.presenting {
+                    UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.8) {
+                        transitionView.center = transitionViewFinalCenter
+                        transitionView.transform = transitionViewFinalTransform
+                    }
+
+                    UIView.addKeyframe(withRelativeStartTime: 0.8, relativeDuration: 0.2) {
+                        toView.alpha = 1.0
+                    }
+                } else {
+                    UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.2) {
+                        fromView.alpha = 0.0
+                    }
+
+                    UIView.addKeyframe(withRelativeStartTime: 0.2, relativeDuration: 0.8) {
+                        transitionView.center = transitionViewFinalCenter
+                        transitionView.transform = transitionViewFinalTransform
+                    }
+                }
+            }) { [weak self] finished in
+                guard let self = self else { return }
+                let success = !transitionContext.transitionWasCancelled
+
+                if (self.presenting && !success) || (!self.presenting && success) {
+                    toView.removeFromSuperview()
+                }
+
+                transitionView.removeFromSuperview()
+
+                transitionContext.completeTransition(success)
+            }
+        }
+    }
+}
+
+extension UIImageView: MediaExplorerTransitionDelegate {
+    func getTransitionView(atPostion index: Int) -> UIView? {
+        return self
+    }
+
+    func scrollMediaToVisible(atPostion index: Int) {
     }
 }

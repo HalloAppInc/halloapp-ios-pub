@@ -246,15 +246,19 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     }
     
     // MARK:
-    
-    private func showPreviewView(previewType: MediaPreviewController.PreviewType, media: [ChatMedia]?, quotedMedia: [ChatQuotedMedia]?, mediaIndex: Int) {
-        let detailVC = MediaPreviewController(previewType: previewType, media: media, quotedMedia:quotedMedia, mediaIndex: mediaIndex)
-        let navigationController = UINavigationController(rootViewController: detailVC)
-        navigationController.modalPresentationStyle = .overFullScreen
-        navigationController.modalTransitionStyle = .crossDissolve
-        self.present(navigationController, animated: true)
-        
-//        self.navigationController?.pushViewController(MediaPreviewController(for: chatMessage), animated: false)
+
+    private func presentMediaExplorer(media: [ChatMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+        let controller = MediaExplorerController(media: media, index: index)
+        controller.delegate = delegate
+
+        present(controller.withNavigationController(), animated: true)
+    }
+
+    private func presentMediaExplorer(media: [ChatQuotedMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+        let controller = MediaExplorerController(media: media, index: index)
+        controller.delegate = delegate
+
+        present(controller.withNavigationController(), animated: true)
     }
     
     private lazy var titleView: TitleView = {
@@ -642,17 +646,21 @@ extension ChatViewController: TitleViewDelegate {
 }
 
 extension ChatViewController: InboundMsgViewCellDelegate {
-
-    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewType: MediaPreviewController.PreviewType, mediaIndex: Int) {
-        
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
-        
-        if let chatMessage = fetchedResultsController?.object(at: indexPath) {
-            
-            if (chatMessage.media != nil) || (chatMessage.quoted != nil && chatMessage.quoted?.media != nil) {
-                showPreviewView(previewType: previewType, media: chatMessage.orderedMedia, quotedMedia: chatMessage.quoted?.orderedMedia, mediaIndex: mediaIndex)
-            }
-        }
+        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+        guard message.media != nil else { return }
+
+        presentMediaExplorer(media: message.orderedMedia, At: index, withDelegate: delegate)
+    }
+
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewQuotedMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+        guard let indexPath = inboundMsgViewCell.indexPath else { return }
+        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+        guard let quoted = message.quoted else { return }
+        guard quoted.media != nil else { return }
+
+        presentMediaExplorer(media: quoted.orderedMedia, At: index, withDelegate: delegate)
     }
     
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String) {
@@ -680,19 +688,22 @@ extension ChatViewController: InboundMsgViewCellDelegate {
 }
 
 extension ChatViewController: OutboundMsgViewCellDelegate {
-
-    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewType: MediaPreviewController.PreviewType, mediaIndex: Int) {
-        
+    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = outboundMsgViewCell.indexPath else { return }
-        
-        if let chatMessage = fetchedResultsController?.object(at: indexPath) {
-            
-            if (chatMessage.media != nil) || (chatMessage.quoted != nil && chatMessage.quoted?.media != nil) {
-                showPreviewView(previewType: previewType, media: chatMessage.orderedMedia, quotedMedia: chatMessage.quoted?.orderedMedia, mediaIndex: mediaIndex)
-            }
-        }
+        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+        guard message.media != nil else { return }
+
+        presentMediaExplorer(media: message.orderedMedia, At: index, withDelegate: delegate)
     }
-    
+
+    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewQuotedMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+        guard let indexPath = outboundMsgViewCell.indexPath else { return }
+        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+        guard let quoted = message.quoted else { return }
+        guard quoted.media != nil else { return }
+
+        presentMediaExplorer(media: quoted.orderedMedia, At: index, withDelegate: delegate)
+    }
 
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, didLongPressOn msgId: String) {
         guard let indexPath = outboundMsgViewCell.indexPath else { return }

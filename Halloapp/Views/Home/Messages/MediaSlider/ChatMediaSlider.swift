@@ -13,7 +13,7 @@ protocol ChatMediaSliderDelegate: AnyObject {
     func chatMediaSlider(_ view: ChatMediaSlider, currentPage: Int)
 }
 
-class ChatMediaSlider: UIView, UIScrollViewDelegate {
+class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDelegate {
     weak var delegate: ChatMediaSliderDelegate?
     public var currentPage: Int = 0
     
@@ -210,6 +210,16 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate {
         pageControl.currentPage = pageIndex
         currentPage = pageIndex
         delegate?.chatMediaSlider(self, currentPage: pageControl.currentPage)
+    }
+
+    // MARK: MediaExplorerTransitionDelegate
+
+    func getTransitionView(atPostion index: Int) -> UIView? {
+        return imageViewList[index]
+    }
+
+    func scrollMediaToVisible(atPostion index: Int) {
+        scrollToIndex(index: index, animated: false)
     }
 }
 

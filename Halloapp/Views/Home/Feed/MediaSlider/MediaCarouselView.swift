@@ -49,7 +49,7 @@ fileprivate struct LayoutConstants {
     static let pageControlSpacingBottom: CGFloat = -12
 }
 
-class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIGestureRecognizerDelegate {
+class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIGestureRecognizerDelegate, MediaExplorerTransitionDelegate {
 
     private let configuration: MediaCarouselViewConfiguration
 
@@ -314,17 +314,20 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         setCurrentIndex(pageControl?.currentPage ?? 0, animated: true)
     }
 
-    @objc private func tapAction() {
+    @objc private func tapAction(sender: UITapGestureRecognizer) {
+        guard let indexPath = collectionView.indexPathForItem(at: sender.location(in: collectionView)) else { return }
         stopPlayback()
-        delegate?.mediaCarouselView(self, didTapMediaAtIndex: currentIndex)
+        delegate?.mediaCarouselView(self, didTapMediaAtIndex: indexPath.row)
     }
 
-    @objc private func doubleTapAction() {
-        delegate?.mediaCarouselView(self, didDoubleTapMediaAtIndex: currentIndex)
+    @objc private func doubleTapAction(sender: UITapGestureRecognizer) {
+        guard let indexPath = collectionView.indexPathForItem(at: sender.location(in: collectionView)) else { return }
+        delegate?.mediaCarouselView(self, didDoubleTapMediaAtIndex: indexPath.row)
     }
 
     @objc private func zoomAction(sender: UIPinchGestureRecognizer) {
-        delegate?.mediaCarouselView(self, didZoomMediaAtIndex: currentIndex, withScale: sender.scale)
+        guard let indexPath = collectionView.indexPathForItem(at: sender.location(in: collectionView)) else { return }
+        delegate?.mediaCarouselView(self, didZoomMediaAtIndex: indexPath.row, withScale: sender.scale)
     }
 
     override func willMove(toWindow newWindow: UIWindow?) {
@@ -407,6 +410,21 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         }
 
         return false
+    }
+
+    // MARK: MediaExplorerTransitionDelegate
+    func getTransitionView(atPostion index: Int) -> UIView? {
+        let indexPath = IndexPath(row: index, section: MediaSliderSection.main.rawValue)
+        return collectionView.cellForItem(at: indexPath)
+    }
+
+    func scrollMediaToVisible(atPostion index: Int) {
+        if collectionView.isPagingEnabled {
+            setCurrentIndex(index, animated: false)
+        } else {
+            let indexPath = IndexPath(row: index, section: MediaSliderSection.main.rawValue)
+            collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
+        }
     }
 }
 

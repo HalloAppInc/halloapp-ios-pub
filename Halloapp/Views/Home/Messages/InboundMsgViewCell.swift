@@ -17,7 +17,8 @@ fileprivate struct Constants {
 }
 
 protocol InboundMsgViewCellDelegate: AnyObject {
-    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewType: MediaPreviewController.PreviewType, mediaIndex: Int)
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewQuotedMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String)
 }
 
@@ -595,11 +596,11 @@ class InboundMsgViewCell: UITableViewCell {
     }
     
     @objc func gotoQuotedPreview(_ sender: UIView) {
-        delegate?.inboundMsgViewCell(self, previewType: .quoted, mediaIndex: 0)
+        delegate?.inboundMsgViewCell(self, previewQuotedMediaAt: 0, withDelegate: quotedImageView)
     }
     
     @objc func gotoMediaPreview(_ sender: UIView) {
-        delegate?.inboundMsgViewCell(self, previewType: .media, mediaIndex: mediaImageView.currentPage)
+        delegate?.inboundMsgViewCell(self, previewMediaAt: mediaImageView.currentPage, withDelegate: mediaImageView)
     }
     
     @objc func gotoMsgInfo(_ sender: UIView) {

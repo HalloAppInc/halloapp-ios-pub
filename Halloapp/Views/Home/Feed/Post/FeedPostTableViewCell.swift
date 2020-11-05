@@ -492,7 +492,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else { return }
         guard feedDataItem.media[index].type == .image else { return }
 
-        presentExplorer(media: feedDataItem.media, index: index)
+        presentExplorer(media: feedDataItem.media, index: index, delegate: view)
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
@@ -500,7 +500,7 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else { return }
         guard feedDataItem.media[index].type == .video else { return }
 
-        presentExplorer(media: feedDataItem.media, index: index)
+        presentExplorer(media: feedDataItem.media, index: index, delegate: view)
     }
 
     func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat) {
@@ -509,16 +509,15 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         guard feedDataItem.media[index].type == .video else { return }
         guard scale > scaleThreshold else { return }
 
-        presentExplorer(media: feedDataItem.media, index: index)
+        presentExplorer(media: feedDataItem.media, index: index, delegate: view)
     }
 
-    private func presentExplorer(media: [FeedMedia], index: Int) {
+    private func presentExplorer(media: [FeedMedia], index: Int, delegate: MediaExplorerTransitionDelegate? = nil) {
         let explorerController = MediaExplorerController(media: media, index: index)
-        let naviController = UINavigationController(rootViewController: explorerController)
-        naviController.modalPresentationStyle = .fullScreen
+        explorerController.delegate = delegate
 
         if let controller = findController() {
-            controller.present(naviController, animated: true)
+            controller.present(explorerController.withNavigationController(), animated: true)
         }
     }
 
