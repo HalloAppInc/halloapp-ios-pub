@@ -181,7 +181,7 @@ class FeedViewController: FeedTableViewController {
     private func installNUXHeaderView() {
         let stringLearnMore = NSLocalizedString("nux.learn.more", value: "Learn more", comment: "Action in NUX UI in Home screen.")
         let nuxItem = NUXItem(
-            message: NUX.homeFeedIntroContent,
+            message: Localizations.nuxHomeFeedIntroContent,
             icon: UIImage(named: "NUXSpeechBubble"),
             link: (text: stringLearnMore, action: { [weak self] nuxItem in
                 self?.showNUXDetails { _ = nuxItem.dismiss() }
@@ -213,14 +213,14 @@ class FeedViewController: FeedTableViewController {
     private func showNUXDetails(completion: (() -> Void)?) {
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = NUX.homeFeedDetailsTitle
+        titleLabel.text = Localizations.nuxHomeFeedDetailsTitle
         titleLabel.numberOfLines = 0
         titleLabel.font = .systemFont(forTextStyle: .title3, weight: .medium)
         titleLabel.textColor = UIColor.label
 
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = NUX.homeFeedDetailsBody
+        label.text = Localizations.nuxHomeFeedDetailsBody
         label.numberOfLines = 0
         label.font = .systemFont(forTextStyle: .callout)
         label.textColor = UIColor.label.withAlphaComponent(0.5)
@@ -258,7 +258,7 @@ class FeedViewController: FeedTableViewController {
 
     private func showFloatingMenuNUX() {
         let popover = NUXPopover(
-            NUX.newPostButtonContent,
+            Localizations.nuxNewPostButtonContent,
             targetRect: floatingMenu.permanentButton.bounds,
             targetSpace: floatingMenu.permanentButton.coordinateSpace,
             showButton: false) { [weak self] in
@@ -275,7 +275,7 @@ class FeedViewController: FeedTableViewController {
             return
         }
         let popover = NUXPopover(
-            NUX.activityCenterIconContent,
+            Localizations.nuxActivityCenterIconContent,
             targetRect: notificationButton.bounds,
             targetSpace: notificationButton.coordinateSpace,
             showButton: false) { [weak self] in

@@ -178,7 +178,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     private func showNUXIfNecessary() {
         if MainAppContext.shared.nux.isIncomplete(.chatListIntro) {
-            let popover = NUXPopover(NUX.chatIntroContent) { MainAppContext.shared.nux.didComplete(.chatListIntro) }
+            let popover = NUXPopover(Localizations.nuxChatIntroContent) { MainAppContext.shared.nux.didComplete(.chatListIntro) }
             overlayContainer.display(popover)
         }
     }

@@ -135,21 +135,6 @@ class ProfileViewController: UITableViewController {
         navigationController?.title = title
     }
 
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        if let currentOverlay = overlay {
-            overlayContainer?.dismiss(currentOverlay)
-            overlay = nil
-        }
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        showNUXIfNecessary()
-    }
-
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
@@ -234,33 +219,4 @@ class ProfileViewController: UITableViewController {
         profileEditView.dismiss = { self.dismiss(animated: true) }
         present(UIHostingController(rootView: NavigationView(content: { profileEditView } )), animated: true)
     }
-
-    // MARK: NUX
-
-    private lazy var overlayContainer: OverlayContainer? = {
-        guard let navController = navigationController else {
-            // Because this is a UITableViewController, we need a parent VC for overlays :(
-            return nil
-        }
-        let overlayContainer = OverlayContainer()
-        overlayContainer.translatesAutoresizingMaskIntoConstraints = false
-        navController.view.addSubview(overlayContainer)
-        overlayContainer.constrain(to: navController.view)
-        return overlayContainer
-    }()
-
-    private var overlay: Overlay?
-
-    private func showNUXIfNecessary() {
-        if MainAppContext.shared.nux.isIncomplete(.profileIntro) {
-            guard let overlayContainer = overlayContainer else {
-                DDLogError("ProfileViewController/showNUX/error no overlay container")
-                return
-            }
-            let popover = NUXPopover(NUX.profileContent) { MainAppContext.shared.nux.didComplete(.profileIntro) }
-            overlayContainer.display(popover)
-            overlay = popover
-        }
-    }
-
 }

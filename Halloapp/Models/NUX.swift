@@ -6,13 +6,12 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
-import Foundation
+import Core
 
 final class NUX {
     enum Event: String {
         case homeFeedIntro
         case chatListIntro
-        case profileIntro
         case activityCenterIcon
         case newPostButton
         case feedPostWhoWillSee
@@ -40,18 +39,49 @@ final class NUX {
         isDemoMode = true
         demoEventsCompleted.removeAll()
     }
+}
 
-    static let activityCenterIconContent = "This is your activity center. Tap to see your most recent activity."
-    static let profileContent = "This is your profile. Your own posts will collect here. Each post expires in 30 days."
-    static let chatIntroContent = "This is where you’ll find messages from your friends & family. When someone new joins HalloApp you can see them here."
-    static let newPostButtonContent = "Tap to share an update with your friends & family on HalloApp"
-    static let homeFeedIntroContent = "Welcome to your home feed! This is where you can see posts from your phone contacts who use HalloApp."
-    static let homeFeedDetailsTitle = "About HalloApp"
-    static let homeFeedDetailsBody = """
+extension Localizations {
+    static var nuxActivityCenterIconContent: String {
+        NSLocalizedString(
+            "nux.activity.center.icon",
+            value: "This is your activity center. Tap to see your most recent activity.",
+            comment: "Text for new user popup pointing at activity center icon")
+    }
+    static var nuxChatIntroContent: String {
+        NSLocalizedString(
+            "nux.chat.list",
+            value: "This is where you’ll find messages from your friends & family. When someone new joins HalloApp you can see them here.",
+            comment: "Text for new user popup pointing at chat list")
+    }
+    static var nuxNewPostButtonContent: String {
+        NSLocalizedString(
+            "nux.new.post.button",
+            value: "Tap to share an update with your friends & family on HalloApp",
+            comment: "Text for new user popup pointing at new post button")
+    }
+    static var nuxHomeFeedIntroContent: String {
+        NSLocalizedString(
+            "nux.home.feed",
+            value: "Welcome to your home feed! This is where you can see posts from your phone contacts who use HalloApp.",
+            comment: "Text for new user info panel on home feed")
+    }
+    static var nuxHomeFeedDetailsTitle: String {
+        NSLocalizedString(
+            "nux.home.feed.details.title",
+            value: "About HalloApp",
+            comment: "Title for more detailed new user popup on home feed")
+    }
+    static var nuxHomeFeedDetailsBody: String {
+        NSLocalizedString(
+            "nux.home.feed.details.text",
+            value: """
 Home feed allows you to share text, photo, and video updates that disappear after 30 days.
 
 If you want to share updates with someone, both parties must have each other's numbers saved on their phones.
 
 You can share your updates with your entire contact list or only with selected people. Go to settings to change feed privacy.
-"""
+""",
+            comment: "Text for more detailed new user popup on home feed")
+    }
 }
