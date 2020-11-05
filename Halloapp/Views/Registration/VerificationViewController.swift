@@ -15,35 +15,39 @@ struct VerificationVerifyCodeContext {
     let fromUserAction: Bool
 }
 
+struct VerificationContactsPermissionsContext {
+}
+
 struct VerificationCompleteContext {
 }
 
-class VerificationViewController: UINavigationController, PhoneInputViewControllerDelegate, VerificationCodeViewControllerDelegate {
+class VerificationViewController: UINavigationController, PhoneInputViewControllerDelegate, VerificationCodeViewControllerDelegate, ContactsPermissionsViewControllerDelegate {
     enum State {
         case phoneInput(VerificationPhoneInputContext)
         case verifyCode(VerificationVerifyCodeContext)
+        case contactsPermissions(VerificationContactsPermissionsContext)
         case complete(VerificationCompleteContext)
     }
     var state: State?
     var registrationManager: RegistrationManager?
 
-    class func loadedFromStoryboard(registrationManager: RegistrationManager = DefaultRegistrationManager()) -> VerificationViewController {
-        let vc = UIStoryboard(name: "Registration", bundle: nil).instantiateInitialViewController() as! VerificationViewController
-        vc.registrationManager = registrationManager
-        return vc
+    init(registrationManager: RegistrationManager = DefaultRegistrationManager()) {
+        self.registrationManager = registrationManager
+        super.init(nibName: nil, bundle: nil)
+
+        styleNavigationBar()
+        move(to: .phoneInput(VerificationPhoneInputContext()))
     }
 
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        if let phoneInputViewController = self.viewControllers.first as? PhoneInputViewController {
-            phoneInputViewController.delegate = self
-        }
+        fatalError()
+    }
 
-        if registrationManager?.hasRequestedVerificationCode ?? false {
-            move(to: .verifyCode(VerificationVerifyCodeContext(fromUserAction: false)))
-        } else {
-            move(to: .phoneInput(VerificationPhoneInputContext()))
-        }
+    private func styleNavigationBar() {
+        navigationBar.setBackgroundImage(UIImage(), for: UIBarMetrics.default)
+        navigationBar.shadowImage = UIImage()
+        navigationBar.isTranslucent = true
+        navigationBar.backgroundColor = UIColor.clear
     }
 
     private func move(to nextState: State) {
@@ -60,8 +64,9 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
     private func presentViewController(for state: State) {
         switch state {
         case .phoneInput(_):
-            // Should not be necessary at this point because PhoneInputViewController is loaded from the storyboard.
-            break
+            let phoneInputVC = PhoneInputViewController(nibName: nil, bundle: nil)
+            phoneInputVC.delegate = self
+            pushViewController(phoneInputVC, animated: false)
 
         case let .verifyCode(verifyCodeContext):
             let verificationCodeVC = self.newVerificationCodeViewController()
@@ -69,6 +74,11 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
             if verifyCodeContext.fromUserAction {
                 verificationCodeVC.requestVerificationCode()
             }
+
+        case .contactsPermissions(_):
+            let contactsPermissionsVC = ContactsPermissionsViewController()
+            contactsPermissionsVC.delegate = self
+            pushViewController(contactsPermissionsVC, animated: true)
 
         default:
             break
@@ -78,7 +88,7 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
     // MARK: View Controllers
 
     func newVerificationCodeViewController() -> VerificationCodeViewController {
-        let viewController = UIStoryboard(name: "Registration", bundle: nil).instantiateViewController(withIdentifier: "VerificationCodeViewController") as! VerificationCodeViewController
+        let viewController = VerificationCodeViewController()
         viewController.delegate = self
         return viewController
     }
@@ -104,12 +114,14 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
         registrationManager?.confirmVerificationCode(verificationCode, completion: completion)
     }
 
-    func verificationCodeViewControllerDidRequestNewPhoneNumber(_ viewController: VerificationCodeViewController) {
-        registrationManager?.resetPhoneNumber()
-        popViewController(animated: true)
+    func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController) {
+        move(to: .contactsPermissions(.init()))
     }
 
-    func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController) {
+    // MARK: ContactsPermissionsViewControllerDelegate
+
+    func didAcknowledgeContactsPermissions() {
+        registrationManager?.requestContactsPermissions()
         move(to: .complete(VerificationCompleteContext()))
     }
 }

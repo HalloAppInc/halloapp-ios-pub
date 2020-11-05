@@ -15,7 +15,6 @@ private enum MenuTitles {
     static var useProtobuf: String { "Use Protobuf" }
     static var useDevServer: String { "Use Dev Server" }
     static var reSyncContacts: String { "Re-Sync Contacts" }
-    static var registrationDemo: String { "Registration Demo" }
     static var resetNUXDemo: String { "Reset NUX Demo" }
     static var logOut: String { "Log Out" }
 }
@@ -25,7 +24,6 @@ struct DeveloperMenuView: View {
     @State var useTestServer = MainAppContext.shared.userData.useTestServer
     @State var useProtobuf = MainAppContext.shared.userData.useProtobuf
     @State var showRestartAlert = false
-    @State var showRegistrationDemo = false
 
     var dismiss: (() -> ())?
 
@@ -93,18 +91,6 @@ struct DeveloperMenuView: View {
                     self.dismiss?()
                 }) {
                     Text(MenuTitles.reSyncContacts)
-                }
-
-                // Show Reg Demo
-                Button(action: {
-                    showRegistrationDemo = true
-                }) {
-                    Text(MenuTitles.registrationDemo)
-                }
-                .sheet(isPresented: $showRegistrationDemo) {
-                    RegistrationDemo() {
-                        showRegistrationDemo = false
-                    }
                 }
 
                 // NUX Demo

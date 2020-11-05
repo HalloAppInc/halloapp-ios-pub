@@ -19,8 +19,7 @@ struct RegistrationDemo: UIViewControllerRepresentable {
     let completion: () -> Void
 
     func makeUIViewController(context: Context) -> VerificationViewController {
-        return VerificationViewController.loadedFromStoryboard(
-            registrationManager: DemoRegistrationManager(completion: completion))
+        return VerificationViewController(registrationManager: DemoRegistrationManager(completion: completion))
     }
 
     func updateUIViewController(_ uiViewController: VerificationViewController, context: Context) {
@@ -34,14 +33,9 @@ final class DemoRegistrationManager: RegistrationManager {
         self.completion = completion
     }
 
-    var hasRequestedVerificationCode = false
     var correctCode = "111111"
     var completion: () -> Void
     var formattedPhoneNumber: String?
-
-    func resetPhoneNumber() {
-        hasRequestedVerificationCode = false
-    }
 
     func set(countryCode: String, nationalNumber: String, userName: String) {
         formattedPhoneNumber = "+\(countryCode) \(nationalNumber)"
@@ -49,7 +43,6 @@ final class DemoRegistrationManager: RegistrationManager {
 
     func requestVerificationCode(completion: @escaping (Result<Void, Error>) -> Void) {
         DispatchQueue.main.asyncAfter(deadline: .now() + TimeInterval(2)) {
-            self.hasRequestedVerificationCode = true
             completion(.success(()))
         }
     }
@@ -63,6 +56,10 @@ final class DemoRegistrationManager: RegistrationManager {
             }
         }
 
+    }
+
+    func requestContactsPermissions() {
+        // no-op
     }
 
     func didCompleteRegistrationFlow() {

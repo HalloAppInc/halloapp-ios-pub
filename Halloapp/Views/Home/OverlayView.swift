@@ -136,16 +136,17 @@ final class NUXPopover: UIView, Overlay {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = message
         label.numberOfLines = 0
-        label.font = .systemFont(forTextStyle: .callout)
+        label.font = .systemFont(forTextStyle: .callout, weight: .medium)
         label.constrainMargins([.leading, .trailing, .top], to: panel)
 
         if showButton {
             panel.addSubview(button)
             button.translatesAutoresizingMaskIntoConstraints = false
             button.setTitle(Localizations.buttonOK, for: .normal)
-            button.titleLabel?.font = .systemFont(forTextStyle: .callout, weight: .medium)
+            button.titleLabel?.font = .systemFont(forTextStyle: .body, weight: .semibold)
             button.setTitleColor(UIColor.white.withAlphaComponent(0.7), for: .normal)
-            button.constrainMargins([.trailing, .bottom], to: panel)
+            button.constrainMargin(anchor: .trailing, to: panel)
+            button.constrainMargin(anchor: .bottom, to: panel, constant: -2)
             button.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 4).isActive = true
             button.addTarget(self, action: #selector(didTapButton), for: .touchUpInside)
         } else {

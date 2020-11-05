@@ -14,155 +14,195 @@ protocol VerificationCodeViewControllerDelegate: AnyObject {
     var formattedPhoneNumber: String? { get }
     func requestVerificationCode(completion: @escaping (Result<Void, Error>) -> Void)
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void)
-    func verificationCodeViewControllerDidRequestNewPhoneNumber(_ viewController: VerificationCodeViewController)
     func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController)
+}
+
+private enum VerificationCodeViewControllerState {
+    case requestingCode
+    case validatingCode
+    case enteringCode
+    case invalidCode
+    case validatedCode
+    case requestError
 }
 
 class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     weak var delegate: VerificationCodeViewControllerDelegate?
 
-    private var isCodeRequestInProgress: Bool = false {
-        didSet {
-            if self.isViewLoaded {
-                activityIndicatorView.isHidden = !isCodeRequestInProgress
-                buttonReenterPhone.isEnabled = !isCodeRequestInProgress
-                buttonRetryCodeRequest.isEnabled = !isCodeRequestInProgress
-                buttonContinue.isEnabled = !isCodeRequestInProgress && !verificationCode.isEmpty
-                textFieldCode.isEnabled = !isCodeRequestInProgress
-                labelInvalidCode.alpha = 0
-            }
-        }
-    }
-    private var isCodeValidationInProgress: Bool = false {
-        didSet {
-            if self.isViewLoaded {
-                activityIndicatorView.isHidden = !isCodeValidationInProgress
-                buttonReenterPhone.isEnabled = !isCodeValidationInProgress
-                buttonRetryCodeRequest.isEnabled = !isCodeValidationInProgress
-                buttonContinue.isEnabled = !isCodeValidationInProgress && !verificationCode.isEmpty
-                textFieldCode.isEnabled = !isCodeValidationInProgress
-                labelInvalidCode.alpha = 0
-            }
-        }
+    private var state: VerificationCodeViewControllerState = .requestingCode {
+        didSet { updateUI() }
     }
 
-    @IBOutlet weak var labelTitle: UILabel!
+    let scrollView = UIScrollView()
+    var scrollViewBottomMargin: NSLayoutConstraint?
 
-    @IBOutlet weak var codeInputContainer: UIStackView!
-    @IBOutlet weak var codeInputFieldBackground: UIView!
-    @IBOutlet weak var textFieldCode: UITextField!
-    @IBOutlet weak var labelInvalidCode: UILabel!
-    @IBOutlet weak var buttonContinue: UIButton!
+    let logo = UIImageView()
 
-    @IBOutlet weak var viewCodeRequestError: UIView!
-    @IBOutlet weak var buttonRetryCodeRequest: UIButton!
+    let labelTitle = UILabel()
+    let labelError = UILabel()
 
-    @IBOutlet weak var viewChangePhone: UIStackView!
-    @IBOutlet weak var labelChangePhone: UILabel!
-    @IBOutlet weak var buttonReenterPhone: UIButton!
+    let textFieldCode = UITextField()
+    lazy var codeEntryField: UIView = { textFieldCode.withTextFieldBackground() }()
+    var inputVerticalCenterConstraint: NSLayoutConstraint?
 
-    @IBOutlet weak var activityIndicatorView: UIView!
+    let buttonRetryCodeRequest = UIButton()
 
-    @IBOutlet weak var scrollViewBottomMargin: NSLayoutConstraint!
-
-    @IBOutlet var buttons: [UIButton]!
-    @IBOutlet var labels: [UILabel]!
+    let activityIndicatorView = UIActivityIndicatorView(style: .large)
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = .feedBackground
 
-        labelTitle.font = .gothamFont(forTextStyle: .title3, weight: .medium)
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.preservesSuperviewLayoutMargins = true
+
+        logo.translatesAutoresizingMaskIntoConstraints = false
+        logo.image = UIImage(named: "RegistrationLogo")?.withRenderingMode(.alwaysTemplate)
+        logo.tintColor = .lavaOrange
+        logo.setContentCompressionResistancePriority(.required, for: .vertical)
+
+        labelTitle.translatesAutoresizingMaskIntoConstraints = false
+        labelTitle.font = .systemFont(forTextStyle: .title1, weight: .medium)
+        labelTitle.numberOfLines = 0
+        labelTitle.setContentCompressionResistancePriority(.required, for: .vertical)
+        if let formattedNumber = delegate?.formattedPhoneNumber {
+            labelTitle.text = Localizations.registrationCodeInstructions(formattedNumber: formattedNumber)
+        }
+
+        activityIndicatorView.setContentHuggingPriority(.required, for: .horizontal)
+        activityIndicatorView.startAnimating()
+
+        let hStackView = UIStackView(arrangedSubviews: [labelTitle, activityIndicatorView])
+        hStackView.translatesAutoresizingMaskIntoConstraints = false
+        hStackView.axis = .horizontal
+        hStackView.distribution = .fill
+        hStackView.alignment = .center
+
+        textFieldCode.translatesAutoresizingMaskIntoConstraints = false
         textFieldCode.font = .monospacedDigitSystemFont(ofSize: UIFontDescriptor.preferredFontDescriptor(withTextStyle: .title3).pointSize, weight: .regular)
+        textFieldCode.delegate = self
+        textFieldCode.keyboardType = .numberPad
+        textFieldCode.addTarget(self, action: #selector(textFieldCodeEditingChanged), for: .editingChanged)
 
-        if let formattedPhoneNumber = delegate?.formattedPhoneNumber {
-            labelChangePhone.text = "Not \(formattedPhoneNumber)?"
+        let stackView = UIStackView(arrangedSubviews: [hStackView, codeEntryField, labelError])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .vertical
+        stackView.spacing = 32
+
+        labelError.textColor = .red
+        labelError.textAlignment = .center
+        labelError.font = .preferredFont(forTextStyle: .footnote)
+        labelError.numberOfLines = 0
+
+        buttonRetryCodeRequest.setTitle(Localizations.registrationCodeResend, for: .normal)
+        buttonRetryCodeRequest.titleLabel?.font = .preferredFont(forTextStyle: .footnote)
+        buttonRetryCodeRequest.setTitleColor(.secondaryLabel, for: .normal)
+        buttonRetryCodeRequest.translatesAutoresizingMaskIntoConstraints = false
+        buttonRetryCodeRequest.addTarget(self, action: #selector(didTapResendCode), for: .touchUpInside)
+        buttonRetryCodeRequest.setContentCompressionResistancePriority(.required, for: .vertical)
+
+        // View hierarchy
+
+        scrollView.addSubview(logo)
+        scrollView.addSubview(stackView)
+        scrollView.addSubview(buttonRetryCodeRequest)
+
+        view.addSubview(scrollView)
+
+        // Constraints
+
+        scrollView.constrain([.leading, .trailing, .top], to: view)
+        scrollViewBottomMargin = scrollView.constrain(anchor: .bottom, to: view)
+
+        logo.constrain(anchor: .top, to: scrollView.contentLayoutGuide, constant: 32)
+        logo.constrainMargin(anchor: .leading, to: scrollView)
+
+        stackView.constrainMargins([.leading, .trailing], to: view)
+        stackView.topAnchor.constraint(greaterThanOrEqualTo: logo.bottomAnchor, constant: 32).isActive = true
+        stackView.bottomAnchor.constraint(lessThanOrEqualTo: buttonRetryCodeRequest.topAnchor, constant: -12).isActive = true
+        inputVerticalCenterConstraint = stackView.constrain(anchor: .centerY, to: scrollView, priority: .defaultHigh)
+
+        buttonRetryCodeRequest.constrainMargin(anchor: .leading, to: scrollView)
+        buttonRetryCodeRequest.constrain(anchor: .bottom, to: scrollView.contentLayoutGuide)
+
+        // Notifications
+
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: nil) { [weak self] notification in
+            self?.updateBottomMargin(with: notification)
         }
-
-        codeInputFieldBackground.backgroundColor = .textFieldBackground
-        codeInputFieldBackground.layer.masksToBounds = true
-        codeInputFieldBackground.layer.cornerRadius = 10
-
-        buttonContinue.layer.masksToBounds = true
-        buttonContinue.titleLabel?.font = .gothamFont(forTextStyle: .title3, weight: .bold)
-
-        reloadButtonBackground()
-
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: nil) { (notification) in
-            self.updateBottomMargin(with: notification)
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: nil) { [weak self] notification in
+            self?.updateBottomMargin(with: notification)
         }
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: nil) { (notification) in
-            self.updateBottomMargin(with: notification)
-        }
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardDidHideNotification, object: nil, queue: nil) { (notification) in
-            self.updateBottomMargin(with: notification)
-        }
-
-        // Update UI.
-        if isCodeRequestInProgress {
-            isCodeRequestInProgress = true
-
-            self.viewCodeRequestError.isHidden = true
-            self.viewChangePhone.isHidden = true
-            self.labelTitle.isHidden = true
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillChangeFrameNotification, object: nil, queue: nil) { [weak self] notification in
+            self?.updateBottomMargin(with: notification)
         }
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        buttonContinue.layer.cornerRadius = (0.5 * buttonContinue.frame.height).rounded()
+        let effectiveContentHeight = scrollView.contentSize.height + scrollView.adjustedContentInset.bottom + scrollView.adjustedContentInset.top
+        scrollView.isScrollEnabled = effectiveContentHeight > self.scrollView.frame.height
+
+        inputVerticalCenterConstraint?.constant = -scrollView.adjustedContentInset.top
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        if self.traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-            reloadButtonBackground()
+    private func updateBottomMargin(with notification: Notification) {
+        guard let endFrame = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
+              let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval else
+        {
+            return
         }
-    }
-
-    private func reloadButtonBackground() {
-        buttonContinue.setBackgroundColor(.systemRed, for: .normal)
-        buttonContinue.setBackgroundColor(UIColor.systemRed.withAlphaComponent(0.2), for: .highlighted)
-        buttonContinue.setBackgroundColor(.systemGray4, for: .disabled)
-    }
-
-    private func updateBottomMargin(with keyboardNotification: Notification) {
-        let endFrame: CGRect = (keyboardNotification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
-        let duration: TimeInterval = keyboardNotification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as! TimeInterval
-        let bottomMargin = max(endFrame.height - self.view.safeAreaInsets.bottom, 0) + 8
-        if scrollViewBottomMargin.constant != bottomMargin {
+        let heightInView = endFrame.intersection(view.bounds).height
+        let bottomMargin = -max(heightInView, 0)
+        if scrollViewBottomMargin?.constant != bottomMargin {
             UIView.animate(withDuration: duration) {
-                self.scrollViewBottomMargin.constant = bottomMargin
+                self.scrollViewBottomMargin?.constant = bottomMargin
                 self.view.layoutIfNeeded()
             }
         }
     }
 
-    @IBAction func textFieldCodeEditingChanged(_ sender: Any) {
-        self.buttonContinue.isEnabled = verificationCode.count > 4
-    }
-
-    @IBAction func tryAgainAction(_ sender: Any) {
-        self.requestVerificationCode()
-    }
-
-    @IBAction func changePhoneNumberAction(_ sender: Any) {
-        delegate?.verificationCodeViewControllerDidRequestNewPhoneNumber(self)
-    }
-
-    @IBAction func continueAction(_ sender: Any) {
-        validateCode()
+    @objc
+    func textFieldCodeEditingChanged(_ sender: Any) {
+        state = .enteringCode
+        if verificationCode.count == 6 {
+            validateCode()
+        }
     }
 
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         guard string.rangeOfCharacter(from: NSCharacterSet.decimalDigits.inverted) == nil else { return false }
         let resultingLength = (textField.text?.count ?? 0) - range.length + string.count
-        return resultingLength <= 12
+        return resultingLength <= 6
     }
 
     private var verificationCode: String {
         get { (textFieldCode.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines) }
+    }
+
+    private func updateUI() {
+        let isWaiting = state == .requestingCode || state == .validatingCode
+        let shouldHideInput = state == .requestingCode || state == .requestError
+        let canEnterText = state == .enteringCode || state == .invalidCode
+        let canRequestNewCode = state == .enteringCode || state == .invalidCode
+        let shouldShowError = state == .invalidCode || state == .requestError
+        let errorText = state == .invalidCode ? Localizations.registrationCodeIncorrect : Localizations.registrationCodeRequestError
+
+        activityIndicatorView.alpha = isWaiting ? 1 : 0
+        labelTitle.isHidden = shouldHideInput
+        codeEntryField.isHidden = shouldHideInput
+        buttonRetryCodeRequest.isHidden = !canRequestNewCode
+        textFieldCode.isEnabled = canEnterText
+        labelError.text = errorText
+        labelError.alpha = shouldShowError ? 1 : 0
+    }
+
+    @objc
+    func didTapResendCode() {
+        guard state != .requestingCode else { return }
+        textFieldCode.text = ""
+        requestVerificationCode()
     }
 
     // MARK: Code Request
@@ -173,28 +213,24 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
             return
         }
 
-        isCodeRequestInProgress = true
+        state = .requestingCode
 
         delegate.requestVerificationCode() { [weak self] result in
-            self?.isCodeRequestInProgress = false
             switch result {
             case .success:
-                self?.labelTitle.isHidden = false
-                self?.viewCodeRequestError.isHidden = true
-                self?.viewChangePhone.isHidden = false
-
+                self?.state = .enteringCode
                 self?.textFieldCode.becomeFirstResponder()
 
             case .failure(let error):
-                self?.labelTitle.isHidden = true
-                self?.viewChangePhone.isHidden = false
                 if let codeRequestError = error as? VerificationCodeRequestError, case .notInvited = codeRequestError {
-                    let message = "We are currently in beta and by invitation only. Please have one of your friends who is a HalloApp user invite you."
-                    let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+                    let alert = UIAlertController(
+                        title: Localizations.registrationInviteOnlyTitle,
+                        message: Localizations.registrationInviteOnlyText,
+                        preferredStyle: .alert)
                     alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .cancel))
                     self?.present(alert, animated: true)
                 } else {
-                    self?.viewCodeRequestError.isHidden = false
+                    self?.state = .requestError
                 }
             }
         }
@@ -208,18 +244,17 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
             return
         }
 
-        isCodeValidationInProgress = true
+        state = .validatingCode
 
         delegate.confirmVerificationCode(verificationCode) { [weak self] result in
             guard let self = self else { return }
 
-            self.isCodeValidationInProgress = false
             switch result {
             case .success:
+                self.state = .validatedCode
                 self.delegate?.verificationCodeViewControllerDidFinish(self)
             case .failure:
-                self.labelInvalidCode.alpha = 1
-                self.textFieldCode.text = ""
+                self.state = .invalidCode
                 self.textFieldCode.becomeFirstResponder()
             }
         }

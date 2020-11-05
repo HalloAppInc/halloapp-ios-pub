@@ -20,4 +20,14 @@ extension Localizations {
         NSLocalizedString("button.cancel", value: "Cancel", comment: "Title for generic Cancel button. Mostly used in popups and as such.")
     }
 
+    static var buttonNext: String {
+        NSLocalizedString("button.next", value: "Next", comment: "Title for generic Next button. Mostly used to proceed to next screen in flow.")
+    }
+
+    // MARK: Links
+
+    static var linkLearnMore: String {
+        NSLocalizedString("link.learnMore", value: "Learn more", comment: "Generic 'learn more' link. Mostly used to present additional information about topic.")
+    }
+
 }

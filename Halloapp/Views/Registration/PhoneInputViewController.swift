@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Core
 import PhoneNumberKit
 import UIKit
 
@@ -18,37 +19,69 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
 
     enum UserInputStatus {
         case valid(PhoneNumber, String) // phone number, name
-        case invalid(UITextField, String)  // text field to activate, error message
+        case invalid(UITextField)  // text field to activate
     }
 
-    @IBOutlet var titleLabels: [UILabel]!
+    let logo = UIImageView()
+    let textFieldPhoneNumber = PhoneNumberTextField(withPhoneNumberKit: MainAppContext.shared.phoneNumberFormatter)
+    let textFieldUserName = UITextField()
+    let buttonSignIn = UIButton()
+    var inputVerticalCenterConstraint: NSLayoutConstraint?
 
-    @IBOutlet weak var phoneNumberTextFieldContainer: UIView!
-    var textFieldPhoneNumber: PhoneNumberTextField!
-    @IBOutlet weak var textFieldUserName: UITextField!
-    @IBOutlet var textFieldBackgrounds: [UIView]!
+    let disclaimer = UILabel()
 
-    @IBOutlet weak var buttonSignIn: UIButton!
-
-    @IBOutlet weak var scrollView: UIScrollView!
-    @IBOutlet weak var scrollViewBottomMargin: NSLayoutConstraint!
+    let scrollView = UIScrollView()
+    var scrollViewBottomMargin: NSLayoutConstraint?
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.preservesSuperviewLayoutMargins = true
+
+        navigationItem.backButtonTitle = ""
+
+        logo.translatesAutoresizingMaskIntoConstraints = false
+        logo.image = UIImage(named: "RegistrationLogo")?.withRenderingMode(.alwaysTemplate)
+        logo.tintColor = .lavaOrange
+        logo.setContentCompressionResistancePriority(.required, for: .vertical)
+
+        let welcomeLabel = UILabel()
+        welcomeLabel.text = Localizations.registrationWelcome
+        welcomeLabel.font = .systemFont(forTextStyle: .title1, weight: .medium)
+
+        textFieldUserName.translatesAutoresizingMaskIntoConstraints = false
+        textFieldUserName.placeholder = Localizations.registrationNamePlaceholder
+        textFieldUserName.addTarget(self, action: #selector(nameFieldAction), for: .primaryActionTriggered)
+        textFieldUserName.addTarget(self, action: #selector(textFieldEditingChanged), for: .editingChanged)
+
+        buttonSignIn.layer.masksToBounds = true
+        buttonSignIn.setTitle(Localizations.buttonNext, for: .normal)
+        buttonSignIn.setBackgroundColor(.lavaOrange, for: .normal)
+        buttonSignIn.setBackgroundColor(UIColor.lavaOrange.withAlphaComponent(0.5), for: .highlighted)
+        buttonSignIn.setBackgroundColor(.systemGray4, for: .disabled)
+        buttonSignIn.heightAnchor.constraint(greaterThanOrEqualToConstant: 50).isActive = true
+        buttonSignIn.addTarget(self, action: #selector(didTapNext), for: .touchUpInside)
+        buttonSignIn.isEnabled = false
+
+        let nameField = textFieldUserName.withTextFieldBackground()
+        let phoneField = textFieldPhoneNumber.withTextFieldBackground()
+
+        let stackView = UIStackView(arrangedSubviews: [welcomeLabel, nameField, phoneField, buttonSignIn])
+        stackView.alignment = .fill
+        stackView.axis = .vertical
+        stackView.spacing = 16
+        stackView.setCustomSpacing(28, after: phoneField)
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+
+        disclaimer.text = Localizations.registrationCodeDisclaimer
+        disclaimer.font = .preferredFont(forTextStyle: .footnote)
+        disclaimer.textColor = .secondaryLabel
+        disclaimer.numberOfLines = 0
+        disclaimer.translatesAutoresizingMaskIntoConstraints = false
+
         view.backgroundColor = .feedBackground
 
-        titleLabels.forEach { $0.font = .gothamFont(forTextStyle: .largeTitle, weight: .bold) }
-        buttonSignIn.layer.masksToBounds = true
-        buttonSignIn.titleLabel?.font = .gothamFont(forTextStyle: .title3, weight: .bold)
-        textFieldBackgrounds.forEach { (textFieldBackground) in
-            textFieldBackground.backgroundColor = .textFieldBackground
-            textFieldBackground.layer.masksToBounds = true
-            textFieldBackground.layer.cornerRadius = 10
-        }
-
-        // It is necessary to create phone number text field in code so that we can provide shared PhoneNumberKit instance.
-        textFieldPhoneNumber = PhoneNumberTextField(withPhoneNumberKit: MainAppContext.shared.phoneNumberFormatter)
         textFieldPhoneNumber.withFlag = true
         textFieldPhoneNumber.withPrefix = true
         textFieldPhoneNumber.withExamplePlaceholder = true
@@ -57,51 +90,67 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         textFieldPhoneNumber.addTarget(self, action: #selector(textFieldEditingChanged), for: .editingChanged)
         textFieldPhoneNumber.addTarget(self, action: #selector(phoneNumberFieldAction), for: .primaryActionTriggered)
         textFieldPhoneNumber.translatesAutoresizingMaskIntoConstraints = false
-        phoneNumberTextFieldContainer.addSubview(textFieldPhoneNumber)
-        textFieldPhoneNumber.leadingAnchor.constraint(equalTo: phoneNumberTextFieldContainer.layoutMarginsGuide.leadingAnchor).isActive = true
-        textFieldPhoneNumber.topAnchor.constraint(equalTo: phoneNumberTextFieldContainer.layoutMarginsGuide.topAnchor).isActive = true
-        textFieldPhoneNumber.trailingAnchor.constraint(equalTo: phoneNumberTextFieldContainer.layoutMarginsGuide.trailingAnchor).isActive = true
-        textFieldPhoneNumber.bottomAnchor.constraint(equalTo: phoneNumberTextFieldContainer.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        reloadButtonBackground()
+        // View hierarchy
 
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: nil) { (notification) in
-            self.updateBottomMargin(with: notification)
+        scrollView.addSubview(logo)
+        scrollView.addSubview(stackView)
+        scrollView.addSubview(disclaimer)
+
+        view.addSubview(scrollView)
+
+        // Constraints
+
+        scrollView.constrain([.leading, .trailing, .top], to: view)
+        scrollViewBottomMargin = scrollView.constrain(anchor: .bottom, to: view)
+
+        logo.constrain(anchor: .top, to: scrollView.contentLayoutGuide, constant: 32)
+        logo.constrainMargin(anchor: .leading, to: scrollView)
+
+        stackView.constrainMargins([.leading, .trailing], to: view)
+        stackView.topAnchor.constraint(greaterThanOrEqualTo: logo.bottomAnchor, constant: 32).isActive = true
+        stackView.bottomAnchor.constraint(lessThanOrEqualTo: disclaimer.topAnchor, constant: -32).isActive = true
+        inputVerticalCenterConstraint = stackView.constrain(anchor: .centerY, to: scrollView, priority: .defaultHigh)
+
+        disclaimer.constrainMargin(anchor: .leading, to: scrollView)
+        disclaimer.constrain(anchor: .bottom, to: scrollView.contentLayoutGuide)
+
+        // Notifications
+        
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: nil) { [weak self] notification in
+            self?.updateBottomMargin(with: notification)
         }
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: nil) { (notification) in
-            self.updateBottomMargin(with: notification)
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: nil) { [weak self] notification in
+            self?.updateBottomMargin(with: notification)
         }
-    }
-
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        if self.traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-            reloadButtonBackground()
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillChangeFrameNotification, object: nil, queue: nil) { [weak self] notification in
+            self?.updateBottomMargin(with: notification)
         }
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        scrollView.isScrollEnabled = self.scrollView.contentSize.height > self.scrollView.frame.height
         buttonSignIn.layer.cornerRadius = (0.5 * buttonSignIn.frame.height).rounded()
+        let effectiveContentHeight = scrollView.contentSize.height + scrollView.adjustedContentInset.bottom + scrollView.adjustedContentInset.top
+        scrollView.isScrollEnabled = effectiveContentHeight > self.scrollView.frame.height
+
+        inputVerticalCenterConstraint?.constant = -scrollView.adjustedContentInset.top
     }
 
-    private func updateBottomMargin(with keyboardNotification: Notification) {
-        let endFrame: CGRect = (keyboardNotification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)!.cgRectValue
-        let duration: TimeInterval = keyboardNotification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as! TimeInterval
-        let bottomMargin = max(endFrame.height - self.view.safeAreaInsets.bottom, 0) + 8
-        if scrollViewBottomMargin.constant != bottomMargin {
+    private func updateBottomMargin(with notification: Notification) {
+        guard let endFrame = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
+              let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval else
+        {
+            return
+        }
+        let heightInView = endFrame.intersection(view.bounds).height
+        let bottomMargin = -max(heightInView, 0)
+        if scrollViewBottomMargin?.constant != bottomMargin {
             UIView.animate(withDuration: duration) {
-                self.scrollViewBottomMargin.constant = bottomMargin
+                self.scrollViewBottomMargin?.constant = bottomMargin
                 self.view.layoutIfNeeded()
             }
         }
-    }
-
-    private func reloadButtonBackground() {
-        buttonSignIn.setBackgroundColor(.systemRed, for: .normal)
-        buttonSignIn.setBackgroundColor(UIColor.systemRed.withAlphaComponent(0.2), for: .highlighted)
-        buttonSignIn.setBackgroundColor(.systemGray4, for: .disabled)
     }
 
     private var phoneNumber: String {
@@ -114,35 +163,30 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
     
     private func validateUserInput() -> UserInputStatus {
         guard textFieldPhoneNumber.isValidNumber else {
-            return .invalid(textFieldPhoneNumber, "Enter phone number")
+            return .invalid(textFieldPhoneNumber)
         }
         guard !userName.isEmpty else {
-            return .invalid(textFieldUserName, "Enter your name")
+            return .invalid(textFieldUserName)
         }
         return .valid(textFieldPhoneNumber.phoneNumber!, userName)
     }
 
-    @IBAction func nameFieldAction(_ sender: Any) {
+    @objc
+    func nameFieldAction(_ sender: Any) {
         textFieldPhoneNumber.becomeFirstResponder()
     }
 
-    @IBAction func countryCodeFieldAction(_ sender: Any) {
-        if !phoneNumber.isEmpty && userName.isEmpty {
-            textFieldUserName.becomeFirstResponder()
-        } else {
-            textFieldPhoneNumber.becomeFirstResponder()
-        }
-    }
-
-    @IBAction func phoneNumberFieldAction(_ sender: Any) {
+    @objc
+    func phoneNumberFieldAction(_ sender: Any) {
         if userName.isEmpty {
             textFieldUserName.becomeFirstResponder()
         } else if textFieldPhoneNumber.isValidNumber {
-            signInAction(buttonSignIn!)
+            didTapNext()
         }
     }
 
-    @IBAction func textFieldEditingChanged(_ sender: Any) {
+    @objc
+    func textFieldEditingChanged(_ sender: Any) {
         let userInputStatus = self.validateUserInput()
         if case .valid = userInputStatus {
             self.buttonSignIn.isEnabled = true
@@ -163,19 +207,34 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         return true
     }
 
-    @IBAction func signInAction(_ sender: Any) {
+    @objc
+    private func didTapNext() {
         let userInputStatus = self.validateUserInput()
 
         switch userInputStatus {
         case let .valid(phoneNumber, userName):
+            view.endEditing(true)
             delegate?.phoneInputViewControllerDidFinish(
                 self,
                 countryCode: String(phoneNumber.countryCode),
                 nationalNumber: String(phoneNumber.nationalNumber),
                 name: userName)
 
-        case let .invalid(textField, _):
+        case let .invalid(textField):
             textField.becomeFirstResponder()
         }
+    }
+}
+
+extension UIView {
+    func withTextFieldBackground() -> UIView {
+        let background = UIView()
+        background.backgroundColor = .textFieldBackground
+        background.layer.masksToBounds = true
+        background.layer.cornerRadius = 5
+        background.addSubview(self)
+        background.layoutMargins = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+        constrainMargins(to: background)
+        return background
     }
 }

@@ -10,12 +10,11 @@ import CocoaLumberjack
 import Foundation
 
 protocol RegistrationManager: AnyObject {
-    var hasRequestedVerificationCode: Bool { get }
     var formattedPhoneNumber: String? { get }
-    func resetPhoneNumber()
     func set(countryCode: String, nationalNumber: String, userName: String)
     func requestVerificationCode(completion: @escaping (Result<Void, Error>) -> Void)
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void)
+    func requestContactsPermissions()
     func didCompleteRegistrationFlow()
 }
 
@@ -31,18 +30,9 @@ final class DefaultRegistrationManager: RegistrationManager {
         MainAppContext.shared.userData.formattedPhoneNumber
     }
 
-    var hasRequestedVerificationCode: Bool {
-        !MainAppContext.shared.userData.normalizedPhoneNumber.isEmpty
-    }
-
-    func resetPhoneNumber() {
-        let userData = MainAppContext.shared.userData
-        userData.normalizedPhoneNumber = ""
-        userData.save()
-    }
-
     func set(countryCode: String, nationalNumber: String, userName: String) {
         let userData = MainAppContext.shared.userData
+        userData.normalizedPhoneNumber = ""
         userData.countryCode = countryCode
         userData.phoneInput = nationalNumber
         userData.name = userName
@@ -80,6 +70,14 @@ final class DefaultRegistrationManager: RegistrationManager {
                 completion(.failure(error))
             }
         }
+    }
+
+    func requestContactsPermissions() {
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            DDLogError("RegistrationManager/requestContactsPermission/error app delegate unavailable")
+            return
+        }
+        appDelegate.requestAccessToContactsAndNotifications()
     }
 
     func didCompleteRegistrationFlow() {
