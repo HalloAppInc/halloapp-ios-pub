@@ -139,7 +139,7 @@ class ProfileViewController: UITableViewController {
         super.viewWillDisappear(animated)
 
         if let currentOverlay = overlay {
-            overlayContainer.dismiss(currentOverlay)
+            overlayContainer?.dismiss(currentOverlay)
             overlay = nil
         }
     }
@@ -237,11 +237,15 @@ class ProfileViewController: UITableViewController {
 
     // MARK: NUX
 
-    private lazy var overlayContainer: OverlayContainer = {
+    private lazy var overlayContainer: OverlayContainer? = {
+        guard let navController = navigationController else {
+            // Because this is a UITableViewController, we need a parent VC for overlays :(
+            return nil
+        }
         let overlayContainer = OverlayContainer()
         overlayContainer.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(overlayContainer)
-        overlayContainer.constrain(to: view)
+        navController.view.addSubview(overlayContainer)
+        overlayContainer.constrain(to: navController.view)
         return overlayContainer
     }()
 
@@ -249,6 +253,10 @@ class ProfileViewController: UITableViewController {
 
     private func showNUXIfNecessary() {
         if MainAppContext.shared.nux.isIncomplete(.profileIntro) {
+            guard let overlayContainer = overlayContainer else {
+                DDLogError("ProfileViewController/showNUX/error no overlay container")
+                return
+            }
             let popover = NUXPopover(NUX.profileContent) { MainAppContext.shared.nux.didComplete(.profileIntro) }
             overlayContainer.display(popover)
             overlay = popover

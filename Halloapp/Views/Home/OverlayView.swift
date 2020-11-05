@@ -80,12 +80,7 @@ final class NUXItem: UIView {
         Future { promise in
             UIView.animate(
                 withDuration: 0.2,
-                delay: 0,
-                usingSpringWithDamping: 1,
-                initialSpringVelocity: 0,
-                options: AnimationOptions(),
                 animations: {
-                    self.transform = .init(scaleX: 0.1, y: 0.1)
                     self.alpha = 0 },
                 completion: { _ in
                     self.didClose?()
@@ -217,17 +212,11 @@ final class NUXPopover: UIView, Overlay {
             constrain(anchor: .centerY, to: container)
         }
 
-        transform = .init(scaleX: 0, y: 0)
         alpha = 0
 
         UIView.animate(
             withDuration: 0.5,
-            delay: 0.2,
-            usingSpringWithDamping: 0.5,
-            initialSpringVelocity: 0,
-            options: AnimationOptions(),
             animations: {
-                self.transform = .identity
                 self.alpha = 1 },
             completion: { _ in })
     }
@@ -236,12 +225,7 @@ final class NUXPopover: UIView, Overlay {
         Future { promise in
             UIView.animate(
                 withDuration: 0.2,
-                delay: 0,
-                usingSpringWithDamping: 1,
-                initialSpringVelocity: 0,
-                options: AnimationOptions(),
                 animations: {
-                    self.transform = .init(scaleX: 0.1, y: 0.1)
                     self.alpha = 0 },
                 completion: { _ in
                     self.completion?()
