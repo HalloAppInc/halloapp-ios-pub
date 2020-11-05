@@ -73,10 +73,6 @@ class FeedViewController: FeedTableViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         updateInviteFriendsButtonPosition()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
         showNUXIfNecessary()
     }
 
@@ -166,6 +162,9 @@ class FeedViewController: FeedTableViewController {
     private var isShowingNUXHeaderView = false
 
     private func showNUXIfNecessary() {
+        guard view.window != nil else {
+            return
+        }
         if isShowingNUXHeaderView || overlay != nil {
             // only show one NUX item at a time
             return
