@@ -21,7 +21,7 @@ final class PrivacyListTableRow: NSObject, IndexableContact, SearchableContact {
         self.userId = userId
         self.name = name
         self.indexName = indexName ?? "#"
-        self.phoneNumber = phoneNumber
+        self.phoneNumber = phoneNumber?.formattedPhoneNumber
         self.searchTokens = searchTokens
         self.isSelected = isSelected
     }
@@ -81,19 +81,21 @@ class PrivacyListViewController: PrivacyListTableViewController {
         let selfUserId = MainAppContext.shared.userData.userId
         var uniqueUserIds = Set<UserID>()
         var contacts = [PrivacyListTableRow]()
-        for contact in MainAppContext.shared.contactStore.allInNetworkContacts(sorted: true) {
+        for contact in MainAppContext.shared.contactStore.allRegisteredContacts(sorted: true) {
             guard let userId = contact.userId else { continue }
             guard !uniqueUserIds.contains(userId) else { continue }
             guard userId != selfUserId else { continue }
 
-            contacts.append(PrivacyListTableRow(contact: contact))
-            
-            uniqueUserIds.insert(contact.userId!)
+            let contactSelected = selectedContactIds.contains(userId)
+            if contact.status == .in || contactSelected {
+                let row = PrivacyListTableRow(contact: contact)
+                row.isSelected = contactSelected
+                contacts.append(row)
+            }
+
+            uniqueUserIds.insert(userId)
         }
-        // Load selection
-        for entry in contacts {
-            entry.isSelected = selectedContactIds.contains(entry.userId)
-        }
+
         // Append contacts that aren't in user's address book (if any).
         let unknownUserIds = selectedContactIds.subtracting(uniqueUserIds)
         let namesForUnknownContacts = MainAppContext.shared.contactStore.fullNames(forUserIds: unknownUserIds)
