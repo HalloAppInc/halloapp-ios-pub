@@ -143,7 +143,7 @@ extension Date {
             return String(format: formatString, time)
         } else if seconds < Date.weeks(1) {
             let dayOfWeek = DateFormatter.dateTimeFormatterDayOfWeek.string(from: self)
-            let formatString = NSLocalizedString("timestamp.last.seen.dayofweek.at.time", value: "Last seen %1$@ at %2@", comment: "Last seen timestamp: day of week and time")
+            let formatString = NSLocalizedString("timestamp.last.seen.dayofweek.at.time", value: "Last seen %1$@ at %2$@", comment: "Last seen timestamp: day of week and time")
             return String(format: formatString, dayOfWeek, time)
         } else {
             let date = DateFormatter.dateTimeFormatterShortDate.string(from: self)
