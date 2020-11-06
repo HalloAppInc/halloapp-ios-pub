@@ -24,11 +24,10 @@ final class ContactsPermissionsViewController: UIViewController {
 
     private weak var overlay: Overlay?
     private lazy var overlayContainer: OverlayContainer = {
-        let targetView: UIView = tabBarController?.view ?? view
         let overlayContainer = OverlayContainer()
         overlayContainer.translatesAutoresizingMaskIntoConstraints = false
-        targetView.addSubview(overlayContainer)
-        overlayContainer.constrain(to: targetView)
+        view.addSubview(overlayContainer)
+        overlayContainer.constrain(to: view)
         return overlayContainer
     }()
 

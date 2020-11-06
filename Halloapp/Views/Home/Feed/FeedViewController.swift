@@ -149,11 +149,10 @@ class FeedViewController: FeedTableViewController {
     // MARK: NUX
 
     private lazy var overlayContainer: OverlayContainer = {
-        let targetView: UIView = tabBarController?.view ?? view
         let overlayContainer = OverlayContainer()
         overlayContainer.translatesAutoresizingMaskIntoConstraints = false
-        targetView.addSubview(overlayContainer)
-        overlayContainer.constrain(to: targetView)
+        view.addSubview(overlayContainer)
+        overlayContainer.constrain(to: view)
         return overlayContainer
     }()
 
@@ -249,7 +248,11 @@ class FeedViewController: FeedTableViewController {
         button.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 15).isActive = true
         button.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor).isActive = true
 
-        let sheet = BottomSheet(innerView: contentView, completion: completion)
+        tabBarController?.tabBar.isHidden = true
+        let sheet = BottomSheet(innerView: contentView) { [weak self] in
+            self?.tabBarController?.tabBar.isHidden = false
+            completion?()
+        }
 
         overlay = sheet
         overlayContainer.display(sheet)
