@@ -55,7 +55,7 @@ class ComposeViewController: SLComposeServiceViewController {
 
     private let serviceBuilder: ServiceBuilder = {
         // TODO: ProtoService for share extension should use passive mode and not attempt to reconnect
-        $0.useProtobuf ? ProtoServiceCore(userData: $0) : XMPPControllerShareExtension(userData: $0)
+        return ProtoServiceCore(userData: $0)
     }
 
     override func viewDidLoad() {

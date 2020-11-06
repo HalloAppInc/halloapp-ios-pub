@@ -196,50 +196,6 @@ class KeyData {
     
 }
 
-extension KeyData {
-
-    public func unwrapMessage(for userId: String, from entry: XMLElement) -> Data? {
-        DDLogInfo("KeyData/unwrapMessage/for/\(userId)")
-
-        guard let enc = entry.element(forName: "enc") else {
-            DDLogDebug("KeyData/unwrapMessage/no enc")
-            return nil
-        }
-        guard let encStringValue = enc.stringValue, !encStringValue.isEmpty else {
-            DDLogDebug("KeyData/unwrapMessage/empty enc")
-            return nil
-        }
-        guard let encryptedPayload = Data(base64Encoded: encStringValue, options: .ignoreUnknownCharacters) else {
-            AppContext.shared.eventMonitor.observe(.decryption(error: .invalidPayload))
-            DDLogError("KeyData/unwrapMessage/error base64 decoding failed")
-            return nil
-        }
-
-        let oneTimeKeyID: Int? = {
-            guard let inboundOneTimePreKeyIdStr = enc.attributeStringValue(forName: "one_time_pre_key_id") else {
-                return nil
-            }
-            return Int(inboundOneTimePreKeyIdStr)
-        }()
-
-        let publicKey: Data? = {
-            guard let inboundIdentityPublicEdKeyBase64 = enc.attributeStringValue(forName: "identity_key") else {
-                return nil
-            }
-            return Data(base64Encoded: inboundIdentityPublicEdKeyBase64)
-        }()
-
-        switch keyStore.decryptPayload(for: userId, encryptedPayload: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID) {
-        case .success(let data):
-            // Don't report decryption success yet (wait until it's validated against plaintext)
-            return data
-        case .failure(let error):
-            AppContext.shared.eventMonitor.observe(.decryption(error: error))
-            return nil
-        }
-    }
-}
-
 extension KeyData: HalloKeyDelegate {
     public func halloService(_ halloService: HalloService, didReceiveWhisperMessage message: WhisperMessage) {
         DDLogInfo("KeyData/didReceiveWhisperMessage \(message)")

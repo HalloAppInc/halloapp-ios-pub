@@ -22,19 +22,6 @@ public final class UserData: ObservableObject {
      */
     @Published public var isLoggedIn = false
 
-    public var useProtobuf: Bool {
-        // NB: We use the static user defaults since this is accessed during AppContext initialization
-        get {
-            if AppContext.userDefaultsForAppGroup.value(forKey: "UseProtobuf") == nil {
-                return true
-            }
-            return AppContext.userDefaultsForAppGroup.bool(forKey: "UseProtobuf")
-        }
-        set {
-            AppContext.userDefaultsForAppGroup.set(newValue, forKey: "UseProtobuf")
-        }
-    }
-
     public var useTestServer: Bool {
         get {
             #if DEBUG
@@ -76,7 +63,7 @@ public final class UserData: ObservableObject {
     }
 
     public var hostPort: UInt16 {
-        useProtobuf ? 5210 : 5222
+        5210
     }
 
     public var formattedPhoneNumber: String {

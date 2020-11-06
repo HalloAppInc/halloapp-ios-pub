@@ -49,28 +49,6 @@ struct XMPPChatMedia {
         self.key = chatMedia.key
         self.sha256 = chatMedia.sha256
     }
-    
-    init?(urlElement: XMLElement) {
-        guard let typeStr = urlElement.attributeStringValue(forName: "type") else { return nil }
-        guard let type: ChatMessageMediaType = {
-            switch typeStr {
-            case "image": return .image
-            case "video": return .video
-            default: return nil
-            }}() else { return nil }
-        guard let urlString = urlElement.stringValue else { return nil }
-        guard let url = URL(string: urlString) else { return nil }
-        let width = urlElement.attributeIntegerValue(forName: "width"), height = urlElement.attributeIntegerValue(forName: "height")
-        guard width > 0 && height > 0 else { return nil }
-        guard let key = urlElement.attributeStringValue(forName: "key") else { return nil }
-        guard let sha256 = urlElement.attributeStringValue(forName: "sha256hash") else { return nil }
-
-        self.url = url
-        self.type = type
-        self.size = CGSize(width: width, height: height)
-        self.key = key
-        self.sha256 = sha256
-    }
 
     init?(protoMedia: Clients_Media) {
         guard let type: ChatMessageMediaType = {
@@ -94,22 +72,5 @@ struct XMPPChatMedia {
 extension XMPPChatMedia: ChatMediaProtocol {
     var mediaType: ChatMessageMediaType {
         type
-    }
-}
-
-extension Clients_Container {
-    static func chatMessageContainer(from entry: XMLElement) -> Clients_Container? {
-        guard let s1 = entry.element(forName: "s1")?.stringValue else { return nil }
-        guard let data = Data(base64Encoded: s1, options: .ignoreUnknownCharacters) else { return nil }
-        do {
-            let protoContainer = try Clients_Container(serializedData: data)
-            if protoContainer.hasChatMessage {
-                return protoContainer
-            }
-        }
-        catch {
-            DDLogError("xmpp/chatmessage/invalid-protobuf")
-        }
-        return nil
     }
 }

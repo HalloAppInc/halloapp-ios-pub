@@ -3121,82 +3121,6 @@ extension XMPPChatMessage {
             self.media = []
         }
     }
-    
-    // for inbound message
-    init?(itemElement item: XMLElement) {
-        guard let id = item.attributeStringValue(forName: "id") else { return nil }
-        guard let toUserId = item.attributeStringValue(forName: "to")?.components(separatedBy: "@").first else { return nil }
-        guard let fromUserId = item.attributeStringValue(forName: "from")?.components(separatedBy: "@").first else { return nil }
-                
-        if let retryCount = item.attributeStringValue(forName: "retry_count"), retryCount != "" {
-            self.retryCount = Int32(retryCount)
-        }
-        
-        guard let chat = item.element(forName: "chat") else { return nil }
-        
-        var text: String?, media: [XMPPChatMedia] = [], feedPostId: String?, feedPostMediaIndex: Int32 = 0
-        var chatReplyMessageID: String?, chatReplyMessageSenderID: UserID?, chatReplyMessageMediaIndex: Int32 = 0
-
-        let decryptedContainer = Clients_Container.unwrapMessage(for: fromUserId, from: chat)
-        let plainTextContainer = Clients_Container.chatMessageContainer(from: chat)
-        
-        if let protoContainer = decryptedContainer {
-            if protoContainer.hasChatMessage {
-                if let plainText = plainTextContainer?.chatMessage.text {
-                    // Report decryption success or mismatch
-                    let error: DecryptionError? = plainText != protoContainer.chatMessage.text ? .plainTextMismatch : nil
-                    AppContext.shared.eventMonitor.observe(.decryption(error: error))
-                } else {
-                    // Report decryption success if no plaintext exists for comparison
-                    AppContext.shared.eventMonitor.observe(.decryption(error: nil))
-                }
-                text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
-                
-                DDLogInfo("ChatData/XMPPChatMessage/decryptedMessage: \(text ?? "")")
-                
-                media = protoContainer.chatMessage.media.compactMap { XMPPChatMedia(protoMedia: $0) }
-                
-                feedPostId = protoContainer.chatMessage.feedPostID.isEmpty ? nil : protoContainer.chatMessage.feedPostID
-                feedPostMediaIndex = protoContainer.chatMessage.feedPostMediaIndex
-                
-                chatReplyMessageID = protoContainer.chatMessage.chatReplyMessageID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageID
-                chatReplyMessageSenderID = protoContainer.chatMessage.chatReplyMessageSenderID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageSenderID
-                chatReplyMessageMediaIndex = protoContainer.chatMessage.chatReplyMessageMediaIndex
-            }
-        }
-            
-        else if let protoContainer = plainTextContainer {
-            if protoContainer.hasChatMessage {
-                text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
-                DDLogInfo("ChatData/XMPPChatMessage/plainText: \(text ?? "")")
-                
-                media = protoContainer.chatMessage.media.compactMap { XMPPChatMedia(protoMedia: $0) }
-                
-                feedPostId = protoContainer.chatMessage.feedPostID.isEmpty ? nil : protoContainer.chatMessage.feedPostID
-                feedPostMediaIndex = protoContainer.chatMessage.feedPostMediaIndex
-                
-                chatReplyMessageID = protoContainer.chatMessage.chatReplyMessageID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageID
-                chatReplyMessageSenderID = protoContainer.chatMessage.chatReplyMessageSenderID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageSenderID
-                chatReplyMessageMediaIndex = protoContainer.chatMessage.chatReplyMessageMediaIndex
-            }
-        }
-        
-        self.id = id
-        self.fromUserId = fromUserId
-        self.toUserId = toUserId
-        self.text = text
-        
-        self.feedPostId = feedPostId
-        self.feedPostMediaIndex = feedPostMediaIndex
-        
-        self.chatReplyMessageID = chatReplyMessageID
-        self.chatReplyMessageSenderID = chatReplyMessageSenderID
-        self.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
-        
-        self.media = media
-        
-        self.timestamp = chat.attributeDoubleValue(forName: "timestamp")
-    }
 
     init(_ protoChat: Clients_ChatMessage, timestamp: Int64, from fromUserID: UserID, to toUserID: UserID, id: String, retryCount: Int32) {
         self.id = id
@@ -3215,20 +3139,6 @@ extension XMPPChatMessage {
         chatReplyMessageMediaIndex = protoChat.chatReplyMessageMediaIndex
 
         DDLogDebug("ChatData/XMPPChatMessage/plainText: \(text ?? "")")
-    }
-}
-
-
-extension Clients_Container {
-    static func unwrapMessage(for userId: String, from entry: XMLElement) -> Clients_Container? {
-        guard let protoContainerData = MainAppContext.shared.keyData.unwrapMessage(for: userId, from: entry) else { return nil }
-        do {
-            let protoContainer = try Clients_Container(serializedData: protoContainerData)
-            return protoContainer
-        } catch {
-            DDLogError("xmpp/chatmessage/unwrapMessage/invalid-protobuf")
-        }
-        return nil
     }
 }
 

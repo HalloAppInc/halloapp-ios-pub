@@ -52,39 +52,6 @@ struct XMPPGroup {
         self.name = name
     }
 
-    // inbound
-    init?(itemElement item: XMLElement, messageId: String? = nil) {
-        guard let groupId: GroupID = item.attributeStringValue(forName: "gid"),
-              let groupName = item.attributeStringValue(forName: "name") else
-        {
-            return nil
-        }
-
-        self.init(id: groupId, name: groupName)
-        
-        if let avatarID = item.attributeStringValue(forName: "avatar"), !avatarID.isEmpty {
-            self.avatarID = avatarID
-        }
-
-        self.messageId = messageId
-        self.sender = item.attributeStringValue(forName: "sender")
-        self.senderName = item.attributeStringValue(forName: "sender_name")
-        
-        let actionStr = item.attributeStringValue(forName: "action")
-        self.action = {
-            switch actionStr {
-            case "create": return .create
-            case "leave": return .leave
-            case "modify_members": return .modifyMembers
-            case "modify_admins": return .modifyAdmins
-            case "change_name": return .changeName
-            case "change_avatar": return .changeAvatar
-            default: return nil
-            }}()
-        
-        self.members = item.elements(forName: "member").compactMap({ XMPPGroupMember(xmlElement: $0) })
-    }
-
     // used for inbound and outbound
     init?(protoGroup: Server_GroupStanza, msgId: String? = nil) {
         // msgId used only for inbound group events
@@ -123,37 +90,6 @@ struct XMPPGroupMember {
     let type: ChatGroupMemberType?
     
     let action: ChatGroupMemberAction? // does not need to be recorded in db
-    
-    // inbound
-    init?(xmlElement: XMLElement) {
-        guard let userId = xmlElement.attributeStringValue(forName: "uid") else { return nil }
-        let name = xmlElement.attributeStringValue(forName: "name")
-        
-        let typeStr = xmlElement.attributeStringValue(forName: "type")
-        let actionStr = xmlElement.attributeStringValue(forName: "action")
-        
-        let type: ChatGroupMemberType? = {
-            switch typeStr {
-            case "admin": return .admin
-            case "member": return .member
-            default: return nil
-            }}()
-
-        let action: ChatGroupMemberAction? = {
-            switch actionStr {
-            case "add": return .add
-            case "promote": return .promote
-            case "demote": return .demote
-            case "remove": return .remove
-            case "leave": return .leave
-            default: return nil
-            }}()
-        
-        self.userId = userId
-        self.name = name
-        self.type = type
-        self.action = action
-    }
 
     init?(protoMember: Server_GroupMember) {
         self.userId = String(protoMember.uid)
@@ -252,71 +188,7 @@ struct XMPPChatGroupMessage {
         self.chatReplyMessageSenderID = protoChat.chatReplyMessageSenderID.isEmpty ? nil : protoChat.chatReplyMessageSenderID
         self.chatReplyMessageMediaIndex = protoChat.chatReplyMessageMediaIndex
     }
-    
-    // init inbound message
-    init?(itemElement msgXML: XMLElement) {
-        if let retryCount = msgXML.attributeStringValue(forName: "retry_count"), retryCount != "" {
-            self.retryCount = Int32(retryCount)
-        }
-        guard let id = msgXML.attributeStringValue(forName: "id") else { return nil }
-        guard let groupChat = msgXML.element(forName: "group_chat") else { return nil }
-        
-        guard let groupId = groupChat.attributeStringValue(forName: "gid") else { return nil }
-        guard let groupName = groupChat.attributeStringValue(forName: "name") else { return nil }
-        guard let userId = groupChat.attributeStringValue(forName: "sender") else { return nil }
-        guard let userName = groupChat.attributeStringValue(forName: "sender_name") else { return nil }
 
-        let timestamp = groupChat.attributeDoubleValue(forName: "timestamp")
-        
-        var text: String?, media: [XMPPChatMedia] = []
-        var chatReplyMessageID: String?, chatReplyMessageSenderID: UserID?, chatReplyMessageMediaIndex: Int32 = 0
-        
-        if let protoContainer = Clients_Container.chatMessageContainer(from: groupChat) {
-            if protoContainer.hasChatMessage {
-                text = protoContainer.chatMessage.text.isEmpty ? nil : protoContainer.chatMessage.text
-                DDLogInfo("ChatData/group/XMPPChatGroupMessage/plainText: \(text ?? "")")
-                media = protoContainer.chatMessage.media.compactMap { XMPPChatMedia(protoMedia: $0) }
-                
-                chatReplyMessageID = protoContainer.chatMessage.chatReplyMessageID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageID
-                chatReplyMessageSenderID = protoContainer.chatMessage.chatReplyMessageSenderID.isEmpty ? nil : protoContainer.chatMessage.chatReplyMessageSenderID
-                chatReplyMessageMediaIndex = protoContainer.chatMessage.chatReplyMessageMediaIndex
-            }
-        }
-        
-        self.id = id
-        self.groupId = groupId
-        self.groupName = groupName
-        self.userId = userId
-        self.userName = userName
-        self.text = text
-        self.media = media
-
-        self.chatReplyMessageID = chatReplyMessageID
-        self.chatReplyMessageSenderID = chatReplyMessageSenderID
-        self.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
-        
-        self.timestamp = Date(timeIntervalSince1970: TimeInterval(timestamp))
-    }
-    
-    var xmppElement: XMPPElement {
-        let message = XMPPElement(name: "message")
-        message.addAttribute(withName: "to", stringValue: "s.halloapp.net")
-        message.addAttribute(withName: "type", stringValue: "groupchat")
-        message.addAttribute(withName: "id", stringValue: id)
-        
-        message.addChild({
-            let groupChat = XMPPElement(name: "group_chat")
-            groupChat.addAttribute(withName: "xmlns", stringValue: "halloapp:groups")
-            groupChat.addAttribute(withName: "gid", stringValue: groupId)
-            
-            if let protobufData = try? self.protoContainer.serializedData() {
-                groupChat.addChild(XMPPElement(name: "s1", stringValue: protobufData.base64EncodedString()))
-            }
-            return groupChat
-        }())
-        return message
-    }
-    
     var protoContainer: Clients_Container {
         get {
             var protoChatMessage = Clients_ChatMessage()

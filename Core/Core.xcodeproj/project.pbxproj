@@ -11,7 +11,6 @@
 		246A8B8224902BA600CE0429 /* Avatar+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B8024902BA600CE0429 /* Avatar+CoreDataProperties.swift */; };
 		246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B8124902BA600CE0429 /* Avatar+CoreDataClass.swift */; };
 		246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 246A8B842490357B00CE0429 /* AvatarStore.swift */; };
-		2490287524C524250019C4D5 /* XMPPCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490287424C524250019C4D5 /* XMPPCommonRequests.swift */; };
 		2490287924C525030019C4D5 /* UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490287824C525030019C4D5 /* UIImage.swift */; };
 		249028A024C5DFDE0019C4D5 /* Media+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490289C24C5DFDE0019C4D5 /* Media+CoreDataClass.swift */; };
 		249028A124C5DFDE0019C4D5 /* FeedPost+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490289D24C5DFDE0019C4D5 /* FeedPost+CoreDataClass.swift */; };
@@ -22,7 +21,6 @@
 		24AA69D924DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D724DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift */; };
 		24AA69DA24DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */; };
 		24D743C724AEA821001111BF /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D743C624AEA821001111BF /* AvatarView.swift */; };
-		6832F50124FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50024FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift */; };
 		6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50224FEE9CB00A9C202 /* CoreService.swift */; };
 		6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */; };
 		6832F50A24FEE9DF00A9C202 /* ProtoWhisperRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */; };
@@ -32,7 +30,6 @@
 		686814AE252BA91E003C8784 /* clients.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AC252BA91E003C8784 /* clients.pb.swift */; };
 		686814AF252BA91E003C8784 /* server.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AD252BA91E003C8784 /* server.pb.swift */; };
 		686CDFD9254A3E0900DB7266 /* SilentChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFD8254A3E0900DB7266 /* SilentChat.swift */; };
-		6888CBBE25001CFF0049FF0E /* XMPP+CoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */; };
 		688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1D24ED979400258BB9 /* MentionText.swift */; };
 		688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */; };
 		68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E7F24D2128300F40F1F /* NSAttributedString.swift */; };
@@ -44,7 +41,6 @@
 		68F935BD252BED9A00FA6E75 /* EventMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F935BB252BED9900FA6E75 /* EventMonitor.swift */; };
 		68F9361C252E759200FA6E75 /* CommonEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F9361B252E759200FA6E75 /* CommonEvents.swift */; };
 		7605EA1F24F475A800CAD9AB /* Privacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7605EA1E24F475A800CAD9AB /* Privacy.swift */; };
-		762EE69B24F62886008765A5 /* XMPPElementRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */; };
 		76451C4C25479E5400B9E268 /* Localizations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76451C4B25479E5400B9E268 /* Localizations.swift */; };
 		7656F93224BCE66500F00AF7 /* LogFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7656F93124BCE66500F00AF7 /* LogFileManager.swift */; };
 		76608ECD24EC2B5100DD61C3 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76608ECC24EC2B5100DD61C3 /* Chat.swift */; };
@@ -56,12 +52,9 @@
 		768123F824861068008C5216 /* Contacts.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 768123F424861068008C5216 /* Contacts.xcdatamodeld */; };
 		768123F924861068008C5216 /* ABContact+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123F624861068008C5216 /* ABContact+CoreDataClass.swift */; };
 		768123FB2486107E008C5216 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123FA2486107E008C5216 /* ContactStore.swift */; };
-		768123FE248612E7008C5216 /* XMPPController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123FD248612E7008C5216 /* XMPPController.swift */; };
-		7681240024861481008C5216 /* XMPPAck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768123FF24861481008C5216 /* XMPPAck.swift */; };
 		7681240224861487008C5216 /* XMPPError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681240124861487008C5216 /* XMPPError.swift */; };
 		76812405248614BA008C5216 /* XMPPFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76812403248614BA008C5216 /* XMPPFeed.swift */; };
 		76812406248614BA008C5216 /* XMPPReceipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76812404248614BA008C5216 /* XMPPReceipt.swift */; };
-		76812409248614F1008C5216 /* XMPPRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76812408248614F1008C5216 /* XMPPRequest.swift */; };
 		7681240D24861634008C5216 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 7681240C24861634008C5216 /* SwiftProtobuf */; };
 		768124132486193E008C5216 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768124122486193E008C5216 /* Feed.swift */; };
 		7681241F2486C178008C5216 /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7681241E2486C178008C5216 /* String.swift */; };
@@ -100,7 +93,6 @@
 		246A8B8024902BA600CE0429 /* Avatar+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Avatar+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		246A8B8124902BA600CE0429 /* Avatar+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Avatar+CoreDataClass.swift"; sourceTree = "<group>"; };
 		246A8B842490357B00CE0429 /* AvatarStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarStore.swift; sourceTree = "<group>"; };
-		2490287424C524250019C4D5 /* XMPPCommonRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPCommonRequests.swift; sourceTree = "<group>"; };
 		2490287824C525030019C4D5 /* UIImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
 		2490289C24C5DFDE0019C4D5 /* Media+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Media+CoreDataClass.swift"; sourceTree = "<group>"; };
 		2490289D24C5DFDE0019C4D5 /* FeedPost+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FeedPost+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -114,7 +106,6 @@
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
 		5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.debug.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.debug.xcconfig"; sourceTree = "<group>"; };
-		6832F50024FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ChatMessageProtocol+Encryption.swift"; sourceTree = "<group>"; };
 		6832F50224FEE9CB00A9C202 /* CoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreService.swift; sourceTree = "<group>"; };
 		6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequest.swift; sourceTree = "<group>"; };
 		6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoWhisperRequests.swift; sourceTree = "<group>"; };
@@ -124,7 +115,6 @@
 		686814AC252BA91E003C8784 /* clients.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = clients.pb.swift; sourceTree = "<group>"; };
 		686814AD252BA91E003C8784 /* server.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = server.pb.swift; sourceTree = "<group>"; };
 		686CDFD8254A3E0900DB7266 /* SilentChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SilentChat.swift; sourceTree = "<group>"; };
-		6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "XMPP+CoreService.swift"; sourceTree = "<group>"; };
 		688D8A1D24ED979400258BB9 /* MentionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MentionText.swift; sourceTree = "<group>"; };
 		688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Proto+Mentions.swift"; sourceTree = "<group>"; };
 		68A64E7F24D2128300F40F1F /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
@@ -136,7 +126,6 @@
 		68F935BB252BED9900FA6E75 /* EventMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventMonitor.swift; sourceTree = "<group>"; };
 		68F9361B252E759200FA6E75 /* CommonEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonEvents.swift; sourceTree = "<group>"; };
 		7605EA1E24F475A800CAD9AB /* Privacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privacy.swift; sourceTree = "<group>"; };
-		762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPElementRepresentable.swift; sourceTree = "<group>"; };
 		76451C4B25479E5400B9E268 /* Localizations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localizations.swift; sourceTree = "<group>"; };
 		7656F93124BCE66500F00AF7 /* LogFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileManager.swift; sourceTree = "<group>"; };
 		76608ECC24EC2B5100DD61C3 /* Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chat.swift; sourceTree = "<group>"; };
@@ -150,12 +139,9 @@
 		768123F524861068008C5216 /* Contacts.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Contacts.xcdatamodel; sourceTree = "<group>"; };
 		768123F624861068008C5216 /* ABContact+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ABContact+CoreDataClass.swift"; sourceTree = "<group>"; };
 		768123FA2486107E008C5216 /* ContactStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
-		768123FD248612E7008C5216 /* XMPPController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMPPController.swift; sourceTree = "<group>"; };
-		768123FF24861481008C5216 /* XMPPAck.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMPPAck.swift; sourceTree = "<group>"; };
 		7681240124861487008C5216 /* XMPPError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMPPError.swift; sourceTree = "<group>"; };
 		76812403248614BA008C5216 /* XMPPFeed.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMPPFeed.swift; sourceTree = "<group>"; };
 		76812404248614BA008C5216 /* XMPPReceipt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMPPReceipt.swift; sourceTree = "<group>"; };
-		76812408248614F1008C5216 /* XMPPRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMPPRequest.swift; sourceTree = "<group>"; };
 		768124122486193E008C5216 /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		7681241E2486C178008C5216 /* String.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
 		76925CF924871506008333FA /* UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaults.swift; sourceTree = "<group>"; };
@@ -286,7 +272,6 @@
 			isa = PBXGroup;
 			children = (
 				76608ECC24EC2B5100DD61C3 /* Chat.swift */,
-				6832F50024FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift */,
 				686CDFD8254A3E0900DB7266 /* SilentChat.swift */,
 			);
 			path = Chat;
@@ -378,11 +363,7 @@
 		768123FC248612A9008C5216 /* XMPP */ = {
 			isa = PBXGroup;
 			children = (
-				6888CBBD25001CFF0049FF0E /* XMPP+CoreService.swift */,
 				76812407248614DC008C5216 /* Requests */,
-				768123FF24861481008C5216 /* XMPPAck.swift */,
-				768123FD248612E7008C5216 /* XMPPController.swift */,
-				762EE69A24F62886008765A5 /* XMPPElementRepresentable.swift */,
 				7681240124861487008C5216 /* XMPPError.swift */,
 				76812403248614BA008C5216 /* XMPPFeed.swift */,
 				76812404248614BA008C5216 /* XMPPReceipt.swift */,
@@ -395,8 +376,6 @@
 		76812407248614DC008C5216 /* Requests */ = {
 			isa = PBXGroup;
 			children = (
-				76812408248614F1008C5216 /* XMPPRequest.swift */,
-				2490287424C524250019C4D5 /* XMPPCommonRequests.swift */,
 				EAAE7B3B24DD039900946B77 /* XMPPWhisperRequests.swift */,
 			);
 			path = Requests;
@@ -602,20 +581,15 @@
 				EAAE7B5124DD2C3000946B77 /* MessageKey+CoreDataClass.swift in Sources */,
 				EAAE7B5024DD2C3000946B77 /* OneTimePreKey+CoreDataProperties.swift in Sources */,
 				76E00DF124F786A100E06252 /* Data.swift in Sources */,
-				2490287524C524250019C4D5 /* XMPPCommonRequests.swift in Sources */,
 				76451C4C25479E5400B9E268 /* Localizations.swift in Sources */,
 				EAAE7B3924DCDEBB00946B77 /* KeyStore.swift in Sources */,
 				76F45E0024D226D300EFA301 /* ServerProperties.swift in Sources */,
 				246A8B852490357B00CE0429 /* AvatarStore.swift in Sources */,
 				68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */,
 				6832F50A24FEE9DF00A9C202 /* ProtoWhisperRequests.swift in Sources */,
-				76812409248614F1008C5216 /* XMPPRequest.swift in Sources */,
 				EAAE7B4B24DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift in Sources */,
-				6888CBBE25001CFF0049FF0E /* XMPP+CoreService.swift in Sources */,
-				768123FE248612E7008C5216 /* XMPPController.swift in Sources */,
 				249028A924C5E01B0019C4D5 /* SharedData.xcdatamodeld in Sources */,
 				7681240224861487008C5216 /* XMPPError.swift in Sources */,
-				6832F50124FEE9BC00A9C202 /* ChatMessageProtocol+Encryption.swift in Sources */,
 				768123F924861068008C5216 /* ABContact+CoreDataClass.swift in Sources */,
 				2490287924C525030019C4D5 /* UIImage.swift in Sources */,
 				68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */,
@@ -635,7 +609,6 @@
 				EAAE7B5224DD2C3000946B77 /* MessageKey+CoreDataProperties.swift in Sources */,
 				EAAE7B4E24DD2C3000946B77 /* SignedPreKey+CoreDataProperties.swift in Sources */,
 				68F935BD252BED9A00FA6E75 /* EventMonitor.swift in Sources */,
-				7681240024861481008C5216 /* XMPPAck.swift in Sources */,
 				EAAE7B4C24DD2C3000946B77 /* MessageKeyBundle+CoreDataProperties.swift in Sources */,
 				76812406248614BA008C5216 /* XMPPReceipt.swift in Sources */,
 				6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */,
@@ -662,7 +635,6 @@
 				6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */,
 				7681241F2486C178008C5216 /* String.swift in Sources */,
 				76812405248614BA008C5216 /* XMPPFeed.swift in Sources */,
-				762EE69B24F62886008765A5 /* XMPPElementRepresentable.swift in Sources */,
 				EAAE7B4F24DD2C3000946B77 /* OneTimePreKey+CoreDataClass.swift in Sources */,
 				76C7429C24A1597000C7D945 /* MediaCrypter.swift in Sources */,
 				EAAE7B4A24DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift in Sources */,

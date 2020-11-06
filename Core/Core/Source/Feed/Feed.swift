@@ -52,8 +52,6 @@ public protocol FeedItemProtocol {
 
     var protoMessage: SwiftProtobuf.Message { get }
 
-    func xmppElement(withData: Bool) -> XMPPElement
-
     func protoFeedItem(withData: Bool) -> Server_FeedItem.OneOf_Item
 }
 

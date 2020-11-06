@@ -25,7 +25,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
     }()
 
     private let serviceBuilder: ServiceBuilder = {
-        $0.useProtobuf ? ProtoServiceCore(userData: $0) : XMPPController(userData: $0)
+        return ProtoServiceCore(userData: $0)
     }
 
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {

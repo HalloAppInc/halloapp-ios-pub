@@ -75,23 +75,6 @@ public extension ChatMessageProtocol {
     }
 }
 
-public extension ChatMessageProtocol {
-    var xmppElement: XMPPElement {
-        let message = XMPPElement(name: "message")
-        message.addAttribute(withName: "id", stringValue: id)
-        message.addAttribute(withName: "to", stringValue: "\(toUserId)@s.halloapp.net")
-        message.addChild({
-            let chat = XMPPElement(name: "chat")
-            chat.addAttribute(withName: "xmlns", stringValue: "halloapp:chat:messages")
-            if let protobufData = try? self.protoContainer.serializedData() {
-                chat.addChild(XMPPElement(name: "s1", stringValue: protobufData.base64EncodedString()))
-            }
-            return chat
-        }())
-        return message
-    }
-}
-
 public protocol ChatMediaProtocol {
     var url: URL? { get }
     var mediaType: ChatMessageMediaType { get }

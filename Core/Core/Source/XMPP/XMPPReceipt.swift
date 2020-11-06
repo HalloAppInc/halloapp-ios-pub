@@ -51,47 +51,6 @@ public struct XMPPReceipt: Equatable {
         return XMPPReceipt(feedItem: feedItem)
     }
 
-    init?(xmlElement: XMLElement, userId: UserID, type: XMPPReceipt.`Type`) {
-        guard let itemId = xmlElement.attributeStringValue(forName: "id") else { return nil }
-        let timestamp = xmlElement.attributeDoubleValue(forName: "timestamp")
-        guard timestamp > 0 else { return nil }
-
-        self.itemId = itemId
-        self.userId = userId
-        self.timestamp = Date(timeIntervalSince1970: timestamp)
-        if let threadId = xmlElement.attributeStringValue(forName: "thread_id"), threadId != "" {
-            if threadId == "feed" {
-                self.thread = .feed
-            } else {
-                self.thread = .group(threadId)
-            }
-        } else {
-            self.thread = .none
-        }
-        self.type = type
-    }
-
-    public var xmlElement: XMLElement {
-        get {
-            let elementName: String = {
-                switch type {
-                case .delivery: return "received"
-                case .read: return "seen"
-                }}()
-            let receipt = XMLElement(name: elementName, xmlns: "urn:xmpp:receipts")
-            receipt.addAttribute(withName: "id", stringValue: itemId)
-            if let threadId: String = {
-                switch thread {
-                case .none: return nil
-                case .feed: return "feed"
-                case let .group(groupId): return groupId
-                }}() {
-                receipt.addAttribute(withName: "thread_id", stringValue: threadId)
-            }
-            return receipt
-        }
-    }
-
     public static func == (lhs: XMPPReceipt, rhs: XMPPReceipt) -> Bool {
         if lhs.type != rhs.type { return false }
         if lhs.itemId != rhs.itemId { return false }
@@ -99,24 +58,4 @@ public struct XMPPReceipt: Equatable {
         return true
     }
 
-}
-
-
-extension XMPPMessage {
-
-    public var deliveryReceipt: XMPPReceipt? {
-        get {
-            guard let received = self.element(forName: "received") else { return nil }
-            guard let userId = self.from?.user else { return nil }
-            return XMPPReceipt(xmlElement: received, userId: userId, type: .delivery)
-        }
-    }
-
-    public var readReceipt: XMPPReceipt? {
-        get {
-            guard let seen = self.element(forName: "seen") else { return nil }
-            guard let userId = self.from?.user else { return nil }
-            return XMPPReceipt(xmlElement: seen, userId: userId, type: .read)
-        }
-    }
 }

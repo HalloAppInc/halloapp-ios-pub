@@ -10,58 +10,9 @@ import Foundation
 import SwiftProtobuf
 import XMPPFramework
 
-public extension FeedPostProtocol {
-
-    func xmppElement(withData: Bool) -> XMPPElement {
-        let postElement = XMPPElement(name: "post")
-        postElement.addAttribute(withName: "id", stringValue: id)
-        // "uid" and "timestamp" are ignored when posting.
-        if withData, let protobufData = try? protoContainer.serializedData() {
-            postElement.stringValue = protobufData.base64EncodedString()
-        }
-        return postElement
-    }
-}
-
-public extension FeedCommentProtocol {
-
-    func xmppElement(withData: Bool) -> XMPPElement {
-        let commentElement = XMPPElement(name: "comment")
-        commentElement.addAttribute(withName: "id", stringValue: id)
-        commentElement.addAttribute(withName: "post_id", stringValue: feedPostId)
-        if let parentCommentId = parentId {
-            commentElement.addAttribute(withName: "parent_comment_id", stringValue: parentCommentId)
-        }
-        // "publisher_uid", "publisher_name" and "timestamp" are ignored when posting.
-        if withData, let protobufData = try? protoContainer.serializedData() {
-            commentElement.stringValue = protobufData.base64EncodedString()
-        }
-        return commentElement
-    }
-}
-
 enum XMPPFeedMediaType: String {
     case image = "image"
     case video = "video"
-}
-
-extension Clients_Container {
-
-    static func feedItemContainer(from itemElement: XMLElement) -> Clients_Container? {
-
-        guard let base64String = itemElement.stringValue,
-            let data = Data(base64Encoded: base64String, options: .ignoreUnknownCharacters) else { return nil }
-        do {
-            let protoContainer = try Clients_Container(serializedData: data)
-            if protoContainer.hasComment || protoContainer.hasPost {
-                return protoContainer
-            }
-        }
-        catch {
-            DDLogError("xmpp/post/invalid-protobuf")
-        }
-        return nil
-    }
 }
 
 // MARK: Concrete classes
@@ -103,33 +54,6 @@ public struct XMPPFeedPost: FeedPostProtocol {
         self.media = protoPost.media.enumerated().compactMap { XMPPFeedMedia(id: "\(serverPost.id)-\($0)", protoMedia: $1) }
         self.mentions = protoPost.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
         self.timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
-    }
-
-    /**
-     <post id='bnd81g37d61f49fgn581' uid='1000000000000000001' timestamp='1583883173'>
-       .....pb_payload.....
-     </post >
-     */
-    public init?(itemElement item: XMLElement) {
-        // Feed uses "uid" (legacy name) while group feed uses "publisher_uid".
-        guard let id = item.attributeStringValue(forName: "id"),
-              let userId = item.attributeStringValue(forName: "uid") ?? item.attributeStringValue(forName: "publisher_uid"),
-              let protoContainer = Clients_Container.feedItemContainer(from: item), protoContainer.hasPost else
-        {
-            return nil
-        }
-
-        let timestamp = item.attributeDoubleValue(forName: "timestamp")
-        guard timestamp > 0 else { return nil }
-
-        let protoPost = protoContainer.post
-
-        self.id = id
-        self.userId = userId
-        self.text = protoPost.text.isEmpty ? nil : protoPost.text
-        self.media = protoPost.media.enumerated().compactMap { XMPPFeedMedia(id: "\(id)-\($0)", protoMedia: $1) }
-        self.mentions = protoPost.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
-        self.timestamp = Date(timeIntervalSince1970: timestamp)
     }
 }
 
@@ -210,36 +134,5 @@ public struct XMPPComment: FeedCommentProtocol {
         self.text = protoComment.text
         self.mentions = protoComment.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
         self.timestamp = Date(timeIntervalSince1970: TimeInterval(serverComment.timestamp))
-    }
-
-    /**
-     <comment id='6ede90def1fb40b08ff71' post_id='bnd81g37d61f49fgn581' timestamp='1583894714' publisher_uid='1000000000000000003' publisher_name='user3'/>
-       .....pb_payload.....
-     </comment >
-     */
-    public init?(itemElement item: XMLElement) {
-        guard let id = item.attributeStringValue(forName: "id"),
-            let userId = item.attributeStringValue(forName: "publisher_uid"),
-            let protoContainer = Clients_Container.feedItemContainer(from: item), protoContainer.hasComment else { return nil }
-
-        let timestamp = item.attributeDoubleValue(forName: "timestamp")
-        guard timestamp > 0 else { return nil }
-
-        let protoComment = protoContainer.comment
-
-        // Parsing "post_id" and "parent_comment_id" is temporary and needed for posts sent using old API.
-        let postId = item.attributeStringValue(forName: "post_id") ?? protoComment.feedPostID
-        guard !postId.isEmpty else {
-            return nil
-        }
-        let parentCommentId = item.attributeStringValue(forName: "parent_comment_id") ?? protoComment.parentCommentID
-
-        self.id = id
-        self.userId = userId
-        self.feedPostId = postId
-        self.parentId = parentCommentId.isEmpty ? nil : parentCommentId
-        self.text = protoComment.text
-        self.mentions = protoComment.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
-        self.timestamp = Date(timeIntervalSince1970: timestamp)
     }
 }

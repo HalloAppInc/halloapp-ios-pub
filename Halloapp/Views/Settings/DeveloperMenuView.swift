@@ -12,7 +12,6 @@ import SwiftUI
 private enum MenuTitles {
     static var server: String { "Server" }
     static var userId: String { "User ID" }
-    static var useProtobuf: String { "Use Protobuf" }
     static var useDevServer: String { "Use Dev Server" }
     static var reSyncContacts: String { "Re-Sync Contacts" }
     static var resetNUXDemo: String { "Reset NUX Demo" }
@@ -22,7 +21,6 @@ private enum MenuTitles {
 struct DeveloperMenuView: View {
 
     @State var useTestServer = MainAppContext.shared.userData.useTestServer
-    @State var useProtobuf = MainAppContext.shared.userData.useProtobuf
     @State var showRestartAlert = false
 
     var dismiss: (() -> ())?
@@ -52,21 +50,6 @@ struct DeveloperMenuView: View {
                     Text(MenuTitles.userId)
                     Spacer()
                     Text(self.userData.userId)
-                }
-
-                // Use Protobuf?
-                HStack {
-                    Toggle(MenuTitles.useProtobuf, isOn: $useProtobuf)
-                        .onReceive(Just(self.useProtobuf)) { value in
-                            if value != self.userData.useProtobuf {
-                                self.userData.useProtobuf = value
-                                self.service.disconnectImmediately()
-                                self.showRestartAlert = true
-                            }
-                        }
-                        .alert(isPresented: $showRestartAlert) {
-                            Alert(title: Text("Please restart the app for this to take effect"))
-                        }
                 }
 
                 // Use Dev Server?

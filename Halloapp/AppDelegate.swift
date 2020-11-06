@@ -19,7 +19,7 @@ fileprivate let BackgroundFeedRefreshTaskIdentifier = "com.halloapp.hallo.feed.r
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private let serviceBuilder: ServiceBuilder = {
-        $0.useProtobuf ? ProtoService(userData: $0) : XMPPControllerMain(userData: $0)
+        return ProtoService(userData: $0)
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
