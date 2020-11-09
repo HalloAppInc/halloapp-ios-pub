@@ -41,18 +41,27 @@ struct NavigationBarState {
 }
 
 class PostComposerViewController: UIViewController {
+    enum Mode {
+        case post
+        case message
+    }
+
+    private let privacySettings = MainAppContext.shared.privacySettings
+    private var privacySubscription: AnyCancellable?
+
     let backIcon = UIImage(named: "NavbarBack")
     let closeIcon = UIImage(named: "NavbarClose")
     fileprivate let imageServer = ImageServer()
 
+    private let mode: Mode
     private let showCancelButton: Bool
-    private let areMentionsDisabled: GenericObservable<Bool>
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
     private var shouldAutoPlay = GenericObservable(false)
     private var postComposerView: PostComposerView?
     private var shareButton: UIBarButtonItem!
     private let isMediaPost: Bool
+    private let calledFromCamera: Bool
     private var useTransparentNavigationBar: Bool
     private weak var delegate: PostComposerViewDelegate?
 
@@ -63,17 +72,19 @@ class PostComposerViewController: UIViewController {
         mediaToPost media: [PendingMedia],
         initialInput: MentionInput,
         showCancelButton: Bool,
-        disableMentions: Bool = false,
+        mode: Mode = .post,
+        calledFromCamera: Bool = false,
         useTransparentNavigationBar: Bool = false,
         delegate: PostComposerViewDelegate)
     {
         self.mediaItems.value = media
-        self.showCancelButton = showCancelButton
-        self.areMentionsDisabled = GenericObservable(disableMentions)
-        self.inputToPost = GenericObservable(initialInput)
         self.isMediaPost = media.count > 0
-        self.delegate = delegate
+        self.inputToPost = GenericObservable(initialInput)
+        self.showCancelButton = showCancelButton
+        self.mode = mode
+        self.calledFromCamera = calledFromCamera
         self.useTransparentNavigationBar = useTransparentNavigationBar
+        self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -84,18 +95,13 @@ class PostComposerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.title = "New Post"
-        navigationItem.leftBarButtonItem =
-            UIBarButtonItem(image: isMediaPost ? backIcon : closeIcon, style: .plain, target: self, action: #selector(backAction))
-        shareButton = UIBarButtonItem(title: "Share", style: .done, target: self, action: #selector(shareAction))
-        shareButton.tintColor = .systemBlue
-
         postComposerView = PostComposerView(
             imageServer: imageServer,
             mediaItems: mediaItems,
             inputToPost: inputToPost,
             shouldAutoPlay: shouldAutoPlay,
-            areMentionsDisabled: areMentionsDisabled,
+            areMentionsDisabled: mode == .message,
+            calledFromCamera: calledFromCamera,
             crop: { [weak self] index in
                 guard let self = self else { return }
                 let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value) { controller, media, selected, cancel in
@@ -122,14 +128,35 @@ class PostComposerViewController: UIViewController {
         addChild(postComposerViewController)
         view.addSubview(postComposerViewController.view)
         postComposerViewController.view.translatesAutoresizingMaskIntoConstraints = false
-        postComposerViewController.view.backgroundColor = .feedBackground
+        postComposerViewController.view.backgroundColor =
+            mediaItems.value.count > 0 ? .secondarySystemGroupedBackground : .feedBackground
         postComposerViewController.view.constrain(to: view)
         postComposerViewController.didMove(toParent: self)
+
+        switch mode {
+        case .post:
+            let titleView = TitleView()
+            titleView.titleLabel.text = NSLocalizedString("composer.post.new.title", value: "New Post", comment: "Composer New Post title.")
+            titleView.subtitleLabel.text = privacySettings?.composerIndicator ?? ""
+            privacySubscription = privacySettings?.$composerIndicator.assign(to: \.text!, on: titleView.subtitleLabel)
+            navigationItem.titleView = titleView
+
+        case .message:
+            // Refactor with separate titleView for messages?
+            let titleView = TitleView()
+            titleView.titleLabel.text = NSLocalizedString("composer.message.new.title", value: "New Message", comment: "Composer New Message title.")
+            titleView.subtitleLabel.isHidden = true
+            navigationItem.titleView = titleView
+        }
+
+        navigationItem.leftBarButtonItem =
+            UIBarButtonItem(image: isMediaPost ? backIcon : closeIcon, style: .plain, target: self, action: #selector(backAction))
+        shareButton = UIBarButtonItem(title: "Share", style: .done, target: self, action: #selector(shareAction))
+        shareButton.tintColor = .systemBlue
     }
 
-    private func getStatusBarHeight() -> CGFloat {
-        // NOTE: Call this in viewDidAppear or later, else we get nil.
-        return view.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
+    private func getNavigationStatusBarHeight() -> CGFloat {
+        return navigationController?.view.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -147,16 +174,11 @@ class PostComposerViewController: UIViewController {
         navigationController.navigationBar.shadowImage = UIImage()
         navigationController.navigationBar.isTranslucent = true
         navigationController.navigationBar.backgroundColor = .clear
-    }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        guard useTransparentNavigationBar, let navigationController = navigationController else { return }
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let blurredEffectView = UIVisualEffectView(effect: blurEffect)
         blurredEffectView.frame = navigationController.navigationBar.bounds
-        blurredEffectView.frame.size.height += getStatusBarHeight()
+        blurredEffectView.frame.size.height += getNavigationStatusBarHeight()
         blurredEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         let barViewIndex = navigationController.view.subviews.firstIndex(of: navigationController.navigationBar)
         if barViewIndex != nil {
@@ -208,6 +230,56 @@ class PostComposerViewController: UIViewController {
     }
 }
 
+fileprivate class TitleView: UIView {
+    public var isShowingTypingIndicator: Bool = false
+
+    override init(frame: CGRect){
+        super.init(frame: frame)
+        setup()
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
+
+    func showChatState(with typingIndicatorStr: String?) {
+        let show: Bool = typingIndicatorStr != nil
+
+        subtitleLabel.isHidden = show
+        isShowingTypingIndicator = show
+    }
+
+    private func setup() {
+        let vStack = UIStackView(arrangedSubviews: [ titleLabel, subtitleLabel ])
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.axis = .vertical
+        vStack.alignment = .center
+        vStack.spacing = 0
+
+        addSubview(vStack)
+        vStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
+        vStack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
+        vStack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor).isActive = true
+        vStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
+    }
+
+    lazy var titleLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.textColor = .label
+        return label
+    }()
+
+    lazy var subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.systemFont(ofSize: 13)
+        label.textColor = .secondaryLabel
+        return label
+    }()
+}
+
 fileprivate struct PostComposerLayoutConstants {
     static let horizontalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
     static let verticalPadding = MediaCarouselViewConfiguration.default.cellSpacing * 0.5
@@ -217,12 +289,13 @@ fileprivate struct PostComposerLayoutConstants {
     static let controlSize: CGFloat = 36
     static let backgroundRadius: CGFloat = 20
 
-    static let postTextHorizontalPadding = horizontalPadding + controlSpacing
-    static let postTextVerticalPadding = verticalPadding + controlSpacing
+    static let postTextHorizontalPadding = horizontalPadding + 12
+    static let postTextVerticalPadding = verticalPadding + 8
 
     static let postTextNoMediaMinHeight: CGFloat = 265 - postTextVerticalPadding
     static let postTextUnfocusedMinHeight: CGFloat = 100 - postTextVerticalPadding
     static let postTextFocusedMinHeight: CGFloat = 80 - postTextVerticalPadding
+    static let postTextMaxHeight: CGFloat = 250
 
     static let fontSize: CGFloat = 16
     static let fontSizeLarge: CGFloat = 20
@@ -238,6 +311,7 @@ fileprivate struct PostComposerLayoutConstants {
 
 fileprivate struct PostComposerView: View {
     private let imageServer: ImageServer
+    private let calledFromCamera: Bool
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
@@ -250,7 +324,7 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var mediaState = ObservableMediaState()
     @ObservedObject private var currentPosition = GenericObservable(0)
     @ObservedObject private var postTextHeight = GenericObservable<CGFloat>(0)
-    @ObservedObject private var postTextMinHeight = GenericObservable<CGFloat>(0)
+    @ObservedObject private var postTextComputedHeight = GenericObservable<CGFloat>(0)
     @State private var keyboardHeight: CGFloat = 0
     @State private var presentPicker = false
 
@@ -273,7 +347,7 @@ fileprivate struct PostComposerView: View {
 
     private var shareVisibilityPublisher: AnyPublisher<Bool, Never>!
     private var pageChangedPublisher: AnyPublisher<Bool, Never>!
-    private var postTextMinHeightPublisher: AnyPublisher<CGFloat, Never>!
+    private var postTextComputedHeightPublisher: AnyPublisher<CGFloat, Never>!
 
     private var mediaCount: Int {
         mediaItems.value.count
@@ -300,7 +374,8 @@ fileprivate struct PostComposerView: View {
         mediaItems: ObservableMediaItems,
         inputToPost: GenericObservable<MentionInput>,
         shouldAutoPlay: GenericObservable<Bool>,
-        areMentionsDisabled: GenericObservable<Bool>,
+        areMentionsDisabled: Bool,
+        calledFromCamera: Bool,
         crop: @escaping (_ index: GenericObservable<Int>) -> Void,
         goBack: @escaping () -> Void,
         setShareVisibility: @escaping (_ visibility: Bool) -> Void)
@@ -309,14 +384,11 @@ fileprivate struct PostComposerView: View {
         self.mediaItems = mediaItems
         self.inputToPost = inputToPost
         self.shouldAutoPlay = shouldAutoPlay
-        self.areMentionsDisabled = areMentionsDisabled
+        self.areMentionsDisabled = GenericObservable(areMentionsDisabled)
+        self.calledFromCamera = calledFromCamera
         self.crop = crop
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
-
-        postTextMinHeight.value = self.mediaItems.value.count > 0 ?
-            PostComposerLayoutConstants.postTextUnfocusedMinHeight :
-            PostComposerLayoutConstants.postTextNoMediaMinHeight
 
         shareVisibilityPublisher =
             Publishers.CombineLatest4(
@@ -335,17 +407,32 @@ fileprivate struct PostComposerView: View {
         pageChangedPublisher =
             currentPosition.$value.removeDuplicates().map { _ in return true }.eraseToAnyPublisher()
 
-        postTextMinHeightPublisher =
-            Publishers.CombineLatest(
+        postTextComputedHeight.value = PostComposerView.computePostHeight(
+            itemsCount: self.mediaItems.value.count, keyboardHeight: 0, postTextHeight: postTextHeight.value)
+
+        postTextComputedHeightPublisher =
+            Publishers.CombineLatest3(
                 self.mediaItems.$value,
-                self.keyboardHeightPublisher
+                self.keyboardHeightPublisher,
+                self.postTextHeight.$value
             )
-            .map { (mediaItems, keyboardHeight) -> CGFloat in
-                guard mediaItems.count > 0 else { return PostComposerLayoutConstants.postTextNoMediaMinHeight }
-                return keyboardHeight > 0 ? PostComposerLayoutConstants.postTextFocusedMinHeight : PostComposerLayoutConstants.postTextUnfocusedMinHeight
+            .map { (mediaItems, keyboardHeight, postTextHeight) -> CGFloat in
+                return PostComposerView.computePostHeight(
+                    itemsCount: mediaItems.count, keyboardHeight: keyboardHeight, postTextHeight: postTextHeight)
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
+
+    }
+
+    private static func computePostHeight(itemsCount: Int, keyboardHeight: CGFloat, postTextHeight: CGFloat) -> CGFloat {
+        var minPostHeight = PostComposerLayoutConstants.postTextNoMediaMinHeight
+        if itemsCount > 0 {
+            minPostHeight = keyboardHeight > 0 ?
+                PostComposerLayoutConstants.postTextFocusedMinHeight : PostComposerLayoutConstants.postTextUnfocusedMinHeight
+        }
+        let maxPostHeight = itemsCount > 0 ? PostComposerLayoutConstants.postTextMaxHeight : CGFloat.infinity
+        return min(maxPostHeight, max(minPostHeight, postTextHeight))
     }
     
     private func getMediaSliderHeight(_ width: CGFloat) -> CGFloat {
@@ -382,10 +469,12 @@ fileprivate struct PostComposerView: View {
     var controls: some View {
         HStack {
             if keyboardHeight == 0 {
-                Button(action: addMedia) {
-                    ControlIconView(imageLabel: "ComposerAddMedia")
-                }.sheet(isPresented: $presentPicker) {
-                    picker
+                if !calledFromCamera {
+                    Button(action: addMedia) {
+                        ControlIconView(imageLabel: "ComposerAddMedia")
+                    }.sheet(isPresented: $presentPicker) {
+                        picker
+                    }
                 }
                 Spacer()
                 Button(action: deleteMedia) {
@@ -412,14 +501,14 @@ fileprivate struct PostComposerView: View {
                     .foregroundColor(Color.primary.opacity(0.5))
                     .padding(.top, 8)
                     .padding(.leading, 4)
-                    .frame(height: max(postTextHeight.value, postTextMinHeight.value), alignment: .topLeading)
+                    .frame(height: postTextComputedHeight.value, alignment: .topLeading)
             }
             TextView(mediaItems: mediaItems, input: inputToPost, textHeight: postTextHeight, areMentionsDisabled: areMentionsDisabled)
-                .frame(height: max(postTextHeight.value, postTextMinHeight.value))
+                .frame(height: postTextComputedHeight.value)
         }
         .background(Color(mediaCount == 0 ? .secondarySystemGroupedBackground : .clear))
         .padding(.horizontal, PostComposerLayoutConstants.postTextHorizontalPadding)
-        .padding(.top, PostComposerLayoutConstants.postTextVerticalPadding)
+        .padding(.vertical, PostComposerLayoutConstants.postTextVerticalPadding)
         .background(Color(mediaCount > 0 ? .secondarySystemGroupedBackground : .clear))
     }
 
@@ -472,9 +561,9 @@ fileprivate struct PostComposerView: View {
                         .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
                         .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
                         .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
-                        .onReceive(self.postTextMinHeightPublisher)  { self.postTextMinHeight.value = $0 }
+                        .onReceive(self.postTextComputedHeightPublisher) { self.postTextComputedHeight.value = $0 }
                     }
-                    .frame(minHeight: geometry.size.height - self.keyboardHeight)
+                    .frame(minHeight: geometry.size.height - self.keyboardHeight - (self.mediaCount > 0 ? self.postTextComputedHeight.value : 0))
                 }
             }
 
@@ -578,14 +667,14 @@ fileprivate struct TextView: UIViewRepresentable {
         textView.delegate = context.coordinator
         textView.font = .preferredFont(forTextStyle: .body)
         textView.inputAccessoryView = context.coordinator.mentionPicker
-        textView.isScrollEnabled = false
+        textView.isScrollEnabled = true
         textView.isEditable = true
         textView.isUserInteractionEnabled = true
         textView.backgroundColor = UIColor.clear
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.font = PostComposerLayoutConstants.getFontSize(
             textSize: input.value.text.count, isPostWithMedia: mediaItems.value.count > 0)
-        textView.textColor = UIColor.label.withAlphaComponent(0.5)
+        textView.textColor = UIColor.label.withAlphaComponent(0.9)
         textView.text = input.value.text
         textView.textContainerInset.bottom = PostComposerLayoutConstants.postTextVerticalPadding
         return textView
@@ -735,7 +824,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MediaCarouselView {
         let feedMedia = context.coordinator.parent.feedMediaItems
-        let carouselView = MediaCarouselView(media: feedMedia, configuration: MediaCarouselViewConfiguration.default)
+        let carouselView = MediaCarouselView(media: feedMedia, configuration: MediaCarouselViewConfiguration.composer)
         carouselView.delegate = context.coordinator
         carouselView.shouldAutoPlay = context.coordinator.parent.shouldAutoPlay.value
         return carouselView

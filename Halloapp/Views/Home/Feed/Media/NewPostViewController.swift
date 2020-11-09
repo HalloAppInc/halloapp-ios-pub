@@ -66,8 +66,9 @@ final class NewPostViewController: UIViewController {
         return makeNavigationController()
     }()
 
-    private func didFinishPickingMedia() {
-        containedNavigationController.pushViewController(makeComposerViewController(), animated: true)
+    private func didFinishPickingMedia(calledFromCamera: Bool = false) {
+        containedNavigationController.pushViewController(
+            makeComposerViewController(calledFromCamera: calledFromCamera), animated: true)
     }
 
     private func makeNavigationController() -> UINavigationController {
@@ -81,11 +82,12 @@ final class NewPostViewController: UIViewController {
         }
     }
 
-    private func makeComposerViewController() -> UIViewController {
+    private func makeComposerViewController(calledFromCamera: Bool = false) -> UIViewController {
         return PostComposerViewController(
             mediaToPost: state.pendingMedia,
             initialInput: state.pendingInput,
             showCancelButton: state.isPostComposerCancellable,
+            calledFromCamera: calledFromCamera,
             useTransparentNavigationBar: true,
             delegate: self)
     }
@@ -94,8 +96,8 @@ final class NewPostViewController: UIViewController {
         return CameraViewController(
             showCancelButton: state.isPostComposerCancellable,
             didFinish: { [weak self] in self?.didFinish() },
-            didPickImage: { [weak self] uiImage in self?.onImagePicked(uiImage) },
-            didPickVideo: { [weak self] videoURL in self?.onVideoPicked(videoURL) }
+            didPickImage: { [weak self] uiImage in self?.onCameraImagePicked(uiImage) },
+            didPickVideo: { [weak self] videoURL in self?.onCameraVideoPicked(videoURL) }
         )
     }
 
@@ -128,7 +130,7 @@ final class NewPostViewController: UIViewController {
         return UINavigationController(rootViewController: pickerController)
     }
 
-    private func onImagePicked(_ uiImage: UIImage) {
+    private func onCameraImagePicked(_ uiImage: UIImage) {
         var pendingMedia = [PendingMedia]()
         let normalizedImage = uiImage.correctlyOrientedImage()
         let mediaToPost = PendingMedia(type: .image)
@@ -136,10 +138,10 @@ final class NewPostViewController: UIViewController {
         mediaToPost.size = normalizedImage.size
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
-        didFinishPickingMedia()
+        didFinishPickingMedia(calledFromCamera: true)
     }
 
-    private func onVideoPicked(_ videoURL: URL) {
+    private func onCameraVideoPicked(_ videoURL: URL) {
         var pendingMedia = [PendingMedia]()
         let mediaToPost = PendingMedia(type: .video)
         mediaToPost.videoURL = videoURL
@@ -150,7 +152,7 @@ final class NewPostViewController: UIViewController {
         }
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
-        didFinishPickingMedia()
+        didFinishPickingMedia(calledFromCamera: true)
     }
 }
 
