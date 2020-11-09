@@ -1021,28 +1021,40 @@ extension KeyStore {
         }
     }
 
-    public func decryptPayload(for userId: String, encryptedPayload: Data, publicKey: Data?, oneTimeKeyID: Int?) -> Result<Data, DecryptionError> {
+    /// Decrypts on background serial queue and dispatches completion handler onto main queue.
+    public func decryptPayload(for userId: String, encryptedPayload: Data, publicKey: Data?, oneTimeKeyID: Int?, completion: @escaping (Result<Data, DecryptionError>) -> Void) {
 
-        var keyBundle: KeyBundle
-        var isNewReceiveSession: Bool
+        performSeriallyOnBackgroundContext { _ in
+            var keyBundle: KeyBundle
+            var isNewReceiveSession: Bool
 
-        if let savedKeyBundle = messageKeyBundle(for: userId)?.keyBundle {
-            keyBundle = savedKeyBundle
-            isNewReceiveSession = false
-        } else {
-            guard let publicKey = publicKey else {
-                DDLogError("KeyData/decryptPayload/error missing public key")
-                return .failure(.missingPublicKey)
+            if let savedKeyBundle = self.messageKeyBundle(for: userId)?.keyBundle {
+                keyBundle = savedKeyBundle
+                isNewReceiveSession = false
+            } else {
+                guard let publicKey = publicKey else {
+                    DDLogError("KeyData/decryptPayload/error missing public key")
+                    DispatchQueue.main.async {
+                        completion(.failure(.missingPublicKey))
+                    }
+                    return
+                }
+                guard let newKeyBundle = self.receiveSessionSetup(for: userId, from: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID) else {
+                    DDLogError("KeyData/decryptPayload/error receiveSessionSetup failed")
+                    DispatchQueue.main.async {
+                        completion(.failure(.other))
+                    }
+                    return
+                }
+                keyBundle = newKeyBundle
+                isNewReceiveSession = true
             }
-            guard let newKeyBundle = receiveSessionSetup(for: userId, from: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID) else {
-                DDLogError("KeyData/decryptPayload/error receiveSessionSetup failed")
-                return .failure(.other)
+
+            let result = self.decryptMessage(for: userId, encryptedPayload: encryptedPayload, keyBundle: keyBundle, isNewReceiveSession: isNewReceiveSession)
+            DispatchQueue.main.async {
+                completion(result)
             }
-            keyBundle = newKeyBundle
-            isNewReceiveSession = true
         }
-
-        return decryptMessage(for: userId, encryptedPayload: encryptedPayload, keyBundle: keyBundle, isNewReceiveSession: isNewReceiveSession)
     }
 
 }

@@ -520,43 +520,32 @@ final class ProtoService: ProtoServiceCore {
 
     // MARK: Decryption
 
-    private let decryptionQueue = DispatchQueue(label: "com.halloapp.proto.decryption", qos: .userInitiated, attributes: [ .concurrent ])
-
-    /// May return a valid message with an error (i.e., there may be plaintext to fall back to even if decryption fails). Dispatches completion handler on main thread.
+    /// May return a valid message with an error (i.e., there may be plaintext to fall back to even if decryption fails).
     private func decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID, completion: @escaping (Clients_ChatMessage?, DecryptionError?) -> Void) {
-        decryptionQueue.async {
-            let (message, error) = self._decryptChat(serverChat, from: fromUserID)
-            DispatchQueue.main.async {
-                completion(message, error)
-            }
-        }
-    }
-
-    /// Internal decryption function. Should be called on decryption queue.
-    private func _decryptChat(_ serverChat: Server_ChatStanza, from fromUserID: UserID) -> (Clients_ChatMessage?, DecryptionError?) {
         let plainTextMessage = Clients_ChatMessage(containerData: serverChat.payload)
-        let decryptionResult = AppContext.shared.keyStore.decryptPayload(
+        AppContext.shared.keyStore.decryptPayload(
             for: fromUserID,
             encryptedPayload: serverChat.encPayload,
             publicKey: serverChat.publicKey,
-            oneTimeKeyID: Int(serverChat.oneTimePreKeyID))
-
-        switch decryptionResult {
-        case .success(let decryptedData):
-            guard let decryptedMessage = Clients_ChatMessage(containerData: decryptedData) else {
-                // Decryption deserialization failed, fall back to plaintext if possible
-                return (plainTextMessage, .deserialization)
+            oneTimeKeyID: Int(serverChat.oneTimePreKeyID)) { result in
+            switch result {
+            case .success(let decryptedData):
+                guard let decryptedMessage = Clients_ChatMessage(containerData: decryptedData) else {
+                    // Decryption deserialization failed, fall back to plaintext if possible
+                    completion(plainTextMessage, .deserialization)
+                    return
+                }
+                if let plainTextMessage = plainTextMessage, plainTextMessage.text != decryptedMessage.text {
+                    // Decrypted message does not match plaintext
+                    completion(plainTextMessage, .plainTextMismatch)
+                } else {
+                    completion(decryptedMessage, nil)
+                }
+            case .failure(let error):
+                completion(plainTextMessage, error)
             }
-            if let plainTextMessage = plainTextMessage, plainTextMessage.text != decryptedMessage.text {
-                // Decrypted message does not match plaintext
-                return (plainTextMessage, .plainTextMismatch)
-            }
-            return (decryptedMessage, nil)
-        case .failure(let error):
-            return (plainTextMessage, error)
         }
     }
-
 }
 
 extension ProtoService: HalloService {
