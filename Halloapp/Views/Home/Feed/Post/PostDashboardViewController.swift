@@ -14,6 +14,7 @@ struct FeedPostReceipt {
     enum ReceiptType: Int {
         case seen = 0
         case sent = 1
+        case placeholder = 2
     }
 
     let userId: UserID
@@ -83,6 +84,14 @@ fileprivate class PostReceiptsDataSource: UITableViewDiffableDataSource<FeedPost
 
 private extension Localizations {
 
+    static var viewedBy: String {
+        NSLocalizedString("mypost.viewed.by", value: "Viewed by", comment: "Your Post screen: title for group of contacts who has seen your post.")
+    }
+
+    static var sentTo: String {
+        NSLocalizedString("mypost.sent.to", value: "Sent to", comment: "Your Post screen: title for group of contacts who has not yet seen your post.")
+    }
+
     static var actionViewProfile: String {
         NSLocalizedString("mypost.action.view.profile", value: "View Profile", comment: "One of the contact actions in My Post screen.")
     }
@@ -101,6 +110,11 @@ private extension Localizations {
                                        comment: "Confirmation when hiding posts from a certain contact. Parameter is contact's full name.")
         return String.localizedStringWithFormat(format, contactName)
     }
+
+    static var postNotYetViewedByAnyone: String {
+        NSLocalizedString("mypost.not.viewed.yet", value: "No one has viewed your post yet",
+                          comment: "Placeholder text displayed in My Post Info screen when no one has seen the post yet.")
+    }
 }
 
 protocol PostDashboardViewControllerDelegate: AnyObject {
@@ -117,6 +131,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
 
     private struct Constants {
         static let cellReuseIdentifier = "contact-cell"
+        static let placeholderCellReuseIdentifier = "placeholder-cell"
         static let headerReuseIdentifier = "header"
     }
 
@@ -131,7 +146,7 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
     required init(feedPostId: FeedPostID, isGroupPost: Bool) {
         self.feedPostId = feedPostId
         self.isGroupPost = isGroupPost
-        super.init(style: .plain)
+        super.init(style: .grouped)
     }
 
     required init?(coder: NSCoder) {
@@ -146,12 +161,21 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarTrashBinWithLid"), style: .plain, target: self, action: #selector(retractPostAction))
 
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.placeholderCellReuseIdentifier)
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
         tableView.register(SectionHeaderView.self, forHeaderFooterViewReuseIdentifier: Constants.headerReuseIdentifier)
         tableView.backgroundColor = .feedBackground
         tableView.delegate = self
 
         dataSource = PostReceiptsDataSource(tableView: tableView) { (tableView, indexPath, receipt) in
+            if receipt.type == .placeholder {
+                let cell = tableView.dequeueReusableCell(withIdentifier: Constants.placeholderCellReuseIdentifier, for: indexPath)
+                cell.selectionStyle = .none
+                cell.textLabel?.textAlignment = .center
+                cell.textLabel?.textColor = .secondaryLabel
+                cell.textLabel?.text = Localizations.postNotYetViewedByAnyone
+                return cell
+            }
             let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
             cell.configureWithReceipt(receipt, using: MainAppContext.shared.avatarStore)
             return cell
@@ -207,10 +231,13 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         guard let receiptType = FeedPostReceipt.ReceiptType(rawValue: section) else { return nil }
         switch receiptType  {
         case .seen:
-            return NSLocalizedString("your.post.viewed.by", value: "Viewed by", comment: "Your Post screen: title for group of contacts who has seen your post.")
+            return Localizations.viewedBy
 
         case .sent:
-            return NSLocalizedString("your.post.sent.to", value: "Sent to", comment: "Your Post screen: title for group of contacts who has not yet seen your post.")
+            return Localizations.sentTo
+
+        default:
+            return nil
         }
     }
 
@@ -247,7 +274,10 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
             }
         }
 
-        let seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: feedPost)
+        var seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: feedPost)
+        if seenReceipts.isEmpty {
+            seenReceipts.append(FeedPostReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date()))
+        }
 
         // Filter out usedIds in "Seen by" section from "Sent to" section.
         var userIdsInSeenBySection = Set(seenReceipts.map(\.userId))
@@ -269,7 +299,8 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
     // MARK: Contact Actions
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let receipt = dataSource.itemIdentifier(for: indexPath), delegate != nil else {
+        guard let receipt = dataSource.itemIdentifier(for: indexPath), receipt.type != .placeholder,
+              let delegate = delegate else {
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
@@ -278,11 +309,11 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         let actionSheet = UIAlertController(title: contactName, message: nil, preferredStyle: .actionSheet)
         // View Profile
         actionSheet.addAction(UIAlertAction(title: Localizations.actionViewProfile, style: .default, handler: { (_) in
-            self.delegate?.postDashboardViewController(self, didRequestPerformAction: .profile(receipt.userId))
+            delegate.postDashboardViewController(self, didRequestPerformAction: .profile(receipt.userId))
         }))
         // Message
         actionSheet.addAction(UIAlertAction(title: Localizations.actionMessage, style: .default, handler: { (_) in
-            self.delegate?.postDashboardViewController(self, didRequestPerformAction: .message(receipt.userId))
+            delegate.postDashboardViewController(self, didRequestPerformAction: .message(receipt.userId))
         }))
         // Hide from Contact
         // This options isn't shown for group feed posts to avoid confusion:

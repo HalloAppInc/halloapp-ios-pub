@@ -9,7 +9,7 @@ import Core
 import CoreData
 import UIKit
 
-fileprivate class SectionHeaderView: UITableViewHeaderFooterView {
+private class SectionHeaderView: UITableViewHeaderFooterView {
 
     override init(reuseIdentifier: String?) {
         super.init(reuseIdentifier: reuseIdentifier)
@@ -37,7 +37,28 @@ fileprivate class SectionHeaderView: UITableViewHeaderFooterView {
     }
 }
 
-fileprivate class PostReceiptsDataSource: UITableViewDiffableDataSource<ChatGroupMessageReceipt.ReceiptType, ChatGroupMessageReceipt> {
+private extension Localizations {
+
+    static var viewedBy: String {
+        NSLocalizedString("message.info.viewed.by",
+                          value: "Viewed by",
+                          comment: "Message Info screen: title for group of contacts who has seen your group chat message.")
+    }
+
+    static var sentTo: String {
+        NSLocalizedString("message.info.sent.to",
+                          value: "Sent to",
+                          comment: "Message Info screen: title for group of contacts who has not yet seen your group chat message.")
+    }
+
+    static var messageNotYetViewedByAnyone: String {
+        NSLocalizedString("message.info.not.viewed.yet", value: "No one has viewed your message yet",
+                          comment: "Placeholder text displayed in Message Info screen when no one has seen your group chat message yet.")
+    }
+
+}
+
+private class MessageReceiptsDataSource: UITableViewDiffableDataSource<ChatGroupMessageReceipt.ReceiptType, ChatGroupMessageReceipt> {
 
 }
 
@@ -45,17 +66,18 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
 
     private struct Constants {
         static let cellReuseIdentifier = "MessageSeenByCell"
+        static let placeholderCellReuseIdentifier = "placeholder-cell"
         static let headerReuseIdentifier = "Header"
     }
 
     private let chatGroupMessageId: String
 
-    private var dataSource: PostReceiptsDataSource!
+    private var dataSource: MessageReceiptsDataSource!
     private var fetchedResultsController: NSFetchedResultsController<ChatGroupMessage>!
 
     required init(chatGroupMessageId: String) {
         self.chatGroupMessageId = chatGroupMessageId
-        super.init(style: .plain)
+        super.init(style: .grouped)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
@@ -67,19 +89,24 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
         navigationItem.standardAppearance = .opaqueAppearance
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
 
-        tableView.register(MessageSeenByCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.placeholderCellReuseIdentifier)
+        tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: Constants.cellReuseIdentifier)
         tableView.register(SectionHeaderView.self, forHeaderFooterViewReuseIdentifier: Constants.headerReuseIdentifier)
         tableView.allowsSelection = false
         tableView.backgroundColor = .feedBackground
         tableView.delegate = self
 
-        tableView.estimatedRowHeight = 50
-        tableView.rowHeight = UITableView.automaticDimension
-        
-        
-        dataSource = PostReceiptsDataSource(tableView: tableView) { (tableView, indexPath, receipt) in
-            let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! MessageSeenByCell
-            cell.configure(receipt, using: MainAppContext.shared.avatarStore)
+        dataSource = MessageReceiptsDataSource(tableView: tableView) { (tableView, indexPath, receipt) in
+            if receipt.type == .placeholder {
+                let cell = tableView.dequeueReusableCell(withIdentifier: Constants.placeholderCellReuseIdentifier, for: indexPath)
+                cell.selectionStyle = .none
+                cell.textLabel?.textAlignment = .center
+                cell.textLabel?.textColor = .secondaryLabel
+                cell.textLabel?.text = Localizations.messageNotYetViewedByAnyone
+                return cell
+            }
+            let cell = tableView.dequeueReusableCell(withIdentifier: Constants.cellReuseIdentifier, for: indexPath) as! ContactTableViewCell
+            cell.configureWithReceipt(receipt, using: MainAppContext.shared.avatarStore)
             return cell
         }
 
@@ -106,13 +133,16 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
     // MARK: Table View Support
 
     private func titleForHeader(inSection section: Int) -> String? {
-        guard let receiptType = FeedPostReceipt.ReceiptType(rawValue: section) else { return nil }
+        guard let receiptType = ChatGroupMessageReceipt.ReceiptType(rawValue: section) else { return nil }
         switch receiptType  {
         case .seen:
-            return "Viewed by"
+            return Localizations.viewedBy
 
-        case .sent:
-            return "Sent to"
+        case .sentTo:
+            return Localizations.sentTo
+
+        default:
+            return nil
         }
     }
 
@@ -140,22 +170,25 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
         chatGroupMessage.info?.forEach { (info) in
             let abContact = MainAppContext.shared.contactStore.sortedContacts(withUserIds: [info.userId]).first
             let name = MainAppContext.shared.contactStore.fullName(for: info.userId)
-            let phone = abContact?.phoneNumber
+            let phone = abContact?.phoneNumber?.formattedPhoneNumber
 
             if info.outboundStatus == .seen {
-               seenRows.append(ChatGroupMessageReceipt(userId: info.userId,
-                                                            type: .seen,
-                                                    contactName: name,
-                                                    phoneNumber: phone,
-                                                    timestamp: info.timestamp))
+                seenRows.append(ChatGroupMessageReceipt(userId: info.userId,
+                                                        type: .seen,
+                                                        contactName: name,
+                                                        phoneNumber: phone,
+                                                        timestamp: info.timestamp))
             } else if chatGroupMessage.outboundStatus != .pending && info.outboundStatus != .error {
                 sentToRows.append(ChatGroupMessageReceipt(userId: info.userId,
-                                                             type: .sentTo,
-                                                     contactName: name,
-                                                     phoneNumber: phone,
-                                                     timestamp: info.timestamp))
+                                                          type: .sentTo,
+                                                          contactName: name,
+                                                          phoneNumber: phone,
+                                                          timestamp: info.timestamp))
             }
-            
+        }
+
+        if seenRows.isEmpty {
+            seenRows.append(ChatGroupMessageReceipt(userId: "", type: .placeholder, contactName: nil, phoneNumber: nil, timestamp: Date()))
         }
 
         var snapshot = NSDiffableDataSourceSnapshot<ChatGroupMessageReceipt.ReceiptType, ChatGroupMessageReceipt>()
@@ -170,130 +203,11 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
 
 }
 
-class MessageSeenByCell: UITableViewCell {
-
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setup()
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-   
-        let labelSpacing: CGFloat = subtitleLabel.text?.isEmpty ?? true ? 0 : 4
-        if vStack.spacing != labelSpacing {
-            vStack.spacing = labelSpacing
-        }
-    }
-    
-    override func prepareForReuse() {
-        avatar.prepareForReuse()
-        accessoryView = nil
-        nameLabel.text = ""
-        timeLabel.text = ""
-    }
-    
-    override var isUserInteractionEnabled: Bool {
-        didSet {
-            if isUserInteractionEnabled {
-                nameLabel.textColor = .label
-            } else {
-                nameLabel.textColor = .systemGray
-            }
-        }
-    }
-    
-    func configure(_ receipt: ChatGroupMessageReceipt, using avatarStore: AvatarStore) {
-        avatar.configure(with: receipt.userId, using: avatarStore)
-        nameLabel.text = receipt.contactName
-        subtitleLabel.text = receipt.phoneNumber
-//        timeLabel.text = receipt.timestamp.chatTimestamp()
-    }
-    
-    private func setup() {
-        contentView.addSubview(mainRow)
-        mainRow.leadingAnchor.constraint(equalTo: contentView.leadingAnchor).isActive = true
-        mainRow.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
-        mainRow.trailingAnchor.constraint(equalTo: contentView.trailingAnchor).isActive = true
-        mainRow.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
-    }
-
-    private lazy var mainRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ avatar, vStack, timeLabel ])
-        view.layoutMargins = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
-        view.isLayoutMarginsRelativeArrangement = true
-        view.axis = .horizontal
-        view.alignment = .center
-        view.spacing = 10
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        profilePictureSizeConstraint = avatar.heightAnchor.constraint(equalToConstant: profilePictureSize)
-        profilePictureSizeConstraint.isActive = true
-        avatar.heightAnchor.constraint(equalTo: avatar.widthAnchor).isActive = true
-        
-        return view
-    }()
-
-    private lazy var avatar: AvatarView = {
-        let view = AvatarView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    private var profilePictureSizeConstraint: NSLayoutConstraint!
-
-    var profilePictureSize: CGFloat = 30 {
-        didSet {
-            profilePictureSizeConstraint.constant = profilePictureSize
-        }
-    }
-
-    private lazy var vStack: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, subtitleLabel ])
-        view.axis = .vertical
-        view.spacing = 4
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        view.setContentHuggingPriority(.defaultLow, for: .vertical)
-        return view
-    }()
-
-    let nameLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = .preferredFont(forTextStyle: .headline)
-        label.textColor = .label
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    let subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = .preferredFont(forTextStyle: .subheadline)
-        label.textColor = .secondaryLabel
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    let timeLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = .preferredFont(forTextStyle: .body)
-        label.textColor = .label
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        return label
-    }()
-}
-
-struct ChatGroupMessageReceipt: Hashable, Equatable {
+private struct ChatGroupMessageReceipt: Hashable, Equatable {
     enum ReceiptType: Int {
         case seen = 0
         case sentTo = 1
+        case placeholder
     }
 
     let userId: UserID
@@ -309,5 +223,15 @@ struct ChatGroupMessageReceipt: Hashable, Equatable {
     
     static func == (lhs: Self, rhs: Self) -> Bool {
         return lhs.userId == rhs.userId && lhs.type == rhs.type
+    }
+}
+
+private extension ContactTableViewCell {
+
+    func configureWithReceipt(_ receipt: ChatGroupMessageReceipt, using avatarStore: AvatarStore) {
+        contactImage.configure(with: receipt.userId, using: avatarStore)
+
+        nameLabel.text = receipt.contactName
+        subtitleLabel.text = receipt.phoneNumber
     }
 }
