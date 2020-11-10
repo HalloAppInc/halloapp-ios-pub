@@ -665,10 +665,12 @@ extension ChatViewController: InboundMsgViewCellDelegate {
             self.handleQuotedReply(msg: chatMessage, mediaIndex: inboundMsgViewCell.mediaIndex)
          })
         
-        actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
-            let pasteboard = UIPasteboard.general
-            pasteboard.string = chatMessage.text
-         })
+        if let messageText = chatMessage.text, !messageText.isEmpty {
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
+                let pasteboard = UIPasteboard.general
+                pasteboard.string = messageText
+            })
+        }
         
          actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         
@@ -702,10 +704,12 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
             self.handleQuotedReply(msg: chatMessage, mediaIndex: outboundMsgViewCell.mediaIndex)
          })
         
-        actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
-            let pasteboard = UIPasteboard.general
-            pasteboard.string = chatMessage.text
-         })
+        if let messageText = chatMessage.text, !messageText.isEmpty {
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
+                let pasteboard = UIPasteboard.general
+                pasteboard.string = messageText
+            })
+        }
         
 //        actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
 //            guard let self = self else { return }

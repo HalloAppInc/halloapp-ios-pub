@@ -648,11 +648,13 @@ extension ChatGroupViewController: InboundMsgViewCellDelegate {
             guard let self = self else { return }
             self.handleQuotedReply(msg: chatGroupMessage, mediaIndex: inboundMsgViewCell.mediaIndex)
          })
-        
-        actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
-            let pasteboard = UIPasteboard.general
-            pasteboard.string = chatGroupMessage.text
-         })
+
+        if let messageText = chatGroupMessage.text, !messageText.isEmpty {
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
+                let pasteboard = UIPasteboard.general
+                pasteboard.string = messageText
+            })
+        }
                 
          actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         
@@ -683,10 +685,12 @@ extension ChatGroupViewController: OutboundMsgViewCellDelegate {
             self.handleQuotedReply(msg: chatGroupMessage, mediaIndex: outboundMsgViewCell.mediaIndex)
          })
         
-        actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
-            let pasteboard = UIPasteboard.general
-            pasteboard.string = chatGroupMessage.text
-         })
+        if let messageText = chatGroupMessage.text, !messageText.isEmpty {
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
+                let pasteboard = UIPasteboard.general
+                pasteboard.string = messageText
+            })
+        }
         
         actionSheet.addAction(UIAlertAction(title: Localizations.messageInfo, style: .default) { [weak self] _ in
             guard let self = self else { return }
