@@ -44,7 +44,13 @@ class CommentView: UIView {
   
     var isReplyButtonVisible: Bool = true {
         didSet {
-            self.replyButton.alpha = self.isReplyButtonVisible ? 1 : 0
+            replyButton.alpha = isReplyButtonVisible ? 1 : 0
+        }
+    }
+
+    var isActivityIndicatorViewVisible: Bool = false {
+        didSet {
+            setActivityIndicatorViewVisible(isActivityIndicatorViewVisible)
         }
     }
 
@@ -101,12 +107,8 @@ class CommentView: UIView {
 
     }()
 
-    private lazy var vStack: UIStackView = {
-        let vStack = UIStackView()
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        return vStack
-    }()
+    private var vStack: UIStackView!
+    private var bottomRow: UIStackView!
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -119,37 +121,38 @@ class CommentView: UIView {
     }
 
     private func commonInit() {
-        self.preservesSuperviewLayoutMargins = true
+        preservesSuperviewLayoutMargins = true
 
-        self.addSubview(self.profilePictureButton)
+        addSubview(profilePictureButton)
 
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
 
-        let hStack = UIStackView(arrangedSubviews: [ self.timestampLabel, self.replyButton, spacer ])
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.alignment = .center
-        hStack.axis = .horizontal
-        hStack.spacing = 8
+        bottomRow = UIStackView(arrangedSubviews: [ timestampLabel, replyButton, spacer ])
+        bottomRow.translatesAutoresizingMaskIntoConstraints = false
+        bottomRow.alignment = .center
+        bottomRow.axis = .horizontal
+        bottomRow.spacing = 8
 
-        vStack.addArrangedSubview(self.textLabel)
-        vStack.addArrangedSubview(hStack)
-        self.addSubview(self.vStack)
+        vStack = UIStackView(arrangedSubviews: [ textLabel, bottomRow ])
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.axis = .vertical
+        addSubview(vStack)
         
-        self.profilePictureWidth = self.profilePictureButton.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeNormal)
-        self.profilePictureButton.heightAnchor.constraint(equalTo: self.profilePictureButton.widthAnchor).isActive = true
-        self.profilePictureWidth.isActive = true
+        profilePictureWidth = profilePictureButton.widthAnchor.constraint(equalToConstant: LayoutConstants.profilePictureSizeNormal)
+        profilePictureButton.heightAnchor.constraint(equalTo: profilePictureButton.widthAnchor).isActive = true
+        profilePictureWidth.isActive = true
 
-        self.leadingMargin = self.profilePictureButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: LayoutConstants.profilePictureLeadingMarginNormal)
-        self.leadingMargin.isActive = true
-        self.profilePictureButton.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        self.profilePictureButton.bottomAnchor.constraint(lessThanOrEqualTo: self.bottomAnchor).isActive = true
+        leadingMargin = profilePictureButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: LayoutConstants.profilePictureLeadingMarginNormal)
+        leadingMargin.isActive = true
+        profilePictureButton.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        profilePictureButton.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor).isActive = true
 
-        self.profilePictureTrailingSpace = self.vStack.leadingAnchor.constraint(equalTo: self.profilePictureButton.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceNormal)
-        self.profilePictureTrailingSpace.isActive = true
-        self.vStack.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
-        self.vStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        self.vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        profilePictureTrailingSpace = vStack.leadingAnchor.constraint(equalTo: profilePictureButton.trailingAnchor, constant: LayoutConstants.profilePictureTrailingSpaceNormal)
+        profilePictureTrailingSpace.isActive = true
+        vStack.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
+        vStack.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        vStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
     }
 
     func updateWith(comment: FeedPostComment) {
@@ -157,10 +160,9 @@ class CommentView: UIView {
         let nameFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
 
         let contactName = MainAppContext.shared.contactStore.fullName(for: comment.userId)
-        let attributedText = NSMutableAttributedString(
-            string: contactName,
-            attributes: [NSAttributedString.Key.userMention: comment.userId,
-                         NSAttributedString.Key.font: nameFont])
+        let attributedText = NSMutableAttributedString(string: contactName,
+                                                       attributes: [NSAttributedString.Key.userMention: comment.userId,
+                                                                    NSAttributedString.Key.font: nameFont])
 
         attributedText.append(NSAttributedString(string: " "))
 
@@ -172,31 +174,63 @@ class CommentView: UIView {
 
         attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
 
-        self.textLabel.attributedText = attributedText
-        self.timestampLabel.text = comment.timestamp.feedTimestamp()
-        self.isReplyButtonVisible = comment.isPosted
+        textLabel.attributedText = attributedText
+        timestampLabel.text = comment.timestamp.feedTimestamp()
+        isReplyButtonVisible = comment.isPosted
 
         let isRootComment = comment.parent == nil
-        self.profilePictureWidth.constant = isRootComment ? LayoutConstants.profilePictureSizeNormal : LayoutConstants.profilePictureSizeSmall
-        self.profilePictureTrailingSpace.constant = isRootComment ? LayoutConstants.profilePictureTrailingSpaceNormal : LayoutConstants.profilePictureTrailingSpaceSmall
-        self.leadingMargin.constant = isRootComment ? LayoutConstants.profilePictureLeadingMarginNormal : LayoutConstants.profilePictureLeadingMarginReply
+        profilePictureWidth.constant = isRootComment ? LayoutConstants.profilePictureSizeNormal : LayoutConstants.profilePictureSizeSmall
+        profilePictureTrailingSpace.constant = isRootComment ? LayoutConstants.profilePictureTrailingSpaceNormal : LayoutConstants.profilePictureTrailingSpaceSmall
+        leadingMargin.constant = isRootComment ? LayoutConstants.profilePictureLeadingMarginNormal : LayoutConstants.profilePictureLeadingMarginReply
 
         if comment.isRetracted {
-            self.deletedCommentView.isHidden = false
+            deletedCommentView.isHidden = false
             deletedCommentTextLabel.text = comment.status == .retracted ? Localizations.commentDeleted : Localizations.commentIsBeingDeleted
-            if self.deletedCommentView.superview == nil {
-                self.vStack.insertArrangedSubview(self.deletedCommentView, at: self.vStack.arrangedSubviews.firstIndex(of: self.textLabel)! + 1)
+            if deletedCommentView.superview == nil {
+                vStack.insertArrangedSubview(deletedCommentView, at: vStack.arrangedSubviews.firstIndex(of: textLabel)! + 1)
             }
         } else {
             // Hide "This comment has been deleted" view.
             // Use tags so as to not trigger lazy initialization of the view.
-            if let deletedCommentView = self.vStack.arrangedSubviews.first(where: { $0.tag == CommentView.deletedCommentViewTag }) {
+            if let deletedCommentView = vStack.arrangedSubviews.first(where: { $0.tag == CommentView.deletedCommentViewTag }) {
                 deletedCommentView.isHidden = true
             }
         }
         
         profilePictureButton.avatarView.configure(with: comment.userId, using: MainAppContext.shared.avatarStore)
     }
+
+    // MARK: Activity Indicator
+
+    private var activityIndicatorView: UIActivityIndicatorView!
+
+    private func setActivityIndicatorViewVisible(_ visible: Bool) {
+        bottomRow.alpha = visible ? 0 : 1
+        guard visible != (activityIndicatorView?.isAnimating ?? false) else {
+            return
+        }
+        if visible {
+            if activityIndicatorView == nil {
+                let activityIndicatorView = UIActivityIndicatorView(style: .medium)
+                activityIndicatorView.translatesAutoresizingMaskIntoConstraints = false
+                vStack.addSubview(activityIndicatorView)
+                vStack.addConstraints([
+                    activityIndicatorView.leadingAnchor.constraint(equalTo: timestampLabel.leadingAnchor),
+                    activityIndicatorView.topAnchor.constraint(equalTo: timestampLabel.topAnchor),
+                    activityIndicatorView.bottomAnchor.constraint(equalTo: timestampLabel.bottomAnchor)
+                ])
+                self.activityIndicatorView = activityIndicatorView
+            }
+            // It is necessary to restart animation if cell was off-screen.
+            activityIndicatorView?.startAnimating()
+        } else {
+            if let activityIndicatorView = activityIndicatorView {
+                activityIndicatorView.removeFromSuperview()
+                self.activityIndicatorView = nil
+            }
+        }
+    }
+
 }
 
 

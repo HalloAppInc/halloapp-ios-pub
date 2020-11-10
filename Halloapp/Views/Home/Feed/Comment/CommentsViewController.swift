@@ -617,7 +617,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             self.setNeedsScroll(toComment: commentId, highlightAfterScroll: true, animated: true)
             self.commentsInputView.showKeyboard(from: self)
         }
-        cell.accessoryViewAction = { [weak self] in
+        cell.retryAction = { [weak self] in
             guard let self = self else { return }
             self.confirmResending(commentWithId: commentId)
         }
@@ -826,7 +826,7 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
     var commentId: FeedPostCommentID?
     var openProfileAction: (() -> ()) = {}
     var replyAction: (() -> ()) = {}
-    var accessoryViewAction: (() -> ()) = {}
+    var retryAction: (() -> ()) = {}
 
     var isCellHighlighted: Bool = false {
         didSet {
@@ -873,38 +873,34 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
         replyAction()
     }
 
-    @objc private func accessoryButtonAction() {
-        accessoryViewAction()
+    @objc private func retryButtonAction() {
+        retryAction()
     }
 
     func update(with comment: FeedPostComment) {
         commentId = comment.id
-        self.commentView.updateWith(comment: comment)
+        commentView.updateWith(comment: comment)
         switch comment.status {
         case .sending, .retracting:
-            if let activityIndicator = self.accessoryView as? UIActivityIndicatorView {
-                activityIndicator.startAnimating()
-            } else {
-                let activityIndicator = UIActivityIndicatorView(style: .medium)
-                self.accessoryView = activityIndicator
-                activityIndicator.startAnimating()
-            }
+            commentView.isActivityIndicatorViewVisible = true
 
         case .sendError:
-            guard self.accessoryView as? UIButton == nil else { break }
-            self.accessoryView = {
+            commentView.isActivityIndicatorViewVisible = false
+
+            guard accessoryView as? UIButton == nil else { break }
+            accessoryView = {
                 let button = UIButton(type: .system)
                 button.setImage(UIImage(systemName: "exclamationmark.circle"), for: .normal)
                 button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 6, bottom: 12, right: 6)
                 button.tintColor = .red
                 button.sizeToFit()
-                button.addTarget(self, action: #selector(accessoryButtonAction), for: .touchUpInside)
+                button.addTarget(self, action: #selector(retryButtonAction), for: .touchUpInside)
                 return button
             }()
 
         default:
-            self.accessoryView = nil
-            break
+            commentView.isActivityIndicatorViewVisible = false
+            accessoryView = nil
         }
     }
 }
