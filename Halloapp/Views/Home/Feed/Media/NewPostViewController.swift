@@ -66,9 +66,9 @@ final class NewPostViewController: UIViewController {
         return makeNavigationController()
     }()
 
-    private func didFinishPickingMedia(calledFromCamera: Bool = false) {
+    private func didFinishPickingMedia(showAddMoreMediaButton: Bool = true) {
         containedNavigationController.pushViewController(
-            makeComposerViewController(calledFromCamera: calledFromCamera), animated: true)
+            makeComposerViewController(showAddMoreMediaButton: showAddMoreMediaButton), animated: true)
     }
 
     private func makeNavigationController() -> UINavigationController {
@@ -82,12 +82,12 @@ final class NewPostViewController: UIViewController {
         }
     }
 
-    private func makeComposerViewController(calledFromCamera: Bool = false) -> UIViewController {
+    private func makeComposerViewController(showAddMoreMediaButton: Bool = true) -> UIViewController {
         return PostComposerViewController(
             mediaToPost: state.pendingMedia,
             initialInput: state.pendingInput,
             showCancelButton: state.isPostComposerCancellable,
-            calledFromCamera: calledFromCamera,
+            showAddMoreMediaButton: showAddMoreMediaButton,
             useTransparentNavigationBar: true,
             delegate: self)
     }
@@ -138,7 +138,7 @@ final class NewPostViewController: UIViewController {
         mediaToPost.size = normalizedImage.size
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
-        didFinishPickingMedia(calledFromCamera: true)
+        didFinishPickingMedia(showAddMoreMediaButton: false)
     }
 
     private func onCameraVideoPicked(_ videoURL: URL) {
@@ -152,7 +152,7 @@ final class NewPostViewController: UIViewController {
         }
         pendingMedia.append(mediaToPost)
         state.pendingMedia = pendingMedia
-        didFinishPickingMedia(calledFromCamera: true)
+        didFinishPickingMedia(showAddMoreMediaButton: false)
     }
 }
 

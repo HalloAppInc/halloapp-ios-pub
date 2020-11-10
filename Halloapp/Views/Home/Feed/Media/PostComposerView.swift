@@ -41,7 +41,7 @@ struct NavigationBarState {
 }
 
 class PostComposerViewController: UIViewController {
-    enum Mode {
+    enum TitleMode {
         case post
         case message
     }
@@ -53,7 +53,7 @@ class PostComposerViewController: UIViewController {
     let closeIcon = UIImage(named: "NavbarClose")
     fileprivate let imageServer = ImageServer()
 
-    private let mode: Mode
+    private let titleMode: TitleMode
     private let showCancelButton: Bool
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
@@ -61,7 +61,8 @@ class PostComposerViewController: UIViewController {
     private var postComposerView: PostComposerView?
     private var shareButton: UIBarButtonItem!
     private let isMediaPost: Bool
-    private let calledFromCamera: Bool
+    private let disableMentions: Bool
+    private let showAddMoreMediaButton: Bool
     private var useTransparentNavigationBar: Bool
     private weak var delegate: PostComposerViewDelegate?
 
@@ -72,8 +73,9 @@ class PostComposerViewController: UIViewController {
         mediaToPost media: [PendingMedia],
         initialInput: MentionInput,
         showCancelButton: Bool,
-        mode: Mode = .post,
-        calledFromCamera: Bool = false,
+        titleMode: TitleMode = .post,
+        disableMentions: Bool = false,
+        showAddMoreMediaButton: Bool = true,
         useTransparentNavigationBar: Bool = false,
         delegate: PostComposerViewDelegate)
     {
@@ -81,8 +83,9 @@ class PostComposerViewController: UIViewController {
         self.isMediaPost = media.count > 0
         self.inputToPost = GenericObservable(initialInput)
         self.showCancelButton = showCancelButton
-        self.mode = mode
-        self.calledFromCamera = calledFromCamera
+        self.titleMode = titleMode
+        self.disableMentions = disableMentions
+        self.showAddMoreMediaButton = showAddMoreMediaButton
         self.useTransparentNavigationBar = useTransparentNavigationBar
         self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
@@ -100,8 +103,8 @@ class PostComposerViewController: UIViewController {
             mediaItems: mediaItems,
             inputToPost: inputToPost,
             shouldAutoPlay: shouldAutoPlay,
-            areMentionsDisabled: mode == .message,
-            calledFromCamera: calledFromCamera,
+            disableMentions: disableMentions,
+            showAddMoreMediaButton: showAddMoreMediaButton,
             crop: { [weak self] index in
                 guard let self = self else { return }
                 let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value) { controller, media, selected, cancel in
@@ -133,10 +136,10 @@ class PostComposerViewController: UIViewController {
         postComposerViewController.view.constrain(to: view)
         postComposerViewController.didMove(toParent: self)
 
-        switch mode {
+        switch titleMode {
         case .post:
             let titleView = TitleView()
-            titleView.titleLabel.text = NSLocalizedString("composer.post.new.title", value: "New Post", comment: "Composer New Post title.")
+            titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
             titleView.subtitleLabel.text = privacySettings?.composerIndicator ?? ""
             privacySubscription = privacySettings?.$composerIndicator.assign(to: \.text!, on: titleView.subtitleLabel)
             navigationItem.titleView = titleView
@@ -144,14 +147,15 @@ class PostComposerViewController: UIViewController {
         case .message:
             // Refactor with separate titleView for messages?
             let titleView = TitleView()
-            titleView.titleLabel.text = NSLocalizedString("composer.message.new.title", value: "New Message", comment: "Composer New Message title.")
+            titleView.titleLabel.text = NSLocalizedString("composer.message.title", value: "New Message", comment: "Composer New Message title.")
             titleView.subtitleLabel.isHidden = true
             navigationItem.titleView = titleView
         }
 
         navigationItem.leftBarButtonItem =
             UIBarButtonItem(image: isMediaPost ? backIcon : closeIcon, style: .plain, target: self, action: #selector(backAction))
-        shareButton = UIBarButtonItem(title: "Share", style: .done, target: self, action: #selector(shareAction))
+        let shareTitle = NSLocalizedString("composer.post.button.share", value: "Share", comment: "Share button title.")
+        shareButton = UIBarButtonItem(title: shareTitle, style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
     }
 
@@ -311,7 +315,7 @@ fileprivate struct PostComposerLayoutConstants {
 
 fileprivate struct PostComposerView: View {
     private let imageServer: ImageServer
-    private let calledFromCamera: Bool
+    private let showAddMoreMediaButton: Bool
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
@@ -374,8 +378,8 @@ fileprivate struct PostComposerView: View {
         mediaItems: ObservableMediaItems,
         inputToPost: GenericObservable<MentionInput>,
         shouldAutoPlay: GenericObservable<Bool>,
-        areMentionsDisabled: Bool,
-        calledFromCamera: Bool,
+        disableMentions: Bool,
+        showAddMoreMediaButton: Bool,
         crop: @escaping (_ index: GenericObservable<Int>) -> Void,
         goBack: @escaping () -> Void,
         setShareVisibility: @escaping (_ visibility: Bool) -> Void)
@@ -384,8 +388,8 @@ fileprivate struct PostComposerView: View {
         self.mediaItems = mediaItems
         self.inputToPost = inputToPost
         self.shouldAutoPlay = shouldAutoPlay
-        self.areMentionsDisabled = GenericObservable(areMentionsDisabled)
-        self.calledFromCamera = calledFromCamera
+        self.areMentionsDisabled = GenericObservable(disableMentions)
+        self.showAddMoreMediaButton = showAddMoreMediaButton
         self.crop = crop
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
@@ -469,7 +473,7 @@ fileprivate struct PostComposerView: View {
     var controls: some View {
         HStack {
             if keyboardHeight == 0 {
-                if !calledFromCamera {
+                if showAddMoreMediaButton {
                     Button(action: addMedia) {
                         ControlIconView(imageLabel: "ComposerAddMedia")
                     }.sheet(isPresented: $presentPicker) {
