@@ -57,11 +57,21 @@ class MediaPickerSnapshotManager {
         itemsInMonth = 0
         itemsInDay = 0
     }
+
+    func update(change: PHChange) -> NSDiffableDataSourceSnapshot<Int, PickerItem>? {
+        guard let assets = assets else { return nil }
+        guard let details = change.changeDetails(for: assets) else { return nil }
+
+        let limit = nextIndex
+        reset(with: details.fetchResultAfterChanges)
+
+        return next(limit: limit)
+    }
     
-    func next() -> NSDiffableDataSourceSnapshot<Int, PickerItem> {
+    func next(limit: Int? = nil) -> NSDiffableDataSourceSnapshot<Int, PickerItem> {
         guard let assets = assets, assets.count > 0 else { return snapshot }
-        
-        let limit = min(nextIndex + pageSize, assets.count)
+
+        let limit = min(limit ?? (nextIndex + pageSize), assets.count)
         for i in nextIndex..<limit {
             guard let date = assets[i].creationDate else { continue }
             guard filter != .image || assets[i].mediaType == .image else { continue }

@@ -34,27 +34,40 @@ class MediaAlbumsViewController: UIViewController {
     }
     
     override func viewDidLoad() {
-        
-        let smartAlbums = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .albumRegular, options: nil)
-        let userAlbums = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .albumRegular, options: nil)
-        var albums = [Album]()
-        
-        for i in 0..<smartAlbums.count {
-            albums.append(Album(smartAlbums[i]))
+        fetch()
+    }
+
+    private func fetch() {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+
+            let smartAlbums = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .albumRegular, options: nil)
+            let userAlbums = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .albumRegular, options: nil)
+            var albums = [Album]()
+
+            for i in 0..<smartAlbums.count {
+                albums.append(Album(smartAlbums[i]))
+            }
+
+            for i in 0..<userAlbums.count {
+                albums.append(Album(userAlbums[i]))
+            }
+
+            DispatchQueue.main.async {
+                self.display(albums: albums)
+            }
         }
-        
-        for i in 0..<userAlbums.count {
-            albums.append(Album(userAlbums[i]))
-        }
-        
+    }
+
+    private func display(albums: [Album]) {
         let hostingController = UIHostingController(rootView: AlbumsView(albums: albums) { [weak self] album, cancel in
             guard let self = self else { return }
             self.didFinish(self, album?.album, cancel)
         })
-        
+
         self.addChild(hostingController)
         self.view.addSubview(hostingController.view)
-        
+
         hostingController.view.translatesAutoresizingMaskIntoConstraints = false
         hostingController.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
         hostingController.view.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
@@ -84,7 +97,10 @@ fileprivate class Album : ObservableObject, Identifiable {
     }
     
     func fetchThumbnail() {
-        guard let asset = PHAsset.fetchKeyAssets(in: album, options: nil)?.firstObject else { return }
+        let options = PHFetchOptions()
+        options.fetchLimit = 1
+
+        guard let asset = PHAsset.fetchKeyAssets(in: album, options: options)?.firstObject else { return }
         
         PHImageManager.default().requestImage(for: asset, targetSize: CGSize(width: 256, height: 256), contentMode: .aspectFill, options: nil) { [weak self] image, _ in
             guard let self = self else { return }

@@ -26,7 +26,8 @@ fileprivate enum TransitionState {
 
 typealias MediaPickerViewControllerCallback = (MediaPickerViewController, [PendingMedia], Bool) -> Void
 
-class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PickerViewCellDelegate {
+class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PHPhotoLibraryChangeObserver, PickerViewCellDelegate {
+
     fileprivate var mode: MediaPickerMode = .day
     fileprivate var selected = [PHAsset]()
     fileprivate var multiselect: Bool
@@ -77,8 +78,13 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         
         setupZoom()
         setupPreviews()
-        
+
+        PHPhotoLibrary.shared().register(self)
         fetchAssets()
+    }
+
+    deinit {
+        PHPhotoLibrary.shared().unregisterChangeObserver(self)
     }
     
     private func fetchAssets(album: PHAssetCollection? = nil) {
@@ -88,7 +94,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         case .notDetermined:
             PHPhotoLibrary.requestAuthorization { status in
                 DispatchQueue.main.async {
-                    self.fetchAssets()
+                    self.fetchAssets(album: album)
                 }
             }
             return
@@ -129,8 +135,19 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             }
         }
     }
+
+    func photoLibraryDidChange(_ changeInstance: PHChange) {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            guard let snapshot = self.snapshotManager.update(change: changeInstance) else { return }
+
+            DispatchQueue.main.async {
+                self.dataSource.apply(snapshot, animatingDifferences: true)
+            }
+        }
+    }
     
-    private func setupNavigationBar() {
+    private func setupNavigationBar(title: String? = nil) {
         self.navigationController?.navigationBar.isTranslucent = false;
         self.navigationController?.navigationBar.shadowImage = UIImage()
         
@@ -140,7 +157,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             titleBtn.widthAnchor.constraint(equalToConstant: 160),
             titleBtn.heightAnchor.constraint(equalToConstant: 44),
         ])
-        titleBtn.setTitle("Camera Roll", for: .normal)
+        titleBtn.setTitle(title ?? "Camera Roll", for: .normal)
         titleBtn.setImage(UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(scale: .small)), for: .normal)
         titleBtn.semanticContentAttribute = .forceRightToLeft // Workaround to move the image on the right side
         titleBtn.addTarget(self, action: #selector(openAlbumsAction), for: .touchUpInside)
@@ -245,7 +262,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     private func setupPreviews() {
-        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.onDisplayPreview(sender:)))
+        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(onDisplayPreview(sender:)))
         collectionView.addGestureRecognizer(longPressRecognizer)
     }
     
@@ -261,12 +278,11 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             let manager = PHImageManager.default()
             
             if asset.mediaType == .image {
-                let maxSize = CGSize(width: UIScreen.main.bounds.width - 40, height: UIScreen.main.bounds.height - 40)
                 let options = PHImageRequestOptions()
                 options.isSynchronous = true
                 options.isNetworkAccessAllowed = true
-                
-                manager.requestImage(for: asset, targetSize: maxSize, contentMode: .aspectFit, options: options) {[weak self] image, _ in
+
+                manager.requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFit, options: options) {[weak self] image, _ in
                     guard let self = self else { return }
                     guard let image = image else { return }
                     guard self.preview == nil else { return }
@@ -295,7 +311,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private func makeImagePreview(_ image: UIImage) {
         let content = UIView()
         content.translatesAutoresizingMaskIntoConstraints = false
-        content.backgroundColor = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.4)
+        content.backgroundColor = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.6)
         self.view.addSubview(content)
         
         let iView = UIImageView()
@@ -308,6 +324,11 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         
         self.preview = content
 
+        let spacing = CGFloat(20)
+        let widthRatio = (self.view.bounds.width - 2 * spacing) / image.size.width
+        let heightRatio = (self.view.bounds.height - 2 * spacing) / image.size.height
+        let scale = min(widthRatio, heightRatio, 1)
+
         NSLayoutConstraint.activate([
             content.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
             content.leftAnchor.constraint(equalTo: self.view.leftAnchor),
@@ -315,8 +336,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             content.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
             iView.centerXAnchor.constraint(equalTo: content.centerXAnchor),
             iView.centerYAnchor.constraint(equalTo: content.centerYAnchor),
-            iView.widthAnchor.constraint(equalToConstant: image.size.width),
-            iView.heightAnchor.constraint(equalToConstant: image.size.height),
+            iView.widthAnchor.constraint(equalToConstant: image.size.width * scale),
+            iView.heightAnchor.constraint(equalToConstant: image.size.height * scale),
         ])
     }
     
@@ -548,9 +569,9 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             }
             
             updateNavigationBarButtons()
-        } else {
-            didFinish(self, [], true)
         }
+
+        didFinish(self, [], true)
     }
     
     @objc private func openAlbumsAction() {
@@ -560,6 +581,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             controller.dismiss(animated: true)
             
             if !cancel {
+                self.setupNavigationBar(title: album?.localizedTitle)
                 self.fetchAssets(album: album)
             }
         }
@@ -641,45 +663,44 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             return
         }
 
-        UIView.animateKeyframes(withDuration: 0.3, delay: 0, options: [], animations: {
-            UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.2, animations: {
+        selected.append(asset)
+        updateNavigationBarButtons()
+
+        UIView.animateKeyframes(withDuration: 0.2, delay: 0, options: [], animations: {
+            UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.5, animations: {
                 cell.image.layer.cornerRadius = 15
                 cell.image.transform = CGAffineTransform(scaleX: 0.7, y: 0.7)
+                cell.prepareIndicator()
             })
             
-            UIView.addKeyframe(withRelativeStartTime: 0.2, relativeDuration: 0.1, animations: {
+            UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.5, animations: {
                 cell.image.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
             })
-        }, completion: { [weak self] finished in
-            guard let self = self else { return }
-            self.selected.append(asset)
+        }, completion: { _ in
             cell.prepare()
-            self.updateNavigationBarButtons()
         })
     }
     
     private func deselect(_ collectionView: UICollectionView, cell: AssetViewCell, asset: PHAsset) {
-        UIView.animateKeyframes(withDuration: 0.3, delay: 0, options: [], animations: {
-            UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.2, animations: {
+        guard let idx = self.selected.firstIndex(of: asset) else { return }
+        self.selected.remove(at: idx)
+        self.updateNavigationBarButtons()
+
+        UIView.animateKeyframes(withDuration: 0.2, delay: 0, options: [], animations: {
+            UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.5, animations: {
                 cell.image.layer.cornerRadius = 0
                 cell.image.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
+                cell.prepareIndicator()
             })
             
-            UIView.addKeyframe(withRelativeStartTime: 0.2, relativeDuration: 0.1, animations: {
+            UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.5, animations: {
                 cell.image.transform = CGAffineTransform.identity
             })
-        }, completion: { [weak self] finished in
-            guard let self = self else { return }
-            guard let idx = self.selected.firstIndex(of: asset) else { return }
-            
-            self.selected.remove(at: idx)
-            
+        }, completion: { _ in
             for cell in collectionView.visibleCells {
                 guard let cell = cell as? AssetViewCell else { continue }
                 cell.prepare()
             }
-            
-            self.updateNavigationBarButtons()
         })
     }
 }
@@ -914,25 +935,31 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         if let asset = item?.asset, let idx = delegate?.selected.firstIndex(of: asset) {
             image.layer.cornerRadius = 15
             image.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-            
+        } else {
+            image.layer.cornerRadius = 0
+            image.transform = CGAffineTransform.identity
+        }
+
+        play.isHidden = item?.asset?.mediaType != .video
+
+        prepareIndicator()
+
+        setNeedsLayout()
+    }
+
+    func prepareIndicator() {
+        if let asset = item?.asset, let idx = delegate?.selected.firstIndex(of: asset) {
             indicator.layer.borderColor = UIColor.lavaOrange.cgColor
             indicator.backgroundColor = .lavaOrange
             indicator.text = "\(1 + idx)"
         } else {
-            image.layer.cornerRadius = 0
-            image.transform = CGAffineTransform.identity
-            
             indicator.layer.borderColor = CGColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.7)
             indicator.backgroundColor = .clear
             indicator.text = ""
         }
 
-        play.isHidden = item?.asset?.mediaType != .video
-
         if let multiselect = delegate?.multiselect, !multiselect {
             indicator.isHidden = true
         }
-        
-        setNeedsLayout()
     }
 }
