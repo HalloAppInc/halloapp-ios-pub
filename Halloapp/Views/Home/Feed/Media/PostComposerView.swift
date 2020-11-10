@@ -256,6 +256,7 @@ fileprivate class TitleView: UIView {
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         vStack.alignment = .center
+        vStack.distribution = .fillEqually
         vStack.spacing = 0
 
         addSubview(vStack)
