@@ -228,16 +228,12 @@ fileprivate class MediaEdit : ObservableObject {
     
     private func initialCrop() {
         guard let image = image else { return }
-        
-        var offset: CGFloat = 40
-        if image.size.width < 120 || image.size.height < 120 {
-            offset = CropRegion.borderThickness / 2
-        }
 
         if cropToCircle {
             let size = min(image.size.width, image.size.height) * 0.96
             self.cropRect = CGRect(x: image.size.width / 2 - size / 2, y: image.size.height / 2  - size / 2, width: size, height: size)
         } else {
+            let offset = CropRegion.borderThickness + 6
             var crop = CGRect(x: offset, y: offset, width: image.size.width - 2 * offset, height: image.size.height - 2 * offset)
 
             let ratio = crop.size.height / crop.size.width
@@ -371,7 +367,7 @@ fileprivate struct CropRegion: View {
     
     static let borderThickness: CGFloat = 8
     private let cornerSize = CGSize(width: 15, height: 15)
-    private let shadowColor = Color(red: 0, green: 0, blue: 0, opacity: 0.5)
+    private let shadowColor = Color(red: 0, green: 0, blue: 0, opacity: 0.7)
     
     var body: some View {
         GeometryReader { geometry in
