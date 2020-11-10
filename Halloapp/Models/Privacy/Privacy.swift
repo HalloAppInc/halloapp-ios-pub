@@ -197,6 +197,36 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
         privacyListSyncError = nil
     }
 
+    // MARK: Post Composer
+
+    @Published private(set) var composerIndicator: String = Constants.SettingLoading
+
+    private func reloadPostComposerSubtitle() {
+        guard let activeType = activeType else {
+            composerIndicator = Constants.SettingLoading
+            return
+        }
+        switch activeType {
+        case .all:
+            composerIndicator = NSLocalizedString("composer.privacy.value.my.contacts", value: "Sharing with my contacts", comment: "Feed Privacy indicator in post composer.")
+
+        case .whitelist:
+            if whitelist.isLoaded {
+                let userCount = whitelist.userIds.count
+                let shortFormatString = NSLocalizedString("composer.privacy.value.n.selected", comment: "Feed Privacy indicator in post composer.")
+                composerIndicator = String.localizedStringWithFormat(shortFormatString, userCount)
+            } else {
+                composerIndicator = Constants.SettingLoading
+            }
+
+        case .blacklist:
+            composerIndicator = NSLocalizedString("composer.privacy.value.excluded", value: "Sharing with some of my contacts", comment: "Feed Privacy indicator in post composer.")
+
+        default:
+            assert(false, "Active list cannot be \(activeType)")
+        }
+    }
+
     // MARK: Feed
 
     @Published private(set) var shortFeedSetting: String = Constants.SettingLoading
@@ -205,6 +235,7 @@ class PrivacySettings: Core.PrivacySettings, ObservableObject {
     override var activeType: PrivacyListType? {
         didSet {
             reloadFeedSettingValue()
+            reloadPostComposerSubtitle()
         }
     }
 
