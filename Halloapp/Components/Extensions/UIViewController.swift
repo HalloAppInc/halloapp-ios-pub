@@ -12,16 +12,18 @@ import UIKit
 extension UIViewController {
 
     func installLargeTitleUsingGothamFont() {
-        guard self.title != nil else { return }
-        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .largeTitle)
+        guard let title = title else { return }
+        let fontDescriptor = UIFontDescriptor
+            .preferredFontDescriptor(withTextStyle: .largeTitle)
+            .addingAttributes([ .traits: [ UIFontDescriptor.TraitKey.weight: UIFont.Weight.semibold ] ])
         let attributes: [ NSAttributedString.Key : Any ] =
-            [ .font: UIFont.gothamFont(ofSize: fontDescriptor.pointSize, weight: .medium),
-              .foregroundColor: UIColor.label.withAlphaComponent(0.2),
-              .kern: -1.5 ]
+            [ .font: UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 10), // 24 for default text size
+              .foregroundColor: UIColor.label.withAlphaComponent(0.75),
+              .kern: -0.01 ]
         let titleLabel = UILabel()
-        titleLabel.attributedText = NSAttributedString(string: self.title!, attributes: attributes)
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
-        self.navigationItem.title = nil
+        titleLabel.attributedText = NSAttributedString(string: title, attributes: attributes)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
+        navigationItem.title = nil
     }
 
     func updateNavigationBarStyleUsing(scrollView: UIScrollView) {
