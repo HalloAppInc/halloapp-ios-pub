@@ -9,23 +9,7 @@
 import Core
 import XMPPFramework
 
-fileprivate struct XMPPConstants {
-    static let xmlns = "halloapp:user:privacy"
-
-    // Element names
-    static let listsElement = "privacy_lists"
-    static let listElement = "privacy_list"
-    static let itemElement = "uid"
-
-    // Attribute names
-    static let typeAttribute = "type"
-    static let hashAttribute = "hash"
-    static let activeTypeAttribute = "active_type"
-}
-
-typealias HalloPrivacyList = XMPPPrivacyList
-
-struct XMPPPrivacyList: PrivacyListProtocol {
+private struct HalloPrivacyList: PrivacyListProtocol {
     let type: PrivacyListType
     let userIds: [UserID]
 
