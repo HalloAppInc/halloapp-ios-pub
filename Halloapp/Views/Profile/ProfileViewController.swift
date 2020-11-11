@@ -181,7 +181,7 @@ class ProfileViewController: UITableViewController {
     }
 
     private func openSettings() {
-        let viewController = UIHostingController(rootView: SettingsView())
+        let viewController = SettingsViewController()
         viewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(viewController, animated: true)
     }

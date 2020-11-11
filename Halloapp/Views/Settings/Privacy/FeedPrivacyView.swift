@@ -31,10 +31,15 @@ private extension Localizations {
 }
 
 struct FeedPrivacyView: View {
-    @EnvironmentObject var privacySettings: PrivacySettings
+    @ObservedObject var privacySettings: PrivacySettings
 
     @State private var isBlacklistScreenPresented: Bool = false
     @State private var isWhitelistScreenPresented: Bool = false
+
+    init(privacySettings: PrivacySettings) {
+        self.privacySettings = privacySettings
+        UITableView.appearance(whenContainedInInstancesOf: [ UIHostingController<FeedPrivacyView>.self ]).backgroundColor = .feedBackground
+    }
 
     var body: some View {
         VStack {
@@ -130,10 +135,4 @@ struct FeedPrivacyView: View {
         privacySettings.setFeedSettingToAllContacts()
     }
 
-}
-
-struct FeedPrivacyView_Previews: PreviewProvider {
-    static var previews: some View {
-        FeedPrivacyView()
-    }
 }
