@@ -33,13 +33,13 @@ open class ProtoRequestBase {
             DDLogWarn("request/\(Self.self)/\(requestId)/send: not ready [\(state)]")
             return
         }
-        DDLogInfo("request/\(Self.self)/\(requestId)/sending")
+        DDLogDebug("request/\(Self.self)/\(requestId)/sending \(request)")
         state = .sending
 
         do {
             service.stream.send(try request.serializedData())
         } catch {
-            DDLogError("request/\(Self.self)/\(requestId)/send/error: \(error.localizedDescription)")
+            DDLogError("request/\(Self.self)/\(requestId)/send/error: \(error)")
         }
     }
 
