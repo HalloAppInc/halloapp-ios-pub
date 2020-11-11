@@ -30,4 +30,10 @@ extension Localizations {
         NSLocalizedString("link.learnMore", value: "Learn more", comment: "Generic 'learn more' link. Mostly used to present additional information about topic.")
     }
 
+    // MARK: Misc
+
+    static var unknownContact: String {
+        NSLocalizedString("unknown.contact", value: "Unknown Contact", comment: "Displayed in place of contact name if name is not known.")
+    }
+
 }

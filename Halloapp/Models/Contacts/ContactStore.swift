@@ -901,6 +901,45 @@ class ContactStoreMain: ContactStore {
         }
     }
 
+    // MARK: Contact Names
+
+    func fullName(for userID: UserID) -> String {
+        // Fallback to a static string.
+        return fullNameIfAvailable(for: userID) ?? Localizations.unknownContact
+    }
+
+    func firstName(for userID: UserID) -> String {
+        if userID == self.userData.userId {
+            // TODO: return correct pronoun.
+            return "I"
+        }
+        var firstName: String? = nil
+
+        // Fetch from the address book.
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
+        do {
+            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
+            if let name = contacts.first?.givenName {
+                firstName = name
+            }
+        }
+        catch {
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+
+        // Try push name as necessary.
+        if firstName == nil {
+            if let pushName = self.pushNames[userID] {
+                firstName = "~\(pushName)"
+            }
+        }
+
+        // Fallback to a static string.
+        return firstName ?? Localizations.unknownContact
+    }
+
+
     // MARK: Push names
 
     private var pushNameUpdateQueue = DispatchQueue(label: "com.halloapp.contacts.push-name")
@@ -956,4 +995,28 @@ class ContactStoreMain: ContactStore {
             self.savePushNames(names)
         }
     }
+
+    // MARK: Mentions
+
+    /// Name appropriate for use in mention. Does not contain "@" prefix.
+    func mentionName(for userID: UserID, pushName: String?) -> String {
+        if let name = mentionNameIfAvailable(for: userID, pushName: pushName) {
+            return name
+        }
+        return Localizations.unknownContact
+    }
+
+    /// Returns an attributed string where mention placeholders have been replaced with contact names. User IDs are retrievable via the .userMention attribute.
+    func textWithMentions(_ collapsedText: String?, orderedMentions: [FeedMentionProtocol]) -> NSAttributedString? {
+        guard let collapsedText = collapsedText else { return nil }
+
+        let mentionText = MentionText(
+            collapsedText: collapsedText,
+            mentions: Dictionary(uniqueKeysWithValues: orderedMentions.map { ($0.index, $0.userID) }))
+
+        return mentionText.expandedText { userID in
+            self.mentionName(for: userID, pushName: orderedMentions.first(where: { userID == $0.userID })?.name)
+        }
+    }
+
 }

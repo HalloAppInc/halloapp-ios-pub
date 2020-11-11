@@ -70,14 +70,14 @@ extension FeedNotification {
 
     var authorName: String {
         get {
-            return AppContext.shared.contactStore.firstName(for: self.userId)
+            return MainAppContext.shared.contactStore.firstName(for: self.userId)
         }
     }
 
     var textWithMentions: NSAttributedString? {
         get {
             let orderedMentions = mentions?.sorted(by: { $0.index < $1.index }) ?? []
-            return AppContext.shared.contactStore.textWithMentions(
+            return MainAppContext.shared.contactStore.textWithMentions(
                 text,
                 orderedMentions: orderedMentions)
         }

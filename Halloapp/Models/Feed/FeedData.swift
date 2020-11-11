@@ -1057,11 +1057,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     metadata.groupName = group.name
                 }
 
-                let contactName = contactNames[comment.userId] ?? "Unknown Contact"
+                let contactName = contactNames[comment.userId] ?? Localizations.unknownContact
                 let notification = UNMutableNotificationContent()
                 notification.title = [contactName, metadata.groupName].compactMap({ $0 }).joined(separator: " @ ")
                 notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-                    self.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
+                    self.contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
                 })
                 notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
 
@@ -1109,11 +1109,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     metadata.groupName = group.name
                 }
 
-                let contactName = contactNames[feedPost.userId] ?? "Unknown Contact"
+                let contactName = contactNames[feedPost.userId] ?? Localizations.unknownContact
                 let notification = UNMutableNotificationContent()
                 notification.title = [contactName, metadata.groupName].compactMap({ $0 }).joined(separator: " @ ")
                 notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-                    self.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
+                    self.contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
                 })
                 notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
 

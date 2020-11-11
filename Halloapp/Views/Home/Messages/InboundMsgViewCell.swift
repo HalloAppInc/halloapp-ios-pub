@@ -331,7 +331,7 @@ class InboundMsgViewCell: UITableViewCell {
         messageID = chatGroupMessage.id
         
         if !isPreviousMsgSameSender, let userId = chatGroupMessage.userId {
-            nameLabel.text = AppContext.shared.contactStore.fullName(for: userId)
+            nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
             nameLabel.textColor = getNameColor(for: userId, name: nameLabel.text ?? "", groupId: chatGroupMessage.groupId)
             nameRow.isHidden = false
             

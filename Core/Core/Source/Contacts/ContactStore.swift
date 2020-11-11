@@ -205,11 +205,6 @@ open class ContactStore {
 
     // MARK: UI Support
 
-    public func fullName(for userID: UserID) -> String {
-        // Fallback to a static string.
-        return fullNameIfAvailable(for: userID) ?? "Unknown Contact"
-    }
-
     public func fullNameIfAvailable(for userID: UserID) -> String? {
         if userID == self.userData.userId {
             // TODO: return correct pronoun.
@@ -239,37 +234,6 @@ open class ContactStore {
         }
 
         return fullName
-    }
-
-    public func firstName(for userID: UserID) -> String {
-        if userID == self.userData.userId {
-            // TODO: return correct pronoun.
-            return "I"
-        }
-        var firstName: String? = nil
-
-        // Fetch from the address book.
-        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
-        do {
-            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
-            if let name = contacts.first?.givenName {
-                firstName = name
-            }
-        }
-        catch {
-            fatalError("Unable to fetch contacts: \(error)")
-        }
-
-        // Try push name as necessary.
-        if firstName == nil {
-            if let pushName = self.pushNames[userID] {
-                firstName = "~\(pushName)"
-            }
-        }
-
-        // Fallback to a static string.
-        return firstName ?? "Unknown Contact"
     }
 
     public func fullNames(forUserIds userIds: Set<UserID>) -> [UserID : String] {
@@ -305,32 +269,18 @@ open class ContactStore {
         return results
     }
 
-    /// Returns an attributed string where mention placeholders have been replaced with contact names. User IDs are retrievable via the .userMention attribute.
-    public func textWithMentions(_ collapsedText: String?, orderedMentions: [FeedMentionProtocol]) -> NSAttributedString? {
-        guard let collapsedText = collapsedText else { return nil }
-
-        let mentionText = MentionText(
-            collapsedText: collapsedText,
-            mentions: Dictionary(uniqueKeysWithValues: orderedMentions.map { ($0.index, $0.userID) }))
-
-        return mentionText.expandedText { userID in
-            self.mentionName(
-                for: userID,
-                pushedName: orderedMentions.first(where: { userID == $0.userID })?.name)
-        }
-    }
-
     /// Name appropriate for use in mention. Does not contain "@" prefix.
-    public func mentionName(for userID: UserID, pushedName: String?) -> String {
+    public func mentionNameIfAvailable(for userID: UserID, pushName: String?) -> String? {
         if userID == userData.userId {
             return userData.name
         }
         if let fullName = fullNameIfAvailable(for: userID) {
             return fullName
         }
-        if let pushedName = pushedName, !pushedName.isEmpty {
-            return pushedName
+        if let pushName = pushName, !pushName.isEmpty {
+            return pushName
         }
-        return "Unknown Contact"
+        return nil
     }
+
 }

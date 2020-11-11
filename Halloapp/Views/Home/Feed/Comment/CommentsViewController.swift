@@ -738,7 +738,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
                 contactName = "myself"
                 commentsInputView.removeReplyMentionIfPossible()
             } else {
-                contactName = AppContext.shared.contactStore.fullName(for: context.userId)
+                contactName = MainAppContext.shared.contactStore.fullName(for: context.userId)
                 commentsInputView.addReplyMentionIfPossible(for: context.userId, name: contactName)
             }
             commentsInputView.showReplyPanel(with: contactName)

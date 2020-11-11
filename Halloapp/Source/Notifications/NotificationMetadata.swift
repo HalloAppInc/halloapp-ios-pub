@@ -32,6 +32,7 @@ class NotificationMetadata {
         static let fromId = "from-id"
         static let threadId = "thread-id"
         static let threadName = "thread-name"
+        static let senderName = "sender-name"
         static let timestamp = "timestamp"
         static let data = "data"
     }
@@ -50,6 +51,7 @@ class NotificationMetadata {
 
     private var threadId: String? = nil
     private var threadName: String? = nil
+    private var senderName: String? = nil
 
     var rawData: [String: String] {
         get {
@@ -63,6 +65,9 @@ class NotificationMetadata {
             }
             if let threadName = threadName {
                 result[Keys.threadName] = threadName
+            }
+            if let senderName = senderName {
+                result[Keys.senderName] = senderName
             }
             if let data = data {
                 result[Keys.data] = data.base64EncodedString()
@@ -136,6 +141,7 @@ class NotificationMetadata {
 
         self.threadId = metadata[Keys.threadId]
         self.threadName = metadata[Keys.threadName]
+        self.senderName = metadata[Keys.senderName]
     }
 
     init(contentId: String, contentType: NotificationContentType, fromId: UserID, data: Data?, timestamp: Date?) {
@@ -237,6 +243,10 @@ extension NotificationMetadata {
                 threadId = newValue
             }
         }
+    }
+
+    var pushName: String? {
+        senderName
     }
 }
 

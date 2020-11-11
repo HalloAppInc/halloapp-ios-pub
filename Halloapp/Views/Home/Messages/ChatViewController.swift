@@ -48,7 +48,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     // MARK: Lifecycle
     
     init(for fromUserId: String, with feedPostId: FeedPostID? = nil, at feedPostMediaIndex: Int32 = 0) {
-        DDLogDebug("ChatViewController/init/\(fromUserId) [\(AppContext.shared.contactStore.fullName(for: fromUserId))]")
+        DDLogDebug("ChatViewController/init/\(fromUserId) [\(MainAppContext.shared.contactStore.fullName(for: fromUserId))]")
         self.fromUserId = fromUserId
         self.feedPostId = feedPostId
         self.feedPostMediaIndex = feedPostMediaIndex

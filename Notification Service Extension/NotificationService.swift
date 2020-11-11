@@ -51,8 +51,8 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         // "Contact" for feed posts / comments and 1-1 chat messages.
         // "Contact @ Group" for group feed posts / comments and group chat messages.
         let userId = metadata.fromId
-        let contactName = AppExtensionContext.shared.contactStore.fullName(for: userId)
-        bestAttemptContent.title = [contactName, metadata.groupName].compactMap({ $0 }).joined(separator: " @ ")
+        let contactName = AppExtensionContext.shared.contactStore.fullNameIfAvailable(for: userId) ?? metadata.pushName
+        bestAttemptContent.title = [contactName ?? Localizations.unknownContact, metadata.groupName].compactMap({ $0 }).joined(separator: " @ ")
         DDLogVerbose("didReceiveRequest/ Updated title: \(bestAttemptContent.title)")
 
         guard let protoContainer = metadata.protoContainer else {
@@ -63,7 +63,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
 
         // Populate notification body.
         bestAttemptContent.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-            AppExtensionContext.shared.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
+            AppExtensionContext.shared.contactStore.mentionNameIfAvailable(for: userID, pushName: protoContainer.mentionPushName(for: userID)) ?? Localizations.unknownContact
         })
 
         var invokeHandler = true

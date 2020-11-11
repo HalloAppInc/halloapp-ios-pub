@@ -99,7 +99,7 @@ class PrivacyListViewController: PrivacyListTableViewController {
         // Append contacts that aren't in user's address book (if any).
         let unknownUserIds = selectedContactIds.subtracting(uniqueUserIds)
         let namesForUnknownContacts = MainAppContext.shared.contactStore.fullNames(forUserIds: unknownUserIds)
-        contacts.append(contentsOf: unknownUserIds.map({ PrivacyListTableRow(userId: $0, name: namesForUnknownContacts[$0] ?? "Unknown Contact", isSelected: true) }))
+        contacts.append(contentsOf: unknownUserIds.map({ PrivacyListTableRow(userId: $0, name: namesForUnknownContacts[$0] ?? Localizations.unknownContact, isSelected: true) }))
         super.init(contacts: contacts)
     }
 

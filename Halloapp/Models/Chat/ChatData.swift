@@ -202,16 +202,16 @@ class ChatData: ObservableObject {
                 guard let userId = contact.userId else { continue }
                 if let chatThread = self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) {
                     guard chatThread.lastMsgTimestamp == nil else { continue }
-                    if chatThread.title != AppContext.shared.contactStore.fullName(for: userId) {
+                    if chatThread.title != MainAppContext.shared.contactStore.fullName(for: userId) {
                         DDLogDebug("ChatData/populateThreads/contact/rename \(userId)")
                         self.updateChatThread(type: .oneToOne, for: userId) { (chatThread) in
-                            chatThread.title = AppContext.shared.contactStore.fullName(for: userId)
+                            chatThread.title = MainAppContext.shared.contactStore.fullName(for: userId)
                         }
                     }
                 } else {
                     DDLogInfo("ChatData/populateThreads/contact/new \(userId)")
                     let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
-                    chatThread.title = AppContext.shared.contactStore.fullName(for: userId)
+                    chatThread.title = MainAppContext.shared.contactStore.fullName(for: userId)
                     chatThread.chatWithUserId = userId
                     chatThread.lastMsgUserId = userId
                     chatThread.lastMsgText = "Hi there! I’m using HalloApp"
@@ -1765,7 +1765,7 @@ extension ChatData {
         DDLogDebug("ChatData/presentOneToOneBanner")
         let userID = xmppChatMessage.fromUserId
         
-        let name = AppContext.shared.contactStore.fullName(for: userID)
+        let name = MainAppContext.shared.contactStore.fullName(for: userID)
         
         let title = "\(name)"
         
@@ -1811,9 +1811,9 @@ extension ChatData {
                                             timestamp: timestamp)
         
         let notification = UNMutableNotificationContent()
-        notification.title = AppContext.shared.contactStore.fullName(for: userID)
+        notification.title = MainAppContext.shared.contactStore.fullName(for: userID)
         notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-            MainAppContext.shared.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
+            MainAppContext.shared.contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
         })
         
         notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
@@ -2975,7 +2975,7 @@ extension ChatData {
         guard let userID = xmppChatGroupMessage.userId else { return }
         guard let groupName = xmppChatGroupMessage.groupName else { return }
         
-        let name = AppContext.shared.contactStore.fullName(for: userID)
+        let name = MainAppContext.shared.contactStore.fullName(for: userID)
         
         let title = "\(name) @ \(groupName)"
         
@@ -3019,9 +3019,9 @@ extension ChatData {
         metadata.groupName = xmppChatGroupMessage.groupName
         
         let notification = UNMutableNotificationContent()
-        notification.title = AppContext.shared.contactStore.fullName(for: userID)
+        notification.title = MainAppContext.shared.contactStore.fullName(for: userID)
         notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-            MainAppContext.shared.contactStore.mentionName(for: userID, pushedName: protoContainer.mentionPushName(for: userID))
+            MainAppContext.shared.contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
         })
         
         notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
