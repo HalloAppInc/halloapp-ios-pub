@@ -633,7 +633,29 @@ extension ProtoService: HalloService {
     
     func sendChatStateIfPossible(type: ChatType, id: String, state: ChatState) {
         guard isConnected else { return }
-        enqueue(request: ProtoSendChatState(type: type, id: id, state: state) { _ in })
+
+        var chatState = Server_ChatState()
+        chatState.threadID = id
+        chatState.type = {
+            switch state {
+            case .available: return .available
+            case .typing: return .typing
+            }
+        }()
+        chatState.threadType = {
+            switch type {
+            case .oneToOne: return .chat
+            case .group: return .groupChat
+            }
+        }()
+        var packet = Server_Packet()
+        packet.chatState = chatState
+
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoService/sendChatStateIfPossible/error could not serialize \(type) \(id) \(state)")
+            return
+        }
+        stream.send(packetData)
     }
     
     func requestInviteAllowance(completion: @escaping ServiceRequestCompletion<(Int, Date)>) {
