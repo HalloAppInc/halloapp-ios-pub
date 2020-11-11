@@ -25,13 +25,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Access is needed to post to your Feed on HalloApp</string>
+	<string>This lets you take photos and videos right from within HalloApp.</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Access is needed to find your Contacts on HalloApp</string>
+	<string>Upload your contacts to HalloApp&apos;s servers to see posts of your friends and let them see yours.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Access is need to post videos with sound on HalloApp</string>
+	<string>This lets you record videos with sound.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Access is needed to post pictures on HalloApp</string>
+	<string>This lets you share photos and videos from your library and save the ones you capture.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Gotham-Black.otf</string>
