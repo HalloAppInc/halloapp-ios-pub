@@ -13,13 +13,10 @@ enum ProtoRequestError: Error {
     case apiResponseMissingMediaURL
 }
 
-public class ProtoPublishPostRequest: ProtoRequest {
-    private let completion: ServiceRequestCompletion<Date?>
-    private let isGroupFeedRequest: Bool
+public final class ProtoPublishPostRequest: ProtoRequest<Date> {
 
-    public init(post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date?>) {
-        self.completion = completion
-
+    public init(post: FeedPostProtocol, feed: Feed, completion: @escaping Completion) {
+        var isGroupFeedRequest: Bool
         let payload: Server_Iq.OneOf_Payload
         switch feed {
         case .personal(let audience):
@@ -33,7 +30,14 @@ public class ProtoPublishPostRequest: ProtoRequest {
 
         let packet = Server_Packet.iqPacket(type: .set, payload: payload)
 
-        super.init(packet: packet, id: packet.iq.id)
+        super.init(
+            iqPacket: packet,
+            transform: { (iq) in
+                let serverPost = isGroupFeedRequest ? iq.groupFeedItem.post : iq.feedItem.post
+                let timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
+                return .success(timestamp)
+            },
+            completion: completion)
     }
 
     private static func pbGroupFeedItem(post: FeedPostProtocol, groupId: GroupID) -> Server_GroupFeedItem {
@@ -66,24 +70,12 @@ public class ProtoPublishPostRequest: ProtoRequest {
         pbFeedItem.item = .post(serverPost)
         return pbFeedItem
     }
-
-    public override func didFinish(with response: Server_Packet) {
-        let serverPost = isGroupFeedRequest ? response.iq.groupFeedItem.post : response.iq.feedItem.post
-        let timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
-        self.completion(.success(timestamp))
-    }
-
-    public override func didFail(with error: Error) {
-        self.completion(.failure(error))
-    }
 }
 
-public class ProtoPublishCommentRequest: ProtoRequest {
-    private let completion: ServiceRequestCompletion<Date?>
-    private let isGroupFeedRequest: Bool
+public final class ProtoPublishCommentRequest: ProtoRequest<Date> {
 
-    public init(comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date?>) {
-        self.completion = completion
+    public init(comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping Completion) {
+        var isGroupFeedRequest: Bool
 
         let payload: Server_Iq.OneOf_Payload
         if let groupId = groupId {
@@ -107,63 +99,52 @@ public class ProtoPublishCommentRequest: ProtoRequest {
         
         let packet = Server_Packet.iqPacket(type: .set, payload: payload)
 
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    public override func didFinish(with response: Server_Packet) {
-        let serverComment = isGroupFeedRequest ? response.iq.groupFeedItem.comment : response.iq.feedItem.comment
-        let timestamp = Date(timeIntervalSince1970: TimeInterval(serverComment.timestamp))
-        self.completion(.success(timestamp))
-    }
-
-    public override func didFail(with error: Error) {
-        self.completion(.failure(error))
+        super.init(
+            iqPacket: packet,
+            transform: { (iq) in
+                let serverComment = isGroupFeedRequest ? iq.groupFeedItem.comment : iq.feedItem.comment
+                let timestamp = Date(timeIntervalSince1970: TimeInterval(serverComment.timestamp))
+                return .success(timestamp)
+            },
+            completion: completion)
     }
 }
 
-public class ProtoMediaUploadURLRequest: ProtoRequest {
+public final class ProtoMediaUploadURLRequest: ProtoRequest<MediaURLInfo> {
 
-    private let completion: ServiceRequestCompletion<MediaURLInfo>
-
-    public init(size: Int, completion: @escaping ServiceRequestCompletion<MediaURLInfo>) {
-        self.completion = completion
-
+    public init(size: Int, completion: @escaping Completion) {
         var uploadMedia = Server_UploadMedia()
         uploadMedia.size = Int64(size)
-
         let packet = Server_Packet.iqPacket(type: .get, payload: .uploadMedia(uploadMedia))
 
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    public override func didFinish(with response: Server_Packet) {
-        guard response.iq.uploadMedia.hasURL else {
-            completion(.failure(ProtoRequestError.apiResponseMissingMediaURL))
-            return
-        }
-        let urls = response.iq.uploadMedia.url
-        if let getURL = URL(string: urls.get), let putURL = URL(string: urls.put) {
-            completion(.success(.getPut(getURL, putURL)))
-        } else if let patchURL = URL(string: urls.patch) {
-            completion(.success(.patch(patchURL)))
-        } else {
-            completion(.failure(ProtoRequestError.apiResponseMissingMediaURL))
-        }
-    }
-
-    public override func didFail(with error: Error) {
-        self.completion(.failure(error))
+        super.init(
+            iqPacket: packet,
+            transform: { (iq) in
+                guard iq.uploadMedia.hasURL else {
+                    return .failure(ProtoRequestError.apiResponseMissingMediaURL)
+                }
+                let urls = iq.uploadMedia.url
+                if let getURL = URL(string: urls.get), let putURL = URL(string: urls.put) {
+                    return .success(.getPut(getURL, putURL))
+                } else if let patchURL = URL(string: urls.patch) {
+                    return .success(.patch(patchURL))
+                } else {
+                    return .failure(ProtoRequestError.apiResponseMissingMediaURL)
+                }
+            },
+            completion: completion)
     }
 }
 
-public class ProtoGetServerPropertiesRequest: ProtoStandardRequest<ServerPropertiesResponse> {
-    public init(completion: @escaping ServiceRequestCompletion<ServerPropertiesResponse>) {
+public final class ProtoGetServerPropertiesRequest: ProtoRequest<ServerPropertiesResponse> {
+
+    public init(completion: @escaping Completion) {
         super.init(
-            packet: Server_Packet.iqPacket(type: .get, payload: .props(Server_Props())),
-            transform: { response in
-                let version = response.iq.props.hash.toHexString()
+            iqPacket: .iqPacket(type: .get, payload: .props(Server_Props())),
+            transform: { (iq) in
+                let version = iq.props.hash.toHexString()
                 let properties: [String: String] = Dictionary(
-                    uniqueKeysWithValues: response.iq.props.props.map { ($0.name, $0.value) }
+                    uniqueKeysWithValues: iq.props.props.map { ($0.name, $0.value) }
                 )
                 return .success((version: version, properties: properties))
             },
@@ -171,22 +152,23 @@ public class ProtoGetServerPropertiesRequest: ProtoStandardRequest<ServerPropert
     }
 }
 
-public class ProtoMessageRerequest: ProtoStandardRequest<Void> {
-    public init(messageID: String, fromUserID: UserID, toUserID: UserID, identityKey: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+public final class ProtoMessageRerequest: ProtoRequest<Void> {
 
+    public init(messageID: String, fromUserID: UserID, toUserID: UserID, identityKey: Data, completion: @escaping Completion) {
         var rerequest = Server_Rerequest()
         rerequest.id = messageID
         rerequest.identityKey = identityKey
 
         super.init(
-            packet: .msgPacket(from: fromUserID, to: toUserID, id: messageID, type: .chat, payload: .rerequest(rerequest)),
+            iqPacket: .msgPacket(from: fromUserID, to: toUserID, id: messageID, type: .chat, payload: .rerequest(rerequest)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-public class ProtoLoggingRequest: ProtoStandardRequest<Void> {
-    public init(events: [CountableEvent], completion: @escaping ServiceRequestCompletion<Void>) {
+public final class ProtoLoggingRequest: ProtoRequest<Void> {
+
+    public init(events: [CountableEvent], completion: @escaping Completion) {
         var clientLog = Server_ClientLog()
         clientLog.counts = events.map { event in
             var count = Server_Count()
@@ -201,8 +183,9 @@ public class ProtoLoggingRequest: ProtoStandardRequest<Void> {
             }
             return count
         }
+        
         super.init(
-            packet: .iqPacket(type: .set, payload: .clientLog(clientLog)),
+            iqPacket: .iqPacket(type: .set, payload: .clientLog(clientLog)),
             transform: { _ in .success(()) },
             completion: completion)
     }

@@ -14,5 +14,5 @@ public enum XMPPError: Error {
     case canceled
     case aborted
     case malformed
-    case serverError(Int, String?)
+    case serverError(String)
 }

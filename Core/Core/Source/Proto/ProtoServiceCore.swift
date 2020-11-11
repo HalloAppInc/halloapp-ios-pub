@@ -186,11 +186,11 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     private let requestsQueue = DispatchQueue(label: "com.halloapp.proto.requests", qos: .userInitiated)
 
-    private var requestsInFlight: [ProtoRequest] = []
+    private var requestsInFlight: [ProtoRequestBase] = []
 
-    private var requestsToSend: [ProtoRequest] = []
+    private var requestsToSend: [ProtoRequestBase] = []
 
-    public func enqueue(request: ProtoRequest) {
+    public func enqueue(request: ProtoRequestBase) {
         requestsQueue.async {
             if self.stream.isConnected {
                 request.send(using: self)
@@ -264,7 +264,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     open func didReceive(packet: Server_Packet, requestID: String) {
         DDLogInfo("proto/didReceivePacket/\(requestID)")
-        func removeRequest(with id: String, outOf requests: inout [ProtoRequest]) -> [ProtoRequest] {
+        func removeRequest(with id: String, outOf requests: inout [ProtoRequestBase]) -> [ProtoRequestBase] {
             let filteredSequence = requests.enumerated().filter { $0.element.requestId == id }
             let indexes = filteredSequence.map { $0.offset }
             let results = filteredSequence.map { $0.element }
@@ -277,7 +277,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         // sending a duplicated request or delayed processing related to dropping
         // a connection, we should still check both arrays.
         requestsQueue.async {
-            var matchingRequests: [ProtoRequest] = []
+            var matchingRequests: [ProtoRequestBase] = []
             matchingRequests.append(contentsOf: removeRequest(with: requestID, outOf: &self.requestsInFlight))
             matchingRequests.append(contentsOf: removeRequest(with: requestID, outOf: &self.requestsToSend))
             if matchingRequests.count > 1 {
@@ -390,7 +390,7 @@ extension ProtoServiceCore: CoreService {
         enqueue(request: ProtoWhisperGetBundleRequest(targetUserId: userID, completion: completion))
     }
 
-    public func publishPost(_ post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date?>) {
+    public func publishPost(_ post: FeedPostProtocol, feed: Feed, completion: @escaping ServiceRequestCompletion<Date>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {
@@ -398,7 +398,7 @@ extension ProtoServiceCore: CoreService {
         }
     }
 
-    public func publishComment(_ comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date?>) {
+    public func publishComment(_ comment: FeedCommentProtocol, groupId: GroupID?, completion: @escaping ServiceRequestCompletion<Date>) {
         // Request will fail immediately if we're not connected, therefore delay sending until connected.
         ///TODO: add option of canceling posting.
         execute(whenConnectionStateIs: .connected, onQueue: .main) {

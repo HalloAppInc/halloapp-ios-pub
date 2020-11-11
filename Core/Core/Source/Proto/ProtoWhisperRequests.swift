@@ -9,12 +9,9 @@
 import CocoaLumberjack
 import Foundation
 
-final public class ProtoWhisperUploadRequest : ProtoRequest {
-    let completion: ServiceRequestCompletion<Void>
+final public class ProtoWhisperUploadRequest: ProtoRequest<Void> {
 
-    public init(keyBundle: XMPPWhisperKey, completion: @escaping ServiceRequestCompletion<Void>) {
-        self.completion = completion
-
+    public init(keyBundle: XMPPWhisperKey, completion: @escaping Completion) {
         var keys = Server_WhisperKeys()
 
         // todo: error if following conditionals fail?
@@ -50,25 +47,13 @@ final public class ProtoWhisperUploadRequest : ProtoRequest {
 
         let packet = Server_Packet.iqPacket(type: .set, payload: .whisperKeys(keys))
 
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    public override func didFinish(with response: Server_Packet) {
-        completion(.success(()))
-    }
-
-    public override func didFail(with error: Error) {
-        completion(.failure(error))
+        super.init(iqPacket: packet, transform: { _ in .success(()) }, completion: completion)
     }
 }
 
-final public class ProtoWhisperAddOneTimeKeysRequest : ProtoRequest {
+final public class ProtoWhisperAddOneTimeKeysRequest: ProtoRequest<Void> {
 
-    let completion: ServiceRequestCompletion<Void>
-
-    public init(whisperKeyBundle: XMPPWhisperKey, completion: @escaping ServiceRequestCompletion<Void>) {
-        self.completion = completion
-
+    public init(whisperKeyBundle: XMPPWhisperKey, completion: @escaping Completion) {
         var keys = Server_WhisperKeys()
         keys.action = .add
         keys.oneTimeKeys = whisperKeyBundle.oneTime.compactMap { oneTimeKey in
@@ -80,25 +65,19 @@ final public class ProtoWhisperAddOneTimeKeysRequest : ProtoRequest {
 
         let packet = Server_Packet.iqPacket(type: .set, payload: .whisperKeys(keys))
 
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    public override func didFinish(with response: Server_Packet) {
-        DDLogInfo("whisper uploader response: \(response)")
-        self.completion(.success(()))
-    }
-
-    public override func didFail(with error: Error) {
-        self.completion(.failure(error))
+        super.init(
+            iqPacket: packet,
+            transform: { (iq) in
+                DDLogInfo("whisper uploader response: \(iq)")
+                return .success(())
+            },
+            completion: completion)
     }
 }
 
-final public class ProtoWhisperGetBundleRequest: ProtoRequest {
-    let completion: ServiceRequestCompletion<WhisperKeyBundle>
+final public class ProtoWhisperGetBundleRequest: ProtoRequest<WhisperKeyBundle> {
 
-    public init(targetUserId: String, completion: @escaping ServiceRequestCompletion<WhisperKeyBundle>) {
-        self.completion = completion
-        
+    public init(targetUserId: String, completion: @escaping Completion) {
         var keys = Server_WhisperKeys()
         keys.action = .get
         if let uid = Int64(targetUserId) {
@@ -107,11 +86,16 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest {
 
         let packet = Server_Packet.iqPacket(type: .get, payload: .whisperKeys(keys))
 
-        super.init(packet: packet, id: packet.iq.id)
+        super.init(
+            iqPacket: packet,
+            transform: { (iq) in
+                ProtoWhisperGetBundleRequest.processResponse(iq: iq)
+            },
+            completion: completion)
     }
 
-    public override func didFinish(with response: Server_Packet) {
-        let pbKey = response.iq.whisperKeys
+    private static func processResponse(iq: Server_Iq) -> Result<WhisperKeyBundle, Error> {
+        let pbKey = iq.whisperKeys
         let protoContainer: Clients_SignedPreKey
         if let container = try? Clients_SignedPreKey(serializedData: pbKey.signedKey) {
             // Binary data
@@ -122,8 +106,7 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest {
             protoContainer = container
         } else {
             DDLogError("ProtoWhisperGetBundleRequest/didFinish/error could not deserialize signed key")
-            completion(.failure(ProtoServiceCoreError.deserialization))
-            return
+            return .failure(ProtoServiceCoreError.deserialization)
         }
 
         let oneTimeKeys: [PreKey] = pbKey.oneTimeKeys.compactMap { data in
@@ -152,8 +135,7 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest {
             protoIdentity = identity
         } else {
             DDLogError("ProtoWhisperGetBundleRequest/didFinish/error could not deserialize identity key")
-            completion(.failure(ProtoServiceCoreError.deserialization))
-            return
+            return .failure(ProtoServiceCoreError.deserialization)
         }
 
         let bundle = WhisperKeyBundle(
@@ -162,22 +144,13 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest {
             signature: protoContainer.signature,
             oneTime: oneTimeKeys)
 
-        self.completion(.success(bundle))
-    }
-
-    public override func didFail(with error: Error) {
-        DDLogError("ProtoWhisperGetBundleRequest/didFail/error \(error)")
-        self.completion(.failure(error))
+        return .success(bundle)
     }
 }
 
+final public class ProtoWhisperGetCountOfOneTimeKeysRequest: ProtoRequest<Int32> {
 
-public class ProtoWhisperGetCountOfOneTimeKeysRequest : ProtoRequest {
-    let completion: ServiceRequestCompletion<Int32>
-
-    public init(completion: @escaping ServiceRequestCompletion<Int32>) {
-        self.completion = completion
-
+    public init(completion: @escaping Completion) {
         var keys = Server_WhisperKeys()
         keys.action = .count
         if let uid = Int64(AppContext.shared.userData.userId) {
@@ -185,15 +158,11 @@ public class ProtoWhisperGetCountOfOneTimeKeysRequest : ProtoRequest {
         }
 
         let packet = Server_Packet.iqPacket(type: .get, payload: .whisperKeys(keys))
-
-        super.init(packet: packet, id: packet.iq.id)
-    }
-
-    public override func didFinish(with response: Server_Packet) {
-        completion(.success(response.iq.whisperKeys.otpKeyCount))
-    }
-
-    public override func didFail(with error: Error) {
-        self.completion(.failure(error))
+        super.init(
+            iqPacket: packet,
+            transform: { (iq) in
+                .success(iq.whisperKeys.otpKeyCount)
+            },
+            completion: completion)
     }
 }

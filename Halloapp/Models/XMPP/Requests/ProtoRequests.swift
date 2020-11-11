@@ -11,8 +11,9 @@ import Core
 import Foundation
 import XMPPFramework
 
-final class ProtoAvatarRequest: ProtoStandardRequest<AvatarInfo> {
-    init(userID: UserID, completion: @escaping ServiceRequestCompletion<AvatarInfo>) {
+final class ProtoAvatarRequest: ProtoRequest<AvatarInfo> {
+
+    init(userID: UserID, completion: @escaping Completion) {
         var avatar = Server_Avatar()
         if let uid = Int64(userID) {
             avatar.uid = uid
@@ -21,30 +22,32 @@ final class ProtoAvatarRequest: ProtoStandardRequest<AvatarInfo> {
         }
 
         super.init(
-            packet: .iqPacket(type: .get, payload: .avatar(avatar)),
-            transform: { response in .success((userID: userID, avatarID: response.iq.avatar.id)) },
+            iqPacket: .iqPacket(type: .get, payload: .avatar(avatar)),
+            transform: { (iq) in .success((userID: userID, avatarID: iq.avatar.id)) },
             completion: completion)
     }
 }
 
-final class ProtoUpdateAvatarRequest: ProtoStandardRequest<String?> {
-    init(data: Data?, completion: @escaping ServiceRequestCompletion<String?>) {
 
+final class ProtoUpdateAvatarRequest: ProtoRequest<String?> {
+
+    init(data: Data?, completion: @escaping Completion) {
         var uploadAvatar = Server_UploadAvatar()
         if let data = data {
             uploadAvatar.data = data
         }
 
         super.init(
-            packet: .iqPacket(type: .set, payload: .uploadAvatar(uploadAvatar)),
-            transform: { .success($0.iq.avatar.id) },
+            iqPacket: .iqPacket(type: .set, payload: .uploadAvatar(uploadAvatar)),
+            transform: { (iq) in .success(iq.avatar.id) },
             completion: completion)
     }
 }
 
-final class ProtoPushTokenRequest: ProtoStandardRequest<Void> {
-    init(token: String, completion: @escaping ServiceRequestCompletion<Void>) {
 
+final class ProtoPushTokenRequest: ProtoRequest<Void> {
+
+    init(token: String, completion: @escaping Completion) {
         var pushToken = Server_PushToken()
         pushToken.token = token
         
@@ -58,15 +61,16 @@ final class ProtoPushTokenRequest: ProtoStandardRequest<Void> {
         pushRegister.pushToken = pushToken
 
         super.init(
-            packet: .iqPacket(type: .set, payload: .pushRegister(pushRegister)),
+            iqPacket: .iqPacket(type: .set, payload: .pushRegister(pushRegister)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-final class ProtoSharePostsRequest: ProtoStandardRequest<Void> {
-    init(postIDs: [FeedPostID], userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
 
+final class ProtoSharePostsRequest: ProtoRequest<Void> {
+
+    init(postIDs: [FeedPostID], userID: UserID, completion: @escaping Completion) {
         var share = Server_ShareStanza()
         share.postIds = postIDs
         if let uid = Int64(userID) {
@@ -80,34 +84,37 @@ final class ProtoSharePostsRequest: ProtoStandardRequest<Void> {
         item.shareStanzas = [share]
 
         super.init(
-            packet: .iqPacket(type: .set, payload: .feedItem(item)),
+            iqPacket: .iqPacket(type: .set, payload: .feedItem(item)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-final class ProtoRetractItemRequest: ProtoStandardRequest<Void> {
-    init(feedItem: FeedItemProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
 
+final class ProtoRetractItemRequest: ProtoRequest<Void> {
+
+    init(feedItem: FeedItemProtocol, completion: @escaping Completion) {
         var serverFeedItem = Server_FeedItem()
         serverFeedItem.item = feedItem.protoFeedItem(withData: false)
         serverFeedItem.action = .retract
 
         super.init(
-            packet: .iqPacket(type: .set, payload: .feedItem(serverFeedItem)),
+            iqPacket: .iqPacket(type: .set, payload: .feedItem(serverFeedItem)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-final class ProtoContactSyncRequest: ProtoStandardRequest<[HalloContact]> {
+
+final class ProtoContactSyncRequest: ProtoRequest<[HalloContact]> {
+
     init<T: Sequence>(
         with contacts: T,
         type: ContactSyncRequestType,
         syncID: String,
         batchIndex: Int? = nil,
         isLastBatch: Bool? = nil,
-        completion: @escaping ServiceRequestCompletion<[HalloContact]>) where T.Iterator.Element == HalloContact
+        completion: @escaping Completion) where T.Iterator.Element == HalloContact
     {
 
         var contactList = Server_ContactList()
@@ -136,17 +143,18 @@ final class ProtoContactSyncRequest: ProtoStandardRequest<[HalloContact]> {
         }
 
         super.init(
-            packet: .iqPacket(type: .set, payload: .contactList(contactList)),
-            transform: {
-                let contacts = $0.iq.contactList.contacts
+            iqPacket: .iqPacket(type: .set, payload: .contactList(contactList)),
+            transform: { (iq) in
+                let contacts = iq.contactList.contacts
                 return .success(contacts.compactMap { HalloContact($0) }) },
             completion: completion)
     }
 }
 
-final class ProtoPresenceSubscribeRequest: ProtoStandardRequest<Void> {
-    init(userID: UserID, completion: @escaping ServiceRequestCompletion<Void>) {
 
+final class ProtoPresenceSubscribeRequest: ProtoRequest<Void> {
+
+    init(userID: UserID, completion: @escaping Completion) {
         var presence = Server_Presence()
         presence.id = UUID().uuidString
         presence.type = .subscribe
@@ -157,12 +165,14 @@ final class ProtoPresenceSubscribeRequest: ProtoStandardRequest<Void> {
         var packet = Server_Packet()
         packet.stanza = .presence(presence)
 
-        super.init(packet: packet, transform: { _ in .success(())}, completion: completion)
+        super.init(iqPacket: packet, transform: { _ in .success(())}, completion: completion)
     }
 }
 
-final class ProtoPresenceUpdate: ProtoStandardRequest<Void> {
-    init(status: PresenceType, completion: @escaping ServiceRequestCompletion<Void>) {
+
+final class ProtoPresenceUpdate: ProtoRequest<Void> {
+
+    init(status: PresenceType, completion: @escaping Completion) {
 
         var presence = Server_Presence()
         presence.id = UUID().uuidString
@@ -181,12 +191,14 @@ final class ProtoPresenceUpdate: ProtoStandardRequest<Void> {
         var packet = Server_Packet()
         packet.presence = presence
 
-        super.init(packet: packet, transform: { _ in .success(()) }, completion: completion)
+        super.init(iqPacket: packet, transform: { _ in .success(()) }, completion: completion)
     }
 }
 
-final class ProtoSendChatState: ProtoStandardRequest<Void> {
-    init(type: ChatType, id: String, state: ChatState, completion: @escaping ServiceRequestCompletion<Void>) {
+
+final class ProtoSendChatState: ProtoRequest<Void> {
+
+    init(type: ChatType, id: String, state: ChatState, completion: @escaping Completion) {
         var chatState = Server_ChatState()
         chatState.threadType = {
             switch type {
@@ -212,11 +224,13 @@ final class ProtoSendChatState: ProtoStandardRequest<Void> {
         var packet = Server_Packet()
         packet.chatState = chatState
 
-        super.init(packet: packet, transform: { _ in .success(()) }, completion: completion)
+        super.init(iqPacket: packet, transform: { _ in .success(()) }, completion: completion)
     }
 }
 
-final class ProtoSendReceipt: ProtoStandardRequest<Void> {
+
+final class ProtoSendReceipt: ProtoRequest<Void> {
+
     init(
         messageID: String? = nil,
         itemID: String,
@@ -224,7 +238,7 @@ final class ProtoSendReceipt: ProtoStandardRequest<Void> {
         type: HalloReceipt.`Type`,
         fromUserID: UserID,
         toUserID: UserID,
-        completion: @escaping ServiceRequestCompletion<Void>)
+        completion: @escaping Completion)
     {
         let threadID: String = {
             switch thread {
@@ -262,50 +276,53 @@ final class ProtoSendReceipt: ProtoStandardRequest<Void> {
             id: messageID ?? "\(typeString)-\(itemID)",
             payload: payloadContent)
 
-        super.init(packet: packet, transform: { _ in .success(()) }, completion: completion)
+        super.init(iqPacket: packet, transform: { _ in .success(()) }, completion: completion)
     }
 }
 
-final class ProtoSendNameRequest: ProtoStandardRequest<Void> {
-    init(name: String, completion: @escaping ServiceRequestCompletion<Void>) {
 
+final class ProtoSendNameRequest: ProtoRequest<Void> {
+
+    init(name: String, completion: @escaping Completion) {
         var serverName = Server_Name()
         serverName.name = name
 
         super.init(
-            packet: .iqPacket(type: .set, payload: .name(serverName)),
+            iqPacket: .iqPacket(type: .set, payload: .name(serverName)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-final class ProtoClientVersionCheck: ProtoStandardRequest<TimeInterval> {
-    init(version: String, completion: @escaping ServiceRequestCompletion<TimeInterval>) {
 
+final class ProtoClientVersionCheck: ProtoRequest<TimeInterval> {
+
+    init(version: String, completion: @escaping Completion) {
         var clientVersion = Server_ClientVersion()
         clientVersion.version = "HalloApp/iOS\(version)"
 
         super.init(
-            packet: .iqPacket(type: .get, payload: .clientVersion(clientVersion)),
-            transform: {
-                let expiresInSeconds = $0.iq.clientVersion.expiresInSeconds
+            iqPacket: .iqPacket(type: .get, payload: .clientVersion(clientVersion)),
+            transform: { (iq) in
+                let expiresInSeconds = iq.clientVersion.expiresInSeconds
                 return .success(TimeInterval(expiresInSeconds)) },
             completion: completion)
     }
 }
 
-final class ProtoGroupCreateRequest: ProtoStandardRequest<String> {
-    init(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {
 
+final class ProtoGroupCreateRequest: ProtoRequest<String> {
+
+    init(name: String, members: [UserID], completion: @escaping Completion) {
         var group = Server_GroupStanza()
         group.action = .create
         group.name = name
         group.members = members.compactMap { Server_GroupMember(userID: $0) }
 
         super.init(
-            packet: .iqPacket(type: .set, payload: .groupStanza(group)),
-            transform: {
-                guard let group = HalloGroup(protoGroup: $0.iq.groupStanza) else {
+            iqPacket: .iqPacket(type: .set, payload: .groupStanza(group)),
+            transform: { (iq) in
+                guard let group = HalloGroup(protoGroup: iq.groupStanza) else {
                     return .failure(ProtoServiceError.unexpectedResponseFormat)
                 }
                 return .success(group.groupId) },
@@ -313,17 +330,18 @@ final class ProtoGroupCreateRequest: ProtoStandardRequest<String> {
     }
 }
 
-final class ProtoGroupInfoRequest: ProtoStandardRequest<HalloGroup> {
-    init(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>) {
 
+final class ProtoGroupInfoRequest: ProtoRequest<HalloGroup> {
+
+    init(groupID: GroupID, completion: @escaping Completion) {
         var group = Server_GroupStanza()
         group.gid = groupID
         group.action = .get
 
         super.init(
-            packet: .iqPacket(type: .get, payload: .groupStanza(group)),
-            transform: {
-                guard let group = HalloGroup(protoGroup: $0.iq.groupStanza) else {
+            iqPacket: .iqPacket(type: .get, payload: .groupStanza(group)),
+            transform: { (iq) in
+                guard let group = HalloGroup(protoGroup: iq.groupStanza) else {
                     return .failure(ProtoServiceError.unexpectedResponseFormat)
                 }
                 return .success(group) },
@@ -331,61 +349,65 @@ final class ProtoGroupInfoRequest: ProtoStandardRequest<HalloGroup> {
     }
 }
 
-final class ProtoGroupLeaveRequest: ProtoStandardRequest<Void> {
-    init(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>) {
 
+final class ProtoGroupLeaveRequest: ProtoRequest<Void> {
+
+    init(groupID: GroupID, completion: @escaping Completion) {
         var group = Server_GroupStanza()
         group.gid = groupID
         group.action = .leave
 
         super.init(
-            packet: .iqPacket(type: .set, payload: .groupStanza(group)),
+            iqPacket: .iqPacket(type: .set, payload: .groupStanza(group)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-final class ProtoGroupModifyRequest: ProtoStandardRequest<Void> {
-    init(groupID: GroupID, members: [UserID], groupAction: ChatGroupAction, action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>) {
 
+final class ProtoGroupModifyRequest: ProtoRequest<Void> {
+
+    init(groupID: GroupID, members: [UserID], groupAction: ChatGroupAction, action: ChatGroupMemberAction, completion: @escaping Completion) {
         var group = Server_GroupStanza()
         group.gid = groupID
         group.action = .init(groupAction)
         group.members = members.compactMap { Server_GroupMember(userID: $0, action: .init(action)) }
 
         super.init(
-            packet: .iqPacket(type: .set, payload: .groupStanza(group)),
+            iqPacket: .iqPacket(type: .set, payload: .groupStanza(group)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-final class ProtoChangeGroupNameRequest: ProtoStandardRequest<Void> {
-    init(groupID: GroupID, name: String, completion: @escaping ServiceRequestCompletion<Void>) {
 
+final class ProtoChangeGroupNameRequest: ProtoRequest<Void> {
+
+    init(groupID: GroupID, name: String, completion: @escaping Completion) {
         var group = Server_GroupStanza()
         group.gid = groupID
         group.action = .setName
         group.name = name
         
         super.init(
-            packet: Server_Packet.iqPacket(type: .set, payload: .groupStanza(group)),
+            iqPacket: .iqPacket(type: .set, payload: .groupStanza(group)),
             transform: { _ in .success(()) },
             completion: completion)
     }
 }
 
-final class ProtoChangeGroupAvatarRequest: ProtoStandardRequest<String> {
-    init(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<String>) {
 
+final class ProtoChangeGroupAvatarRequest: ProtoRequest<String> {
+
+    init(groupID: GroupID, data: Data, completion: @escaping Completion) {
         var uploadAvatar = Server_UploadGroupAvatar()
         uploadAvatar.gid = groupID
         uploadAvatar.data = data
         
         super.init(
-            packet: .iqPacket(type: .set, payload: .groupAvatar(uploadAvatar)),
-            transform: {
-                guard let group = HalloGroup(protoGroup: $0.iq.groupStanza), let avatarID = group.avatarID else {
+            iqPacket: .iqPacket(type: .set, payload: .groupAvatar(uploadAvatar)),
+            transform: { (iq) in
+                guard let group = HalloGroup(protoGroup: iq.groupStanza), let avatarID = group.avatarID else {
                     return .failure(ProtoServiceError.unexpectedResponseFormat)
                 }
                 return .success(avatarID) },
@@ -393,8 +415,10 @@ final class ProtoChangeGroupAvatarRequest: ProtoStandardRequest<String> {
     }
 }
 
-final class ProtoUpdateNotificationSettingsRequest: ProtoStandardRequest<Void> {
-    init(settings: [NotificationSettings.ConfigKey: Bool], completion: @escaping ServiceRequestCompletion<Void>) {
+
+final class ProtoUpdateNotificationSettingsRequest: ProtoRequest<Void> {
+
+    init(settings: [NotificationSettings.ConfigKey: Bool], completion: @escaping Completion) {
         var prefs = Server_NotificationPrefs()
         prefs.pushPrefs = settings.map {
             var pref = Server_PushPref()
@@ -402,7 +426,7 @@ final class ProtoUpdateNotificationSettingsRequest: ProtoStandardRequest<Void> {
             pref.value = $0.value
             return pref
         }
-        super.init(packet: .iqPacket(type: .set, payload: .notificationPrefs(prefs)), transform: { _ in .success(()) }, completion: completion)
+        super.init(iqPacket: .iqPacket(type: .set, payload: .notificationPrefs(prefs)), transform: { _ in .success(()) }, completion: completion)
     }
 }
 

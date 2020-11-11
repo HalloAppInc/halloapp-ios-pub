@@ -41,20 +41,23 @@ enum InviteResult {
     case failure(FailureReason)
 }
 
-class ProtoGetInviteAllowanceRequest: ProtoStandardRequest<(Int, Date)> {
-    init(completion: @escaping ServiceRequestCompletion<(Int, Date)>) {
+final class ProtoGetInviteAllowanceRequest: ProtoRequest<(Int, Date)> {
+
+    init(completion: @escaping Completion) {
         super.init(
-            packet: Server_Packet.iqPacket(type: .get, payload: .invitesRequest(Server_InvitesRequest())),
-            transform: { response in
-                let invites = Int(response.iq.invitesResponse.invitesLeft)
-                let timeUntilRefresh = TimeInterval(response.iq.invitesResponse.timeUntilRefresh)
-                return .success((invites, Date(timeIntervalSinceNow: timeUntilRefresh))) },
+            iqPacket: .iqPacket(type: .get, payload: .invitesRequest(Server_InvitesRequest())),
+            transform: { (iq) in
+                let invites = Int(iq.invitesResponse.invitesLeft)
+                let timeUntilRefresh = TimeInterval(iq.invitesResponse.timeUntilRefresh)
+                return .success((invites, Date(timeIntervalSinceNow: timeUntilRefresh)))
+            },
             completion: completion)
     }
 }
 
-class ProtoRegisterInvitesRequest: ProtoStandardRequest<InviteResponse> {
-    init(phoneNumbers: [ABContact.NormalizedPhoneNumber], completion: @escaping ServiceRequestCompletion<InviteResponse>) {
+final class ProtoRegisterInvitesRequest: ProtoRequest<InviteResponse> {
+
+    init(phoneNumbers: [ABContact.NormalizedPhoneNumber], completion: @escaping Completion) {
         var request = Server_InvitesRequest()
         request.invites = phoneNumbers.map {
             var invite = Server_Invite()
@@ -63,9 +66,9 @@ class ProtoRegisterInvitesRequest: ProtoStandardRequest<InviteResponse> {
         }
 
         super.init(
-            packet: Server_Packet.iqPacket(type: .set, payload: .invitesRequest(request)),
-            transform: { response in
-                let invitesResponse = response.iq.invitesResponse
+            iqPacket: .iqPacket(type: .set, payload: .invitesRequest(request)),
+            transform: { (iq) in
+                let invitesResponse = iq.invitesResponse
                 let invitesLeft = Int(invitesResponse.invitesLeft)
                 let timeUntilRefresh = TimeInterval(invitesResponse.timeUntilRefresh)
                 let results: [String: InviteResult] = Dictionary(uniqueKeysWithValues:
@@ -82,7 +85,8 @@ class ProtoRegisterInvitesRequest: ProtoStandardRequest<InviteResponse> {
                         }
                     }
                 )
-                return .success((results: results, count: invitesLeft, refreshDate: Date(timeIntervalSinceNow: timeUntilRefresh))) },
+                return .success((results: results, count: invitesLeft, refreshDate: Date(timeIntervalSinceNow: timeUntilRefresh)))
+            },
             completion: completion)
     }
 }

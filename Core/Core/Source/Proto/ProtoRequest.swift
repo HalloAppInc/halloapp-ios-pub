@@ -8,7 +8,8 @@
 
 import CocoaLumberjack
 
-open class ProtoRequest {
+open class ProtoRequestBase {
+
     enum State {
         case ready
         case sending
@@ -18,102 +19,113 @@ open class ProtoRequest {
 
     internal var state: State = .ready
     internal var retriesRemaining = 0
-    private(set) var requestId: String
-    internal var packet: Server_Packet
-    private(set) var response: Server_Packet?
 
-    public init(packet: Server_Packet, id: String) {
-        self.packet = packet
-        self.requestId = id
+    public let requestId: String
+    private let request: Server_Packet
+
+    fileprivate init(request: Server_Packet) {
+        self.requestId = request.requestID ?? UUID().uuidString
+        self.request = request
     }
 
     func send(using service: ProtoServiceCore) {
-        guard self.state == .ready else {
-            DDLogWarn("protorequest/\(self.requestId)/send: not ready [\(self.state)]")
+        guard state == .ready else {
+            DDLogWarn("request/\(Self.self)/\(requestId)/send: not ready [\(state)]")
             return
         }
-        DDLogInfo("protorequest/\(self.requestId)/sending")
-        self.state = .sending
+        DDLogInfo("request/\(Self.self)/\(requestId)/sending")
+        state = .sending
 
         do {
-            service.stream.send(try packet.serializedData())
+            service.stream.send(try request.serializedData())
         } catch {
-            DDLogError("protorequest/\(self.requestId)/error: \(error.localizedDescription)")
+            DDLogError("request/\(Self.self)/\(requestId)/send/error: \(error.localizedDescription)")
         }
     }
 
     func failOnNoConnection() {
-        guard self.state == .sending || self.state == .ready else {
+        guard state == .sending || state == .ready else {
             return
         }
-        DDLogWarn("protorequest/\(self.requestId)/failed: not-connected")
-        self.state = .cancelled
+        DDLogWarn("protorequest/\(requestId)/failed: not-connected")
+        state = .cancelled
         DispatchQueue.main.async {
-            self.didFail(with: XMPPError.notConnected)
+            self.fail(withError: XMPPError.notConnected)
         }
     }
 
     func cancelAndPrepareFor(retry willRetry: Bool) -> Bool {
-        DDLogError("protorequest/\(self.requestId)/failed/rr=\(self.retriesRemaining)")
-        switch (self.state) {
+        DDLogError("protorequest/\(requestId)/failed/rr=\(retriesRemaining)")
+        switch state {
         case .finished, .cancelled:
-                return false
+            return false
         case .ready, .sending:
-            if !willRetry || self.retriesRemaining <= 0 {
-                self.state = .cancelled
+            if !willRetry || retriesRemaining <= 0 {
+                state = .cancelled
                 DispatchQueue.main.async {
-                    self.didFail(with: XMPPError.aborted)
+                    self.fail(withError: XMPPError.aborted)
                 }
                 return false
             }
         }
 
-        if self.state == .sending {
-            self.retriesRemaining -= 1
-            self.state = .ready
+        if state == .sending {
+            retriesRemaining -= 1
+            state = .ready
         }
         return true
     }
 
     func process(response: Server_Packet) {
-        guard self.state == .sending else { return }
-        self.state = .finished
-        self.response = response
-        DDLogDebug("protorequest/\(self.requestId)/response \(response)")
+        guard state == .sending else { return }
+        state = .finished
+        DDLogDebug("request/\(Self.self)/\(requestId)/response \(response)")
         DispatchQueue.main.async {
-            self.didFinish(with: response)
+            self.finish(withResponse: response)
         }
     }
 
-    open func didFinish(with response: Server_Packet) { }
+    fileprivate func finish(withResponse response: Server_Packet) { }
 
-    open func didFail(with error: Error) { }
+    fileprivate func fail(withError error: Error) { }
 }
 
-open class ProtoStandardRequest<T>: ProtoRequest {
+open class ProtoRequest<T>: ProtoRequestBase {
+
+    public typealias Completion = ServiceRequestCompletion<T>
 
     /// Transform response packet into preferred format
-    private let transform: (Server_Packet) -> Result<T, Error>
+    private let transform: (Server_Iq) -> Result<T, Error>
 
     /// Handle transformed response
-    private let completion: ServiceRequestCompletion<T>
+    private let completion: Completion
 
-    public init(packet: Server_Packet, transform: @escaping (Server_Packet) -> Result<T, Error>, completion: @escaping ServiceRequestCompletion<T> ) {
+    public init(iqPacket: Server_Packet, transform: @escaping (Server_Iq) -> Result<T, Error>, completion: @escaping Completion) {
         self.transform = transform
         self.completion = completion
-        super.init(packet: packet, id: packet.requestID ?? UUID().uuidString)
+        super.init(request: iqPacket)
     }
 
-    public override func didFinish(with response: Server_Packet) {
-        switch transform(response) {
+    fileprivate override func finish(withResponse response: Server_Packet) {
+        guard case let .iq(serverIQ) = response.stanza else {
+            fail(withError: XMPPError.malformed)
+            return
+        }
+        if case .error = serverIQ.type {
+            fail(withError: XMPPError.serverError(serverIQ.errorStanza.reason))
+            return
+        }
+
+        switch transform(serverIQ) {
         case .success(let output):
             completion(.success(output))
         case .failure(let error):
-            completion(.failure(error))
+            fail(withError: error)
         }
     }
 
-    public override func didFail(with error: Error) {
+    fileprivate override func fail(withError error: Error) {
+        DDLogDebug("request/\(Self.self)/\(requestId)/failed \(error)")
         completion(.failure(error))
     }
 }

@@ -1639,9 +1639,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             switch result {
             case .success(let timestamp):
                 self.updateFeedPostComment(with: commentId) { (feedComment) in
-                    if timestamp != nil {
-                        feedComment.timestamp = timestamp!
-                    }
+                    feedComment.timestamp = timestamp
                     feedComment.status = .sent
                 }
 
@@ -1672,9 +1670,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             switch result {
             case .success(let timestamp):
                 self.updateFeedPost(with: postId) { (feedPost) in
-                    if timestamp != nil {
-                        feedPost.timestamp = timestamp!
-                    }
+                    feedPost.timestamp = timestamp
                     feedPost.status = .sent
                 }
 

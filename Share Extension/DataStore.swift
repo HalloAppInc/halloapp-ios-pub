@@ -205,9 +205,7 @@ class DataStore: ShareExtensionDataStore {
                 DDLogError("SharedDataStore/post/\(feedPost.id)/send/complete")
 
                 feedPost.status = .sent
-                if let timestamp = timestamp {
-                    feedPost.timestamp = timestamp
-                }
+                feedPost.timestamp = timestamp
                 self.save(managedObjectContext)
 
                 completion(.success(feedPost.id))

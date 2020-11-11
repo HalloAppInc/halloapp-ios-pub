@@ -35,13 +35,9 @@ struct XMPPPrivacyList: PrivacyListProtocol {
     }
 }
 
-class ProtoGetPrivacyListsRequest: ProtoRequest {
+final class ProtoGetPrivacyListsRequest: ProtoRequest<([PrivacyListProtocol], PrivacyListType)> {
 
-    private let completion: ServiceRequestCompletion<([PrivacyListProtocol], PrivacyListType)>
-
-    init(listTypes: [PrivacyListType], completion: @escaping ServiceRequestCompletion<([PrivacyListProtocol], PrivacyListType)>) {
-        self.completion = completion
-
+    init(listTypes: [PrivacyListType], completion: @escaping Completion) {
         var privacyLists = Server_PrivacyLists()
         privacyLists.lists = listTypes.map { listType in
             var list = Server_PrivacyList()
@@ -49,14 +45,17 @@ class ProtoGetPrivacyListsRequest: ProtoRequest {
             return list
         }
 
-        let packet = Server_Packet.iqPacket(type: .get, payload: .privacyLists(privacyLists))
-
-        super.init(packet: packet, id: packet.iq.id)
+        super.init(
+            iqPacket: .iqPacket(type: .get, payload: .privacyLists(privacyLists)),
+            transform: { (iq) -> Result<([PrivacyListProtocol], PrivacyListType), Error> in
+                ProtoGetPrivacyListsRequest.process(response: iq)
+            },
+            completion: completion)
     }
 
-    override func didFinish(with response: Server_Packet) {
+    static private func process(response iq: Server_Iq) -> Result<([PrivacyListProtocol], PrivacyListType), Error> {
 
-        let pbPrivacyLists = response.iq.privacyLists
+        let pbPrivacyLists = iq.privacyLists
         let lists: [PrivacyListProtocol] = pbPrivacyLists.lists.compactMap { pbList in
             guard let listType = pbList.type.privacyListType else {
                 DDLogError("ProtoGetPrivacyListsRequest/didFinish/error unknown list type \(pbList.type)")
@@ -78,21 +77,17 @@ class ProtoGetPrivacyListsRequest: ProtoRequest {
         }()
 
         if let activeType = activeType {
-            completion(.success((lists, activeType)))
+            return .success((lists, activeType))
         } else {
             DDLogError("ProtoGetPrivacyListsRequest/didFinish/error unknown active type")
-            completion(.failure(ProtoServiceError.unexpectedResponseFormat))
+            return .failure(ProtoServiceError.unexpectedResponseFormat)
         }
-    }
-
-    override func didFail(with error: Error) {
-        completion(.failure(error))
     }
 }
 
-class ProtoUpdatePrivacyListRequest: ProtoStandardRequest<Void> {
-    init(update: PrivacyListUpdateProtocol, completion: @escaping ServiceRequestCompletion<Void>) {
+final class ProtoUpdatePrivacyListRequest: ProtoRequest<Void> {
 
+    init(update: PrivacyListUpdateProtocol, completion: @escaping Completion) {
         var list = Server_PrivacyList()
         list.type = Server_PrivacyList.TypeEnum(update.type)
         list.uidElements = update.updates.compactMap { (userID, action) in
@@ -112,7 +107,7 @@ class ProtoUpdatePrivacyListRequest: ProtoStandardRequest<Void> {
         }
 
         super.init(
-            packet: Server_Packet.iqPacket(type: .set, payload: .privacyList(list)),
+            iqPacket: .iqPacket(type: .set, payload: .privacyList(list)),
             transform: { _ in .success(()) },
             completion: completion)
     }
