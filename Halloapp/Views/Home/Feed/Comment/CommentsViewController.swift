@@ -796,24 +796,6 @@ extension CommentsViewController: MediaCarouselViewDelegate {
     }
 }
 
-extension CommentsViewController: FeedPostViewControllerDelegate {
-
-    func feedPostViewController(_ viewController: FeedPostViewController, didRequestShowProfileFor userId: UserID) {
-        showUserFeed(for: userId)
-    }
-
-    func feedPostViewController(_ viewController: FeedPostViewController, didRequestShowCommentsFor postId: FeedPostID) {
-        commentsInputView.showKeyboard(from: self)
-    }
-
-    func feedPostViewController(_ viewController: FeedPostViewController, didRequestMessagePublisherOf postId: FeedPostID) {
-        if let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId),
-           let navigationController = navigationController {
-            navigationController.pushViewController(ChatViewController(for: feedDataItem.userId, with: postId, at: Int32(feedDataItem.currentMediaIndex ?? 0)), animated: true)
-        }
-    }
-}
-
 fileprivate class CommentsTableViewCell: UITableViewCell {
     private(set) lazy var commentView: CommentView = {
         CommentView()

@@ -165,7 +165,6 @@
 		76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DF9FF52412E6E700F49CA4 /* ContactStore.swift */; };
 		76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */; };
 		76E00DF624FEC4A800E06252 /* UserProfileTableHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E00DF324FEC2FC00E06252 /* UserProfileTableHeaderView.swift */; };
-		76E04208252D1ED100FE57AC /* FeedPostViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76E04207252D1ED100FE57AC /* FeedPostViewController.swift */; };
 		76F43F2B2489BC4700D47920 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 76955DE924746E4C0088BE8C /* GoogleService-Info.plist */; };
 		76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */; };
 		94A72F4A0828A2A19F783258 /* Pods_Notification_Service_Extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB39A8D1A471B3DB03C74F46 /* Pods_Notification_Service_Extension.framework */; };
@@ -466,7 +465,6 @@
 		76DF9FF52412E6E700F49CA4 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
 		76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPContactSyncRequest.swift; sourceTree = "<group>"; };
 		76E00DF324FEC2FC00E06252 /* UserProfileTableHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserProfileTableHeaderView.swift; path = Halloapp/Views/Home/Feed/User/UserProfileTableHeaderView.swift; sourceTree = SOURCE_ROOT; };
-		76E04207252D1ED100FE57AC /* FeedPostViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPostViewController.swift; path = HalloApp/Views/Home/Feed/FeedPostViewController.swift; sourceTree = SOURCE_ROOT; };
 		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactPickerViewController.swift; path = HalloApp/Components/Views/ContactPickerViewController.swift; sourceTree = SOURCE_ROOT; };
 		8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.debug.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.debug.xcconfig"; sourceTree = "<group>"; };
@@ -986,7 +984,6 @@
 				EA5414D523EE169E00390EF6 /* MediaSlider */,
 				76271381252D247700389FBC /* Post */,
 				6829F78524D0A61100207F6B /* User */,
-				76E04207252D1ED100FE57AC /* FeedPostViewController.swift */,
 				763B42AB243274F400FF0E82 /* FeedTableViewController.swift */,
 				76A92443244E659600794859 /* FeedViewController.swift */,
 				76654789252BE44C00379BEF /* GroupFeedViewController.swift */,
@@ -1802,7 +1799,6 @@
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				7626CCDE24C738F50023FC2E /* CrashlyticsLogger.swift in Sources */,
 				7639BA39251944920023850E /* NextLevelSessionExporter.swift in Sources */,
-				76E04208252D1ED100FE57AC /* FeedPostViewController.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
