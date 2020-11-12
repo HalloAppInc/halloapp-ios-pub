@@ -16,7 +16,7 @@ class GroupFeedViewController: FeedTableViewController {
 
     init(groupId: GroupID) {
         self.groupId = groupId
-        super.init(title: "")
+        super.init(title: nil)
     }
 
     required init?(coder: NSCoder) {

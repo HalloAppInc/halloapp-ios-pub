@@ -28,7 +28,7 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
 
     private var cancellableSet: Set<AnyCancellable> = []
 
-    init(title: String) {
+    init(title: String?) {
         super.init(nibName: nil, bundle: nil)
         self.title = title
     }
