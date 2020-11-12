@@ -42,8 +42,6 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
         
         DDLogInfo("FeedTableViewController/viewDidLoad")
 
-        navigationItem.standardAppearance = .opaqueAppearance
-
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.constrain(to: view)

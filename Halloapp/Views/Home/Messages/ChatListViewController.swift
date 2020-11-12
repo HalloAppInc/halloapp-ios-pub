@@ -83,7 +83,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         installLargeTitleUsingGothamFont()
         installFloatingActionMenu()
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        navigationItem.standardAppearance = .opaqueAppearance
 
         tableView.backgroundColor = .feedBackground
         tableView.separatorStyle = .none

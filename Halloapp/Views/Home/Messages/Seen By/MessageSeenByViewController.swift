@@ -78,6 +78,7 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
     required init(chatGroupMessageId: String) {
         self.chatGroupMessageId = chatGroupMessageId
         super.init(style: .grouped)
+        self.title = nil
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
@@ -85,8 +86,6 @@ class MessageSeenByViewController: UITableViewController, NSFetchedResultsContro
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.title = ""
-        navigationItem.standardAppearance = .opaqueAppearance
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
 
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: Constants.placeholderCellReuseIdentifier)

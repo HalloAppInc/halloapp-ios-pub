@@ -46,9 +46,7 @@ class HomeViewController: UITabBarController {
         self.tabBar.tintColor = .systemBlue
 
         // Set background color for navigation bar and search bar system-wide.
-        // Settings background color throguh appearance proxy seems to be the only way
-        // to modify navigation bar in SwiftUI's NavigationView.
-        UINavigationBar.appearance().backgroundColor = .feedBackground
+        UINavigationBar.appearance().standardAppearance = .opaqueAppearance
         UISearchBar.appearance().backgroundColor = .feedBackground
 
         self.cancellableSet.insert(
@@ -105,7 +103,6 @@ class HomeViewController: UITabBarController {
 
     private func feedNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: FeedViewController(title: Localizations.titleHome))
-        navigationController.navigationBar.standardAppearance = .opaqueAppearance
         navigationController.tabBarItem.image = UIImage(named: "TabBarHome")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
@@ -113,7 +110,6 @@ class HomeViewController: UITabBarController {
 
     private func chatNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: ChatListViewController(title: Localizations.titleMessages))
-        navigationController.navigationBar.standardAppearance = .opaqueAppearance
         navigationController.tabBarItem.image = UIImage(named: "TabBarMessages")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
@@ -121,7 +117,6 @@ class HomeViewController: UITabBarController {
     
     private func profileNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: ProfileViewController())
-        navigationController.navigationBar.standardAppearance = .opaqueAppearance
         navigationController.tabBarItem.image = UIImage(named: "TabBarProfile")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController

@@ -157,7 +157,6 @@ class PostDashboardViewController: UITableViewController, NSFetchedResultsContro
         super.viewDidLoad()
 
         navigationItem.title = NSLocalizedString("title.your.post", value: "Your Post", comment: "Title for the screen with information about who saw your post.")
-        navigationItem.standardAppearance = .opaqueAppearance
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarTrashBinWithLid"), style: .plain, target: self, action: #selector(retractPostAction))
 

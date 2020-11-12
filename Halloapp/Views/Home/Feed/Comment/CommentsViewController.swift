@@ -107,8 +107,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.navigationItem.title = Localizations.titleComments
-        self.navigationItem.standardAppearance = .opaqueAppearance
+        navigationItem.title = Localizations.titleComments
 
         tableView.separatorStyle = .none
         tableView.allowsSelection = false

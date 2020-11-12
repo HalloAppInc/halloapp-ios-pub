@@ -74,7 +74,6 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
 //        self.navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
         
         navigationItem.title = "Select Members"
-        navigationItem.standardAppearance = .opaqueAppearance
 
         let backButton = UIBarButtonItem(title: "Back", style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem = backButton

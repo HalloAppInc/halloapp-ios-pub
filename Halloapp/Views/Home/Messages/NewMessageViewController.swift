@@ -65,7 +65,6 @@ class NewChatViewController: NewChatTableViewController {
         DDLogInfo("NewMessageViewController/viewDidLoad")
 
         navigationItem.title = "New Message"
-        navigationItem.standardAppearance = .opaqueAppearance
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
 
         tableView.backgroundColor = .feedBackground

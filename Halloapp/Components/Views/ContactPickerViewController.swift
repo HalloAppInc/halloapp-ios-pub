@@ -95,7 +95,6 @@ class ContactPickerViewController<ContactType>: UITableViewController, UISearchR
     init(contacts: [ContactType]) {
         self.contacts = contacts
         super.init(style: .plain)
-        navigationItem.standardAppearance = .opaqueAppearance
     }
 
     required init?(coder: NSCoder) {
