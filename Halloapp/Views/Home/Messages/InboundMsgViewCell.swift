@@ -226,7 +226,7 @@ class InboundMsgViewCell: UITableViewCell {
         view.textContainer.lineFragmentPadding = 0
         view.backgroundColor = .clear
         view.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
-        view.tintColor = UIColor.link
+        view.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -296,7 +296,8 @@ class InboundMsgViewCell: UITableViewCell {
         textView.textContainerInset = UIEdgeInsets.zero
         textView.backgroundColor = .clear
         textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
-        textView.tintColor = UIColor.link
+        textView.textColor = .label
+        textView.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
         return textView
     }()
 
@@ -314,11 +315,17 @@ class InboundMsgViewCell: UITableViewCell {
         }
         let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, mediaIndex: quoteMediaIndex)
 
+        var text = chatMessage.text
+        if chatMessage.incomingStatus == .retracted {
+            textView.textColor = UIColor.chatTime
+            text = Localizations.chatMessageDeleted
+        }
+        
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
-                   text: chatMessage.text,
+                   text: text,
                    media: chatMessage.media,
                    timestamp: chatMessage.timestamp)
         
@@ -330,7 +337,19 @@ class InboundMsgViewCell: UITableViewCell {
     func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
         messageID = chatGroupMessage.id
         
-        if !isPreviousMsgSameSender, let userId = chatGroupMessage.userId {
+        var quoteMediaIndex: Int = 0
+        if chatGroupMessage.chatReplyMessageID != nil {
+            quoteMediaIndex = Int(chatGroupMessage.chatReplyMessageMediaIndex)
+        }
+        let isQuotedMessage = updateQuoted(chatQuoted: chatGroupMessage.quoted, mediaIndex: quoteMediaIndex, groupID: chatGroupMessage.groupId)
+        
+        var text = chatGroupMessage.text
+        if chatGroupMessage.inboundStatus == .retracted {
+            textView.textColor = UIColor.chatTime
+            text = Localizations.chatMessageDeleted
+        }
+        
+        if (!isPreviousMsgSameSender || isQuotedMessage), let userId = chatGroupMessage.userId {
             nameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
             nameLabel.textColor = getNameColor(for: userId, name: nameLabel.text ?? "", groupId: chatGroupMessage.groupId)
             nameRow.isHidden = false
@@ -340,17 +359,11 @@ class InboundMsgViewCell: UITableViewCell {
             }
         }
         
-        var quoteMediaIndex: Int = 0
-        if chatGroupMessage.chatReplyMessageID != nil {
-            quoteMediaIndex = Int(chatGroupMessage.chatReplyMessageMediaIndex)
-        }
-        let isQuotedMessage = updateQuoted(chatQuoted: chatGroupMessage.quoted, mediaIndex: quoteMediaIndex, groupID: chatGroupMessage.groupId)
-        
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
-                   text: chatGroupMessage.text,
+                   text: text,
                    media: chatGroupMessage.media,
                    timestamp: chatGroupMessage.timestamp)
         
@@ -534,6 +547,7 @@ class InboundMsgViewCell: UITableViewCell {
         textView.isHidden = false
         textView.text = ""
         textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
+        textView.textColor = .label
         
         timeLabel.isHidden = false
         timeLabel.text = nil

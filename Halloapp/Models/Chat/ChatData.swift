@@ -14,6 +14,7 @@ typealias ChatAck = (id: String, timestamp: Date?)
 typealias ChatPresenceInfo = (userID: UserID, presence: PresenceType?, lastSeen: Date?)
 
 typealias ChatStateInfo = (from: UserID, threadType: ChatType, threadID: String, type: ChatState, timestamp: Date?)
+typealias ChatRetractInfo = (from: UserID, threadType: ChatType, threadID: String, messageID: String)
 
 typealias ChatMessageID = String
 typealias ChatGroupMessageID = String
@@ -92,10 +93,10 @@ class ChatData: ObservableObject {
         }
         
         cancellableSet.insert(
-            service.didGetChatAck.sink { [weak self] xmppAck in
-                DDLogInfo("ChatData/gotAck \(xmppAck)")
+            service.didGetChatAck.sink { [weak self] chatAck in
+                DDLogInfo("ChatData/didGetChatAck \(chatAck)")
                 guard let self = self else { return }
-                self.processIncomingChatAck(xmppAck)
+                self.processInboundChatAck(chatAck)
             }
         )
         
@@ -124,30 +125,14 @@ class ChatData: ObservableObject {
                     DDLogDebug("ChatData/onConnect/appNotActive")
                 }
 
-                self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-                    let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: managedObjectContext)
-
-                    // inject delay between batch sends so that they won't be timestamped the same time,
-                    // which causes display of messages to be in mixed order
-                    var timeDelay = 0.0
-                    pendingOutgoingChatMessages.forEach {
-                        DDLogInfo("ChatData/onConnect/processPending/chatMessages \($0.id)")
-                        let xmppChatMessage = XMPPChatMessage(chatMessage: $0)
-                        self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) {
-                            self.send(message: xmppChatMessage)
-                        }
-                        timeDelay += 1.0
-                    }
-
-                    let pendingOutgoingSeenReceipts = self.pendingOutgoingSeenReceipts(in: managedObjectContext)
-                    pendingOutgoingSeenReceipts.forEach {
-                        DDLogInfo("ChatData/onConnect/processPending/seenReceipts \($0.id)")
-                        self.sendSeenReceipt(for: $0)
-                    }
-                }
-                //TODO: pending group
-
-                // TODO: Eventually should move to checking for internet connectivity with a reachability manager instead of xmpp connection
+                self.processPendingChatMsgs()
+                self.processRetractingChatMsgs()
+                self.processPendingSeenReceipts()
+                
+                self.processPendingGroupChatMsgs()
+                self.processRetractingGroupChatMsgs()
+                self.processPendingGroupChatSeenReceipts()
+                
                 if (UIApplication.shared.applicationState == .active) {
                     self.processPendingChatMessageMedia()
                     self.processPendingChatGroupMessageMedia()
@@ -168,6 +153,14 @@ class ChatData: ObservableObject {
                 DDLogInfo("ChatData/didGetChatState \(chatStateInfo)")
                 guard let self = self else { return }
                 self.processInboundChatStateInBg(chatStateInfo)
+            }
+        )
+        
+        cancellableSet.insert(
+            service.didGetChatRetract.sink { [weak self] chatRetractInfo in
+                DDLogInfo("ChatData/didGetChatRetract \(chatRetractInfo)")
+                guard let self = self else { return }
+                self.processInboundChatRetractInBg(chatRetractInfo)
             }
         )
         
@@ -196,8 +189,10 @@ class ChatData: ObservableObject {
     }
     
     func populateThreadsWithSymmetricContacts() {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             let contacts = AppContext.shared.contactStore.allInNetworkContacts(sorted: true)
+            DDLogInfo("ChatData/populateThreadsWithSymmetricContacts/allInNetworkContacts: \(contacts.count)")
             for contact in contacts {
                 guard let userId = contact.userId else { continue }
                 if let chatThread = self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) {
@@ -485,53 +480,68 @@ class ChatData: ObservableObject {
     
     // MARK: Process Inbound Acks
     
-    private func processIncomingChatAck(_ xmppChatAck: ChatAck) {
-        var isGroupMessage: Bool = true
-        // todo: narrow search with at least the status instead of the whole table
-        self.updateChatMessage(with: xmppChatAck.id) { (chatMessage) in
-            DDLogError("ChatData/processAck/chatMessage/ [\(xmppChatAck.id)]")
-            isGroupMessage = false
-            
-            // outgoing message
-            if chatMessage.outgoingStatus != .none {
-                if chatMessage.outgoingStatus == .pending {
-                    
-                    chatMessage.outgoingStatus = .sentOut
-                
-                    self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
-                        chatThread.lastMsgStatus = .sentOut
-                    }
+    private func processInboundChatAck(_ chatAck: ChatAck) {
+        DDLogDebug("ChatData/processInboundChatAck/ [\(chatAck.id)]")
+        let messageID = chatAck.id
+        
+        // search for pending 1-1 message
+        updateChatMessageByStatus(for: messageID, status: .pending) { (chatMessage) in
+            DDLogDebug("ChatData/processInboundChatAck/updatePendingChatMessage/ [\(messageID)]")
 
-                }
-                if let serverTimestamp = xmppChatAck.timestamp {
-                    chatMessage.timestamp = serverTimestamp
-                }
+            chatMessage.outgoingStatus = .sentOut
+        
+            self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
+                chatThread.lastMsgStatus = .sentOut
             }
+
+            // only change timestamp the first time message is ack'ed,
+            // rerequests should not, with the assumption resendAttempts are only used for rerequests
+            guard chatMessage.resendAttempts == 0 else { return }
+            guard let serverTimestamp = chatAck.timestamp else { return }
+            chatMessage.timestamp = serverTimestamp
+
         }
-        
-        guard isGroupMessage else { return }
-        
-        self.updateChatGroupMessage(with: xmppChatAck.id) { (chatGroupMessage) in
-            DDLogError("ChatData/processAck/groupMessage [\(xmppChatAck.id)]")
+
+        // search for pending group message
+        updateChatGroupMessageByStatus(for: messageID, status: .pending) { (chatGroupMessage) in
+            DDLogDebug("ChatData/processInboundChatAck/updatePendingChatGroupMessage [\(messageID)]")
     
-            // outgoing message
-            if chatGroupMessage.outboundStatus != .none {
+            chatGroupMessage.outboundStatus = .sentOut
                 
-                if chatGroupMessage.outboundStatus == .pending {
+            self.updateChatThreadStatus(type: .group, for: chatGroupMessage.groupId, messageId: chatGroupMessage.id) { (chatThread) in
+                chatThread.lastMsgStatus = .sentOut
+            }
                     
-                    chatGroupMessage.outboundStatus = .sentOut
-                
-                    self.updateChatThreadStatus(type: .group, for: chatGroupMessage.groupId, messageId: chatGroupMessage.id) { (chatThread) in
-                        chatThread.lastMsgStatus = .sentOut
-                    }
-                    
-                }
-                if let serverTimestamp = xmppChatAck.timestamp {
-                    chatGroupMessage.timestamp = serverTimestamp
-                }
+            if let serverTimestamp = chatAck.timestamp {
+                chatGroupMessage.timestamp = serverTimestamp
+            }
+            
+        }
+        
+        // search for retracting 1-1 message
+        updateRetractingChatMessage(for: messageID) { (chatMessage) in
+            DDLogDebug("ChatData/processInboundChatAck/updateRetractingChatMessage/ [\(messageID)]")
+            chatMessage.outgoingStatus = .retracted
+            
+            self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: messageID) { (chatThread) in
+                chatThread.lastMsgStatus = .retracted
             }
         }
         
+        // search for retracting group message
+        updateRetractingGroupChatMessage(for: messageID) { (groupChatMessage) in
+            DDLogDebug("ChatData/processInboundChatAck/updateRetractingGroupChatMessage [\(messageID)]")
+
+            groupChatMessage.outboundStatus = .retracted
+
+            self.updateChatThreadStatus(type: .group, for: groupChatMessage.groupId, messageId: groupChatMessage.id) { (chatThread) in
+                chatThread.lastMsgStatus = .retracted
+            }
+
+            return
+        }
+        
+
     }
     
     func copyFiles(toChatMedia chatMedia: ChatMedia, fileUrl: URL, encryptedFileUrl: URL?) throws {
@@ -909,11 +919,8 @@ extension ChatData {
     private func updateChatThreadStatus(type: ChatType, for id: String, messageId: String, block: @escaping (ChatThread) -> Void) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            guard let chatThread = self.chatThreadStatus(type: type, id: id, messageId: messageId, in: managedObjectContext) else {
-                DDLogError("ChatData/update-chatThread/missing-msg-in-thread [\(id)] [\(messageId)]")
-                return
-            }
-            DDLogVerbose("ChatData/update-chatThreadStatus [\(id)]")
+            guard let chatThread = self.chatThreadStatus(type: type, id: id, messageId: messageId, in: managedObjectContext) else { return }
+            DDLogVerbose("ChatData/updateChatThreadStatus found lastMsgID: [\(messageId)] in threadID: [\(id)]")
             block(chatThread)
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
@@ -941,7 +948,7 @@ extension ChatData {
         switch type {
         case .oneToOne:
             chatStateList = chatStateInfoList.filter { $0.threadType == .oneToOne && $0.threadID == id }
-            typingStr = "Typing..."
+            typingStr = Localizations.chatTypingCapitalized
         case .group:
             chatStateList = chatStateInfoList.filter { $0.threadType == .group && $0.threadID == id }
         }
@@ -951,26 +958,16 @@ extension ChatData {
         if type == .group {
             let numUser = chatStateList.count
 
-            for (index, typingUser) in chatStateList.enumerated() {
-                let firstName = MainAppContext.shared.contactStore.firstName(for: typingUser.from)
-                var subStr: String = "\(firstName)"
-                let isLastItem: Bool = (index == numUser - 1)
-
-                if isLastItem {
-                    switch numUser {
-                    case 1: subStr += " is "
-                    default:
-                        subStr = " and \(subStr) are "
-                    }
-                } else {
-                    switch numUser {
-                    case 2: break
-                    default: subStr += ", "
-                    }
-                }
-                typingStr += subStr
+            var firstNameList: [String] = []
+            for typingUser in chatStateList {
+                firstNameList.append(MainAppContext.shared.contactStore.firstName(for: typingUser.from))
             }
-            typingStr += "typing..."
+            
+            let localizedFirstNameList = ListFormatter.localizedString(byJoining: firstNameList)
+
+            let formatString = NSLocalizedString("chat.n.users.typing", comment: "Text showing all the users who are typing")
+            return String.localizedStringWithFormat(formatString, localizedFirstNameList, numUser)
+            
         }
         return typingStr
     }
@@ -1021,6 +1018,18 @@ extension ChatData {
         }
         
     }
+    
+    private func processInboundChatRetractInBg(_ chatRetractInfo: ChatRetractInfo) {
+        backgroundProcessingQueue.async {
+            if chatRetractInfo.threadType == .oneToOne {
+                self.processInboundChatMessageRetract(from: chatRetractInfo.from, messageID: chatRetractInfo.messageID)
+            } else {
+                self.processInboundGroupChatMessageRetract(groupID: chatRetractInfo.threadID, messageID: chatRetractInfo.messageID)
+            }
+        }
+    }
+    
+    
     
 }
 
@@ -1195,11 +1204,6 @@ extension ChatData {
         uploadMediaAndSend(chatMessage)
     }
 
-    func deleteMessage(toUserID: UserID, retractMessageID: String) {
-        let messageID = UUID().uuidString
-        service.deleteMessage(messageID: messageID, toUserID: toUserID, retractMessageID: retractMessageID)
-    }
-    
     private func uploadMediaAndSend(_ message: ChatMessage) {
         // Either all media has already been uploaded or post does not contain media.
         guard let mediaItemsToUpload = message.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
@@ -1297,11 +1301,28 @@ extension ChatData {
         }
     }
 
-    // MARK: 1-1 Presence
-    
-    func subscribeToPresence(to chatWithUserId: String) {
-        guard !self.isSubscribedToCurrentUser else { return }
-        self.isSubscribedToCurrentUser = service.subscribeToPresenceIfPossible(to: chatWithUserId)
+    func retractChatMessage(toUserID: UserID, messageToRetractID: String) {
+        let messageID = UUID().uuidString
+                
+        updateChatMessage(with: messageToRetractID) { [weak self] (chatMessage) in
+            guard let self = self else { return }
+            guard [.sentOut, .delivered, .seen].contains(chatMessage.outgoingStatus) else { return }
+            
+            chatMessage.retractID = messageID
+            chatMessage.outgoingStatus = .retracting
+            
+            self.deleteChatMessageContent(in: chatMessage)
+            
+            self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
+                chatThread.lastMsgStatus = .retracting
+                chatThread.lastMsgText = nil
+                chatThread.lastMsgMediaType = .none
+            }
+            
+        }
+                
+        self.service.retractChatMessage(messageID: messageID, toUserID: toUserID, messageToRetractID: messageToRetractID)
+        
     }
     
     // MARK: 1-1 Core Data Fetching
@@ -1335,13 +1356,18 @@ extension ChatData {
         return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && toUserId = %@ && (incomingStatusValue = %d OR incomingStatusValue = %d)", fromUserId, userData.userId, ChatMessage.IncomingStatus.none.rawValue, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
-
-    
     func pendingOutgoingChatMessages(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
         let sortDescriptors = [
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
         ]
         return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && outgoingStatusValue = %d", userData.userId, ChatMessage.OutgoingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+    
+    func retractingOutboundChatMsgs(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
+        ]
+        return chatGroupMessages(predicate: NSPredicate(format: "outboundStatusValue = %d", ChatMessage.OutgoingStatus.retracting.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     func pendingOutgoingSeenReceipts(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
@@ -1386,6 +1412,41 @@ extension ChatData {
         }
     }
     
+    private func updateChatMessageByStatus(for id: String, status: ChatMessage.OutgoingStatus, block: @escaping (ChatMessage) -> ()) {
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let sortDescriptors = [
+                NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
+            ]
+            guard let chatMessage = self.chatMessages(predicate: NSPredicate(format: "outgoingStatusValue = %d && id == %@", status.rawValue, id), sortDescriptors: sortDescriptors, in: managedObjectContext).first else {
+                return
+            }
+            
+            DDLogVerbose("ChatData/updateChatMessageByStatus [\(id)]")
+            block(chatMessage)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+    
+    private func updateRetractingChatMessage(for id: String, block: @escaping (ChatMessage) -> ()) {
+
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let sortDescriptors = [
+                NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
+            ]
+            guard let chatMessage = self.chatMessages(predicate: NSPredicate(format: "outgoingStatusValue = %d && retractID == %@", ChatMessage.OutgoingStatus.retracting.rawValue, id), sortDescriptors: sortDescriptors, in: managedObjectContext).first else {
+                return
+            }
+            
+            DDLogVerbose("ChatData/updateRetractingChatMessage [\(id)]")
+            block(chatMessage)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+    
     public func updateChatMessageCellHeight(for chatMessageId: String, with cellHeight: Int) {
         updateChatMessage(with: chatMessageId) { (chatMessage) in
             chatMessage.cellHeight = Int16(cellHeight)
@@ -1393,47 +1454,9 @@ extension ChatData {
     }
         
     // MARK: 1-1 Core Data Deleting
-    
-    private func deleteMedia(in chatMessage: ChatMessage) {
-        DDLogDebug("ChatData/delete/message \(chatMessage.id) ")
-        chatMessage.media?.forEach { (media) in
-            if media.relativeFilePath != nil {
-                let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
-                do {
-                    DDLogDebug("ChatData/delete/message/media ")
-                    try FileManager.default.removeItem(at: fileURL)
-                }
-                catch {
-                    DDLogError("ChatData/delete/message/media/error [\(error)]")
-                }
-            }
-            chatMessage.managedObjectContext?.delete(media)
-        }
-        
-        if let quoted = chatMessage.quoted {
-            DDLogDebug("ChatData/delete/message/quoted ")
-            if let quotedMedia = quoted.media {
-                quotedMedia.forEach { (media) in
-                    if media.relativeFilePath != nil {
-                        let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
-                        do {
-                            DDLogDebug("ChatData/delete/message/quoted/media ")
-                            try FileManager.default.removeItem(at: fileURL)
-                        }
-                        catch {
-                            DDLogError("ChatData/delete/message/quoted/media/error [\(error)]")
-                        }
-                    }
-                    quoted.managedObjectContext?.delete(media)
-                }
-            }
-            chatMessage.managedObjectContext?.delete(quoted)
-        }
-    }
-    
-    
+
     func deleteChat(chatThreadId: String) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
 
             // delete thread
             if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatThreadId, in: managedObjectContext) {
@@ -1461,8 +1484,62 @@ extension ChatData {
             
             self.populateThreadsWithSymmetricContacts()
         }
-        
     }
+    
+    private func deleteChatMessageContent(in chatMessage: ChatMessage) {
+        DDLogDebug("ChatData/deleteChatMessageContent/message \(chatMessage.id) ")
+        
+        chatMessage.text = nil
+        
+        chatMessage.feedPostId = nil
+        chatMessage.feedPostMediaIndex = 0
+        
+        chatMessage.chatReplyMessageID = nil
+        chatMessage.chatReplyMessageSenderID = nil
+        chatMessage.chatReplyMessageMediaIndex = 0
+        
+        self.deleteMedia(in: chatMessage)
+        chatMessage.media = nil
+        chatMessage.quoted = nil
+    }
+    
+    private func deleteMedia(in chatMessage: ChatMessage) {
+        DDLogDebug("ChatData/deleteMedia/message \(chatMessage.id) ")
+        chatMessage.media?.forEach { (media) in
+            if media.relativeFilePath != nil {
+                let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
+                do {
+                    DDLogDebug("ChatData/deleteMedia ")
+                    try FileManager.default.removeItem(at: fileURL)
+                }
+                catch {
+                    DDLogError("ChatData/deleteMedia/error [\(error)]")
+                }
+            }
+            chatMessage.managedObjectContext?.delete(media)
+        }
+        
+        if let quoted = chatMessage.quoted {
+            DDLogDebug("ChatData/deleteMedia/quoted ")
+            if let quotedMedia = quoted.media {
+                quotedMedia.forEach { (media) in
+                    if media.relativeFilePath != nil {
+                        let fileURL = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
+                        do {
+                            DDLogDebug("ChatData/deleteMedia/quoted/media ")
+                            try FileManager.default.removeItem(at: fileURL)
+                        }
+                        catch {
+                            DDLogError("ChatData/deleteMedia/quoted/media/error [\(error)]")
+                        }
+                    }
+                    quoted.managedObjectContext?.delete(media)
+                }
+            }
+            chatMessage.managedObjectContext?.delete(quoted)
+        }
+    }
+    
 }
 
 extension ChatData {
@@ -1700,11 +1777,38 @@ extension ChatData {
             }
         }
     }
+    
+    // MARK: 1-1 Process Inbound Retract Message
+    
+    private func processInboundChatMessageRetract(from: UserID, messageID: String) {
+        DDLogInfo("ChatData/processInboundChatMessageRetract")
+
+        updateChatMessage(with: messageID) { [weak self] (chatMessage) in
+            guard let self = self else { return }
+            
+            chatMessage.incomingStatus = .retracted
+            
+            self.deleteChatMessageContent(in: chatMessage)
+
+            self.updateChatThreadStatus(type: .oneToOne, for: from, messageId: messageID) { (chatThread) in
+                chatThread.lastMsgStatus = .retracted
+
+                chatThread.lastMsgText = nil
+                chatThread.lastMsgMediaType = .none
+            }
+
+        }
+    }
 }
     
 extension ChatData {
 
     // MARK: 1-1 Presence
+    
+    func subscribeToPresence(to chatWithUserId: String) {
+        guard !self.isSubscribedToCurrentUser else { return }
+        self.isSubscribedToCurrentUser = service.subscribeToPresenceIfPossible(to: chatWithUserId)
+    }
     
     private func sendPresence(type: PresenceType) {
         MainAppContext.shared.service.sendPresenceIfPossible(type)
@@ -1735,6 +1839,58 @@ extension ChatData {
         // remove user from typing state
         if presenceInfo.presence == .away {
             removeFromChatStateList(from: currentlyChattingWithUserId, threadType: .oneToOne, threadID: currentlyChattingWithUserId, type: .available)
+        }
+    }
+}
+
+// MARK: OneToOne - Process Pending Tasks
+extension ChatData {
+    
+    private func processPendingChatMsgs() {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: managedObjectContext)
+
+            // inject delay between batch sends so that they won't be timestamped the same time,
+            // which causes display of messages to be in mixed order
+            var timeDelay = 0.0
+            pendingOutgoingChatMessages.forEach {
+                DDLogInfo("ChatData/processPendingChatMsgs/msg \($0.id)")
+                let xmppChatMessage = XMPPChatMessage(chatMessage: $0)
+                self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) {
+                    self.send(message: xmppChatMessage)
+                }
+                timeDelay += 1.0
+            }
+        }
+    }
+    
+    private func processRetractingChatMsgs() {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let retractingOutboundChatMsgs = self.retractingOutboundChatMsgs(in: managedObjectContext)
+
+            retractingOutboundChatMsgs.forEach {
+                guard let chatMsg = self.chatMessage(with: $0.id) else { return }
+                guard let messageID = chatMsg.retractID else { return }
+                DDLogInfo("ChatData/processRetractingChatMsgs \($0.id)")
+                let toUserID = chatMsg.toUserId
+                let msgToRetractID = chatMsg.id
+
+                self.service.retractChatMessage(messageID: messageID, toUserID: toUserID, messageToRetractID: msgToRetractID)
+            }
+        }
+    }
+    
+    private func processPendingSeenReceipts() {
+        DDLogInfo("ChatData/processPendingSeenReceipts")
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let pendingOutgoingSeenReceipts = self.pendingOutgoingSeenReceipts(in: managedObjectContext)
+            pendingOutgoingSeenReceipts.forEach {
+                DDLogInfo("ChatData/processPendingSeenReceipts/seenReceipts \($0.id)")
+                self.sendSeenReceipt(for: $0)
+            }
         }
     }
 }
@@ -1858,8 +2014,7 @@ extension ChatData {
                 completion(.failure(error))
             }
         }
-        
-        
+    
     }
     
     private func updateGroupName(for groupID: GroupID, with name: String, completion: @escaping () -> ()) {
@@ -2222,6 +2377,30 @@ extension ChatData {
         service.sendGroupChatMessage(xmppGroupMessage)
     }
 
+    func retractGroupChatMessage(groupID: GroupID, messageToRetractID: String) {
+        let messageID = UUID().uuidString
+                
+        updateChatGroupMessage(with: messageToRetractID) { [weak self] (groupChatMessage) in
+            guard let self = self else { return }
+            guard [.sentOut, .delivered, .seen].contains(groupChatMessage.outboundStatus) else { return }
+
+            groupChatMessage.retractID = messageID
+            groupChatMessage.outboundStatus = .retracting
+
+            self.deleteGroupChatMessageContent(in: groupChatMessage)
+
+            self.updateChatThreadStatus(type: .group, for: groupChatMessage.groupId, messageId: groupChatMessage.id) { (chatThread) in
+                chatThread.lastMsgStatus = .retracting
+                chatThread.lastMsgText = nil
+                chatThread.lastMsgMediaType = .none
+            }
+
+        }
+
+        self.service.retractGroupChatMessage(messageID: messageID, groupID: groupID, messageToRetractID: messageToRetractID)
+        
+    }
+    
     // MARK: Group Core Data Fetching
     
     private func chatGroups(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroup] {
@@ -2295,6 +2474,27 @@ extension ChatData {
         return self.chatGroupMessages(predicate: NSPredicate(format: "(groupId = %@) && (event.@count == 0) && (inboundStatusValue = %d OR inboundStatusValue = %d)", groupId, ChatGroupMessage.InboundStatus.none.rawValue, ChatGroupMessage.InboundStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
+    func pendingOutboundGroupChatMsgs(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
+        ]
+        return chatGroupMessages(predicate: NSPredicate(format: "outboundStatusValue = %d", ChatGroupMessage.OutboundStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+    
+    func retractingOutboundGroupChatMsgs(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
+        ]
+        return chatGroupMessages(predicate: NSPredicate(format: "outboundStatusValue = %d", ChatGroupMessage.OutboundStatus.retracting.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+    
+    func pendingGroupChatSeenReceipts(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
+        ]
+        return self.chatGroupMessages(predicate: NSPredicate(format: "inboundStatusValue = %d", ChatGroupMessage.InboundStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+    
     private func chatGroupMessageAllInfo(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessageInfo] {
         let managedObjectContext = managedObjectContext ?? self.viewContext
         let fetchRequest: NSFetchRequest<ChatGroupMessageInfo> = ChatGroupMessageInfo.fetchRequest()
@@ -2366,6 +2566,41 @@ extension ChatData {
         }
     }
     
+    func updateChatGroupMessageByStatus(for id: String, status: ChatGroupMessage.OutboundStatus, block: @escaping (ChatGroupMessage) -> ()) {
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let sortDescriptors = [
+                NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
+            ]
+            guard let chatGroupMessage = self.chatGroupMessages(predicate: NSPredicate(format: "outboundStatusValue = %d && id == %@", status.rawValue, id), sortDescriptors: sortDescriptors, in: managedObjectContext).first else {
+                return
+            }
+
+            DDLogVerbose("ChatData/group/updateChatGroupMessageByStatus [\(id)]")
+            block(chatGroupMessage)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+    
+    private func updateRetractingGroupChatMessage(for id: String, block: @escaping (ChatGroupMessage) -> ()) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let sortDescriptors = [
+                NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
+            ]
+            guard let groupChatMessage = self.chatGroupMessages(predicate: NSPredicate(format: "outboundStatusValue = %d && retractID == %@", ChatGroupMessage.OutboundStatus.retracting.rawValue, id), sortDescriptors: sortDescriptors, in: managedObjectContext).first else {
+                return
+            }
+            
+            DDLogVerbose("ChatData/updateRetractingGroupChatMessage [\(id)]")
+            block(groupChatMessage)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+    
     func updateChatGroupMessageInfo(with chatGroupMessageId: String, userId: UserID, block: @escaping (ChatGroupMessageInfo) -> (), performAfterSave: (() -> ())? = nil) {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             defer {
@@ -2388,7 +2623,7 @@ extension ChatData {
     // MARK: Group Core Data Deleting
     
     func deleteChatGroup(groupId: GroupID) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
 
             // delete group
             if let chatGroup = self.chatGroup(groupId: groupId, in: managedObjectContext) {
@@ -2432,7 +2667,7 @@ extension ChatData {
     }
     
     func deleteChatGroupMember(groupId: GroupID, memberUserId: UserID) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { (managedObjectContext) in
             
             let fetchRequest = NSFetchRequest<ChatGroupMember>(entityName: ChatGroupMember.entity().name!)
             fetchRequest.predicate = NSPredicate(format: "groupId = %@ && userId = %@", groupId, memberUserId)
@@ -2450,6 +2685,20 @@ extension ChatData {
             }
             self.save(managedObjectContext)
         }
+    }
+    
+    private func deleteGroupChatMessageContent(in groupChatMessage: ChatGroupMessage) {
+        DDLogVerbose("ChatData/deleteChatGroupMessageContent/message \(groupChatMessage.id) ")
+        
+        groupChatMessage.text = nil
+        
+        groupChatMessage.chatReplyMessageID = nil
+        groupChatMessage.chatReplyMessageSenderID = nil
+        groupChatMessage.chatReplyMessageMediaIndex = 0
+        
+        deleteGroupMedia(in: groupChatMessage)
+        groupChatMessage.media = nil
+        groupChatMessage.quoted = nil
     }
     
     private func deleteGroupMedia(in chatGroupMessage: ChatGroupMessage) {
@@ -2703,6 +2952,29 @@ extension ChatData {
             
     }
     
+    // MARK: Group - Process Inbound Retract Message
+    
+    private func processInboundGroupChatMessageRetract(groupID: GroupID, messageID: String) {
+        DDLogInfo("ChatData/processInboundGroupChatMessageRetract")
+
+        updateChatGroupMessage(with: messageID) { [weak self] (groupChatMessage) in
+            guard let self = self else { return }
+            
+            groupChatMessage.inboundStatus = .retracted
+            
+            self.deleteGroupChatMessageContent(in: groupChatMessage)
+
+            self.updateChatThreadStatus(type: .group, for: groupChatMessage.groupId, messageId: messageID) { (chatThread) in
+                chatThread.lastMsgStatus = .retracted
+
+                chatThread.lastMsgText = nil
+                chatThread.lastMsgMediaType = .none
+            }
+
+        }
+    }
+    
+    
     // MARK: Group Process Inbound Actions/Events
 
     private func processIncomingXMPPGroup(_ group: XMPPGroup) {
@@ -2917,7 +3189,10 @@ extension ChatData {
             chatThread.lastMsgText = chatGroupMessageEvent.text
             chatThread.lastMsgMediaType = .none
             chatThread.lastMsgStatus = .none
-            chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
+            
+            if chatGroupMessageEvent.action != .changeAvatar {
+                chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
+            }
             // unreadCount is not incremented for group event messages
         }
     }
@@ -2944,6 +3219,61 @@ extension ChatData {
                 member.type = .admin
             }
             member.group = chatGroup
+        }
+    }
+}
+
+// MARK: Group - Process Pending Tasks
+extension ChatData {
+    
+    private func processPendingGroupChatMsgs() {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let pendingOutboundGroupChatMsgs = self.pendingOutboundGroupChatMsgs(in: managedObjectContext)
+
+            // inject delay between between sends so msgs won't be acked and timestamped on the same second,
+            // which causes display of messages to be in random order
+            var timeDelay = 0.0
+            pendingOutboundGroupChatMsgs.forEach {
+                guard let groupChatMsg = self.chatGroupMessage(with: $0.id) else { return }
+                guard let msgTimestamp = groupChatMsg.timestamp else { return }
+                guard abs(msgTimestamp.timeIntervalSinceNow) <= Date.hours(24) else { return }
+                
+                DDLogInfo("ChatData/processPendingGroupChatMsgs \($0.id)")
+                self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) {
+                    self.sendGroup(groupMessage: groupChatMsg)
+                }
+                timeDelay += 1.0
+            }
+        }
+    }
+    
+    private func processRetractingGroupChatMsgs() {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let retractingOutboundGroupChatMsgs = self.retractingOutboundGroupChatMsgs(in: managedObjectContext)
+
+            retractingOutboundGroupChatMsgs.forEach {
+                guard let groupChatMsg = self.chatGroupMessage(with: $0.id) else { return }
+                guard let messageID = groupChatMsg.retractID else { return }
+                DDLogInfo("ChatData/processRetractingGroupChatMsgs \($0.id)")
+                let groupID = groupChatMsg.groupId
+                let msgToRetractID = groupChatMsg.id
+                
+                self.service.retractGroupChatMessage(messageID: messageID, groupID: groupID, messageToRetractID: msgToRetractID)
+            }
+        }
+    }
+    
+    private func processPendingGroupChatSeenReceipts() {
+        DDLogInfo("ChatData/processPendingGroupChatSeenReceipts")
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let pendingSeenReceipts = self.pendingGroupChatSeenReceipts(in: managedObjectContext)
+            pendingSeenReceipts.forEach {
+                DDLogInfo("ChatData/processPendingGroupChatSeenReceipts/seenReceipts \($0.id)")
+                self.sendSeenGroupReceipt(for: $0)
+            }
         }
     }
 }

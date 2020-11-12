@@ -18,6 +18,7 @@ extension ChatMessage {
         case haveSeen = 1
         case sentSeenReceipt = 2
         case error = 3
+        case retracted = 4
     }
     
     enum OutgoingStatus: Int16 {
@@ -27,6 +28,8 @@ extension ChatMessage {
         case delivered = 3      // other user have gotten the message
         case seen = 4           // other user have seen the message
         case error = 5
+        case retracting = 6     // marked for deletion but no server ack yet
+        case retracted = 7      // deleted messages
     }
     
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatMessage> {
@@ -51,6 +54,8 @@ extension ChatMessage {
     @NSManaged var incomingStatusValue: Int16
     @NSManaged var outgoingStatusValue: Int16
     @NSManaged var resendAttempts: Int16
+    
+    @NSManaged var retractID: String?
 
     @NSManaged var timestamp: Date?
     

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19H2" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="ChatGroup" representedClassName="ChatGroup" syncable="YES">
         <attribute name="avatar" optional="YES" attributeType="String"/>
         <attribute name="desc" optional="YES" attributeType="String"/>
@@ -24,6 +24,7 @@
         <attribute name="id" optional="YES" attributeType="String"/>
         <attribute name="inboundStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="outboundStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="retractID" optional="YES" attributeType="String"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="userId" optional="YES" attributeType="String"/>
@@ -80,6 +81,7 @@
         <attribute name="incomingStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="outgoingStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="resendAttempts" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="retractID" optional="YES" attributeType="String"/>
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="toUserId" attributeType="String"/>
@@ -120,12 +122,12 @@
     <elements>
         <element name="ChatGroup" positionX="-45" positionY="135" width="128" height="148"/>
         <element name="ChatGroupMember" positionX="-36" positionY="144" width="128" height="103"/>
-        <element name="ChatGroupMessage" positionX="-27" positionY="153" width="128" height="268"/>
+        <element name="ChatGroupMessage" positionX="-27" positionY="153" width="128" height="283"/>
         <element name="ChatGroupMessageEvent" positionX="-27" positionY="144" width="128" height="133"/>
         <element name="ChatGroupMessageInfo" positionX="-18" positionY="162" width="128" height="118"/>
         <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="253"/>
         <element name="ChatMention" positionX="-36" positionY="144" width="128" height="88"/>
-        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="283"/>
+        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="298"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="148"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="133"/>
         <element name="ChatThread" positionX="-36" positionY="108" width="128" height="223"/>

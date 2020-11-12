@@ -72,6 +72,7 @@ final class ProtoService: ProtoServiceCore {
     let didGetChatAck = PassthroughSubject<ChatAck, Never>()
     let didGetPresence = PassthroughSubject<ChatPresenceInfo, Never>()
     let didGetChatState = PassthroughSubject<ChatStateInfo, Never>()
+    let didGetChatRetract = PassthroughSubject<ChatRetractInfo, Never>()
 
     // MARK: Server Properties
 
@@ -298,8 +299,6 @@ final class ProtoService: ProtoServiceCore {
                 break
             }
             switch payload {
-            case .chatRetract(_), .groupchatRetract(_):
-                break
             case .contactList(let pbContactList):
                 let contacts = pbContactList.contacts.compactMap { HalloContact($0) }
                 MainAppContext.shared.syncManager.processNotification(contacts: contacts) {
@@ -372,6 +371,28 @@ final class ProtoService: ProtoServiceCore {
                 } else {
                     sendAck(messageID: msg.id)
                 }
+            case .chatRetract(let pbChatRetract):
+                let fromUserID = UserID(msg.fromUid)
+                DispatchQueue.main.async {
+                    self.didGetChatRetract.send((
+                        from: fromUserID,
+                        threadType: .oneToOne,
+                        threadID: fromUserID,
+                        messageID: pbChatRetract.id
+                    ))
+                }
+                self.sendAck(messageID: msg.id)
+            case .groupchatRetract(let pbGroupChatRetract):
+                let fromUserID = UserID(msg.fromUid)
+                DispatchQueue.main.async {
+                    self.didGetChatRetract.send((
+                        from: fromUserID,
+                        threadType: .group,
+                        threadID: pbGroupChatRetract.gid,
+                        messageID: pbGroupChatRetract.id
+                    ))
+                }
+                self.sendAck(messageID: msg.id)
             case .feedItem(let pbFeedItem):
                 handleFeedItems([pbFeedItem], message: msg)
             case .feedItems(let pbFeedItems):
@@ -591,12 +612,12 @@ extension ProtoService: HalloService {
         sendReceipt(receipt, to: toUserID)
     }
 
-    func deleteMessage(messageID: String, toUserID: UserID, retractMessageID: String) {
+    func retractChatMessage(messageID: String, toUserID: UserID, messageToRetractID: String) {
         guard let toUID = Int64(toUserID) else {
             return
         }
         guard let fromUID = Int64(userData.userId) else {
-            DDLogError("ProtoService/deleteMessage/error invalid sender uid")
+            DDLogError("ProtoService/retractChatMessage/error invalid sender uid")
             return
         }
         
@@ -607,16 +628,16 @@ extension ProtoService: HalloService {
         packet.msg.type = .chat
 
         var chatRetract = Server_ChatRetract()
-        chatRetract.id = retractMessageID
+        chatRetract.id = messageToRetractID
 
         packet.msg.payload = .chatRetract(chatRetract)
         
         guard let packetData = try? packet.serializedData() else {
-            DDLogError("ProtoService/deleteMessage/error could not serialize packet")
+            DDLogError("ProtoService/retractChatMessage/error could not serialize packet")
             return
         }
 
-        DDLogInfo("ProtoService/deleteMessage")
+        DDLogInfo("ProtoService/retractChatMessage")
         stream.send(packetData)
     }
     
@@ -756,6 +777,32 @@ extension ProtoService: HalloService {
         sendSilentChats(ServerProperties.silentChatMessages)
     }
 
+    func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String) {
+        guard let fromUID = Int64(userData.userId) else {
+            DDLogError("ProtoService/retractChatGroupMessage/error invalid sender uid")
+            return
+        }
+        
+        var packet = Server_Packet()
+        packet.msg.fromUid = fromUID
+        packet.msg.id = messageID
+        packet.msg.type = .groupchat
+
+        var groupChatRetract = Server_GroupChatRetract()
+        groupChatRetract.id = messageToRetractID
+        groupChatRetract.gid = groupID
+
+        packet.msg.payload = .groupchatRetract(groupChatRetract)
+        
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoService/retractChatGroupMessage/error could not serialize packet")
+            return
+        }
+
+        DDLogInfo("ProtoService/retractChatGroupMessage")
+        stream.send(packetData)
+    }
+    
     func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {
         enqueue(request: ProtoGroupCreateRequest(name: name, members: members, completion: completion))
     }

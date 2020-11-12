@@ -158,7 +158,7 @@ class OutboundMsgViewCell: UITableViewCell {
         view.textContainer.lineFragmentPadding = 0
         view.backgroundColor = .clear
         view.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
-        view.tintColor = UIColor.link
+        view.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -248,8 +248,8 @@ class OutboundMsgViewCell: UITableViewCell {
         textView.textContainerInset = UIEdgeInsets.zero
         textView.backgroundColor = .clear
         textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
-        textView.tintColor = UIColor.label
         textView.textColor = UIColor.chatOwnMsg
+        textView.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
 
         textView.translatesAutoresizingMaskIntoConstraints = false
         return textView
@@ -294,11 +294,17 @@ class OutboundMsgViewCell: UITableViewCell {
         }
         let isQuotedMessage = updateQuoted(chatQuoted: chatMessage.quoted, mediaIndex: quoteMediaIndex)
         
+        var text = chatMessage.text
+        if [.retracting, .retracted].contains(chatMessage.outgoingStatus) {
+            textView.textColor = UIColor.chatTime
+            text = Localizations.chatMessageDeleted
+        }
+        
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
-                   text: chatMessage.text,
+                   text: text,
                    media: chatMessage.media,
                    timestamp: chatMessage.timestamp,
                    statusIcon: statusIcon(chatMessage.outgoingStatus))
@@ -317,11 +323,17 @@ class OutboundMsgViewCell: UITableViewCell {
         }
         let isQuotedMessage = updateQuoted(chatQuoted: chatGroupMessage.quoted, mediaIndex: quoteMediaIndex, groupID: chatGroupMessage.groupId)
         
+        var text = chatGroupMessage.text
+        if [.retracting, .retracted].contains(chatGroupMessage.outboundStatus) {
+            textView.textColor = UIColor.chatTime
+            text = Localizations.chatMessageDeleted
+        }
+        
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
-                   text: chatGroupMessage.text,
+                   text: text,
                    media: chatGroupMessage.media,
                    timestamp: chatGroupMessage.timestamp,
                    statusIcon: statusIcon(chatGroupMessage.outboundStatus))
@@ -468,13 +480,14 @@ class OutboundMsgViewCell: UITableViewCell {
             isLargeFont = true
             textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
         }
-
+        
         let textRatio = isLargeFont ? 0.8 : 1.7
             
         var blanks = " \u{2800}" // extra space so links can work
         let numBlanks = timeAndStatusLabel.text?.count ?? 1
         blanks += String(repeating: "\u{00a0}", count: Int(Double(numBlanks)*textRatio)) // nonbreaking spaces
         textView.text = text + blanks
+
     }
     
     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
@@ -517,6 +530,7 @@ class OutboundMsgViewCell: UITableViewCell {
         mediaImageView.isHidden = true
         
         textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
+        textView.textColor = UIColor.chatOwnMsg
         textView.text = ""
 
         timeAndStatusLabel.attributedText = nil

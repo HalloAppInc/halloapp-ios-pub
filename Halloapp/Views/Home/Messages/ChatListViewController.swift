@@ -33,6 +33,10 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     private var filteredChats: [ChatThread] = []
     private var searchController: DismissableUISearchController!
+    private var searchBarHeight: CGFloat = 0
+    
+    private var tableViewOffset: CGPoint = .zero
+    
     var isSearchBarEmpty: Bool {
       return searchController.searchBar.text?.isEmpty ?? true
     }
@@ -63,18 +67,25 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         searchController.definesPresentationContext = true
         
         searchController.hidesNavigationBarDuringPresentation = false
-        searchController.searchBar.layer.borderWidth = 1
-        searchController.searchBar.layer.borderColor = UIColor.feedBackground.cgColor
-        searchController.searchBar.barTintColor = UIColor.feedBackground
+
         searchController.searchBar.tintColor = UIColor.systemBlue
-        searchController.searchBar.searchTextField.backgroundColor = UIColor.feedBackground
         
-        if #available(iOS 14, *) {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"), style: .plain, target: self, action: #selector(openSearchAction))
-        } else {
-            // don't present searchbar in ios 13 since it jumps below the navbar when presented
-            navigationItem.searchController = searchController
-        }
+        // set bg first before cornerRadius due to ios 13 bug where corners get reset by bg
+        searchController.searchBar.setSearchFieldBackgroundImage(UIImage(), for: .normal)
+        
+        searchController.searchBar.searchTextField.layer.cornerRadius = 20
+        searchController.searchBar.searchTextField.layer.masksToBounds = true
+        
+        searchController.searchBar.backgroundColor = .feedBackground
+        searchController.searchBar.searchTextField.backgroundColor = .secondarySystemGroupedBackground
+        
+//        searchController.searchBar.setImage(UIImage(systemName: "xmark"), for: .clear, state: .normal)
+        searchController.searchBar.showsCancelButton = false
+
+        navigationItem.searchController = searchController
+        
+        navigationItem.hidesSearchBarWhenScrolling = false
+        searchBarHeight = searchController.searchBar.frame.height
         
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -91,8 +102,11 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         tableView.delegate = self
         tableView.dataSource = self
         
-        let header = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 13))
-        tableView.tableHeaderView = header
+        if ServerProperties.isInternalUser || ServerProperties.isGroupsEnabled {
+            let chatListHeaderView = ChatListHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 20))
+            chatListHeaderView.delegate = self
+            tableView.tableHeaderView = chatListHeaderView
+        }
         
         setupFetchedResultsController()
         
@@ -122,15 +136,16 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     override func viewWillAppear(_ animated: Bool) {
         DDLogInfo("ChatListViewController/viewWillAppear")
         super.viewWillAppear(animated)
-
-        tableView.reloadData()
         populateWithSymmetricContacts()
     }
-
+    
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("ChatListViewController/viewDidAppear")
         super.viewDidAppear(animated)
-
+        
+        // after showing searchbar on top, turn on hidesSearchBarWhenScrolling so search will disappear when scrolling
+        navigationItem.hidesSearchBarWhenScrolling = true
+        
         showNUXIfNecessary()
     }
 
@@ -153,11 +168,22 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     
     func scrollToTop(animated: Bool) {
         guard let firstSection = fetchedResultsController?.sections?.first else { return }
-        if firstSection.numberOfObjects > 0 {
-            tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
+        guard firstSection.numberOfObjects > 0 else { return }
+ 
+        let offsetFromTop = CGPoint(x: 0, y: -(searchBarHeight + 84))
+        
+        if tableView.contentOffset.y <= offsetFromTop.y { return }
+
+        // use row instead of offset to get to the top since table can change size after reloads
+        tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: animated)
+        
+        // after scrolling to the first row, move offset so the searchBar is shown
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            guard let self = self else { return }
+            self.tableView.setContentOffset(offsetFromTop, animated: animated)
         }
     }
-
+    
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         if (traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection)) {
             searchController.searchBar.layer.borderColor = UIColor.feedBackground.cgColor
@@ -187,7 +213,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         FloatingMenu(
             permanentButton: .standardActionButton(
                 iconTemplate: UIImage(named: "icon_fab_compose_message")?.withRenderingMode(.alwaysTemplate),
-                accessibilityLabel: "New message",
+                accessibilityLabel: Localizations.fabAccessibilityNewMessage,
                 action: { [weak self] in self?.showContacts() }))
     }()
 
@@ -313,13 +339,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 
     private var lastCheckedForNewContacts: Date?
-    
-    // MARK: Actions
-    
-    @objc private func openSearchAction() {
-        present(searchController, animated: false, completion: nil)
-    }
-    
+        
     // MARK: Helpers
     
     private func populateWithSymmetricContacts() {
@@ -329,7 +349,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         }
 
         if isTimeToCheck {
-            DDLogDebug("ChatList/populateWithSymmetricContacts")
+            DDLogDebug("ChatListViewController/populateWithSymmetricContacts")
             MainAppContext.shared.chatData.populateThreadsWithSymmetricContacts()
             lastCheckedForNewContacts = Date()
         }
@@ -388,6 +408,13 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     private func openProfile(forUserId userId: UserID) {
         let viewController = UserFeedViewController(userId: userId)
         navigationController?.pushViewController(viewController, animated: true)
+    }
+}
+
+// MARK: Table Header Delegate
+extension ChatListViewController: ChatListHeaderViewDelegate {
+    func chatListHeaderView(_ chatListHeaderView: ChatListHeaderView) {
+        present(UINavigationController(rootViewController: NewGroupMembersViewController()), animated: true)
     }
 }
 
@@ -458,23 +485,27 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
         guard let chatThread = chatThread(at: indexPath) else {
             // Must be invite friends cell
             startInviteFriendsFlow()
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
+        
         if chatThread.type == .oneToOne {
             guard let chatWithUserId = chatThread.chatWithUserId else { return }
             let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
             vc.hidesBottomBarWhenPushed = true
-            navigationController?.pushViewController(vc, animated: true)
+            self.navigationController?.pushViewController(vc, animated: true)
         } else {
             guard let groupId = chatThread.groupId else { return }
             let vc = ChatGroupViewController(for: groupId)
             vc.hidesBottomBarWhenPushed = true
-            navigationController?.pushViewController(vc, animated: true)
+            self.navigationController?.pushViewController(vc, animated: true)
         }
+        
+        tableView.deselectRow(at: indexPath, animated: true)
     }
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
@@ -503,17 +534,18 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     // resign keyboard so the entire tableview can be seen
-    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         searchController.searchBar.resignFirstResponder()
     }
+
 }
 
-// MARK: Search Delegates
 extension ChatListViewController: UISearchControllerDelegate {
     func willDismissSearchController(_ searchController: UISearchController) {
-        searchController.dismiss(animated: false)
-
+        searchController.dismiss(animated: false, completion: {
+        })
     }
+
 }
 
 // MARK: Search Updating Delegates
@@ -523,8 +555,10 @@ extension ChatListViewController: UISearchResultsUpdating {
         DDLogDebug("ChatListViewController/updateSearchResults")
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
         guard let searchBarText = searchController.searchBar.text else { return }
+    
         DDLogDebug("ChatListViewController/updateSearchResults/searchBarText \(searchBarText)")
         let strippedString = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
+        
         let searchItems = strippedString.components(separatedBy: " ")
         
         filteredChats = allChats.filter {
@@ -545,6 +579,7 @@ extension ChatListViewController: UISearchResultsUpdating {
             return false
         }
         DDLogDebug("ChatListViewController/updateSearchResults/filteredChats count \(filteredChats.count)")
+        
         tableView.reloadData()
     }
 }
@@ -558,6 +593,63 @@ extension ChatListViewController: NewChatViewControllerDelegate {
                 vc.showKeyboard()
             }
         }
+    }
+}
+
+protocol ChatListHeaderViewDelegate: AnyObject {
+    func chatListHeaderView(_ chatListHeaderView: ChatListHeaderView)
+}
+
+class ChatListHeaderView: UIView {
+    weak var delegate: ChatListHeaderViewDelegate?
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setup()
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
+
+    private func setup() {
+        preservesSuperviewLayoutMargins = true
+
+        vStack.addArrangedSubview(textLabel)
+        addSubview(vStack)
+
+        vStack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 20)
+        vStack.isLayoutMarginsRelativeArrangement = true
+        
+        vStack.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        vStack.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
+
+        let vStackBottomConstraint = vStack.bottomAnchor.constraint(equalTo: bottomAnchor)
+        vStackBottomConstraint.priority = UILayoutPriority(rawValue: 999)
+        vStackBottomConstraint.isActive = true
+    }
+    
+    private lazy var textLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 15)
+        label.textColor = .systemBlue
+        label.textAlignment = .right
+        label.text = Localizations.chatCreateNewGroup
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.openNewGroupView(_:)))
+        label.isUserInteractionEnabled = true
+        label.addGestureRecognizer(tapGesture)
+
+        return label
+    }()
+
+    private let vStack: UIStackView = {
+        let vStack = UIStackView()
+        vStack.translatesAutoresizingMaskIntoConstraints = false
+        vStack.axis = .vertical
+        return vStack
+    }()
+
+    @objc func openNewGroupView (_ sender: UITapGestureRecognizer) {
+        self.delegate?.chatListHeaderView(self)
     }
 }
 
@@ -664,18 +756,23 @@ private class ChatListTableViewCell: UITableViewCell {
         }
 
         var messageText = chatThread.lastMsgText ?? ""
+        
+        if [.retracting, .retracted].contains(chatThread.lastMsgStatus) {
+            messageText = Localizations.chatMessageDeleted
+        }
+        
         var mediaIcon: UIImage?
         switch chatThread.lastMsgMediaType {
         case .image:
             mediaIcon = UIImage(systemName: "photo")
             if messageText.isEmpty {
-                messageText = "Photo"
+                messageText = Localizations.chatMessagePhoto
             }
 
         case .video:
             mediaIcon = UIImage(systemName: "video.fill")
             if messageText.isEmpty {
-                messageText = "Video"
+                messageText = Localizations.chatMessageVideo
             }
 
         default:
@@ -730,7 +827,7 @@ private class ChatListTableViewCell: UITableViewCell {
     }
 
     func configure(with chatThread: ChatThread) {
-        
+
         self.chatThread = chatThread
         
         if chatThread.type == .oneToOne {

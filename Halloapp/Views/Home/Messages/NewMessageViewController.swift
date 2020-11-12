@@ -64,7 +64,7 @@ class NewChatViewController: NewChatTableViewController {
 
         DDLogInfo("NewMessageViewController/viewDidLoad")
 
-        navigationItem.title = "New Message"
+        navigationItem.title = Localizations.chatNewMessageTitle
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
 
         tableView.backgroundColor = .feedBackground
@@ -232,7 +232,7 @@ private class TableHeaderView: UIView {
         button = UIButton(type: .system)
         button.isUserInteractionEnabled = false
         button.titleLabel?.font = .gothamFont(forTextStyle: .headline, weight: .medium)
-        button.setTitle("Create New Group", for: .normal)
+        button.setTitle(Localizations.chatCreateNewGroup, for: .normal)
         button.tintColor = .systemBlue
         button.contentHorizontalAlignment = .leading
         button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 10, bottom: 8, right: layoutMargins.right)
@@ -265,4 +265,12 @@ private extension ContactTableViewCell {
             contactImage.configure(with: userId, using: MainAppContext.shared.avatarStore)
         }
     }
+}
+
+private extension Localizations {
+
+    static var chatNewMessageTitle: String {
+        NSLocalizedString("chat.new.message.title", value: "New Message", comment: "Title for new message screen where user chooses who to message")
+    }
+
 }

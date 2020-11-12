@@ -42,7 +42,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     override func viewDidLoad() {
         DDLogInfo("GroupInfoViewController/viewDidLoad")
 
-        navigationItem.title = "Group Info"
+        navigationItem.title = Localizations.chatGroupInfoTitle
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
 
@@ -193,10 +193,10 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     }
     
     @objc private func openEditAvatarOptions() {
-        let actionSheet = UIAlertController(title: "Group Photo", message: nil, preferredStyle: .actionSheet)
+        let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
         actionSheet.view.tintColor = UIColor.systemBlue
         
-        actionSheet.addAction(UIAlertAction(title: "Take or Choose Photo", style: .default) { [weak self] _ in
+        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.presentPhotoLibraryPicker()
         })
@@ -434,7 +434,7 @@ class GroupInfoHeaderView: UIView {
     public func configure(chatGroup: ChatGroup?) {
         guard let chatGroup = chatGroup else { return }
         groupNameTextView.text = chatGroup.name
-        membersLabel.text = "MEMBERS (\(String(chatGroup.members?.count ?? 0)))"
+        membersLabel.text = "\(Localizations.chatGroupMembersLabel) (\(String(chatGroup.members?.count ?? 0)))"
         
         avatarView.configure(groupId: chatGroup.groupId, using: MainAppContext.shared.avatarStore)
     }
@@ -543,7 +543,7 @@ class GroupInfoHeaderView: UIView {
         label.textAlignment = .left
         label.textColor = .secondaryLabel
         label.font = .systemFont(ofSize: 11)
-        label.text = "GROUP NAME"
+        label.text = Localizations.chatGroupNameLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         
         return label
@@ -682,7 +682,7 @@ class GroupInfoFooterView: UIView {
         label.font = .gothamFont(forTextStyle: .headline, weight: .regular)
         label.textColor = .systemBlue
         label.textAlignment = .left
-        label.text = "Add members"
+        label.text = Localizations.chatGroupInfoAddMembers
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(openAddGroupMemberView(_:)))
         label.isUserInteractionEnabled = true
@@ -727,7 +727,7 @@ class GroupInfoFooterView: UIView {
         label.font = .gothamFont(forTextStyle: .body, weight: .regular)
         label.textColor = .systemRed
         label.textAlignment = .left
-        label.text = "Leave group"
+        label.text = Localizations.chatGroupInfoLeaveGroup
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(leaveGroupAction(_:)))
         label.isUserInteractionEnabled = true
@@ -741,7 +741,7 @@ class GroupInfoFooterView: UIView {
         label.font = UIFont.preferredFont(forTextStyle: .body)
         label.textColor = .secondaryLabel
         label.textAlignment = .left
-        label.text = "You are not a member of this group"
+        label.text = Localizations.chatGroupInfoNotAMemberLabel
         label.isHidden = true
         
         return label
@@ -763,7 +763,7 @@ private extension ContactTableViewCell {
     func configure(with chatGroupMember: ChatGroupMember) {
         profilePictureSize = 40
         nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatGroupMember.userId)
-        accessoryLabel.text = chatGroupMember.type == .admin ? "Admin" : ""
+        accessoryLabel.text = chatGroupMember.type == .admin ? Localizations.chatGroupInfoAdminLabel : ""
         contactImage.configure(with: chatGroupMember.userId, using: MainAppContext.shared.avatarStore)
     }
     
@@ -775,4 +775,28 @@ fileprivate extension UIImage {
             draw(in: CGRect(origin: .zero, size: size))
         }
     }
+}
+
+private extension Localizations {
+    
+    static var chatGroupInfoTitle: String {
+        NSLocalizedString("chat.group.info.title", value: "Group Info", comment: "Title of screen that shows group information")
+    }
+    
+    static var chatGroupInfoAddMembers: String {
+        NSLocalizedString("chat.group.info.add.members", value: "Add members", comment: "Action label for adding members to a group")
+    }
+    
+    static var chatGroupInfoAdminLabel: String {
+        NSLocalizedString("chat.group.info.admin.label", value: "Admin", comment: "Label shown in the members list when member is an admin")
+    }
+    
+    static var chatGroupInfoLeaveGroup: String {
+        NSLocalizedString("chat.group.info.leave.group", value: "Leave group", comment: "Action label for leaving group")
+    }
+    
+    static var chatGroupInfoNotAMemberLabel: String {
+        NSLocalizedString("chat.group.info.not.a.member.label", value: "You are not a member of this group", comment: "Text label shown when the user is not a member of the group")
+    }
+    
 }

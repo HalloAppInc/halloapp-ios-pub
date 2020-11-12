@@ -20,6 +20,8 @@ extension ChatThread {
         case delivered = 3
         case seen = 4
         case error = 5
+        case retracting = 6
+        case retracted = 7
     }
     
     enum LastMsgMediaType: Int16 {

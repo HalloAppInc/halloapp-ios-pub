@@ -191,6 +191,7 @@
 		EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B982469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift */; };
 		EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B992469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift */; };
 		EA796B9E2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B9A2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift */; };
+		EA79C6FD2554E89400E0525F /* Localizations+Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */; };
 		EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */; };
 		EAA424F124EC71450025CBBE /* XMPPGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F024EC71450025CBBE /* XMPPGroup.swift */; };
 		EAA424FA24ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F424ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift */; };
@@ -499,6 +500,7 @@
 		EA796B982469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuoted+CoreDataProperties.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuoted+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		EA796B992469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuotedMedia+CoreDataClass.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuotedMedia+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		EA796B9A2469DDF100BC795E /* ChatQuotedMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuotedMedia+CoreDataProperties.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuotedMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
+		EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Chat.swift"; sourceTree = "<group>"; };
 		EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationViewController.swift; sourceTree = "<group>"; };
 		EAA424F024EC71450025CBBE /* XMPPGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPGroup.swift; sourceTree = "<group>"; };
 		EAA424F424ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMember+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -990,12 +992,13 @@
 				EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */,
 				EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */,
 				EAD476CC245513EF00EF8591 /* ChatListViewController.swift */,
-				EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */,
 				EA3585742450BE3300E6E8AB /* ChatViewController.swift */,
+				EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */,
 				EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */,
 				EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */,
 				EA3585752450BE3300E6E8AB /* ChatInputView.swift */,
 				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
+				EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */,
 			);
 			path = Messages;
 			sourceTree = "<group>";
@@ -1720,6 +1723,7 @@
 				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,
 				EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */,
 				EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */,
+				EA79C6FD2554E89400E0525F /* Localizations+Chat.swift in Sources */,
 				EAD476CD245513EF00EF8591 /* ChatListViewController.swift in Sources */,
 				76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */,
 				76333085254A352100A1ED68 /* SettingsTableViewCell.swift in Sources */,

@@ -246,6 +246,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     // MARK: Override points for subclasses.
 
     open func authenticationSucceeded(with authResult: Server_AuthResult) {
+        DDLogInfo("ProtoServiceCore/authenticationSucceeded")
         connectionState = .connected
         performOnConnect()
     }

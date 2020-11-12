@@ -68,14 +68,14 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", style: .plain, target: self, action: #selector(addAction))
         } else {
             navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Next", style: .plain, target: self, action: #selector(nextAction))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext, style: .plain, target: self, action: #selector(nextAction))
         }
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
 //        self.navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
         
-        navigationItem.title = "Select Members"
+        navigationItem.title = Localizations.chatSelectGroupMembersTitle
 
-        let backButton = UIBarButtonItem(title: "Back", style: .plain, target: nil, action: nil)
+        let backButton = UIBarButtonItem(title: Localizations.buttonBack, style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem = backButton
 
         tableView.backgroundColor = .feedBackground
@@ -98,14 +98,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         searchController.searchBar.backgroundColor = .feedBackground
         searchController.searchBar.searchTextField.backgroundColor = .secondarySystemGroupedBackground
 
-        let newGroupMembersHeaderView = NewGroupMembersHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 0))
-        //        headerView.configure(withPost: feedPost)
-        //        headerView.textLabel.delegate = self
-        //        headerView.profilePictureButton.addTarget(self, action: #selector(showUserFeedForPostAuthor), for: .touchUpInside)
-        
-        newGroupMembersHeaderView.delegate = self
-        tableView.tableHeaderView = newGroupMembersHeaderView
-        
+        tableView.tableHeaderView = nil
 
         view.addSubview(mainView)
         view.backgroundColor = UIColor.feedBackground
@@ -114,11 +107,9 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         
-        
         setupFetchedResultsController()
     }
 
-    
     private lazy var mainView: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
@@ -168,7 +159,6 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         return view
     }()
     
-    
     private lazy var tableView: UITableView = {
         let view = UITableView()
         
@@ -183,9 +173,6 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         
         return view
     }()
-    
-    
-    
     
     // MARK: Appearance
 
@@ -479,12 +466,6 @@ extension NewGroupMembersViewController: UISearchResultsUpdating {
     }
 }
 
-extension NewGroupMembersViewController: NewGroupMembersHeaderViewDelegate {
-    func newGroupMembersHeaderView(_ newGroupMembersHeaderView: NewGroupMembersHeaderView) {
-        //TODO: for removal of selected members
-    }
-}
-
 extension NewGroupMembersViewController: GroupMemberAvatarsDelegate {
     
     func groupMemberAvatarsDelegate(_ view: GroupMemberAvatars, selectedUser: String) {
@@ -505,55 +486,6 @@ fileprivate struct TrackedContact {
     }
 }
 
-protocol NewGroupMembersHeaderViewDelegate: AnyObject {
-    func newGroupMembersHeaderView(_ newGroupMembersHeaderView: NewGroupMembersHeaderView)
-}
-
-class NewGroupMembersHeaderView: UIView {
-    weak var delegate: NewGroupMembersHeaderViewDelegate?
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setup()
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
-
-    private func setup() {
-        preservesSuperviewLayoutMargins = true
-
-        vStack.addArrangedSubview(textLabel)
-        addSubview(vStack)
-
-        vStack.constrain(to: self)
-    }
-    
-    private lazy var textLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: .body)
-        label.textColor = .systemBlue
-        label.textAlignment = .right
-        label.text = ""
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.openNewGroupView(_:)))
-        label.isUserInteractionEnabled = true
-        label.addGestureRecognizer(tapGesture)
-
-        return label
-    }()
-
-    private let vStack: UIStackView = {
-        let vStack = UIStackView()
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        return vStack
-    }()
-
-    @objc func openNewGroupView (_ sender: UITapGestureRecognizer) {
-        self.delegate?.newGroupMembersHeaderView(self)
-    }
-}
-
 private extension ContactTableViewCell {
 
     func configure(with abContact: ABContact) {
@@ -567,4 +499,12 @@ private extension ContactTableViewCell {
         }
 
     }
+}
+
+private extension Localizations {
+    
+    static var chatSelectGroupMembersTitle: String {
+        NSLocalizedString("chat.select.group.members.title", value: "Select Members", comment: "Title of screen where user chooses members to add to either a new group or an existing one")
+    }
+    
 }

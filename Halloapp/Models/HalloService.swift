@@ -53,12 +53,14 @@ protocol HalloService: CoreService {
     var didGetChatAck: PassthroughSubject<ChatAck, Never> { get }
     var didGetPresence: PassthroughSubject<ChatPresenceInfo, Never> { get }
     var didGetChatState: PassthroughSubject<ChatStateInfo, Never> { get }
-    func deleteMessage(messageID: String, toUserID: UserID, retractMessageID: String)
+    var didGetChatRetract: PassthroughSubject<ChatRetractInfo, Never> { get }
+    func retractChatMessage(messageID: String, toUserID: UserID, messageToRetractID: String)
     func sendPresenceIfPossible(_ presenceType: PresenceType)
     func sendChatStateIfPossible(type: ChatType, id: String, state: ChatState)
 
     // MARK: Groups
     func sendGroupChatMessage(_ message: HalloGroupChatMessage)
+    func retractGroupChatMessage(messageID: String, groupID: GroupID, messageToRetractID: String)
     func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<String>)
     func leaveGroup(groupID: GroupID, completion: @escaping ServiceRequestCompletion<Void>)
     func getGroupInfo(groupID: GroupID, completion: @escaping ServiceRequestCompletion<HalloGroup>)

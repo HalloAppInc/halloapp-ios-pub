@@ -19,6 +19,7 @@ extension ChatGroupMessage {
         case haveSeen = 1
         case sentSeenReceipt = 2
         case error = 3
+        case retracted = 4
     }
     
     enum OutboundStatus: Int16 {
@@ -28,6 +29,8 @@ extension ChatGroupMessage {
         case delivered = 3      // all group members have gotten the message
         case seen = 4           // all group members have seen the message
         case error = 5
+        case retracting = 6
+        case retracted = 7
     }
     
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ChatGroupMessage> {
@@ -59,6 +62,8 @@ extension ChatGroupMessage {
     
     @NSManaged var inboundStatusValue: Int16
     @NSManaged var outboundStatusValue: Int16
+    
+    @NSManaged var retractID: String?
     
     var isEvent: Bool {
         return event != nil

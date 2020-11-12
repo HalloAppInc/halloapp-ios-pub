@@ -284,6 +284,16 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         return false
     }
     
+    private func isRetractStatusUpdate(for groupChatMessage: ChatGroupMessage) -> Bool {
+        if groupChatMessage.inboundStatus == .retracted {
+            return true
+        }
+        if [.retracting, .retracted].contains(groupChatMessage.outboundStatus) {
+            return true
+        }
+        return false
+    }
+    
     private func isOutgoingGroupMessageStatusUpdate(for chatGroupMessage: ChatGroupMessage) -> Bool {
         guard chatGroupMessage.userId == MainAppContext.shared.userData.userId else { return false }
         guard let trackedChatGroupMessage = self.trackedChatGroupMessages[chatGroupMessage.id] else { return false }
@@ -332,8 +342,14 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
             self.skipDataUpdate = true
             guard let chatGroupMessage = anObject as? ChatGroupMessage else { break }
 
+            // todo: check for changes and not just state
+            if isRetractStatusUpdate(for: chatGroupMessage) {
+                DDLogDebug("ChatViewController/frc/update/isInboundGroupMessageStatusUpdate")
+                self.skipDataUpdate = false
+            }
+            
             if isOutgoingGroupMessageStatusUpdate(for: chatGroupMessage) {
-                DDLogDebug("ChatGroupViewController/frc/update/outgoingGroupMessageStatusChange")
+                DDLogDebug("ChatGroupViewController/frc/update/isOutgoingGroupMessageStatusUpdate")
                 self.skipDataUpdate = false
             }
 
@@ -575,7 +591,9 @@ extension ChatGroupViewController {
         guard let chatGroupMessage = self.fetchedResultsController?.object(at: indexPath), !chatGroupMessage.isEvent else {
             return UISwipeActionsConfiguration(actions: [])
         }
-       
+        guard chatGroupMessage.inboundStatus != .retracted else { return nil }
+        guard ![.retracting, .retracted].contains(chatGroupMessage.outboundStatus) else { return nil }
+        
         let action = UIContextualAction(style: .normal, title: Localizations.messageReply) { [weak self] (action, view, completionHandler) in
             
             if chatGroupMessage.userId == MainAppContext.shared.userData.userId {
@@ -630,6 +648,7 @@ extension ChatGroupViewController: TitleViewDelegate {
 }
 
 extension ChatGroupViewController: InboundMsgViewCellDelegate {
+ 
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
@@ -639,6 +658,7 @@ extension ChatGroupViewController: InboundMsgViewCellDelegate {
     }
 
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewQuotedMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
+
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
         guard let quoted = message.quoted else { return }
@@ -650,6 +670,8 @@ extension ChatGroupViewController: InboundMsgViewCellDelegate {
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
         guard let chatGroupMessage = fetchedResultsController?.object(at: indexPath) else { return }
+
+        guard chatGroupMessage.inboundStatus != .retracted else { return }
         
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
@@ -664,10 +686,10 @@ extension ChatGroupViewController: InboundMsgViewCellDelegate {
                 pasteboard.string = messageText
             })
         }
-                
-         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         
-         present(actionSheet, animated: true)
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        
+        present(actionSheet, animated: true)
     }
 }
 
@@ -695,28 +717,38 @@ extension ChatGroupViewController: OutboundMsgViewCellDelegate {
         
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
-        actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            self.handleQuotedReply(msg: chatGroupMessage, mediaIndex: outboundMsgViewCell.mediaIndex)
-         })
+        if ![.retracting, .retracted].contains(chatGroupMessage.outboundStatus) {
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                self.handleQuotedReply(msg: chatGroupMessage, mediaIndex: outboundMsgViewCell.mediaIndex)
+             })
         
-        if let messageText = chatGroupMessage.text, !messageText.isEmpty {
-            actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
-                let pasteboard = UIPasteboard.general
-                pasteboard.string = messageText
-            })
+        
+            if let messageText = chatGroupMessage.text, !messageText.isEmpty {
+                actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
+                    let pasteboard = UIPasteboard.general
+                    pasteboard.string = messageText
+                })
+            }
         }
         
         actionSheet.addAction(UIAlertAction(title: Localizations.messageInfo, style: .default) { [weak self] _ in
             guard let self = self else { return }
-
+            
             let messageSeenByViewController = MessageSeenByViewController(chatGroupMessageId: msgId)
             self.present(UINavigationController(rootViewController: messageSeenByViewController), animated: true)
-         })
+        })
         
-         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        if [.sentOut, .delivered, .seen].contains(chatGroupMessage.outboundStatus) {
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                MainAppContext.shared.chatData.retractGroupChatMessage(groupID: self.groupId, messageToRetractID: chatGroupMessage.id)
+            })
+        }
         
-         self.present(actionSheet, animated: true)
+        guard actionSheet.actions.count > 0 else { return }
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        self.present(actionSheet, animated: true)
     }
 }
 

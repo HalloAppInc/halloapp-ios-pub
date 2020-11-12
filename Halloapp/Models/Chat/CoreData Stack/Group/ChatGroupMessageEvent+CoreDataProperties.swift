@@ -70,7 +70,7 @@ extension ChatGroupMessageEvent {
         get {
             guard let userId = sender else { return nil }
             if userId == MainAppContext.shared.userData.userId {
-                return "You"
+                return Localizations.userYouCapitalized
             }
             return MainAppContext.shared.contactStore.fullName(for: userId)
         }
@@ -80,30 +80,48 @@ extension ChatGroupMessageEvent {
         get {
             guard let userId = memberUserId else { return nil }
             if userId == MainAppContext.shared.userData.userId {
-                return "you"
+                return Localizations.userYou
             }
             return MainAppContext.shared.contactStore.fullName(for: userId)
         }
     }
-    
+
     var text: String? {
         get {
             guard let senderName = senderName else { return nil }
             switch action {
-            case .create: return "\(senderName) created this group"
-            case .changeName: return "\(senderName) changed the group name to \"\(groupName ?? "")\""
-            case .changeAvatar: return "\(senderName) changed the group avatar"
+            case .create:
+                let formatString = NSLocalizedString("chat.group.event.created.group", value: "%@ created this group", comment: "Message text shown with the user who created the group")
+                return String(format: formatString, senderName)
+            case .changeName:
+                let formatString = NSLocalizedString("chat.group.event.changed.name", value: "%1@ changed the group name to %2@", comment: "Message text shown with the user who changed the group name")
+                return String(format: formatString, senderName, groupName ?? "")
+            case .changeAvatar:
+                let formatString = NSLocalizedString("chat.group.event.changed.avatar", value: "%@ changed the group avatar", comment: "Message text shown with the user who changed the group avatar")
+                return String(format: formatString, senderName)
             case .leave, .modifyMembers, .modifyAdmins:
                 guard let memberName = memberName else { return nil }
                 switch memberAction {
-                case .add: return "\(senderName) added \(memberName)"
-                case .remove: return "\(senderName) removed \(memberName)"
-                case .promote: return "\(senderName) promoted \(memberName) to admin"
-                case .demote: return "\(senderName) demoted \(memberName)"
-                case .leave: return "\(senderName) left the group"
-                default: return nil
+                case .add:
+                    let formatString = NSLocalizedString("chat.group.event.added.member", value: "%1@ added %2@", comment: "Message text shown with the user who added a group member")
+                    return String(format: formatString, senderName, memberName)
+                case .remove:
+                    let formatString = NSLocalizedString("chat.group.event.removed.member", value: "%1@ removed %2@", comment: "Message text shown with the user who removed a group member")
+                    return String(format: formatString, senderName, memberName)
+                case .promote:
+                    let formatString = NSLocalizedString("chat.group.event.promoted.member", value: "%1@ promoted %2@ to admin", comment: "Message text shown with the user who promoted a group member")
+                    return String(format: formatString, senderName, memberName)
+                case .demote:
+                    let formatString = NSLocalizedString("chat.group.event.demoted.member", value: "%1@ demoted %2@", comment: "Message text shown with the user who demoted a group admin")
+                    return String(format: formatString, senderName, memberName)
+                case .leave:
+                    let formatString = NSLocalizedString("chat.group.event.demoted.member", value: "%@ left the group", comment: "Message text shown with the user who left the group")
+                    return String(format: formatString, senderName)
+                default:
+                    return nil
                 }
-            default: return nil
+            default:
+                return nil
             }
         }
     }

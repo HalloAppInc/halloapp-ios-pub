@@ -182,5 +182,21 @@
 			<string>📷 %d photos</string>
 		</dict>
 	</dict>
+	<key>chat.n.users.typing</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%@ %#@n_users@</string>
+		<key>n_users</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>is typing...</string>
+			<key>other</key>
+			<string>are typing...</string>
+		</dict>
+	</dict>
 </dict>
 </plist>

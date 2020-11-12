@@ -23,7 +23,7 @@ class CreateGroupViewController: UIViewController {
     weak var delegate: CreateGroupViewControllerDelegate?
     
     private var selectedMembers: [UserID] = []
-    private var placeholderText = "Name your group"
+    private var placeholderText = Localizations.chatCreateGroupNamePlaceholder
     
     private var avatarData: Data? = nil
     
@@ -37,11 +37,11 @@ class CreateGroupViewController: UIViewController {
     override func viewDidLoad() {
         DDLogInfo("CreateGroupViewController/viewDidLoad")
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Create", style: .plain, target: self, action: #selector(createAction))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonCreate, style: .plain, target: self, action: #selector(createAction))
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
         navigationItem.rightBarButtonItem?.isEnabled = canCreate
         
-        navigationItem.title = "Group Info"
+        navigationItem.title = Localizations.chatCreateGroupTitle
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         
@@ -300,10 +300,10 @@ class CreateGroupViewController: UIViewController {
     }
     
     @objc private func chooseAvatar() {
-        let actionSheet = UIAlertController(title: "Group Photo", message: nil, preferredStyle: .actionSheet)
+        let actionSheet = UIAlertController(title: Localizations.chatGroupPhotoTitle, message: nil, preferredStyle: .actionSheet)
         actionSheet.view.tintColor = UIColor.systemBlue
         
-        actionSheet.addAction(UIAlertAction(title: "Take or Choose Photo", style: .default) { [weak self] _ in
+        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupTakeOrChoosePhoto, style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.presentPhotoLibraryPicker()
         })
@@ -454,4 +454,24 @@ fileprivate extension UIImage {
             draw(in: CGRect(origin: .zero, size: size))
         }
     }
+}
+
+private extension Localizations {
+    
+    static var chatCreateGroupTitle: String {
+        NSLocalizedString("chat.create.group.title", value: "Group Info", comment: "Title of group creation screen")
+    }
+    
+    static var chatCreateGroupNamePlaceholder: String {
+        NSLocalizedString("chat.create.group.name.placeholder", value: "Name your group", comment: "Placeholder text shown inside the group name input box when it's empty")
+    }
+    
+    static var chatCreateGroupFailureTitle: String {
+        NSLocalizedString("chat.create.group.failure.title", value: "No Internet Connection", comment: "Placeholder text shown inside the group name input box when it's empty")
+    }
+    
+    static var chatCreateGroupFailureDescription: String {
+        NSLocalizedString("chat.create.group.failure.description", value: "Please check if you have internet connectivity, then try again.", comment: "Placeholder text shown inside the group name input box when it's empty")
+    }
+    
 }

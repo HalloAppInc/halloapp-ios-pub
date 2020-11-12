@@ -41,6 +41,10 @@ extension Localizations {
     static var fabAccessibilityTextPost: String {
         NSLocalizedString("fab.accessibility.text", value: "Text", comment: "VoiceOver label for text post button in floating compose post menu in Feed view.")
     }
+    
+    static var fabAccessibilityNewMessage: String {
+        NSLocalizedString("fab.accessibility.new.message", value: "New message", comment: "VoiceOver label for floating compose message button in Messages view ")
+    }
 
     // MARK: Message Actions
 
@@ -58,6 +62,16 @@ extension Localizations {
 
     static var messageDelete: String {
         NSLocalizedString("message.delete", value: "Delete", comment: "Message action. Verb.")
+    }
+    
+    // MARK: User
+    
+    static var userYouCapitalized: String {
+        NSLocalizedString("user.you.capitalized", value: "You", comment: "Capitalized reference to the user, second person pronoun")
+    }
+    
+    static var userYou: String {
+        NSLocalizedString("user.you", value: "you", comment: "Reference to the user, second person pronoun")
     }
     
     // MARK: Misc

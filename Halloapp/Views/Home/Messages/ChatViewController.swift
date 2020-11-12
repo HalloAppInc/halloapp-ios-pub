@@ -295,6 +295,17 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         return false
     }
     
+    private func isRetractStatusUpdate(for chatMessage: ChatMessage) -> Bool {
+        guard chatMessage.toUserId == MainAppContext.shared.userData.userId else { return false }
+        if chatMessage.incomingStatus == .retracted {
+            return true
+        }
+        if [.retracting, .retracted].contains(chatMessage.outgoingStatus) {
+            return true
+        }
+        return false
+    }
+    
     private func isOutgoingMessageStatusUpdate(for chatMessage: ChatMessage) -> Bool {
         guard chatMessage.fromUserId == MainAppContext.shared.userData.userId else { return false }
         guard let trackedChatMessage = self.trackedChatMessages[chatMessage.id] else { return false }
@@ -342,6 +353,11 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             DDLogDebug("ChatViewController/frc/update")
             self.skipDataUpdate = true
             guard let chatMessage = anObject as? ChatMessage else { break }
+            
+            if isRetractStatusUpdate(for: chatMessage) {
+                DDLogDebug("ChatViewController/frc/update/inboundMessageStatusChange")
+                self.skipDataUpdate = false
+            }
             
             if isOutgoingMessageStatusUpdate(for: chatMessage) {
                 DDLogDebug("ChatViewController/frc/update/outgoingMessageStatusChange")
@@ -598,6 +614,9 @@ extension ChatViewController {
         guard let chatMessage = self.fetchedResultsController?.object(at: indexPath) else {
             return UISwipeActionsConfiguration(actions: [])
         }
+        guard chatMessage.incomingStatus != .retracted else { return nil }
+        guard ![.retracting, .retracted].contains(chatMessage.outgoingStatus) else { return nil }
+        
         let action = UIContextualAction(style: .normal, title: Localizations.messageReply) { [weak self] (action, view, completionHandler) in
             
             if chatMessage.fromUserId == MainAppContext.shared.userData.userId {
@@ -646,6 +665,7 @@ extension ChatViewController: TitleViewDelegate {
 }
 
 extension ChatViewController: InboundMsgViewCellDelegate {
+
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
@@ -669,21 +689,25 @@ extension ChatViewController: InboundMsgViewCellDelegate {
         
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
-        actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            self.handleQuotedReply(msg: chatMessage, mediaIndex: inboundMsgViewCell.mediaIndex)
-         })
+        if chatMessage.incomingStatus != .retracted {
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                self.handleQuotedReply(msg: chatMessage, mediaIndex: inboundMsgViewCell.mediaIndex)
+             })
         
-        if let messageText = chatMessage.text, !messageText.isEmpty {
-            actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
-                let pasteboard = UIPasteboard.general
-                pasteboard.string = messageText
-            })
+            if let messageText = chatMessage.text, !messageText.isEmpty {
+                actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
+                    let pasteboard = UIPasteboard.general
+                    pasteboard.string = messageText
+                })
+            }
         }
         
-         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        guard actionSheet.actions.count > 0 else { return }
         
-         self.present(actionSheet, animated: true)
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        
+        self.present(actionSheet, animated: true)
     }
 }
 
@@ -711,27 +735,33 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
         
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
-        actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            self.handleQuotedReply(msg: chatMessage, mediaIndex: outboundMsgViewCell.mediaIndex)
-         })
+        if ![.retracting, .retracted].contains(chatMessage.outgoingStatus) {
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageReply, style: .default) { [weak self] _ in
+                guard let self = self else { return }
+                self.handleQuotedReply(msg: chatMessage, mediaIndex: outboundMsgViewCell.mediaIndex)
+             })
+            
+            if let messageText = chatMessage.text, !messageText.isEmpty {
+                actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
+                    let pasteboard = UIPasteboard.general
+                    pasteboard.string = messageText
+                 })
+            }
+        }
         
-        if let messageText = chatMessage.text, !messageText.isEmpty {
-            actionSheet.addAction(UIAlertAction(title: Localizations.messageCopy, style: .default) { _ in
-                let pasteboard = UIPasteboard.general
-                pasteboard.string = messageText
+        if [.sentOut, .delivered, .seen].contains(chatMessage.outgoingStatus) {
+            actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                guard let toUserID = self.fromUserId else { return }
+                MainAppContext.shared.chatData.retractChatMessage(toUserID: toUserID, messageToRetractID: chatMessage.id)
             })
         }
         
-//        actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
-//            guard let self = self else { return }
-//            guard let toUserID = self.fromUserId else { return }
-//            MainAppContext.shared.chatData.deleteMessage(toUserID: toUserID, retractMessageID: chatMessage.id)
-//        })
+        guard actionSheet.actions.count > 0 else { return }
         
-         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+        actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         
-         self.present(actionSheet, animated: true)
+        self.present(actionSheet, animated: true)
     }
 }
 
