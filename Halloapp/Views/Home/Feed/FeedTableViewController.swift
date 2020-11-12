@@ -167,9 +167,6 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         trackPerRowFRCChanges = view.window != nil && UIApplication.shared.applicationState == .active
-        if trackPerRowFRCChanges {
-            tableView.beginUpdates()
-        }
         DDLogDebug("FeedTableView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
     }
 
@@ -225,9 +222,7 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("FeedTableView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]")
-        if trackPerRowFRCChanges {
-            tableView.endUpdates()
-        } else {
+        if !trackPerRowFRCChanges {
             tableView.reloadData()
         }
     }
