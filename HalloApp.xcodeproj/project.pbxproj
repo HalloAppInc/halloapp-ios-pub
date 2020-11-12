@@ -116,6 +116,8 @@
 		76538096243D4B33000AD9A1 /* FeedPostComment+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */; };
 		76538097243D4B33000AD9A1 /* FeedPostMedia+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */; };
 		76538099243D4C08000AD9A1 /* FeedDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */; };
+		7653F2FA255DB4E7001CC946 /* FeedCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653F2F9255DB4E7001CC946 /* FeedCollectionViewController.swift */; };
+		7653F302255DB7FE001CC946 /* FeedPostCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7653F301255DB7FE001CC946 /* FeedPostCollectionViewCell.swift */; };
 		765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765D03D62492C971007A7D3B /* ZoomableImageView.swift */; };
 		765EB4EB24D92404002FA5D9 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765EB4EA24D92404002FA5D9 /* SafariView.swift */; };
 		765FE0FE2469C4E500806CED /* PhoneNumberMetadata.json in Resources */ = {isa = PBXBuildFile; fileRef = 765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */; };
@@ -419,6 +421,8 @@
 		7653808E243D4B32000AD9A1 /* FeedPostComment+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostComment+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostComment+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		7653808F243D4B32000AD9A1 /* FeedPostMedia+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FeedPostMedia+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostMedia+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		76538098243D4C08000AD9A1 /* FeedDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedDownloadManager.swift; path = HalloApp/Models/Feed/FeedDownloadManager.swift; sourceTree = SOURCE_ROOT; };
+		7653F2F9255DB4E7001CC946 /* FeedCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedCollectionViewController.swift; path = HalloApp/Views/Home/Feed/FeedCollectionViewController.swift; sourceTree = SOURCE_ROOT; };
+		7653F301255DB7FE001CC946 /* FeedPostCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPostCollectionViewCell.swift; path = HalloApp/Views/Home/Feed/Post/FeedPostCollectionViewCell.swift; sourceTree = SOURCE_ROOT; };
 		765D03D62492C971007A7D3B /* ZoomableImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ZoomableImageView.swift; path = HalloApp/Views/Home/Feed/MediaSlider/ZoomableImageView.swift; sourceTree = SOURCE_ROOT; };
 		765EB4EA24D92404002FA5D9 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafariView.swift; path = HalloApp/Components/Views/SafariView.swift; sourceTree = SOURCE_ROOT; };
 		765FE0FD2469C4E500806CED /* PhoneNumberMetadata.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = PhoneNumberMetadata.json; path = HalloApp/Resources/PhoneNumberMetadata.json; sourceTree = SOURCE_ROOT; };
@@ -750,6 +754,7 @@
 			isa = PBXGroup;
 			children = (
 				76271388252D250E00389FBC /* FacePileView.swift */,
+				7653F301255DB7FE001CC946 /* FeedPostCollectionViewCell.swift */,
 				76271383252D24AD00389FBC /* FeedPostTableViewCell.swift */,
 				764F7750246226120063645A /* PostDashboardViewController.swift */,
 			);
@@ -977,6 +982,7 @@
 				EA5414D423EE164C00390EF6 /* Media */,
 				EA5414D523EE169E00390EF6 /* MediaSlider */,
 				76271381252D247700389FBC /* Post */,
+				7653F2F9255DB4E7001CC946 /* FeedCollectionViewController.swift */,
 				763B42AB243274F400FF0E82 /* FeedTableViewController.swift */,
 				76A92443244E659600794859 /* FeedViewController.swift */,
 				76654789252BE44C00379BEF /* GroupFeedViewController.swift */,
@@ -1760,6 +1766,7 @@
 				766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */,
 				EABBF72B24E72C6200FE1F1F /* CreateGroupViewController.swift in Sources */,
 				EA796B9B2469DDF100BC795E /* ChatQuoted+CoreDataClass.swift in Sources */,
+				7653F2FA255DB4E7001CC946 /* FeedCollectionViewController.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */,
 				68C8264B251A77A000BB8F3A /* NUX.swift in Sources */,
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
@@ -1799,6 +1806,7 @@
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
 				76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */,
 				68F935D3252CD24700FA6E75 /* ChatMention+CoreDataProperties.swift in Sources */,
+				7653F302255DB7FE001CC946 /* FeedPostCollectionViewCell.swift in Sources */,
 				EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */,
 				761BD0FA24B3C6B800B567F6 /* InviteRequests.swift in Sources */,
 				EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */,
