@@ -169,11 +169,6 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
         trackPerRowFRCChanges = view.window != nil && UIApplication.shared.applicationState == .active
         if trackPerRowFRCChanges {
             tableView.beginUpdates()
-            CATransaction.begin()
-            CATransaction.setCompletionBlock {
-                self.tableView.setNeedsLayout()
-                self.tableView.layoutIfNeeded()
-            }
         }
         DDLogDebug("FeedTableView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
     }
@@ -232,7 +227,6 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
         DDLogDebug("FeedTableView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]")
         if trackPerRowFRCChanges {
             tableView.endUpdates()
-            CATransaction.commit()
         } else {
             tableView.reloadData()
         }
@@ -297,6 +291,7 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
                 self.showUserFeed(for: userID)
             }
         }
+        cell.layoutIfNeeded()
         return cell
     }
 

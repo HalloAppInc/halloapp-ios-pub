@@ -180,7 +180,6 @@ final class FeedPostTableViewCell: FeedPostTableViewCellBase, TextLabelDelegate 
 
     private func commonInit() {
         headerView = FeedItemHeaderView()
-        headerView.preservesSuperviewLayoutMargins = true
         headerView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(headerView)
 
@@ -190,7 +189,6 @@ final class FeedPostTableViewCell: FeedPostTableViewCellBase, TextLabelDelegate 
         contentView.addSubview(itemContentView)
 
         footerView = FeedItemFooterView()
-        footerView.preservesSuperviewLayoutMargins = true
         footerView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(footerView)
 
@@ -321,7 +319,6 @@ final class DeletedPostTableViewCell: FeedPostTableViewCellBase {
 
     private func commonInit() {
         headerView = FeedItemHeaderView()
-        headerView.preservesSuperviewLayoutMargins = true
         headerView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(headerView)
 
