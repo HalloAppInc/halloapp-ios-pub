@@ -343,7 +343,7 @@ fileprivate class ImageCell: UICollectionViewCell {
     private var previousScale = CGFloat(1.0)
     private var previousNumberOfTouches = 0
     private var previousLocation = CGPoint.zero
-    private var originalFrame = CGRect.zero
+    private var initialLocation = CGPoint.zero
     private var originalOffset = CGPoint.zero
 
     private lazy var imageView: UIImageView = {
@@ -404,16 +404,15 @@ fileprivate class ImageCell: UICollectionViewCell {
         previousScale = 1.0
         previousNumberOfTouches = 0
         previousLocation = CGPoint.zero
-        originalFrame = CGRect.zero
+        initialLocation = CGPoint.zero
         originalOffset = CGPoint.zero
     }
 
     @objc func onZoom(sender: UIPinchGestureRecognizer) {
-        initOriginalValues()
-
-        let location = sender.location(in: self)
+        let location = sender.location(in: contentView)
 
         if sender.state == .began {
+            initialLocation = location
             previousLocation = location
             previousScale = 1.0
         }
@@ -423,26 +422,36 @@ fileprivate class ImageCell: UICollectionViewCell {
                 previousLocation = location
             }
 
-            let x = imageView.frame.midX - originalFrame.midX + location.x - previousLocation.x
-            let y = imageView.frame.midY - originalFrame.midY + location.y - previousLocation.y
-            let scale = sender.scale * imageView.frame.width / originalFrame.width / previousScale
+            let scale = sender.scale / previousScale
+            var transform = imageView.transform
 
-            imageView.transform = CGAffineTransform.init(translationX: x, y: y).scaledBy(x: scale, y: scale)
+            // Keep the scalling relative to the initial zoom location
+            let centerX = (initialLocation.x - contentView.bounds.midX) * (1 - scale)
+            let centerY = (initialLocation.y - contentView.bounds.midY) * (1 - scale)
+            transform = transform.concatenating(CGAffineTransform(translationX: centerX, y: centerY))
+            // Scale
+            transform = transform.concatenating(CGAffineTransform(scaleX: scale, y: scale))
+            // Follow any dragging
+            let transX = location.x - previousLocation.x
+            let transY = location.y - previousLocation.y
+            transform = transform.concatenating(CGAffineTransform(translationX: transX, y: transY))
 
             previousScale = sender.scale
             previousLocation = location
             previousNumberOfTouches = sender.numberOfTouches
+
+            update(transform: transform, animated: false)
         } else if sender.state == .ended {
-            adjustImagePosition()
+            update(transform: adjust(transform: imageView.transform), animated: true)
         }
     }
 
     @objc func onDrag(sender: UIPanGestureRecognizer) {
-        initOriginalValues()
-
         let location = sender.location(in: window)
+
         if sender.state == .began {
             previousLocation = location
+            originalOffset = scrollView.contentOffset
         }
 
         if sender.state == .began || sender.state == .changed {
@@ -450,57 +459,68 @@ fileprivate class ImageCell: UICollectionViewCell {
             let y = location.y - previousLocation.y
 
             if shouldDragImage(translation: x) {
-                imageView.transform = imageView.transform.concatenating(CGAffineTransform(translationX: x, y: y))
+                let transform = imageView.transform.concatenating(CGAffineTransform(translationX: x, y: y))
+                update(transform: transform, animated: false)
             } else {
                 scrollView.setContentOffset(CGPoint(x: scrollView.contentOffset.x - x, y: scrollView.contentOffset.y), animated: false)
             }
 
             previousLocation = location
         } else if sender.state == .ended {
-            adjustImagePosition()
+            let transform = adjust(transform: imageView.transform)
+            update(transform: transform, animated: true)
             adjustScrollViewPage(velocity: sender.velocity(in: window).x)
         }
     }
 
+
     @objc func onDoubleTapAction(sender: UITapGestureRecognizer) {
-        initOriginalValues()
-
-        var transform = CGAffineTransform.identity
-        let scale = imageView.frame.width / originalFrame.width
-
-        if scale == 1.0 {
-            let location = sender.location(in: imageView)
-            let x = location.x - imageView.frame.midX
-            let y = location.y - imageView.frame.midY
-
-            transform = CGAffineTransform.init(translationX: -x, y: -y).scaledBy(x: 2, y: 2)
-        }
-
-        UIView.animate(withDuration: 0.35) { [weak self] in
-            guard let self = self else { return }
-            self.imageView.transform = transform
+        if imageView.transform.isIdentity {
+            let location = sender.location(in: contentView)
+            let x = contentView.bounds.midX - location.x
+            let y = contentView.bounds.midY - location.y
+            let transform = CGAffineTransform(scaleX: 2.5, y: 2.5).translatedBy(x: x, y: y)
+            update(transform: adjust(transform: transform), animated: true)
+        } else {
+            update(transform: CGAffineTransform.identity, animated: true)
         }
     }
 
-    private func initOriginalValues() {
-        if originalFrame == CGRect.zero {
-            originalFrame = imageView.frame
-            originalOffset = scrollView.contentOffset
+    private func adjust(transform: CGAffineTransform) -> CGAffineTransform {
+        let scale = transform.a
+        if scale <= 1.0 {
+            return CGAffineTransform.identity
         }
+
+        let current = imageView.transform
+        imageView.transform = transform
+
+        var x = CGFloat(0)
+        var y = CGFloat(0)
+
+        if imageView.frame.width > bounds.width {
+            x = max(contentView.bounds.maxX - 20 - self.imageView.frame.maxX, 0) + min(contentView.bounds.minX + 20 - self.imageView.frame.minX, 0)
+        } else {
+            x = bounds.midX - imageView.frame.midX
+        }
+
+        if imageView.frame.height > bounds.height {
+            y = max(contentView.bounds.maxY - self.imageView.frame.maxY, 0) + min(contentView.bounds.minY - self.imageView.frame.minY, 0)
+        } else {
+            y = bounds.midY - imageView.frame.midY
+        }
+
+        imageView.transform = current
+        return transform.concatenating(CGAffineTransform(translationX: x, y: y))
     }
 
-    private func adjustImagePosition() {
-        UIView.animate(withDuration: 0.35) { [weak self] in
-            guard let self = self else { return }
-
-            if self.originalFrame.width > self.imageView.frame.width {
-                self.imageView.transform = CGAffineTransform.identity
-            } else {
-                let x = max(self.originalFrame.maxX - self.imageView.frame.maxX, 0) + min(self.originalFrame.minX - self.imageView.frame.minX, 0)
-                let y = max(self.originalFrame.maxY - self.imageView.frame.maxY, 0) + min(self.originalFrame.minY - self.imageView.frame.minY, 0)
-
-                self.imageView.transform = self.imageView.transform.concatenating(CGAffineTransform(translationX: x, y: y))
+    private func update(transform: CGAffineTransform, animated: Bool) {
+        if animated {
+            UIView.animate(withDuration: 0.35) { [weak self] in
+                self?.imageView.transform = transform
             }
+        } else {
+            imageView.transform = transform
         }
     }
 
@@ -513,11 +533,12 @@ fileprivate class ImageCell: UICollectionViewCell {
             let x = originalOffset.x + scrollView.frame.width * (diff > 0 ? 1 : -1)
 
             if x >= 0 && x < scrollView.contentSize.width {
-                scrollView.setContentOffset(CGPoint(x: x, y: originalOffset.y), animated: true)
+                update(transform: CGAffineTransform.identity, animated: true)
 
-                UIView.animate(withDuration: 0.35) { [weak self] in
-                    guard let self = self else { return }
-                    self.imageView.transform = CGAffineTransform.identity
+                let duration = min(TimeInterval(abs(scrollView.contentOffset.x - x) / velocity), 0.3)
+                UIView.animate(withDuration: duration) {
+                    self.scrollView.setContentOffset(CGPoint(x: x, y: self.originalOffset.y), animated: false)
+                    self.scrollView.layoutIfNeeded()
                 }
             } else {
                 scrollView.setContentOffset(originalOffset, animated: true)
@@ -533,9 +554,9 @@ fileprivate class ImageCell: UICollectionViewCell {
         }
 
         if translation < 0 {
-            return imageView.frame.maxX > originalFrame.maxX
+            return imageView.frame.maxX > contentView.bounds.maxX - 20
         } else {
-            return imageView.frame.minX < originalFrame.minX
+            return imageView.frame.minX < contentView.bounds.minX + 20
         }
     }
 }
