@@ -12,7 +12,12 @@ import UIKit
 public class AvatarView: UIView {
     public static let defaultImage = UIImage(named: "UserAvatar")
     public static let defaultGroupImage = UIImage(named: "GroupAvatar")
-    
+
+    public private(set) var hasImage: Bool = false {
+        didSet {
+            placeholderOverlayView?.isHidden = hasImage
+        }
+    }
     private let avatar = UIImageView()
     private let avatarContainerView = UIView()
     private var avatarUpdatingCancellable: AnyCancellable?
@@ -103,12 +108,12 @@ public class AvatarView: UIView {
     
     public func configure(with userAvatar: UserAvatar, using avatarStore: AvatarStore) {
         if let image = userAvatar.image {
+            hasImage = true
             avatar.image = image
-            placeholderOverlayView?.isHidden = true
         } else {
+            hasImage = false
             avatar.image = AvatarView.defaultImage
-            placeholderOverlayView?.isHidden = false
-            
+
             if !userAvatar.isEmpty {
                 userAvatar.loadImage(using: avatarStore)
             }
@@ -116,7 +121,7 @@ public class AvatarView: UIView {
         
         avatarUpdatingCancellable = userAvatar.imageDidChange.sink { [weak self] image in
             guard let self = self else { return }
-            self.placeholderOverlayView?.isHidden = image != nil
+            self.hasImage = image != nil
             if let image = image {
                 self.avatar.image = image
             } else {
@@ -128,10 +133,11 @@ public class AvatarView: UIView {
     public func prepareForReuse() {
         avatarUpdatingCancellable?.cancel()
         avatar.image = AvatarView.defaultImage
-        placeholderOverlayView?.isHidden = true
+        hasImage = false
     }
     
     public func resetImage() {
+        hasImage = false
         avatar.image = AvatarView.defaultImage
     }
     

@@ -639,8 +639,8 @@ extension ChatViewController {
 
 extension ChatViewController: TitleViewDelegate {
     fileprivate func titleView(_ titleView: TitleView) {
-        guard let userID = fromUserId else { return }
-        let userViewController = UserFeedViewController(userID: userID)
+        guard let userId = fromUserId else { return }
+        let userViewController = UserFeedViewController(userId: userId)
         navigationController?.pushViewController(userViewController, animated: true)
     }
 }

@@ -131,7 +131,7 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
         fatalError("Must be implemented in a subclass.")
     }
 
-    public func shouldOpenFeed(for userID: UserID) -> Bool {
+    public func shouldOpenFeed(for userId: UserID) -> Bool {
         return true
     }
 
@@ -352,7 +352,7 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
 
     private func showUserFeed(for userID: UserID) {
         guard shouldOpenFeed(for: userID) else { return }
-        let userViewController = UserFeedViewController(userID: userID)
+        let userViewController = UserFeedViewController(userId: userID)
         navigationController?.pushViewController(userViewController, animated: true)
     }
 

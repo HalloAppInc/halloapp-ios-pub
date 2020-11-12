@@ -24,6 +24,10 @@ extension Localizations {
         NSLocalizedString("button.next", value: "Next", comment: "Title for generic Next button. Mostly used to proceed to next screen in flow.")
     }
 
+    static var buttonDone: String {
+        NSLocalizedString("button.done", value: "Done", comment: "Title for generic Done button. Mostly used to complete some modal flow.")
+    }
+
     // MARK: Links
 
     static var linkLearnMore: String {

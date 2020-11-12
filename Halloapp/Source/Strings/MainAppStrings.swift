@@ -24,6 +24,10 @@ extension Localizations {
         NSLocalizedString("title.settings", value: "Settings", comment: "Row in Profile screen.")
     }
 
+    static var titleMyPosts: String {
+        NSLocalizedString("profile.row.my.posts", value: "My Posts", comment: "Row in Profile screen.")
+    }
+
     // MARK: FAB Accessibility
 
     static var fabAccessibilityCamera: String {

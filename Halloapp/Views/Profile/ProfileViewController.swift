@@ -18,10 +18,6 @@ private extension Localizations {
         NSLocalizedString("title.profile", value: "Profile", comment: "Third tab in the main app interface.")
     }
 
-    static var myPosts: String {
-        NSLocalizedString("profile.row.my.posts", value: "My Posts", comment: "Row in Profile screen.")
-    }
-
     static var archive: String {
         NSLocalizedString("profile.row.archive", value: "Archive", comment: "Row in Profile screen.")
     }
@@ -42,6 +38,7 @@ private extension Localizations {
 class ProfileViewController: UITableViewController {
 
     private var cancellables = Set<AnyCancellable>()
+    private var headerViewController: ProfileHeaderViewController!
 
     // MARK: Table View Data Source and Rows
 
@@ -60,7 +57,7 @@ class ProfileViewController: UITableViewController {
     }
 
     private var dataSource: UITableViewDiffableDataSource<Section, Row>!
-    private let cellMyPosts = SettingsTableViewCell(text: Localizations.myPosts, image: UIImage(named: "profile.my.posts"))
+    private let cellMyPosts = SettingsTableViewCell(text: Localizations.titleMyPosts, image: UIImage(named: "profile.my.posts"))
     private let cellArchive = SettingsTableViewCell(text: Localizations.archive, image: UIImage(named: "profile.archive"))
     private let cellSettings = SettingsTableViewCell(text: Localizations.titleSettings, image: UIImage(named: "profile.settings"))
     private let cellDeveloper = SettingsTableViewCell(text: Localizations.developerMenu, image: UIImage(systemName: "hammer"))
@@ -110,20 +107,17 @@ class ProfileViewController: UITableViewController {
         snapshot.appendItems([ .invite, .help ], toSection: .two)
         dataSource.apply(snapshot, animatingDifferences: false)
 
-        let tableWidth = view.frame.width
-        let headerView = UserProfileTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableWidth, height: tableWidth))
-        headerView.layoutMargins.bottom = 32
-        headerView.canEditProfile = true
-        headerView.avatarViewButton.addTarget(self, action: #selector(presentProfileEditScreen), for: .touchUpInside)
-        let headerTapGesture = UITapGestureRecognizer(target: self, action: #selector(presentProfileEditScreen))
-        headerView.addGestureRecognizer(headerTapGesture)
-        tableView.tableHeaderView = headerView
-
+        headerViewController = ProfileHeaderViewController()
+        headerViewController.isEditingAllowed = true
+        headerViewController.view.layoutMargins.bottom = 32
         cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
             guard let self = self else { return }
-            headerView.updateMyProfile(name: userName)
-            self.view.setNeedsLayout()
+            self.headerViewController.configureForCurrentUser(withName: userName)
+            self.viewIfLoaded?.setNeedsLayout()
         }))
+        tableView.tableHeaderView = headerViewController.view
+        addChild(headerViewController)
+        headerViewController.didMove(toParent: self)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -171,7 +165,7 @@ class ProfileViewController: UITableViewController {
     }
 
     private func openMyFeed() {
-        let viewController = MyFeedViewController(title: Localizations.myPosts)
+        let viewController = UserFeedViewController(userId: MainAppContext.shared.userData.userId)
         viewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(viewController, animated: true)
     }
@@ -212,11 +206,5 @@ class ProfileViewController: UITableViewController {
         viewController.hidesBottomBarWhenPushed = true
         viewController.title = Localizations.developerMenu
         navigationController?.pushViewController(viewController, animated: true)
-    }
-
-    @objc private func presentProfileEditScreen() {
-        var profileEditView = ProfileEditView()
-        profileEditView.dismiss = { self.dismiss(animated: true) }
-        present(UIHostingController(rootView: NavigationView(content: { profileEditView } )), animated: true)
     }
 }

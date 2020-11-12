@@ -392,7 +392,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         guard MainAppContext.shared.contactStore.isContactInAddressBook(userId: userID) else {
             return
         }
-        let userViewController = UserFeedViewController(userID: userID)
+        let userViewController = UserFeedViewController(userId: userID)
         self.navigationController?.pushViewController(userViewController, animated: true)
     }
 

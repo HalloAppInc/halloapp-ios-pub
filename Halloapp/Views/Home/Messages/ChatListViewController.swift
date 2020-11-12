@@ -387,7 +387,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 
     private func openProfile(forUserId userId: UserID) {
-        let viewController = UserFeedViewController(userID: userId)
+        let viewController = UserFeedViewController(userId: userId)
         navigationController?.pushViewController(viewController, animated: true)
     }
 }
