@@ -33,6 +33,10 @@ private extension Localizations {
     static var commentIsBeingDeleted: String {
         NSLocalizedString("comment.deleting", value: "Deleting comment", comment: "Text displayed in place of a comment that is currently being deleted.")
     }
+
+    static var posting: String {
+        NSLocalizedString("comment.posting", value: "Posting...", comment: "Text displayed in place of comment timestamp while comment is being posted.")
+    }
 }
 
 class CommentView: UIView {
@@ -45,12 +49,6 @@ class CommentView: UIView {
     var isReplyButtonVisible: Bool = true {
         didSet {
             replyButton.alpha = isReplyButtonVisible ? 1 : 0
-        }
-    }
-
-    var isActivityIndicatorViewVisible: Bool = false {
-        didSet {
-            setActivityIndicatorViewVisible(isActivityIndicatorViewVisible)
         }
     }
 
@@ -175,8 +173,14 @@ class CommentView: UIView {
         attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
 
         textLabel.attributedText = attributedText
-        timestampLabel.text = comment.timestamp.feedTimestamp()
         isReplyButtonVisible = comment.isPosted
+        switch comment.status {
+        case .sending:
+            timestampLabel.text = Localizations.posting
+
+        default:
+            timestampLabel.text = comment.timestamp.feedTimestamp()
+        }
 
         let isRootComment = comment.parent == nil
         profilePictureWidth.constant = isRootComment ? LayoutConstants.profilePictureSizeNormal : LayoutConstants.profilePictureSizeSmall
@@ -198,37 +202,6 @@ class CommentView: UIView {
         }
         
         profilePictureButton.avatarView.configure(with: comment.userId, using: MainAppContext.shared.avatarStore)
-    }
-
-    // MARK: Activity Indicator
-
-    private var activityIndicatorView: UIActivityIndicatorView!
-
-    private func setActivityIndicatorViewVisible(_ visible: Bool) {
-        bottomRow.alpha = visible ? 0 : 1
-        guard visible != (activityIndicatorView?.isAnimating ?? false) else {
-            return
-        }
-        if visible {
-            if activityIndicatorView == nil {
-                let activityIndicatorView = UIActivityIndicatorView(style: .medium)
-                activityIndicatorView.translatesAutoresizingMaskIntoConstraints = false
-                vStack.addSubview(activityIndicatorView)
-                vStack.addConstraints([
-                    activityIndicatorView.leadingAnchor.constraint(equalTo: timestampLabel.leadingAnchor),
-                    activityIndicatorView.topAnchor.constraint(equalTo: timestampLabel.topAnchor),
-                    activityIndicatorView.bottomAnchor.constraint(equalTo: timestampLabel.bottomAnchor)
-                ])
-                self.activityIndicatorView = activityIndicatorView
-            }
-            // It is necessary to restart animation if cell was off-screen.
-            activityIndicatorView?.startAnimating()
-        } else {
-            if let activityIndicatorView = activityIndicatorView {
-                activityIndicatorView.removeFromSuperview()
-                self.activityIndicatorView = nil
-            }
-        }
     }
 
 }

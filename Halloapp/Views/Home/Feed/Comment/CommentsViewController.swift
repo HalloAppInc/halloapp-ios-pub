@@ -857,26 +857,19 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
     func update(with comment: FeedPostComment) {
         commentId = comment.id
         commentView.updateWith(comment: comment)
-        switch comment.status {
-        case .sending, .retracting:
-            commentView.isActivityIndicatorViewVisible = true
-
-        case .sendError:
-            commentView.isActivityIndicatorViewVisible = false
-
-            guard accessoryView as? UIButton == nil else { break }
-            accessoryView = {
-                let button = UIButton(type: .system)
-                button.setImage(UIImage(systemName: "exclamationmark.circle"), for: .normal)
-                button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 6, bottom: 12, right: 6)
-                button.tintColor = .red
-                button.sizeToFit()
-                button.addTarget(self, action: #selector(retryButtonAction), for: .touchUpInside)
-                return button
-            }()
-
-        default:
-            commentView.isActivityIndicatorViewVisible = false
+        if comment.status == .sendError {
+            if accessoryView == nil {
+                accessoryView = {
+                    let button = UIButton(type: .system)
+                    button.setImage(UIImage(systemName: "exclamationmark.circle"), for: .normal)
+                    button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 6, bottom: 12, right: 6)
+                    button.tintColor = .red
+                    button.sizeToFit()
+                    button.addTarget(self, action: #selector(retryButtonAction), for: .touchUpInside)
+                    return button
+                }()
+            }
+        } else {
             accessoryView = nil
         }
     }
