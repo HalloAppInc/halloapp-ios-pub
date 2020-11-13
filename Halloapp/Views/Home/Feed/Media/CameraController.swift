@@ -30,22 +30,44 @@ enum CameraInitError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .initFailureBackCamera:
-            return NSLocalizedString("Cannot initialize the back camera", comment: "")
+            return NSLocalizedString("camera.init.error.1", value: "Cannot initialize the back camera", comment: "")
         case .initFailureFrontCamera:
-            return NSLocalizedString("Cannot initialize the front camera", comment: "")
+            return NSLocalizedString("camera.init.error.2", value: "Cannot initialize the front camera", comment: "")
         case .initFailureMicrophone:
-            return NSLocalizedString("Cannot initialize the microphone", comment: "")
+            return NSLocalizedString("camera.init.error.3", value: "Cannot initialize the microphone", comment: "")
         case .cannotAddBackInput:
-            return NSLocalizedString("Cannot acess back camera input", comment: "")
+            return NSLocalizedString("camera.init.error.4", value: "Cannot access back camera input", comment: "")
         case .cannotAddFrontInput:
-            return NSLocalizedString("Cannot acess front camera input", comment: "")
+            return NSLocalizedString("camera.init.error.5", value: "Cannot access front camera input", comment: "")
         case .cannotAddAudioInput:
-            return NSLocalizedString("Cannot acess audio input", comment: "")
+            return NSLocalizedString("camera.init.error.6", value: "Cannot access audio input", comment: "")
         case .cannotAddPhotoOutput:
-            return NSLocalizedString("Cannot capture photos", comment: "")
+            return NSLocalizedString("camera.init.error.7", value: "Cannot capture photos", comment: "")
         case .cannotAddMovieOutput:
-            return NSLocalizedString("Cannot capture movies", comment: "")
+            return NSLocalizedString("camera.init.error.8", value: "Cannot capture movies", comment: "")
         }
+    }
+}
+
+private extension Localizations {
+
+    static var cameraAccessPrompt: String {
+        NSLocalizedString("media.camera.access.request",
+                          value: "HalloApp does not have access to your camera. To enable access, tap Settings and turn on Camera",
+                          comment: "Alert asking to enable Camera permission after attempting to use in-app camera.")
+    }
+
+    static var microphoneAccessPromptTitle: String {
+        NSLocalizedString("media.mic.access.request.title",
+                          value: "Want Videos with Sound?",
+                          comment: "Alert asking to enable Microphone permission after attempting to use in-app camera.")
+    }
+
+    static var microphoneAccessPromptBody: String {
+        NSLocalizedString("media.mic.access.request.body",
+                          value: "To record videos with sound, HalloApp needs microphone access. To enable access, tap Settings and turn on Microphone.",
+                          comment: "Alert asking to enable Camera permission after attempting to use in-app camera.")
+
     }
 }
 
@@ -166,21 +188,22 @@ class CameraController: UIViewController {
         }
     }
 
-    private func showPermissionDeniedAlert(title: String, message: String) {
+    private func showPermissionDeniedAlert(title: String, message: String?) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { [weak self] _ in
-            UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: { [weak self] _ in
             self?.cameraDelegate.goBack()
         }))
-        alert.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel, handler: { [weak self] _ in
+        alert.addAction(UIAlertAction(title: Localizations.settingsAppName, style: .default, handler: { [weak self] _ in
+            UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
             self?.cameraDelegate.goBack()
         }))
         present(alert, animated: true)
     }
 
     private func showCaptureSessionSetupErrorAlert(error: Error) {
+        let title = NSLocalizedString("camera.init.error.title", value: "Initialization Error", comment: "Title for a popup alerting about camera initialization error.")
         let message = (error as? CameraInitError)?.localizedDescription
-        let alert = UIAlertController(title: "Initialization Error", message: message, preferredStyle: .alert)
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default, handler: { [weak self] _ in
             self?.cameraDelegate.goBack()
         }))
@@ -194,7 +217,7 @@ class CameraController: UIViewController {
             if videoGranted {
                 self.checkAudioPermissions()
             } else {
-                self.showPermissionDeniedAlert(title: "Camera Access Denied", message: "Please grant Camera access from Settings")
+                self.showPermissionDeniedAlert(title: Localizations.cameraAccessPrompt, message: nil)
             }
         }
     }
@@ -206,7 +229,8 @@ class CameraController: UIViewController {
             if audioGranted {
                 self.setupAndStartCaptureSession()
             } else {
-                self.showPermissionDeniedAlert(title: "Microphone Access Denied", message: "Please grant Microphone access from Settings")
+                self.showPermissionDeniedAlert(title: Localizations.microphoneAccessPromptTitle,
+                                               message: Localizations.microphoneAccessPromptBody)
             }
         }
     }

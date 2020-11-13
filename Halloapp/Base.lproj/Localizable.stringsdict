@@ -198,5 +198,21 @@
 			<string>are typing...</string>
 		</dict>
 	</dict>
+	<key>media.prepare.failed.n.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@mediaCount@</string>
+		<key>mediaCount</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Failed to prepare media. Please try again or select a different photo / video.</string>
+			<key>other</key>
+			<string>Failed to prepare %d media items. Please try again or select a different photo / video.</string>
+		</dict>
+	</dict>
 </dict>
 </plist>

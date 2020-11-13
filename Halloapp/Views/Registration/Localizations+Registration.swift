@@ -17,7 +17,7 @@ extension Localizations {
     }
 
     static var registrationNamePlaceholder: String {
-        NSLocalizedString("registration.nameEntry.placeholder", value: "Your name", comment: "Placeholder text for name entry")
+        NSLocalizedString("registration.nameEntry.placeholder", value: "Your Name", comment: "Placeholder text for name entry")
     }
 
     static var registrationPhoneEntryPlaceholder: String {
@@ -25,11 +25,11 @@ extension Localizations {
     }
 
     static var registrationInviteOnlyTitle: String {
-        NSLocalizedString("Shucks!", comment: "Title for popup that appears when user tries to register uninvited number")
+        NSLocalizedString("registration.shucks", value: "Shucks!", comment: "Title for popup that appears when user tries to register uninvited number")
     }
 
     static var registrationInviteOnlyText: String {
-        NSLocalizedString("We are currently invite only. If you have a friend family member who uses HalloApp, ask them to invite you using your phone number.", comment: "Popup that appears when user tries to register uninvited number")
+        NSLocalizedString("registration.invite.only", value: "We are currently invite only. If you have a friend family member who uses HalloApp, ask them to invite you using your phone number.", comment: "Popup that appears when user tries to register uninvited number")
     }
 
     static var registrationCodeDisclaimer: String {
@@ -37,7 +37,7 @@ extension Localizations {
     }
 
     static var registrationCodeResend: String {
-        NSLocalizedString("registration.code.resend", value: "Resend code", comment: "Button label to resend verification code")
+        NSLocalizedString("registration.code.resend", value: "Resend Code", comment: "Button label to resend verification code")
     }
 
     static var registrationCodeIncorrect: String {

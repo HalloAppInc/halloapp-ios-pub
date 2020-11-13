@@ -40,6 +40,22 @@ struct NavigationBarState {
     var backgroundColor: UIColor?
 }
 
+private extension Localizations {
+
+    static var writeDescription: String {
+        NSLocalizedString("composer.placeholder.media.description", value: "Write a description", comment: "Placeholder text for media caption field in post composer.")
+    }
+
+    static var writePost: String {
+        NSLocalizedString("composer.placeholder.text.post", value: "Write a post", comment: "Placeholder text in text post composer screen.")
+    }
+
+    static func mediaPrepareFailed(_ mediaCount: Int) -> String {
+        let format = NSLocalizedString("media.prepare.failed.n.count", comment: "Error text displayed in post composer when some of the media selected couldn't be sent.")
+        return String.localizedStringWithFormat(format, mediaCount)
+    }
+}
+
 class PostComposerViewController: UIViewController {
     enum TitleMode {
         case post
@@ -499,7 +515,7 @@ fileprivate struct PostComposerView: View {
     var postTextView: some View {
         ZStack (alignment: .topLeading) {
             if (inputToPost.value.text.isEmpty) {
-                Text(mediaCount > 0 ? "Write a description" : "Write a post")
+                Text(mediaCount > 0 ? Localizations.writeDescription : Localizations.writePost)
                     .font(Font(PostComposerLayoutConstants.getFontSize(
                         textSize: inputToPost.value.text.count, isPostWithMedia: mediaCount > 0)))
                     .foregroundColor(Color.primary.opacity(0.5))
@@ -535,16 +551,12 @@ fileprivate struct PostComposerView: View {
                                 .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
                                 .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
 
-                                Group {
-                                    if self.mediaState.numberOfFailedItems > 1 {
-                                        Text("Failed to prepare \(self.mediaState.numberOfFailedItems) media items. Please try again or select a different photo / video.")
-                                    } else if self.mediaState.numberOfFailedItems > 0 {
-                                        Text("Failed to prepare media. Please try again or select a different photo / video.")
-                                    }
+                                if self.mediaState.numberOfFailedItems > 0 {
+                                    Text(Localizations.mediaPrepareFailed(self.mediaState.numberOfFailedItems))
+                                        .multilineTextAlignment(.center)
+                                        .foregroundColor(.red)
+                                        .padding(.horizontal)
                                 }
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.red)
-                                .padding(.horizontal)
                             } else {
                                 self.postTextView
                             }

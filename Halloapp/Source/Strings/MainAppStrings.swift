@@ -80,4 +80,8 @@ extension Localizations {
         "Invite friends & family"
     }
 
+    static var settingsAppName: String {
+        NSLocalizedString("app.ios.settings", value: "Settings", comment: "Translation of iPhone settings app.")
+    }
+
 }

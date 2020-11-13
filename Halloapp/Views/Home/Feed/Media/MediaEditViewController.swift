@@ -877,6 +877,33 @@ fileprivate struct CropImage: View {
     }
 }
 
+private extension Localizations {
+
+    static var voiceOverButtonClose: String {
+        NSLocalizedString("media.voiceover.button.close", value: "Close", comment: "Accessibility label for X (Close) button in media editor.")
+    }
+
+    static var voiceOverButtonRotate: String {
+        NSLocalizedString("media.voiceover.button.rotate", value: "Rotate", comment: "Accessibility label for a button in media composer. Refers to photo / video editing action.")
+    }
+
+    static var voiceOverButtonFlip: String {
+        NSLocalizedString("media.voiceover.button.flip", value: "Flip", comment: "Accessibility label for a button in media composer. Refers to photo / video editing action.")
+    }
+
+    static var discardConfirmationPrompt: String {
+        NSLocalizedString("media.discard.confirmation", value: "Would you like to discard your edits?", comment: "Confirmation prompt in media composer.")
+    }
+
+    static var buttonDiscard: String {
+        NSLocalizedString("media.button.discard", value: "Discard", comment: "Button title. Refers to discarding photo/video edits in media composer.")
+    }
+
+    static var buttonReset: String {
+        NSLocalizedString("media.button.reset", value: "Reset", comment: "Button title. Refers to resetting photo / video to original version.")
+    }
+}
+
 fileprivate struct MediaEditView : View {
     let cropToCircle: Bool
     @State var media: [MediaEdit]
@@ -891,14 +918,14 @@ fileprivate struct MediaEditView : View {
                 Image(systemName: "xmark")
                     .foregroundColor(.white)
                     .font(.system(size: 22, weight: .medium))
-                    .accessibility(label: Text("Close"))
+                    .accessibility(label: Text(Localizations.voiceOverButtonClose))
                     .padding()
             }
             .actionSheet(isPresented: $showDiscardSheet) {
                 ActionSheet(
-                    title: Text("Would you like to discard your edits?"),
+                    title: Text(Localizations.discardConfirmationPrompt),
                     message: nil,
-                    buttons: [.destructive(Text("Discard")) { self.complete?([], -1, true) }, .cancel()]
+                    buttons: [.destructive(Text(Localizations.buttonDiscard)) { self.complete?([], -1, true) }, .cancel()]
                 )
             }
             
@@ -909,7 +936,7 @@ fileprivate struct MediaEditView : View {
                     .renderingMode(.template)
                     .foregroundColor(.white)
                     .imageScale(.large)
-                    .accessibility(label: Text("Rotate"))
+                    .accessibility(label: Text(Localizations.voiceOverButtonRotate))
                     .padding()
             }
             
@@ -918,7 +945,7 @@ fileprivate struct MediaEditView : View {
                     .renderingMode(.template)
                     .foregroundColor(.white)
                     .imageScale(.large)
-                    .accessibility(label: Text("Flip"))
+                    .accessibility(label: Text(Localizations.voiceOverButtonFlip))
                     .padding()
             }
         }
@@ -930,7 +957,7 @@ fileprivate struct MediaEditView : View {
                 .frame(width: 40)
 
             Button(action: { self.selected.reset() }) {
-                Text("Reset")
+                Text(Localizations.buttonReset)
                     .foregroundColor(.white)
                     .padding()
             }
@@ -941,7 +968,7 @@ fileprivate struct MediaEditView : View {
                 guard let index = self.media.firstIndex(where: { $0 === self.selected }) else { return }
                 self.complete?(self.media, index, false)
             }) {
-                Text("Done")
+                Text(Localizations.buttonDone)
                     .foregroundColor(.blue)
                     .fontWeight(.medium)
                     .padding()

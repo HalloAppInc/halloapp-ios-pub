@@ -13,6 +13,13 @@ import UIKit
 
 typealias MediaAlbumsViewControllerCallback = (MediaAlbumsViewController, PHAssetCollection?, Bool) -> Void
 
+private extension Localizations {
+
+    static var albums: String {
+        NSLocalizedString("media.albums", value: "Albums", comment: "Refers to albums in Photo Library.")
+    }
+}
+
 class MediaAlbumsViewController: UIViewController {
     
     private let didFinish: MediaAlbumsViewControllerCallback
@@ -103,7 +110,7 @@ fileprivate struct AlbumsView: View {
                 Spacer()
             }
             
-            Text("Albums")
+            Text(Localizations.albums)
                 .font(.system(size: 20, weight: .medium))
         }
     }

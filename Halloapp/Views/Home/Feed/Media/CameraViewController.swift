@@ -131,7 +131,7 @@ class CameraViewController: UIViewController {
         if orientation.isLandscape || orientation == .portraitUpsideDown {
             navigationItem.title = nil
         } else {
-            navigationItem.title = "Camera"
+            navigationItem.title = NSLocalizedString("title.camera", value: "Camera", comment: "Screen title")
         }
     }
 

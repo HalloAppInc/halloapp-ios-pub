@@ -352,15 +352,25 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
         }
     }
 
-    func showReplyPanel(with contactName: String) {
-        let formatString = "Replying to <$author$>"
-        let parameterRange = (formatString as NSString).range(of: "<$author$>")
+    // If `contactName` is nil - replying to myself.
+    func showReplyPanel(with contactName: String?) {
+        let formatString: String
+        if contactName != nil {
+            formatString = NSLocalizedString("comment.replying.myself", value: "Replying to %@",
+                                             comment: "Text in the reply panel about keyboard. Reply refers to replying to someone's feed post comment.")
+        } else {
+            formatString = NSLocalizedString("comment.replying.myself", value: "Replying to myself",
+                                             comment: "Text in the reply panel about keyboard. Reply refers to replying to user's own feed post comment.")
+        }
 
         let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
-        let semiboldFont = UIFont.systemFont(ofSize: baseFont.pointSize, weight: .semibold)
         let attributedText = NSMutableAttributedString(string: formatString, attributes: [ .font: baseFont ])
-        let author = NSAttributedString(string: contactName, attributes: [ .font: semiboldFont ])
-        attributedText.replaceCharacters(in: parameterRange, with: author)
+        if let contactName = contactName {
+            let parameterRange = (formatString as NSString).range(of: "%@")
+            let semiboldFont = UIFont.systemFont(ofSize: baseFont.pointSize, weight: .semibold)
+            let author = NSAttributedString(string: contactName, attributes: [ .font: semiboldFont ])
+            attributedText.replaceCharacters(in: parameterRange, with: author)
+        }
         attributedText.addAttribute(.foregroundColor, value: UIColor(white: 1, alpha: 0.8), range: NSRange(location: 0, length: attributedText.length))
         self.contactNameLabel.attributedText = attributedText
         if self.vStack.arrangedSubviews.contains(self.replyContextPanel) {
