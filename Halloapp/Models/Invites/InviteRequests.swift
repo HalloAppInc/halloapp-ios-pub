@@ -9,24 +9,6 @@
 import Core
 import XMPPFramework
 
-fileprivate struct XMPPConstants {
-    static let xmlns = "halloapp:invites"
-
-    struct Elements {
-        static let invites = "invites"
-        static let invite = "invite"
-    }
-
-    struct Attributes {
-        static let invitesLeft = "invites_left"
-        static let timeUntilRefresh = "time_until_refresh"
-
-        static let phone = "phone"
-        static let result = "result"
-        static let reason = "reason"
-    }
-}
-
 typealias InviteResponse = (results: [String: InviteResult], count: Int, refreshDate: Date)
 
 enum InviteResult {
