@@ -10,6 +10,15 @@ import Core
 import CoreData
 import UIKit
 
+private extension Localizations {
+
+    static var alreadyHalloAppUser: String {
+        NSLocalizedString("invite.already.halloapp.user",
+                          value: "Already a HalloApp user",
+                          comment: "Displayed below contact name in contact list that is displayed when inviting someone to HalloApp.")
+    }
+}
+
 private extension ContactTableViewCell {
 
     func configure(with contact: ABContact) {
@@ -19,7 +28,7 @@ private extension ContactTableViewCell {
         selectionStyle = isUserAlready ? .none : .default
         nameLabel.text = contact.fullName
         nameLabel.textColor = isUserAlready ? .secondaryLabel : .label
-        subtitleLabel.text = isUserAlready ? "Already a HalloApp user" : contact.phoneNumber
+        subtitleLabel.text = isUserAlready ? Localizations.alreadyHalloAppUser : contact.phoneNumber?.formattedPhoneNumber
     }
 }
 

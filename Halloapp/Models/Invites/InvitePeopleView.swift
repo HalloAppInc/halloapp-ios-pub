@@ -9,6 +9,60 @@
 import Core
 import SwiftUI
 
+private extension Localizations {
+
+    static var pleaseWait: String {
+        NSLocalizedString("invite.please.wait", value: "Please wait...", comment: "Displayed white user is inviting someone.")
+    }
+
+    static var inviteLoading: String {
+        NSLocalizedString("invite.loading", value: "Loading...", comment: "Displayed when app is checking server for available invites.")
+    }
+
+    static func outOfInvitesWith(date: Date) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.timeStyle = .short
+        dateFormatter.dateStyle = .medium
+        let format = NSLocalizedString("invite.out.of.invites.w.date",
+                                       value: "You're out of invites. Please check back after %@",
+                                       comment: "Displayed when user does not have any invites left. Parameter is date.")
+        return String(format: format, dateFormatter.string(from: date))
+    }
+
+    static var titleInviteFriends: LocalizedStringKey {
+        LocalizedStringKey(NSLocalizedString("invite.friends.title", value: "Invite Friends & Family", comment: "Title for the screen that allows to select contact to invite."))
+    }
+
+    static var buttonRedeem: String {
+        NSLocalizedString("invite.button.redeem", value: "Redeem", comment: "Button title. Refers to redeeming an invite to use HalloApp.")
+    }
+
+    static func redeemPrompt(contactName: String) -> String {
+        let format = NSLocalizedString("invite.redeem.prompt",
+                                       value: "You are about to redeem one invite for %@",
+                                       comment: "Confirmation prompt when redeeming an invite for someone.")
+        return String(format: format, contactName)
+    }
+
+    static var inviteErrorTitle: String {
+        NSLocalizedString("invite.error.alert.title",
+                          value: "Could not invite",
+                          comment: "Title of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp.")
+    }
+
+    static var inviteErrorMessage: String {
+        NSLocalizedString("invite.error.alert.message",
+                          value: "Something went wrong. Please try again later.",
+                          comment: "Body of the alert popup that is displayed when something went wrong with inviting a contact to HalloApp.")
+    }
+
+    static var inviteText: String {
+        NSLocalizedString("invite.text",
+                          value: "Join me on HalloApp – a simple, private, and secure way to stay in touch with friends and family. Get it at https://halloapp.com/dl",
+                          comment: "Text of invitation to join HalloApp.")
+    }
+}
+
 private struct InvitePeopleTableView: UIViewControllerRepresentable {
 
     typealias UIViewControllerType = InvitePeopleTableViewController
@@ -52,13 +106,6 @@ struct InvitePeopleView: View {
 
     let dismiss: () -> ()
 
-    private let dateFormatter: DateFormatter = {
-        let dateFormatter = DateFormatter()
-        dateFormatter.timeStyle = .short
-        dateFormatter.dateStyle = .medium
-        return dateFormatter
-    }()
-
     var body: some View {
         Group {
             if inviteManager.isDataCurrent && inviteManager.numberOfInvitesAvailable > 0 {
@@ -68,17 +115,17 @@ struct InvitePeopleView: View {
                 }
                 .disabled(self.inviteManager.redeemInProgress)
                 .blur(radius: self.inviteManager.redeemInProgress ? 4 : 0)
-                .overlay(Text("Please wait")
+                .overlay(Text(Localizations.pleaseWait)
                     .padding(.horizontal)
                     .opacity(self.inviteManager.redeemInProgress ? 1 : 0)
                 )
             } else if inviteManager.isDataCurrent {
-                Text("You're out of invites. Please check back after \(self.dateFormatter.string(from: inviteManager.nextRefreshDate!))")
+                Text(Localizations.outOfInvitesWith(date: inviteManager.nextRefreshDate!))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                     .frame(maxHeight: .infinity)
             } else {
-                Text("Loading...")
+                Text(Localizations.inviteLoading)
                     .padding(.horizontal)
                     .frame(maxHeight: .infinity)
             }
@@ -87,30 +134,33 @@ struct InvitePeopleView: View {
         .foregroundColor(.secondary)
         .background(Color.feedBackground)
         .edgesIgnoringSafeArea(.bottom)
-        .navigationBarTitle("Invite Friends", displayMode: .inline)
+        .navigationBarTitle(Localizations.titleInviteFriends, displayMode: .inline)
         .navigationBarItems(leading: Button(action: { self.dismiss() }) {
             Image("NavbarClose").renderingMode(.template)
         })
         .actionSheet(isPresented: $isActionSheetPresented) {
-            ActionSheet(title: Text("You are about to redeem one invite for \(self.inviteManager.contactToInvite!.fullName!)"),
-                        message: nil,
-                        buttons: [
-                .default(Text("Redeem")) {
-                    self.inviteManager.redeemInviteForSelectedContact(presentErrorAlert: self.$isRedeemErrorAlertPresented,
-                                                                      presentShareSheet: self.$isShareSheetPresented)
-                },
-                .cancel() {
-                    self.inviteManager.contactToInvite = nil
-                }
-            ])
+            ActionSheet(
+                title: Text(Localizations.redeemPrompt(contactName: self.inviteManager.contactToInvite!.fullName!)),
+                message: nil,
+                buttons: [
+                    .default(Text(Localizations.buttonRedeem)) {
+                        self.inviteManager.redeemInviteForSelectedContact(presentErrorAlert: self.$isRedeemErrorAlertPresented,
+                                                                          presentShareSheet: self.$isShareSheetPresented)
+                    },
+                    .cancel() {
+                        self.inviteManager.contactToInvite = nil
+                    }
+                ])
         }
         .alert(isPresented: self.$isRedeemErrorAlertPresented) {
-            Alert(title: Text("Could not invite"), message: Text("Something went wrong. Please try again later."), dismissButton: .cancel(Text(Localizations.buttonOK)))
+            Alert(title: Text(Localizations.inviteErrorTitle),
+                  message: Text(Localizations.inviteErrorMessage),
+                  dismissButton: .cancel(Text(Localizations.buttonOK)))
         }
         .sheet(isPresented: self.$isShareSheetPresented, onDismiss: {
             self.inviteManager.contactToInvite = nil
         }) {
-            ActivityView(activityItems: [ "Join me on HalloApp – a simple, private, and secure way to stay in touch with friends and family. Get it at https://halloapp.com/dl" ])
+            ActivityView(activityItems: [ Localizations.inviteText ])
         }
         .onDisappear {
             self.inviteManager.contactToInvite = nil
