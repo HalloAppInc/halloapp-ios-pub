@@ -464,6 +464,9 @@
 		76DF9FF52412E6E700F49CA4 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
 		76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPContactSyncRequest.swift; sourceTree = "<group>"; };
 		76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileHeaderViewController.swift; path = Halloapp/Views/Profile/ProfileHeaderViewController.swift; sourceTree = SOURCE_ROOT; };
+		76E81D24255E482E0068CD62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		76E81D26255E48570068CD62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		76E81D27255E485F0068CD62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76F43F2D2489BD8900D47920 /* Notification Service Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Notification Service Extension.entitlements"; sourceTree = "<group>"; };
 		76FE37EC2523EC9600372FB1 /* ContactPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContactPickerViewController.swift; path = HalloApp/Components/Views/ContactPickerViewController.swift; sourceTree = SOURCE_ROOT; };
 		8339060CD4B90E0C534CA418 /* Pods-HalloApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.debug.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.debug.xcconfig"; sourceTree = "<group>"; };
@@ -1919,6 +1922,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				7688FA3F25489E26006B86B3 /* ru */,
+				76E81D27255E485F0068CD62 /* en */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -1927,6 +1931,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				7688FA4225489E26006B86B3 /* ru */,
+				76E81D26255E48570068CD62 /* en */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -1944,6 +1949,7 @@
 			isa = PBXVariantGroup;
 			children = (
 				76D566E92550D14900E57185 /* ru */,
+				76E81D24255E482E0068CD62 /* en */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
