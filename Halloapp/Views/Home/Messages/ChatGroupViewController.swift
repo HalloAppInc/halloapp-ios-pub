@@ -776,8 +776,10 @@ extension ChatGroupViewController: ChatInputViewDelegate {
         }
     }
     
-    // TODO: move chatInputViewCloseQuotePanel to a separate protocol
     func chatInputViewCloseQuotePanel(_ inputView: ChatInputView) {
+        chatReplyMessageID = nil
+        chatReplyMessageSenderID = nil
+        chatReplyMessageMediaIndex = 0
     }
     
     func chatInputView(_ inputView: ChatInputView, isTyping: Bool) {
