@@ -156,11 +156,16 @@ fileprivate struct CameraView: View {
     let didPickVideo: DidPickVideoCallback
     let goBack: () -> Void
     let onOrientationChange: (UIDeviceOrientation) -> Void
+    let captureButtonFrame = CGRect(x: 0,
+                                    y: 0,
+                                    width: CameraViewLayoutConstants.captureButtonSize,
+                                    height: CameraViewLayoutConstants.captureButtonSize)
 
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject var cameraState = CameraStateModel()
     @ObservedObject var alertState = AlertStateModel()
     @State var captureButtonColor = Color.cameraButton
+    @State var captureIsPressed = false
 
     private let plainButtonStyle = PlainButtonStyle()
     private let orientationPublisher = NotificationCenter.default
@@ -205,14 +210,18 @@ fileprivate struct CameraView: View {
             }
             Spacer()
 
-            Button(action: self.captureOff) {
+            VStack() {
                 Circle()
                     .strokeBorder(self.captureButtonColor, lineWidth: CameraViewLayoutConstants.captureButtonStroke)
-                    .frame(width: CameraViewLayoutConstants.captureButtonSize, height: CameraViewLayoutConstants.captureButtonSize)
+                    .frame(width: captureButtonFrame.width, height: captureButtonFrame.height)
             }
-            .buttonStyle(self.plainButtonStyle)
+            .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local).onChanged { _ in
+                self.capturePressed()
+            }.onEnded { value in
+                self.captureReleased(isInsideButton: captureButtonFrame.contains(value.location))
+            })
             .simultaneousGesture(LongPressGesture(minimumDuration: 0.5).onEnded { _ in
-                self.captureOn()
+                self.captureLongPressed()
             })
 
             Spacer()
@@ -264,22 +273,32 @@ fileprivate struct CameraView: View {
         }
     }
 
-    private func captureOn() {
-        cameraState.shouldRecordVideo = true
+    private func capturePressed() {
+        guard !captureIsPressed else { return }
+        captureIsPressed = true
+        withAnimation {
+            captureButtonColor = Color.cameraButton.opacity(0.7)
+        }
+    }
 
+    private func captureLongPressed() {
+        guard captureIsPressed else { return }
+        cameraState.shouldRecordVideo = true
         withAnimation {
             captureButtonColor = .lavaOrange
         }
     }
 
-    private func captureOff() {
-        if cameraState.shouldRecordVideo {
-            cameraState.shouldRecordVideo = false
+    private func captureReleased(isInsideButton: Bool) {
+        if captureIsPressed {
+            captureIsPressed = false
             withAnimation {
                 captureButtonColor = .cameraButton
             }
-
-        } else {
+        }
+        if cameraState.shouldRecordVideo {
+            cameraState.shouldRecordVideo = false
+        } else if isInsideButton {
             cameraState.shouldTakePhoto = true
         }
     }

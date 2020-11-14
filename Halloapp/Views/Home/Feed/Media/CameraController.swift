@@ -396,6 +396,7 @@ class CameraController: UIViewController {
 
     public func setOrientation(_ orientation: UIDeviceOrientation) {
         guard let captureSession = captureSession,
+            captureSession.isRunning,
             let photoOutput = photoOutput,
             let movieOutput = movieOutput else { return }
 
@@ -411,6 +412,7 @@ class CameraController: UIViewController {
 
     public func switchCamera(_ useBackCamera: Bool) {
         guard let captureSession = captureSession,
+            captureSession.isRunning,
             let backInput = backInput,
             let frontInput = frontInput,
             let photoOutput = photoOutput,
@@ -432,7 +434,9 @@ class CameraController: UIViewController {
     }
 
     public func focusOnPoint(_ point: CGPoint) {
-        guard let backCamera = backCamera,
+        guard let captureSession = captureSession,
+            captureSession.isRunning,
+            let backCamera = backCamera,
             let frontCamera = frontCamera,
             let previewLayer = previewLayer else { return }
 
@@ -442,7 +446,9 @@ class CameraController: UIViewController {
     }
 
     public func takePhoto(useFlashlight: Bool) {
-        guard let photoOutput = photoOutput else { return }
+        guard let captureSession = captureSession,
+            captureSession.isRunning,
+            let photoOutput = photoOutput else { return }
 
         DDLogInfo("CameraController/takePhoto")
         let photoSettings = AVCapturePhotoSettings.init(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])
@@ -453,7 +459,9 @@ class CameraController: UIViewController {
     }
 
     public func startRecordingVideo(_ to: URL) {
-        guard let movieOutput = movieOutput else { return }
+        guard let captureSession = captureSession,
+            captureSession.isRunning,
+            let movieOutput = movieOutput else { return }
 
         if !isRecordingMovie {
             isRecordingMovie = true
