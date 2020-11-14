@@ -51,6 +51,10 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         welcomeLabel.font = .systemFont(forTextStyle: .title1, weight: .medium)
 
         textFieldUserName.translatesAutoresizingMaskIntoConstraints = false
+        textFieldUserName.autocapitalizationType = .words
+        textFieldUserName.autocorrectionType = .no
+        textFieldUserName.returnKeyType = .next
+        textFieldUserName.textContentType = .name
         textFieldUserName.placeholder = Localizations.registrationNamePlaceholder
         textFieldUserName.addTarget(self, action: #selector(nameFieldAction), for: .primaryActionTriggered)
         textFieldUserName.addTarget(self, action: #selector(textFieldEditingChanged), for: .editingChanged)
@@ -87,6 +91,7 @@ class PhoneInputViewController: UIViewController, UITextFieldDelegate {
         textFieldPhoneNumber.withExamplePlaceholder = true
         textFieldPhoneNumber.withDefaultPickerUI = true
         textFieldPhoneNumber.delegate = self
+        textFieldPhoneNumber.textContentType = .telephoneNumber
         textFieldPhoneNumber.addTarget(self, action: #selector(textFieldEditingChanged), for: .editingChanged)
         textFieldPhoneNumber.addTarget(self, action: #selector(phoneNumberFieldAction), for: .primaryActionTriggered)
         textFieldPhoneNumber.translatesAutoresizingMaskIntoConstraints = false

@@ -82,6 +82,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         textFieldCode.translatesAutoresizingMaskIntoConstraints = false
         textFieldCode.font = .monospacedDigitSystemFont(ofSize: UIFontDescriptor.preferredFontDescriptor(withTextStyle: .title3).pointSize, weight: .regular)
         textFieldCode.delegate = self
+        textFieldCode.textContentType = .oneTimeCode
         textFieldCode.keyboardType = .numberPad
         textFieldCode.addTarget(self, action: #selector(textFieldCodeEditingChanged), for: .editingChanged)
 
