@@ -749,7 +749,9 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
             }
         }
         
-        if [.sentOut, .delivered, .seen].contains(chatMessage.outgoingStatus) {
+        // delete is not allowed for 1-1 msgs in .sentOut state for now as there's an issue where if target client is offline
+        // the retract msg will reach the client before the actual message, thus, retract won't be able to find a valid msg
+        if [.delivered, .seen].contains(chatMessage.outgoingStatus) {
             actionSheet.addAction(UIAlertAction(title: Localizations.messageDelete, style: .destructive) { [weak self] _ in
                 guard let self = self else { return }
                 guard let toUserID = self.fromUserId else { return }

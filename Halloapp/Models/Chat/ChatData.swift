@@ -139,7 +139,7 @@ class ChatData: ObservableObject {
                 }
             }
         )
-        
+                
         cancellableSet.insert(
             service.didGetPresence.sink { [weak self] xmppPresence in
                 DDLogInfo("ChatData/gotPresence \(xmppPresence)")
@@ -778,18 +778,15 @@ class ChatData: ObservableObject {
     
     // MARK: Helpers
     
-    private func isAtChatListView() -> Bool {
+    private func isAtChatListViewTop() -> Bool {
         guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return false }
         guard let topController = keyWindow.rootViewController else { return false }
         guard let homeView = topController as? UITabBarController else { return false }
         guard homeView.selectedIndex == 1 else { return false }
         guard let navigationController = homeView.selectedViewController as? UINavigationController else { return false }
-        
-        if (navigationController.topViewController as? ChatListViewController) != nil {
-            return true
-        }
-    
-        return false
+        guard let chatListViewController = navigationController.topViewController as? ChatListViewController else { return false }
+
+        return chatListViewController.isScrolledFromTop(by: 100)
     }
 }
 
@@ -1758,23 +1755,23 @@ extension ChatData {
         
         updateChatMessage(with: messageId) { [weak self] (chatMessage) in
             guard let self = self else { return }
+            guard ![.seen, .retracting, .retracted].contains(chatMessage.outgoingStatus) else { return }
             
-            if chatMessage.outgoingStatus != .seen {
-                if receiptType == .delivery {
-                    chatMessage.outgoingStatus = .delivered
-                    
-                    self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
-                        chatThread.lastMsgStatus = .delivered
-                    }
-                    
-                } else if receiptType == .read {
-                    chatMessage.outgoingStatus = .seen
-                    
-                    self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
-                        chatThread.lastMsgStatus = .seen
-                    }
+            if receiptType == .delivery {
+                chatMessage.outgoingStatus = .delivered
+                
+                self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .delivered
+                }
+                
+            } else if receiptType == .read {
+                chatMessage.outgoingStatus = .seen
+                
+                self.updateChatThreadStatus(type: .oneToOne, for: chatMessage.toUserId, messageId: chatMessage.id) { (chatThread) in
+                    chatThread.lastMsgStatus = .seen
                 }
             }
+            
         }
     }
     
@@ -1903,7 +1900,7 @@ extension ChatData {
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            guard !self.isAtChatListView() else { return }
+            guard !self.isAtChatListViewTop() else { return }
    
             switch UIApplication.shared.applicationState {
             case .background, .inactive:
@@ -2896,7 +2893,6 @@ extension ChatData {
         let messageId = receipt.itemId
         guard let receiptTimestamp = receipt.timestamp else { return }
         
-  
         if receipt.type == .delivery {
             updateChatGroupMessageInfo(with: messageId, userId: receipt.userId) { [weak self] (chatGroupMessageInfo) in
                 guard let self = self else { return }
@@ -2908,19 +2904,20 @@ extension ChatData {
                 
                 let msg = chatGroupMessageInfo.groupMessage
                 
-                if msg.outboundStatus != .seen && msg.outboundStatus != .delivered {
-                    let delivered = msg.orderedInfo.filter {
-                        $0.outboundStatus == .delivered || $0.outboundStatus == .seen
-                    }
+                guard ![.delivered, .seen, .retracting, .retracted].contains(msg.outboundStatus) else { return }
+                
+                let delivered = msg.orderedInfo.filter {
+                    $0.outboundStatus == .delivered || $0.outboundStatus == .seen
+                }
+                
+                if delivered.count == msg.orderedInfo.count {
+                    msg.outboundStatus = .delivered
                     
-                    if delivered.count == msg.orderedInfo.count {
-                        msg.outboundStatus = .delivered
-                        
-                        self.updateChatThreadStatus(type: .group, for: msg.groupId, messageId: msg.id) { (chatThread) in
-                            chatThread.lastMsgStatus = .delivered
-                        }
+                    self.updateChatThreadStatus(type: .group, for: msg.groupId, messageId: msg.id) { (chatThread) in
+                        chatThread.lastMsgStatus = .delivered
                     }
                 }
+                
             }
             
         } else if receipt.type == .read {
@@ -2933,19 +2930,21 @@ extension ChatData {
                 }
                 
                 let msg = chatGroupMessageInfo.groupMessage
-                if msg.outboundStatus != .seen {
-                    let seen = msg.orderedInfo.filter {
-                        $0.outboundStatus == .seen
-                    }
+                
+                guard ![.seen, .retracting, .retracted].contains(msg.outboundStatus) else { return }
+                
+                let seen = msg.orderedInfo.filter {
+                    $0.outboundStatus == .seen
+                }
+                
+                if seen.count == msg.orderedInfo.count {
+                    msg.outboundStatus = .seen
                     
-                    if seen.count == msg.orderedInfo.count {
-                        msg.outboundStatus = .seen
-                        
-                        self.updateChatThreadStatus(type: .group, for: msg.groupId, messageId: msg.id) { (chatThread) in
-                            chatThread.lastMsgStatus = .seen
-                        }
+                    self.updateChatThreadStatus(type: .group, for: msg.groupId, messageId: msg.id) { (chatThread) in
+                        chatThread.lastMsgStatus = .seen
                     }
                 }
+                
             }
             
         }
@@ -3285,7 +3284,7 @@ extension ChatData {
         DDLogDebug("ChatData/showGroupNotification/id \(xmppChatGroupMessage.id)")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            guard !self.isAtChatListView() else { return }
+            guard !self.isAtChatListViewTop() else { return }
             
             switch UIApplication.shared.applicationState {
             case .background, .inactive:

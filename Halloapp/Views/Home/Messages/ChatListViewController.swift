@@ -65,26 +65,24 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         searchController.searchBar.autocapitalizationType = .none
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.definesPresentationContext = true
-        
         searchController.hidesNavigationBarDuringPresentation = false
 
-        searchController.searchBar.tintColor = UIColor.systemBlue
-        
         // set bg first before cornerRadius due to ios 13 bug where corners get reset by bg
         searchController.searchBar.setSearchFieldBackgroundImage(UIImage(), for: .normal)
         
         searchController.searchBar.searchTextField.layer.cornerRadius = 20
         searchController.searchBar.searchTextField.layer.masksToBounds = true
+        searchController.searchBar.searchTextField.backgroundColor = .secondarySystemGroupedBackground
         
         searchController.searchBar.backgroundColor = .feedBackground
-        searchController.searchBar.searchTextField.backgroundColor = .secondarySystemGroupedBackground
+        searchController.searchBar.tintColor = UIColor.systemBlue
         
 //        searchController.searchBar.setImage(UIImage(systemName: "xmark"), for: .clear, state: .normal)
         searchController.searchBar.showsCancelButton = false
 
         navigationItem.searchController = searchController
-        
         navigationItem.hidesSearchBarWhenScrolling = false
+        
         searchBarHeight = searchController.searchBar.frame.height
         
         view.addSubview(tableView)
@@ -169,9 +167,22 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     func scrollToTop(animated: Bool) {
         guard let firstSection = fetchedResultsController?.sections?.first else { return }
         guard firstSection.numberOfObjects > 0 else { return }
- 
-        let offsetFromTop = CGPoint(x: 0, y: -(searchBarHeight + 84))
         
+        guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
+        let safeAreaHeight = keyWindow.safeAreaInsets.top
+        guard let navHeight = navigationController?.navigationBar.frame.size.height else { return }
+        
+        var searchHeight: CGFloat = 0
+        
+        // when search is visible navHeight contains the searchBarHeight already but not when table is scrolled up
+        if searchController.searchBar.frame.height == 0 {
+            searchHeight = searchBarHeight
+        }
+
+        let fromTop = CGFloat(safeAreaHeight) + CGFloat(navHeight) + CGFloat(searchHeight)
+        
+        let offsetFromTop = CGPoint(x: 0, y: -(fromTop))
+                
         if tableView.contentOffset.y <= offsetFromTop.y { return }
 
         // use row instead of offset to get to the top since table can change size after reloads
@@ -341,6 +352,10 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     private var lastCheckedForNewContacts: Date?
         
     // MARK: Helpers
+    
+    func isScrolledFromTop(by fromTop: CGFloat) -> Bool {
+        return tableView.contentOffset.y < fromTop
+    }
     
     private func populateWithSymmetricContacts() {
         var isTimeToCheck = true

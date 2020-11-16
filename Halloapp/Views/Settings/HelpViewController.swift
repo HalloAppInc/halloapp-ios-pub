@@ -180,11 +180,18 @@ private extension MFMailComposeViewController {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMdd_HHmm"
         let timeStr = formatter.string(from: Date())
+        let version = MainAppContext.appVersionForXMPP
+        let userID = MainAppContext.shared.userData.userId
 
         let vc = MFMailComposeViewController()
-        vc.setSubject("iOS Logs \(timeStr) [\(MainAppContext.appVersionForXMPP)]")
+        vc.setSubject("iOS Logs \(timeStr) [\(version)]")
         vc.setToRecipients(["iphone-support@halloapp.com"])
-        vc.setMessageBody("short description of issue (if needed): \n", isHTML:false)
+        
+        let formatString = NSLocalizedString("help.send.logs.email.body", value: "\n\n\nPlease leave feedback or a description of the issue in the space above. \n\nVersion %1@ - %2@", comment: "Text shown in the email body when sending logs from the help screen")
+        let localizedEmailStr = String(format: formatString, version, userID)
+        
+        vc.setMessageBody(localizedEmailStr, isHTML:false)
+        
         vc.mailComposeDelegate = delegate
 
         do {
