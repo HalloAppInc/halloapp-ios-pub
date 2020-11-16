@@ -112,17 +112,6 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
         stopAllVideoPlayback()
     }
 
-    func scrollToTop(animated: Bool) {
-        if tableView.tableHeaderView != nil {
-            tableView.setContentOffset(CGPoint(x: 0, y: -tableView.adjustedContentInset.top), animated: animated)
-            return
-        }
-        guard let firstSection = fetchedResultsController?.sections?.first else { return }
-        if firstSection.numberOfObjects > 0 {
-            tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: animated)
-        }
-    }
-
     // MARK: FeedTableViewController Customization
 
     public var fetchRequest: NSFetchRequest<FeedPost> {
@@ -387,6 +376,20 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
                 MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
                 UNUserNotificationCenter.current().removeDeliveredFeedNotifications(postId: feedPost.id)
             }
+        }
+    }
+}
+
+extension FeedTableViewController: UIViewControllerScrollsToTop {
+    
+    func scrollToTop(animated: Bool) {
+        if tableView.tableHeaderView != nil {
+            tableView.setContentOffset(CGPoint(x: 0, y: -tableView.adjustedContentInset.top), animated: animated)
+            return
+        }
+        guard let firstSection = fetchedResultsController?.sections?.first else { return }
+        if firstSection.numberOfObjects > 0 {
+            tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: animated)
         }
     }
 }

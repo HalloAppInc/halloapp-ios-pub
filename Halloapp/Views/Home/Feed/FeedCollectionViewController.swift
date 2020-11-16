@@ -116,17 +116,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         }
     }
 
-    func scrollToTop(animated: Bool) {
-//        if tableView.tableHeaderView != nil {
-//            tableView.setContentOffset(CGPoint(x: 0, y: -tableView.adjustedContentInset.top), animated: animated)
-//            return
-//        }
-        guard let firstSection = fetchedResultsController?.sections?.first else { return }
-        if firstSection.numberOfObjects > 0 {
-            collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: animated)
-        }
-    }
-
     // MARK: FeedCollectionViewController Customization
 
     public var fetchRequest: NSFetchRequest<FeedPost> {
@@ -296,6 +285,20 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
                 MainAppContext.shared.feedData.sendSeenReceiptIfNecessary(for: feedPost)
                 UNUserNotificationCenter.current().removeDeliveredFeedNotifications(postId: feedPost.id)
             }
+        }
+    }
+}
+
+extension FeedCollectionViewController: UIViewControllerScrollsToTop {
+    
+    func scrollToTop(animated: Bool) {
+//        if tableView.tableHeaderView != nil {
+//            tableView.setContentOffset(CGPoint(x: 0, y: -tableView.adjustedContentInset.top), animated: animated)
+//            return
+//        }
+        guard let firstSection = fetchedResultsController?.sections?.first else { return }
+        if firstSection.numberOfObjects > 0 {
+            collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: animated)
         }
     }
 }

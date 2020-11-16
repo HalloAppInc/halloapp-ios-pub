@@ -9,6 +9,11 @@
 import CocoaLumberjack
 import UIKit
 
+protocol UIViewControllerScrollsToTop {
+
+    func scrollToTop(animated: Bool)
+}
+
 extension UIViewController {
 
     func installLargeTitleUsingGothamFont() {

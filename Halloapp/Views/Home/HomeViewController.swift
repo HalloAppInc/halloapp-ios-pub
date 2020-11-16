@@ -178,12 +178,9 @@ extension HomeViewController: UITabBarControllerDelegate {
     func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
         // Tap on selected tab again to make it scroll to the top.
         if tabBarController.selectedViewController == viewController {
-            if let navigationController = viewController as? UINavigationController {
-                if let visibleViewController = navigationController.topViewController as? FeedTableViewController {
-                    visibleViewController.scrollToTop(animated: true)
-                } else if let visibleViewController = navigationController.topViewController as? ChatListViewController {
-                    visibleViewController.scrollToTop(animated: true)
-                }
+            if let navigationController = viewController as? UINavigationController,
+               let viewController = navigationController.topViewController as? UIViewControllerScrollsToTop {
+                viewController.scrollToTop(animated: true)
             }
         }
         return true

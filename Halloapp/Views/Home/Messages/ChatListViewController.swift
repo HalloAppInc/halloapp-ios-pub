@@ -163,38 +163,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             updateNavigationBarStyleUsing(scrollView: scrollView)
         }
     }
-    
-    func scrollToTop(animated: Bool) {
-        guard let firstSection = fetchedResultsController?.sections?.first else { return }
-        guard firstSection.numberOfObjects > 0 else { return }
-        
-        guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
-        let safeAreaHeight = keyWindow.safeAreaInsets.top
-        guard let navHeight = navigationController?.navigationBar.frame.size.height else { return }
-        
-        var searchHeight: CGFloat = 0
-        
-        // when search is visible navHeight contains the searchBarHeight already but not when table is scrolled up
-        if searchController.searchBar.frame.height == 0 {
-            searchHeight = searchBarHeight
-        }
 
-        let fromTop = CGFloat(safeAreaHeight) + CGFloat(navHeight) + CGFloat(searchHeight)
-        
-        let offsetFromTop = CGPoint(x: 0, y: -(fromTop))
-                
-        if tableView.contentOffset.y <= offsetFromTop.y { return }
-
-        // use row instead of offset to get to the top since table can change size after reloads
-        tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: animated)
-        
-        // after scrolling to the first row, move offset so the searchBar is shown
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            guard let self = self else { return }
-            self.tableView.setContentOffset(offsetFromTop, animated: animated)
-        }
-    }
-    
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         if (traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection)) {
             searchController.searchBar.layer.borderColor = UIColor.feedBackground.cgColor
@@ -423,6 +392,40 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     private func openProfile(forUserId userId: UserID) {
         let viewController = UserFeedViewController(userId: userId)
         navigationController?.pushViewController(viewController, animated: true)
+    }
+}
+
+extension ChatListViewController: UIViewControllerScrollsToTop {
+
+    func scrollToTop(animated: Bool) {
+        guard let firstSection = fetchedResultsController?.sections?.first else { return }
+        guard firstSection.numberOfObjects > 0 else { return }
+
+        guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
+        let safeAreaHeight = keyWindow.safeAreaInsets.top
+        guard let navHeight = navigationController?.navigationBar.frame.size.height else { return }
+
+        var searchHeight: CGFloat = 0
+
+        // when search is visible navHeight contains the searchBarHeight already but not when table is scrolled up
+        if searchController.searchBar.frame.height == 0 {
+            searchHeight = searchBarHeight
+        }
+
+        let fromTop = CGFloat(safeAreaHeight) + CGFloat(navHeight) + CGFloat(searchHeight)
+
+        let offsetFromTop = CGPoint(x: 0, y: -(fromTop))
+
+        if tableView.contentOffset.y <= offsetFromTop.y { return }
+
+        // use row instead of offset to get to the top since table can change size after reloads
+        tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: animated)
+
+        // after scrolling to the first row, move offset so the searchBar is shown
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            guard let self = self else { return }
+            self.tableView.setContentOffset(offsetFromTop, animated: animated)
+        }
     }
 }
 
