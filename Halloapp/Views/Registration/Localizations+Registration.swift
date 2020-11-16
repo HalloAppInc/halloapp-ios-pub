@@ -78,13 +78,7 @@ extension Localizations {
     static var registrationPrivacyModalContent: String {
         NSLocalizedString(
             "registration.privacy.content",
-            value: """
-• HalloApp only uses the phone number field to match you with your friends on HalloApp, and does not capture any additional data from your contact book.
-
-• We do not keep your phone number list on our servers, we only keep track of the phone numbers registered on HalloApp.
-
-• We match newly registered users via phone number hashing. Details on our algorithm can be found at halloapp.com/faq
-""",
+            value: "HalloApp only uses the phone number field to match you with your friends on HalloApp, and does not capture any additional data from your contact book.",
             comment: "Text for modal describing how we use contacts data")
     }
 }
