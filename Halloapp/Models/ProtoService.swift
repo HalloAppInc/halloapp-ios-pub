@@ -356,9 +356,13 @@ final class ProtoService: ProtoServiceCore {
                             keyStore.deleteMessageKeyBundles(for: userID)
                         }
                         DispatchQueue.main.async {
-                            if let silentChat = SilentChatMessage.forRerequest(incomingID: rerequest.id), silentChat.resendAttempts < 5 {
-                                DDLogInfo("Proto/didReceive/\(requestID)/rerequest/silent")
-                                self.sendSilentChatMessage(silentChat, encryption: AppContext.shared.encryptOperation(for: silentChat.toUserId)) { _ in }
+                            if let silentChat = SilentChatMessage.forRerequest(incomingID: rerequest.id) {
+                                if silentChat.resendAttempts < 5 {
+                                    DDLogInfo("Proto/didReceive/rerequest/silent/\(silentChat.id) resending")
+                                    self.sendSilentChatMessage(silentChat, encryption: AppContext.shared.encryptOperation(for: silentChat.toUserId)) { _ in }
+                                } else {
+                                    DDLogInfo("Proto/didReceive/rerequest/silent/\(silentChat.id) skipping (\(silentChat.resendAttempts) resends)")
+                                }
                                 self.sendAck(messageID: msg.id)
                             } else {
                                 DDLogInfo("Proto/didReceive/\(requestID)/rerequest/chat")
