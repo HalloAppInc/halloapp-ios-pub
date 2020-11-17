@@ -78,7 +78,7 @@ extension Localizations {
     static var registrationPrivacyModalContent: String {
         NSLocalizedString(
             "registration.privacy.content",
-            value: "HalloApp only uses the phone number field to match you with your friends on HalloApp, and does not capture any additional data from your contact book.",
+            value: "HalloApp only uses the phone number field to match you with your friends on HalloApp, and does not transmit any additional data from your contact book.",
             comment: "Text for modal describing how we use contacts data")
     }
 }
