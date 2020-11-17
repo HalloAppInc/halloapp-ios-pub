@@ -51,7 +51,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
         super.init()
 
-        configure(xmppStream: stream)
+        configure(stream: stream)
         stream.addDelegate(self, delegateQueue: DispatchQueue.main)
 
         // XMPP Modules
@@ -62,13 +62,12 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     // MARK: Connection management
 
-    open func configure(xmppStream: ProtoStream) {
+    open func configure(stream: ProtoStream) {
         stream.startTLSPolicy = .required
         stream.myJID = userData.userJID
         stream.protoService = self
 
-        let appVersion = AppContext.appVersionForXMPP
-        let userAgent = NSString(string: "HalloApp/iOS\(appVersion)")
+        let userAgent = NSString(string: AppContext.userAgent)
         stream.clientVersion = userAgent
     }
 

@@ -59,7 +59,7 @@ class HelpViewController: UITableViewController {
             let section = snapshot().sectionIdentifiers[section]
             if section == .two {
                 let formatString = NSLocalizedString("settings.app.version", value: "HalloApp Version %@", comment: "App version text in Profile > Help.")
-                return String(format: formatString, MainAppContext.appVersion)
+                return String(format: formatString, MainAppContext.appVersionForDisplay)
             }
             return nil
         }
@@ -180,7 +180,7 @@ private extension MFMailComposeViewController {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMdd_HHmm"
         let timeStr = formatter.string(from: Date())
-        let version = MainAppContext.appVersionForXMPP
+        let version = MainAppContext.appVersionForService
         let userID = MainAppContext.shared.userData.userId
 
         let vc = MFMailComposeViewController()

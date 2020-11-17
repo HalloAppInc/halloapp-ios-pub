@@ -16,12 +16,21 @@ protocol VerificationCodeService {
 
 final class VerificationCodeServiceSMS: VerificationCodeService {
 
+    init(hostName: String = "api.halloapp.net", userAgent: String = MainAppContext.userAgent) {
+        self.hostName = hostName
+        self.userAgent = userAgent
+    }
+
+    private let userAgent: String
+    private let hostName: String
+
     // MARK: Verification code requests
 
     func requestVerificationCode(for phoneNumber: String, completion: @escaping (Result<String, Error>) -> Void) {
-        var request = URLRequest(url: URL(string: "https://api.halloapp.net/api/registration/request_sms")!)
+        var request = URLRequest(url: URL(string: "https://\(hostName)/api/registration/request_sms")!)
         request.httpMethod = "POST"
         request.httpBody = try! JSONSerialization.data(withJSONObject: ["phone": phoneNumber])
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
         DDLogInfo("reg/request-sms/begin url=[\(request.url!)]  phone=[\(phoneNumber)]")
         let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
             if let error = error {
@@ -77,9 +86,10 @@ final class VerificationCodeServiceSMS: VerificationCodeService {
 
     func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, completion: @escaping (Result<(String, String), Error>) -> Void) {
         let json: [String : String] = [ "name": name, "phone": normalizedPhoneNumber, "code": verificationCode ]
-        var request = URLRequest(url: URL(string: "https://api.halloapp.net/api/registration/register")!)
+        var request = URLRequest(url: URL(string: "https://\(hostName)/api/registration/register")!)
         request.httpMethod = "POST"
         request.httpBody = try! JSONSerialization.data(withJSONObject: json, options: [])
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
         DDLogInfo("reg/validate-code/begin url=[\(request.url!)]  data=[\(json)]")
         let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
             if let error = error {

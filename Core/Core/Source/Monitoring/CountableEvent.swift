@@ -15,7 +15,7 @@ public class CountableEvent {
         namespace: String,
         metric: String,
         count: Int = 1,
-        appVersion: String = AppContext.appVersionForXMPP,
+        appVersion: String = AppContext.appVersionForService,
         extraDimensions: [String: String] = [:])
     {
         self.namespace = namespace

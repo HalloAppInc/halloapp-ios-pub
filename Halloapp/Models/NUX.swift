@@ -18,7 +18,7 @@ final class NUX {
         case feedPostWhoWillSee
     }
 
-    init(userDefaults: UserDefaults, appVersion: String = AppContext.appVersionForXMPP) {
+    init(userDefaults: UserDefaults, appVersion: String = AppContext.appVersionForService) {
         self.userDefaults = userDefaults
         self.appVersion = appVersion
         loadFromUserDefaults()

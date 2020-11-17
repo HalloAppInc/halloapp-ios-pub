@@ -27,7 +27,7 @@ open class AppContext {
     private static let keysDatabaseFilename = "keys.sqlite"
 
     // MARK: Global App Properties
-    public static let appVersion: String = {
+    public static let appVersionForDisplay: String = {
         guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
             return ""
         }
@@ -37,7 +37,7 @@ open class AppContext {
         return "\(version) (\(buildNumber))"
     }()
 
-    public static let appVersionForXMPP: String = {
+    public static let appVersionForService: String = {
         guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
             return ""
         }
@@ -46,6 +46,8 @@ open class AppContext {
         }
         return "\(version).\(buildNumber)"
     }()
+
+    public static let userAgent: String = { "HalloApp/iOS\(appVersionForService)" }()
 
     open var applicationIconBadgeNumber: Int {
         get { userDefaults.integer(forKey: "ApplicationIconBadgeNumber") }
