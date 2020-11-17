@@ -169,7 +169,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
                 payload: .silentChatStanza(silentStanza))
 
             guard let packetData = try? packet.serializedData() else {
-                AppContext.shared.eventMonitor.observe(.encryption(error: .other))
+                AppContext.shared.eventMonitor.observe(.encryption(error: .serialization))
                 DDLogError("ProtoServiceCore/sendSilentChatMessage/\(message.id)/error could not serialize chat message!")
                 completion(.failure(ProtoServiceCoreError.serialization))
                 return
@@ -414,32 +414,24 @@ extension ProtoServiceCore: CoreService {
             return
         }
 
-        encryption(messageData) { encryptedData in
-
-            var chat = Server_ChatStanza()
-            chat.payload = messageData
-
-            let includesEncryptedPayload: Bool
-
-            if let encryptedPayload = encryptedData.data {
-                chat.encPayload = encryptedPayload
-                includesEncryptedPayload = true
-            } else {
-                DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error encrypted data missing!")
-                includesEncryptedPayload = false
+        encryption(messageData) { result in
+            switch result {
+            case .success(let encryptedData):
+                var chat = Server_ChatStanza()
+                chat.payload = messageData
+                chat.encPayload = encryptedData.data
+                chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
+                if let publicKey = encryptedData.identityKey {
+                    chat.publicKey = publicKey
+                } else {
+                    DDLogInfo("ProtoServiceCore/makeChatStanza/\(message.id)/ skipping public key")
+                }
+                completion(chat, nil)
+            case .failure(let error):
+                var chat = Server_ChatStanza()
+                chat.payload = messageData
+                completion(chat, error)
             }
-
-            if let publicKey = encryptedData.identityKey {
-                chat.publicKey = publicKey
-            } else {
-                DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error public key missing!")
-            }
-
-            chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)
-
-            let encryptionError: EncryptionError? = includesEncryptedPayload ? nil : .other
-
-            completion(chat, encryptionError)
         }
     }
 
@@ -460,7 +452,7 @@ extension ProtoServiceCore: CoreService {
                 payload: .chatStanza(chat))
 
             guard let packetData = try? packet.serializedData() else {
-                AppContext.shared.eventMonitor.observe(.encryption(error: .other))
+                AppContext.shared.eventMonitor.observe(.encryption(error: .serialization))
                 DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
                 completion(.failure(ProtoServiceCoreError.serialization))
                 return

@@ -14,18 +14,29 @@ import Foundation
 import Sodium
 
 public enum DecryptionError: String, Error {
+    case aesError
     case deserialization
     case hmacMismatch
+    case invalidMessageKey
     case invalidPayload
     case keyGenerationFailure
+    case masterKeyComputation
+    case missingMessageKey
+    case missingOneTimeKey
     case missingPublicKey
+    case missingSignedPreKey
+    case missingUserKeys
     case plainTextMismatch = "plaintext mismatch"
     case ratchetFailure
-    case other = "decryption failure"
+    case x25519Conversion
 }
 
 public enum EncryptionError: String, Error {
-    case other = "encryption failed"
+    case aesError
+    case hmacError
+    case missingKeyBundle
+    case ratchetFailure
+    case serialization
 }
 
 open class KeyStore {
@@ -442,13 +453,15 @@ extension KeyStore {
         return keyBundle
     }
 
-    public func receiveSessionSetup(for userId: UserID, from encryptedPayload: Data, publicKey inboundIdentityPublicEdKey: Data, oneTimeKeyID: Int?) -> KeyBundle? {
+    public func receiveSessionSetup(for userId: UserID, from encryptedPayload: Data, publicKey inboundIdentityPublicEdKey: Data, oneTimeKeyID: Int?) -> Result<KeyBundle, DecryptionError> {
         DDLogInfo("KeyStore/receiveSessionSetup \(userId)")
         let sodium = Sodium()
 
         let inboundOneTimePreKeyId = oneTimeKeyID ?? -1
         
-        guard let x25519Key = sodium.sign.convertToX25519PublicKey(publicKey: [UInt8](inboundIdentityPublicEdKey)) else { return nil }
+        guard let x25519Key = sodium.sign.convertToX25519PublicKey(publicKey: [UInt8](inboundIdentityPublicEdKey)) else {
+            return .failure(.x25519Conversion)
+        }
         let I_initiator = Data(x25519Key)
         
         let inboundEphemeralPublicKey = encryptedPayload[0...31]
@@ -462,15 +475,19 @@ extension KeyStore {
         let inboundPreviousChainLengthInt = Int32(bigEndian: inboundPreviousChainLength.withUnsafeBytes { $0.load(as: Int32.self) })
         let inboundChainIndexInt = Int32(bigEndian: inboundChainIndex.withUnsafeBytes { $0.load(as: Int32.self) })
         
-        guard let userKeyBundle = self.keyBundle() else { return nil }
+        guard let userKeyBundle = self.keyBundle() else { return .failure(.missingUserKeys) }
         let signedPreKeys = userKeyBundle.signedPreKeys
-        guard let signedPreKey = signedPreKeys.first(where: {$0.id == 1}) else { return nil }
+        guard let signedPreKey = signedPreKeys.first(where: {$0.id == 1}) else { return .failure(.missingSignedPreKey) }
         
         var O_recipient: Data? = nil
         
         if inboundOneTimePreKeyId >= 0 {
-            guard let oneTimePreKeys = userKeyBundle.oneTimePreKeys else { return nil }
-            guard let oneTimePreKey = oneTimePreKeys.first(where: {$0.id == inboundOneTimePreKeyId}) else { return nil }
+            guard let oneTimePreKeys = userKeyBundle.oneTimePreKeys else {
+                return .failure(.missingOneTimeKey)
+            }
+            guard let oneTimePreKey = oneTimePreKeys.first(where: {$0.id == inboundOneTimePreKeyId}) else {
+                return .failure(.missingOneTimeKey)
+            }
             O_recipient = oneTimePreKey.privateKey
         }
         
@@ -483,9 +500,10 @@ extension KeyStore {
                                                initiatorEphemeralKey: E_initiator,
                                                recipientIdentityKey: I_recipient,
                                                recipientSignedPreKey: S_recipient,
-                                               recipientOneTimePreKey: O_recipient) else {
-                                                DDLogDebug("KeyStore/receiveSessionSetup/invalidMasterKey")
-                                                return nil
+                                               recipientOneTimePreKey: O_recipient) else
+        {
+            DDLogDebug("KeyStore/receiveSessionSetup/invalidMasterKey")
+            return .failure(.masterKeyComputation)
         }
         
         var rootKey = masterKey.rootKey
@@ -493,11 +511,13 @@ extension KeyStore {
         var outboundChainKey = masterKey.secondChainKey
         
         // generate new Ephemeral key and update root + outboundChainKey
-        guard let outboundEphemeralKeyPair = sodium.box.keyPair() else { return nil }
+        guard let outboundEphemeralKeyPair = sodium.box.keyPair() else { return .failure(.keyGenerationFailure) }
         let outboundEphemeralPrivateKey = Data(outboundEphemeralKeyPair.secretKey)
         let outboundEphemeralPublicKey = Data(outboundEphemeralKeyPair.publicKey)
         
-        guard let outboundAsymmetricRachet = self.asymmetricRachet(privateKey: Data(outboundEphemeralKeyPair.secretKey), publicKey: Data(inboundEphemeralPublicKey), rootKey: rootKey) else { return nil }
+        guard let outboundAsymmetricRachet = self.asymmetricRachet(privateKey: Data(outboundEphemeralKeyPair.secretKey), publicKey: Data(inboundEphemeralPublicKey), rootKey: rootKey) else {
+            return .failure(.ratchetFailure)
+        }
         rootKey = outboundAsymmetricRachet.updatedRootKey
         outboundChainKey = outboundAsymmetricRachet.updatedChainKey
         
@@ -548,10 +568,10 @@ extension KeyStore {
                                   outboundPreviousChainLength: 0,
                                   outboundChainIndex: 0)
         
-        return keyBundle
+        return .success(keyBundle)
     }
     
-    public func encryptMessage(for userId: String, unencrypted: Data, keyBundle: KeyBundle) -> Data? {
+    private func encryptMessage(for userId: String, unencrypted: Data, keyBundle: KeyBundle) -> Result<Data, EncryptionError> {
         DDLogInfo("KeyStore/encryptMessage/for \(userId)")
         
         // get outbound data
@@ -567,43 +587,43 @@ extension KeyStore {
         
         var messageKey: [UInt8] = []
         
-        guard let symmetricRachet = self.symmetricRachet(chainKey: outboundChainKey) else { return nil }
+        guard let symmetricRachet = self.symmetricRachet(chainKey: outboundChainKey) else { return .failure(.ratchetFailure) }
         messageKey = symmetricRachet.messageKey
         outboundChainKey = symmetricRachet.updatedChainKey
         
         let AESKey = Array(messageKey[0...31])
         let HMACKey = Array(messageKey[32...63])
         let IV = Array(messageKey[64...79])
-        
-        do {
-            let encrypted = try AES(key: AESKey, blockMode: CBC(iv: IV), padding: .pkcs7).encrypt(Array(unencrypted))
-            let HMAC = try! CryptoSwift.HMAC(key: HMACKey, variant: .sha256).authenticate([UInt8](encrypted))
-            
-            var data = outboundEphemeralPublicKey
-            data += outboundEphemeralKeyIdData
-            data += outboundPreviousChainLengthData
-            data += outboundChainIndexData
-            data += encrypted
-            data += HMAC
-            
-            DDLogDebug("KeyStore/encryptMessage/outboundEphemeralKey:            \([UInt8](outboundEphemeralPublicKey))")
-            DDLogDebug("KeyStore/encryptMessage/outboundEphemeralKeyIdData:      \([UInt8](outboundEphemeralKeyIdData))")
-            DDLogDebug("KeyStore/encryptMessage/outboundPreviousChainLengthData: \([UInt8](outboundPreviousChainLengthData))")
-            DDLogDebug("KeyStore/encryptMessage/outboundChainIndexData:          \([UInt8](outboundChainIndexData))")
-            
-            self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-                if let messageKeyBundle = self.messageKeyBundle(for: userId, in: managedObjectContext) {
-                    messageKeyBundle.outboundChainKey = Data(outboundChainKey)
-                    messageKeyBundle.outboundChainIndex = outboundChainIndex + 1
-                }
-                self.save(managedObjectContext)
-            }
-            
-            return data
-        } catch {
-            DDLogError("KeyStore/encryptMessage/error \(error)")
+
+        guard let encrypted = try? AES(key: AESKey, blockMode: CBC(iv: IV), padding: .pkcs7).encrypt(Array(unencrypted)) else {
+            return .failure(.aesError)
         }
-        return nil
+
+        guard let HMAC = try? CryptoSwift.HMAC(key: HMACKey, variant: .sha256).authenticate([UInt8](encrypted)) else {
+            return .failure(.hmacError)
+        }
+
+        var data = outboundEphemeralPublicKey
+        data += outboundEphemeralKeyIdData
+        data += outboundPreviousChainLengthData
+        data += outboundChainIndexData
+        data += encrypted
+        data += HMAC
+
+        DDLogDebug("KeyStore/encryptMessage/outboundEphemeralKey:            \([UInt8](outboundEphemeralPublicKey))")
+        DDLogDebug("KeyStore/encryptMessage/outboundEphemeralKeyIdData:      \([UInt8](outboundEphemeralKeyIdData))")
+        DDLogDebug("KeyStore/encryptMessage/outboundPreviousChainLengthData: \([UInt8](outboundPreviousChainLengthData))")
+        DDLogDebug("KeyStore/encryptMessage/outboundChainIndexData:          \([UInt8](outboundChainIndexData))")
+
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            if let messageKeyBundle = self.messageKeyBundle(for: userId, in: managedObjectContext) {
+                messageKeyBundle.outboundChainKey = Data(outboundChainKey)
+                messageKeyBundle.outboundChainIndex = outboundChainIndex + 1
+            }
+            self.save(managedObjectContext)
+        }
+
+        return .success(data)
     }
 
     public func decryptMessage(for userId: String, encryptedPayload: Data, keyBundle: KeyBundle, isNewReceiveSession: Bool) -> Result<Data, DecryptionError> {
@@ -658,7 +678,7 @@ extension KeyStore {
             isOutOfOrderMessage = true
             guard let msgKey = self.messageKey(for: userId, eId: inboundEphemeralKeyIdInt, iId: inboundChainIndexInt) else {
                 DDLogInfo("KeyStore/decryptMessage/isOutOfOrderMessage/priorEphemeralKeyId/can't find messageKey")
-                return .failure(.other)
+                return .failure(.missingMessageKey)
             }
             messageKey = [UInt8](msgKey)
             self.deleteMessageKey(for: userId, eId: inboundEphemeralKeyIdInt, iId: inboundChainIndexInt)
@@ -667,7 +687,7 @@ extension KeyStore {
             isOutOfOrderMessage = true
             guard let msgKey = self.messageKey(for: userId, eId: inboundEphemeralKeyIdInt, iId: inboundChainIndexInt) else {
                 DDLogInfo("KeyStore/decryptMessage/isOutOfOrderMessage/priorChainIndex/can't find messageKey")
-                return .failure(.other)
+                return .failure(.missingMessageKey)
             }
             messageKey = [UInt8](msgKey)
             self.deleteMessageKey(for: userId, eId: inboundEphemeralKeyIdInt, iId: inboundChainIndexInt)
@@ -744,7 +764,7 @@ extension KeyStore {
         // 32 byte AES + 32 byte HMAC + 16 byte IV
         guard messageKey.count >= 80 else {
             DDLogInfo("KeyStore/decryptMessage/invalidMessageKey")
-            return .failure(.other)
+            return .failure(.invalidMessageKey)
         }
         
         let AESKey = Array(messageKey[0...31])
@@ -786,7 +806,7 @@ extension KeyStore {
             return .success(data)
         } catch {
             DDLogError("KeyStore/decryptMessage/error \(error)")
-            return .failure(.other)
+            return .failure(.aesError)
         }
     }
 
@@ -985,7 +1005,7 @@ extension KeyStore {
         }
     }
 
-    public func wrapMessage(for userId: String, with service: CoreService, unencrypted: Data, completion: @escaping (EncryptedData) -> Void) {
+    public func wrapMessage(for userId: String, with service: CoreService, unencrypted: Data, completion: @escaping (Result<EncryptedData, EncryptionError>) -> Void) {
         DDLogInfo("KeyStore/wrapMessage")
         var keyBundle: KeyBundle? = nil
         let group = DispatchGroup()
@@ -1009,15 +1029,21 @@ extension KeyStore {
         }
 
         group.notify(queue: backgroundProcessingQueue) {
-            var encryptedData: Data? = nil, identityKey: Data? = nil, oneTimeKey: Int32 = 0
-            if let keyBundle = keyBundle {
-                encryptedData = self.encryptMessage(for: userId, unencrypted: unencrypted, keyBundle: keyBundle)
+            guard let keyBundle = keyBundle else {
+                completion(.failure(.missingKeyBundle))
+                return
+            }
+            switch self.encryptMessage(for: userId, unencrypted: unencrypted, keyBundle: keyBundle) {
+            case .success(let encryptedData):
+                var identityKey: Data? = nil, oneTimeKey: Int32 = 0
                 if let outboundIdentityKey = keyBundle.outboundIdentityPublicEdKey {
                     identityKey = outboundIdentityKey
                     oneTimeKey = keyBundle.outboundOneTimePreKeyId
                 }
+                completion(.success((encryptedData, identityKey, oneTimeKey)))
+            case .failure(let error):
+                completion(.failure(error))
             }
-            completion((encryptedData, identityKey, oneTimeKey))
         }
     }
 
@@ -1039,15 +1065,18 @@ extension KeyStore {
                     }
                     return
                 }
-                guard let newKeyBundle = self.receiveSessionSetup(for: userId, from: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID) else {
+                let setup = self.receiveSessionSetup(for: userId, from: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID)
+                switch setup {
+                case .success(let newKeyBundle):
+                    keyBundle = newKeyBundle
+                    isNewReceiveSession = true
+                case .failure(let error):
                     DDLogError("KeyData/decryptPayload/error receiveSessionSetup failed")
                     DispatchQueue.main.async {
-                        completion(.failure(.other))
+                        completion(.failure(error))
                     }
                     return
                 }
-                keyBundle = newKeyBundle
-                isNewReceiveSession = true
             }
 
             let result = self.decryptMessage(for: userId, encryptedPayload: encryptedPayload, keyBundle: keyBundle, isNewReceiveSession: isNewReceiveSession)

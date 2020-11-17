@@ -24,8 +24,8 @@ public enum Feed {
 public typealias ServiceRequestCompletion<T> = (Result<T, Error>) -> Void
 
 public typealias AvatarInfo = (userID: UserID, avatarID: AvatarID)
-public typealias EncryptedData = (data: Data?, identityKey: Data?, oneTimeKeyId: Int32)
-public typealias EncryptOperation = (_ data: Data, _ completion: @escaping (EncryptedData) -> Void) -> Void
+public typealias EncryptedData = (data: Data, identityKey: Data?, oneTimeKeyId: Int32)
+public typealias EncryptOperation = (_ data: Data, _ completion: @escaping (Result<EncryptedData, EncryptionError>) -> Void) -> Void
 public typealias ServerPropertiesResponse = (version: String, properties: [String: String])
 
 /// Core aspects of the service available in extensions
