@@ -26,7 +26,7 @@ public enum DecryptionError: String, Error {
     case missingPublicKey
     case missingSignedPreKey
     case missingUserKeys
-    case plainTextMismatch = "plaintext mismatch"
+    case plaintextMismatch
     case ratchetFailure
     case x25519Conversion
 }

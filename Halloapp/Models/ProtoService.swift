@@ -558,7 +558,7 @@ final class ProtoService: ProtoServiceCore {
                 }
                 if let plainTextMessage = plainTextMessage, plainTextMessage.text != decryptedMessage.text {
                     // Decrypted message does not match plaintext
-                    completion(plainTextMessage, .plainTextMismatch)
+                    completion(plainTextMessage, .plaintextMismatch)
                 } else {
                     completion(decryptedMessage, nil)
                 }

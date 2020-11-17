@@ -10,6 +10,7 @@ import Foundation
 
 public class CountableEvent {
 
+    /// Extra dimensions should not include spaces! Keys and values should match regex [a-zA-Z_:][a-zA-Z0-9_:]*
     public init(
         namespace: String,
         metric: String,
