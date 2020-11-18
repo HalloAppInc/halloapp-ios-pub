@@ -160,7 +160,7 @@ public final class ProtoMessageRerequest: ProtoRequest<Void> {
         rerequest.identityKey = identityKey
 
         super.init(
-            iqPacket: .msgPacket(from: fromUserID, to: toUserID, id: messageID, type: .chat, payload: .rerequest(rerequest)),
+            iqPacket: .msgPacket(from: fromUserID, to: toUserID, type: .chat, payload: .rerequest(rerequest)),
             transform: { _ in .success(()) },
             completion: completion)
     }
