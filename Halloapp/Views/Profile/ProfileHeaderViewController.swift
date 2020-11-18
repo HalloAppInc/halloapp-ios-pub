@@ -212,7 +212,6 @@ private final class ProfileHeaderView: UIView {
 
     private func commonInit() {
         preservesSuperviewLayoutMargins = true
-        layoutMargins.top = 32
 
         avatarViewButton = AvatarViewButton(type: .custom)
         avatarViewButton.isUserInteractionEnabled = isEditingAllowed
@@ -255,6 +254,7 @@ private final class ProfileHeaderView: UIView {
         vStack.setCustomSpacing(12, after: avatarViewButton)
         vStack.setCustomSpacing(vStack.spacing - nameButton.contentEdgeInsets.bottom, after: nameButton)
         addSubview(vStack)
-        vStack.constrainMargins(to: self, priority: .required - 10) // because UIKit temporarily might set header view's width to zero.
+        vStack.constrain(anchor: .top, to: self, constant: 32)
+        vStack.constrainMargins([ .leading, .trailing, .bottom ], to: self, priority: .required - 10) // because UIKit temporarily might set header view's width to zero.
     }
 }

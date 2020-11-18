@@ -12,7 +12,11 @@ import CoreData
 import SwiftUI
 import UIKit
 
-class UserFeedViewController: FeedTableViewController {
+class UserFeedViewController: FeedCollectionViewController {
+
+    private enum Constants {
+        static let sectionHeaderReuseIdentifier = "header-view"
+    }
 
     init(userId: UserID) {
         self.userId = userId
@@ -44,24 +48,8 @@ class UserFeedViewController: FeedTableViewController {
         } else {
             headerViewController.configureWith(userId: userId)
         }
-        tableView.tableHeaderView = headerViewController.view
-        addChild(headerViewController)
-        headerViewController.didMove(toParent: self)
-    }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-
-        // Update header's height: necessary when user changes text size setting.
-        if let headerView = tableView.tableHeaderView {
-            var targetSize = UIView.layoutFittingCompressedSize
-            targetSize.width = tableView.frame.width
-            let headerViewHeight = headerView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel).height
-            if headerView.bounds.height != headerViewHeight {
-                headerView.bounds.size.height = headerViewHeight
-                tableView.tableHeaderView = headerView
-            }
-        }
+        collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
     }
 
     // MARK: FeedTableViewController
@@ -77,5 +65,46 @@ class UserFeedViewController: FeedTableViewController {
 
     override func shouldOpenFeed(for userId: UserID) -> Bool {
         return userId != self.userId
+    }
+
+    // MARK: Collection View Header
+
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        if kind == UICollectionView.elementKindSectionHeader && indexPath.section == 0 {
+            let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier, for: indexPath)
+            if let superView = headerViewController.view.superview, superView != headerView {
+                headerViewController.willMove(toParent: nil)
+                headerViewController.view.removeFromSuperview()
+                headerViewController.removeFromParent()
+            }
+            if headerViewController.view.superview == nil {
+                addChild(headerViewController)
+                headerView.addSubview(headerViewController.view)
+                headerView.preservesSuperviewLayoutMargins = true
+                headerViewController.view.translatesAutoresizingMaskIntoConstraints = false
+                headerViewController.view.constrain(to: headerView)
+                headerViewController.didMove(toParent: self)
+            }
+            return headerView
+        }
+        return UICollectionReusableView()
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        guard section == 0 else {
+            return .zero
+        }
+        let targetSize = CGSize(width: collectionView.frame.width, height: UIView.layoutFittingCompressedSize.height)
+        let headerSize = headerViewController.view.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+        return headerSize
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        let layout = collectionViewLayout as! UICollectionViewFlowLayout
+        var inset = layout.sectionInset
+        if section == 0 {
+            inset.bottom = 20
+        }
+        return inset
     }
 }
