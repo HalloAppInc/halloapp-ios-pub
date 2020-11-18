@@ -10,9 +10,14 @@ import Core
 import CoreData
 import UIKit
 
-class GroupFeedViewController: FeedTableViewController {
+class GroupFeedViewController: FeedCollectionViewController {
+
+    private enum Constants {
+        static let sectionHeaderReuseIdentifier = "header-view"
+    }
 
     private let groupId: GroupID
+    private var headerView: GroupFeedHeaderView?
 
     init(groupId: GroupID) {
         self.groupId = groupId
@@ -29,28 +34,17 @@ class GroupFeedViewController: FeedTableViewController {
         super.viewDidLoad()
 
         if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-            let tableHeaderView = GroupFeedTableHeaderView(frame: CGRect(origin: .zero, size: CGSize(width: tableView.frame.width, height: tableView.frame.width)))
-            tableHeaderView.configure(withGroup: group)
-            tableHeaderView.action = { [weak self] in
+            let headerView = GroupFeedHeaderView(frame: CGRect(origin: .zero, size: CGSize(width: collectionView.frame.width, height: collectionView.frame.width)))
+            headerView.configure(withGroup: group)
+            headerView.action = { [weak self] in
                 guard let self = self else { return }
                 self.navigationController?.pushViewController(GroupInfoViewController(for: self.groupId), animated: true)
             }
-            tableView.tableHeaderView = tableHeaderView
+            self.headerView = headerView
         }
+        collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
 
         installFloatingActionMenu()
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        if let tableHeaderView = tableView.tableHeaderView {
-            let targetSize = CGSize(width: tableView.frame.width, height: UIView.layoutFittingCompressedSize.height)
-            let headerSize = tableHeaderView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
-            if tableHeaderView.frame.size != headerSize {
-                tableHeaderView.frame.size = headerSize
-                tableView.tableHeaderView = tableHeaderView
-            }
-        }
     }
 
     // MARK: New post
@@ -82,7 +76,7 @@ class GroupFeedViewController: FeedTableViewController {
         view.addSubview(floatingMenu)
         floatingMenu.constrain(to: view)
 
-        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: floatingMenu.suggestedContentInsetHeight, right: 0)
+        collectionView.contentInset.bottom = floatingMenu.suggestedContentInsetHeight
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
@@ -104,9 +98,46 @@ class GroupFeedViewController: FeedTableViewController {
         }
     }
 
+    // MARK: Collection View Header
+
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        guard let headerView = headerView, kind == UICollectionView.elementKindSectionHeader && indexPath.section == 0 else {
+            return UICollectionReusableView()
+        }
+
+        let sectionHeaderView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier, for: indexPath)
+        if let superView = headerView.superview, superView != sectionHeaderView {
+            headerView.removeFromSuperview()
+        }
+        if headerView.superview == nil {
+            sectionHeaderView.addSubview(headerView)
+            sectionHeaderView.preservesSuperviewLayoutMargins = true
+            headerView.translatesAutoresizingMaskIntoConstraints = false
+            headerView.constrain(to: sectionHeaderView)
+        }
+        return sectionHeaderView
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        guard let headerView = headerView, section == 0 else {
+            return .zero
+        }
+        let targetSize = CGSize(width: collectionView.frame.width, height: UIView.layoutFittingCompressedSize.height)
+        let headerSize = headerView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+        return headerSize
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        let layout = collectionViewLayout as! UICollectionViewFlowLayout
+        var inset = layout.sectionInset
+        if section == 0 {
+            inset.bottom = 20
+        }
+        return inset
+    }
 }
 
-private class GroupFeedTableHeaderView: UIView {
+private class GroupFeedHeaderView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -164,7 +195,7 @@ private class GroupFeedTableHeaderView: UIView {
         addSubview(button)
         let constraints = [
             button.leadingAnchor.constraint(greaterThanOrEqualTo: layoutMarginsGuide.leadingAnchor),
-            button.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor),
+            button.topAnchor.constraint(equalTo: topAnchor, constant: 8),
             button.trailingAnchor.constraint(lessThanOrEqualTo: layoutMarginsGuide.trailingAnchor),
             button.centerXAnchor.constraint(equalTo: centerXAnchor),
             button.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor) ]
