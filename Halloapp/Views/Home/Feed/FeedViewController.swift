@@ -13,7 +13,7 @@ import CoreData
 import SwiftUI
 import UIKit
 
-class FeedViewController: FeedTableViewController {
+class FeedViewController: FeedCollectionViewController {
 
     private var cancellables: Set<AnyCancellable> = []
     private var notificationButton: BadgedButton?
@@ -94,7 +94,7 @@ class FeedViewController: FeedTableViewController {
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
 
-        guard scrollView == tableView else { return }
+        guard scrollView == collectionView else { return }
         updateInviteFriendsButtonPosition()
     }
 
@@ -131,10 +131,9 @@ class FeedViewController: FeedTableViewController {
     }
 
     private func updateInviteFriendsButtonPosition() {
-        let tableViewVisibleHeight = tableView.contentSize.height - tableView.contentOffset.y
+        let scrollViewVisibleHeight = collectionView.contentSize.height - collectionView.contentOffset.y
         let floatingButtonAlignedY = floatingMenu.permanentButton.center.y - inviteFriendsButton.frame.height / 2
-
-        inviteFriendsButton.frame.origin.y = max(tableViewVisibleHeight, floatingButtonAlignedY)
+        inviteFriendsButton.frame.origin.y = max(scrollViewVisibleHeight, floatingButtonAlignedY)
     }
 
     @objc
@@ -184,7 +183,7 @@ class FeedViewController: FeedTableViewController {
             link: (text: stringLearnMore, action: { [weak self] nuxItem in
                 self?.showNUXDetails { _ = nuxItem.dismiss() }
             }),
-            didClose: { [weak self] in
+            didClose: { [weak self] (nuxItem) in
                 MainAppContext.shared.nux.didComplete(.homeFeedIntro)
                 UIView.animate(
                     withDuration: 0.3,
@@ -194,17 +193,21 @@ class FeedViewController: FeedTableViewController {
                     options: UIView.AnimationOptions(),
                     animations: {
                         self?.isShowingNUXHeaderView = false
-                        self?.tableView.tableHeaderView = nil
-                        self?.tableView.layoutIfNeeded() },
+                        nuxItem.alpha = 0
+                        self?.collectionView.contentInset.top = 0 },
                     completion: { [weak self] _ in
+                        nuxItem.removeFromSuperview()
                         self?.showNUXIfNecessary()
                     })
         })
         nuxItem.frame.size = nuxItem.systemLayoutSizeFitting(
-            CGSize(width: tableView.bounds.width, height: .greatestFiniteMagnitude),
+            CGSize(width: collectionView.frame.width, height: .greatestFiniteMagnitude),
             withHorizontalFittingPriority: .required,
             verticalFittingPriority: .fittingSizeLevel)
-        tableView.tableHeaderView = nuxItem
+        nuxItem.frame.origin.y = -nuxItem.frame.height
+        collectionView.addSubview(nuxItem)
+        collectionView.contentInset.top = nuxItem.frame.height
+        collectionView.contentOffset.y -= nuxItem.frame.height
         isShowingNUXHeaderView = true
     }
 
@@ -326,7 +329,7 @@ class FeedViewController: FeedTableViewController {
         view.addSubview(floatingMenu)
         floatingMenu.constrain(to: view)
 
-        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: floatingMenu.suggestedContentInsetHeight, right: 0)
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: floatingMenu.suggestedContentInsetHeight, right: 0)
     }
 
     private func presentNewPostViewController(source: NewPostMediaSource) {
@@ -346,7 +349,7 @@ class FeedViewController: FeedTableViewController {
 
     private func scrollTo(post feedPost: FeedPost) {
         if let indexPath = fetchedResultsController?.indexPath(forObject: feedPost) {
-            tableView.scrollToRow(at: indexPath, at: .top, animated: false)
+            collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
         }
     }
 
@@ -392,7 +395,7 @@ class FeedViewController: FeedTableViewController {
                 ///TODO: some kind of indicator?
                 feedPostIdToScrollTo = feedPostId
                 if !(fetchedResultsController?.fetchedObjects?.isEmpty ?? true) {
-                    tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: false)
+                    collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: false)
                 }
             }
 

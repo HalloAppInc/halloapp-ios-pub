@@ -14,7 +14,7 @@ final class NUXItem: UIView {
     typealias Action = (NUXItem) -> Void
     typealias NUXLink = (text: String, action: Action)
 
-    init(message: String, icon: UIImage? = nil, link: NUXLink? = nil, didClose: (() -> Void)? = nil) {
+    init(message: String, icon: UIImage? = nil, link: NUXLink? = nil, didClose: ((NUXItem) -> Void)? = nil) {
 
         self.link = link
         self.didClose = didClose
@@ -83,7 +83,7 @@ final class NUXItem: UIView {
                 animations: {
                     self.alpha = 0 },
                 completion: { _ in
-                    self.didClose?()
+                    self.didClose?(self)
                     promise(.success(())) })
         }
     }
@@ -96,7 +96,7 @@ final class NUXItem: UIView {
     private let closeButton = UIButton()
     private let panel = UIView()
     private let link: NUXLink?
-    private let didClose: (() -> Void)?
+    private let didClose: ((NUXItem) -> Void)?
     private var cancellableSet = Set<AnyCancellable>()
 
     @objc
