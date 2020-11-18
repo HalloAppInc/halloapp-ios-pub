@@ -542,6 +542,7 @@ fileprivate struct PostComposerView: View {
                                 self.postTextView
                             }
                         }
+                        .clipShape(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius))
                         .background(
                             RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
                                 .fill(Color(.secondarySystemGroupedBackground))
@@ -821,7 +822,9 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MediaCarouselView {
         let feedMedia = context.coordinator.parent.feedMediaItems
-        let carouselView = MediaCarouselView(media: feedMedia, configuration: MediaCarouselViewConfiguration.composer)
+        var configuration = MediaCarouselViewConfiguration.composer
+        configuration.gutterWidth = PostComposerLayoutConstants.horizontalPadding
+        let carouselView = MediaCarouselView(media: feedMedia, configuration: configuration)
         carouselView.delegate = context.coordinator
         carouselView.shouldAutoPlay = context.coordinator.parent.shouldAutoPlay.value
         return carouselView
