@@ -198,5 +198,21 @@
 			<string>Failed to prepare %d media items. Please try again or select a different photo / video.</string>
 		</dict>
 	</dict>
+	<key>picker.media.n.limit</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@max_photos@</string>
+		<key>max_photos</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>You can select up to one item</string>
+			<key>other</key>
+			<string>You can select up to %d items</string>
+		</dict>
+	</dict>
 </dict>
 </plist>

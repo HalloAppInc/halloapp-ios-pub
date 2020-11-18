@@ -12,6 +12,33 @@ import Foundation
 import Photos
 import UIKit
 
+private extension Localizations {
+    static var defaultTitle: String {
+        NSLocalizedString("picker.default.title", value: "Camera Roll", comment: "Initial picker screen title. The default source of picker photos")
+    }
+
+    static var photoAccessDeniedTitle: String {
+        NSLocalizedString("picker.access.denied.title", value: "Photo Access Denied", comment: "Alert title in media picker when access is denied.")
+    }
+
+    static var photoAccessDeniedMessage: String {
+        NSLocalizedString("picker.access.denied.message", value: "Please grant access from Settings", comment: "Message in media picker when access is denied.")
+    }
+
+    static var mediaLimitTitle: String {
+        NSLocalizedString("picker.media.limit.title", value: "Maximum items selected", comment: "Alert title in media picker when selecting over limit.")
+    }
+
+    static func mediaLimitMessage(_ maxNumberOfPhotos: Int) -> String {
+        let format = NSLocalizedString("picker.media.n.limit", comment: "Message in media picker when selecting over limit.")
+        return String.localizedStringWithFormat(format, maxNumberOfPhotos)
+    }
+}
+
+private struct Constants {
+    static let maxNumberOfPhotos = 10
+}
+
 enum MediaPickerFilter {
     case all, image, video
 }
@@ -101,7 +128,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             }
             return
         case .denied, .restricted:
-            let alert = UIAlertController(title: "Photo Access Denied", message: "Please grant access from Settings", preferredStyle: .alert)
+            let alert = UIAlertController(title: Localizations.photoAccessDeniedTitle, message: Localizations.photoAccessDeniedMessage, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
             self.present(alert, animated: true)
             return
@@ -159,7 +186,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             titleBtn.widthAnchor.constraint(equalToConstant: 160),
             titleBtn.heightAnchor.constraint(equalToConstant: 44),
         ])
-        titleBtn.setTitle(title ?? "Camera Roll", for: .normal)
+        titleBtn.setTitle(title ?? Localizations.defaultTitle, for: .normal)
         titleBtn.setImage(UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(scale: .small)), for: .normal)
         titleBtn.semanticContentAttribute = .forceRightToLeft // Workaround to move the image on the right side
         titleBtn.addTarget(self, action: #selector(openAlbumsAction), for: .touchUpInside)
@@ -192,7 +219,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         var buttons = [UIBarButtonItem]()
 
         if multiselect {
-            let nextButton = UIBarButtonItem(title: "Next", style: .done, target: self, action: #selector(nextAction))
+            let nextButton = UIBarButtonItem(title: Localizations.buttonNext, style: .done, target: self, action: #selector(nextAction))
             nextButton.tintColor = selected.count > 0 ? .systemBlue : .systemGray
             buttons.append(nextButton)
         }
@@ -655,8 +682,10 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
 
         if selected.contains(asset) {
             deselect(collectionView, cell: cell, asset: asset)
-        } else if selected.count >= 10 {
-            let alert = UIAlertController(title: "Maximum photos selected", message: "You can select up to 10 photos", preferredStyle: .alert)
+        } else if selected.count >= Constants.maxNumberOfPhotos {
+            let alert = UIAlertController(title: Localizations.mediaLimitTitle,
+                                          message: Localizations.mediaLimitMessage(Constants.maxNumberOfPhotos),
+                                          preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
             self.present(alert, animated: true)
         } else {
