@@ -378,6 +378,34 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
     private let scaleThreshold: CGFloat = 1.3
     private var postId: FeedPostID? = nil
 
+    private enum LayoutConstants {
+        static let topMargin: CGFloat = 5
+        static let bottomMarginWithSeparator: CGFloat = 8
+        static let bottomMarginNoSeparator: CGFloat = 2
+    }
+
+    private class TextContentView: UIView {
+
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+            commonInit()
+        }
+
+        required init?(coder: NSCoder) {
+            super.init(coder: coder)
+            commonInit()
+        }
+
+        let textLabel = TextLabel()
+
+        private func commonInit() {
+            textLabel.textColor = .label
+            textLabel.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(textLabel)
+            textLabel.constrainMargins(to: self)
+        }
+    }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
@@ -390,24 +418,20 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
 
     private var vStack: UIStackView!
 
-    private var textContentView: UIView!
+    private var textContentView: TextContentView!
 
-    private(set) var textLabel: TextLabel!
+    var textLabel: TextLabel! {
+        textContentView.textLabel
+    }
 
     private var mediaView: MediaCarouselView?
 
     private func setupView() {
         isUserInteractionEnabled = true
-        layoutMargins = UIEdgeInsets(top: 5, left: 0, bottom: 8, right: 0)
+        layoutMargins = UIEdgeInsets(top: LayoutConstants.topMargin, left: 0, bottom: LayoutConstants.bottomMarginWithSeparator, right: 0)
 
-        textLabel = TextLabel()
-        textLabel.textColor = .label
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        textContentView = UIView()
+        textContentView = TextContentView()
         textContentView.translatesAutoresizingMaskIntoConstraints = false
-        textContentView.addSubview(textLabel)
-        textLabel.constrainMargins(to: textContentView)
 
         vStack = UIStackView(arrangedSubviews: [ textContentView ])
         vStack.translatesAutoresizingMaskIntoConstraints = false
@@ -469,9 +493,48 @@ final class FeedItemContentView: UIView, MediaCarouselViewDelegate {
         }
 
         // Remove extra spacing
-        layoutMargins.bottom = post.hideFooterSeparator ? 2 : 8
+        layoutMargins.bottom = post.hideFooterSeparator ? LayoutConstants.bottomMarginNoSeparator : LayoutConstants.bottomMarginWithSeparator
 
         postId = post.id
+    }
+
+    class func preferredHeight(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
+        guard let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: post.id) else {
+            return 0
+        }
+
+        var contentHeight = LayoutConstants.topMargin
+
+        let postContainsMedia = !feedDataItem.media.isEmpty
+        if postContainsMedia {
+            contentHeight += MediaCarouselView.preferredHeight(for: feedDataItem.media, width: contentWidth)
+        }
+
+        let postContainsText = !(post.text ?? "").isEmpty
+        if postContainsText {
+            let postText = MainAppContext.shared.contactStore.textWithMentions(
+                post.text,
+                orderedMentions: post.orderedMentions)
+            let postFont: UIFont = {
+                let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .body)
+                let fontSizeDiff: CGFloat = postContainsMedia || (postText?.string ?? "").count > 180 ? -1 : 3
+                return UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize + fontSizeDiff)
+            }()
+            let textContentView = TextContentView()
+            textContentView.textLabel.attributedText = postText?.with(font: postFont, color: .label)
+            textContentView.textLabel.numberOfLines = feedDataItem.textExpanded ? 0 : postContainsMedia ? 3 : 10
+            // Adjust vertical margins around text.
+            textContentView.layoutMargins.top = postContainsMedia ? 11 : 9
+
+            let targetSize = CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
+            let textContentViewSize = textContentView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+
+            contentHeight += textContentViewSize.height
+        }
+
+        contentHeight += post.hideFooterSeparator ? LayoutConstants.bottomMarginNoSeparator : LayoutConstants.bottomMarginWithSeparator
+
+        return contentHeight
     }
 
     func prepareForReuse() { }

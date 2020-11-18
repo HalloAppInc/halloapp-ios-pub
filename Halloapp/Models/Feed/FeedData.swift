@@ -93,6 +93,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 userIds.forEach({ self.sharePastPostsWith(userId: $0) })
             })
 
+        cancellableSet.insert(
+            NotificationCenter.default
+                .publisher(for: UIContentSizeCategory.didChangeNotification)
+                .eraseToAnyPublisher()
+                .sink { [weak self] _ in
+                    guard let self = self else { return }
+                    self.feedDataItems.forEach({ $0.cachedCellHeight = nil })
+                })
+
         fetchFeedPosts()
     }
 

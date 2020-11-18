@@ -14,11 +14,6 @@ import UIKit
 
 class FeedCollectionViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
-    private struct Constants {
-        static let activePostCellReuseIdentifier = "active-post"
-        static let deletedPostCellReuseIdentifier = "deleted-post"
-    }
-
     private(set) var collectionView: UICollectionView!
     private(set) var fetchedResultsController: NSFetchedResultsController<FeedPost>?
     private var cancellableSet: Set<AnyCancellable> = []
@@ -35,27 +30,25 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        DDLogInfo("FeedCollectionViewController/viewDidLoad")
+        DDLogInfo("FeedCollectionView/viewDidLoad")
 
-        let layoutSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(100))
-        let item = NSCollectionLayoutItem(layoutSize: layoutSize)
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: layoutSize, subitem: item, count: 1)
-        let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 0, bottom: 25, trailing: 0)
-        section.interGroupSpacing = 50
-        let layout = UICollectionViewCompositionalLayout(section: section)
+        let layout = UICollectionViewFlowLayout()
+        layout.estimatedItemSize.width = view.frame.width
+        layout.estimatedItemSize.height = view.frame.width
+        layout.sectionInset.top = 20
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 50
 
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: layout)
-        collectionView.dataSource = self
         collectionView.delegate = self
-        collectionView.isPrefetchingEnabled = false
+        collectionView.dataSource = self
         collectionView.allowsSelection = false
         collectionView.showsVerticalScrollIndicator = false
         collectionView.backgroundColor = .feedBackground
         collectionView.preservesSuperviewLayoutMargins = true
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.register(FeedPostCollectionViewCell.self, forCellWithReuseIdentifier: Constants.activePostCellReuseIdentifier)
-        collectionView.register(DeletedPostCollectionViewCell.self, forCellWithReuseIdentifier: Constants.deletedPostCellReuseIdentifier)
+        collectionView.register(FeedPostCollectionViewCell.self, forCellWithReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier)
+        collectionView.register(DeletedPostCollectionViewCell.self, forCellWithReuseIdentifier: DeletedPostCollectionViewCell.reuseIdentifier)
 
         view.addSubview(collectionView)
         collectionView.constrain(to: view)
@@ -95,6 +88,13 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
                 self.collectionView.indexPathsForVisibleItems.forEach { (indexPath) in
                     self.didShowPost(atIndexPath: indexPath)
                 }
+        })
+
+        cancellableSet.insert(
+            NotificationCenter.default.publisher(for: UIContentSizeCategory.didChangeNotification).sink { [weak self] (_) in
+                guard let self = self else { return }
+                // TextLabel in FeedItemContentView uses NSAttributedText and therefore doesn't support automatic font adjustment.
+                self.collectionView.reloadData()
         })
     }
 
@@ -160,14 +160,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         trackPerRowFRCChanges = view.window != nil && UIApplication.shared.applicationState == .active
-//        if trackPerRowFRCChanges {
-//            tableView.beginUpdates()
-//            CATransaction.begin()
-//            CATransaction.setCompletionBlock {
-//                self.tableView.setNeedsLayout()
-//                self.tableView.layoutIfNeeded()
-//            }
-//        }
         DDLogDebug("FeedCollectionView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
     }
 
@@ -208,10 +200,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("FeedCollectionView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]")
-        if trackPerRowFRCChanges {
-//            tableView.endUpdates()
-//            CATransaction.commit()
-        } else {
+        if !trackPerRowFRCChanges {
             collectionView.reloadData()
         }
     }
@@ -320,14 +309,15 @@ extension FeedCollectionViewController: UICollectionViewDataSource {
         guard let feedPost = fetchedResultsController?.object(at: indexPath) else {
             return UICollectionViewCell(frame: .zero)
         }
-        let cellReuseIdentifier = feedPost.isPostRetracted ? Constants.deletedPostCellReuseIdentifier : Constants.activePostCellReuseIdentifier
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellReuseIdentifier, for: indexPath) as! FeedPostCollectionViewCellBase
+        let cellClass = FeedPostCollectionViewCellBase.cellClass(forPost: feedPost)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellClass.reuseIdentifier, for: indexPath) as! FeedPostCollectionViewCellBase
 
         let postId = feedPost.id
         let isGroupPost = feedPost.groupId != nil
         let contentWidth = collectionView.frame.size.width - collectionView.layoutMargins.left - collectionView.layoutMargins.right
-        let gutterWidth = (1 - FeedPostTableViewCell.LayoutConstants.backgroundPanelHMarginRatio) * collectionView.layoutMargins.left
+        let gutterWidth = (1 - FeedPostCollectionViewCellBase.LayoutConstants.backgroundPanelHMarginRatio) * collectionView.layoutMargins.left
 
+        cell.maxWidth = collectionView.frame.width
         cell.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth)
 
         if let activePostCell = cell as? FeedPostCollectionViewCell {
@@ -371,14 +361,39 @@ extension FeedCollectionViewController: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         didShowPost(atIndexPath: indexPath)
-
-        cell.backgroundColor = UIColor(red: CGFloat.random(in: 0...1), green: CGFloat.random(in: 0...1), blue: CGFloat.random(in: 0...1), alpha: 1)
     }
 
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if let feedCell = cell as? FeedPostCollectionViewCell {
-            feedCell.stopPlayback()
+        guard let feedCell = cell as? FeedPostCollectionViewCell else {
+            return
         }
+
+        feedCell.stopPlayback()
+    }
+
+}
+
+extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        guard let feedPost = fetchedResultsController?.object(at: indexPath),
+              let feedItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id) else
+        {
+            return UICollectionViewFlowLayout.automaticSize
+        }
+
+        let cellWidth = collectionView.frame.width
+        if let cachedCellHeight = feedItem.cachedCellHeight {
+            DDLogDebug("FeedCollectionView Using cached height [\(cachedCellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
+            return CGSize(width: cellWidth, height: cachedCellHeight)
+        }
+        let contentWidth = collectionView.frame.size.width - collectionView.layoutMargins.left - collectionView.layoutMargins.right
+        let gutterWidth = (1 - FeedPostCollectionViewCellBase.LayoutConstants.backgroundPanelHMarginRatio) * collectionView.layoutMargins.left
+        let cellClass = FeedPostCollectionViewCellBase.cellClass(forPost: feedPost)
+        let cellHeight = cellClass.height(forPost: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth)
+        feedItem.cachedCellHeight = cellHeight
+        DDLogDebug("FeedCollectionView Calculated cell height [\(cellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
+        return CGSize(width: cellWidth, height: cellHeight)
     }
 }
 
@@ -390,13 +405,16 @@ extension FeedCollectionViewController: FeedPostCollectionViewCellDelegate {
         }
     }
 
-    func feedPostCollectionViewCellDidRequestReloadHeight(_ cell: FeedPostCollectionViewCell, animations animationBlock: () -> Void) {
-//        collectionView.beginUpdates()
-        animationBlock()
-//        tableView.endUpdates()
-
-        if let postId = cell.postId, let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) {
-            feedDataItem.textExpanded = true
+    func feedPostCollectionViewCellDidRequestReloadHeight(_ cell: FeedPostCollectionViewCell, animations animationBlock: @escaping () -> Void) {
+        guard let indexPath = collectionView.indexPath(for: cell),
+              let postId = cell.postId, let feedDataItem = MainAppContext.shared.feedData.feedDataItem(with: postId) else
+        {
+            return
+        }
+        feedDataItem.textExpanded = true
+        UIView.animate(withDuration: 0.35) {
+            animationBlock()
+            self.collectionView.reloadItems(at: [ indexPath ])
         }
     }
 }
