@@ -181,7 +181,9 @@ open class KeyStore {
                 messageKey.ephemeralKeyId = eId
                 messageKey.chainIndex = iId
                 messageKey.messageKeyBundle = messageKeyBundle
-                
+
+                DDLogInfo("KeyStore/addMessageKey/\(userId)/adding [\(eId)] [\(iId)]")
+
                 if managedObjectContext.hasChanges {
                     self.save(managedObjectContext)
                 }
