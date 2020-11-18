@@ -639,7 +639,7 @@ fileprivate struct PageIndexView: UIViewRepresentable {
         .strokeWidth: -0.5,
         .foregroundColor: UIColor.white,
         .strokeColor: UIColor.black.withAlphaComponent(0.4),
-        .font: UIFont.gothamFont(ofSize: 17)
+        .font: UIFont.gothamFont(ofFixedSize: 17)
     ]
 
     private var attributedString: NSAttributedString {

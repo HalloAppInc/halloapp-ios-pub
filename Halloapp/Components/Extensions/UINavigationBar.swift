@@ -12,7 +12,7 @@ extension UINavigationBarAppearance {
 
     func configureTitleTextAttributes() {
         titleTextAttributes = [
-            .font: UIFont.gothamFont(ofSize: 15, weight: .medium),
+            .font: UIFont.gothamFont(ofFixedSize: 15, weight: .medium),
             .foregroundColor: UIColor.label.withAlphaComponent(0.9)
         ]
     }

@@ -47,8 +47,8 @@ extension Font {
         return Font(UIFont.gothamFont(forTextStyle: Font.uiFontTextStyle(for: style), weight: Font.uiFontWeight(for: weight)))
     }
 
-    static func gotham(size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        return Font(UIFont.gothamFont(ofSize: size, weight: Font.uiFontWeight(for: weight)))
+    static func gotham(fixedSize size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        return Font(UIFont.gothamFont(ofFixedSize: size, weight: Font.uiFontWeight(for: weight)))
     }
 
 }

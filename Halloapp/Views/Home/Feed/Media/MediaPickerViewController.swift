@@ -162,7 +162,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         titleBtn.semanticContentAttribute = .forceRightToLeft // Workaround to move the image on the right side
         titleBtn.addTarget(self, action: #selector(openAlbumsAction), for: .touchUpInside)
         
-        titleBtn.titleLabel?.font = UIFont.gothamFont(ofSize: 17, weight: .medium)
+        titleBtn.titleLabel?.font = UIFont.gothamFont(ofFixedSize: 17, weight: .medium)
         self.navigationItem.titleView = titleBtn
         
         updateNavigationBarButtons()

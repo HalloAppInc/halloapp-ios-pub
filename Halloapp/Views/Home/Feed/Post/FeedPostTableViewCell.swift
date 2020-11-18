@@ -328,6 +328,7 @@ final class DeletedPostTableViewCell: FeedPostTableViewCellBase {
         textLabel.textColor = .secondaryLabel
         textLabel.text = NSLocalizedString("post.has.been.deleted", value: "This post has been deleted", comment: "Displayed in place of a deleted feed post.")
         textLabel.font = UIFont.preferredFont(forTextStyle: .body)
+        textLabel.adjustsFontForContentSizeCategory = true
         let view = UIView()
         view.backgroundColor = .clear
         view.layoutMargins.top = 20
@@ -558,6 +559,7 @@ final class FeedItemHeaderView: UIView {
         let label = UILabel()
         label.numberOfLines = 1
         label.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        label.adjustsFontForContentSizeCategory = true
         label.textColor = .label
         label.textAlignment = .natural
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -570,10 +572,8 @@ final class FeedItemHeaderView: UIView {
     // Gotham Medium, 14 pt (Footnote + 1)
     private lazy var timestampLabel: UILabel = {
         let label = UILabel()
-        label.font = {
-            let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .footnote)
-            return UIFont.gothamFont(ofSize: fontDescriptor.pointSize + 1, weight: .medium)
-        }()
+        label.font = UIFont.gothamFont(forTextStyle: .footnote, pointSizeChange: 1, weight: .medium)
+        label.adjustsFontForContentSizeCategory = true
         label.textColor = .tertiaryLabel
         label.textAlignment = .natural
         label.setContentCompressionResistancePriority(.defaultHigh + 10, for: .horizontal) // higher than contact name
@@ -605,7 +605,7 @@ final class FeedItemHeaderView: UIView {
         contentSizeCategoryDidChangeCancellable = NotificationCenter.default
             .publisher(for: UIContentSizeCategory.didChangeNotification)
             .compactMap { $0.userInfo?[UIContentSizeCategory.newValueUserInfoKey] as? UIContentSizeCategory }
-            .sink { [weak self ]category in
+            .sink { [weak self] category in
                 guard let self = self else { return }
                 self.configure(stackView: hStack, forVerticalLayout: category.isAccessibilityCategory)
         }
@@ -799,6 +799,7 @@ final class FeedItemFooterView: UIView {
         button.setTitle(stringComment, for: .normal)
         button.setImage(UIImage(named: "FeedPostComment"), for: .normal)
         button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 21)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
         button.contentEdgeInsets.bottom = 9
@@ -815,6 +816,7 @@ final class FeedItemFooterView: UIView {
         button.setTitle(stringMessage, for: .normal)
         button.setImage(UIImage(named: "FeedPostMessage"), for: .normal)
         button.titleLabel?.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium, maximumPointSize: 21)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.lineBreakMode = .byWordWrapping
         button.contentEdgeInsets.top = 15
         button.contentEdgeInsets.bottom = 9

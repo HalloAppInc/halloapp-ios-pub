@@ -10,7 +10,7 @@ import UIKit
 
 extension UIFont {
 
-    class func gothamFont(ofSize fontSize: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {
+    class func gothamFont(ofFixedSize fontSize: CGFloat, weight: UIFont.Weight = .regular) -> UIFont {
         let suffix: String = {
         switch weight {
         case  .ultraLight: return "Ultra"
@@ -35,18 +35,23 @@ extension UIFont {
         return font
     }
 
-    class func gothamFont(forTextStyle style: UIFont.TextStyle, weight: UIFont.Weight = .regular) -> UIFont {
-        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style)
-        return UIFontMetrics(forTextStyle: style).scaledFont(for: UIFont.gothamFont(ofSize: fontDescriptor.pointSize, weight: weight))
+    class func gothamFont(forTextStyle style: UIFont.TextStyle, pointSizeChange: CGFloat = 0, weight: UIFont.Weight = .regular) -> UIFont {
+        let traitCollection = UITraitCollection(preferredContentSizeCategory: .large)
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style, compatibleWith: traitCollection)
+        let baseFont = UIFont.gothamFont(ofFixedSize: fontDescriptor.pointSize + pointSizeChange, weight: weight)
+        return UIFontMetrics(forTextStyle: style).scaledFont(for: baseFont)
     }
 
-    class func gothamFont(forTextStyle style: UIFont.TextStyle, weight: UIFont.Weight = .regular, maximumPointSize: CGFloat) -> UIFont {
-        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style)
-        return UIFontMetrics(forTextStyle: style).scaledFont(for: UIFont.gothamFont(ofSize: fontDescriptor.pointSize, weight: weight), maximumPointSize: maximumPointSize)
+    class func gothamFont(forTextStyle style: UIFont.TextStyle, pointSizeChange: CGFloat = 0, weight: UIFont.Weight = .regular, maximumPointSize: CGFloat) -> UIFont {
+        let traitCollection = UITraitCollection(preferredContentSizeCategory: .large)
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style, compatibleWith: traitCollection)
+        let baseFont = UIFont.gothamFont(ofFixedSize: fontDescriptor.pointSize + pointSizeChange, weight: weight)
+        return UIFontMetrics(forTextStyle: style).scaledFont(for: baseFont, maximumPointSize: maximumPointSize)
     }
 
     class func systemFont(forTextStyle style: UIFont.TextStyle, weight: UIFont.Weight = .regular) -> UIFont {
-        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style)
+        let traitCollection = UITraitCollection(preferredContentSizeCategory: .large)
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style, compatibleWith: traitCollection)
         return UIFontMetrics(forTextStyle: style).scaledFont(for: UIFont.systemFont(ofSize: fontDescriptor.pointSize, weight: weight))
     }
 }

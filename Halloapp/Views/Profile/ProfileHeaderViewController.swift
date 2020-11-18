@@ -210,12 +210,6 @@ private final class ProfileHeaderView: UIView {
         ])
     }
 
-    private func reloadNameLabelFont() {
-        let font = UIFont.gothamFont(ofSize: UIFontDescriptor.preferredFontDescriptor(withTextStyle: .headline).pointSize + 1, weight: .medium)
-        nameLabel.font = font
-        nameButton.titleLabel?.font = font
-    }
-
     private func commonInit() {
         preservesSuperviewLayoutMargins = true
         layoutMargins.top = 32
@@ -228,28 +222,29 @@ private final class ProfileHeaderView: UIView {
             avatarViewButton.widthAnchor.constraint(equalTo: avatarViewButton.heightAnchor)
         ])
 
+        let nameFont = UIFont.gothamFont(forTextStyle: .headline, pointSizeChange: 1, weight: .medium)
+
         nameLabel = UILabel()
         nameLabel.textColor = UIColor.label.withAlphaComponent(0.8)
         nameLabel.numberOfLines = 0
         nameLabel.textAlignment = .center
+        nameLabel.adjustsFontForContentSizeCategory = true
+        nameLabel.font = nameFont
         nameLabel.isHidden = isEditingAllowed
 
         nameButton = UIButton(type: .system)
         nameButton.tintColor = nameLabel.textColor
         nameButton.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
         nameButton.titleLabel?.numberOfLines = 0
+        nameButton.titleLabel?.adjustsFontForContentSizeCategory = true
+        nameButton.titleLabel?.font = nameFont
         nameButton.isHidden = !isEditingAllowed
-
-        reloadNameLabelFont()
-        NotificationCenter.default.addObserver(forName: UIContentSizeCategory.didChangeNotification, object: nil, queue: .main) { [weak self] (notification) in
-            guard let self = self else { return }
-            self.reloadNameLabelFont()
-        }
 
         secondaryLabel = UILabel()
         secondaryLabel.numberOfLines = 0
         secondaryLabel.textColor = .secondaryLabel
         secondaryLabel.textAlignment = .center
+        secondaryLabel.adjustsFontForContentSizeCategory = true
         secondaryLabel.font = .preferredFont(forTextStyle: .callout)
 
         vStack = UIStackView(arrangedSubviews: [ avatarViewButton, nameLabel, nameButton, secondaryLabel ])
