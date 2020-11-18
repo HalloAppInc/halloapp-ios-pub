@@ -172,21 +172,36 @@ open class KeyStore {
     }
    
     // MARK: Updating
-    
-    public func addMessageKey(for userId: UserID, eId: Int32, iId: Int32, messageKey: Data) {
+
+    struct MessageKeyData {
+        var ephemeralKeyID: Int32
+        var chainIndex: Int32
+        var data: Data
+    }
+
+    private func addMessageKeys(_ keys: [MessageKeyData], for userID: UserID) {
+        guard !keys.isEmpty else {
+            DDLogInfo("KeyStore/addMessageKeys/\(userID)/skipping (no keys)")
+            return
+        }
+
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            if let messageKeyBundle = self.messageKeyBundle(for: userId, in: managedObjectContext) {
-            
+            guard let messageKeyBundle = self.messageKeyBundle(for: userID, in: managedObjectContext) else {
+                DDLogError("KeyStore/addMessageKeys/\(userID)/error bundle not found")
+                return
+            }
+
+            for keyData in keys {
                 let messageKey = NSEntityDescription.insertNewObject(forEntityName: MessageKey.entity().name!, into: managedObjectContext) as! MessageKey
-                messageKey.ephemeralKeyId = eId
-                messageKey.chainIndex = iId
+                messageKey.ephemeralKeyId = keyData.ephemeralKeyID
+                messageKey.chainIndex = keyData.chainIndex
                 messageKey.messageKeyBundle = messageKeyBundle
 
-                DDLogInfo("KeyStore/addMessageKey/\(userId)/adding [\(eId)] [\(iId)]")
+                DDLogInfo("KeyStore/addMessageKeys/\(userID)/adding [\(keyData.ephemeralKeyID)] [\(keyData.chainIndex)]")
+            }
 
-                if managedObjectContext.hasChanges {
-                    self.save(managedObjectContext)
-                }
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
             }
         }
     }
@@ -708,6 +723,7 @@ extension KeyStore {
                 if savedInboundChainIndex < inboundPreviousChainIndex {
                     DDLogInfo("KeyStore/decryptMessage/newEphermeralKey/catchup")
                     var catchupChainIndex = savedInboundChainIndex
+                    var newKeys = [MessageKeyData]()
                     
                     while catchupChainIndex < inboundPreviousChainIndex {
                         DDLogInfo("KeyStore/decryptMessage/newEphermeralKey/catchup/index \(catchupChainIndex)")
@@ -715,11 +731,15 @@ extension KeyStore {
                         messageKey = symmetricRachet.messageKey
                         inboundChainKey = symmetricRachet.updatedChainKey
                         
-                        let msgKey = Data(messageKey)
-                        self.addMessageKey(for: userId, eId: savedInboundEphemeralKeyId, iId: catchupChainIndex, messageKey: msgKey)
-                        
+                        let newKey = MessageKeyData(
+                            ephemeralKeyID: savedInboundEphemeralKeyId,
+                            chainIndex: catchupChainIndex,
+                            data: Data(messageKey))
+                        newKeys.append(newKey)
+
                         catchupChainIndex += 1
                     }
+                    addMessageKeys(newKeys, for: userId)
                 }
                 
                 guard let inboundAsymmetricRachet = self.asymmetricRachet(privateKey: keyBundle.outboundEphemeralPrivateKey, publicKey: Data(inboundEphemeralPublicKey), rootKey: rootKey) else { return .failure(.ratchetFailure) }
@@ -745,7 +765,8 @@ extension KeyStore {
                 outboundIdentityPublicEdKey = nil
                 outboundOneTimePreKeyId = -1
             }
-            
+
+            var newKeys = [MessageKeyData]()
             while savedInboundChainIndex < inboundChainIndexInt {
                 DDLogInfo("KeyStore/decryptMessage/symmetricRachet/currentChainIndex \(savedInboundChainIndex)")
                 guard let symmetricRachet = self.symmetricRachet(chainKey: inboundChainKey) else { return .failure(.ratchetFailure) }
@@ -755,10 +776,14 @@ extension KeyStore {
                 savedInboundChainIndex += 1
                 
                 if savedInboundChainIndex != inboundChainIndexInt {
-                    let msgKey = Data(messageKey)
-                    self.addMessageKey(for: userId, eId: inboundEphemeralKeyIdInt, iId: savedInboundChainIndex, messageKey: msgKey)
+                    let newKey = MessageKeyData(
+                        ephemeralKeyID: inboundEphemeralKeyIdInt,
+                        chainIndex: savedInboundChainIndex,
+                        data: Data(messageKey))
+                    newKeys.append(newKey)
                 }
             }
+            addMessageKeys(newKeys, for: userId)
         }
         
         /*TODO: End section needs refactoring */
