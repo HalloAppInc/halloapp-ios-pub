@@ -162,6 +162,7 @@ class ContactStoreMain: ContactStore {
         }
 
         self.cancellableSet.insert(userData.didLogIn.sink { _ in
+            MainAppContext.shared.syncManager.disableSync() // resets next full sync date
             self.enableContactSync()
         })
 
@@ -232,7 +233,7 @@ class ContactStoreMain: ContactStore {
      Syncronization is performed on persistent store's  background queue.
      */
     func reloadContactsIfNecessary() {
-        guard self.needReloadContacts else {
+        guard needReloadContacts else {
             return
         }
 
@@ -243,14 +244,14 @@ class ContactStoreMain: ContactStore {
 
         let syncManager = MainAppContext.shared.syncManager!
 
-        if (ContactStore.contactsAccessAuthorized) {
+        if ContactStore.contactsAccessAuthorized {
             DDLogInfo("contacts/reload/required")
-            guard !self.isReloadingContacts else {
+            guard !isReloadingContacts else {
                 DDLogInfo("contacts/reload/already-in-progress")
                 return
             }
-            self.needReloadContacts = false
-            self.isReloadingContacts = true
+            needReloadContacts = false
+            isReloadingContacts = true
 
             DispatchQueue.main.async {
                 self.contactSerialQueue.async {
@@ -285,7 +286,7 @@ class ContactStoreMain: ContactStore {
                 }
             }
         } else if !syncManager.isSyncEnabled {
-            if self.userData.isLoggedIn {
+            if userData.isLoggedIn {
                 DispatchQueue.main.async {
                     self.enableContactSync()
                 }
