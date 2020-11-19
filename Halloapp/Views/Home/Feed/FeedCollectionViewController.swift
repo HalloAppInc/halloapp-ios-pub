@@ -130,6 +130,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     private var trackPerRowFRCChanges = false
 
+    private var collectionViewUpdates: [BlockOperation] = []
+
     func reloadTableView() {
         guard fetchedResultsController != nil else { return }
         fetchedResultsController?.delegate = nil
@@ -161,6 +163,12 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         trackPerRowFRCChanges = view.window != nil && UIApplication.shared.applicationState == .active
         DDLogDebug("FeedCollectionView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+        if trackPerRowFRCChanges {
+            collectionViewUpdates.removeAll()
+            collectionViewUpdates.append(BlockOperation {
+                DDLogDebug("FeedCollectionView/frc/batch-updates Start")
+            })
+        }
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
@@ -169,28 +177,40 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
             guard let indexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
             DDLogDebug("FeedCollectionView/frc/insert [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                collectionView.insertItems(at: [ indexPath ])
+                collectionViewUpdates.append(BlockOperation {
+                    DDLogDebug("FeedCollectionView/frc/batch-updates/insert at [\(indexPath)]")
+                    self.collectionView.insertItems(at: [ indexPath ])
+                })
             }
 
         case .delete:
             guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { break }
             DDLogDebug("FeedCollectionView/frc/delete [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                collectionView.deleteItems(at: [ indexPath ])
+                collectionViewUpdates.append(BlockOperation {
+                    DDLogDebug("FeedCollectionView/frc/batch-updates/delete at [\(indexPath)]")
+                    self.collectionView.deleteItems(at: [ indexPath ])
+                })
             }
 
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let feedPost = anObject as? FeedPost else { break }
             DDLogDebug("FeedCollectionView/frc/move [\(feedPost)] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges {
-                collectionView.moveItem(at: fromIndexPath, to: toIndexPath)
+                collectionViewUpdates.append(BlockOperation {
+                    DDLogDebug("FeedCollectionView/frc/batch-updates/move from [\(fromIndexPath)] to [\(toIndexPath)]")
+                    self.collectionView.moveItem(at: fromIndexPath, to: toIndexPath)
+                })
             }
 
         case .update:
             guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { return }
             DDLogDebug("FeedCollectionView/frc/update [\(feedPost)] at [\(indexPath)]")
             if trackPerRowFRCChanges {
-                collectionView.reloadItems(at: [ indexPath ])
+                collectionViewUpdates.append(BlockOperation {
+                    DDLogDebug("FeedCollectionView/frc/batch-updates/reload at [\(indexPath)]")
+                    self.collectionView.reloadItems(at: [ indexPath ])
+                })
             }
 
         default:
@@ -200,7 +220,15 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         DDLogDebug("FeedCollectionView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]")
-        if !trackPerRowFRCChanges {
+        if trackPerRowFRCChanges {
+            collectionViewUpdates.append(BlockOperation {
+                DDLogDebug("FeedCollectionView/frc/batch-updates Finish")
+            })
+            collectionView.performBatchUpdates {
+                collectionViewUpdates.forEach({ $0.start() })
+            }
+            collectionViewUpdates.removeAll()
+        } else {
             collectionView.reloadData()
         }
     }
