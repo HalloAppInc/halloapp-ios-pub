@@ -13,6 +13,7 @@ import XMPPFramework
 
 enum ProtoServiceCoreError: Error {
     case deserialization
+    case disconnected
     case serialization
 }
 
@@ -175,9 +176,16 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             }
 
             AppContext.shared.eventMonitor.observe(.encryption(error: error))
-            DDLogInfo("ProtoServiceCore/sendSilentChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
-            self.stream.send(packetData)
-            completion(.success(()))
+            DispatchQueue.main.async {
+                guard self.isConnected else {
+                    DDLogInfo("ProtoServiceCore/sendSilentChatMessage/\(message.id) skipping (disconnected)")
+                    completion(.failure(ProtoServiceCoreError.disconnected))
+                    return
+                }
+                DDLogInfo("ProtoServiceCore/sendSilentChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
+                self.stream.send(packetData)
+                completion(.success(()))
+            }
         }
     }
 
@@ -458,10 +466,17 @@ extension ProtoServiceCore: CoreService {
             }
 
             AppContext.shared.eventMonitor.observe(.encryption(error: error))
-            DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
-            self.stream.send(packetData)
-            self.sendSilentChats(ServerProperties.silentChatMessages)
-            completion(.success(()))
+            DispatchQueue.main.async {
+                guard self.isConnected else {
+                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) skipping (disconnected)")
+                    completion(.failure(ProtoServiceCoreError.disconnected))
+                    return
+                }
+                DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
+                self.stream.send(packetData)
+                self.sendSilentChats(ServerProperties.silentChatMessages)
+                completion(.success(()))
+            }
         }
     }
 
