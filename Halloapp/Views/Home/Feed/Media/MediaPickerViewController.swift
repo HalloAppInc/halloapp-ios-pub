@@ -44,8 +44,10 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private var preview: UIView?
     private var updatingSnapshot = false
     private var nextInProgress = false
+    private var originalMedia: [PendingMedia] = []
     
     init(filter: MediaPickerFilter = .all, multiselect: Bool = true, camera: Bool = false, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
+        self.originalMedia.append(contentsOf: selected)
         self.selected.append(contentsOf: selected.filter { $0.asset != nil }.map { $0.asset! })
         self.didFinish = didFinish
         self.camera = camera
@@ -169,6 +171,9 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     public func reset(selected: [PendingMedia]) {
+        originalMedia.removeAll()
+        originalMedia.append(contentsOf: selected)
+
         self.selected.removeAll()
         self.selected.append(contentsOf: selected.filter { $0.asset != nil }.map { $0.asset! })
         
@@ -483,6 +488,11 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             
             for i in 0..<self.selected.count {
                 let asset = self.selected[i]
+
+                if let media = self.originalMedia.first(where: { $0.asset == asset }) {
+                    result.append(media)
+                    continue
+                }
                 
                 switch asset.mediaType {
                 case .image:
@@ -931,8 +941,8 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         ]
         
         NSLayoutConstraint.activate(activeConstraints)
-        
-        if let asset = item?.asset, let idx = delegate?.selected.firstIndex(of: asset) {
+
+        if let asset = item?.asset, delegate?.selected.contains(asset) == true {
             image.layer.cornerRadius = 15
             image.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
         } else {
