@@ -862,19 +862,20 @@ fileprivate class Animator: NSObject, UIViewControllerTransitioningDelegate, UIV
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
         guard let delegate = delegate,
               let toController = transitionContext.viewController(forKey: .to),
-              let fromController = transitionContext.viewController(forKey: .from),
-              let toView = transitionContext.view(forKey: .to),
-              let fromView = transitionContext.view(forKey: .from)
+              let fromController = transitionContext.viewController(forKey: .from)
         else {
             transitionContext.completeTransition(true)
             return
         }
 
-        if presenting {
-            transitionContext.containerView.addSubview(toView)
-        } else {
-            transitionContext.containerView.addSubview(toView)
-            transitionContext.containerView.addSubview(fromView)
+        let toView = transitionContext.view(forKey: .to)
+        if let view = toView {
+            transitionContext.containerView.addSubview(view)
+        }
+
+        let fromView = transitionContext.view(forKey: .from)
+        if let view = fromView, !presenting {
+            transitionContext.containerView.addSubview(view)
         }
 
         // Ensurees that the toView and fromView have rendered their transition views
@@ -904,7 +905,7 @@ fileprivate class Animator: NSObject, UIViewControllerTransitioningDelegate, UIV
 
                 transitionView.frame.size = originMediaSize
                 transitionView.center = CGPoint(x: originFrame.midX, y: originFrame.midY)
-                toView.alpha = 0.0
+                toView?.alpha = 0.0
                 transitionViewFinalCenter = CGPoint(x: toViewFinalFrame.midX, y: toViewFinalFrame.midY)
             } else {
                 let scale = self.computeScaleAspectFit(containerSize: fromViewStartFrame.size, contentSize: self.media.size, transitionSize: originMediaSize)
@@ -925,11 +926,11 @@ fileprivate class Animator: NSObject, UIViewControllerTransitioningDelegate, UIV
                     }
 
                     UIView.addKeyframe(withRelativeStartTime: 0.8, relativeDuration: 0.2) {
-                        toView.alpha = 1.0
+                        toView?.alpha = 1.0
                     }
                 } else {
                     UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.2) {
-                        fromView.alpha = 0.0
+                        fromView?.alpha = 0.0
                     }
 
                     UIView.addKeyframe(withRelativeStartTime: 0.2, relativeDuration: 0.8) {
@@ -941,8 +942,8 @@ fileprivate class Animator: NSObject, UIViewControllerTransitioningDelegate, UIV
                 guard let self = self else { return }
                 let success = !transitionContext.transitionWasCancelled
 
-                if (self.presenting && !success) || (!self.presenting && success) {
-                    toView.removeFromSuperview()
+                if self.presenting && !success {
+                    toView?.removeFromSuperview()
                 }
 
                 transitionView.removeFromSuperview()
