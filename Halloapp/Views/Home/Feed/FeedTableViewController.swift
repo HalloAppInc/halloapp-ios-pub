@@ -344,6 +344,10 @@ class FeedTableViewController: UIViewController, NSFetchedResultsControllerDeleg
     // MARK: Misc
 
     private func stopAllVideoPlayback() {
+        guard isViewLoaded else {
+            // Turns out viewWillDisappear might be called even if view isn't loaded.
+            return
+        }
         for cell in tableView.visibleCells {
             if let feedTableViewCell = cell as? FeedPostTableViewCell {
                 feedTableViewCell.stopPlayback()

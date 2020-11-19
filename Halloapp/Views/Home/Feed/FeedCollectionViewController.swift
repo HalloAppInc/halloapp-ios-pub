@@ -270,6 +270,10 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     // MARK: Misc
 
     private func stopAllVideoPlayback() {
+        guard isViewLoaded else {
+            // Turns out viewWillDisappear might be called even if view isn't loaded. 
+            return
+        }
         for cell in collectionView.visibleCells {
             if let feedPostCell = cell as? FeedPostCollectionViewCell {
                 feedPostCell.stopPlayback()
