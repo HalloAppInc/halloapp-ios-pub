@@ -257,8 +257,8 @@ fileprivate class TitleView: UIView {
 
         addSubview(vStack)
         vStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+        vStack.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        vStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
         vStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
     }
 
