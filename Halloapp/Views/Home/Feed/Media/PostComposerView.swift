@@ -34,8 +34,7 @@ fileprivate class ObservableMediaState: ObservableObject {
 }
 
 struct NavigationBarState {
-    var backgroundImage: UIImage?
-    var shadowImage: UIImage?
+    var standardAppearance: UINavigationBarAppearance
     var isTranslucent: Bool
     var backgroundColor: UIColor?
 }
@@ -83,7 +82,6 @@ class PostComposerViewController: UIViewController {
     private weak var delegate: PostComposerViewDelegate?
 
     private var barState: NavigationBarState?
-    private var blurView: UIVisualEffectView?
 
     init(
         mediaToPost media: [PendingMedia],
@@ -175,47 +173,29 @@ class PostComposerViewController: UIViewController {
         shareButton.tintColor = .systemBlue
     }
 
-    private func getNavigationStatusBarHeight() -> CGFloat {
-        return navigationController?.view.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
-    }
-
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         shouldAutoPlay.value = true
 
         guard useTransparentNavigationBar, let navigationController = navigationController else { return }
+
         barState = NavigationBarState(
-            backgroundImage: navigationController.navigationBar.backgroundImage(for: .default),
-            shadowImage: navigationController.navigationBar.shadowImage,
+            standardAppearance: navigationController.navigationBar.standardAppearance,
             isTranslucent: navigationController.navigationBar.isTranslucent,
             backgroundColor: navigationController.navigationBar.backgroundColor)
 
-        navigationController.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        navigationController.navigationBar.shadowImage = UIImage()
+        navigationController.navigationBar.standardAppearance = .translucentAppearance
         navigationController.navigationBar.isTranslucent = true
         navigationController.navigationBar.backgroundColor = .clear
-
-        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-        let blurredEffectView = UIVisualEffectView(effect: blurEffect)
-        blurredEffectView.frame = navigationController.navigationBar.bounds
-        blurredEffectView.frame.size.height += getNavigationStatusBarHeight()
-        blurredEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        let barViewIndex = navigationController.view.subviews.firstIndex(of: navigationController.navigationBar)
-        if barViewIndex != nil {
-            navigationController.view.insertSubview(blurredEffectView, at: barViewIndex!)
-            blurView = blurredEffectView
-        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.shouldAutoPlay.value = false
         delegate?.willDismissWithInput(mentionInput: inputToPost.value)
-        blurView?.removeFromSuperview()
 
         guard useTransparentNavigationBar, let navigationController = navigationController, let barState = barState else { return }
-        navigationController.navigationBar.setBackgroundImage(barState.backgroundImage, for: .default)
-        navigationController.navigationBar.shadowImage = barState.shadowImage
+        navigationController.navigationBar.standardAppearance = barState.standardAppearance
         navigationController.navigationBar.isTranslucent = barState.isTranslucent
         navigationController.navigationBar.backgroundColor = barState.backgroundColor
     }
@@ -272,13 +252,13 @@ fileprivate class TitleView: UIView {
         vStack.translatesAutoresizingMaskIntoConstraints = false
         vStack.axis = .vertical
         vStack.alignment = .center
-        vStack.distribution = .fillEqually
+        vStack.distribution = .fillProportionally
         vStack.spacing = 0
 
         addSubview(vStack)
         vStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
-        vStack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor).isActive = true
+        vStack.topAnchor.constraint(equalTo: topAnchor).isActive = true
+        vStack.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
         vStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
     }
 
@@ -311,7 +291,7 @@ fileprivate struct PostComposerLayoutConstants {
     static let backgroundRadius: CGFloat = 20
 
     static let postTextHorizontalPadding = horizontalPadding + 12
-    static let postTextVerticalPadding = verticalPadding + 8
+    static let postTextVerticalPadding = verticalPadding + 4
 
     static let postTextNoMediaMinHeight: CGFloat = 265 - postTextVerticalPadding
     static let postTextUnfocusedMinHeight: CGFloat = 100 - postTextVerticalPadding
@@ -562,6 +542,7 @@ fileprivate struct PostComposerView: View {
                                 self.postTextView
                             }
                         }
+                        .clipShape(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius))
                         .background(
                             RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
                                 .fill(Color(.secondarySystemGroupedBackground))
@@ -841,7 +822,9 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MediaCarouselView {
         let feedMedia = context.coordinator.parent.feedMediaItems
-        let carouselView = MediaCarouselView(media: feedMedia, configuration: MediaCarouselViewConfiguration.composer)
+        var configuration = MediaCarouselViewConfiguration.composer
+        configuration.gutterWidth = PostComposerLayoutConstants.horizontalPadding
+        let carouselView = MediaCarouselView(media: feedMedia, configuration: configuration)
         carouselView.delegate = context.coordinator
         carouselView.shouldAutoPlay = context.coordinator.parent.shouldAutoPlay.value
         return carouselView
