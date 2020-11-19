@@ -10,19 +10,13 @@ import CocoaLumberjack
 import Core
 import UIKit
 
-fileprivate struct Constants {
-    static let SpaceBetweenBubbles:CGFloat = 7
-    static let TextFontStyle: UIFont.TextStyle = .subheadline
-    static let MaxWidthOfMsgBubble:CGFloat = UIScreen.main.bounds.width * 0.8
-}
-
 protocol InboundMsgViewCellDelegate: AnyObject {
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewQuotedMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String)
 }
 
-class InboundMsgViewCell: UITableViewCell {
+class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
     
     weak var delegate: InboundMsgViewCellDelegate?
     public var messageID: String? = nil
@@ -71,7 +65,7 @@ class InboundMsgViewCell: UITableViewCell {
         mainViewBottomConstraint.priority = UILayoutPriority(rawValue: 999)
         mainViewBottomConstraint.isActive = true
         
-        mainView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(Constants.MaxWidthOfMsgBubble).rounded()).isActive = true
+        mainView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(MaxWidthOfMsgBubble).rounded()).isActive = true
     }
 
     private lazy var mainView: UIStackView = {
@@ -89,6 +83,10 @@ class InboundMsgViewCell: UITableViewCell {
         let view = UIStackView(arrangedSubviews: [ quotedRow, nameRow, mediaRow, textRow ])
         view.axis = .vertical
         view.spacing = 0
+        
+        view.layoutMargins = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
+        view.isLayoutMarginsRelativeArrangement = true
+        
         view.translatesAutoresizingMaskIntoConstraints = false
         
         let subView = UIView(frame: view.bounds)
@@ -162,14 +160,13 @@ class InboundMsgViewCell: UITableViewCell {
         view.axis = .horizontal
         view.spacing = 10
 
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 15)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
         
         let baseSubView = UIView(frame: view.bounds)
-        baseSubView.layer.cornerRadius = 20
-        baseSubView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        baseSubView.layer.cornerRadius = 15
         baseSubView.layer.masksToBounds = true
         baseSubView.clipsToBounds = true
         baseSubView.backgroundColor = UIColor.feedBackground
@@ -177,8 +174,7 @@ class InboundMsgViewCell: UITableViewCell {
         view.insertSubview(baseSubView, at: 0)
         
         let subView = UIView(frame: baseSubView.bounds)
-        subView.layer.cornerRadius = 20
-        subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        subView.layer.cornerRadius = 15
         subView.layer.masksToBounds = true
         subView.clipsToBounds = true
         subView.backgroundColor = UIColor.chatOwnBubbleBg
@@ -209,7 +205,7 @@ class InboundMsgViewCell: UITableViewCell {
         let label = UILabel()
         label.numberOfLines = 1
         label.textColor = UIColor.label
-        let baseFont = UIFont.preferredFont(forTextStyle: .subheadline)
+        let baseFont = UIFont.preferredFont(forTextStyle: .footnote)
         let boldFont = UIFont(descriptor: baseFont.fontDescriptor.withSymbolicTraits(.traitBold)!, size: 0)
         label.font = boldFont
         return label
@@ -225,7 +221,8 @@ class InboundMsgViewCell: UITableViewCell {
         view.textContainerInset = UIEdgeInsets.zero
         view.textContainer.lineFragmentPadding = 0
         view.backgroundColor = .clear
-        view.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
+        view.font = UIFont.preferredFont(forTextStyle: .footnote)
+        view.textColor = UIColor.systemGray
         view.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -235,11 +232,11 @@ class InboundMsgViewCell: UITableViewCell {
         let view = UIImageView()
         view.contentMode = .scaleAspectFill
         
-        view.layer.cornerRadius = 10
+        view.layer.cornerRadius = 3
         view.layer.masksToBounds = true
         view.isHidden = true
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoQuotedPreview(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoQuotedPreview(_:)))
         view.isUserInteractionEnabled = true
         view.addGestureRecognizer(tapGesture)
         
@@ -279,7 +276,7 @@ class InboundMsgViewCell: UITableViewCell {
         view.axis = .vertical
         view.alignment = .leading
         view.spacing = 1
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 7, bottom: 7, right: 7)
         view.isLayoutMarginsRelativeArrangement = true
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -295,7 +292,7 @@ class InboundMsgViewCell: UITableViewCell {
         textView.dataDetectorTypes = .link
         textView.textContainerInset = UIEdgeInsets.zero
         textView.backgroundColor = .clear
-        textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
+        textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
         textView.textColor = .label
         textView.linkTextAttributes = [.foregroundColor: UIColor.chatOwnMsg, .underlineStyle: 1]
         return textView
@@ -418,7 +415,7 @@ class InboundMsgViewCell: UITableViewCell {
                         }
                     }
 
-                    let imageSize: CGFloat = 80.0
+                    let imageSize: CGFloat = 40.0
 
                     NSLayoutConstraint(item: quotedImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
                     NSLayoutConstraint(item: quotedImageView, attribute: .height, relatedBy: .equal, toItem: quotedImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
@@ -532,7 +529,7 @@ class InboundMsgViewCell: UITableViewCell {
         quotedRow.isHidden = true
         quotedNameLabel.textColor = UIColor.label
         quotedNameLabel.text = ""
-        quotedTextView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
+        quotedTextView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
         quotedTextView.text = ""
         quotedImageView.removeConstraints(quotedImageView.constraints)
         quotedImageView.isHidden = true
@@ -546,69 +543,13 @@ class InboundMsgViewCell: UITableViewCell {
         textRow.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         textView.isHidden = false
         textView.text = ""
-        textView.font = UIFont.preferredFont(forTextStyle: Constants.TextFontStyle)
+        textView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
         textView.textColor = .label
         
         timeLabel.isHidden = false
         timeLabel.text = nil
     }
 
-    // MARK: Helpers
-    
-    func preferredSize(for media: [ChatMedia]) -> CGSize {
-        guard !media.isEmpty else { return CGSize(width: 0, height: 0) }
-        
-        let maxRatio: CGFloat = 5/4 // height/width
-        // should be smaller than bubble width to avoid constraint conflicts
-        let maxWidth = Constants.MaxWidthOfMsgBubble - 10
-        let maxHeight = maxWidth*maxRatio
-        
-        var tallest: CGFloat = 0
-        var widest: CGFloat = 0
-        for med in media {
-            let ratio = med.size.height/med.size.width
-            let height = maxWidth*ratio
-            let width = maxHeight/ratio
-            
-            tallest = max(tallest, height)
-            widest = max(widest, width)
-        }
-        
-        tallest = min(tallest, maxHeight)
-        widest = min(widest, maxWidth)
-        return CGSize(width: widest, height: tallest)
-    }
-    
-    func getNameColor(for userId: UserID, name: String, groupId: GroupID) -> UIColor {
-        let groupIdSuffix = String(groupId.suffix(4))
-        let userIdSuffix = String(userId.suffix(8))
-        let str = "\(groupIdSuffix)\(userIdSuffix)\(name)"
-        let colorInt = str.utf8.reduce(0) { return $0 + Int($1) } % 14
-        
-        // cyan not good
-        let color: UIColor = {
-            switch colorInt {
-            case 0: return UIColor.systemBlue
-            case 1: return UIColor.systemGreen
-            case 2: return UIColor.systemIndigo
-            case 3: return UIColor.systemOrange
-            case 4: return UIColor.systemPink
-            case 5: return UIColor.systemPurple
-            case 6: return UIColor.systemRed
-            case 7: return UIColor.systemTeal
-            case 8: return UIColor.systemYellow
-            case 9: return UIColor.systemGray
-            case 10: return UIColor.systemBlue.withAlphaComponent(0.5)
-            case 11: return UIColor.systemGreen.withAlphaComponent(0.5)
-            case 12: return UIColor.brown
-            case 13: return UIColor.magenta
-            default: return UIColor.secondaryLabel
-            }
-        }()
-        
-        return color
-    }
-    
     @objc func gotoQuotedPreview(_ sender: UIView) {
         delegate?.inboundMsgViewCell(self, previewQuotedMediaAt: 0, withDelegate: quotedImageView)
     }

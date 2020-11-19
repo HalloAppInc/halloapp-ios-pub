@@ -189,6 +189,7 @@
 		EA52EB18245A012700FB03F6 /* NewMessageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */; };
 		EA5975DE252D3CF600810F48 /* GroupMemberAvatars.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5975DD252D3CF600810F48 /* GroupMemberAvatars.swift */; };
 		EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */; };
+		EA62C28C2563577D008EA9C9 /* MsgUIProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA62C28B2563577D008EA9C9 /* MsgUIProtocol.swift */; };
 		EA796B9B2469DDF100BC795E /* ChatQuoted+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B972469DDF100BC795E /* ChatQuoted+CoreDataClass.swift */; };
 		EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B982469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift */; };
 		EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B992469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift */; };
@@ -204,6 +205,7 @@
 		EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */; };
 		EAA4250524F0DE360025CBBE /* ChatGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */; };
 		EAA4906625311CD1003348B5 /* OutboundMsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */; };
+		EAAA5C0D25644A9600B81630 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAA5C0C25644A9600B81630 /* Utils.swift */; };
 		EAB1FFEE2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */; };
 		EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1FFED2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift */; };
 		EABBF72624E4EDF100FE1F1F /* NewGroupMembersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */; };
@@ -503,6 +505,7 @@
 		EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMessageViewController.swift; sourceTree = "<group>"; };
 		EA5975DD252D3CF600810F48 /* GroupMemberAvatars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupMemberAvatars.swift; sourceTree = "<group>"; };
 		EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPickerView.swift; sourceTree = "<group>"; };
+		EA62C28B2563577D008EA9C9 /* MsgUIProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MsgUIProtocol.swift; sourceTree = "<group>"; };
 		EA796B972469DDF100BC795E /* ChatQuoted+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuoted+CoreDataClass.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuoted+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		EA796B982469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuoted+CoreDataProperties.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuoted+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		EA796B992469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuotedMedia+CoreDataClass.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuotedMedia+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -519,6 +522,7 @@
 		EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGroupViewController.swift; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundMsgViewCell.swift; sourceTree = "<group>"; };
+		EAAA5C0C25644A9600B81630 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageEvent+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAB1FFED2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageEvent+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGroupMembersViewController.swift; sourceTree = "<group>"; };
@@ -969,6 +973,7 @@
 				764AB41624A67A3C00D4E354 /* Privacy */,
 				766103A22461E63200728870 /* Receipts */,
 				76DFA0012419560300F49CA4 /* XMPP */,
+				EAAA5C0C25644A9600B81630 /* Utils.swift */,
 				2446D67B24CB54F8005BAD3C /* VideoUtils.swift */,
 				68C8264A251A77A000BB8F3A /* NUX.swift */,
 			);
@@ -1006,6 +1011,7 @@
 				EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */,
 				EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */,
 				EA3585752450BE3300E6E8AB /* ChatInputView.swift */,
+				EA62C28B2563577D008EA9C9 /* MsgUIProtocol.swift */,
 				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
 				EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */,
 			);
@@ -1769,6 +1775,7 @@
 				7653F2FA255DB4E7001CC946 /* FeedCollectionViewController.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */,
 				68C8264B251A77A000BB8F3A /* NUX.swift in Sources */,
+				EA62C28C2563577D008EA9C9 /* MsgUIProtocol.swift in Sources */,
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
 				68D45A0E25544813000BF04E /* ContactsPermissionsViewController.swift in Sources */,
 				EAD476D324588E0000EF8591 /* ChatMediaSlider.swift in Sources */,
@@ -1802,6 +1809,7 @@
 				7626CCDE24C738F50023FC2E /* CrashlyticsLogger.swift in Sources */,
 				7639BA39251944920023850E /* NextLevelSessionExporter.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
+				EAAA5C0D25644A9600B81630 /* Utils.swift in Sources */,
 				762EDBDB244E344300986617 /* UIFont.swift in Sources */,
 				766492232450DDB9009BC368 /* BadgedButton.swift in Sources */,
 				76B5B5322501F1700055E712 /* NotificationSettings.swift in Sources */,

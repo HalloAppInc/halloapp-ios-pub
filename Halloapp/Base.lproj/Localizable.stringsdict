@@ -18,22 +18,6 @@
 			<string>Sharing with %d of my contacts</string>
 		</dict>
 	</dict>
-	<key>timestamp.last.seen.n.minutes</key>
-	<dict>
-		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@minutes@</string>
-		<key>minutes</key>
-		<dict>
-			<key>NSStringFormatSpecTypeKey</key>
-			<string>NSStringPluralRuleType</string>
-			<key>NSStringFormatValueTypeKey</key>
-			<string>d</string>
-			<key>one</key>
-			<string>Last seen %d minute ago</string>
-			<key>other</key>
-			<string>Last seen %d minutes ago</string>
-		</dict>
-	</dict>
 	<key>timestamp.n.days.short</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>

@@ -647,12 +647,50 @@ extension ProtoService: HalloService {
     
     func sendPresenceIfPossible(_ presenceType: PresenceType) {
         guard isConnected else { return }
-        enqueue(request: ProtoPresenceUpdate(status: presenceType) { _ in })
+        
+        var presence = Server_Presence()
+        presence.id = Utils().randomString(10)
+        presence.type = {
+            switch presenceType {
+            case .away:
+                return .away
+            case .available:
+                return .available
+            }
+        }()
+        if let uid = Int64(AppContext.shared.userData.userId) {
+            presence.uid = uid
+        }
+
+        var packet = Server_Packet()
+        packet.presence = presence
+
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoService/sendPresenceIfPossible/error could not serialize")
+            return
+        }
+        stream.send(packetData)
     }
 
     func subscribeToPresenceIfPossible(to userID: UserID) -> Bool {
         guard isConnected else { return false }
-        enqueue(request: ProtoPresenceSubscribeRequest(userID: userID) { _ in })
+
+        var presence = Server_Presence()
+        presence.id = Utils().randomString(10)
+        presence.type = .subscribe
+        if let uid = Int64(userID) {
+            presence.uid = uid
+        }
+
+        var packet = Server_Packet()
+        packet.stanza = .presence(presence)
+
+        guard let packetData = try? packet.serializedData() else {
+            DDLogError("ProtoService/subscribeToPresenceIfPossible/error could not serialize")
+            return false
+        }
+        stream.send(packetData)
+   
         return true
     }
     

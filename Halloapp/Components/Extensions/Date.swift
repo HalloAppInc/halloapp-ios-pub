@@ -125,14 +125,6 @@ extension Date {
     
     func lastSeenTimestamp() -> String {
         let seconds = -self.timeIntervalSinceNow
-        
-        if seconds < Date.minutes(1) {
-            return NSLocalizedString("timestamp.last.seen.just.now", value: "Last seen less than a minute ago", comment: "Last seen timestamp.")
-        } else if seconds < Date.hours(1) {
-            let formatString = NSLocalizedString("timestamp.last.seen.n.minutes", comment: "Last seen timestamp. Parameter is minutes.")
-            let minutes = Date.toMinutes(seconds, rounded: true)
-            return String.localizedStringWithFormat(formatString, minutes)
-        }
 
         let time = DateFormatter.dateTimeFormatterTime.string(from: self)
         if Calendar.current.isDateInToday(self) {

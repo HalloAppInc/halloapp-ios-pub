@@ -102,13 +102,13 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
     }
     
     func updateMedia(_ sliderMedia: SliderMedia) {
-        guard let imageView = imageViewList[sliderMedia.order] else { return }
+        guard let imageView = self.imageViewList[sliderMedia.order] else { return }
         imageView.image = sliderMedia.image
         
         imageView.contentMode = .scaleAspectFit
         imageView.roundCorner(20)
         imageView.clipsToBounds = true
-
+        
         guard let imageViewOverlay = imageViewOverlayList[sliderMedia.order] else { return }
         imageViewOverlay.removeFromSuperview()
     }

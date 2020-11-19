@@ -53,7 +53,7 @@ class ChatData: ObservableObject {
     
     private var unreadThreadCount: Int = 0 {
         didSet {
-            self.didChangeUnreadThreadCount.send(unreadThreadCount)
+            didChangeUnreadThreadCount.send(unreadThreadCount)
 //            DispatchQueue.main.async {
 //                UIApplication.shared.applicationIconBadgeNumber = self.unreadThreadCount
 //            }
@@ -62,7 +62,7 @@ class ChatData: ObservableObject {
     
     private var unreadMessageCount: Int = 0 {
         didSet {
-            self.didChangeUnreadCount.send(unreadMessageCount)
+            didChangeUnreadCount.send(unreadMessageCount)
         }
     }
 
@@ -94,26 +94,27 @@ class ChatData: ObservableObject {
         
         cancellableSet.insert(
             service.didGetChatAck.sink { [weak self] chatAck in
-                DDLogInfo("ChatData/didGetChatAck \(chatAck)")
                 guard let self = self else { return }
+                DDLogInfo("ChatData/didGetChatAck \(chatAck.id)")
                 self.processInboundChatAck(chatAck)
             }
         )
         
         cancellableSet.insert(
             service.didGetNewChatMessage.sink { [weak self] xmppMessage in
-                DDLogInfo("ChatData/newMsg \(xmppMessage)")
-                self?.processInboundXMPPChatMessage(xmppMessage)
+                guard let self = self else { return }
+                DDLogInfo("ChatData/didGetNewChatMessage \(xmppMessage.id)")
+                self.processInboundXMPPChatMessage(xmppMessage)
             }
         )
         
         cancellableSet.insert(
             service.didConnect.sink { [weak self] in
                 guard let self = self else { return }
-                DDLogInfo("ChatData/onConnect")
+                DDLogInfo("ChatData/didConnect")
 
                 if (UIApplication.shared.applicationState == .active) {
-                    DDLogInfo("ChatData/onConnect/sendPresence")
+                    DDLogInfo("ChatData/didConnect/sendPresence")
                     self.sendPresence(type: .available)
 
                     if let currentUser = self.currentlyChattingWithUserId {
@@ -122,7 +123,7 @@ class ChatData: ObservableObject {
                         }
                     }
                 } else {
-                    DDLogDebug("ChatData/onConnect/appNotActive")
+                    DDLogDebug("ChatData/didConnect/app is in background")
                 }
 
                 self.processPendingChatMsgs()
@@ -134,37 +135,37 @@ class ChatData: ObservableObject {
                 self.processPendingGroupChatSeenReceipts()
                 
                 if (UIApplication.shared.applicationState == .active) {
-                    self.processPendingChatMessageMedia()
-                    self.processPendingChatGroupMessageMedia()
+                    self.processInboundPendingChatMsgMedia()
+                    self.processInboundPendingGroupChatMsgMedia()
                 }
             }
         )
                 
         cancellableSet.insert(
             service.didGetPresence.sink { [weak self] xmppPresence in
-                DDLogInfo("ChatData/gotPresence \(xmppPresence)")
                 guard let self = self else { return }
+                DDLogInfo("ChatData/didGetPresence \(xmppPresence.userID)")
                 self.processIncomingPresence(xmppPresence)
             }
         )
         
         cancellableSet.insert(
             service.didGetChatState.sink { [weak self] chatStateInfo in
-                DDLogInfo("ChatData/didGetChatState \(chatStateInfo)")
                 guard let self = self else { return }
+                DDLogInfo("ChatData/didGetChatState \(chatStateInfo.from)")
                 self.processInboundChatStateInBg(chatStateInfo)
             }
         )
         
         cancellableSet.insert(
             service.didGetChatRetract.sink { [weak self] chatRetractInfo in
-                DDLogInfo("ChatData/didGetChatRetract \(chatRetractInfo)")
                 guard let self = self else { return }
+                DDLogInfo("ChatData/didGetChatRetract \(chatRetractInfo.from)")
                 self.processInboundChatRetractInBg(chatRetractInfo)
             }
         )
         
-        /** gotcha: use Combine sink instead of notificationCenter.addObserver because for some reason if the user flicks the app to the background and 3
+        /** gotcha: use Combine sink instead of notificationCenter.addObserver because for some reason if the user flicks the app to the background and back
             really quickly, the observer doesn't fire
          */
         cancellableSet.insert(
@@ -172,7 +173,8 @@ class ChatData: ObservableObject {
                 guard let self = self else { return }
                 self.sendPresence(type: .available)
                 if let currentlyChattingWithUserId = self.currentlyChattingWithUserId {
-                    self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+                    self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                        guard let self = self else { return }
                         self.markSeenMessages(type: .oneToOne, for: currentlyChattingWithUserId, in: managedObjectContext)
                     }
                 }
@@ -209,7 +211,7 @@ class ChatData: ObservableObject {
                     chatThread.title = MainAppContext.shared.contactStore.fullName(for: userId)
                     chatThread.chatWithUserId = userId
                     chatThread.lastMsgUserId = userId
-                    chatThread.lastMsgText = "Hi there! I’m using HalloApp"
+                    chatThread.lastMsgText = Localizations.chatListUsingApp
                     chatThread.unreadCount = 0
                     self.save(managedObjectContext)
                 }
@@ -219,10 +221,11 @@ class ChatData: ObservableObject {
     }
 
 
-    func processPendingChatMessageMedia() {
-        guard self.currentlyDownloading.count < self.maxNumDownloads else { return }
+    func processInboundPendingChatMsgMedia() {
+        guard currentlyDownloading.count < maxNumDownloads else { return }
         
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             
             let pendingMessagesWithMedia = self.pendingIncomingChatMessagesMedia(in: managedObjectContext)
             
@@ -230,200 +233,210 @@ class ChatData: ObservableObject {
                 
                 guard let media = chatMessage.media else { continue }
                 
-                let sortedMedia = media.sorted(by: { $0.order < $1.order })
+                var sortedMedia = media.sorted(by: { $0.order < $1.order })
+                sortedMedia = sortedMedia.filter { $0.incomingStatus == .pending }
+                guard let med = sortedMedia.first else { continue }
                 
-                for med in sortedMedia {
+                DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media order: \(med.order)")
                 
-                    guard med.incomingStatus == ChatMedia.IncomingStatus.pending else { continue }
-                    guard med.numTries <= self.maxTries else { continue }
-                    guard let url = med.url else { continue }
-                    guard !self.currentlyDownloading.contains(url) else { continue }
+                guard med.incomingStatus == ChatMedia.IncomingStatus.pending else { continue }
+                guard med.numTries <= self.maxTries else { continue }
+                guard let url = med.url else { continue }
+                guard !self.currentlyDownloading.contains(url) else { continue }
 
-                    let threadId = chatMessage.fromUserId
-                    let messageId = chatMessage.id
-                    let order = med.order
-                    let key = med.key
-                    let sha = med.sha256
-                    let type: FeedMediaType = med.type == ChatMessageMediaType.image ? FeedMediaType.image : FeedMediaType.video
+                let threadId = chatMessage.fromUserId
+                let messageId = chatMessage.id
+                let order = med.order
+                let key = med.key
+                let sha = med.sha256
+                let type: FeedMediaType = med.type == ChatMessageMediaType.image ? FeedMediaType.image : FeedMediaType.video
+            
+                // save attempts
+                self.updateChatMessage(with: messageId) { (chatMessage) in
+                    if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ) {
+                        chatMessage.media?[index].numTries += 1
+                    }
+                }
                 
-                    // save attempts
-                    self.updateChatMessage(with: messageId) { (chatMessage) in
-                        if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ) {
-                            chatMessage.media?[index].numTries += 1
+                _ = ChatMediaDownloader(url: url, completion: { (outputUrl) in
+
+                    var encryptedData: Data
+                    do {
+                        encryptedData = try Data(contentsOf: outputUrl)
+                    } catch {
+                        return
+                    }
+
+                    // Decrypt data
+                    guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
+                        return
+                    }
+
+                    var decryptedData: Data
+                    do {
+                        decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
+                    } catch {
+                        return
+                    }
+
+                    let fileExtension = type == .image ? "jpg" : "mp4"
+                    let filename = "\(messageId)-\(order).\(fileExtension)"
+                    
+                    let fileURL = MainAppContext.chatMediaDirectoryURL
+                        .appendingPathComponent(threadId, isDirectory: true)
+                        .appendingPathComponent(filename, isDirectory: false)
+                    
+                    // create intermediate directories
+                    if !FileManager.default.fileExists(atPath: fileURL.path) {
+                        do {
+                            try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
+                        } catch {
+                            DDLogError(error.localizedDescription)
                         }
                     }
                     
-                    _ = ChatMediaDownloader(url: url, completion: { (outputUrl) in
-
-                        var encryptedData: Data
-                        do {
-                            encryptedData = try Data(contentsOf: outputUrl)
-                        } catch {
-                            return
+                    // delete the file it already exists, ie. previous attempts
+                    if FileManager.default.fileExists(atPath: fileURL.path) {
+                        try! FileManager.default.removeItem(atPath: fileURL.path)
+                    } else {
+                        DDLogError("File does not exist")
+                    }
+                    
+                    do {
+                        try decryptedData.write(to: fileURL, options: [])
+                    }
+                    catch {
+                        DDLogError("can't write error: \(error)")
+                        return
+                    }
+                    
+                    self.updateChatMessage(with: messageId, block: { [weak self] (chatMessage) in
+                        guard let self = self else { return }
+                        if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ) {
+                            let relativePath = self.relativePath(from: fileURL)
+                            chatMessage.media?[index].relativeFilePath = relativePath
+                            chatMessage.media?[index].incomingStatus = .downloaded
+                            
+                            // hack: force a change so frc can pick up the change
+                            let fromUserId = chatMessage.fromUserId
+                            chatMessage.fromUserId = fromUserId
                         }
-
-                        // Decrypt data
-                        guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
-                            return
-                        }
-
-                        var decryptedData: Data
-                        do {
-                            decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
-                        } catch {
-                            return
-                        }
-
-                        let fileExtension = type == .image ? "jpg" : "mp4"
-                        let filename = "\(messageId)-\(order).\(fileExtension)"
-                        
-                        let fileURL = MainAppContext.chatMediaDirectoryURL
-                            .appendingPathComponent(threadId, isDirectory: true)
-                            .appendingPathComponent(filename, isDirectory: false)
-                        
-                        // create intermediate directories
-                        if !FileManager.default.fileExists(atPath: fileURL.path) {
-                            do {
-                                try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
-                            } catch {
-                                DDLogError(error.localizedDescription)
-                            }
-                        }
-                        
-                        // delete the file it already exists, ie. previous attempts
-                        if FileManager.default.fileExists(atPath: fileURL.path) {
-                            try! FileManager.default.removeItem(atPath: fileURL.path)
-                        } else {
-                            DDLogError("File does not exist")
-                        }
-                        
-                        do {
-                            try decryptedData.write(to: fileURL, options: [])
-                        }
-                        catch {
-                            DDLogError("can't write error: \(error)")
-                            return
-                        }
-                        
-                        self.updateChatMessage(with: messageId) { (chatMessage) in
-                            if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ) {
-                                let relativePath = self.relativePath(from: fileURL)
-                                chatMessage.media?[index].relativeFilePath = relativePath
-                                chatMessage.media?[index].incomingStatus = .downloaded
-                                
-                                // hack: force a change so frc can pick up the change
-                                let fromUserId = chatMessage.fromUserId
-                                chatMessage.fromUserId = fromUserId
-                            }
-                        }
-                        self.processPendingChatMessageMedia()
-                    })
-                }
+                    }) { [weak self] in
+                        guard let self = self else { return }
+                        self.processInboundPendingChatMsgMedia()
+                    }
+                })
             }
         }
     }
     
     // TODO: need to refactor, have chat and group share this component
-    func processPendingChatGroupMessageMedia() {
-        guard self.currentlyDownloading.count < self.maxNumDownloads else { return }
+    func processInboundPendingGroupChatMsgMedia() {
+        guard currentlyDownloading.count < maxNumDownloads else { return }
         
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             
-            let pendingMessagesWithMedia = self.pendingInboundChatGroupMessagesMedia(in: managedObjectContext)
+            let pendingMessagesWithMedia = self.inboundPendingGroupChatMsgMedia(in: managedObjectContext)
             
             for chatGroupMessage in pendingMessagesWithMedia {
-                
                 guard let media = chatGroupMessage.media else { continue }
                 
-                let sortedMedia = media.sorted(by: { $0.order < $1.order })
+                var sortedMedia = media.sorted(by: { $0.order < $1.order })
+                sortedMedia = sortedMedia.filter {$0.incomingStatus == .pending}
+                guard let med = sortedMedia.first else { continue }
                 
-                for med in sortedMedia {
+                DDLogDebug("ChatData/processInboundPendingGroupChatMsgMedia/\(chatGroupMessage.id)/ media order: \(med.order)")
                 
-                    guard med.incomingStatus == ChatMedia.IncomingStatus.pending else { continue }
-                    guard med.numTries <= self.maxTries else { continue }
-                    guard let url = med.url else { continue }
-                    guard !self.currentlyDownloading.contains(url) else { continue }
+                guard med.incomingStatus == ChatMedia.IncomingStatus.pending else { continue }
+                guard med.numTries <= self.maxTries else { continue }
+                guard let url = med.url else { continue }
+                guard !self.currentlyDownloading.contains(url) else { continue }
 
-                    let threadId = chatGroupMessage.groupId
-                    let messageId = chatGroupMessage.id
-                    let order = med.order
-                    let key = med.key
-                    let sha = med.sha256
-                    let type: FeedMediaType = med.type == ChatMessageMediaType.image ? FeedMediaType.image : FeedMediaType.video
+                let threadId = chatGroupMessage.groupId
+                let messageId = chatGroupMessage.id
+                let order = med.order
+                let key = med.key
+                let sha = med.sha256
+                let type: FeedMediaType = med.type == ChatMessageMediaType.image ? FeedMediaType.image : FeedMediaType.video
+            
+                // save attempts
+                self.updateChatGroupMessage(with: messageId) { (chatGroupMessage) in
+                    if let index = chatGroupMessage.media?.firstIndex(where: { $0.order == order } ) {
+                        chatGroupMessage.media?[index].numTries += 1
+                    }
+                }
                 
-                    // save attempts
-                    self.updateChatGroupMessage(with: messageId) { (chatGroupMessage) in
-                        if let index = chatGroupMessage.media?.firstIndex(where: { $0.order == order } ) {
-                            chatGroupMessage.media?[index].numTries += 1
+                _ = ChatMediaDownloader(url: url, completion: { [weak self] (outputUrl) in
+                    guard let self = self else { return }
+                    var encryptedData: Data
+                    do {
+                        encryptedData = try Data(contentsOf: outputUrl)
+                    } catch {
+                        return
+                    }
+
+                    // Decrypt data
+                    guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
+                        return
+                    }
+
+                    var decryptedData: Data
+                    do {
+                        decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
+                    } catch {
+                        return
+                    }
+
+                    let fileExtension = type == .image ? "jpg" : "mp4"
+                    let filename = "\(messageId)-\(order).\(fileExtension)"
+                    
+                    let fileURL = MainAppContext.chatMediaDirectoryURL
+                        .appendingPathComponent(threadId, isDirectory: true)
+                        .appendingPathComponent(filename, isDirectory: false)
+                    
+                    // create intermediate directories
+                    if !FileManager.default.fileExists(atPath: fileURL.path) {
+                        do {
+                            try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
+                        } catch {
+                            DDLogError(error.localizedDescription)
                         }
                     }
                     
-                    _ = ChatMediaDownloader(url: url, completion: { (outputUrl) in
+                    // delete the file it already exists, ie. previous attempts
+                    if FileManager.default.fileExists(atPath: fileURL.path) {
+                        try! FileManager.default.removeItem(atPath: fileURL.path)
+                    } else {
+                        DDLogError("File does not exist")
+                    }
+                    
+                    do {
+                        try decryptedData.write(to: fileURL, options: [])
+                    }
+                    catch {
+                        DDLogError("can't write error: \(error)")
+                        return
+                    }
+                    
+                    self.updateChatGroupMessage(with: messageId, block: { [weak self] (chatGroupMessage) in
+                        guard let self = self else { return }
+                        if let index = chatGroupMessage.media?.firstIndex(where: { $0.order == order } ) {
+                            let relativePath = self.relativePath(from: fileURL)
+                            chatGroupMessage.media?[index].relativeFilePath = relativePath
+                            chatGroupMessage.media?[index].incomingStatus = .downloaded
+                            
+                            // hack: force a change so frc can pick up the change
+                            let groupId = chatGroupMessage.groupId
+                            chatGroupMessage.groupId = groupId
+                        }
+                    }) { [weak self] in
+                        guard let self = self else { return }
+                        self.processInboundPendingGroupChatMsgMedia()
+                    }
+                    
+                })
 
-                        var encryptedData: Data
-                        do {
-                            encryptedData = try Data(contentsOf: outputUrl)
-                        } catch {
-                            return
-                        }
-
-                        // Decrypt data
-                        guard let mediaKey = Data(base64Encoded: key), let sha256Hash = Data(base64Encoded: sha) else {
-                            return
-                        }
-
-                        var decryptedData: Data
-                        do {
-                            decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: type)
-                        } catch {
-                            return
-                        }
-
-                        let fileExtension = type == .image ? "jpg" : "mp4"
-                        let filename = "\(messageId)-\(order).\(fileExtension)"
-                        
-                        let fileURL = MainAppContext.chatMediaDirectoryURL
-                            .appendingPathComponent(threadId, isDirectory: true)
-                            .appendingPathComponent(filename, isDirectory: false)
-                        
-                        // create intermediate directories
-                        if !FileManager.default.fileExists(atPath: fileURL.path) {
-                            do {
-                                try FileManager.default.createDirectory(atPath: fileURL.path, withIntermediateDirectories: true, attributes: nil)
-                            } catch {
-                                DDLogError(error.localizedDescription)
-                            }
-                        }
-                        
-                        // delete the file it already exists, ie. previous attempts
-                        if FileManager.default.fileExists(atPath: fileURL.path) {
-                            try! FileManager.default.removeItem(atPath: fileURL.path)
-                        } else {
-                            DDLogError("File does not exist")
-                        }
-                        
-                        do {
-                            try decryptedData.write(to: fileURL, options: [])
-                        }
-                        catch {
-                            DDLogError("can't write error: \(error)")
-                            return
-                        }
-                        
-                        self.updateChatGroupMessage(with: messageId) { (chatGroupMessage) in
-                            if let index = chatGroupMessage.media?.firstIndex(where: { $0.order == order } ) {
-                                let relativePath = self.relativePath(from: fileURL)
-                                chatGroupMessage.media?[index].relativeFilePath = relativePath
-                                chatGroupMessage.media?[index].incomingStatus = .downloaded
-                                
-                                // hack: force a change so frc can pick up the change
-                                let groupId = chatGroupMessage.groupId
-                                chatGroupMessage.groupId = groupId
-                            }
-                        }
-                        self.processPendingChatGroupMessageMedia()
-                    })
-                }
             }
         }
     }
@@ -448,14 +461,10 @@ class ChatData: ObservableObject {
             }
         }
     }
-    
-//    private func loadPersistentContainer() {
-//        let container = self.persistentContainer
-//        DDLogDebug("ChatData/loadPersistentStore Loaded [\(container)]")
-//    }
-    
+        
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
-        self.backgroundProcessingQueue.async {
+        backgroundProcessingQueue.async { [weak self] in
+            guard let self = self else { return }
             let managedObjectContext = self.persistentContainer.newBackgroundContext()
             managedObjectContext.performAndWait { block(managedObjectContext) }
         }
@@ -463,8 +472,8 @@ class ChatData: ObservableObject {
     
     var viewContext: NSManagedObjectContext {
         get {
-            self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-            return self.persistentContainer.viewContext
+            persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+            return persistentContainer.viewContext
         }
     }
     
@@ -658,7 +667,8 @@ class ChatData: ObservableObject {
             return
         }
 
-        performSeriallyOnBackgroundContext { managedObjectContext in
+        performSeriallyOnBackgroundContext { [weak self] managedObjectContext in
+            guard let self = self else { return }
             self.merge(messages: messages, from: sharedDataStore, using: managedObjectContext, completion: completion)
         }
     }
@@ -819,7 +829,8 @@ extension ChatData {
     }
     
     func markThreadAsRead(type: ChatType, for id: String) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             
             if let chatThread = self.chatThread(type: type, id: id, in: managedObjectContext) {
                 if chatThread.unreadCount != 0 {
@@ -836,14 +847,16 @@ extension ChatData {
     }
     
     func updateUnreadThreadCount() {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             let threads = self.chatThreads(predicate: NSPredicate(format: "unreadCount > 0"), in: managedObjectContext)
             self.unreadThreadCount = Int(threads.count)
         }
     }
     
     func updateUnreadMessageCount() {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             let threads = self.chatThreads(predicate: NSPredicate(format: "unreadCount > 0"), in: managedObjectContext)
             self.unreadMessageCount = Int(threads.reduce(0) { $0 + $1.unreadCount })
         }
@@ -1274,7 +1287,8 @@ extension ChatData {
     }
 
     private func handleRerequest(for messageID: String, from userID: UserID) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             guard let chatMessage = self.chatMessage(with: messageID, in: managedObjectContext) else {
                 DDLogError("ChatData/handleRerequest/\(messageID)/error could not find message")
                 return
@@ -1378,25 +1392,26 @@ extension ChatData {
         let sortDescriptors = [
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
         ]
-        return self.chatMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+        return chatMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
-    func pendingInboundChatGroupMessagesMedia(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
+    func inboundPendingGroupChatMsgMedia(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
         let sortDescriptors = [
             NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
         ]
-        return self.chatGroupMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+        return chatGroupMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
 
     // MARK: 1-1 Core Data Updating
     
     private func updateChatMessage(with chatMessageId: String, block: @escaping (ChatMessage) -> (), performAfterSave: (() -> ())? = nil) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             defer {
                 if let performAfterSave = performAfterSave {
                     performAfterSave()
                 }
             }
+            guard let self = self else { return }
             guard let chatMessage = self.chatMessage(with: chatMessageId, in: managedObjectContext) else {
                 DDLogError("ChatData/update-message/missing [\(chatMessageId)]")
                 return
@@ -1410,7 +1425,8 @@ extension ChatData {
     }
     
     private func updateChatMessageByStatus(for id: String, status: ChatMessage.OutgoingStatus, block: @escaping (ChatMessage) -> ()) {
-        performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             let sortDescriptors = [
                 NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
             ]
@@ -1428,7 +1444,8 @@ extension ChatData {
     
     private func updateRetractingChatMessage(for id: String, block: @escaping (ChatMessage) -> ()) {
 
-        performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             let sortDescriptors = [
                 NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
             ]
@@ -1453,8 +1470,8 @@ extension ChatData {
     // MARK: 1-1 Core Data Deleting
 
     func deleteChat(chatThreadId: String) {
-        performSeriallyOnBackgroundContext { (managedObjectContext) in
-
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             // delete thread
             if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatThreadId, in: managedObjectContext) {
                 managedObjectContext.delete(chatThread)
@@ -1548,7 +1565,8 @@ extension ChatData {
             guard let self = self else { return }
             let isAppActive = UIApplication.shared.applicationState == .active
             
-            self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                guard let self = self else { return }
                 self.processInboundChatMessage(xmppChatMessage: chatMessage, using: managedObjectContext, isAppActive: isAppActive)
             }
         }
@@ -1740,7 +1758,7 @@ extension ChatData {
         }
         
         // download chat message media
-        processPendingChatMessageMedia()
+        processInboundPendingChatMsgMedia()
         
         // remove user from typing state
         removeFromChatStateList(from: xmppChatMessage.fromUserId, threadType: .oneToOne, threadID: xmppChatMessage.fromUserId, type: .available)
@@ -1847,6 +1865,7 @@ extension ChatData {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: managedObjectContext)
+            DDLogInfo("ChatData/processPendingChatMsgs/num: \(pendingOutgoingChatMessages.count)")
 
             // inject delay between batch sends so that they won't be timestamped the same time,
             // which causes display of messages to be in mixed order
@@ -1866,6 +1885,7 @@ extension ChatData {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             let retractingOutboundChatMsgs = self.retractingOutboundChatMsgs(in: managedObjectContext)
+            DDLogInfo("ChatData/processRetractingChatMsgs/num: \(retractingOutboundChatMsgs.count)")
 
             retractingOutboundChatMsgs.forEach {
                 guard let chatMsg = self.chatMessage(with: $0.id) else { return }
@@ -1880,10 +1900,11 @@ extension ChatData {
     }
     
     private func processPendingSeenReceipts() {
-        DDLogInfo("ChatData/processPendingSeenReceipts")
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             let pendingOutgoingSeenReceipts = self.pendingOutgoingSeenReceipts(in: managedObjectContext)
+            DDLogInfo("ChatData/processPendingSeenReceipts/num: \(pendingOutgoingSeenReceipts.count)")
+            
             pendingOutgoingSeenReceipts.forEach {
                 DDLogInfo("ChatData/processPendingSeenReceipts/seenReceipts \($0.id)")
                 self.sendSeenReceipt(for: $0)
@@ -1896,17 +1917,23 @@ extension ChatData {
 extension ChatData {
     
     private func showOneToOneNotification(for xmppChatMessage: ChatMessageProtocol) {
-        DDLogDebug("ChatData/showOneToOneNotification")
+        DDLogVerbose("ChatData/showOneToOneNotification")
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            guard !self.isAtChatListViewTop() else { return }
-   
+            
             switch UIApplication.shared.applicationState {
             case .background, .inactive:
                 self.presentLocalOneToOneNotifications(for: xmppChatMessage)
             case .active:
-                guard self.currentlyChattingWithUserId != xmppChatMessage.fromUserId else { return }
+                guard !self.isAtChatListViewTop() else {
+                    DDLogVerbose("ChatData/showOneToOneNotification/isAtChatListViewTop/skip")
+                    return
+                }
+                guard self.currentlyChattingWithUserId != xmppChatMessage.fromUserId else {
+                    DDLogVerbose("ChatData/showOneToOneNotification/currentlyChattingWithUserId/skip")
+                    return
+                }
                 self.presentOneToOneBanner(for: xmppChatMessage)
             @unknown default:
                 self.presentLocalOneToOneNotifications(for: xmppChatMessage)
@@ -2401,7 +2428,7 @@ extension ChatData {
     // MARK: Group Core Data Fetching
     
     private func chatGroups(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroup] {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
+        let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<ChatGroup> = ChatGroup.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -2418,7 +2445,7 @@ extension ChatData {
     }
     
     func chatGroup(groupId id: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatGroup? {
-        return self.chatGroups(predicate: NSPredicate(format: "groupId == %@", id), in: managedObjectContext).first
+        return chatGroups(predicate: NSPredicate(format: "groupId == %@", id), in: managedObjectContext).first
     }
     
     private func chatGroupMembers(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMember] {
@@ -2443,7 +2470,7 @@ extension ChatData {
     }
     
     private func chatGroupMessages(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
+        let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<ChatGroupMessage> = ChatGroupMessage.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -2526,12 +2553,13 @@ extension ChatData {
     }
     
     func updateChatGroup(with groupId: GroupID, block: @escaping (ChatGroup) -> (), performAfterSave: (() -> ())? = nil) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             defer {
                 if let performAfterSave = performAfterSave {
                     performAfterSave()
                 }
             }
+            guard let self = self else { return }
             guard let chatGroup = self.chatGroup(groupId: groupId, in: managedObjectContext) else {
                 DDLogError("ChatData/group/updateChatGroup/missing [\(groupId)]")
                 return
@@ -2545,12 +2573,13 @@ extension ChatData {
     }
     
     func updateChatGroupMessage(with chatGroupMessageId: String, block: @escaping (ChatGroupMessage) -> (), performAfterSave: (() -> ())? = nil) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             defer {
                 if let performAfterSave = performAfterSave {
                     performAfterSave()
                 }
             }
+            guard let self = self else { return }
             guard let chatGroupMessage = self.chatGroupMessage(with: chatGroupMessageId, in: managedObjectContext) else {
                 DDLogError("ChatData/group/update-message/missing [\(chatGroupMessageId)]")
                 return
@@ -2564,7 +2593,8 @@ extension ChatData {
     }
     
     func updateChatGroupMessageByStatus(for id: String, status: ChatGroupMessage.OutboundStatus, block: @escaping (ChatGroupMessage) -> ()) {
-        performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             let sortDescriptors = [
                 NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
             ]
@@ -2599,12 +2629,13 @@ extension ChatData {
     }
     
     func updateChatGroupMessageInfo(with chatGroupMessageId: String, userId: UserID, block: @escaping (ChatGroupMessageInfo) -> (), performAfterSave: (() -> ())? = nil) {
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             defer {
                 if let performAfterSave = performAfterSave {
                     performAfterSave()
                 }
             }
+            guard let self = self else { return }
             guard let chatGroupMessageInfo = self.chatGroupMessageInfoForUser(messageId: chatGroupMessageId, userId: userId, in: managedObjectContext) else {
                 DDLogError("ChatData/group/update-message/missing [\(chatGroupMessageId)]")
                 return
@@ -2620,8 +2651,8 @@ extension ChatData {
     // MARK: Group Core Data Deleting
     
     func deleteChatGroup(groupId: GroupID) {
-        performSeriallyOnBackgroundContext { (managedObjectContext) in
-
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             // delete group
             if let chatGroup = self.chatGroup(groupId: groupId, in: managedObjectContext) {
                 if let members = chatGroup.members {
@@ -2664,8 +2695,8 @@ extension ChatData {
     }
     
     func deleteChatGroupMember(groupId: GroupID, memberUserId: UserID) {
-        performSeriallyOnBackgroundContext { (managedObjectContext) in
-            
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
             let fetchRequest = NSFetchRequest<ChatGroupMember>(entityName: ChatGroupMember.entity().name!)
             fetchRequest.predicate = NSPredicate(format: "groupId = %@ && userId = %@", groupId, memberUserId)
             
@@ -2731,7 +2762,7 @@ extension ChatData {
         var isCurrentlyChattingInGroup = false
         var groupExist = true
         
-        if let currentlyChattingInGroup = self.currentlyChattingInGroup {
+        if let currentlyChattingInGroup = currentlyChattingInGroup {
             if xmppChatGroupMessage.groupId == currentlyChattingInGroup {
                 isCurrentlyChattingInGroup = true
             }
@@ -2831,7 +2862,7 @@ extension ChatData {
         }
         
         // Update Chat Thread
-        if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
+        if let chatThread = chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
             chatThread.lastMsgId = chatGroupMessage.id
             chatThread.lastMsgUserId = chatGroupMessage.userId
             chatThread.lastMsgText = chatGroupMessage.text
@@ -2862,12 +2893,12 @@ extension ChatData {
         }
         
         if isCurrentlyChattingInGroup && isAppActive {
-            self.sendSeenGroupReceipt(for: chatGroupMessage)
-            self.updateChatGroupMessage(with: chatGroupMessage.id) { (chatGroupMessage) in
+            sendSeenGroupReceipt(for: chatGroupMessage)
+            updateChatGroupMessage(with: chatGroupMessage.id) { (chatGroupMessage) in
                 chatGroupMessage.inboundStatus = .haveSeen
             }
         } else {
-            self.updateUnreadThreadCount()
+            updateUnreadThreadCount()
         }
         
         // add to pushnames
@@ -2880,7 +2911,7 @@ extension ChatData {
         }
         
         // download chat group message media
-        self.processPendingChatGroupMessageMedia()
+        processInboundPendingGroupChatMsgMedia()
         
         // remove user from typing state
         guard let fromUserID = xmppChatGroupMessage.userId else { return }
@@ -2896,6 +2927,7 @@ extension ChatData {
         if receipt.type == .delivery {
             updateChatGroupMessageInfo(with: messageId, userId: receipt.userId) { [weak self] (chatGroupMessageInfo) in
                 guard let self = self else { return }
+                DDLogDebug("ChatData/processInboundGroupMessageReceipt/updateChatGroupMessageInfo/delivered receipt")
                 if chatGroupMessageInfo.outboundStatus == .none {
                     chatGroupMessageInfo.outboundStatus = .delivered
                     
@@ -2924,6 +2956,7 @@ extension ChatData {
             
             updateChatGroupMessageInfo(with: messageId, userId: receipt.userId) { [weak self] (chatGroupMessageInfo) in
                 guard let self = self else { return }
+                DDLogDebug("ChatData/processInboundGroupMessageReceipt/updateChatGroupMessageInfo/seen receipt")
                 if (chatGroupMessageInfo.outboundStatus == .none || chatGroupMessageInfo.outboundStatus == .delivered) {
                     chatGroupMessageInfo.outboundStatus = .seen
                     chatGroupMessageInfo.timestamp = receiptTimestamp
@@ -3229,7 +3262,8 @@ extension ChatData {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             let pendingOutboundGroupChatMsgs = self.pendingOutboundGroupChatMsgs(in: managedObjectContext)
-
+            DDLogInfo("ChatData/processPendingGroupChatMsgs/num: \(pendingOutboundGroupChatMsgs.count)")
+            
             // inject delay between between sends so msgs won't be acked and timestamped on the same second,
             // which causes display of messages to be in random order
             var timeDelay = 0.0
@@ -3251,6 +3285,7 @@ extension ChatData {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             let retractingOutboundGroupChatMsgs = self.retractingOutboundGroupChatMsgs(in: managedObjectContext)
+            DDLogInfo("ChatData/processRetractingGroupChatMsgs/num: \(retractingOutboundGroupChatMsgs.count)")
 
             retractingOutboundGroupChatMsgs.forEach {
                 guard let groupChatMsg = self.chatGroupMessage(with: $0.id) else { return }
@@ -3265,10 +3300,11 @@ extension ChatData {
     }
     
     private func processPendingGroupChatSeenReceipts() {
-        DDLogInfo("ChatData/processPendingGroupChatSeenReceipts")
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
             let pendingSeenReceipts = self.pendingGroupChatSeenReceipts(in: managedObjectContext)
+            DDLogInfo("ChatData/processPendingGroupChatSeenReceipts/num: \(pendingSeenReceipts.count)")
+            
             pendingSeenReceipts.forEach {
                 DDLogInfo("ChatData/processPendingGroupChatSeenReceipts/seenReceipts \($0.id)")
                 self.sendSeenGroupReceipt(for: $0)
@@ -3281,16 +3317,22 @@ extension ChatData {
 extension ChatData {
     
     private func showGroupNotification(for xmppChatGroupMessage: XMPPChatGroupMessage) {
-        DDLogDebug("ChatData/showGroupNotification/id \(xmppChatGroupMessage.id)")
+        DDLogVerbose("ChatData/showGroupNotification/id \(xmppChatGroupMessage.id)")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            guard !self.isAtChatListViewTop() else { return }
             
             switch UIApplication.shared.applicationState {
             case .background, .inactive:
                 self.presentLocalGroupNotifications(for: xmppChatGroupMessage)
             case .active:
-                guard self.currentlyChattingInGroup != xmppChatGroupMessage.groupId else { return }
+                guard !self.isAtChatListViewTop() else {
+                    DDLogVerbose("ChatData/showGroupNotification/isAtChatListViewTop/skip")
+                    return
+                }
+                guard self.currentlyChattingInGroup != xmppChatGroupMessage.groupId else {
+                    DDLogVerbose("ChatData/showGroupNotification/currentlyChattingInGroup/skip")
+                    return
+                }
                 self.presentGroupBanner(for: xmppChatGroupMessage)
             @unknown default:
                 self.presentLocalGroupNotifications(for: xmppChatGroupMessage)
@@ -3417,7 +3459,8 @@ extension ChatData: HalloChatDelegate {
             guard let self = self else { return }
             let isAppActive = UIApplication.shared.applicationState == .active
             
-            self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                guard let self = self else { return }
                 self.processInboundChatGroupMessage(xmppChatGroupMessage: message, using: managedObjectContext, isAppActive: isAppActive)
             }
         }

@@ -148,6 +148,7 @@ class HelpViewController: UITableViewController {
     }
 
     private func sendLogs() {
+        DDLogInfo("HelpViewController/sendLogs")
         let viewController = MFMailComposeViewController.makeEmailLogsViewController(delegate: self)
         present(viewController, animated: true) {
             if let indexPath = self.dataSource.indexPath(for: .feedback) {
@@ -157,6 +158,7 @@ class HelpViewController: UITableViewController {
     }
 
     private func shareLogs() {
+        DDLogInfo("HelpViewController/shareLogs")
         let viewController = UIActivityViewController.makeShareLogsViewController()
         present(viewController, animated: true) {
             if let indexPath = self.dataSource.indexPath(for: .shareLogs) {

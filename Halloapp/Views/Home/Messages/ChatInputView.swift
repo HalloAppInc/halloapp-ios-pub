@@ -11,7 +11,7 @@ import Core
 import UIKit
 
 fileprivate struct Constants {
-    static let QuotedMediaSize: CGFloat = 80
+    static let QuotedMediaSize: CGFloat = 60
 }
 
 fileprivate protocol ContainerViewDelegate: AnyObject {
@@ -27,7 +27,7 @@ protocol ChatInputViewDelegate: AnyObject {
     func chatInputViewCloseQuotePanel(_ inputView: ChatInputView)
 }
 
-class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
+class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIProtocol {
     weak var delegate: ChatInputViewDelegate?
 
     private var previousHeight: CGFloat = 0
@@ -207,6 +207,13 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         view.alignment = .top
         view.spacing = 8
 
+        let subView = UIView(frame: view.bounds)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        subView.layer.cornerRadius = 15
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        view.insertSubview(subView, at: 0)
+        
         view.translatesAutoresizingMaskIntoConstraints = false
         view.isHidden = true
         return view
@@ -218,17 +225,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         view.alignment = .top
         view.spacing = 3
         
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 5, bottom: 10, right: 10)
+        view.layoutMargins = UIEdgeInsets(top: 8, left: 5, bottom: 8, right: 8)
         view.isLayoutMarginsRelativeArrangement = true
-        
-        let subView = UIView(frame: view.bounds)
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        subView.layer.cornerRadius = 15
-        subView.layer.borderWidth = 1
-        subView.layer.borderColor = UIColor.link.cgColor
-        subView.layer.masksToBounds = true
-        subView.clipsToBounds = true
-        view.insertSubview(subView, at: 0)
         
         view.translatesAutoresizingMaskIntoConstraints = false
         quoteFeedPanelImage.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize).isActive = true
@@ -269,7 +267,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         
-        imageView.layer.cornerRadius = 10
+        imageView.layer.cornerRadius = 5
         imageView.layer.masksToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -281,7 +279,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
     private lazy var quoteFeedPanelCloseButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setImage(UIImage(systemName: "xmark"), for: .normal)
-        button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 0, bottom: 0, right: 10)
         button.tintColor = UIColor.systemGray
         button.addTarget(self, action: #selector(self.closeQuoteFeedPanel), for: .touchUpInside)
         button.setContentHuggingPriority(.required, for: .horizontal)
@@ -496,9 +494,23 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         }
     }
     
-    func showQuoteFeedPanel(with userId: String, text: String, mediaType: ChatMessageMediaType?, mediaUrl: URL?, from viewController: UIViewController) {
+    func showQuoteFeedPanel(with userId: String, text: String, mediaType: ChatMessageMediaType?, mediaUrl: URL?, groupID: GroupID? = nil, from viewController: UIViewController) {
         quoteFeedPanelNameLabel.text = MainAppContext.shared.contactStore.fullName(for: userId)
         quoteFeedPanelTextLabel.text = text
+        
+        if userId == MainAppContext.shared.userData.userId {
+            quoteFeedPanelNameLabel.textColor = .chatOwnMsg
+        } else {
+            
+            if let groupID = groupID {
+                quoteFeedPanelNameLabel.textColor = getNameColor(for: userId, name: quoteFeedPanelNameLabel.text ?? "", groupId: groupID)
+            } else {
+                quoteFeedPanelNameLabel.textColor = .label
+            }
+
+        }
+        
+        quoteFeedPanel.subviews[0].backgroundColor = quoteFeedPanelNameLabel.textColor.withAlphaComponent(0.1)
         
         if mediaType != nil && mediaUrl != nil {
             guard let fileUrl = mediaUrl else { return }
@@ -608,8 +620,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate {
         }
     }
 
-
-    
     @objc func postButtonClicked() {
         
         resetTypingTimers()

@@ -151,50 +151,6 @@ final class ProtoContactSyncRequest: ProtoRequest<[HalloContact]> {
     }
 }
 
-
-final class ProtoPresenceSubscribeRequest: ProtoRequest<Void> {
-
-    init(userID: UserID, completion: @escaping Completion) {
-        var presence = Server_Presence()
-        presence.id = UUID().uuidString
-        presence.type = .subscribe
-        if let uid = Int64(userID) {
-            presence.uid = uid
-        }
-
-        var packet = Server_Packet()
-        packet.stanza = .presence(presence)
-
-        super.init(iqPacket: packet, transform: { _ in .success(())}, completion: completion)
-    }
-}
-
-
-final class ProtoPresenceUpdate: ProtoRequest<Void> {
-
-    init(status: PresenceType, completion: @escaping Completion) {
-
-        var presence = Server_Presence()
-        presence.id = UUID().uuidString
-        presence.type = {
-            switch status {
-            case .away:
-                return .away
-            case .available:
-                return .available
-            }
-        }()
-        if let uid = Int64(AppContext.shared.userData.userId) {
-            presence.uid = uid
-        }
-
-        var packet = Server_Packet()
-        packet.presence = presence
-
-        super.init(iqPacket: packet, transform: { _ in .success(()) }, completion: completion)
-    }
-}
-
 final class ProtoSendReceipt: ProtoRequest<Void> {
 
     init(

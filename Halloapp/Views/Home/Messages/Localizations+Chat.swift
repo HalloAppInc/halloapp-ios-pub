@@ -10,7 +10,7 @@ import Core
 
 extension Localizations {
 
-    // MARK: CHAT
+    // MARK: Chat
     
     static var chatTypingCapitalized: String {
         NSLocalizedString("chat.typing.capitalized", value: "Typing...", comment: "Capitalized label shown when user is typing")
@@ -21,11 +21,15 @@ extension Localizations {
     }
     
     static var chatMessagePhoto: String {
-        NSLocalizedString("chat.message.photo", value: "Photo", comment: "Message text shown in a message has photo media but no text")
+        NSLocalizedString("chat.message.photo", value: "Photo", comment: "Message text shown in a message that have photo media but no text")
     }
     
     static var chatMessageVideo: String {
-        NSLocalizedString("chat.message.video", value: "Video", comment: "Message text shown in a message has video media but no text")
+        NSLocalizedString("chat.message.video", value: "Video", comment: "Message text shown in a message that have video media but no text")
+    }
+    
+    static var chatListUsingApp: String {
+        NSLocalizedString("chat.list.using.app", value: "Hi there! I’m using HalloApp", comment: "Message text shown for a symmetric contact in the chat list screen that the user haven't messaged yet")
     }
     
     // MARK: Chat Group

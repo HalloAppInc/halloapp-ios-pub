@@ -128,7 +128,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         // When the user was not on this view, and HomeView sends user to here
         if let metadata = NotificationMetadata.fromUserDefaults() {
             self.processNotification(metadata: metadata)
-        }        
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {

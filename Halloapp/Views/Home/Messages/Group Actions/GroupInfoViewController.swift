@@ -352,7 +352,8 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     }
 
     private func refreshGroupInfo() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            guard let self = self else { return }
             self.chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: self.groupId)
             if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
                 tableHeaderView.configure(chatGroup: self.chatGroup)

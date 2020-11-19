@@ -190,8 +190,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] chatStateInfo in
-                DDLogInfo("ChatViewController/didGetChatStateInfo")
                 guard let self = self else { return }
+                DDLogInfo("ChatViewController/didGetChatStateInfo \(chatStateInfo)")
                 DispatchQueue.main.async {
                     self.configureTitleViewWithTypingIndicator()
                 }
@@ -322,6 +322,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         for med in media {
             guard med.relativeFilePath != nil else { continue }
             if trackedChatMessage.media[Int(med.order)].relativeFilePath == nil {
+                self.trackedChatMessages[chatMessage.id]?.media[Int(med.order)].relativeFilePath = med.relativeFilePath
                 return med
             }
         }
@@ -825,7 +826,7 @@ extension ChatViewController: MessageComposerViewDelegate {
 }
 
 fileprivate struct TrackedChatMedia {
-    let relativeFilePath: String?
+    var relativeFilePath: String?
     let order: Int
 
     init(with chatMedia: ChatMedia) {

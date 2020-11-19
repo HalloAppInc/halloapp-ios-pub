@@ -310,6 +310,7 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         for med in media {
             guard med.relativeFilePath != nil else { continue }
             if trackedChatGroupMessage.media[Int(med.order)].relativeFilePath == nil {
+                self.trackedChatGroupMessages[chatGroupMessage.id]?.media[Int(med.order)].relativeFilePath = med.relativeFilePath
                 return med
             }
         }
@@ -339,29 +340,29 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         switch type {
         case .update:
             DDLogDebug("ChatGroupViewController/frc/update")
-            self.skipDataUpdate = true
+            skipDataUpdate = true
             guard let chatGroupMessage = anObject as? ChatGroupMessage else { break }
 
             // todo: check for changes and not just state
             if isRetractStatusUpdate(for: chatGroupMessage) {
                 DDLogDebug("ChatViewController/frc/update/isInboundGroupMessageStatusUpdate")
-                self.skipDataUpdate = false
+                skipDataUpdate = false
             }
             
             if isOutgoingGroupMessageStatusUpdate(for: chatGroupMessage) {
                 DDLogDebug("ChatGroupViewController/frc/update/isOutgoingGroupMessageStatusUpdate")
-                self.skipDataUpdate = false
+                skipDataUpdate = false
             }
 
             // incoming messages media changes, update directly
             if let updatedChatMedia = findUpdatedMedia(for: chatGroupMessage) {
-                guard let cell = self.tableView.cellForRow(at: indexPath!) as? InboundMsgViewCell else { break }
+                guard let cell = tableView.cellForRow(at: indexPath!) as? InboundMsgViewCell else { break }
                 DDLogDebug("ChatGroupViewController/frc/update-cell-directly/updatedMedia")
-                self.updateCellMedia(for: cell, with: updatedChatMedia)
+                updateCellMedia(for: cell, with: updatedChatMedia)
             }
         case .insert:
             DDLogDebug("ChatGroupViewController/frc/insert")
-            self.shouldScrollToBottom = true
+            shouldScrollToBottom = true
         case .move:
             DDLogDebug("ChatGroupViewController/frc/move")
         case .delete:
@@ -622,9 +623,9 @@ extension ChatGroupViewController {
             let mediaType: ChatMessageMediaType = mediaItem.type == .video ? .video : .image
             let mediaUrl = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
             
-            chatInputView.showQuoteFeedPanel(with: userID, text: chatGroupMessage.text ?? "", mediaType: mediaType, mediaUrl: mediaUrl, from: self)
+            chatInputView.showQuoteFeedPanel(with: userID, text: chatGroupMessage.text ?? "", mediaType: mediaType, mediaUrl: mediaUrl, groupID: groupId, from: self)
         } else {
-            chatInputView.showQuoteFeedPanel(with: userID, text: chatGroupMessage.text ?? "", mediaType: nil, mediaUrl: nil, from: self)
+            chatInputView.showQuoteFeedPanel(with: userID, text: chatGroupMessage.text ?? "", mediaType: nil, mediaUrl: nil, groupID: groupId, from: self)
         }
 
     }
@@ -806,7 +807,7 @@ extension ChatGroupViewController: MessageComposerViewDelegate {
 }
 
 fileprivate struct TrackedChatGroupMedia {
-    let relativeFilePath: String?
+    var relativeFilePath: String?
     let order: Int
 
     init(with chatMedia: ChatMedia) {
@@ -862,7 +863,7 @@ fileprivate class TitleView: UIView {
 
     func update(with groupId: String) {
         if let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-            self.nameLabel.text = chatGroup.name
+            nameLabel.text = chatGroup.name
         }
         
         avatarView.configure(groupId: groupId, using: MainAppContext.shared.avatarStore)
