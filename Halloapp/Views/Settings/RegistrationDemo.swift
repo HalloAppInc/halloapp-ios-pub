@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Contacts
 import Foundation
 import SwiftUI
 
@@ -36,6 +37,10 @@ final class DemoRegistrationManager: RegistrationManager {
     var correctCode = "111111"
     var completion: () -> Void
     var formattedPhoneNumber: String?
+
+    var contactsAccessStatus: CNAuthorizationStatus {
+        return CNContactStore.authorizationStatus(for: .contacts)
+    }
 
     func set(countryCode: String, nationalNumber: String, userName: String) {
         formattedPhoneNumber = "+\(countryCode) \(nationalNumber)"

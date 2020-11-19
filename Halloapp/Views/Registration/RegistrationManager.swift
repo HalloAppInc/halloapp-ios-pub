@@ -7,9 +7,11 @@
 //
 
 import CocoaLumberjack
+import Contacts
 import Foundation
 
 protocol RegistrationManager: AnyObject {
+    var contactsAccessStatus: CNAuthorizationStatus { get }
     var formattedPhoneNumber: String? { get }
     func set(countryCode: String, nationalNumber: String, userName: String)
     func requestVerificationCode(completion: @escaping (Result<Void, Error>) -> Void)
@@ -25,6 +27,10 @@ final class DefaultRegistrationManager: RegistrationManager {
     }
 
     private let verificationCodeService: VerificationCodeService
+
+    var contactsAccessStatus: CNAuthorizationStatus {
+        return CNContactStore.authorizationStatus(for: .contacts)
+    }
 
     var formattedPhoneNumber: String? {
         MainAppContext.shared.userData.formattedPhoneNumber

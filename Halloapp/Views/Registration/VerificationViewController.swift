@@ -115,7 +115,13 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
     }
 
     func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController) {
-        move(to: .contactsPermissions(.init()))
+        let contactsAccessStatus = registrationManager?.contactsAccessStatus ?? .notDetermined
+        switch contactsAccessStatus {
+        case .authorized:
+            move(to: .complete(.init()))
+        default:
+            move(to: .contactsPermissions(.init()))
+        }
     }
 
     // MARK: ContactsPermissionsViewControllerDelegate
