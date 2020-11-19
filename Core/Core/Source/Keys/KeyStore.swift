@@ -283,7 +283,9 @@ open class KeyStore {
                 DDLogError("KeyStore/deleteMessageKeyBundles/error  [\(error)]")
                 return
             }
-            self.save(managedObjectContext)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
         }
     }
     
