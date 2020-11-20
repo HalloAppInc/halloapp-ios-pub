@@ -16,7 +16,6 @@ import UIKit
 // MARK: Constraint Constants
 fileprivate struct LayoutConstants {
     static let avatarSize: CGFloat = 50
-    static let avatarRingWidth: CGFloat = 4
 }
 
 fileprivate enum ChatListViewSection {
@@ -912,7 +911,8 @@ private class ChatListTableViewCell: UITableViewCell {
 
         avatarView = AvatarViewButton(type: .custom)
         avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
-        avatarView.newPostsIndicatorRingWidth = LayoutConstants.avatarRingWidth
+        avatarView.newPostsIndicatorRingWidth = 4
+        avatarView.newPostsIndicatorRingSpacing = 1.5
         avatarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(avatarView)
 

@@ -847,7 +847,6 @@ fileprivate class TitleView: UIView {
 
     private struct LayoutConstants {
         static let avatarSize: CGFloat = 30
-        static let avatarRingWidth: CGFloat = 3
     }
     
     weak var delegate: TitleViewDelegate?
@@ -884,7 +883,8 @@ fileprivate class TitleView: UIView {
     private func setup() {
         avatarView = AvatarViewButton(type: .custom)
         avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
-        avatarView.newPostsIndicatorRingWidth = LayoutConstants.avatarRingWidth
+        avatarView.newPostsIndicatorRingWidth = 3
+        avatarView.newPostsIndicatorRingSpacing = 1
         let avatarButtonWidth: CGFloat = LayoutConstants.avatarSize + (avatarView.hasNewPostsIndicator ? 2*(avatarView.newPostsIndicatorRingSpacing + avatarView.newPostsIndicatorRingWidth) : 0)
         avatarView.widthAnchor.constraint(equalToConstant: avatarButtonWidth).isActive = true
         avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
