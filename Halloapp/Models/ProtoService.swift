@@ -126,8 +126,11 @@ final class ProtoService: ProtoServiceCore {
         ack.id = messageID
         var packet = Server_Packet()
         packet.stanza = .ack(ack)
-        if let data = try? packet.serializedData() {
+        if let data = try? packet.serializedData(), isConnected {
+            DDLogInfo("ProtoService/sendAck/\(messageID)/sending")
             stream.send(data)
+        } else {
+            DDLogInfo("ProtoService/sendAck/\(messageID)/skipping (disconnected)")
         }
     }
 
