@@ -3268,7 +3268,7 @@ extension ChatData {
             // which causes display of messages to be in random order
             var timeDelay = 0.0
             pendingOutboundGroupChatMsgs.forEach {
-                guard let groupChatMsg = self.chatGroupMessage(with: $0.id) else { return }
+                guard let groupChatMsg = self.chatGroupMessage(with: $0.id, in: managedObjectContext) else { return }
                 guard let msgTimestamp = groupChatMsg.timestamp else { return }
                 guard abs(msgTimestamp.timeIntervalSinceNow) <= Date.hours(24) else { return }
                 
