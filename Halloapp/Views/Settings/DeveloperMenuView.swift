@@ -13,6 +13,8 @@ private enum MenuTitles {
     static var server: String { "Server" }
     static var userId: String { "User ID" }
     static var useDevServer: String { "Use Dev Server" }
+    static var videoResolution: String { "Resolution" }
+    static var videoBitRate: String { "BitRate" }
     static var reSyncContacts: String { "Re-Sync Contacts" }
     static var resetNUXDemo: String { "Reset NUX Demo" }
     static var logOut: String { "Log Out" }
@@ -23,6 +25,9 @@ struct DeveloperMenuView: View {
     @State var useTestServer = MainAppContext.shared.userData.useTestServer
     @State var showRestartAlert = false
 
+    @ObservedObject var videoSettings = VideoSettings.shared
+    @State var showVideoResolutionActionSheet = false
+
     var dismiss: (() -> ())?
 
     private let userData = MainAppContext.shared.userData
@@ -32,10 +37,18 @@ struct DeveloperMenuView: View {
         UITableView.appearance(whenContainedInInstancesOf: [ UIHostingController<DeveloperMenuView>.self ]).backgroundColor = .feedBackground
     }
 
+    private func incrementVideoBitrate() {
+        videoSettings.bitrateMultiplier = min(videoSettings.bitrateMultiplier + 10, 100)
+    }
+
+    private func decrementVideoBitrate() {
+        videoSettings.bitrateMultiplier = max(videoSettings.bitrateMultiplier - 10, 30)
+    }
+
     var body: some View {
         Form {
             // Connection Settings
-            Section {
+            Section(header: Text("CONNECTION")) {
 
                 // Current Server
                 HStack {
@@ -62,6 +75,47 @@ struct DeveloperMenuView: View {
                                 self.service.connect()
                             }
                         }
+                }
+            }
+
+            Section(header: Text("VIDEO")) {
+
+                Button(action: {
+                    self.showVideoResolutionActionSheet = true
+                }) {
+                    HStack {
+                        Text(MenuTitles.videoResolution)
+                            .foregroundColor(.blue)
+                        Spacer()
+                        Text(videoSettings.resolution)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .actionSheet(isPresented: $showVideoResolutionActionSheet) {
+                    ActionSheet(title: Text(MenuTitles.videoResolution), message: nil, buttons: [
+                        .default(Text(VideoSettings.resolution(from: .preset1920x1080)), action: {
+                            self.videoSettings.preset = .preset1920x1080
+                        }),
+                        .default(Text(VideoSettings.resolution(from: .preset1280x720)), action: {
+                            self.videoSettings.preset = .preset1280x720
+                        }),
+                        .default(Text(VideoSettings.resolution(from: .preset960x540)), action: {
+                            self.videoSettings.preset = .preset960x540
+                        }),
+                        .default(Text(VideoSettings.resolution(from: .preset640x480)), action: {
+                            self.videoSettings.preset = .preset640x480
+                        }),
+                        .cancel()
+                    ])
+                }
+
+                Stepper(onIncrement: incrementVideoBitrate,
+                        onDecrement: decrementVideoBitrate) {
+                    HStack {
+                        Text(MenuTitles.videoBitRate)
+                        Spacer()
+                        Text(String(videoSettings.bitrateMultiplier) + "%")
+                    }
                 }
             }
 

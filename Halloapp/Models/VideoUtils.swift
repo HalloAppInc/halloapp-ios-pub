@@ -9,18 +9,72 @@
 import AVFoundation
 import AVKit
 import CocoaLumberjack
+import Core
 import Foundation
 import SwiftUI
 import UIKit
 import VideoToolbox
 
-class VideoUtils {
+final class VideoSettings: ObservableObject {
 
-    private struct Constants {
-        static let maximumVideoSize: CGFloat = 854 // either width or height
-        static let videoBitrate = 2000000
-        static let audioBitrate = 96000
+    private enum UserDefaultsKeys {
+        static var resolution: String { "VideoSettings.resolution" }
+        static var bitrate: String { "VideoSettings.bitrate" }
     }
+
+    private init() {
+        let userDefaults = AppContext.shared.userDefaults!
+        // Set defaults
+        userDefaults.register(defaults: [
+            UserDefaultsKeys.resolution: AVOutputSettingsPreset.preset960x540.rawValue,
+            UserDefaultsKeys.bitrate: 50
+        ])
+        // Load settings
+        if let value = userDefaults.string(forKey: UserDefaultsKeys.resolution) {
+            preset = AVOutputSettingsPreset(rawValue: value)
+        } else {
+            preset = AVOutputSettingsPreset.preset960x540
+        }
+        resolution = VideoSettings.resolution(from: preset)
+        
+        let bitrateSetting = userDefaults.integer(forKey: UserDefaultsKeys.bitrate)
+        if bitrateSetting > 0 {
+            bitrateMultiplier = min(max(bitrateSetting, 30), 100)
+        } else {
+            bitrateMultiplier = 50
+        }
+    }
+
+    private static let sharedInstance = VideoSettings()
+
+    static var shared: VideoSettings {
+        sharedInstance
+    }
+
+    // MARK: Settings
+
+    static func resolution(from preset: AVOutputSettingsPreset) -> String {
+        // AVOutputSettingsPreset960x540 -> 960x540
+        return preset.rawValue.trimmingCharacters(in: .letters)
+    }
+
+    @Published var resolution: String
+
+    var preset: AVOutputSettingsPreset {
+        didSet {
+            AppContext.shared.userDefaults.setValue(preset.rawValue, forKey: UserDefaultsKeys.resolution)
+            resolution = VideoSettings.resolution(from: preset)
+        }
+    }
+
+    @Published var bitrateMultiplier: Int {
+        didSet {
+            AppContext.shared.userDefaults.setValue(bitrateMultiplier, forKey: UserDefaultsKeys.bitrate)
+        }
+    }
+}
+
+final class VideoUtils {
 
     static func resizeVideo(inputUrl: URL, completion: @escaping (Swift.Result<(URL, CGSize), Error>) -> Void) {
 
@@ -34,6 +88,44 @@ class VideoUtils {
             .appendingPathExtension("mp4")
         exporter.outputURL = tmpURL
 
+        var videoOutputConfiguration: [String: Any] = [
+            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoCompressionPropertiesKey: [
+                AVVideoAverageBitRateKey: 5250000, // avg bitrate from `preset960x540`
+                AVVideoProfileLevelKey: AVVideoProfileLevelH264BaselineAutoLevel
+            ]
+        ]
+        var audioOutputConfiguration: [String: Any] =  [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVEncoderBitRateKey: 96000,
+            AVNumberOfChannelsKey: 2,
+            AVSampleRateKey: 44100
+        ]
+
+        var maxVideoResolution: CGFloat = 960 // match value from `preset960x540`
+        if let assistant = AVOutputSettingsAssistant(preset: VideoSettings.shared.preset) {
+            if let videoSettings = assistant.videoSettings {
+                videoOutputConfiguration.merge(videoSettings) { (_, new) in new }
+
+                if let presetVideoWidth = videoSettings[AVVideoWidthKey] as? CGFloat,
+                   let presetVideoHeight = videoSettings[AVVideoHeightKey] as? CGFloat {
+                    maxVideoResolution = max(presetVideoWidth, presetVideoHeight)
+                }
+            }
+            if let audioSettings = assistant.audioSettings {
+                audioOutputConfiguration.merge(audioSettings, uniquingKeysWith: { (_, new) in new })
+            }
+        }
+
+        // Adjust video bitrate.
+        if var compressionProperties = videoOutputConfiguration[AVVideoCompressionPropertiesKey] as? [String: Any],
+           let avgBitrate = compressionProperties[AVVideoAverageBitRateKey] as? Double {
+            let multiplier = Double(VideoSettings.shared.bitrateMultiplier) * 0.01
+            compressionProperties[AVVideoAverageBitRateKey] = Int(round(avgBitrate * multiplier))
+            videoOutputConfiguration[AVVideoCompressionPropertiesKey] = compressionProperties
+        }
+
+        // Resize video (if necessary) keeping aspect ratio.
         let track = avAsset.tracks(withMediaType: AVMediaType.video).first
         let videoResolution: CGSize = {
             let size = track!.naturalSize.applying(track!.preferredTransform)
@@ -42,43 +134,36 @@ class VideoUtils {
         let videoAspectRatio = videoResolution.width / videoResolution.height
         var targetVideoSize = videoResolution
 
-        DDLogInfo("video-processing/ Original Video Resolution: \(videoResolution)")
+        DDLogInfo("video-processing/ Original video resolution: \(videoResolution)")
 
-        // portrait
         if videoResolution.height > videoResolution.width {
-            if videoResolution.height > Constants.maximumVideoSize {
-                DDLogInfo("video-processing/ Portrait taller than \(Constants.maximumVideoSize), need to rescale")
+            // portrait
+            if videoResolution.height > maxVideoResolution {
+                DDLogInfo("video-processing/ Portrait taller than \(maxVideoResolution), need to resize")
 
-                targetVideoSize.height = Constants.maximumVideoSize
+                targetVideoSize.height = maxVideoResolution
                 targetVideoSize.width = round(videoAspectRatio * targetVideoSize.height)
             }
-        // landscape or square
         } else {
-            if videoResolution.width > Constants.maximumVideoSize {
-                DDLogInfo("video-processing/ Landscape wider than \(Constants.maximumVideoSize), need to rescale")
+            // landscape or square
+            if videoResolution.width > maxVideoResolution {
+                DDLogInfo("video-processing/ Landscape wider than \(maxVideoResolution), need to resize")
 
-                targetVideoSize.width = Constants.maximumVideoSize
+                targetVideoSize.width = maxVideoResolution
                 targetVideoSize.height = round(targetVideoSize.width / videoAspectRatio)
             }
         }
-        DDLogInfo("video-processing/ New Video Resolution: \(targetVideoSize)")
+        DDLogInfo("video-processing/ New video resolution: \(targetVideoSize)")
+        videoOutputConfiguration[AVVideoWidthKey] = targetVideoSize.width
+        videoOutputConfiguration[AVVideoHeightKey] = targetVideoSize.height
+        videoOutputConfiguration[AVVideoScalingModeKey] = AVVideoScalingModeResizeAspectFill // this is different from the value provided by assistant
 
-        exporter.videoOutputConfiguration = [
-            AVVideoCodecKey: AVVideoCodecType.h264,
-            AVVideoWidthKey: NSNumber(integerLiteral: Int(targetVideoSize.width)),
-            AVVideoHeightKey: NSNumber(integerLiteral: Int(targetVideoSize.height)),
-            AVVideoScalingModeKey: AVVideoScalingModeResizeAspectFill,
-            AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: NSNumber(integerLiteral: Constants.videoBitrate),
-                AVVideoProfileLevelKey: AVVideoProfileLevelH264BaselineAutoLevel
-            ]
-        ]
-        exporter.audioOutputConfiguration = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVEncoderBitRateKey: NSNumber(integerLiteral: Constants.audioBitrate),
-            AVNumberOfChannelsKey: NSNumber(integerLiteral: 2),
-            AVSampleRateKey: NSNumber(value: Float(44100))
-        ]
+
+        DDLogInfo("video-processing/ Video output config: [\(videoOutputConfiguration)]")
+        exporter.videoOutputConfiguration = videoOutputConfiguration
+
+        DDLogInfo("video-processing/ Audio output config: [\(audioOutputConfiguration)]")
+        exporter.audioOutputConfiguration = audioOutputConfiguration
 
         DDLogInfo("video-processing/export/start")
         exporter.export(progressHandler: { (progress) in
