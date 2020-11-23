@@ -255,6 +255,7 @@ private final class ProfileHeaderView: UIView {
         vStack.setCustomSpacing(vStack.spacing - nameButton.contentEdgeInsets.bottom, after: nameButton)
         addSubview(vStack)
         vStack.constrain(anchor: .top, to: self, constant: 32)
-        vStack.constrainMargins([ .leading, .trailing, .bottom ], to: self, priority: .required - 10) // because UIKit temporarily might set header view's width to zero.
+        vStack.constrain(anchor: .bottom, to: self, constant: 8)
+        vStack.constrainMargins([ .leading, .trailing ], to: self)
     }
 }
