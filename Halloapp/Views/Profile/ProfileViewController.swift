@@ -29,10 +29,6 @@ private extension Localizations {
     static var help: String {
         NSLocalizedString("profile.row.help", value: "Help", comment: "Row in Profile screen.")
     }
-
-    static var developerMenu: String {
-        "Developer Menu"
-    }
 }
 
 class ProfileViewController: UITableViewController {
@@ -51,7 +47,6 @@ class ProfileViewController: UITableViewController {
         case feed
         case archive
         case settings
-        case developer
         case invite
         case help
     }
@@ -60,7 +55,6 @@ class ProfileViewController: UITableViewController {
     private let cellMyPosts = SettingsTableViewCell(text: Localizations.titleMyPosts, image: UIImage(named: "profile.my.posts"))
     private let cellArchive = SettingsTableViewCell(text: Localizations.archive, image: UIImage(named: "profile.archive"))
     private let cellSettings = SettingsTableViewCell(text: Localizations.titleSettings, image: UIImage(named: "profile.settings"))
-    private let cellDeveloper = SettingsTableViewCell(text: Localizations.developerMenu, image: UIImage(systemName: "hammer"))
     private let cellInviteFriends = SettingsTableViewCell(text: Localizations.inviteFriends, image: UIImage(named: "profile.invite"))
     private let cellHelp = SettingsTableViewCell(text: Localizations.help, image: UIImage(named: "profile.help"))
 
@@ -80,6 +74,16 @@ class ProfileViewController: UITableViewController {
 
         installLargeTitleUsingGothamFont()
 
+        #if DEBUG
+        let showDeveloperMenu = true
+        #else
+        let showDeveloperMenu = ServerProperties.isInternalUser
+        #endif
+        if showDeveloperMenu {
+            let image = UIImage(systemName: "hammer", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openDeveloperMenu))
+        }
+
         tableView.backgroundColor = .feedBackground
 
         dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
@@ -88,7 +92,6 @@ class ProfileViewController: UITableViewController {
             case .feed: return self.cellMyPosts
             case .archive: return self.cellArchive
             case .settings: return self.cellSettings
-            case .developer: return self.cellDeveloper
             case .invite: return self.cellInviteFriends
             case .help: return self.cellHelp
             }
@@ -96,14 +99,6 @@ class ProfileViewController: UITableViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         snapshot.appendSections([ .one, .two ])
         snapshot.appendItems([ .feed, .settings ], toSection: .one)
-        #if DEBUG
-        let showDeveloperMenu = true
-        #else
-        let showDeveloperMenu = ServerProperties.isInternalUser
-        #endif
-        if showDeveloperMenu {
-            snapshot.appendItems([ .developer ], toSection: .one)
-        }
         snapshot.appendItems([ .invite, .help ], toSection: .two)
         dataSource.apply(snapshot, animatingDifferences: false)
 
@@ -155,8 +150,6 @@ class ProfileViewController: UITableViewController {
             openArchive()
         case .settings:
             openSettings()
-        case .developer:
-            openDeveloperMenu()
         case .invite:
             openInviteFriends()
         case .help:
@@ -204,7 +197,7 @@ class ProfileViewController: UITableViewController {
         }
         let viewController = UIHostingController(rootView: developerMenuView)
         viewController.hidesBottomBarWhenPushed = true
-        viewController.title = Localizations.developerMenu
+        viewController.title = "Developer Menu"
         navigationController?.pushViewController(viewController, animated: true)
     }
 }
