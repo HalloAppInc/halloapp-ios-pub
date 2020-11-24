@@ -32,6 +32,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
         DDLogInfo("FeedCollectionView/viewDidLoad")
 
+        view.backgroundColor = .feedBackground
+
         let layout = UICollectionViewFlowLayout()
         layout.estimatedItemSize.width = view.frame.width
         layout.estimatedItemSize.height = view.frame.width
@@ -44,7 +46,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         collectionView.dataSource = self
         collectionView.allowsSelection = false
         collectionView.showsVerticalScrollIndicator = false
-        collectionView.backgroundColor = .feedBackground
+        collectionView.backgroundColor = .clear
         collectionView.preservesSuperviewLayoutMargins = true
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.register(FeedPostCollectionViewCell.self, forCellWithReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier)
@@ -132,6 +134,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     private var collectionViewUpdates: [BlockOperation] = []
 
+    @Published var isFeedEmpty = true
+
     func reloadTableView() {
         guard fetchedResultsController != nil else { return }
         fetchedResultsController?.delegate = nil
@@ -145,6 +149,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         fetchedResultsController = newFetchedResultsController()
         do {
             try fetchedResultsController?.performFetch()
+            isFeedEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
         } catch {
             fatalError("Failed to fetch feed items \(error)")
         }
@@ -216,6 +221,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         default:
             break
         }
+
+        isFeedEmpty = (controller.sections?.first?.numberOfObjects ?? 0) == 0
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
@@ -231,6 +238,8 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         } else {
             collectionView.reloadData()
         }
+
+        isFeedEmpty = (controller.sections?.first?.numberOfObjects ?? 0) == 0
     }
 
     // MARK: Post Actions

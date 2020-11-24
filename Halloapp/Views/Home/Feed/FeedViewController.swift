@@ -31,6 +31,7 @@ class FeedViewController: FeedCollectionViewController {
         super.viewDidLoad()
 
         installLargeTitleUsingGothamFont()
+        installEmptyView()
         installFloatingActionMenu()
         installInviteFriendsButton()
 
@@ -63,6 +64,10 @@ class FeedViewController: FeedCollectionViewController {
                 guard let self = self else { return }
                 self.processNotification(metadata: metadata)
         })
+
+        cancellables.insert(
+            $isFeedEmpty.sink { [weak self] isEmpty in self?.updateEmptyView(isEmpty) }
+        )
 
         // When the user was not on this view, and HomeView sends user to here
         if let metadata = NotificationMetadata.fromUserDefaults()  {
@@ -155,6 +160,28 @@ class FeedViewController: FeedCollectionViewController {
         return overlayContainer
     }()
 
+    private lazy var emptyView: UIView = {
+        let image = UIImage(named: "FeedEmpty")?.withRenderingMode(.alwaysTemplate)
+        let imageView = UIImageView(image: image)
+        imageView.tintColor = UIColor.label.withAlphaComponent(0.2)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 0
+        label.text = Localizations.nuxHomeFeedEmpty
+        label.textAlignment = .center
+        label.textColor = .secondaryLabel
+
+        let stackView = UIStackView(arrangedSubviews: [imageView, label])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .vertical
+        stackView.alignment = .center
+        stackView.spacing = 12
+
+        return stackView
+    }()
+
     private weak var overlay: Overlay?
 
     private var isShowingNUXHeaderView = false
@@ -173,6 +200,20 @@ class FeedViewController: FeedCollectionViewController {
         } else if MainAppContext.shared.nux.isIncomplete(.newPostButton) {
             showFloatingMenuNUX()
         }
+    }
+
+    private func installEmptyView() {
+        view.addSubview(emptyView)
+
+        // Put empty view behind collection view in case it contains NUX header
+        view.sendSubviewToBack(emptyView)
+
+        emptyView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.6).isActive = true
+        emptyView.constrain([.centerX, .centerY], to: view)
+    }
+
+    private func updateEmptyView(_ isEmpty: Bool) {
+        emptyView.alpha = isEmpty ? 1 : 0
     }
 
     private func installNUXHeaderView() {

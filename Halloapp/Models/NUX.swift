@@ -83,6 +83,13 @@ extension Localizations {
             value: "This is where you’ll find messages from your friends & family. When someone new joins HalloApp you can see them here.",
             comment: "Text for new user popup pointing at chat list")
     }
+    static var nuxChatEmpty: String {
+        NSLocalizedString(
+            "nux.chat.empty",
+            value: "Your contacts & messages will appear here",
+            comment: "Shown on chats list when there are no contacts or messages to display"
+        )
+    }
     static var nuxNewPostButtonContent: String {
         NSLocalizedString(
             "nux.new.post.button",
@@ -112,5 +119,12 @@ If you want to share updates with someone, both parties must have each other's n
 You can share your updates with your entire contact list or only with selected people. Go to settings to change feed privacy.
 """,
             comment: "Text for more detailed new user popup on home feed")
+    }
+    static var nuxHomeFeedEmpty: String {
+        NSLocalizedString(
+            "nux.home.feed.empty",
+            value: "Posts from your contacts will appear here",
+            comment: "Shown on home feed when no posts are available"
+        )
     }
 }

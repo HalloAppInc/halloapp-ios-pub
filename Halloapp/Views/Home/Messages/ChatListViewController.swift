@@ -89,6 +89,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         tableView.constrain(to: view)
 
         installLargeTitleUsingGothamFont()
+        installEmptyView()
         installFloatingActionMenu()
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
@@ -186,6 +187,41 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         }
     }
 
+    private lazy var emptyView: UIView = {
+        let image = UIImage(named: "ChatEmpty")?.withRenderingMode(.alwaysTemplate)
+        let imageView = UIImageView(image: image)
+        imageView.tintColor = UIColor.label.withAlphaComponent(0.2)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 0
+        label.text = Localizations.nuxChatEmpty
+        label.textAlignment = .center
+        label.textColor = .secondaryLabel
+
+        let stackView = UIStackView(arrangedSubviews: [imageView, label])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .vertical
+        stackView.alignment = .center
+        stackView.spacing = 12
+
+        return stackView
+    }()
+
+    private func installEmptyView() {
+        view.addSubview(emptyView)
+
+        emptyView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.6).isActive = true
+        emptyView.constrain([.centerX, .centerY], to: view)
+    }
+
+    private func updateEmptyView() {
+        let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
+        emptyView.alpha = isEmpty ? 1 : 0
+    }
+
+
     // MARK: New Chat
 
     private lazy var floatingMenu: FloatingMenu = {
@@ -237,6 +273,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         fetchedResultsController = createFetchedResultsController()
         do {
             try fetchedResultsController?.performFetch()
+            updateEmptyView()
         } catch {
             fatalError("Failed to fetch feed items \(error)")
         }
@@ -260,6 +297,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         if trackPerRowFRCChanges {
             tableView.beginUpdates()
         }
+
+        updateEmptyView()
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
@@ -305,6 +344,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         default:
             break
         }
+
+        updateEmptyView()
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
@@ -315,6 +356,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         if reloadTableViewInDidChangeContent || isFiltering {
             tableView.reloadData()
         }
+
+        updateEmptyView()
     }
 
     private var lastCheckedForNewContacts: Date?
