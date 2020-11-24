@@ -205,35 +205,36 @@ open class ContactStore {
 
     // MARK: UI Support
 
-    public func fullNameIfAvailable(for userID: UserID) -> String? {
-        if userID == self.userData.userId {
-            // TODO: return correct pronoun.
-            return "Me"
-        }
-
-        var fullName: String? = nil
-
-        // Fetch from the address book.
+    public func contact(withUserId userId: UserID) -> ABContact? {
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId == %@", userID)
+        fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
         do {
-            let contacts = try self.persistentContainer.viewContext.fetch(fetchRequest)
-            if let name = contacts.first?.fullName {
-                fullName = name
-            }
+            let contacts = try persistentContainer.viewContext.fetch(fetchRequest)
+            return contacts.first
         }
         catch {
             fatalError("Unable to fetch contacts: \(error)")
         }
+    }
 
-        // Try push name as necessary.
-        if fullName == nil {
-            if let pushName = self.pushNames[userID] {
-                fullName = "~\(pushName)"
-            }
+    public func fullNameIfAvailable(for userId: UserID) -> String? {
+        if userId == self.userData.userId {
+            // TODO: return correct pronoun.
+            return "Me"
         }
 
-        return fullName
+        // Fetch from the address book.
+        if let contact = contact(withUserId: userId),
+           let fullName = contact.fullName {
+            return fullName
+        }
+
+        // Try push name as necessary.
+        if let pushName = pushNames[userId] {
+            return "~\(pushName)"
+        }
+
+        return nil
     }
 
     public func fullNames(forUserIds userIds: Set<UserID>) -> [UserID : String] {

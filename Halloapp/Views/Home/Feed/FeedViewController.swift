@@ -451,4 +451,15 @@ class FeedViewController: FeedCollectionViewController {
         }
     }
 
+    // MARK: Collection View
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        let layout = collectionViewLayout as! UICollectionViewFlowLayout
+        var inset = layout.sectionInset
+        if section == 0 {
+            inset.top = 20
+        }
+        return inset
+    }
+
 }

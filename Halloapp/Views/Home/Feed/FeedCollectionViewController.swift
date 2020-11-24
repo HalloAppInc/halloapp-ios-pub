@@ -37,7 +37,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         let layout = UICollectionViewFlowLayout()
         layout.estimatedItemSize.width = view.frame.width
         layout.estimatedItemSize.height = view.frame.width
-        layout.sectionInset.top = 20
         layout.minimumInteritemSpacing = 0
         layout.minimumLineSpacing = 50
 

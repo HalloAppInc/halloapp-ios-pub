@@ -103,6 +103,7 @@ class UserFeedViewController: FeedCollectionViewController {
         let layout = collectionViewLayout as! UICollectionViewFlowLayout
         var inset = layout.sectionInset
         if section == 0 {
+            inset.top = 8
             inset.bottom = 20
         }
         return inset

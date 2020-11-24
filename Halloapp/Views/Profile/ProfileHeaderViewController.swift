@@ -56,7 +56,12 @@ final class ProfileHeaderViewController: UIViewController {
     func configureWith(userId: UserID) {
         headerView.avatarViewButton.avatarView.configure(with: userId, using: MainAppContext.shared.avatarStore)
         headerView.name = MainAppContext.shared.contactStore.fullName(for: userId)
-        headerView.secondaryLabel.isHidden = true
+        if let contact = MainAppContext.shared.contactStore.contact(withUserId: userId),
+           let phoneNumber = contact.phoneNumber {
+            headerView.secondaryLabel.text = phoneNumber.formattedPhoneNumber
+        } else {
+            headerView.secondaryLabel.isHidden = true
+        }
     }
 
     // MARK: Profile Name Editing
@@ -255,7 +260,7 @@ private final class ProfileHeaderView: UIView {
         vStack.setCustomSpacing(vStack.spacing - nameButton.contentEdgeInsets.bottom, after: nameButton)
         addSubview(vStack)
         vStack.constrain(anchor: .top, to: self, constant: 32)
-        vStack.constrain(anchor: .bottom, to: self, constant: 8)
+        vStack.constrain(anchor: .bottom, to: self, constant: -20)
         vStack.constrainMargins([ .leading, .trailing ], to: self)
     }
 }
