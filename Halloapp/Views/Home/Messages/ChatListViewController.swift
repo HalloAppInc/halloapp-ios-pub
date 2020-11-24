@@ -911,7 +911,7 @@ private class ChatListTableViewCell: UITableViewCell {
 
         avatarView = AvatarViewButton(type: .custom)
         avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
-        avatarView.newPostsIndicatorRingWidth = 4
+        avatarView.newPostsIndicatorRingWidth = 5
         avatarView.newPostsIndicatorRingSpacing = 1.5
         avatarView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(avatarView)
