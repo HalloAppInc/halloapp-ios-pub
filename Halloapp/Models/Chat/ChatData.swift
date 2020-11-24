@@ -2325,6 +2325,7 @@ extension ChatData {
     }
     
     // TODO: consolidate this with ChatMessage
+    /// Not thread safe! Must be called on same queue where groupMessage originates.
     private func uploadGroupMediaAndSend(_ groupMessage: ChatGroupMessage) {
         // Either all media has already been uploaded or post does not contain media.
         guard let mediaItemsToUpload = groupMessage.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
@@ -2394,7 +2395,8 @@ extension ChatData {
             }
         }
     }
-    
+
+    /// Not thread safe! Must be called on same queue where groupMessage originates.
     private func sendGroup(groupMessage: ChatGroupMessage) {
         let xmppGroupMessage = XMPPChatGroupMessage(chatGroupMessage: groupMessage)
 
@@ -3273,8 +3275,9 @@ extension ChatData {
                 guard abs(msgTimestamp.timeIntervalSinceNow) <= Date.hours(24) else { return }
                 
                 DDLogInfo("ChatData/processPendingGroupChatMsgs \($0.id)")
+                let outgoingMessage = XMPPChatGroupMessage(chatGroupMessage: groupChatMsg)
                 self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) {
-                    self.sendGroup(groupMessage: groupChatMsg)
+                    self.service.sendGroupChatMessage(outgoingMessage)
                 }
                 timeDelay += 1.0
             }
