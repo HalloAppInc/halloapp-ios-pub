@@ -321,14 +321,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 extension FeedCollectionViewController: UIViewControllerScrollsToTop {
     
     func scrollToTop(animated: Bool) {
-//        if tableView.tableHeaderView != nil {
-//            tableView.setContentOffset(CGPoint(x: 0, y: -tableView.adjustedContentInset.top), animated: animated)
-//            return
-//        }
-        guard let firstSection = fetchedResultsController?.sections?.first else { return }
-        if firstSection.numberOfObjects > 0 {
-            collectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: animated)
-        }
+        collectionView.setContentOffset(CGPoint(x: 0, y: -collectionView.adjustedContentInset.top), animated: animated)
     }
 }
 
