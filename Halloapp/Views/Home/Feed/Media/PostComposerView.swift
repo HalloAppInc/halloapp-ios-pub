@@ -69,7 +69,7 @@ class PostComposerViewController: UIViewController {
     fileprivate let imageServer = ImageServer()
 
     private let titleMode: TitleMode
-    private var messageRecepientName: String?
+    private var messageRecipientName: String?
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
     private var shouldAutoPlay = GenericObservable(false)
@@ -87,7 +87,7 @@ class PostComposerViewController: UIViewController {
         mediaToPost media: [PendingMedia],
         initialInput: MentionInput,
         titleMode: TitleMode = .post,
-        messageRecepientName: String? = nil,
+        messageRecipientName: String? = nil,
         disableMentions: Bool = false,
         showAddMoreMediaButton: Bool = true,
         useTransparentNavigationBar: Bool = false,
@@ -97,7 +97,7 @@ class PostComposerViewController: UIViewController {
         self.isMediaPost = media.count > 0
         self.inputToPost = GenericObservable(initialInput)
         self.titleMode = titleMode
-        self.messageRecepientName = messageRecepientName
+        self.messageRecipientName = messageRecipientName
         self.disableMentions = disableMentions
         self.showAddMoreMediaButton = showAddMoreMediaButton
         self.useTransparentNavigationBar = useTransparentNavigationBar
@@ -161,9 +161,9 @@ class PostComposerViewController: UIViewController {
         case .message:
             let titleView = TitleView()
             titleView.titleLabel.text = NSLocalizedString("composer.message.title", value: "New Message", comment: "Composer New Message title.")
-            if messageRecepientName != nil {
+            if let messageRecipientName = messageRecipientName {
                 let formatString = NSLocalizedString("composer.message.subtitle", value: "Sending to %@", comment: "Composer subtitle for messages.")
-                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, messageRecepientName!)
+                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, messageRecipientName)
             } else {
                 titleView.isHidden = true
             }
