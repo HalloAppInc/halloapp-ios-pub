@@ -200,9 +200,9 @@ extension NewPostViewController: PostComposerViewDelegate {
         }
 
         containedNavigationController.popViewController(animated: true)
-        if let picker = containedNavigationController.topViewController as? MediaPickerViewController {
-            picker.reset(selected: media)
-        } else if (containedNavigationController.topViewController as? CameraViewController) == nil {
+        if state.mediaSource == .library {
+            (containedNavigationController.topViewController as? MediaPickerViewController)?.reset(selected: media)
+        } else if state.mediaSource != .camera {
             didFinish()
         }
     }
