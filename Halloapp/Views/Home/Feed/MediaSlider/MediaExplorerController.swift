@@ -425,7 +425,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 }
 
-fileprivate class ImageCell: UICollectionViewCell {
+fileprivate class ImageCell: UICollectionViewCell, UIGestureRecognizerDelegate {
     static var reuseIdentifier: String {
         return String(describing: ImageCell.self)
     }
@@ -434,11 +434,32 @@ fileprivate class ImageCell: UICollectionViewCell {
 
     public var scrollView: UIScrollView!
 
-    private var previousScale = CGFloat(1.0)
-    private var previousNumberOfTouches = 0
-    private var previousLocation = CGPoint.zero
-    private var initialLocation = CGPoint.zero
     private var originalOffset = CGPoint.zero
+    private var imageConstraints: [NSLayoutConstraint] = []
+    private var imageViewWidth: CGFloat = .zero
+    private var imageViewHeight: CGFloat = .zero
+    private var scale: CGFloat = 1
+    private var animator: UIDynamicAnimator!
+
+    private var width: CGFloat {
+        imageViewWidth * scale
+    }
+    private var height: CGFloat {
+        imageViewHeight * scale
+    }
+    private var minX: CGFloat {
+        imageView.center.x - width / 2
+    }
+    private var maxX: CGFloat {
+        imageView.center.x + width / 2
+    }
+    private var minY: CGFloat {
+        imageView.center.y - height / 2
+    }
+    private var maxY: CGFloat {
+        imageView.center.y + height / 2
+    }
+
 
     private lazy var imageView: UIImageView = {
         let imageView = UIImageView(frame: .zero)
@@ -449,13 +470,12 @@ fileprivate class ImageCell: UICollectionViewCell {
         return imageView
     }()
 
-    private var imageConstraints: [NSLayoutConstraint] = []
+
     var image: UIImage! {
         didSet {
-            computeConstraints()
-            reset()
-
             imageView.image = image
+            reset()
+            computeConstraints()
         }
     }
 
@@ -469,14 +489,15 @@ fileprivate class ImageCell: UICollectionViewCell {
         imageView.addGestureRecognizer(zoomRecognizer)
 
         let dragRecognizer = UIPanGestureRecognizer(target: self, action: #selector(onDrag(sender:)))
-        dragRecognizer.maximumNumberOfTouches = 1
-        dragRecognizer.minimumNumberOfTouches = 1
+        dragRecognizer.delegate = self
         imageView.addGestureRecognizer(dragRecognizer)
 
         let doubleTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(onDoubleTapAction(sender:)))
         doubleTapRecognizer.numberOfTapsRequired = 2
         doubleTapRecognizer.numberOfTouchesRequired = 1
         imageView.addGestureRecognizer(doubleTapRecognizer)
+
+        animator = UIDynamicAnimator(referenceView: contentView)
     }
 
     required init?(coder: NSCoder) {
@@ -484,177 +505,240 @@ fileprivate class ImageCell: UICollectionViewCell {
     }
 
     func computeConstraints() {
+        guard image != nil else { return }
+
         let scale = min((contentView.frame.width - spaceBetweenPages * 2) / image.size.width, contentView.frame.height / image.size.height)
+        imageViewWidth = image.size.width * scale
+        imageViewHeight = image.size.height * scale
 
         NSLayoutConstraint.deactivate(imageConstraints)
         imageConstraints = [
             imageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             imageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: image.size.width * scale),
-            imageView.heightAnchor.constraint(equalToConstant: image.size.height * scale),
+            imageView.widthAnchor.constraint(equalToConstant: imageViewWidth),
+            imageView.heightAnchor.constraint(equalToConstant: imageViewHeight),
         ]
         NSLayoutConstraint.activate(imageConstraints)
     }
 
     func reset() {
         imageView.transform = CGAffineTransform.identity
-        previousScale = 1.0
-        previousNumberOfTouches = 0
-        previousLocation = CGPoint.zero
-        initialLocation = CGPoint.zero
+        imageView.center = CGPoint(x: contentView.bounds.midX, y: contentView.bounds.midY)
+        scale = 1
         originalOffset = CGPoint.zero
+        animator.removeAllBehaviors()
+    }
+
+    // perform zoom & drag simultaneously
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return gestureRecognizer.view == otherGestureRecognizer.view && otherGestureRecognizer is UIPinchGestureRecognizer
     }
 
     @objc func onZoom(sender: UIPinchGestureRecognizer) {
-        let location = sender.location(in: contentView)
-
         if sender.state == .began {
-            initialLocation = location
-            previousLocation = location
-            previousScale = 1.0
+            originalOffset = scrollView.contentOffset
+
+            let temp = imageView.center
+            animator.removeAllBehaviors()
+            imageView.center = temp
         }
 
         if sender.state == .began || sender.state == .changed {
-            if sender.numberOfTouches != previousNumberOfTouches {
-                previousLocation = location
-            }
+            guard sender.numberOfTouches > 1 else { return }
 
-            let scale = sender.scale / previousScale
-            var transform = imageView.transform
+            let locations = [
+                sender.location(ofTouch: 0, in: contentView),
+                sender.location(ofTouch: 1, in: contentView),
+            ]
 
-            // Keep the scalling relative to the initial zoom location
-            let centerX = (initialLocation.x - contentView.bounds.midX) * (1 - scale)
-            let centerY = (initialLocation.y - contentView.bounds.midY) * (1 - scale)
-            transform = transform.concatenating(CGAffineTransform(translationX: centerX, y: centerY))
-            // Scale
-            transform = transform.concatenating(CGAffineTransform(scaleX: scale, y: scale))
-            // Follow any dragging
-            let transX = location.x - previousLocation.x
-            let transY = location.y - previousLocation.y
-            transform = transform.concatenating(CGAffineTransform(translationX: transX, y: transY))
+            let zoomCenterX = (locations[0].x + locations[1].x) / 2
+            let zoomCenterY = (locations[0].y + locations[1].y) / 2
 
-            previousScale = sender.scale
-            previousLocation = location
-            previousNumberOfTouches = sender.numberOfTouches
+            imageView.center.x += (zoomCenterX - imageView.center.x) * (1 - sender.scale)
+            imageView.center.y += (zoomCenterY - imageView.center.y) * (1 - sender.scale)
 
-            update(transform: transform, animated: false)
+            scale *= sender.scale
+            imageView.transform = CGAffineTransform(scaleX: scale, y: scale)
+
+            sender.scale = 1
         } else if sender.state == .ended {
-            update(transform: adjust(transform: imageView.transform), animated: true)
+            if scale < 1 {
+                scale = 1
+                animate(scale: scale, center: CGPoint(x: contentView.bounds.midX, y: contentView.bounds.midY))
+            } else {
+                adjustImageView(scale: scale, center: imageView.center)
+            }
         }
     }
 
     @objc func onDrag(sender: UIPanGestureRecognizer) {
-        let location = sender.location(in: window)
-
         if sender.state == .began {
-            previousLocation = location
             originalOffset = scrollView.contentOffset
+
+            let temp = imageView.center
+            animator.removeAllBehaviors()
+            imageView.center = temp
         }
 
         if sender.state == .began || sender.state == .changed {
-            let x = location.x - previousLocation.x
-            let y = location.y - previousLocation.y
+            var translation = sender.translation(in: window)
 
-            if shouldDragImage(translation: x) {
-                let transform = imageView.transform.concatenating(CGAffineTransform(translationX: x, y: y))
-                update(transform: transform, animated: false)
-            } else {
-                scrollView.setContentOffset(CGPoint(x: scrollView.contentOffset.x - x, y: scrollView.contentOffset.y), animated: false)
-            }
-
-            previousLocation = location
-        } else if sender.state == .ended {
-            let transform = adjust(transform: imageView.transform)
-            update(transform: transform, animated: true)
-            adjustScrollViewPage(velocity: sender.velocity(in: window).x)
-        }
-    }
-
-
-    @objc func onDoubleTapAction(sender: UITapGestureRecognizer) {
-        if imageView.transform.isIdentity {
-            let location = sender.location(in: contentView)
-            let x = contentView.bounds.midX - location.x
-            let y = contentView.bounds.midY - location.y
-            let transform = CGAffineTransform(scaleX: 2.5, y: 2.5).translatedBy(x: x, y: y)
-            update(transform: adjust(transform: transform), animated: true)
-        } else {
-            update(transform: CGAffineTransform.identity, animated: true)
-        }
-    }
-
-    private func adjust(transform: CGAffineTransform) -> CGAffineTransform {
-        let scale = transform.a
-        if scale <= 1.0 {
-            return CGAffineTransform.identity
-        }
-
-        let current = imageView.transform
-        imageView.transform = transform
-
-        var x = CGFloat(0)
-        var y = CGFloat(0)
-
-        if imageView.frame.width > bounds.width {
-            x = max(contentView.bounds.maxX - spaceBetweenPages - self.imageView.frame.maxX, 0) + min(contentView.bounds.minX + spaceBetweenPages - self.imageView.frame.minX, 0)
-        } else {
-            x = bounds.midX - imageView.frame.midX
-        }
-
-        if imageView.frame.height > bounds.height {
-            y = max(contentView.bounds.maxY - self.imageView.frame.maxY, 0) + min(contentView.bounds.minY - self.imageView.frame.minY, 0)
-        } else {
-            y = bounds.midY - imageView.frame.midY
-        }
-
-        imageView.transform = current
-        return transform.concatenating(CGAffineTransform(translationX: x, y: y))
-    }
-
-    private func update(transform: CGAffineTransform, animated: Bool) {
-        if animated {
-            UIView.animate(withDuration: 0.35) { [weak self] in
-                self?.imageView.transform = transform
-            }
-        } else {
-            imageView.transform = transform
-        }
-    }
-
-    private func adjustScrollViewPage(velocity: CGFloat) {
-        guard scrollView.contentOffset.x != originalOffset.x else { return }
-
-        let diff = scrollView.contentOffset.x - originalOffset.x
-
-        if abs(diff) > scrollView.frame.width / 2 || abs(velocity) > 200 {
-            let x = originalOffset.x + scrollView.frame.width * (diff > 0 ? 1 : -1)
-
-            if x >= 0 && x < scrollView.contentSize.width {
-                update(transform: CGAffineTransform.identity, animated: true)
-
-                let duration = min(TimeInterval(abs(scrollView.contentOffset.x - x) / velocity), 0.3)
-                UIView.animate(withDuration: duration) {
-                    self.scrollView.setContentOffset(CGPoint(x: x, y: self.originalOffset.y), animated: false)
-                    self.scrollView.layoutIfNeeded()
+            if scrollView.contentOffset.x == originalOffset.x {
+                if translation.x > 0 && minX < spaceBetweenPages {
+                    imageView.center.x += min(translation.x, spaceBetweenPages - minX)
+                    translation.x = max(translation.x - spaceBetweenPages + minX, 0)
+                } else if translation.x < 0 && maxX > contentView.bounds.maxX - spaceBetweenPages {
+                    imageView.center.x += max(translation.x, contentView.bounds.maxX - spaceBetweenPages - maxX)
+                    translation.x = min(translation.x - contentView.bounds.maxX + spaceBetweenPages + maxX, 0)
                 }
+
+                if translation.y > 0 && minY < 0 {
+                    imageView.center.y += min(translation.y, -minY)
+                    translation.y = max(translation.y + minY, 0)
+                } else if translation.y < 0 && maxY > contentView.bounds.maxY {
+                    imageView.center.y += max(translation.y, contentView.bounds.maxY - maxY)
+                    translation.y = min(translation.y - contentView.bounds.maxY + maxY, 0)
+                }
+            }
+
+            if translation.x != 0 {
+                scrollView.setContentOffset(CGPoint(x: scrollView.contentOffset.x - translation.x, y: scrollView.contentOffset.y), animated: false)
+            }
+
+            sender.setTranslation(.zero, in: window)
+        } else if sender.state == .ended {
+            let velocity = sender.velocity(in: window)
+
+            if shouldScrollPage(velocity: velocity.x) {
+                scale = 1
+                animate(scale: scale, center: CGPoint(x: contentView.bounds.midX, y: contentView.bounds.midY))
+                scrollPage(velocity: velocity.x)
             } else {
+                if scale > 1 {
+                    addInertialMotion(velocity: velocity)
+                }
+
                 scrollView.setContentOffset(originalOffset, animated: true)
             }
-        } else {
-            scrollView.setContentOffset(originalOffset, animated: true)
         }
     }
 
-    private func shouldDragImage(translation: CGFloat) -> Bool {
-        if scrollView.contentOffset.x != originalOffset.x {
-            return false
+    @objc func onDoubleTapAction(sender: UITapGestureRecognizer) {
+        let temp = imageView.center
+        animator.removeAllBehaviors()
+        imageView.center = temp
+
+        let center: CGPoint
+
+        if imageView.transform.isIdentity {
+            let location = sender.location(in: contentView)
+            scale = 2.5
+            center = CGPoint(x: imageView.center.x + (contentView.bounds.midX - location.x) * scale,
+                             y: imageView.center.y + (contentView.bounds.midY - location.y) * scale)
+        } else {
+            scale = 1
+            center = CGPoint(x: contentView.bounds.midX, y: contentView.bounds.midY)
         }
 
-        if translation < 0 {
-            return imageView.frame.maxX > contentView.bounds.maxX - spaceBetweenPages
+        adjustImageView(scale: scale, center: center)
+    }
+
+    private func adjustImageView(scale: CGFloat, center: CGPoint) {
+        let width = imageViewWidth * scale
+        let height = imageViewHeight * scale
+        let minX = center.x - width / 2
+        let maxX = center.x + width / 2
+        let minY = center.y - height / 2
+        let maxY = center.y + height / 2
+
+        var x: CGFloat
+        if width > bounds.width {
+            x = center.x + max(contentView.bounds.maxX - spaceBetweenPages - maxX, 0) + min(contentView.bounds.minX + spaceBetweenPages - minX, 0)
         } else {
-            return imageView.frame.minX < contentView.bounds.minX + spaceBetweenPages
+            x = contentView.bounds.midX
         }
+
+        var y: CGFloat
+        if height > bounds.height {
+            y = center.y + max(contentView.bounds.maxY - maxY, 0) + min(contentView.bounds.minY - minY, 0)
+        } else {
+            y = contentView.bounds.midY
+        }
+
+        animate(scale: scale, center: CGPoint(x: x, y: y))
+    }
+
+    private func animate(scale: CGFloat, center: CGPoint) {
+        UIView.animate(withDuration: 0.35) { [weak self] in
+            guard let self = self else { return }
+            self.imageView.transform = CGAffineTransform(scaleX: scale, y: scale)
+            self.imageView.center = center
+        }
+    }
+
+    private func shouldScrollPage(velocity: CGFloat) -> Bool {
+        let offset = originalOffset.x + scrollView.frame.width * (velocity > 0 ? -1 : 1)
+        if offset >= 0 && offset < scrollView.contentSize.width {
+            let diff = scrollView.contentOffset.x - originalOffset.x
+            return (abs(diff) > scrollView.frame.width / 2) || (abs(diff) > 0 && abs(velocity) > 200)
+        }
+
+        return false
+    }
+
+    private func scrollPage(velocity: CGFloat) {
+        let offset = originalOffset.x + scrollView.frame.width * (velocity > 0 ? -1 : 1)
+
+        if offset >= 0 && offset < scrollView.contentSize.width {
+            let distance = scrollView.contentOffset.x - offset
+            let duration = min(TimeInterval(abs(distance / velocity)), 0.3)
+
+            UIView.animate(withDuration: duration) {
+                self.scrollView.setContentOffset(CGPoint(x: offset, y: self.originalOffset.y), animated: false)
+                self.scrollView.layoutIfNeeded()
+            }
+        }
+    }
+
+    private func addInertialMotion(velocity: CGPoint) {
+        var imageVelocity = CGPoint.zero
+        let boundMinX: CGFloat, boundMaxX: CGFloat, boundMinY: CGFloat, boundMaxY: CGFloat
+
+        // UICollisionBehavior doesn't take into account transform scaling
+        if width > bounds.width {
+            boundMinX = contentView.bounds.maxX - spaceBetweenPages - width / 2 - imageViewWidth / 2
+            boundMaxX = contentView.bounds.minX + spaceBetweenPages + width / 2 + imageViewWidth / 2
+            imageVelocity.x = velocity.x
+        } else {
+            boundMinX = contentView.bounds.midX - imageViewWidth / 2
+            boundMaxX = contentView.bounds.midX + imageViewWidth / 2
+        }
+
+        // UICollisionBehavior doesn't take into account transform scaling
+        if height > bounds.height {
+            boundMinY = contentView.bounds.maxY - height / 2 - imageViewHeight / 2
+            boundMaxY = contentView.bounds.minY + height / 2 + imageViewHeight / 2
+            imageVelocity.y = velocity.y
+        } else {
+            boundMinY = contentView.bounds.midY - imageViewHeight / 2
+            boundMaxY = contentView.bounds.midY + imageViewHeight / 2
+        }
+
+        let dynamicBehavior = UIDynamicItemBehavior(items: [imageView])
+        dynamicBehavior.addLinearVelocity(imageVelocity, for: imageView)
+        dynamicBehavior.resistance = 10
+
+        // UIKit Dynamics resets the transform and ignores scale
+        dynamicBehavior.action = { [weak self] in
+            guard let self = self else { return }
+            self.imageView.transform = CGAffineTransform(scaleX: self.scale, y: self.scale)
+        }
+        animator.addBehavior(dynamicBehavior)
+
+        let boundaries = CGRect(x: boundMinX, y: boundMinY, width: boundMaxX - boundMinX, height: boundMaxY - boundMinY)
+        let collisionBehavior = UICollisionBehavior(items: [imageView])
+        collisionBehavior.addBoundary(withIdentifier: NSString("boundaries"), for: UIBezierPath(rect: boundaries))
+        animator.addBehavior(collisionBehavior)
     }
 }
 
