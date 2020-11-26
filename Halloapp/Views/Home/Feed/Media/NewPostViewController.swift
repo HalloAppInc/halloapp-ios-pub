@@ -90,7 +90,6 @@ final class NewPostViewController: UIViewController {
         return PostComposerViewController(
             mediaToPost: state.pendingMedia,
             initialInput: state.pendingInput,
-            showCancelButton: state.isPostComposerCancellable,
             showAddMoreMediaButton: showAddMoreMediaButton,
             useTransparentNavigationBar: true,
             delegate: self)

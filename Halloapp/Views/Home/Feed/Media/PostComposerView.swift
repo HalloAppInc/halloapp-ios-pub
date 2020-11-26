@@ -69,7 +69,7 @@ class PostComposerViewController: UIViewController {
     fileprivate let imageServer = ImageServer()
 
     private let titleMode: TitleMode
-    private let showCancelButton: Bool
+    private var messageRecipientName: String?
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
     private var shouldAutoPlay = GenericObservable(false)
@@ -86,8 +86,8 @@ class PostComposerViewController: UIViewController {
     init(
         mediaToPost media: [PendingMedia],
         initialInput: MentionInput,
-        showCancelButton: Bool,
         titleMode: TitleMode = .post,
+        messageRecipientName: String? = nil,
         disableMentions: Bool = false,
         showAddMoreMediaButton: Bool = true,
         useTransparentNavigationBar: Bool = false,
@@ -96,8 +96,8 @@ class PostComposerViewController: UIViewController {
         self.mediaItems.value = media
         self.isMediaPost = media.count > 0
         self.inputToPost = GenericObservable(initialInput)
-        self.showCancelButton = showCancelButton
         self.titleMode = titleMode
+        self.messageRecipientName = messageRecipientName
         self.disableMentions = disableMentions
         self.showAddMoreMediaButton = showAddMoreMediaButton
         self.useTransparentNavigationBar = useTransparentNavigationBar
@@ -159,10 +159,14 @@ class PostComposerViewController: UIViewController {
             navigationItem.titleView = titleView
 
         case .message:
-            // Refactor with separate titleView for messages?
             let titleView = TitleView()
             titleView.titleLabel.text = NSLocalizedString("composer.message.title", value: "New Message", comment: "Composer New Message title.")
-            titleView.subtitleLabel.isHidden = true
+            if let messageRecipientName = messageRecipientName {
+                let formatString = NSLocalizedString("composer.message.subtitle", value: "Sending to %@", comment: "Composer subtitle for messages.")
+                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, messageRecipientName)
+            } else {
+                titleView.isHidden = true
+            }
             navigationItem.titleView = titleView
         }
 
@@ -277,6 +281,7 @@ fileprivate class TitleView: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.systemFont(ofSize: 13)
         label.textColor = .secondaryLabel
+        label.lineBreakMode = .byTruncatingTail
         return label
     }()
 }

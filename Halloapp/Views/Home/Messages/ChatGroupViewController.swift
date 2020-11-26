@@ -507,8 +507,8 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         let composerController = PostComposerViewController(
             mediaToPost: media,
             initialInput: MentionInput(text: chatInputView.text, mentions: MentionRangeMap(), selectedRange: NSRange()),
-            showCancelButton: false,
             titleMode: .message,
+            messageRecipientName: MainAppContext.shared.chatData.chatGroup(groupId: groupId)?.name,
             disableMentions: true,
             delegate: self)
         pickerController.present(UINavigationController(rootViewController: composerController), animated: false)
