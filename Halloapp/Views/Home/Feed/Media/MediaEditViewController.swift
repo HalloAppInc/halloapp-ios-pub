@@ -234,11 +234,10 @@ fileprivate class MediaEdit : ObservableObject {
         guard let image = image else { return }
 
         if cropToCircle {
-            let size = min(image.size.width, image.size.height) * 0.96
+            let size = min(image.size.width, image.size.height)
             self.cropRect = CGRect(x: image.size.width / 2 - size / 2, y: image.size.height / 2  - size / 2, width: size, height: size)
         } else {
-            let offset = CropRegion.borderThickness + 6
-            var crop = CGRect(x: offset, y: offset, width: image.size.width - 2 * offset, height: image.size.height - 2 * offset)
+            var crop = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
 
             let ratio = crop.size.height / crop.size.width
             crop.size.height = crop.size.width * min(CropImage.maxAspectRatio, ratio)
@@ -369,7 +368,7 @@ fileprivate struct CropRegion: View {
     let cropToCircle: Bool
     let region: CGRect
     
-    static let borderThickness: CGFloat = 8
+    private let borderThickness: CGFloat = 8
     private let cornerSize = CGSize(width: 15, height: 15)
     private let shadowColor = Color(red: 0, green: 0, blue: 0, opacity: 0.7)
     
@@ -379,23 +378,29 @@ fileprivate struct CropRegion: View {
             Path { path in
                 path.addRect(CGRect(x: 0, y: 0, width: geometry.size.width, height: geometry.size.height))
 
+                let offset = borderThickness / 2
+                let region = self.region.insetBy(dx: offset, dy: offset)
+
                 if self.cropToCircle {
-                    path.addEllipse(in: self.region)
+                    path.addEllipse(in: region)
                 } else {
-                    path.addRoundedRect(in: self.region, cornerSize: self.cornerSize)
+                    path.addRoundedRect(in: region, cornerSize: self.cornerSize)
                 }
             }
             .fill(self.shadowColor, style: FillStyle(eoFill: true))
             
             // Border
             Path { path in
+                let offset = borderThickness / 2
+                let region = self.region.insetBy(dx: offset, dy: offset)
+
                 if self.cropToCircle {
-                    path.addEllipse(in: self.region)
+                    path.addEllipse(in: region)
                 } else {
-                    path.addRoundedRect(in: self.region, cornerSize: self.cornerSize)
+                    path.addRoundedRect(in: region, cornerSize: self.cornerSize)
                 }
             }
-            .stroke(Color.white, lineWidth: CropRegion.borderThickness)
+            .stroke(Color.white, lineWidth: borderThickness)
         }
     }
 }
@@ -680,10 +685,12 @@ fileprivate struct CropImage: View {
     @State private var lastCropSection: CropRegionSection = .none
     
     private func findCropSection(_ crop: CGRect, location: CGPoint) -> CropRegionSection {
-        let isTop = (crop.minY < location.y) && (location.y < (crop.minY + threshold))
-        let isBottom = ((crop.maxY - threshold) < location.y) && (location.y < crop.maxY)
-        let isLeft = (crop.minX < location.x) && (location.x < (crop.minX + threshold))
-        let isRight = ((crop.maxX - threshold) < location.x) && (location.x < crop.maxX)
+        let vThreshold = min(threshold, crop.width / 3)
+        let hThreshold = min(threshold, crop.height / 3)
+        let isTop = (crop.minY < location.y) && (location.y < (crop.minY + vThreshold))
+        let isBottom = ((crop.maxY - vThreshold) < location.y) && (location.y < crop.maxY)
+        let isLeft = (crop.minX < location.x) && (location.x < (crop.minX + hThreshold))
+        let isRight = ((crop.maxX - hThreshold) < location.x) && (location.x < crop.maxX)
         
         switch (isLeft, isTop, isRight, isBottom) {
         case (true, true, _, _):
@@ -706,8 +713,8 @@ fileprivate struct CropImage: View {
             break
         }
         
-        let isInsideVertical = (crop.minY + threshold) < location.y && location.y < (crop.maxY - threshold)
-        let isInsideHorizontal = (crop.minX + threshold) < location.x && location.x < (crop.maxX - threshold)
+        let isInsideVertical = (crop.minY + vThreshold) < location.y && location.y < (crop.maxY - vThreshold)
+        let isInsideHorizontal = (crop.minX + hThreshold) < location.x && location.x < (crop.maxX - hThreshold)
         if isInsideVertical && isInsideHorizontal {
             return .inside
         }
@@ -755,21 +762,21 @@ fileprivate struct CropImage: View {
                 crop.size.width = width
             }
         }
+
+        crop.origin.x = (crop.origin.x * 1000).rounded(.down) / 1000
+        crop.origin.y = (crop.origin.y * 1000).rounded(.down) / 1000
+        crop.size.width = (crop.size.width * 1000).rounded(.down) / 1000
+        crop.size.height = (crop.size.height * 1000).rounded(.down) / 1000
         
         return crop
     }
     
     private func isCropRegionWithinLimit(_ crop: CGRect, limit: CGSize) -> Bool {
-        let offset = CropRegion.borderThickness / 2
-        let width = limit.width - offset
-        let height = limit.height - offset
-        return crop.minX >= offset && crop.minY >= offset && crop.maxX < width && crop.maxY < height
+        return crop.minX >= 0 && crop.minY >= 0 && crop.maxX <= limit.width && crop.maxY <= limit.height
     }
     
     private func isCropRegionMinSize(_ crop: CGRect) -> Bool {
-        let width = threshold * 4
-        let height = threshold * 4
-        return crop.size.height > height && crop.size.width > width
+        return crop.size.height > threshold && crop.size.width > threshold
     }
     
     private func isCropRegionValid(_ crop: CGRect, limit: CGSize) -> Bool {
@@ -841,12 +848,14 @@ fileprivate struct CropImage: View {
                                         self.lastLocation = v
                                         self.lastCropSection = self.findCropSection(crop, location: v)
 
-                                        if self.cropToCircle && self.lastCropSection == .inside {
-                                            self.isDragging = true
-                                        } else if !self.cropToCircle && self.lastCropSection != .none {
+                                        if self.lastCropSection != .none {
                                             self.isDragging = true
                                         } else {
                                             return
+                                        }
+
+                                        if self.cropToCircle {
+                                            self.lastCropSection = .inside
                                         }
                                     }
 
