@@ -95,16 +95,16 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         setupNavigationBar()
         collectionView = makeCollectionView(layout: makeLayout())
         dataSource = makeDataSource(collectionView)
-        
-        self.view.addSubview(collectionView)
+
+        view.addSubview(collectionView)
 
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
-            collectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor),
-            collectionView.rightAnchor.constraint(equalTo: self.view.rightAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            collectionView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            collectionView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-        
+
         setupZoom()
         setupPreviews()
 
@@ -177,8 +177,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     private func setupNavigationBar(title: String? = nil) {
-        self.navigationController?.navigationBar.isTranslucent = false;
-        self.navigationController?.navigationBar.shadowImage = UIImage()
+        navigationController?.navigationBar.standardAppearance = .translucentAppearance
+        navigationController?.navigationBar.isTranslucent = true
         
         let titleBtn = UIButton(type: .system)
         titleBtn.translatesAutoresizingMaskIntoConstraints = false
@@ -187,12 +187,13 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             titleBtn.heightAnchor.constraint(equalToConstant: 44),
         ])
         titleBtn.setTitle(title ?? Localizations.defaultTitle, for: .normal)
-        titleBtn.setImage(UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(scale: .small)), for: .normal)
+        titleBtn.setImage(UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)), for: .normal)
         titleBtn.semanticContentAttribute = .forceRightToLeft // Workaround to move the image on the right side
         titleBtn.addTarget(self, action: #selector(openAlbumsAction), for: .touchUpInside)
+        titleBtn.titleEdgeInsets.right = 10
         
         titleBtn.titleLabel?.font = UIFont.gothamFont(ofFixedSize: 17, weight: .medium)
-        self.navigationItem.titleView = titleBtn
+        navigationItem.titleView = titleBtn
         
         updateNavigationBarButtons()
     }
@@ -214,7 +215,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     
     private func updateNavigationBarButtons() {
         let backIcon = UIImage(systemName: selected.count > 0 ? "xmark" : "chevron.left", withConfiguration: UIImage.SymbolConfiguration(weight: .bold))
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: backIcon, style: .plain, target: self, action: #selector(cancelAction))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: backIcon, style: .plain, target: self, action: #selector(cancelAction))
 
         var buttons = [UIBarButtonItem]()
 
@@ -230,7 +231,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             buttons.append(cameraButton)
         }
 
-        self.navigationItem.rightBarButtonItems = buttons
+        navigationItem.rightBarButtonItems = buttons
     }
     
     private func setupZoom() {
@@ -341,10 +342,12 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     private func makeImagePreview(_ image: UIImage) {
+        guard let window = view.window else { return }
+
         let content = UIView()
         content.translatesAutoresizingMaskIntoConstraints = false
         content.backgroundColor = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.6)
-        self.view.addSubview(content)
+        window.addSubview(content)
         
         let iView = UIImageView()
         iView.translatesAutoresizingMaskIntoConstraints = false
@@ -354,18 +357,18 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         iView.image = image
         content.addSubview(iView)
         
-        self.preview = content
+        preview = content
 
         let spacing = CGFloat(20)
-        let widthRatio = (self.view.bounds.width - 2 * spacing) / image.size.width
-        let heightRatio = (self.view.bounds.height - 2 * spacing) / image.size.height
+        let widthRatio = (view.bounds.width - 2 * spacing) / image.size.width
+        let heightRatio = (view.bounds.height - 2 * spacing) / image.size.height
         let scale = min(widthRatio, heightRatio, 1)
 
         NSLayoutConstraint.activate([
-            content.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
-            content.leftAnchor.constraint(equalTo: self.view.leftAnchor),
-            content.rightAnchor.constraint(equalTo: self.view.rightAnchor),
-            content.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            content.topAnchor.constraint(equalTo: window.topAnchor),
+            content.leftAnchor.constraint(equalTo: window.leftAnchor),
+            content.rightAnchor.constraint(equalTo: window.rightAnchor),
+            content.bottomAnchor.constraint(equalTo: window.bottomAnchor),
             iView.centerXAnchor.constraint(equalTo: content.centerXAnchor),
             iView.centerYAnchor.constraint(equalTo: content.centerYAnchor),
             iView.widthAnchor.constraint(equalToConstant: image.size.width * scale),
@@ -376,18 +379,18 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private func makeVideoPreview(_ item: AVPlayerItem) {
         let content = UIView()
         content.backgroundColor = UIColor.init(red: 0, green: 0, blue: 0, alpha: 0.4)
-        content.frame = self.view.bounds
+        content.frame = view.bounds
         
         let player = AVPlayer(playerItem: item)
         let playerView = PlayerPreviewView()
         playerView.player = player
-        playerView.frame = self.view.bounds.insetBy(dx: 40, dy: 40)
+        playerView.frame = view.bounds.insetBy(dx: 40, dy: 40)
         content.addSubview(playerView)
         
         player.play()
         
-        self.preview = content
-        self.view.addSubview(content)
+        preview = content
+        view.window?.addSubview(content)
     }
     
     private func showPreview() {
@@ -411,9 +414,9 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     private func makeCollectionView(layout: UICollectionViewFlowLayout) -> UICollectionView {
-        let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: layout)
+        let collectionView = UICollectionView(frame: view.frame, collectionViewLayout: layout)
         collectionView.delegate = self
-        collectionView.backgroundColor = .systemBackground
+        collectionView.backgroundColor = .feedBackground
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.allowsMultipleSelection = true
         collectionView.register(AssetViewCell.self, forCellWithReuseIdentifier: AssetViewCell.reuseIdentifier)
@@ -507,6 +510,13 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         nextInProgress = true
         
         var result = [PendingMedia]()
+        self.selected.sort {
+            if let d0 = $0.creationDate, let d1 = $1.creationDate {
+                return d0 > d1
+            }
+
+            return false
+        }
         
         let manager = PHImageManager.default()
         let group = DispatchGroup()
@@ -713,7 +723,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             })
             
             UIView.addKeyframe(withRelativeStartTime: 0.5, relativeDuration: 0.5, animations: {
-                cell.image.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+                cell.image.transform = CGAffineTransform(scaleX: 0.96, y: 0.96)
             })
         }, completion: { _ in
             cell.prepare()
@@ -850,7 +860,7 @@ fileprivate class LabelViewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        backgroundColor = .systemBackground
+        backgroundColor = .feedBackground
         contentView.addSubview(title)
         contentView.clipsToBounds = true
         
@@ -873,20 +883,28 @@ fileprivate class AssetViewCell: UICollectionViewCell {
     
     weak var delegate: PickerViewCellDelegate?
     var item: PickerItem?
-    
+
+    static private let durationFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.unitsStyle = .positional
+        formatter.zeroFormattingBehavior = .dropTrailing
+        formatter.allowedUnits = [.second, .minute]
+
+        return formatter
+    }()
     private var activeConstraints = [NSLayoutConstraint]()
-    
-    lazy var indicator: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 14, weight: .bold)
-        label.textColor = .white
-        label.layer.cornerRadius = 10
-        label.layer.borderWidth = 2.5
-        label.layer.masksToBounds = true
-        
-        return label
+
+    private let checkmark = UIImage(systemName: "checkmark")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+    lazy var indicator: UIImageView = {
+        let indicator = UIImageView()
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.contentMode = .center
+        indicator.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)
+        indicator.layer.cornerRadius = 10
+        indicator.layer.borderWidth = 2.5
+        indicator.layer.masksToBounds = true
+
+        return indicator
     }()
     
     lazy var image: UIImageView = {
@@ -897,14 +915,15 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         
         return image
     }()
-    
-    lazy var play: UIImageView = {
-        let image = UIImageView()
-        image.translatesAutoresizingMaskIntoConstraints = false
-        image.image = UIImage(systemName: "play.fill", withConfiguration: UIImage.SymbolConfiguration(scale: .large))?.withTintColor(.white, renderingMode: .alwaysOriginal)
-        image.alpha = 0.7
-        
-        return image
+
+    lazy var duration: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .right
+        label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+        label.textColor = .white
+
+        return label
     }()
     
     override init(frame: CGRect) {
@@ -912,7 +931,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         
         contentView.addSubview(image)
         contentView.addSubview(indicator)
-        contentView.addSubview(play)
+        contentView.addSubview(duration)
         contentView.clipsToBounds = true
     }
     
@@ -965,21 +984,26 @@ fileprivate class AssetViewCell: UICollectionViewCell {
             indicator.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
             indicator.widthAnchor.constraint(equalToConstant: 20),
             indicator.heightAnchor.constraint(equalToConstant: 20),
-            play.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            play.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            duration.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+            duration.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -6),
         ]
         
         NSLayoutConstraint.activate(activeConstraints)
 
         if let asset = item?.asset, delegate?.selected.contains(asset) == true {
             image.layer.cornerRadius = 15
-            image.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+            image.transform = CGAffineTransform(scaleX: 0.96, y: 0.96)
         } else {
             image.layer.cornerRadius = 0
             image.transform = CGAffineTransform.identity
         }
 
-        play.isHidden = item?.asset?.mediaType != .video
+        if item?.asset?.mediaType == .video, let interval = item?.asset?.duration {
+            duration.isHidden = false
+            duration.text = Self.durationFormatter.string(from: interval)
+        } else {
+            duration.isHidden = true
+        }
 
         prepareIndicator()
 
@@ -987,14 +1011,14 @@ fileprivate class AssetViewCell: UICollectionViewCell {
     }
 
     func prepareIndicator() {
-        if let asset = item?.asset, let idx = delegate?.selected.firstIndex(of: asset) {
+        if let asset = item?.asset, delegate?.selected.contains(asset) == true {
             indicator.layer.borderColor = UIColor.lavaOrange.cgColor
             indicator.backgroundColor = .lavaOrange
-            indicator.text = "\(1 + idx)"
+            indicator.image = checkmark
         } else {
             indicator.layer.borderColor = CGColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.7)
             indicator.backgroundColor = .clear
-            indicator.text = ""
+            indicator.image = nil
         }
 
         if let multiselect = delegate?.multiselect, !multiselect {
