@@ -156,6 +156,9 @@ class DataStore: ShareExtensionDataStore {
             feedMention.index = index
             feedMention.userID = userID
             feedMention.name = AppContext.shared.contactStore.pushNames[userID] ?? ""
+            if feedMention.name == "" {
+                DDLogError("SharedDataStore/send-post/mention/\(userID) missing push name")
+            }
             mentionSet.insert(feedMention)
         }
         feedPost.mentions = mentionSet

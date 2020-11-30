@@ -1527,6 +1527,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedMention.index = index
             feedMention.userID = userID
             feedMention.name = contactStore.pushNames[userID] ?? ""
+            if feedMention.name == "" {
+                DDLogError("FeedData/new-post/mention/\(userID) missing push name")
+            }
             mentionSet.insert(feedMention)
         }
         feedPost.mentions = mentionSet
@@ -1595,6 +1598,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedMention.index = index
             feedMention.userID = userID
             feedMention.name = contactStore.pushNames[userID] ?? ""
+            if feedMention.name == "" {
+                DDLogError("FeedData/new-comment/mention/\(userID) missing push name")
+            }
             mentionSet.insert(feedMention)
         }
 
