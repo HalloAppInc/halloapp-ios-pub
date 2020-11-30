@@ -286,18 +286,24 @@ class SyncManager {
             }
         }
 
-        if contacts != nil {
+        if let contacts = contacts {
             contactStore.performOnBackgroundContextAndWait { managedObjectContext in
-                self.contactStore.processSync(results: contacts!, isFullSync: mode == .full, using: managedObjectContext)
+                self.contactStore.processSync(results: contacts, isFullSync: mode == .full, using: managedObjectContext)
             }
+
+            let pushNamePairs: [(UserID, String)] = contacts.compactMap { contact in
+                guard let userID = contact.userid, let pushName = contact.pushName else { return nil }
+                return (userID, pushName)
+            }
+            contactStore.addPushNames(Dictionary(uniqueKeysWithValues: pushNamePairs))
             
-            let contactsWithAvatars = contacts!.filter { $0.avatarid != nil }
+            let contactsWithAvatars = contacts.filter { $0.avatarid != nil }
             let avatarDict = contactsWithAvatars.reduce(into: [UserID: AvatarID]()) { (dict, contact) in
                 dict[contact.userid!] = contact.avatarid!
             }
-            
             MainAppContext.shared.avatarStore.processContactSync(avatarDict)
         }
+
         finishSync(withMode: mode, result: .success(()))
     }
 

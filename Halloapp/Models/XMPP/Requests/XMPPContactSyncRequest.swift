@@ -17,6 +17,7 @@ struct XMPPContact {
     private(set) var normalized: String?
     private(set) var registered: Bool = false
     private(set) var avatarid: AvatarID?
+    private(set) var pushName: String?
     var raw: String?
     var isDeletedContact: Bool = false
 
@@ -29,6 +30,7 @@ struct XMPPContact {
             normalized = pbContact.normalized
         }
         registered = (pbContact.role == .friends && userid != nil)
+        pushName = pbContact.name
         raw = pbContact.raw
         if !pbContact.avatarID.isEmpty {
             avatarid = pbContact.avatarID
