@@ -310,6 +310,8 @@ fileprivate struct PostComposerLayoutConstants {
     static let smallFont = UIFont(descriptor: fontDescriptor, size: fontSize)
     static let largeFont = UIFont(descriptor: fontDescriptor, size: fontSizeLarge)
 
+    static let mainScrollCoordinateSpace = "MainScrollView"
+
     static func getFontSize(textSize: Int, isPostWithMedia: Bool) -> UIFont {
         return isPostWithMedia || textSize > 180 ? smallFont : largeFont
     }
@@ -428,7 +430,6 @@ fileprivate struct PostComposerView: View {
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
-
     }
 
     private static func computePostHeight(itemsCount: Int, keyboardHeight: CGFloat, postTextHeight: CGFloat) -> CGFloat {
@@ -441,7 +442,7 @@ fileprivate struct PostComposerView: View {
         return min(maxPostHeight, max(minPostHeight, postTextHeight))
     }
     
-    private func getMediaSliderHeight(_ width: CGFloat) -> CGFloat {
+    private func getMediaSliderHeight(width: CGFloat) -> CGFloat {
         return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding)
     }
 
@@ -530,7 +531,7 @@ fileprivate struct PostComposerView: View {
                                         mediaItems: self.mediaItems,
                                         shouldAutoPlay: self.shouldAutoPlay,
                                         currentPosition: self.currentPosition)
-                                    .frame(height: self.getMediaSliderHeight(geometry.size.width), alignment: .center)
+                                    .frame(height: self.getMediaSliderHeight(width: geometry.size.width), alignment: .center)
 
                                     self.controls
                                 }
@@ -566,7 +567,15 @@ fileprivate struct PostComposerView: View {
                         .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
                         .onReceive(self.postTextComputedHeightPublisher) { self.postTextComputedHeight.value = $0 }
                     }
-                    .frame(minHeight: geometry.size.height - self.keyboardHeight - (self.mediaCount > 0 ? self.postTextComputedHeight.value : 0))
+                    .frame(minHeight: geometry.size.height)
+                    .background(
+                        YOffsetGetter(coordinateSpace: .named(PostComposerLayoutConstants.mainScrollCoordinateSpace))
+                            .onPreferenceChange(YOffsetPreferenceKey.self, perform: {
+                                if $0 > 0 { // top overscroll
+                                    PostComposerView.stopTextEdit()
+                                }
+                            })
+                    )
                 }
             }
 
@@ -574,6 +583,7 @@ fileprivate struct PostComposerView: View {
                 self.postTextView
             }
         }
+        .coordinateSpace(name: PostComposerLayoutConstants.mainScrollCoordinateSpace)
         .background(Color.feedBackground)
         .padding(.bottom, self.keyboardHeight)
         .edgesIgnoringSafeArea(.bottom)
@@ -592,6 +602,23 @@ fileprivate struct PostComposerView: View {
         mediaItems.remove(index: currentPosition.value)
         if (mediaCount == 0) {
             goBack()
+        }
+    }
+}
+
+struct YOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {}
+}
+
+struct YOffsetGetter: View {
+    let coordinateSpace: CoordinateSpace
+
+    var body: some View {
+        GeometryReader { geometry in
+            Rectangle()
+                .fill(Color.clear)
+                .preference(key: YOffsetPreferenceKey.self, value: geometry.frame(in: coordinateSpace).minY)
         }
     }
 }
