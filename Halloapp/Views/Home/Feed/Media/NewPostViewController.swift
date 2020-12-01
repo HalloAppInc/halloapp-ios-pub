@@ -200,9 +200,12 @@ extension NewPostViewController: PostComposerViewDelegate {
         }
 
         containedNavigationController.popViewController(animated: true)
-        if state.mediaSource == .library {
+        switch state.mediaSource {
+        case .library:
             (containedNavigationController.topViewController as? MediaPickerViewController)?.reset(selected: media)
-        } else if state.mediaSource != .camera {
+        case .camera:
+            break
+        default:
             didFinish()
         }
     }
