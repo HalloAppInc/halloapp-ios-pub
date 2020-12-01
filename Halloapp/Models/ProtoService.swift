@@ -33,7 +33,7 @@ final class ProtoService: ProtoServiceCore {
         self.cancellableSet.insert(
             userData.didLogOff.sink {
                 DDLogInfo("xmpp/userdata/didLogOff")
-                self.stream.disconnect() // this is only necessary when manually logging out from a developer menu.
+                self.disconnectImmediately() // this is only necessary when manually logging out from a developer menu.
                 self.stream.myJID = nil
             })
     }

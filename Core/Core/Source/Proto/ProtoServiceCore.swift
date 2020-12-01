@@ -37,6 +37,9 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         didSet {
             DDLogDebug("proto/connectionState/change [\(oldValue)] -> [\(connectionState)]")
             runCallbacksForCurrentConnectionState()
+            if oldValue == .connected && connectionState == .notConnected {
+                startReconnectTimerIfNecessary()
+            }
         }
     }
     public var isConnected: Bool { get { connectionState == .connected } }
@@ -54,11 +57,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
         configure(stream: stream)
         stream.addDelegate(self, delegateQueue: DispatchQueue.main)
-
-        // XMPP Modules
-        let xmppReconnect = XMPPReconnect()
-        xmppReconnect.addDelegate(self, delegateQueue: DispatchQueue.main)
-        xmppReconnect.activate(stream)
     }
 
     // MARK: Connection management
@@ -86,7 +84,12 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         stream.hostName = userData.hostName
         stream.hostPort = userData.hostPort
 
-        try! stream.connect(withTimeout: XMPPStreamTimeoutNone) // this only throws if stream isn't configured which doesn't happen for us.
+        do {
+            try stream.connect(withTimeout: XMPPStreamTimeoutNone)
+        } catch {
+            DDLogError("proto/connect/error \(error)")
+            return
+        }
 
         /* we do our own manual connection timeout as the xmppStream.connect timeout is not working */
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
@@ -97,6 +100,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     public func disconnect() {
         DDLogInfo("proto/disconnect")
 
+        isAutoReconnectEnabled = false
         connectionState = .disconnecting
         stream.disconnectAfterSending()
     }
@@ -104,9 +108,24 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     public func disconnectImmediately() {
         DDLogInfo("proto/disconnectImmediately")
 
+        isAutoReconnectEnabled = false
         connectionState = .notConnected
         stream.disconnect()
     }
+
+    private func startReconnectTimerIfNecessary() {
+        guard isAutoReconnectEnabled else {
+            return
+        }
+        DDLogInfo("proto/reconnect/timer start")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            DDLogInfo("proto/reconnect/timer fired")
+            // This only needs to be called once, connect() will reattempt as necessary
+            self.startConnectingIfNecessary()
+        }
+    }
+
+    private var isAutoReconnectEnabled = false
 
     // MARK: State Change Callbacks
 
@@ -267,6 +286,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     open func performOnConnect() {
         didConnect.send()
+        isAutoReconnectEnabled = true
         resendAllPendingRequests()
     }
 
@@ -363,26 +383,6 @@ extension ProtoServiceCore: XMPPStreamDelegate {
 
     public func xmppStream(_ sender: XMPPStream, didReceiveError error: DDXMLElement) {
         DDLogInfo("proto/stream/didReceiveError [\(error)]")
-
-        if error.element(forName: "conflict") != nil {
-            if let text = error.element(forName: "text")?.stringValue {
-                if text == "User removed" {
-                    DDLogInfo("Stream: Same user logged into another device, logging out of this one")
-                    userData.logout()
-                }
-            }
-        }
-    }
-}
-
-extension ProtoServiceCore: XMPPReconnectDelegate {
-
-    open func xmppReconnect(_ sender: XMPPReconnect, didDetectAccidentalDisconnect connectionFlags: SCNetworkConnectionFlags) {
-        DDLogInfo("proto/xmppReconnect/didDetectAccidentalDisconnect")
-    }
-
-    open func xmppReconnect(_ sender: XMPPReconnect, shouldAttemptAutoReconnect connectionFlags: SCNetworkConnectionFlags) -> Bool {
-        return true
     }
 }
 
