@@ -547,12 +547,12 @@ fileprivate struct CropGestureView: UIViewRepresentable {
 
     private var actions = Actions()
     
-    func onZoomChanged(_ action: @escaping (CGFloat) -> Void) -> CropGestureView {
+    func onZoomChanged(_ action: @escaping (CGFloat, CGPoint) -> Void) -> CropGestureView {
         actions.zoomChangedAction = action
         return self
     }
     
-    func onZoomEnded(_ action: @escaping (CGFloat) -> Void) -> CropGestureView {
+    func onZoomEnded(_ action: @escaping () -> Void) -> CropGestureView {
         actions.zoomEndedAction = action
         return self
     }
@@ -610,8 +610,8 @@ fileprivate struct CropGestureView: UIViewRepresentable {
         var dragEndedAction: ((CGPoint) -> Void)?
         var pinchDragChangedAction: ((CGPoint) -> Void)?
         var pinchDragEndedAction: ((CGPoint) -> Void)?
-        var zoomChangedAction: ((CGFloat) -> Void)?
-        var zoomEndedAction: ((CGFloat) -> Void)?
+        var zoomChangedAction: ((CGFloat, CGPoint) -> Void)?
+        var zoomEndedAction: (() -> Void)?
     }
     
     class Coordinator: NSObject, UIGestureRecognizerDelegate {
@@ -639,13 +639,24 @@ fileprivate struct CropGestureView: UIViewRepresentable {
             } else if sender.state == .ended {
                 actions?.pinchDragEndedAction?(translation)
             }
+            sender.setTranslation(.zero, in: sender.view)
         }
         
         @objc func onZoom(sender: UIPinchGestureRecognizer) {
             if sender.state == .began || sender.state == .changed {
-                actions?.zoomChangedAction?(sender.scale)
+                guard sender.numberOfTouches > 1 else { return }
+
+                let locations = [
+                    sender.location(ofTouch: 0, in: sender.view),
+                    sender.location(ofTouch: 1, in: sender.view),
+                ]
+
+                let zoomLocation = CGPoint(x: (locations[0].x + locations[1].x) / 2, y: (locations[0].y + locations[1].y) / 2)
+
+                actions?.zoomChangedAction?(sender.scale, zoomLocation)
+                sender.scale = 1
             } else if sender.state == .ended {
-                actions?.zoomEndedAction?(sender.scale)
+                actions?.zoomEndedAction?()
             }
         }
         
@@ -677,9 +688,6 @@ fileprivate struct CropImage: View {
     @ObservedObject var media: MediaEdit
     
     @State private var isDragging = false
-    @State private var isPinchDragging = false
-    @State private var isZooming = false
-    @State private var startingScale: CGFloat = 1.0
     @State private var startingOffset = CGPoint.zero
     @State private var lastLocation = CGPoint.zero
     @State private var lastCropSection: CropRegionSection = .none
@@ -772,6 +780,8 @@ fileprivate struct CropImage: View {
     }
     
     private func isCropRegionWithinLimit(_ crop: CGRect, limit: CGSize) -> Bool {
+        print(crop.minX >= 0, crop.minY >= 0, crop.maxX <= limit.width, crop.maxY <= limit.height)
+        print(crop, limit)
         return crop.minX >= 0 && crop.minY >= 0 && crop.maxX <= limit.width && crop.maxY <= limit.height
     }
     
@@ -815,38 +825,27 @@ fileprivate struct CropImage: View {
                         })
                         .overlay(GeometryReader { inner in
                             CropGestureView()
-                                .onZoomChanged { v in
-                                    if !self.isZooming {
-                                        self.isZooming = true
-                                        self.startingScale = self.media.scale
-                                    }
+                                .onZoomChanged { scale, location in
+                                    let baseScale = self.media.image!.size.width / inner.size.width
+                                    let zoomCenter = location.applying(CGAffineTransform(scaleX: baseScale, y: baseScale))
+                                    let translationX = (zoomCenter.x - self.media.image!.size.width / 2 - self.media.offset.x) * (1 - scale)
+                                    let translationY = (zoomCenter.y - self.media.image!.size.height / 2 - self.media.offset.y) * (1 - scale)
 
-                                    self.media.zoom(self.startingScale * v)
+                                    self.media.zoom(self.media.scale * scale)
+                                    self.media.move(CGPoint(x: self.media.offset.x + translationX, y: self.media.offset.y + translationY))
                                 }
-                                .onZoomEnded { v in
-                                    self.isZooming = false
-                                }
-                                .onPinchDragChanged { v in
-                                    if !self.isPinchDragging {
-                                        self.isPinchDragging = true
-                                        self.startingOffset = self.media.offset
-                                    }
+                                .onPinchDragChanged { translation in
+                                    let baseScale = self.media.image!.size.width / inner.size.width
+                                    let scaled = translation.applying(CGAffineTransform(scaleX: baseScale, y: baseScale))
 
-                                    let scale = self.media.image!.size.width / inner.size.width
-                                    let real = v.applying(CGAffineTransform(scaleX: scale, y: scale))
-                                    let offset = self.startingOffset.applying(CGAffineTransform(translationX: real.x, y: real.y))
-
-                                    self.media.move(offset)
+                                    self.media.move(CGPoint(x: self.media.offset.x + scaled.x, y: self.media.offset.y + scaled.y))
                                 }
-                                .onPinchDragEnded { v in
-                                    self.isPinchDragging = false
-                                }
-                                .onDragChanged { v in
+                                .onDragChanged { location in
                                     var crop = self.scaleCropRegion(self.media.cropRect, from: self.media.image!.size, to: inner.size)
 
                                     if !self.isDragging {
-                                        self.lastLocation = v
-                                        self.lastCropSection = self.findCropSection(crop, location: v)
+                                        self.lastLocation = location
+                                        self.lastCropSection = self.findCropSection(crop, location: location)
 
                                         if self.lastCropSection != .none {
                                             self.isDragging = true
@@ -859,9 +858,9 @@ fileprivate struct CropImage: View {
                                         }
                                     }
 
-                                    let deltaX = v.x - self.lastLocation.x
-                                    let deltaY = v.y - self.lastLocation.y
-                                    self.lastLocation = v
+                                    let deltaX = location.x - self.lastLocation.x
+                                    let deltaY = location.y - self.lastLocation.y
+                                    self.lastLocation = location
 
                                     var result = self.newCropRegion(crop, deltaX: deltaX)
                                     if self.isCropRegionValid(result, limit: inner.size) {
