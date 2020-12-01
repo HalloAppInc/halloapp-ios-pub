@@ -193,15 +193,18 @@ extension NewPostViewController: PostComposerViewDelegate {
     }
 
     func composerDidFinish(controller: PostComposerViewController, media: [PendingMedia], isBackAction: Bool) {
-        if isBackAction {
-            containedNavigationController.popViewController(animated: true)
+        guard isBackAction else {
+            didFinish()
+            return
+        }
 
-            guard let picker = containedNavigationController.topViewController as? MediaPickerViewController else {
-                didFinish()
-                return
-            }
-            picker.reset(selected: media)
-        } else {
+        containedNavigationController.popViewController(animated: true)
+        switch state.mediaSource {
+        case .library:
+            (containedNavigationController.topViewController as? MediaPickerViewController)?.reset(selected: media)
+        case .camera:
+            break
+        default:
             didFinish()
         }
     }
