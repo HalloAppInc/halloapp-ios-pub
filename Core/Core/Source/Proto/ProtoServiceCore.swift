@@ -175,13 +175,13 @@ open class ProtoServiceCore: NSObject, ObservableObject {
                 return
             }
 
-            AppContext.shared.eventMonitor.observe(.encryption(error: error))
             DispatchQueue.main.async {
                 guard self.isConnected else {
                     DDLogInfo("ProtoServiceCore/sendSilentChatMessage/\(message.id) skipping (disconnected)")
                     completion(.failure(ProtoServiceCoreError.disconnected))
                     return
                 }
+                AppContext.shared.eventMonitor.observe(.encryption(error: error))
                 DDLogInfo("ProtoServiceCore/sendSilentChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
                 self.stream.send(packetData)
                 completion(.success(()))
@@ -443,6 +443,12 @@ extension ProtoServiceCore: CoreService {
     }
 
     public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>) {
+        guard self.isConnected else {
+            DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) skipping (disconnected)")
+            completion(.failure(ProtoServiceCoreError.disconnected))
+            return
+        }
+
         let fromUserID = userData.userId
 
         makeChatStanza(message, encryption: encryption) { chat, error in
@@ -465,13 +471,13 @@ extension ProtoServiceCore: CoreService {
                 return
             }
 
-            AppContext.shared.eventMonitor.observe(.encryption(error: error))
             DispatchQueue.main.async {
                 guard self.isConnected else {
-                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) skipping (disconnected)")
+                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) aborting (disconnected)")
                     completion(.failure(ProtoServiceCoreError.disconnected))
                     return
                 }
+                AppContext.shared.eventMonitor.observe(.encryption(error: error))
                 DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
                 self.stream.send(packetData)
                 self.sendSilentChats(ServerProperties.silentChatMessages)
