@@ -27,7 +27,6 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var swipeDownStart: CGPoint?
     private var isSystemUIHidden = false
     private var isTransition = false
-    private var originalNavigationBarAppearance: UINavigationBarAppearance?
 
     private var currentIndex: Int {
         didSet {
@@ -57,7 +56,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     public weak var delegate: MediaExplorerTransitionDelegate?
 
     override var prefersStatusBarHidden: Bool {
-        true
+        isSystemUIHidden
     }
 
     init(media: [FeedMedia], index: Int) {
@@ -106,17 +105,14 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let backConfig = UIImage.SymbolConfiguration(weight: .bold).applying(UIImage.SymbolConfiguration(scale: .large))
-        let backIcon = UIImage(systemName: "chevron.left", withConfiguration: backConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal)
-        let backBtn = UIButton(type: .custom)
-        backBtn.addTarget(self, action: #selector(backAction), for: .touchUpInside)
-        backBtn.setImage(backIcon, for: .normal)
-        backBtn.layer.shadowColor = UIColor.black.cgColor
-        backBtn.layer.shadowOpacity = 1
-        backBtn.layer.shadowOffset = .zero
-        backBtn.layer.shadowRadius = 0.3
+        navigationController?.navigationBar.standardAppearance = .transparentAppearance
+        navigationController?.navigationBar.overrideUserInterfaceStyle = .dark
+        navigationController?.navigationBar.barStyle = .black
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationController?.navigationBar.shadowImage = UIImage()
+        navigationController?.navigationBar.backgroundColor = .clear
 
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backBtn)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarBack"), style: .plain, target: self, action: #selector(backAction))
 
         collectionView = makeCollectionView()
         self.view.addSubview(collectionView)
@@ -139,27 +135,6 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         }
 
         toggleSystemUI()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        originalNavigationBarAppearance = UINavigationBar.appearance().standardAppearance
-        UINavigationBar.appearance().standardAppearance = .transparentAppearance
-
-        navigationController?.navigationBar.overrideUserInterfaceStyle = .dark
-        navigationController?.navigationBar.barStyle = .black
-        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        navigationController?.navigationBar.shadowImage = UIImage()
-        navigationController?.navigationBar.backgroundColor = .clear
-    }
-
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        if let appearance = originalNavigationBarAppearance {
-            UINavigationBar.appearance().standardAppearance = appearance
-        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -358,7 +333,21 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private func toggleSystemUI() {
         isSystemUIHidden = !isSystemUIHidden
 
-        navigationController?.setNavigationBarHidden(isSystemUIHidden, animated: true)
+        // Fade in/out animations on both status bar and navigation
+        if isSystemUIHidden {
+            UIView.animate(withDuration: 0.3, animations: {
+                self.navigationController?.navigationBar.alpha = 0.0
+            }, completion: { _ in
+                self.navigationController?.setNavigationBarHidden(true, animated: true)
+            })
+        } else {
+            self.navigationController?.setNavigationBarHidden(false, animated: true)
+            self.navigationController?.navigationBar.alpha = 0.0
+
+            UIView.animate(withDuration: 0.3, delay: Double(UINavigationController.hideShowBarDuration), options: [], animations: {
+                self.navigationController?.navigationBar.alpha = 1.0
+            }, completion: nil)
+        }
 
         for cell in collectionView.visibleCells {
             if let cell = cell as? VideoCell {
@@ -918,7 +907,7 @@ fileprivate class Animator: NSObject, UIViewControllerTransitioningDelegate, UIV
     }
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.3
+        return 0.7
     }
 
     func getTransitionView() -> UIView? {
@@ -1004,20 +993,20 @@ fileprivate class Animator: NSObject, UIViewControllerTransitioningDelegate, UIV
 
             UIView.animateKeyframes(withDuration: self.transitionDuration(using: nil), delay: 0, options: [], animations: {
                 if self.presenting {
-                    UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.8) {
+                    UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.4) {
                         transitionView.center = transitionViewFinalCenter
                         transitionView.transform = transitionViewFinalTransform
                     }
 
-                    UIView.addKeyframe(withRelativeStartTime: 0.8, relativeDuration: 0.2) {
+                    UIView.addKeyframe(withRelativeStartTime: 0.4, relativeDuration: 0.6) {
                         toView?.alpha = 1.0
                     }
                 } else {
-                    UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.2) {
+                    UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.6) {
                         fromView?.alpha = 0.0
                     }
 
-                    UIView.addKeyframe(withRelativeStartTime: 0.2, relativeDuration: 0.8) {
+                    UIView.addKeyframe(withRelativeStartTime: 0.6, relativeDuration: 0.4) {
                         transitionView.center = transitionViewFinalCenter
                         transitionView.transform = transitionViewFinalTransform
                     }
