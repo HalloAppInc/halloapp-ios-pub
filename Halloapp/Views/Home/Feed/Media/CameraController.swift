@@ -95,6 +95,8 @@ class CameraController: UIViewController {
     private(set) var isRecordingMovie =  false
     private(set) var isUsingBackCamera = true
 
+    private var sessionIsStarted = false
+
     private static func checkCapturePermissions(type: AVMediaType, permissionHandler: @escaping (Bool) -> Void) {
         switch AVCaptureDevice.authorizationStatus(for: type) {
         case .authorized:
@@ -162,8 +164,8 @@ class CameraController: UIViewController {
             if !captureSession.isRunning {
                 DDLogInfo("CameraController/startCaptureSession startRunning")
                 captureSession.startRunning()
-
                 DispatchQueue.main.async {
+                    self.sessionIsStarted = true
                     if (self.previewLayer == nil) {
                         DDLogInfo("CameraController/startCaptureSession create preview layer")
                         self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
@@ -180,6 +182,7 @@ class CameraController: UIViewController {
         DDLogInfo("CameraController/stopCaptureSession detach preview layer")
         previewLayer?.removeFromSuperlayer()
         guard let captureSession = captureSession else { return }
+        sessionIsStarted = false
         DispatchQueue.global(qos: .userInitiated).async{
             if captureSession.isRunning {
                 DDLogInfo("CameraController/stopCaptureSession stopRunning")
@@ -397,6 +400,7 @@ class CameraController: UIViewController {
     public func setOrientation(_ orientation: UIDeviceOrientation) {
         guard let captureSession = captureSession,
             captureSession.isRunning,
+            sessionIsStarted,
             let photoOutput = photoOutput,
             let movieOutput = movieOutput else { return }
 
@@ -413,6 +417,7 @@ class CameraController: UIViewController {
     public func switchCamera(_ useBackCamera: Bool) {
         guard let captureSession = captureSession,
             captureSession.isRunning,
+            sessionIsStarted,
             let backInput = backInput,
             let frontInput = frontInput,
             let photoOutput = photoOutput,
@@ -436,6 +441,7 @@ class CameraController: UIViewController {
     public func focusOnPoint(_ point: CGPoint) {
         guard let captureSession = captureSession,
             captureSession.isRunning,
+            sessionIsStarted,
             let backCamera = backCamera,
             let frontCamera = frontCamera,
             let previewLayer = previewLayer else { return }
@@ -448,6 +454,7 @@ class CameraController: UIViewController {
     public func takePhoto(useFlashlight: Bool) {
         guard let captureSession = captureSession,
             captureSession.isRunning,
+            sessionIsStarted,
             let photoOutput = photoOutput else { return }
 
         DDLogInfo("CameraController/takePhoto")
@@ -461,6 +468,7 @@ class CameraController: UIViewController {
     public func startRecordingVideo(_ to: URL) {
         guard let captureSession = captureSession,
             captureSession.isRunning,
+            sessionIsStarted,
             let movieOutput = movieOutput else { return }
 
         if !isRecordingMovie {
