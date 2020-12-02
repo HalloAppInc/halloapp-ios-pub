@@ -291,11 +291,12 @@ class SyncManager {
                 self.contactStore.processSync(results: contacts, isFullSync: mode == .full, using: managedObjectContext)
             }
 
-            let pushNamePairs: [(UserID, String)] = contacts.compactMap { contact in
-                guard let userID = contact.userid, let pushName = contact.pushName else { return nil }
-                return (userID, pushName)
+            let pushNames = contacts.reduce(into: [UserID: String]()) { (dict, contact) in
+                if let userID = contact.userid, let pushName = contact.pushName {
+                    dict[userID] = pushName
+                }
             }
-            contactStore.addPushNames(Dictionary(uniqueKeysWithValues: pushNamePairs))
+            contactStore.addPushNames(pushNames)
             
             let contactsWithAvatars = contacts.filter { $0.avatarid != nil }
             let avatarDict = contactsWithAvatars.reduce(into: [UserID: AvatarID]()) { (dict, contact) in
