@@ -406,6 +406,9 @@ final class ProtoService: ProtoServiceCore {
                 handleFeedItems(pbFeedItems.items, message: msg)
             case .groupFeedItem(let pbGroupFeedItem):
                 handleGroupFeedItem(pbGroupFeedItem, message: msg)
+            case .groupFeedItems(_):
+                DDLogError("proto/didReceive/\(requestID)/groupFeedItems/error unimplemented")
+                sendAck(messageID: msg.id)
             case .contactHash(let pbContactHash):
                 if pbContactHash.hash.isEmpty {
                     // Trigger full sync

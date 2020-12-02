@@ -55,6 +55,8 @@ final class ProtoGetPrivacyListsRequest: ProtoRequest<([PrivacyListProtocol], Pr
                 return .blocked
             case .except:
                 return .blacklist
+            case .only:
+                return .whitelist
             case .UNRECOGNIZED:
                 return nil
             }

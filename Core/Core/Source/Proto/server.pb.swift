@@ -717,6 +717,24 @@ extension Server_GroupFeedItem.Action: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+public struct Server_GroupFeedItems {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var gid: String = String()
+
+  public var name: String = String()
+
+  public var avatarID: String = String()
+
+  public var items: [Server_GroupFeedItem] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Server_GroupMember {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1442,6 +1460,14 @@ public struct Server_Iq {
     set {_uniqueStorage()._payload = .groupAvatar(newValue)}
   }
 
+  public var deleteAccount: Server_DeleteAccount {
+    get {
+      if case .deleteAccount(let v)? = _storage._payload {return v}
+      return Server_DeleteAccount()
+    }
+    set {_uniqueStorage()._payload = .deleteAccount(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -1470,6 +1496,7 @@ public struct Server_Iq {
     case notificationPrefs(Server_NotificationPrefs)
     case groupFeedItem(Server_GroupFeedItem)
     case groupAvatar(Server_UploadGroupAvatar)
+    case deleteAccount(Server_DeleteAccount)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Iq.OneOf_Payload, rhs: Server_Iq.OneOf_Payload) -> Bool {
@@ -1499,6 +1526,7 @@ public struct Server_Iq {
       case (.notificationPrefs(let l), .notificationPrefs(let r)): return l == r
       case (.groupFeedItem(let l), .groupFeedItem(let r)): return l == r
       case (.groupAvatar(let l), .groupAvatar(let r)): return l == r
+      case (.deleteAccount(let l), .deleteAccount(let r)): return l == r
       default: return false
       }
     }
@@ -1732,6 +1760,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .silentChatStanza(newValue)}
   }
 
+  public var groupFeedItems: Server_GroupFeedItems {
+    get {
+      if case .groupFeedItems(let v)? = _storage._payload {return v}
+      return Server_GroupFeedItems()
+    }
+    set {_uniqueStorage()._payload = .groupFeedItems(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -1758,6 +1794,7 @@ public struct Server_Msg {
     case groupFeedItem(Server_GroupFeedItem)
     case rerequest(Server_Rerequest)
     case silentChatStanza(Server_SilentChatStanza)
+    case groupFeedItems(Server_GroupFeedItems)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -1780,6 +1817,7 @@ public struct Server_Msg {
       case (.groupFeedItem(let l), .groupFeedItem(let r)): return l == r
       case (.rerequest(let l), .rerequest(let r)): return l == r
       case (.silentChatStanza(let l), .silentChatStanza(let r)): return l == r
+      case (.groupFeedItems(let l), .groupFeedItems(let r)): return l == r
       default: return false
       }
     }
@@ -2268,6 +2306,7 @@ public struct Server_PrivacyLists {
     case all // = 0
     case block // = 1
     case except // = 2
+    case only // = 3
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -2279,6 +2318,7 @@ public struct Server_PrivacyLists {
       case 0: self = .all
       case 1: self = .block
       case 2: self = .except
+      case 3: self = .only
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -2288,6 +2328,7 @@ public struct Server_PrivacyLists {
       case .all: return 0
       case .block: return 1
       case .except: return 2
+      case .only: return 3
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -2305,6 +2346,7 @@ extension Server_PrivacyLists.TypeEnum: CaseIterable {
     .all,
     .block,
     .except,
+    .only,
   ]
 }
 
@@ -2632,6 +2674,110 @@ extension Server_WhisperKeys.Action: CaseIterable {
 }
 
 #endif  // swift(>=4.2)
+
+public struct Server_NoiseMessage {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var messageType: Server_NoiseMessage.MessageType = .xxA
+
+  /// Third party library we use for Noise handshake provides API to read/write Noise messages.
+  /// The following content represent the bytes returned by write message and such content is
+  /// correctly consumed by the receiving library for matching handshake pattern and handshake
+  /// state.
+  public var content: Data = SwiftProtobuf.Internal.emptyData
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum MessageType: SwiftProtobuf.Enum {
+    public typealias RawValue = Int
+
+    /// -> e
+    case xxA // = 0
+
+    /// <- e, ee, s, es
+    case xxB // = 1
+
+    /// -> s, se
+    case xxC // = 2
+
+    /// (<- s ...) -> e, es, s, ss
+    case ikA // = 3
+
+    /// <- e, ee, se
+    case ikB // = 4
+
+    /// (-> e ...) <- e, ee, s, es
+    case xxFallbackA // = 5
+
+    /// -> s, se
+    case xxFallbackB // = 6
+    case UNRECOGNIZED(Int)
+
+    public init() {
+      self = .xxA
+    }
+
+    public init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .xxA
+      case 1: self = .xxB
+      case 2: self = .xxC
+      case 3: self = .ikA
+      case 4: self = .ikB
+      case 5: self = .xxFallbackA
+      case 6: self = .xxFallbackB
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    public var rawValue: Int {
+      switch self {
+      case .xxA: return 0
+      case .xxB: return 1
+      case .xxC: return 2
+      case .ikA: return 3
+      case .ikB: return 4
+      case .xxFallbackA: return 5
+      case .xxFallbackB: return 6
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+  }
+
+  public init() {}
+}
+
+#if swift(>=4.2)
+
+extension Server_NoiseMessage.MessageType: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static var allCases: [Server_NoiseMessage.MessageType] = [
+    .xxA,
+    .xxB,
+    .xxC,
+    .ikA,
+    .ikB,
+    .xxFallbackA,
+    .xxFallbackB,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
+public struct Server_DeleteAccount {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var phone: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
@@ -3596,6 +3742,53 @@ extension Server_GroupFeedItem.Action: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension Server_GroupFeedItems: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GroupFeedItems"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "gid"),
+    2: .same(proto: "name"),
+    3: .standard(proto: "avatar_id"),
+    4: .same(proto: "items"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularStringField(value: &self.gid)
+      case 2: try decoder.decodeSingularStringField(value: &self.name)
+      case 3: try decoder.decodeSingularStringField(value: &self.avatarID)
+      case 4: try decoder.decodeRepeatedMessageField(value: &self.items)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.gid.isEmpty {
+      try visitor.visitSingularStringField(value: self.gid, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    if !self.avatarID.isEmpty {
+      try visitor.visitSingularStringField(value: self.avatarID, fieldNumber: 3)
+    }
+    if !self.items.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.items, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_GroupFeedItems, rhs: Server_GroupFeedItems) -> Bool {
+    if lhs.gid != rhs.gid {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.avatarID != rhs.avatarID {return false}
+    if lhs.items != rhs.items {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Server_GroupMember: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".GroupMember"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -4347,6 +4540,7 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
     25: .standard(proto: "notification_prefs"),
     26: .standard(proto: "group_feed_item"),
     27: .standard(proto: "group_avatar"),
+    28: .standard(proto: "delete_account"),
   ]
 
   fileprivate class _StorageClass {
@@ -4579,6 +4773,14 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
           }
           try decoder.decodeSingularMessageField(value: &v)
           if let v = v {_storage._payload = .groupAvatar(v)}
+        case 28:
+          var v: Server_DeleteAccount?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .deleteAccount(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .deleteAccount(v)}
         default: break
         }
       }
@@ -4644,6 +4846,8 @@ extension Server_Iq: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementation
         try visitor.visitSingularMessageField(value: v, fieldNumber: 26)
       case .groupAvatar(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 27)
+      case .deleteAccount(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 28)
       case nil: break
       }
     }
@@ -4701,6 +4905,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     20: .standard(proto: "group_feed_item"),
     22: .same(proto: "rerequest"),
     23: .standard(proto: "silent_chat_stanza"),
+    24: .standard(proto: "group_feed_items"),
     21: .standard(proto: "retry_count"),
   ]
 
@@ -4887,6 +5092,14 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
           }
           try decoder.decodeSingularMessageField(value: &v)
           if let v = v {_storage._payload = .silentChatStanza(v)}
+        case 24:
+          var v: Server_GroupFeedItems?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .groupFeedItems(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .groupFeedItems(v)}
         default: break
         }
       }
@@ -4951,6 +5164,8 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
         try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
       case .silentChatStanza(let v)?:
         try visitor.visitSingularMessageField(value: v, fieldNumber: 23)
+      case .groupFeedItems(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 24)
       case nil: break
       default: break
       }
@@ -5436,6 +5651,7 @@ extension Server_PrivacyLists.TypeEnum: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "ALL"),
     1: .same(proto: "BLOCK"),
     2: .same(proto: "EXCEPT"),
+    3: .same(proto: "ONLY"),
   ]
 }
 
@@ -5901,4 +6117,80 @@ extension Server_WhisperKeys.Action: SwiftProtobuf._ProtoNameProviding {
     4: .same(proto: "SET"),
     5: .same(proto: "UPDATE"),
   ]
+}
+
+extension Server_NoiseMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".NoiseMessage"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "message_type"),
+    2: .same(proto: "content"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularEnumField(value: &self.messageType)
+      case 2: try decoder.decodeSingularBytesField(value: &self.content)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.messageType != .xxA {
+      try visitor.visitSingularEnumField(value: self.messageType, fieldNumber: 1)
+    }
+    if !self.content.isEmpty {
+      try visitor.visitSingularBytesField(value: self.content, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_NoiseMessage, rhs: Server_NoiseMessage) -> Bool {
+    if lhs.messageType != rhs.messageType {return false}
+    if lhs.content != rhs.content {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_NoiseMessage.MessageType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "XX_A"),
+    1: .same(proto: "XX_B"),
+    2: .same(proto: "XX_C"),
+    3: .same(proto: "IK_A"),
+    4: .same(proto: "IK_B"),
+    5: .same(proto: "XX_FALLBACK_A"),
+    6: .same(proto: "XX_FALLBACK_B"),
+  ]
+}
+
+extension Server_DeleteAccount: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".DeleteAccount"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "phone"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularStringField(value: &self.phone)
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.phone.isEmpty {
+      try visitor.visitSingularStringField(value: self.phone, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_DeleteAccount, rhs: Server_DeleteAccount) -> Bool {
+    if lhs.phone != rhs.phone {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
 }
