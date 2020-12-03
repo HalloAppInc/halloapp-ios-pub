@@ -100,25 +100,85 @@ final class ProtoService: ProtoServiceCore {
     // MARK: Receipts
 
     typealias ReceiptData = (receipt: HalloReceipt, userID: UserID)
+    private let receiptsQueue = DispatchQueue(label: "com.halloapp.proto.receipts", qos: .default)
+
+    /// Maps message ID of outgoing receipts to receipt data in case we need to resend. Should only be accessed on receiptsQueue.
     private var unackedReceipts: [ String : ReceiptData ] = [:]
 
     private func resendAllPendingReceipts() {
-        for (messageID, receiptData) in unackedReceipts {
-            sendReceipt(receiptData.receipt, to: receiptData.userID, messageID: messageID)
+        receiptsQueue.async {
+            for (messageID, receiptData) in self.unackedReceipts {
+                self._sendReceipt(receiptData.receipt, to: receiptData.userID, messageID: messageID)
+            }
         }
     }
 
     private func sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = UUID().uuidString) {
+        receiptsQueue.async {
+            self._sendReceipt(receipt, to: toUserID, messageID: messageID)
+        }
+    }
+
+    /// Handles ack if it corresponds to an unacked receipt. Calls completion block on main thread.
+    private func handlePossibleReceiptAck(id: String, didFindReceipt: @escaping (Bool) -> Void) {
+        receiptsQueue.async {
+            var wasReceiptFound = false
+            if let (receipt, _) = self.unackedReceipts[id] {
+                DDLogInfo("proto/ack/\(id)/receipt found [\(receipt.itemId)]")
+                wasReceiptFound = true
+                self.unackedReceipts[id] = nil
+                switch receipt.thread {
+                case .feed:
+                    self.feedDelegate?.halloService(self, didSendFeedReceipt: receipt)
+                case .none, .group:
+                    self.chatDelegate?.halloService(self, didSendMessageReceipt: receipt)
+                }
+            }
+            DispatchQueue.main.async {
+                didFindReceipt(wasReceiptFound)
+            }
+        }
+    }
+
+    /// Should only be called on receiptsQueue.
+    private func _sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = UUID().uuidString) {
         unackedReceipts[messageID] = (receipt, toUserID)
 
-        enqueue(request: ProtoSendReceipt(
-                    messageID: messageID,
-                    itemID: receipt.itemId,
-                    thread: receipt.thread,
-                    type: receipt.type,
-                    fromUserID: receipt.userId,
-                    toUserID: toUserID) { _ in }
-        )
+        let threadID: String = {
+            switch receipt.thread {
+            case .group(let threadID): return threadID
+            case .feed: return "feed"
+            case .none: return ""
+            }
+        }()
+
+        let payloadContent: Server_Msg.OneOf_Payload = {
+            switch receipt.type {
+            case .delivery:
+                var deliveryReceipt = Server_DeliveryReceipt()
+                deliveryReceipt.id = receipt.itemId
+                deliveryReceipt.threadID = threadID
+                return .deliveryReceipt(deliveryReceipt)
+            case .read:
+                var seenReceipt = Server_SeenReceipt()
+                seenReceipt.id = receipt.itemId
+                seenReceipt.threadID = threadID
+                return .seenReceipt(seenReceipt)
+            }
+        }()
+
+        let packet = Server_Packet.msgPacket(
+            from: receipt.userId,
+            to: toUserID,
+            id: messageID,
+            payload: payloadContent)
+
+        if let data = try? packet.serializedData(), self.isConnected {
+            DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/sending")
+            stream.send(data)
+        } else {
+            DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/skipping (disconnected)")
+        }
     }
 
     private func sendAck(messageID: String) {
@@ -277,24 +337,18 @@ final class ProtoService: ProtoServiceCore {
         switch packet.stanza {
         case .ack(let ack):
             let timestamp = Date(timeIntervalSince1970: TimeInterval(ack.timestamp))
-            if let (receipt, _) = unackedReceipts[ack.id] {
-                unackedReceipts[ack.id] = nil
-                switch receipt.thread {
-                case .feed:
-                    if let delegate = feedDelegate {
-                        delegate.halloService(self, didSendFeedReceipt: receipt)
-                    }
-                case .none, .group:
-                    if let delegate = chatDelegate {
-                        delegate.halloService(self, didSendMessageReceipt: receipt)
-                    }
+            handlePossibleReceiptAck(id: ack.id) { wasReceiptFound in
+                guard !wasReceiptFound else {
+                    // Ack has been handled, no need to proceed further
+                    return
                 }
-            } else if SilentChatMessage.forRerequest(incomingID: ack.id) != nil {
-                // No need to update chat data for silent messages
-                DDLogInfo("proto/didReceive/silentAck \(ack.id)")
-            } else {
-                // If not a receipt, must be a chat ack.
-                didGetChatAck.send((id: ack.id, timestamp: timestamp))
+                if SilentChatMessage.forRerequest(incomingID: ack.id) != nil {
+                    // No need to update chat data for silent messages
+                    DDLogInfo("proto/didReceive/silentAck \(ack.id)")
+                } else {
+                    // Not a receipt or silent ack, must be a chat ack
+                    self.didGetChatAck.send((id: ack.id, timestamp: timestamp))
+                }
             }
         case .msg(let msg):
             guard let payload = msg.payload else {

@@ -151,58 +151,6 @@ final class ProtoContactSyncRequest: ProtoRequest<[HalloContact]> {
     }
 }
 
-final class ProtoSendReceipt: ProtoRequest<Void> {
-
-    init(
-        messageID: String? = nil,
-        itemID: String,
-        thread: HalloReceipt.Thread,
-        type: HalloReceipt.`Type`,
-        fromUserID: UserID,
-        toUserID: UserID,
-        completion: @escaping Completion)
-    {
-        let threadID: String = {
-            switch thread {
-            case .group(let threadID): return threadID
-            case .feed: return "feed"
-            case .none: return ""
-            }
-        }()
-
-        let payloadContent: Server_Msg.OneOf_Payload = {
-            switch type {
-            case .delivery:
-                var receipt = Server_DeliveryReceipt()
-                receipt.id = itemID
-                receipt.threadID = threadID
-                return .deliveryReceipt(receipt)
-            case .read:
-                var receipt = Server_SeenReceipt()
-                receipt.id = itemID
-                receipt.threadID = threadID
-                return .seenReceipt(receipt)
-            }
-        }()
-
-        let typeString: String = {
-            switch type {
-            case .delivery: return "delivery"
-            case .read: return "seen"
-            }
-        }()
-
-        let packet = Server_Packet.msgPacket(
-            from: fromUserID,
-            to: toUserID,
-            id: messageID ?? "\(typeString)-\(itemID)",
-            payload: payloadContent)
-
-        super.init(iqPacket: packet, transform: { _ in .success(()) }, completion: completion)
-    }
-}
-
-
 final class ProtoSendNameRequest: ProtoRequest<Void> {
 
     init(name: String, completion: @escaping Completion) {
