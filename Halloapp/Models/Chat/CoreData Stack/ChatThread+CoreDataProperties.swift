@@ -41,6 +41,7 @@ extension ChatThread {
     
     @NSManaged var title: String?
     @NSManaged var unreadCount: Int32
+    @NSManaged var isNew: Bool
     
     @NSManaged var lastMsgId: String?
     @NSManaged var lastMsgUserId: String?

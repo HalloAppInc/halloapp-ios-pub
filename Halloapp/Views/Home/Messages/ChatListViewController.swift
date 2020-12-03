@@ -258,6 +258,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     public var fetchRequest: NSFetchRequest<ChatThread> {
         let fetchRequest = NSFetchRequest<ChatThread>(entityName: "ChatThread")
         fetchRequest.sortDescriptors = [
+            NSSortDescriptor(key: "isNew", ascending: false),
             NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
@@ -815,7 +816,7 @@ private class ChatListTableViewCell: UITableViewCell {
             }
         }
 
-        var messageText = chatThread.lastMsgText ?? ""
+        var messageText = chatThread.lastMsgText ?? Localizations.chatListMessageDefault(name: chatThread.title)
         
         if [.retracting, .retracted].contains(chatThread.lastMsgStatus) {
             messageText = Localizations.chatMessageDeleted
@@ -898,13 +899,17 @@ private class ChatListTableViewCell: UITableViewCell {
 
         lastMsgLabel.attributedText = lastMessageText(for: chatThread)
 
-        if chatThread.unreadCount == 0 {
-            unreadCountView.isHidden = true
-            timeLabel.textColor = .secondaryLabel
-        } else {
+        if chatThread.unreadCount > 0 {
             unreadCountView.isHidden = false
             unreadCountView.label.text = String(chatThread.unreadCount)
             timeLabel.textColor = .systemBlue
+        } else if chatThread.isNew {
+            unreadCountView.isHidden = false
+            unreadCountView.label.text = " "
+            timeLabel.textColor = .systemBlue
+        } else {
+            unreadCountView.isHidden = true
+            timeLabel.textColor = .secondaryLabel
         }
         
         if let timestamp = chatThread.lastMsgTimestamp {

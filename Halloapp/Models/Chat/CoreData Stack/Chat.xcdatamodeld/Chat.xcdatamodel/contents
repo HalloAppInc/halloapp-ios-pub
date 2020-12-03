@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19H2" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17511" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="ChatGroup" representedClassName="ChatGroup" syncable="YES">
         <attribute name="avatar" optional="YES" attributeType="String"/>
         <attribute name="desc" optional="YES" attributeType="String"/>
@@ -109,6 +109,7 @@
         <attribute name="chatWithUserId" optional="YES" attributeType="String"/>
         <attribute name="draft" optional="YES" attributeType="String"/>
         <attribute name="groupId" optional="YES" attributeType="String"/>
+        <attribute name="isNew" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastMsgId" optional="YES" attributeType="String"/>
         <attribute name="lastMsgMediaTypeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="lastMsgStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -130,6 +131,6 @@
         <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="298"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="148"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="133"/>
-        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="223"/>
+        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="28"/>
     </elements>
 </model>

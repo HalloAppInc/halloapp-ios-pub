@@ -71,7 +71,7 @@ class ChatData: ObservableObject {
     private var currentlyDownloading: [URL] = [] // TODO: not currently used, re-evaluate if it's needed
     private let maxTries: Int = 10
     
-    init(service: HalloService, userData: UserData) {
+    init(service: HalloService, contactStore: ContactStoreMain, userData: UserData) {
         self.service = service
         self.userData = userData
         mediaUploader = MediaUploader(service: service)
@@ -188,15 +188,26 @@ class ChatData: ObservableObject {
                 self.sendPresence(type: .away)
             }
         )
+
+        cancellableSet.insert(
+            contactStore.didDiscoverNewUsers.sink { [weak self] (userIDs) in
+                DDLogInfo("ChatData/didDiscoverNewUsers/count: \(userIDs.count)")
+                self?.updateThreads(for: userIDs, areNewUsers: true)
+            })
     }
     
     func populateThreadsWithSymmetricContacts() {
+        let contactStore = MainAppContext.shared.contactStore
+        let contacts = contactStore.allInNetworkContacts(sorted: true)
+        DDLogInfo("ChatData/populateThreadsWithSymmetricContacts/allInNetworkContacts: \(contacts.count)")
+        updateThreads(for: contacts.compactMap { $0.userId }, areNewUsers: false)
+    }
+
+    func updateThreads(for userIDs: [UserID], areNewUsers: Bool) {
+        guard !userIDs.isEmpty else { return }
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            let contacts = AppContext.shared.contactStore.allInNetworkContacts(sorted: true)
-            DDLogInfo("ChatData/populateThreadsWithSymmetricContacts/allInNetworkContacts: \(contacts.count)")
-            for contact in contacts {
-                guard let userId = contact.userId else { continue }
+            for userId in userIDs {
                 if let chatThread = self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) {
                     guard chatThread.lastMsgTimestamp == nil else { continue }
                     if chatThread.title != MainAppContext.shared.contactStore.fullName(for: userId) {
@@ -211,15 +222,18 @@ class ChatData: ObservableObject {
                     chatThread.title = MainAppContext.shared.contactStore.fullName(for: userId)
                     chatThread.chatWithUserId = userId
                     chatThread.lastMsgUserId = userId
-                    chatThread.lastMsgText = Localizations.chatListUsingApp
+                    chatThread.lastMsgText = nil
                     chatThread.unreadCount = 0
-                    self.save(managedObjectContext)
+                    chatThread.isNew = areNewUsers
                 }
             }
-        }
-        // TODO: take care of deletes, ie. user removes contact from address book
-    }
+            // TODO: take care of deletes, ie. user removes contact from address book
 
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
 
     func processInboundPendingChatMsgMedia() {
         guard currentlyDownloading.count < maxNumDownloads else { return }
@@ -836,6 +850,8 @@ extension ChatData {
                 if chatThread.unreadCount != 0 {
                     chatThread.unreadCount = 0
                 }
+
+                chatThread.isNew = false
             }
             
             self.markSeenMessages(type: type, for: id, in: managedObjectContext)

@@ -20,6 +20,7 @@ class SyncManager {
         case notEnabled
         case serverError(Error)
         case alreadyRunning
+        case awaitingAuthorization
     }
 
     typealias SyncResult = Result<Void, SyncFailureReason>
@@ -187,6 +188,10 @@ class SyncManager {
     @discardableResult private func runSyncIfNecessary(using managedObjectContext: NSManagedObjectContext) -> SyncResult {
         guard !isSyncInProgress else {
             return .failure(.alreadyRunning)
+        }
+
+        guard !ContactStore.contactsAccessRequestNecessary else {
+            return .failure(.awaitingAuthorization)
         }
 
         guard isSyncEnabled else {

@@ -97,7 +97,7 @@ class MainAppContext: AppContext {
         ValueTransformer.setValueTransformer(FeedPostReceiptInfoTransformer(), forName: .feedPostReceiptInfoTransformer)
 
         feedData = FeedData(service: service, contactStore: contactStore, userData: userData)
-        chatData = ChatData(service: service, userData: userData)
+        chatData = ChatData(service: service, contactStore: contactStore, userData: userData)
         keyData = KeyData(service: service, userData: userData, keyStore: keyStore)
         syncManager = SyncManager(contactStore: contactStore, service: service, userData: userData)
         avatarStore = AvatarStore()
