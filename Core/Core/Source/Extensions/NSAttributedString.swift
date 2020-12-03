@@ -21,6 +21,16 @@ public extension NSAttributedString {
         }
         return mutableString
     }
+
+    func applyingFontForMentions(_ font: UIFont) -> NSAttributedString {
+        let mutableString = NSMutableAttributedString(attributedString: self)
+        enumerateAttributes(in: utf16Extent, options: []) { (attributes, range, _) in
+            if attributes.keys.contains(.userMention) {
+                mutableString.addAttribute(.font, value: font, range: range)
+            }
+        }
+        return mutableString
+    }
 }
 
 public extension NSAttributedString.Key {

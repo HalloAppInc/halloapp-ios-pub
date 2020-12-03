@@ -167,7 +167,7 @@ class CommentView: UIView {
         if let commentText = MainAppContext.shared.contactStore.textWithMentions(comment.text, orderedMentions: comment.orderedMentions),
             !comment.isRetracted
         {
-            attributedText.append(commentText.with(font: baseFont))
+            attributedText.append(commentText.with(font: baseFont).applyingFontForMentions(nameFont))
         }
 
         attributedText.addAttributes([ NSAttributedString.Key.foregroundColor: UIColor.label ], range: NSRange(location: 0, length: attributedText.length))
@@ -322,7 +322,8 @@ class CommentsTableHeaderView: UIView {
 
             let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
             let font = UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 1)
-            textLabel.attributedText = textWithMentions?.with(font: font, color: .label)
+            let boldFont = UIFont(descriptor: fontDescriptor.withSymbolicTraits(.traitBold)!, size: font.pointSize)
+            textLabel.attributedText = textWithMentions?.with(font: font, color: .label).applyingFontForMentions(boldFont)
 
             vStack.insertArrangedSubview(textLabel, at: vStack.arrangedSubviews.count - 1)
         } else {

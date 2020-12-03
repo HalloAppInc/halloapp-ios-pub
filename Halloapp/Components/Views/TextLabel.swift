@@ -424,13 +424,6 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
         [ .underlineStyle: NSUnderlineStyle.single.rawValue,
           .underlineColor: UIColor.label.withAlphaComponent(0.5) ]
 
-    private static func mentionAttributes(baseFont: UIFont) -> [ NSAttributedString.Key: Any] {
-        guard let boldDescriptor = baseFont.fontDescriptor.withSymbolicTraits(.traitBold) else {
-            return [:]
-        }
-        return [.font: UIFont(descriptor: boldDescriptor, size: baseFont.pointSize)]
-    }
-
     static private let detectionQueue = DispatchQueue(label: "hyperlink-detection")
 
     static private let dataDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue | NSTextCheckingResult.CheckingType.phoneNumber.rawValue | NSTextCheckingResult.CheckingType.address.rawValue)
@@ -476,7 +469,7 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
         case .address, .date:
             return TextLabel.addressAttributes
         case .userMention:
-            return TextLabel.mentionAttributes(baseFont: baseFont)
+            return [:]
         default:
             return TextLabel.linkAttributes
         }
