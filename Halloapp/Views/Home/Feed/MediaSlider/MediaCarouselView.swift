@@ -773,6 +773,8 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         // Loading cancellable is no longer needed
         videoLoadingCancellable?.cancel()
         videoLoadingCancellable = nil
+
+        updatePlayerViewFrame()
     }
 
     private func showPlaceholderImage() {
