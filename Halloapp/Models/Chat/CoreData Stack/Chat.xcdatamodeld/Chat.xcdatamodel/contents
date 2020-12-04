@@ -31,7 +31,7 @@
         <relationship name="event" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatGroupMessageEvent" inverseName="groupMessage" inverseEntity="ChatGroupMessageEvent"/>
         <relationship name="info" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatGroupMessageInfo" inverseName="groupMessage" inverseEntity="ChatGroupMessageInfo"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMedia" inverseName="groupMessage" inverseEntity="ChatMedia"/>
-        <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMention"/>
+        <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMention" inverseName="chatGroupMessage" inverseEntity="ChatMention"/>
         <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="groupMessage" inverseEntity="ChatQuoted"/>
     </entity>
     <entity name="ChatGroupMessageEvent" representedClassName="ChatGroupMessageEvent" syncable="YES">
@@ -69,6 +69,8 @@
         <attribute name="index" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="userID" optional="YES" attributeType="String"/>
+        <relationship name="chatGroupMessage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatGroupMessage" inverseName="mentions" inverseEntity="ChatGroupMessage"/>
+        <relationship name="chatThread" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatThread" inverseName="draftMentions" inverseEntity="ChatThread"/>
     </entity>
     <entity name="ChatMessage" representedClassName="ChatMessage" syncable="YES">
         <attribute name="cellHeight" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -120,7 +122,7 @@
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="unreadCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
-        <relationship name="draftMentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMention"/>
+        <relationship name="draftMentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMention" inverseName="chatThread" inverseEntity="ChatMention"/>
     </entity>
     <elements>
         <element name="ChatGroup" positionX="-45" positionY="135" width="128" height="148"/>
@@ -129,7 +131,7 @@
         <element name="ChatGroupMessageEvent" positionX="-27" positionY="144" width="128" height="133"/>
         <element name="ChatGroupMessageInfo" positionX="-18" positionY="162" width="128" height="118"/>
         <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="253"/>
-        <element name="ChatMention" positionX="-36" positionY="144" width="128" height="88"/>
+        <element name="ChatMention" positionX="-36" positionY="144" width="128" height="104"/>
         <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="298"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="148"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="133"/>
