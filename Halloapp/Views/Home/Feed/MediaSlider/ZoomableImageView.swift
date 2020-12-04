@@ -29,6 +29,12 @@ class ZoomableImageView: UIImageView {
     var cornerRadius: CGFloat = 0 {
         didSet { applyCornerRadius() }
     }
+    var borderColor: UIColor? = nil {
+        didSet { applyBorder() }
+    }
+    var borderWidth: CGFloat = 0 {
+        didSet { applyBorder() }
+    }
     override var image: UIImage? {
         didSet { applyCornerRadius() }
     }
@@ -36,6 +42,7 @@ class ZoomableImageView: UIImageView {
         didSet {
             if oldValue.size != frame.size {
                 applyCornerRadius()
+                applyBorder()
             }
         }
     }
@@ -43,6 +50,7 @@ class ZoomableImageView: UIImageView {
         didSet {
             if oldValue.size != bounds.size {
                 applyCornerRadius()
+                applyBorder()
             }
         }
     }
@@ -50,6 +58,7 @@ class ZoomableImageView: UIImageView {
         didSet {
             if oldValue != contentMode {
                 applyCornerRadius()
+                applyBorder()
             }
         }
     }
@@ -95,6 +104,36 @@ class ZoomableImageView: UIImageView {
             maskLayer.path = UIBezierPath(roundedRect: rect, cornerRadius: cornerRadius).cgPath
             self.layer.mask = maskLayer
         }
+    }
+
+    private var borderLayer: CAShapeLayer? = nil
+    private func applyBorder() {
+        // No border
+        if borderColor == nil || borderWidth == 0 {
+            if let borderLayer = borderLayer {
+                borderLayer.removeFromSuperlayer()
+                self.borderLayer = nil
+            }
+            return
+        }
+
+        // Border
+        let borderLayer: CAShapeLayer
+        if let existingBorderLayer = self.borderLayer {
+            borderLayer = existingBorderLayer
+        } else {
+            borderLayer = CAShapeLayer()
+            borderLayer.fillColor = UIColor.clear.cgColor
+            layer.addSublayer(borderLayer)
+            self.borderLayer = borderLayer
+        }
+        if let maskLayer = layer.mask as? CAShapeLayer, let maskLayerPath = maskLayer.path {
+            borderLayer.path = maskLayerPath
+        } else {
+            borderLayer.path = UIBezierPath(rect: bounds).cgPath
+        }
+        borderLayer.strokeColor = borderColor?.cgColor
+        borderLayer.lineWidth = borderWidth
     }
 }
 

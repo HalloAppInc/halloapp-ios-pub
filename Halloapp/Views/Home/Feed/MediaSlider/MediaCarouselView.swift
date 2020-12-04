@@ -26,6 +26,8 @@ struct MediaCarouselViewConfiguration {
     var alwaysScaleToFitContent = false
     var cellSpacing: CGFloat = 20
     var cornerRadius: CGFloat = 15
+    var borderWidth: CGFloat = 1 / UIScreen.main.scale
+    var borderColor: UIColor? = .opaqueSeparator
     var gutterWidth: CGFloat = 0
     var pageIndicatorTintAlpha: CGFloat = 0.2
     var currentPageIndicatorTintAlpha: CGFloat = 0.7
@@ -211,14 +213,7 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 }
             }()
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as? MediaCarouselCollectionViewCell {
-                cell.scaleContentToFit = self.configuration.alwaysScaleToFitContent
-                cell.isZoomEnabled = self.configuration.isZoomEnabled
-                cell.cornerRadius = self.configuration.cornerRadius
-                cell.downloadProgressViewSize = self.configuration.downloadProgressViewSize
-                if let videoCell = cell as? MediaCarouselVideoCollectionViewCell {
-                    videoCell.showsVideoPlaybackControls = self.configuration.showVideoPlaybackControls
-                    videoCell.disablePlayback = self.configuration.disablePlayback
-                }
+                cell.apply(configuration: self.configuration)
                 cell.configure(with: feedMedia)
                 if self.shouldAutoPlay,
                     indexPath.item == self.currentIndex,
@@ -430,10 +425,9 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
 fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
 
-    var scaleContentToFit: Bool = false
-    var isZoomEnabled: Bool = true
-    var cornerRadius: CGFloat = 10
-    var downloadProgressViewSize: CGFloat = 80 {
+    private(set) var scaleContentToFit: Bool = false
+
+    private var downloadProgressViewSize: CGFloat = 80 {
         didSet {
             if downloadProgressViewSize == 0 {
                 hideProgressView()
@@ -463,6 +457,11 @@ fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {
         }
         downloadProgressCancellable?.cancel()
         downloadProgressCancellable = nil
+    }
+
+    func apply(configuration: MediaCarouselViewConfiguration) {
+        scaleContentToFit = configuration.alwaysScaleToFitContent
+        downloadProgressViewSize = configuration.downloadProgressViewSize
     }
 
     func configure(with media: FeedMedia) {
@@ -534,14 +533,6 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
     private var imageView: ZoomableImageView!
     private var imageLoadingCancellable: AnyCancellable?
 
-    override var cornerRadius: CGFloat {
-        didSet {
-            if oldValue != cornerRadius {
-                imageView.cornerRadius = cornerRadius
-            }
-        }
-    }
-
     override func prepareForReuse() {
         super.prepareForReuse()
 
@@ -560,14 +551,21 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
 
         imageView = ZoomableImageView(frame: contentView.bounds)
         imageView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
-        imageView.cornerRadius = cornerRadius
         contentView.addSubview(imageView)
+    }
+
+    override func apply(configuration: MediaCarouselViewConfiguration) {
+        super.apply(configuration: configuration)
+
+        imageView.cornerRadius = configuration.cornerRadius
+        imageView.isZoomEnabled = configuration.isZoomEnabled
+        imageView.borderWidth = configuration.borderWidth
+        imageView.borderColor = configuration.borderColor
     }
 
     override func configure(with media: FeedMedia) {
         super.configure(with: media)
 
-        imageView.isZoomEnabled = isZoomEnabled
         if media.isMediaAvailable {
             show(image: media.image!)
         } else if imageLoadingCancellable == nil {
@@ -620,8 +618,24 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     private var avPlayerStatusObservation: NSKeyValueObservation?
     private var avPlayerVCVideoBoundsObservation: NSKeyValueObservation?
 
-    var showsVideoPlaybackControls = true
-    var disablePlayback = false {
+    private var cornerRadius: CGFloat = 0 {
+        didSet {
+            avPlayerBorderView?.cornerRadius = cornerRadius
+        }
+    }
+    private var borderWidth: CGFloat = 0 {
+        didSet {
+            avPlayerBorderView?.lineWidth = borderWidth
+        }
+    }
+    private var borderColor: UIColor? {
+        didSet {
+            avPlayerBorderView?.strokeColor = borderColor
+        }
+    }
+    private var avPlayerBorderView: RoundedRectView?
+    private var showsVideoPlaybackControls = true
+    private var disablePlayback = false {
         didSet {
             playButton.isUserInteractionEnabled = !disablePlayback
         }
@@ -709,6 +723,16 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
 
         playButton = button
         playButton.isHidden = true
+    }
+
+    override func apply(configuration: MediaCarouselViewConfiguration) {
+        super.apply(configuration: configuration)
+
+        cornerRadius = configuration.cornerRadius
+        borderWidth = configuration.borderWidth
+        borderColor = configuration.borderColor
+        showsVideoPlaybackControls = configuration.showVideoPlaybackControls
+        disablePlayback = configuration.disablePlayback
     }
 
     override func configure(with media: FeedMedia) {
@@ -837,6 +861,34 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         let maskLayer = CAShapeLayer()
         maskLayer.path = UIBezierPath(roundedRect: avPlayerViewController.view.bounds, cornerRadius: cornerRadius).cgPath
         avPlayerViewController.view.layer.mask = maskLayer
+
+        updatePlayerBorder()
+    }
+
+    private func updatePlayerBorder() {
+        // No border
+        guard borderColor != nil && borderWidth > 0 else {
+            avPlayerBorderView?.removeFromSuperview()
+            return
+        }
+
+        // Border
+        let borderView: RoundedRectView
+        if let existingBorderView = avPlayerBorderView {
+            borderView = existingBorderView
+        } else {
+            borderView = RoundedRectView()
+            borderView.fillColor = .clear
+            borderView.cornerRadius = cornerRadius
+            borderView.strokeColor = borderColor
+            borderView.lineWidth = borderWidth
+            borderView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+            avPlayerBorderView = borderView
+        }
+        if let contentOverlayView = avPlayerViewController.contentOverlayView {
+            contentOverlayView.addSubview(borderView)
+            borderView.frame = contentOverlayView.bounds
+        }
     }
 
 }
