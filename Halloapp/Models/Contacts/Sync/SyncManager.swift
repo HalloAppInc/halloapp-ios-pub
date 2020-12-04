@@ -135,6 +135,12 @@ class SyncManager {
 
     func requestFullSync() {
         DDLogInfo("syncmanager/request/full")
+
+        // Remember that database is due for a full sync in case we get interrupted
+        contactStore.mutateDatabaseMetadata { (metadata) in
+            metadata[ContactStoreMetadataNextFullSyncDate] = Date()
+        }
+
         queue.async {
             self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
                 self.runSyncWith(mode: .full, using: managedObjectContext)
@@ -349,6 +355,22 @@ class SyncManager {
 
         isSyncInProgress = false
 
-        ///TODO: retry sync on failure
+        switch result {
+        case .success:
+            DDLogInfo("syncmanager/sync/\(mode)/finished")
+
+        case .failure:
+            let retryDelay: TimeInterval = 20
+            DDLogInfo("syncmanager/sync/\(mode)/retrying in \(retryDelay)s")
+
+            queue.asyncAfter(deadline: .now() + retryDelay) {
+                self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
+                    self.runFullSyncIfNecessary(using: managedObjectContext)
+                    if !self.isSyncInProgress {
+                        self.runSyncWith(mode: .delta, using: managedObjectContext)
+                    }
+                }
+            }
+        }
     }
 }
