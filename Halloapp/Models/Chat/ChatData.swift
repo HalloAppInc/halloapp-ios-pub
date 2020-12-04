@@ -36,12 +36,9 @@ class ChatData: ObservableObject {
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
     private let userData: UserData
+    private let contactStore: ContactStoreMain
     private var service: HalloService
     private let mediaUploader: MediaUploader
-    
-    private var persistentContainer: NSPersistentContainer
-    
-    private var cancellableSet: Set<AnyCancellable> = []
     
     private var currentlyChattingWithUserId: String? = nil
     private var isSubscribedToCurrentUser: Bool = false
@@ -71,21 +68,40 @@ class ChatData: ObservableObject {
     private var currentlyDownloading: [URL] = [] // TODO: not currently used, re-evaluate if it's needed
     private let maxTries: Int = 10
     
-    init(service: HalloService, contactStore: ContactStoreMain, userData: UserData) {
-        self.service = service
-        self.userData = userData
-        mediaUploader = MediaUploader(service: service)
-        
-        // init persistentContainer without lazy
-        let storeDescription = NSPersistentStoreDescription(url: ChatData.persistentStoreURL)
+    private let persistentContainer: NSPersistentContainer = {
+        let storeDescription = NSPersistentStoreDescription(url: MainAppContext.chatStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
         storeDescription.setValue(NSString("WAL"), forPragmaNamed: "journal_mode")
         storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
-        persistentContainer = NSPersistentContainer(name: "Chat")
-        persistentContainer.persistentStoreDescriptions = [storeDescription]
-        loadPersistentStores(in: persistentContainer)
-            
+        let container = NSPersistentContainer(name: "Chat")
+        container.persistentStoreDescriptions = [ storeDescription ]
+        container.loadPersistentStores(completionHandler: { (description, error) in
+            if let error = error {
+                DDLogError("Failed to load persistent store: \(error)")
+                fatalError("Unable to load persistent store: \(error)")
+            } else {
+                DDLogInfo("ChatData/load-store/completed [\(description)]")
+            }
+        })
+        return container
+    }()
+    
+    var viewContext: NSManagedObjectContext
+    private var bgContext: NSManagedObjectContext
+    
+    private var cancellableSet: Set<AnyCancellable> = []
+    
+    init(service: HalloService, contactStore: ContactStoreMain, userData: UserData) {
+        self.service = service
+        self.contactStore = contactStore
+        self.userData = userData
+        mediaUploader = MediaUploader(service: service)
+        
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+        viewContext = persistentContainer.viewContext
+        bgContext = persistentContainer.newBackgroundContext()
+
         self.service.chatDelegate = self
         
         mediaUploader.resolveMediaPath = { relativePath in
@@ -194,6 +210,7 @@ class ChatData: ObservableObject {
                 DDLogInfo("ChatData/didDiscoverNewUsers/count: \(userIDs.count)")
                 self?.updateThreads(for: userIDs, areNewUsers: true)
             })
+
     }
     
     func populateThreadsWithSymmetricContacts() {
@@ -207,19 +224,20 @@ class ChatData: ObservableObject {
         guard !userIDs.isEmpty else { return }
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
+
             for userId in userIDs {
                 if let chatThread = self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) {
                     guard chatThread.lastMsgTimestamp == nil else { continue }
-                    if chatThread.title != MainAppContext.shared.contactStore.fullName(for: userId) {
+                    if chatThread.title != self.contactStore.fullName(for: userId) {
                         DDLogDebug("ChatData/populateThreads/contact/rename \(userId)")
                         self.updateChatThread(type: .oneToOne, for: userId) { (chatThread) in
-                            chatThread.title = MainAppContext.shared.contactStore.fullName(for: userId)
+                            chatThread.title = self.contactStore.fullName(for: userId)
                         }
                     }
                 } else {
                     DDLogInfo("ChatData/populateThreads/contact/new \(userId)")
                     let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
-                    chatThread.title = MainAppContext.shared.contactStore.fullName(for: userId)
+                    chatThread.title = self.contactStore.fullName(for: userId)
                     chatThread.chatWithUserId = userId
                     chatThread.lastMsgUserId = userId
                     chatThread.lastMsgText = nil
@@ -247,9 +265,8 @@ class ChatData: ObservableObject {
                 
                 guard let media = chatMessage.media else { continue }
                 
-                var sortedMedia = media.sorted(by: { $0.order < $1.order })
-                sortedMedia = sortedMedia.filter { $0.incomingStatus == .pending }
-                guard let med = sortedMedia.first else { continue }
+                let sortedMedia = media.sorted(by: { $0.order < $1.order })
+                guard let med = sortedMedia.first(where: { $0.incomingStatus == .pending } ) else { continue }
                 
                 DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media order: \(med.order)")
                 
@@ -356,9 +373,8 @@ class ChatData: ObservableObject {
             for chatGroupMessage in pendingMessagesWithMedia {
                 guard let media = chatGroupMessage.media else { continue }
                 
-                var sortedMedia = media.sorted(by: { $0.order < $1.order })
-                sortedMedia = sortedMedia.filter {$0.incomingStatus == .pending}
-                guard let med = sortedMedia.first else { continue }
+                let sortedMedia = media.sorted(by: { $0.order < $1.order })
+                guard let med = sortedMedia.first(where: { $0.incomingStatus == .pending } ) else { continue }
                 
                 DDLogDebug("ChatData/processInboundPendingGroupChatMsgMedia/\(chatGroupMessage.id)/ media order: \(med.order)")
                 
@@ -455,49 +471,21 @@ class ChatData: ObservableObject {
         }
     }
     
-
-    
     // MARK: Core Data Setup
     
-    private class var persistentStoreURL: URL {
-        get {
-            return MainAppContext.chatStoreURL
-        }
-    }
-    
-    private func loadPersistentStores(in persistentContainer: NSPersistentContainer) {
-        persistentContainer.loadPersistentStores { (description, error) in
-            if let error = error {
-                DDLogError("Failed to load persistent store: \(error)")
-                fatalError("Unable to load persistent store: \(error)")
-            } else {
-                DDLogInfo("ChatData/load-store/completed [\(description)]")
-            }
-        }
-    }
-        
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
-            let managedObjectContext = self.persistentContainer.newBackgroundContext()
-            managedObjectContext.performAndWait { block(managedObjectContext) }
-        }
-    }
-    
-    var viewContext: NSManagedObjectContext {
-        get {
-            persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-            return persistentContainer.viewContext
+            self.bgContext.performAndWait { block(self.bgContext) }
         }
     }
     
     private func save(_ managedObjectContext: NSManagedObjectContext) {
-        DDLogVerbose("ChatData/will-save")
         do {
             try managedObjectContext.save()
-            DDLogVerbose("ChatData/did-save")
+            DDLogVerbose("ChatData/save")
         } catch {
-            DDLogError("ChatData/save-error error=[\(error)]")
+            DDLogError("ChatData/save/error [\(error)]")
         }
     }
     
@@ -888,7 +876,7 @@ extension ChatData {
     //MARK: Thread Core Data Fetching
     
     private func chatThreads(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatThread] {
-        let managedObjectContext = managedObjectContext ?? self.viewContext
+        let managedObjectContext = managedObjectContext ?? viewContext
         let fetchRequest: NSFetchRequest<ChatThread> = ChatThread.fetchRequest()
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = sortDescriptors
@@ -906,17 +894,17 @@ extension ChatData {
     
     func chatThread(type: ChatType, id: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatThread? {
         if type == .group {
-            return self.chatThreads(predicate: NSPredicate(format: "groupId == %@", id), in: managedObjectContext).first
+            return chatThreads(predicate: NSPredicate(format: "groupId == %@", id), in: managedObjectContext).first
         } else {
-            return self.chatThreads(predicate: NSPredicate(format: "chatWithUserId == %@", id), in: managedObjectContext).first
+            return chatThreads(predicate: NSPredicate(format: "chatWithUserId == %@", id), in: managedObjectContext).first
         }
     }
     
     func chatThreadStatus(type: ChatType, id: String, messageId: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatThread? {
         if type == .group {
-            return self.chatThreads(predicate: NSPredicate(format: "groupId == %@ AND lastMsgId == %@", id, messageId), in: managedObjectContext).first
+            return chatThreads(predicate: NSPredicate(format: "groupId == %@ AND lastMsgId == %@", id, messageId), in: managedObjectContext).first
         } else {
-            return self.chatThreads(predicate: NSPredicate(format: "chatWithUserId == %@ AND lastMsgId == %@", id, messageId), in: managedObjectContext).first
+            return chatThreads(predicate: NSPredicate(format: "chatWithUserId == %@ AND lastMsgId == %@", id, messageId), in: managedObjectContext).first
         }
     }
     
@@ -986,7 +974,7 @@ extension ChatData {
 
             var firstNameList: [String] = []
             for typingUser in chatStateList {
-                firstNameList.append(MainAppContext.shared.contactStore.firstName(for: typingUser.from))
+                firstNameList.append(contactStore.firstName(for: typingUser.from))
             }
             
             let localizedFirstNameList = ListFormatter.localizedString(byJoining: firstNameList)
@@ -1077,12 +1065,32 @@ extension ChatData {
                      chatReplyMessageID: String? = nil,
                      chatReplyMessageSenderID: UserID? = nil,
                      chatReplyMessageMediaIndex: Int32) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            self.createChatMsg(toUserId: toUserId,
+                                                       text: text,
+                                                       media: media,
+                                                       feedPostId: feedPostId,
+                                                       feedPostMediaIndex: feedPostMediaIndex,
+                                                       chatReplyMessageID: chatReplyMessageID,
+                                                       chatReplyMessageSenderID: chatReplyMessageSenderID,
+                                                       chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
+        }
+    }
+    
+    func createChatMsg(toUserId: String,
+                     text: String,
+                     media: [PendingMedia],
+                     feedPostId: String?,
+                     feedPostMediaIndex: Int32,
+                     chatReplyMessageID: String? = nil,
+                     chatReplyMessageSenderID: UserID? = nil,
+                     chatReplyMessageMediaIndex: Int32) {
         let messageId = UUID().uuidString
 
         // Create and save new ChatMessage object.
-        let managedObjectContext = self.persistentContainer.viewContext
         DDLogDebug("ChatData/new-msg/\(messageId)")
-        let chatMessage = NSEntityDescription.insertNewObject(forEntityName: ChatMessage.entity().name!, into: managedObjectContext) as! ChatMessage
+        let chatMessage = ChatMessage(context: bgContext)
         chatMessage.id = messageId
         chatMessage.toUserId = toUserId
         chatMessage.fromUserId = userData.userId
@@ -1100,8 +1108,8 @@ extension ChatData {
         
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("ChatData/new-msg/\(messageId)/add-media [\(mediaItem)]")
-
-            let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
+            
+            let chatMedia = ChatMedia(context: bgContext)
             switch mediaItem.type {
             case .image:
                 chatMedia.type = .image
@@ -1133,7 +1141,7 @@ extension ChatData {
         
         // Create and save Quoted FeedPost
         if let feedPostId = feedPostId, let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
-            let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
+            let quoted = ChatQuoted(context: bgContext)
             quoted.type = .feedpost
             quoted.userId = feedPost.userId
             quoted.text = feedPost.text
@@ -1143,7 +1151,7 @@ extension ChatData {
                 guard let feedMentions = feedPost.mentions, !feedMentions.isEmpty else { return nil }
                 var chatMentions = Set<ChatMention>()
                 for feedMention in feedMentions {
-                    let chatMention = NSEntityDescription.insertNewObject(forEntityName: ChatMention.entity().name!, into: managedObjectContext) as! ChatMention
+                    let chatMention = ChatMention(context: bgContext)
                     chatMention.index = feedMention.index
                     chatMention.userID = feedMention.userID
                     chatMention.name = feedMention.name
@@ -1153,7 +1161,7 @@ extension ChatData {
             }()
 
             if let feedPostMedia = feedPost.media?.first(where: { $0.order == feedPostMediaIndex }) {
-                let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
+                let quotedMedia = ChatQuotedMedia(context: bgContext)
                 if feedPostMedia.type == .image {
                     quotedMedia.type = .image
                 } else {
@@ -1177,14 +1185,14 @@ extension ChatData {
            let chatReplyMessageSenderID = chatReplyMessageSenderID,
            let quotedChatMessage = MainAppContext.shared.chatData.chatMessage(with: chatReplyMessageID) {
             
-            let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
+            let quoted = ChatQuoted(context: bgContext)
             quoted.type = .message
             quoted.userId = chatReplyMessageSenderID
             quoted.text = quotedChatMessage.text
             quoted.message = chatMessage
 
             if let quotedChatMessageMedia = quotedChatMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
-                let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
+                let quotedMedia = ChatQuotedMedia(context: bgContext)
                 if quotedChatMessageMedia.type == .image {
                     quotedMedia.type = .image
                 } else {
@@ -1205,7 +1213,7 @@ extension ChatData {
         }
         
         // Update Chat Thread
-        if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.toUserId, in: managedObjectContext) {
+        if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.toUserId, in: bgContext) {
             DDLogDebug("ChatData/new-msg/ update-thread")
             chatThread.lastMsgId = chatMessage.id
             chatThread.lastMsgUserId = chatMessage.fromUserId
@@ -1215,7 +1223,7 @@ extension ChatData {
             chatThread.lastMsgTimestamp = chatMessage.timestamp
         } else {
             DDLogDebug("ChatData/new-msg/\(messageId)/new-thread")
-            let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
+            let chatThread = ChatThread(context: bgContext)
             chatThread.chatWithUserId = chatMessage.toUserId
             chatThread.lastMsgId = chatMessage.id
             chatThread.lastMsgUserId = chatMessage.fromUserId
@@ -1225,75 +1233,78 @@ extension ChatData {
             chatThread.lastMsgTimestamp = chatMessage.timestamp
             chatThread.unreadCount = 0
         }
-        save(managedObjectContext)
+        save(bgContext)
 
-        uploadMediaAndSend(chatMessage)
+        let xmppChatMsg = XMPPChatMessage(chatMessage: chatMessage)
+        uploadChatMsgMediaAndSend(xmppChatMsg)
     }
 
-    private func uploadMediaAndSend(_ message: ChatMessage) {
+    private func uploadChatMsgMediaAndSend(_ xmppChatMsg: XMPPChatMessage) {
+        let msgID = xmppChatMsg.id
+        
+        guard let chatMsg = chatMessage(with: msgID, in: bgContext) else { return }
+        
         // Either all media has already been uploaded or post does not contain media.
-        guard let mediaItemsToUpload = message.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
-            send(message: XMPPChatMessage(chatMessage: message))
+        guard let mediaItemsToUpload = chatMsg.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
+            send(message: XMPPChatMessage(chatMessage: chatMsg))
             return
         }
-
-        let messageId = message.id
+        
         var numberOfFailedUploads = 0
         let totalUploads = mediaItemsToUpload.count
-        DDLogInfo("ChatData/upload-media/\(messageId)/starting [\(totalUploads)]")
+        DDLogInfo("ChatData/upload-media/\(msgID)/starting [\(totalUploads)]")
 
         let uploadGroup = DispatchGroup()
         for mediaItem in mediaItemsToUpload {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
-            mediaUploader.upload(media: mediaItem, groupId: messageId, didGetURLs: { (mediaURLs) in
-                DDLogInfo("ChatData/upload-media/\(messageId)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
+            mediaUploader.upload(media: mediaItem, groupId: msgID, didGetURLs: { (mediaURLs) in
+                DDLogInfo("ChatData/upload-media/\(msgID)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
                 // Save URLs acquired during upload to the database.
-                self.updateChatMessage(with: messageId) { (chatMessage) in
-                    if let media = chatMessage.media?.first(where: { $0.order == mediaIndex }) {
-                        switch mediaURLs {
-                        case .getPut(let getURL, let putURL):
-                            media.url = getURL
-                            media.uploadUrl = putURL
-
-                        case .patch(let patchURL):
-                            media.uploadUrl = patchURL
-                        }
+                self.updateChatMessage(with: msgID) { msg in
+                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+                    
+                    switch mediaURLs {
+                    case .getPut(let getURL, let putURL):
+                        media.url = getURL
+                        media.uploadUrl = putURL
+                    case .patch(let patchURL):
+                        media.uploadUrl = patchURL
                     }
+                    
                 }
             }) { (uploadResult) in
-                DDLogInfo("ChatData/upload-media/\(messageId)/\(mediaIndex)/finished result=[\(uploadResult)]")
+                DDLogInfo("ChatData/upload-media/\(msgID)/\(mediaIndex)/finished result=[\(uploadResult)]")
 
                 // Save URLs acquired during upload to the database.
-                self.updateChatMessage(with: messageId,
-                                       block: { (chatMessage) in
-                                        if let media = chatMessage.media?.first(where: { $0.order == mediaIndex }) {
-                                            switch uploadResult {
-                                            case .success(let url):
-                                                media.url = url
-                                                media.outgoingStatus = .uploaded
-
-                                            case .failure(_):
-                                                numberOfFailedUploads += 1
-                                                media.outgoingStatus = .error
-                                            }
-                                        }
-                                       },
-                                       performAfterSave: {
-                                        uploadGroup.leave()
-                                       })
+                self.updateChatMessage(with: msgID, block: { msg in
+                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+                    
+                    switch uploadResult {
+                    case .success(let url):
+                        media.url = url
+                        media.outgoingStatus = .uploaded
+                    case .failure(_):
+                        numberOfFailedUploads += 1
+                        media.outgoingStatus = .error
+                    }
+                    
+                }, performAfterSave: {
+                    uploadGroup.leave()
+                })
             }
         }
 
-        uploadGroup.notify(queue: .main) {
-            DDLogInfo("ChatData/upload-media/\(messageId)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
+        uploadGroup.notify(queue: .main) { [weak self] in
+            guard let self = self else { return }
+            DDLogInfo("ChatData/upload-media/\(msgID)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
             if numberOfFailedUploads > 0 {
-                self.updateChatMessage(with: messageId) { (chatMessage) in
-                    chatMessage.outgoingStatus = .error
+                self.updateChatMessage(with: msgID) { msg in
+                    msg.outgoingStatus = .error
                 }
-            } else if let chatMessage = self.chatMessage(with: messageId) {
-                self.send(message: XMPPChatMessage(chatMessage: chatMessage))
+            } else {
+                self.send(message: XMPPChatMessage(chatMessage: chatMsg))
             }
         }
     }
@@ -1387,7 +1398,7 @@ extension ChatData {
         let sortDescriptors = [
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
         ]
-        return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && outgoingStatusValue = %d", userData.userId, ChatMessage.OutgoingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+        return chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && outgoingStatusValue = %d", userData.userId, ChatMessage.OutgoingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     func retractingOutboundChatMsgs(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
@@ -1401,7 +1412,7 @@ extension ChatData {
         let sortDescriptors = [
             NSSortDescriptor(keyPath: \ChatMessage.timestamp, ascending: true)
         ]
-        return self.chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && incomingStatusValue = %d", userData.userId, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+        return chatMessages(predicate: NSPredicate(format: "fromUserId = %@ && incomingStatusValue = %d", userData.userId, ChatMessage.IncomingStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     func pendingIncomingChatMessagesMedia(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatMessage] {
@@ -1888,9 +1899,10 @@ extension ChatData {
             var timeDelay = 0.0
             pendingOutgoingChatMessages.forEach {
                 DDLogInfo("ChatData/processPendingChatMsgs/msg \($0.id)")
-                let xmppChatMessage = XMPPChatMessage(chatMessage: $0)
-                self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) {
-                    self.send(message: xmppChatMessage)
+                let xmppChatMsg = XMPPChatMessage(chatMessage: $0)
+                self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) { [weak self] in
+                    guard let self = self else { return }
+                    self.uploadChatMsgMediaAndSend(xmppChatMsg)
                 }
                 timeDelay += 1.0
             }
@@ -1961,7 +1973,7 @@ extension ChatData {
         DDLogDebug("ChatData/presentOneToOneBanner")
         let userID = xmppChatMessage.fromUserId
         
-        let name = MainAppContext.shared.contactStore.fullName(for: userID)
+        let name = contactStore.fullName(for: userID)
         
         let title = "\(name)"
         
@@ -2007,9 +2019,9 @@ extension ChatData {
                                             timestamp: timestamp)
         
         let notification = UNMutableNotificationContent()
-        notification.title = MainAppContext.shared.contactStore.fullName(for: userID)
+        notification.title = contactStore.fullName(for: userID)
         notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-            MainAppContext.shared.contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
+            contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
         })
         
         notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
@@ -2097,6 +2109,7 @@ extension ChatData {
     }
     
     public func changeGroupAvatar(groupID: GroupID, data: Data, completion: @escaping ServiceRequestCompletion<Void>) {
+        DDLogInfo("ChatData/changeGroupAvatar")
         MainAppContext.shared.service.changeGroupAvatar(groupID: groupID, data: data) { [weak self] result in
             guard let self = self else { return }
      
@@ -2198,7 +2211,7 @@ extension ChatData {
             }
             
             if !contactNames.isEmpty {
-                MainAppContext.shared.contactStore.addPushNames(contactNames)
+                self.contactStore.addPushNames(contactNames)
             }
         }
     }
@@ -2206,21 +2219,39 @@ extension ChatData {
     // MARK: Group Sending Messages
     
     func sendGroupMessage(toGroupId: GroupID,
-                          text: String,
+                          mentionText: MentionText,
+                          media: [PendingMedia],
+                          chatReplyMessageID: String? = nil,
+                          chatReplyMessageSenderID: UserID? = nil,
+                          chatReplyMessageMediaIndex: Int32) {
+        
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            self.createGroupChatMsg(toGroupId: toGroupId,
+                                  mentionText: mentionText,
+                                  media: media,
+                                  chatReplyMessageID: chatReplyMessageID,
+                                  chatReplyMessageSenderID: chatReplyMessageSenderID,
+                                  chatReplyMessageMediaIndex: chatReplyMessageMediaIndex)
+        }
+        
+    }
+    
+    func createGroupChatMsg(toGroupId: GroupID,
+                          mentionText: MentionText,
                           media: [PendingMedia],
                           chatReplyMessageID: String? = nil,
                           chatReplyMessageSenderID: UserID? = nil,
                           chatReplyMessageMediaIndex: Int32) {
         let groupMessageId = UUID().uuidString
 
-        // Create and save new ChatGroupMessage object.
-        let managedObjectContext = self.persistentContainer.viewContext
+        // Create and save new ChatGroupMessage object
         DDLogDebug("ChatData/group/new-msg/\(groupMessageId)")
-        let chatGroupMessage = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMessage.entity().name!, into: managedObjectContext) as! ChatGroupMessage
+        let chatGroupMessage = ChatGroupMessage(context: bgContext)
         chatGroupMessage.id = groupMessageId
         chatGroupMessage.groupId = toGroupId
         chatGroupMessage.userId = AppContext.shared.userData.userId
-        chatGroupMessage.text = text
+        chatGroupMessage.text = mentionText.trimmed().collapsedText
         chatGroupMessage.chatReplyMessageID = chatReplyMessageID
         chatGroupMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
         chatGroupMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
@@ -2228,12 +2259,26 @@ extension ChatData {
         chatGroupMessage.outboundStatus = .pending
         chatGroupMessage.timestamp = Date()
 
+        // Add mentions
+        var mentionSet = Set<ChatMention>()
+        for (index, userID) in mentionText.mentions {
+            let chatMention = ChatMention(context: bgContext)
+            chatMention.index = index
+            chatMention.userID = userID
+            chatMention.name = contactStore.pushNames[userID] ?? ""
+            if chatMention.name == "" {
+                DDLogError("ChatData/createGroupChatMsg/mention/\(userID) missing push name")
+            }
+            mentionSet.insert(chatMention)
+        }
+        chatGroupMessage.mentions = mentionSet
+        
         // insert all the group members who should get this message
-        if let chatGroup = self.chatGroup(groupId: toGroupId, in: managedObjectContext) {
+        if let chatGroup = self.chatGroup(groupId: toGroupId, in: bgContext) {
             if let members = chatGroup.members {
                 for member in members {
                     guard member.userId != MainAppContext.shared.userData.userId else { continue }
-                    let messageInfo = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMessageInfo.entity().name!, into: managedObjectContext) as! ChatGroupMessageInfo
+                    let messageInfo = ChatGroupMessageInfo(context: bgContext)
                     messageInfo.chatGroupMessageId = chatGroupMessage.id
                     messageInfo.userId = member.userId
                     messageInfo.outboundStatus = .none
@@ -2248,7 +2293,7 @@ extension ChatData {
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("ChatData/group/new-msg/\(groupMessageId)/add-media [\(mediaItem)]")
 
-            let chatMedia = NSEntityDescription.insertNewObject(forEntityName: ChatMedia.entity().name!, into: managedObjectContext) as! ChatMedia
+            let chatMedia = ChatMedia(context: bgContext)
             switch mediaItem.type {
             case .image:
                 chatMedia.type = .image
@@ -2284,14 +2329,24 @@ extension ChatData {
            let chatReplyMessageSenderID = chatReplyMessageSenderID,
            let quotedChatGroupMessage = MainAppContext.shared.chatData.chatGroupMessage(with: chatReplyMessageID) {
             
-            let quoted = NSEntityDescription.insertNewObject(forEntityName: ChatQuoted.entity().name!, into: managedObjectContext) as! ChatQuoted
+            let quoted = ChatQuoted(context: bgContext)
             quoted.type = .message
             quoted.userId = chatReplyMessageSenderID
             quoted.text = quotedChatGroupMessage.text
             quoted.groupMessage = chatGroupMessage
 
+            var quotedMentions = Set<ChatMention>()
+            for quotedChatGroupMessageMention in quotedChatGroupMessage.orderedMentions {
+                let quotedMention = ChatMention(context: bgContext)
+                quotedMention.index = quotedChatGroupMessageMention.index
+                quotedMention.userID = quotedChatGroupMessageMention.userID
+                quotedMention.name = quotedChatGroupMessageMention.name
+                quotedMentions.insert(quotedMention)
+            }
+            quoted.mentions = quotedMentions
+            
             if let quotedChatGroupMessageMedia = quotedChatGroupMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
-                let quotedMedia = NSEntityDescription.insertNewObject(forEntityName: ChatQuotedMedia.entity().name!, into: managedObjectContext) as! ChatQuotedMedia
+                let quotedMedia = ChatQuotedMedia(context: bgContext)
                 if quotedChatGroupMessageMedia.type == .image {
                     quotedMedia.type = .image
                 } else {
@@ -2312,47 +2367,50 @@ extension ChatData {
         }
         
         // Update Chat Thread
-        if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
+        let attrMentionText = contactStore.textWithMentions(chatGroupMessage.text, orderedMentions: chatGroupMessage.orderedMentions)
+        if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: bgContext) {
             DDLogDebug("ChatData/group/new-msg/ update-thread")
             chatThread.type = .group
             chatThread.lastMsgId = chatGroupMessage.id
             chatThread.lastMsgUserId = chatGroupMessage.userId
-            chatThread.lastMsgText = chatGroupMessage.text
+            chatThread.lastMsgText = attrMentionText?.string ?? ""
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .pending
             chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
             chatThread.draft = nil
         } else {
             DDLogDebug("ChatData/group/new-msg/\(groupMessageId)/new-thread")
-            let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
+            let chatThread = ChatThread(context: bgContext)
             chatThread.type = .group
             chatThread.groupId = chatGroupMessage.groupId
             chatThread.lastMsgId = chatGroupMessage.id
             chatThread.lastMsgUserId = chatGroupMessage.userId
-            chatThread.lastMsgText = chatGroupMessage.text
+            chatThread.lastMsgText = attrMentionText?.string ?? ""
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .pending
             chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
             chatThread.unreadCount = 0
         }
-        save(managedObjectContext)
+        save(bgContext)
         
-        uploadGroupMediaAndSend(chatGroupMessage)
+        let xmppGroupChatMsg = XMPPChatGroupMessage(chatGroupMessage: chatGroupMessage)
+        uploadGroupChatMsgMediaAndSend(xmppGroupChatMsg: xmppGroupChatMsg)
     }
     
     // TODO: consolidate this with ChatMessage
-    /// Not thread safe! Must be called on same queue where groupMessage originates.
-    private func uploadGroupMediaAndSend(_ groupMessage: ChatGroupMessage) {
+    private func uploadGroupChatMsgMediaAndSend(xmppGroupChatMsg: XMPPChatGroupMessage) {
+        let groupChatMsgID = xmppGroupChatMsg.id
+        guard let groupChatMsg = chatGroupMessage(with: groupChatMsgID, in: bgContext) else { return }
+        
         // Either all media has already been uploaded or post does not contain media.
-        guard let mediaItemsToUpload = groupMessage.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
-            sendGroup(groupMessage: groupMessage)
+        guard let mediaItemsToUpload = groupChatMsg.media?.filter({ $0.outgoingStatus == .none || $0.outgoingStatus == .pending || $0.outgoingStatus == .error }), !mediaItemsToUpload.isEmpty else {
+            service.sendGroupChatMessage(xmppGroupChatMsg)
             return
         }
         
-        let groupMessageId = groupMessage.id
         var numberOfFailedUploads = 0
         let totalUploads = mediaItemsToUpload.count
-        DDLogInfo("ChatData/group/upload-media/\(groupMessageId)/starting [\(totalUploads)]")
+        DDLogInfo("ChatData/group/upload-media/\(groupChatMsgID)/starting [\(totalUploads)]")
 
         let uploadGroup = DispatchGroup()
         
@@ -2360,63 +2418,53 @@ extension ChatData {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
             
-            mediaUploader.upload(media: mediaItem, groupId: groupMessageId, didGetURLs: { (mediaURLs) in
-                DDLogInfo("ChatData/group/upload-media/\(groupMessageId)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
+            mediaUploader.upload(media: mediaItem, groupId: groupChatMsgID, didGetURLs: { (mediaURLs) in
+                DDLogInfo("ChatData/group/upload-media/\(groupChatMsgID)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
                 // Save URLs acquired during upload to the database.
-                self.updateChatGroupMessage(with: groupMessageId) { (chatGroupMessage) in
-                    if let media = chatGroupMessage.media?.first(where: { $0.order == mediaIndex }) {
-                        switch mediaURLs {
-                        case .getPut(let getURL, let putURL):
-                            media.url = getURL
-                            media.uploadUrl = putURL
-
-                        case .patch(let patchURL):
-                            media.uploadUrl = patchURL
-                        }
+                self.updateChatGroupMessage(with: groupChatMsgID) { msg in
+                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+                    switch mediaURLs {
+                    case .getPut(let getURL, let putURL):
+                        media.url = getURL
+                        media.uploadUrl = putURL
+                    case .patch(let patchURL):
+                        media.uploadUrl = patchURL
                     }
                 }
+                
             }) { (uploadResult) in
-                DDLogInfo("ChatData/group/upload-media/\(groupMessageId)/\(mediaIndex)/finished result=[\(uploadResult)]")
+                DDLogInfo("ChatData/group/upload-media/\(groupChatMsgID)/\(mediaIndex)/finished result=[\(uploadResult)]")
 
-                // Save URLs acquired during upload to the database.
-                self.updateChatGroupMessage(with: groupMessageId,
-                                            block: { (chatGroupMessage) in
-                                                if let media = chatGroupMessage.media?.first(where: { $0.order == mediaIndex }) {
-                                                    switch uploadResult {
-                                                    case .success(let url):
-                                                        media.url = url
-                                                        media.outgoingStatus = .uploaded
+                self.updateChatGroupMessage(with: groupChatMsgID, block: { msg in
+                    guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
+                    switch uploadResult {
+                    case .success(let url):
+                        media.url = url
+                        media.outgoingStatus = .uploaded
 
-                                                    case .failure(_):
-                                                        numberOfFailedUploads += 1
-                                                        media.outgoingStatus = .error
-                                                    }
-                                                }
-                                            },
-                                            performAfterSave: {
-                                                uploadGroup.leave()
-                                            })
+                    case .failure(_):
+                        numberOfFailedUploads += 1
+                        media.outgoingStatus = .error
+                    }
+                },
+                performAfterSave: {
+                    uploadGroup.leave()
+                })
             }
         }
 
-        uploadGroup.notify(queue: .main) {
-            DDLogInfo("ChatData/group/upload-media/\(groupMessageId)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
+        uploadGroup.notify(queue: .main) { [weak self] in
+            guard let self = self else { return }
+            DDLogInfo("ChatData/group/upload-media/\(groupChatMsgID)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
             if numberOfFailedUploads > 0 {
-                self.updateChatGroupMessage(with: groupMessageId) { (chatGroupMessage) in
-                    chatGroupMessage.outboundStatus = .error
+                self.updateChatGroupMessage(with: groupChatMsgID) { msg in
+                    msg.outboundStatus = .error
                 }
-            } else if let chatGroupMessage = self.chatGroupMessage(with: groupMessageId) {
-                self.sendGroup(groupMessage: chatGroupMessage)
+            } else {
+                self.service.sendGroupChatMessage(XMPPChatGroupMessage(chatGroupMessage: groupChatMsg))
             }
         }
-    }
-
-    /// Not thread safe! Must be called on same queue where groupMessage originates.
-    private func sendGroup(groupMessage: ChatGroupMessage) {
-        let xmppGroupMessage = XMPPChatGroupMessage(chatGroupMessage: groupMessage)
-
-        service.sendGroupChatMessage(xmppGroupMessage)
     }
 
     func retractGroupChatMessage(groupID: GroupID, messageToRetractID: String) {
@@ -2812,6 +2860,17 @@ extension ChatData {
         chatGroupMessage.outboundStatus = .none
         chatGroupMessage.timestamp = xmppChatGroupMessage.timestamp
         
+        // Mentions
+        var mentions = Set<ChatMention>()
+        for mention in xmppChatGroupMessage.orderedMentions {
+            let chatMention = ChatMention(context: bgContext)
+            chatMention.index = mention.index
+            chatMention.userID = mention.userID
+            chatMention.name = mention.name
+            mentions.insert(chatMention)
+        }
+        chatGroupMessage.mentions = mentions
+        
         var lastMsgMediaType: ChatThread.LastMsgMediaType = .none // going with the first media found
         
         // Process chat media
@@ -2854,6 +2913,16 @@ extension ChatData {
                 quoted.text = quotedChatGroupMessage.text
                 quoted.groupMessage = chatGroupMessage
                 
+                var quotedMentions = Set<ChatMention>()
+                for quotedChatGroupMessageMention in quotedChatGroupMessage.orderedMentions {
+                    let quotedMention = ChatMention(context: bgContext)
+                    quotedMention.index = quotedChatGroupMessageMention.index
+                    quotedMention.userID = quotedChatGroupMessageMention.userID
+                    quotedMention.name = quotedChatGroupMessageMention.name
+                    quotedMentions.insert(quotedMention)
+                }
+                quoted.mentions = quotedMentions
+                
                 if quotedChatGroupMessage.media != nil {
                     
                     if let quotedChatMessageMedia = quotedChatGroupMessage.media!.first(where: { $0.order == xmppChatGroupMessage.chatReplyMessageMediaIndex}) {
@@ -2880,10 +2949,11 @@ extension ChatData {
         }
         
         // Update Chat Thread
+        let mentionText = contactStore.textWithMentions(xmppChatGroupMessage.text, orderedMentions: xmppChatGroupMessage.orderedMentions)
         if let chatThread = chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
             chatThread.lastMsgId = chatGroupMessage.id
             chatThread.lastMsgUserId = chatGroupMessage.userId
-            chatThread.lastMsgText = chatGroupMessage.text
+            chatThread.lastMsgText = mentionText?.string ?? ""
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .none
             chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
@@ -2897,7 +2967,7 @@ extension ChatData {
             }
             chatThread.lastMsgId = chatGroupMessage.id
             chatThread.lastMsgUserId = chatGroupMessage.userId
-            chatThread.lastMsgText = chatGroupMessage.text
+            chatThread.lastMsgText = mentionText?.string ?? ""
             chatThread.lastMsgMediaType = lastMsgMediaType
             chatThread.lastMsgStatus = .none
             chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
@@ -2921,7 +2991,7 @@ extension ChatData {
         
         // add to pushnames
         if let userId = xmppChatGroupMessage.userId, let name = xmppChatGroupMessage.userName, !name.isEmpty {
-            MainAppContext.shared.contactStore.addPushNames([userId: name])
+            contactStore.addPushNames([userId: name])
         }
         
         if xmppChatGroupMessage.retryCount == nil || xmppChatGroupMessage.retryCount == 0 {
@@ -3087,7 +3157,7 @@ extension ChatData {
         }
         
         if !contactNames.isEmpty {
-            MainAppContext.shared.contactStore.addPushNames(contactNames)
+            contactStore.addPushNames(contactNames)
         }
         
         recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: nil, in: managedObjectContext)
@@ -3259,7 +3329,7 @@ extension ChatData {
                 existingMember.type = .admin
             }
         } else {
-            let member = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMember.entity().name!, into: managedObjectContext) as! ChatGroupMember
+            let member = ChatGroupMember(context: managedObjectContext)
             member.groupId = chatGroup.groupId
             member.userId = xmppGroupMember.userId
             switch xmppGroupMemberType {
@@ -3285,15 +3355,15 @@ extension ChatData {
             // inject delay between between sends so msgs won't be acked and timestamped on the same second,
             // which causes display of messages to be in random order
             var timeDelay = 0.0
-            pendingOutboundGroupChatMsgs.forEach {
-                guard let groupChatMsg = self.chatGroupMessage(with: $0.id, in: managedObjectContext) else { return }
+            pendingOutboundGroupChatMsgs.forEach { groupChatMsg in
                 guard let msgTimestamp = groupChatMsg.timestamp else { return }
                 guard abs(msgTimestamp.timeIntervalSinceNow) <= Date.hours(24) else { return }
                 
-                DDLogInfo("ChatData/processPendingGroupChatMsgs \($0.id)")
+                DDLogInfo("ChatData/processPendingGroupChatMsgs \(groupChatMsg.id)")
                 let outgoingMessage = XMPPChatGroupMessage(chatGroupMessage: groupChatMsg)
+
                 self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) {
-                    self.service.sendGroupChatMessage(outgoingMessage)
+                    self.uploadGroupChatMsgMediaAndSend(xmppGroupChatMsg: outgoingMessage)
                 }
                 timeDelay += 1.0
             }
@@ -3306,10 +3376,9 @@ extension ChatData {
             let retractingOutboundGroupChatMsgs = self.retractingOutboundGroupChatMsgs(in: managedObjectContext)
             DDLogInfo("ChatData/processRetractingGroupChatMsgs/num: \(retractingOutboundGroupChatMsgs.count)")
 
-            retractingOutboundGroupChatMsgs.forEach {
-                guard let groupChatMsg = self.chatGroupMessage(with: $0.id) else { return }
+            retractingOutboundGroupChatMsgs.forEach { groupChatMsg in
                 guard let messageID = groupChatMsg.retractID else { return }
-                DDLogInfo("ChatData/processRetractingGroupChatMsgs \($0.id)")
+                DDLogInfo("ChatData/processRetractingGroupChatMsgs \(groupChatMsg.id)")
                 let groupID = groupChatMsg.groupId
                 let msgToRetractID = groupChatMsg.id
                 
@@ -3365,13 +3434,15 @@ extension ChatData {
         guard let userID = xmppChatGroupMessage.userId else { return }
         guard let groupName = xmppChatGroupMessage.groupName else { return }
         
-        let name = MainAppContext.shared.contactStore.fullName(for: userID)
+        let name = contactStore.fullName(for: userID)
         
         let title = "\(name) @ \(groupName)"
         
         var body = ""
         
-        body += xmppChatGroupMessage.text ?? ""
+        let attrMentionText = contactStore.textWithMentions(xmppChatGroupMessage.text, orderedMentions: xmppChatGroupMessage.orderedMentions)
+        
+        body += attrMentionText?.string ?? ""
         
         if !xmppChatGroupMessage.media.isEmpty {
             var mediaStr = "📷"
@@ -3409,9 +3480,9 @@ extension ChatData {
         metadata.groupName = xmppChatGroupMessage.groupName
         
         let notification = UNMutableNotificationContent()
-        notification.title = MainAppContext.shared.contactStore.fullName(for: userID)
+        notification.title = contactStore.fullName(for: userID)
         notification.populate(withDataFrom: protoContainer, notificationMetadata: metadata, mentionNameProvider: { userID in
-            MainAppContext.shared.contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
+            contactStore.mentionName(for: userID, pushName: protoContainer.mentionPushName(for: userID))
         })
         
         notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData

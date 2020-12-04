@@ -83,7 +83,7 @@ public protocol FeedMentionProtocol {
 }
 
 
-extension FeedMentionProtocol {
+public extension FeedMentionProtocol {
     var protoMention: Clients_Mention {
         get {
             var mention = Clients_Mention()

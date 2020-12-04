@@ -36,6 +36,12 @@ enum ChatGroupMemberAction: String {
     
 }
 
+public struct XMPPChatMention: FeedMentionProtocol {
+    public let index: Int
+    public let userID: String
+    public let name: String
+}
+
 struct XMPPGroup {
     let groupId: GroupID
     let name: String
@@ -126,6 +132,7 @@ struct XMPPChatGroupMessage {
     let userName: String?
     var retryCount: Int32? = nil
     let text: String?
+    let mentions: [XMPPChatMention]
     let media: [XMPPChatMedia]
     let chatReplyMessageID: String?
     let chatReplyMessageSenderID: String?
@@ -134,6 +141,10 @@ struct XMPPChatGroupMessage {
     
     var orderedMedia: [ChatMediaProtocol] {
         media
+    }
+    
+    var orderedMentions: [XMPPChatMention] {
+        mentions
     }
 
     // used for outbound pending chat messages
@@ -153,6 +164,12 @@ struct XMPPChatGroupMessage {
             self.media = media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) }
         } else {
             self.media = []
+        }
+        
+        if let mentions = chatGroupMessage.mentions {
+            self.mentions = mentions.map { XMPPChatMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
+        } else {
+            self.mentions = []
         }
     }
 
@@ -181,6 +198,7 @@ struct XMPPChatGroupMessage {
         self.userId = UserID(pbGroupChat.senderUid)
         self.userName = pbGroupChat.senderName
         self.text = protoChat.text.isEmpty ? nil : protoChat.text
+        self.mentions = protoChat.mentions.map { XMPPChatMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
         self.media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }
         self.timestamp = Date(timeIntervalSince1970: TimeInterval(pbGroupChat.timestamp))
 
@@ -203,7 +221,8 @@ struct XMPPChatGroupMessage {
             }
             
             protoChatMessage.media = orderedMedia.compactMap { $0.protoMessage }
-
+            protoChatMessage.mentions = orderedMentions.compactMap { $0.protoMention }
+            
             var protoContainer = Clients_Container()
             protoContainer.chatMessage = protoChatMessage
             return protoContainer

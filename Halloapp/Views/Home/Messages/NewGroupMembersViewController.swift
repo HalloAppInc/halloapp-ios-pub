@@ -75,9 +75,6 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         
         navigationItem.title = Localizations.chatSelectGroupMembersTitle
 
-        let backButton = UIBarButtonItem(title: Localizations.buttonBack, style: .plain, target: nil, action: nil)
-        navigationItem.backBarButtonItem = backButton
-
         tableView.backgroundColor = .feedBackground
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         

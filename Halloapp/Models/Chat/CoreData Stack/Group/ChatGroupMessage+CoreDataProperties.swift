@@ -45,6 +45,7 @@ extension ChatGroupMessage {
     @NSManaged var typeValue: Int16
     
     @NSManaged public var text: String?
+    @NSManaged var mentions: Set<ChatMention>?
     @NSManaged public var timestamp: Date?
     
     @NSManaged var media: Set<ChatMedia>?
@@ -84,6 +85,13 @@ extension ChatGroupMessage {
         }
         set {
             self.outboundStatusValue = newValue.rawValue
+        }
+    }
+    
+    public var orderedMentions: [ChatMention] {
+        get {
+            guard let mentions = self.mentions else { return [] }
+            return mentions.sorted { $0.index < $1.index }
         }
     }
     

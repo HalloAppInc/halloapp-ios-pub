@@ -37,4 +37,14 @@ extension Mentions {
             .map { MentionableUser(userID: $0.key, fullName: $0.value) }
             .sorted { m1, m2 in m1.fullName < m2.fullName }
     }
+    
+    public static func mentionableUsers(forGroupID groupID: GroupID) -> [MentionableUser] {
+        guard let members = MainAppContext.shared.chatData.chatGroup(groupId: groupID)?.members else { return [] }
+        var contactSet = Set(members.map { $0.userId })
+        contactSet.remove(MainAppContext.shared.userData.userId)
+        let fullNames = MainAppContext.shared.contactStore.fullNames(forUserIds: contactSet)
+        return fullNames
+            .map { MentionableUser(userID: $0.key, fullName: $0.value) }
+            .sorted { m1, m2 in m1.fullName < m2.fullName }
+    }
 }

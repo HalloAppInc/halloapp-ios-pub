@@ -17,7 +17,10 @@ public extension Clients_Container {
         if hasComment {
             mentions += comment.mentions
         }
-
+        if hasChatMessage {
+            mentions += chatMessage.mentions
+        }
+        
         return mentions.first(where: { $0.userID == userID })?.name
     }
 }
@@ -31,6 +34,14 @@ public extension Clients_Post {
 }
 
 public extension Clients_Comment {
+    var mentionText: MentionText {
+        MentionText(
+            collapsedText: text,
+            mentions: Dictionary(uniqueKeysWithValues: mentions.map { (Int($0.index), $0.userID) }))
+    }
+}
+
+public extension Clients_ChatMessage {
     var mentionText: MentionText {
         MentionText(
             collapsedText: text,

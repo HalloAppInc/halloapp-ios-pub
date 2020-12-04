@@ -24,10 +24,6 @@ extension Localizations {
         NSLocalizedString("button.next", value: "Next", comment: "Title for generic Next button. Mostly used to proceed to next screen in flow.")
     }
     
-    static var buttonBack: String {
-        NSLocalizedString("button.back", value: "Back", comment: "Title for generic Back button")
-    }
-    
     static var buttonCreate: String {
         NSLocalizedString("button.create", value: "Create", comment: "Title for generic Create button")
     }

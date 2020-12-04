@@ -51,6 +51,7 @@ extension ChatThread {
     @NSManaged var lastMsgTimestamp: Date?
 
     @NSManaged var draft: String?
+    @NSManaged var draftMentions: Set<ChatMention>?
     
     var type: ChatType {
         get {
@@ -79,4 +80,10 @@ extension ChatThread {
         }
     }
     
+    public var orderedDraftMentions: [ChatMention] {
+        get {
+            guard let mentions = self.draftMentions else { return [] }
+            return mentions.sorted { $0.index < $1.index }
+        }
+    }
 }

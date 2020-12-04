@@ -26,23 +26,24 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
     private static let cellReuseIdentifier = "ChatListViewCell"
     private static let inviteFriendsReuseIdentifier = "ChatListInviteFriendsCell"
-    private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
-    private var cancellableSet: Set<AnyCancellable> = []
     private let tableView = UITableView()
-
+    
+    private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
+    
+    private var isVisible: Bool = false
+    private var cancellableSet: Set<AnyCancellable> = []
+    
     private var filteredChats: [ChatThread] = []
     private var searchController: DismissableUISearchController!
     private var searchBarHeight: CGFloat = 0
     
-    private var tableViewOffset: CGPoint = .zero
-    
-    var isSearchBarEmpty: Bool {
-      return searchController.searchBar.text?.isEmpty ?? true
+    private var isSearchBarEmpty: Bool {
+        return searchController.searchBar.text?.isEmpty ?? true
     }
-    var isFiltering: Bool {
-      return searchController.isActive && !isSearchBarEmpty
+    private var isFiltering: Bool {
+        return searchController.isActive && !isSearchBarEmpty
     }
-    
+        
     // MARK: Lifecycle
     
     init(title: String) {
@@ -127,7 +128,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         
         // When the user was not on this view, and HomeView sends user to here
         if let metadata = NotificationMetadata.fromUserDefaults() {
-            self.processNotification(metadata: metadata)
+            processNotification(metadata: metadata)
         }
     }
     
@@ -140,6 +141,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     override func viewDidAppear(_ animated: Bool) {
         DDLogInfo("ChatListViewController/viewDidAppear")
         super.viewDidAppear(animated)
+        isVisible = true
         
         // after showing searchbar on top, turn on hidesSearchBarWhenScrolling so search will disappear when scrolling
         navigationItem.hidesSearchBarWhenScrolling = true
@@ -150,6 +152,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     override func viewWillDisappear(_ animated: Bool) {
         DDLogInfo("ChatListViewController/viewWillDisappear")
         super.viewWillDisappear(animated)
+        isVisible = false
 
         floatingMenu.setState(.collapsed, animated: true)
         
@@ -306,7 +309,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         switch type {
         case .insert:
             guard let indexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/insert [\(chatThread)] at [\(indexPath)]")
+            DDLogDebug("ChatListView/frc/insert [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 tableView.insertRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -315,7 +318,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         case .delete:
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/delete [\(chatThread)] at [\(indexPath)]")
+            DDLogDebug("ChatListView/frc/delete [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
       
             if trackPerRowFRCChanges {
                 tableView.deleteRows(at: [ indexPath ], with: .left)
@@ -325,7 +328,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/move [\(chatThread)] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            DDLogDebug("ChatListView/frc/move [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges {
                 tableView.moveRow(at: fromIndexPath, to: toIndexPath)
                 reloadTableViewInDidChangeContent = true
@@ -335,7 +338,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         case .update:
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { return }
-            DDLogDebug("ChatListView/frc/update [\(chatThread)] at [\(indexPath)]")
+            DDLogDebug("ChatListView/frc/update [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
             if trackPerRowFRCChanges {
                 tableView.reloadRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -383,6 +386,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
     
     private func updateVisibleCellsWithTypingIndicator() {
+        guard isVisible else { return }
         for tableCell in tableView.visibleCells {
             guard let cell = tableCell as? ChatListTableViewCell else { continue }
             guard let chatThread = cell.chatThread else { continue }

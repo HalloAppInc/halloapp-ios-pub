@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17511" systemVersion="19G73" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17511" systemVersion="20B50" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="ChatGroup" representedClassName="ChatGroup" syncable="YES">
         <attribute name="avatar" optional="YES" attributeType="String"/>
         <attribute name="desc" optional="YES" attributeType="String"/>
@@ -31,6 +31,7 @@
         <relationship name="event" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatGroupMessageEvent" inverseName="groupMessage" inverseEntity="ChatGroupMessageEvent"/>
         <relationship name="info" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatGroupMessageInfo" inverseName="groupMessage" inverseEntity="ChatGroupMessageInfo"/>
         <relationship name="media" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMedia" inverseName="groupMessage" inverseEntity="ChatMedia"/>
+        <relationship name="mentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMention"/>
         <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="groupMessage" inverseEntity="ChatQuoted"/>
     </entity>
     <entity name="ChatGroupMessageEvent" representedClassName="ChatGroupMessageEvent" syncable="YES">
@@ -119,11 +120,12 @@
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="unreadCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="draftMentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMention"/>
     </entity>
     <elements>
         <element name="ChatGroup" positionX="-45" positionY="135" width="128" height="148"/>
         <element name="ChatGroupMember" positionX="-36" positionY="144" width="128" height="103"/>
-        <element name="ChatGroupMessage" positionX="-27" positionY="153" width="128" height="283"/>
+        <element name="ChatGroupMessage" positionX="-27" positionY="153" width="128" height="284"/>
         <element name="ChatGroupMessageEvent" positionX="-27" positionY="144" width="128" height="133"/>
         <element name="ChatGroupMessageInfo" positionX="-18" positionY="162" width="128" height="118"/>
         <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="253"/>
@@ -131,6 +133,6 @@
         <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="298"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="148"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="133"/>
-        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="28"/>
+        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="239"/>
     </elements>
 </model>

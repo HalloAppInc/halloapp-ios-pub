@@ -21,18 +21,23 @@ fileprivate protocol ContainerViewDelegate: AnyObject {
 
 protocol ChatInputViewDelegate: AnyObject {
     func chatInputView(_ inputView: ChatInputView, didChangeBottomInsetWith animationDuration: TimeInterval, animationCurve: UIView.AnimationCurve)
-    func chatInputView(_ inputView: ChatInputView, wantsToSend text: String)
+    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText)
     func chatInputView(_ inputView: ChatInputView, isTyping: Bool)
     func chatInputView(_ inputView: ChatInputView)
     func chatInputViewCloseQuotePanel(_ inputView: ChatInputView)
 }
 
+protocol ChatInputViewMentionsDelegate: AnyObject {
+    func chatInputView(_ inputView: ChatInputView, possibleMentionsForInput input: String) -> [MentionableUser]
+}
+
 class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIProtocol {
     weak var delegate: ChatInputViewDelegate?
+    weak var mentionsDelegate: ChatInputViewMentionsDelegate?
 
     private var previousHeight: CGFloat = 0
     
-    private var placeholderText = "Type a message"
+    private var placeholderText = Localizations.chatInputPlaceholder
     
     private var isVisible: Bool = false
     
@@ -40,7 +45,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     private let typingThrottleInterval: TimeInterval = 10
     private var typingThrottleTimer: Timer? = nil
     
-    // only send a available indicator after 3 seconds of no typing
+    // only send an available indicator after 3 seconds of no typing
     private let typingDebounceInterval: TimeInterval = 3
     private var typingDebounceTimer: Timer? = nil
     
@@ -56,7 +61,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
     func willAppear(in viewController: UIViewController) {
         setInputViewWidth(viewController.view.bounds.size.width)
-//        viewController.becomeFirstResponder()
     }
 
     func didAppear(in viewController: UIViewController) {
@@ -90,6 +94,10 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         resetTypingTimers()
     }
     
+    // Only one of these should be active at a time
+    private var mentionPickerTopConstraint: NSLayoutConstraint?
+    private var vStackTopConstraint: NSLayoutConstraint?
+    
     private func setup() {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidShow), name: UIResponder.keyboardDidShowNotification, object: nil)
@@ -99,7 +107,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         autoresizingMask = .flexibleHeight
         
         addSubview(containerView)
-        containerView.backgroundColor = UIColor.systemBackground
+//        containerView.backgroundColor = UIColor.systemBackground
+        containerView.backgroundColor = UIColor.clear
         containerView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
         containerView.topAnchor.constraint(equalTo: topAnchor).isActive = true
         containerView.trailingAnchor.constraint(equalTo: trailingAnchor).isActive = true
@@ -112,7 +121,15 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         contentView.trailingAnchor.constraint(equalTo: containerView.layoutMarginsGuide.trailingAnchor).isActive = true
         contentView.bottomAnchor.constraint(equalTo: containerView.layoutMarginsGuide.bottomAnchor).isActive = true
 
-        quoteFeedPanel.leadingAnchor.constraint(equalTo: vStack.leadingAnchor).isActive = true
+        // Bottom Safe Area background
+        let bottomBackgroundView = UIView()
+        bottomBackgroundView.backgroundColor = .systemBackground
+        bottomBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(bottomBackgroundView)
+        bottomBackgroundView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor).isActive = true
+        bottomBackgroundView.topAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
+        bottomBackgroundView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor).isActive = true
+        bottomBackgroundView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor).isActive = true
         
         textView.leadingAnchor.constraint(equalTo: textViewContainer.leadingAnchor).isActive = true
         textView.topAnchor.constraint(equalTo: textViewContainer.topAnchor).isActive = true
@@ -127,18 +144,29 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         
         textViewContainerHeightConstraint = textViewContainer.heightAnchor.constraint(equalToConstant: 115)
         
-        textInputRow.leadingAnchor.constraint(equalTo: vStack.leadingAnchor).isActive = true
-        textInputRow.trailingAnchor.constraint(equalTo: vStack.trailingAnchor).isActive = true
-      
         postButtonsContainer.trailingAnchor.constraint(equalTo: textInputRow.trailingAnchor).isActive = true
         
-        contentView.addArrangedSubview(vStack)
-        
+        contentView.addSubview(vStack)
+
         vStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor).isActive = true
-        vStack.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         vStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor).isActive = true
         vStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
                 
+        vStackTopConstraint = vStack.topAnchor.constraint(equalTo: contentView.topAnchor)
+        vStackTopConstraint?.isActive = true
+        
+        // mention picker
+        contentView.addSubview(mentionPicker)
+        
+        mentionPicker.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 25).isActive = true
+        mentionPicker.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -25).isActive = true
+        
+        mentionPicker.bottomAnchor.constraint(equalTo: textView.topAnchor).isActive = true
+        mentionPicker.heightAnchor.constraint(lessThanOrEqualToConstant: 120).isActive = true
+        mentionPicker.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
+        
+        mentionPickerTopConstraint = mentionPicker.topAnchor.constraint(equalTo: contentView.topAnchor)
+        
         setPlaceholderText()
     }
     
@@ -178,28 +206,70 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     private lazy var containerView: ContainerView = {
         let view = ContainerView()
         view.delegate = self
+        
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.preservesSuperviewLayoutMargins = true
+        
         return view
     }()
 
     private lazy var contentView: UIStackView = {
         let view = UIStackView()
+        
         view.axis = .vertical
         view.spacing = 8
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.preservesSuperviewLayoutMargins = true
         
+        view.translatesAutoresizingMaskIntoConstraints = false
+                
         return view
     }()
     
     private lazy var vStack: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [quoteFeedPanel, textInputRow ])
+        let view = UIStackView(arrangedSubviews: [quoteFeedPanel, textInputRow])
         view.axis = .vertical
         view.alignment = .trailing
+    
+        let subView = UIView(frame: view.bounds)
+        subView.backgroundColor = UIColor.systemBackground
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(subView, at: 0)
+        
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 15, bottom: 3, right: 15)
+        view.isLayoutMarginsRelativeArrangement = true
+        
         view.translatesAutoresizingMaskIntoConstraints = false
+                
+        quoteFeedPanel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
+        
+        textInputRow.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor).isActive = true
+        textInputRow.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor).isActive = true
+        
         return view
     }()
+    
+    private lazy var mentionPicker: MentionPickerView = {
+        let picker = MentionPickerView(avatarStore: MainAppContext.shared.avatarStore)
+        picker.cornerRadius = 10
+        picker.borderWidth = 1
+        picker.borderColor = .systemGray
+        picker.clipsToBounds = true
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.isHidden = true // Hide until content is set
+        picker.didSelectItem = { [weak self] item in
+            self?.acceptMentionPickerItem(item)
+        }
+        return picker
+    }()
+    
+    private func acceptAutoCorrection() {
+        guard textView.isFirstResponder else { return }
+        guard !textView.text.isEmpty else { return }
+        // Accept auto-correction.
+        textView.selectedRange = NSRange(location: 0, length: 0)
+        // Must clear selection to allow auto-correction to work again.
+        textView.selectedRange = NSRange(location: NSNotFound, length: 0)
+    }
     
     private lazy var quoteFeedPanel: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ quoteFeedPanelTextMediaContent, quoteFeedPanelCloseButton ])
@@ -288,16 +358,28 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     
     private var textViewContainerHeightConstraint: NSLayoutConstraint?
     
-    private lazy var textView: UITextView = {
-        let view = UITextView()
+    private lazy var textInputRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [textViewContainer, postButtonsContainer])
+        view.axis = .horizontal
+        view.alignment = .trailing
+        view.spacing = 0
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        return view
+    }()
+    
+    private lazy var textView: InputTextView = {
+        let view = InputTextView(frame: .zero)
         view.isScrollEnabled = false
-        view.delegate = self
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = UIColor.clear
         view.textContainerInset.left = 8
         view.textContainerInset.right = 8
         view.font = UIFont.preferredFont(forTextStyle: .subheadline)
         view.tintColor = UIColor.systemBlue
+        
+        view.inputTextViewDelegate = self
 
         return view
     }()
@@ -305,7 +387,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
     private lazy var textViewContainer: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.systemBackground
-        view.addSubview(self.textView)
+        view.addSubview(textView)
         
         view.translatesAutoresizingMaskIntoConstraints = false
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -356,17 +438,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         view.translatesAutoresizingMaskIntoConstraints = false
         view.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         view.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        return view
-    }()
-    
-    private lazy var textInputRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [textViewContainer, postButtonsContainer])
-        view.axis = .horizontal
-        view.alignment = .trailing
-        view.spacing = 0
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return view
     }()
     
@@ -581,51 +652,30 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         set {
             textView.text = newValue
             textView.sizeToFit()
-            textViewDidChange(textView)
+            textView.textViewDidChange(textView)
         }
     }
 
-    func textViewDidChange(_ textView: UITextView) {
-        postButton.isEnabled = !text.isEmpty
-        postMediaButton.isHidden = !text.isEmpty // hide media button when there's text
-        
-        if textView.contentSize.height >= 115 {
-            textViewContainerHeightConstraint?.constant = 115
-            textViewContainerHeightConstraint?.isActive = true
-            textView.isScrollEnabled = true
-        } else {
-            if textView.isScrollEnabled {
-                textViewContainerHeightConstraint?.constant = textView.contentSize.height
-                textView.isScrollEnabled = false
-            } else {
-                textViewContainerHeightConstraint?.isActive = false
-            }
-        }
-        
-        if typingThrottleTimer == nil && !text.isEmpty {
-            delegate?.chatInputView(self, isTyping: true)
-            typingThrottleTimer = Timer.scheduledTimer(withTimeInterval: typingThrottleInterval, repeats: false) { [weak self] _ in
-                guard let self = self else { return }
-                self.typingThrottleTimer = nil
-            }
-        }
-
-        typingDebounceTimer?.invalidate()
-        typingDebounceTimer = Timer.scheduledTimer(withTimeInterval: typingDebounceInterval, repeats: false) { [weak self] _ in
-            guard let self = self else { return }
-            self.delegate?.chatInputView(self, isTyping: false)
-            
-            self.typingThrottleTimer?.invalidate()
-            self.typingThrottleTimer = nil
+    var textIsUneditedReplyMention = false
+    
+    
+    func addReplyMentionIfPossible(for userID: UserID, name: String) {
+        if textView.text.isEmpty || textIsUneditedReplyMention {
+//            clear()
+            textView.addMention(name: name, userID: userID, in: NSRange(location: 0, length: 0))
+            textIsUneditedReplyMention = true
         }
     }
-
+    
     @objc func postButtonClicked() {
-        
         resetTypingTimers()
+        acceptAutoCorrection()
         
-        delegate?.chatInputView(self, wantsToSend: text)
+        let mentionText = MentionText(expandedText: textView.text, mentionRanges: textView.mentions)
+        
+        delegate?.chatInputView(self, mentionText: mentionText)
         closeQuoteFeedPanel()
+        textView.resetMentions()
     }
 
     @objc func postMediaButtonClicked() {
@@ -643,21 +693,8 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         }
     }
     
-    func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
-        if (textView.tag == 0){
-            textView.text = ""
-            textView.textColor = UIColor.label
-            textView.tag = 1
-        }
-        return true
-    }
-
-    func textViewDidEndEditing(_ textView: UITextView) {
-        setPlaceholderText()
-    }
-    
     // MARK: Keyboard
-    
+
     enum KeyboardState {
         case hidden
         case hiding
@@ -778,5 +815,126 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
                 self.delegate?.chatInputView(self, didChangeBottomInsetWith: 0, animationCurve: .easeInOut)
             }
         }
+    }
+}
+
+// MARK: Mentions
+extension ChatInputView {
+    
+    private func fetchMentionPickerContent(for input: MentionInput) -> [MentionableUser] {
+        guard let mentionCandidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
+            return []
+        }
+        let mentionCandidate = input.text[mentionCandidateRange]
+        let trimmedInput = String(mentionCandidate.dropFirst())
+        return mentionsDelegate?.chatInputView(self, possibleMentionsForInput: trimmedInput) ?? []
+    }
+    
+    private func updateMentionPickerContent() {
+        let mentionableUsers = fetchMentionPickerContent(for: textView.mentionInput)
+
+        mentionPicker.items = mentionableUsers
+        mentionPicker.isHidden = mentionableUsers.isEmpty
+        
+        mentionPickerTopConstraint?.isActive = !mentionableUsers.isEmpty
+        vStackTopConstraint?.isActive = mentionableUsers.isEmpty
+    }
+
+    private func acceptMentionPickerItem(_ item: MentionableUser) {
+        let input = textView.mentionInput
+        guard let mentionCandidateRange = input.rangeOfMentionCandidateAtCurrentPosition() else {
+            // For now we assume there is a word to replace (but in theory we could just insert at point)
+            return
+        }
+
+        let utf16Range = NSRange(mentionCandidateRange, in: text)
+        textView.addMention(name: item.fullName, userID: item.userID, in: utf16Range)
+        self.updateMentionPickerContent()
+    }
+}
+
+// MARK: InputTextViewDelegate
+extension ChatInputView: InputTextViewDelegate {
+
+    // unused
+    func maximumHeight(for inputTextView: InputTextView) -> CGFloat {
+        return 120
+    }
+    
+    func inputTextView(_ inputTextView: InputTextView, needsHeightChangedTo newHeight: CGFloat) {
+    }
+    
+    func inputTextViewShouldBeginEditing(_ inputTextView: InputTextView) -> Bool {
+        if (textView.tag == 0){
+            textView.text = ""
+            textView.textColor = UIColor.label
+            textView.tag = 1
+        }
+        return true
+    }
+    
+    func inputTextViewDidBeginEditing(_ inputTextView: InputTextView) {
+    }
+    
+    func inputTextViewShouldEndEditing(_ inputTextView: InputTextView) -> Bool {
+        return true
+    }
+    
+    func inputTextViewDidEndEditing(_ inputTextView: InputTextView) {
+        setPlaceholderText()
+    }
+    
+    func inputTextViewDidChange(_ inputTextView: InputTextView) {
+        
+        textIsUneditedReplyMention = false
+        updateMentionPickerContent()
+        
+        postButton.isEnabled = !text.isEmpty
+        postMediaButton.isHidden = !text.isEmpty // hide media button when there's text
+        
+        if textView.contentSize.height >= 115 {
+            textViewContainerHeightConstraint?.constant = 115
+            textViewContainerHeightConstraint?.isActive = true
+            textView.isScrollEnabled = true
+        } else {
+            if textView.isScrollEnabled {
+                textViewContainerHeightConstraint?.constant = textView.contentSize.height
+                textView.isScrollEnabled = false
+            } else {
+                textViewContainerHeightConstraint?.isActive = false
+            }
+        }
+        
+        if typingThrottleTimer == nil && !text.isEmpty {
+            delegate?.chatInputView(self, isTyping: true)
+            typingThrottleTimer = Timer.scheduledTimer(withTimeInterval: typingThrottleInterval, repeats: false) { [weak self] _ in
+                guard let self = self else { return }
+                self.typingThrottleTimer = nil
+            }
+        }
+
+        typingDebounceTimer?.invalidate()
+        typingDebounceTimer = Timer.scheduledTimer(withTimeInterval: typingDebounceInterval, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            self.delegate?.chatInputView(self, isTyping: false)
+            
+            self.typingThrottleTimer?.invalidate()
+            self.typingThrottleTimer = nil
+        }
+        
+    }
+    
+    func inputTextViewDidChangeSelection(_ inputTextView: InputTextView) {
+    }
+    
+    func inputTextView(_ inputTextView: InputTextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        return true
+    }
+    
+}
+
+extension Localizations {
+    static var chatInputPlaceholder: String {
+        NSLocalizedString("chat.message.placeholder", value: "Type a message", comment: "Text shown when chat input box is empty")
     }
 }

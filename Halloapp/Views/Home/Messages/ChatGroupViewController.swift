@@ -35,6 +35,10 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
     private var fetchedResultsController: NSFetchedResultsController<ChatGroupMessage>?
     private var dataSource: ChatGroupDataSource?
     
+    private lazy var mentionableUsers: [MentionableUser] = {
+        computeMentionableUsers()
+    }()
+    
     private var trackedChatGroupMessages: [String: TrackedChatGroupMessage] = [:]
 
     static private let sectionMain = 0
@@ -42,9 +46,9 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
     static private let outboundMsgViewCellReuseIdentifier = "OutboundMsgViewCell"
     static private let eventMsgTableViewCellReuseIdentifier = "EventMsgTableViewCell"
     
-    private var cancellableSet: Set<AnyCancellable> = []
-
     private var mediaPickerController: MediaPickerViewController?
+        
+    private var cancellableSet: Set<AnyCancellable> = []
     
     // MARK: Lifecycle
     
@@ -422,6 +426,7 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
     lazy var chatInputView: ChatInputView = {
         let inputView = ChatInputView(frame: CGRect(x: 0, y: 0, width: self.view.frame.size.width, height: 90))
         inputView.delegate = self
+        inputView.mentionsDelegate = self
         return inputView
     }()
 
@@ -463,9 +468,9 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
     }
 
     
-    func sendGroupMessage(text: String, media: [PendingMedia]) {
+    func sendGroupMessage(mentionText: MentionText, media: [PendingMedia]) {
         MainAppContext.shared.chatData.sendGroupMessage(toGroupId: groupId,
-                                                        text: text,
+                                                        mentionText: mentionText,
                                                         media: media,
                                                         chatReplyMessageID: chatReplyMessageID,
                                                         chatReplyMessageSenderID: chatReplyMessageSenderID,
@@ -514,13 +519,6 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         pickerController.present(UINavigationController(rootViewController: composerController), animated: false)
     }
 
-    private func presentMessageComposer(with media: [PendingMedia]) {
-        let vc = MessageComposerView(mediaItemsToPost: media)
-        vc.delegate = self
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: false, completion: nil)
-    }
-
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
         chatInputView.hideKeyboard()
     }
@@ -529,7 +527,7 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
 // MARK: PostComposerView Delegates
 extension ChatGroupViewController: PostComposerViewDelegate {
     func composerShareAction(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia]) {
-        sendGroupMessage(text: mentionText.trimmed().collapsedText, media: media)
+        sendGroupMessage(mentionText: mentionText, media: media)
     }
 
     func composerDidFinish(controller: PostComposerViewController, media: [PendingMedia], isBackAction: Bool) {
@@ -619,13 +617,15 @@ extension ChatGroupViewController {
         
         guard let userID = chatReplyMessageSenderID else { return }
         
+        let mentionText = MainAppContext.shared.contactStore.textWithMentions(chatGroupMessage.text, orderedMentions: chatGroupMessage.orderedMentions)
+        
         if let mediaItem = chatGroupMessage.media?.first(where: { $0.order == chatReplyMessageMediaIndex }) {
             let mediaType: ChatMessageMediaType = mediaItem.type == .video ? .video : .image
             let mediaUrl = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(mediaItem.relativeFilePath ?? "", isDirectory: false)
             
-            chatInputView.showQuoteFeedPanel(with: userID, text: chatGroupMessage.text ?? "", mediaType: mediaType, mediaUrl: mediaUrl, groupID: groupId, from: self)
+            chatInputView.showQuoteFeedPanel(with: userID, text: mentionText?.string ?? "", mediaType: mediaType, mediaUrl: mediaUrl, groupID: groupId, from: self)
         } else {
-            chatInputView.showQuoteFeedPanel(with: userID, text: chatGroupMessage.text ?? "", mediaType: nil, mediaUrl: nil, groupID: groupId, from: self)
+            chatInputView.showQuoteFeedPanel(with: userID, text: mentionText?.string ?? "", mediaType: nil, mediaUrl: nil, groupID: groupId, from: self)
         }
 
     }
@@ -795,14 +795,19 @@ extension ChatGroupViewController: ChatInputViewDelegate {
         presentMediaPicker()
     }
 
-    func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
-        sendGroupMessage(text: text, media: [])
+    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText) {
+        sendGroupMessage(mentionText: mentionText, media: [])
     }
 }
 
-extension ChatGroupViewController: MessageComposerViewDelegate {
-    func messageComposerView(_ messageComposerView: MessageComposerView, text: String, media: [PendingMedia]) {
-        self.sendGroupMessage(text: text, media: media)
+// MARK: ChatInputViewMentionsDelegate
+extension ChatGroupViewController: ChatInputViewMentionsDelegate {
+    func computeMentionableUsers() -> [MentionableUser] {
+        return Mentions.mentionableUsers(forGroupID: groupId)
+    }
+    
+    func chatInputView(_ inputView: ChatInputView, possibleMentionsForInput input: String) -> [MentionableUser] {
+        return mentionableUsers.filter { Mentions.isPotentialMatch(fullName: $0.fullName, input: input) }
     }
 }
 

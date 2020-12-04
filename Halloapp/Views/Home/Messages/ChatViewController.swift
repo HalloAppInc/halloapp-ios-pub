@@ -536,13 +536,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         pickerController.present(UINavigationController(rootViewController: composerController), animated: false)
     }
 
-    private func presentMessageComposer(with media: [PendingMedia]) {
-        let vc = MessageComposerView(mediaItemsToPost: media)
-        vc.delegate = self
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: false, completion: nil)
-    }
-
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
         chatInputView.hideKeyboard()
     }
@@ -814,14 +807,9 @@ extension ChatViewController: ChatInputViewDelegate {
         presentMediaPicker()
     }
     
-    func chatInputView(_ inputView: ChatInputView, wantsToSend text: String) {
+    func chatInputView(_ inputView: ChatInputView, mentionText: MentionText) {
+        let text = mentionText.trimmed().collapsedText
         sendMessage(text: text, media: [])
-    }
-}
-
-extension ChatViewController: MessageComposerViewDelegate {
-    func messageComposerView(_ messageComposerView: MessageComposerView, text: String, media: [PendingMedia]) {
-        sendMessage(text: text, media: media)
     }
 }
 

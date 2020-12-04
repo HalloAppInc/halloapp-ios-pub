@@ -303,6 +303,7 @@ class OutboundMsgViewCell: UITableViewCell, MsgUIProtocol {
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
                    text: text,
+                   orderedMentions: [],
                    media: chatMessage.media,
                    timestamp: chatMessage.timestamp,
                    statusIcon: statusIcon(chatMessage.outgoingStatus))
@@ -332,6 +333,7 @@ class OutboundMsgViewCell: UITableViewCell, MsgUIProtocol {
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
                    text: text,
+                   orderedMentions: chatGroupMessage.orderedMentions,
                    media: chatGroupMessage.media,
                    timestamp: chatGroupMessage.timestamp,
                    statusIcon: statusIcon(chatGroupMessage.outboundStatus))
@@ -398,7 +400,7 @@ class OutboundMsgViewCell: UITableViewCell, MsgUIProtocol {
         return isQuotedMessage
     }
     
-    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, media: Set<ChatMedia>?, timestamp: Date?, statusIcon: UIImage?) {
+    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, orderedMentions: [ChatMention], media: Set<ChatMedia>?, timestamp: Date?, statusIcon: UIImage?) {
 
         if isNextMsgSameSender {
             contentView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 3, right: 18)
@@ -484,9 +486,22 @@ class OutboundMsgViewCell: UITableViewCell, MsgUIProtocol {
         let numBlanks = timeAndStatusLabel.text?.count ?? 1
         blanks += String(repeating: "\u{00a0}", count: Int(Double(numBlanks)*textRatio)) // nonbreaking spaces
         
+        let font = textView.font ?? UIFont.preferredFont(forTextStyle: TextFontStyle)
+        let color = textView.textColor ?? UIColor.chatOwnMsg
+        
+        let attrText = NSMutableAttributedString(string: "")
+        
         if !isLargeFontEmoji {
 
-            textView.text = text + blanks
+            let textWithBlanks = text + blanks
+            
+            if orderedMentions.count > 0 {
+                if let mentionText = MainAppContext.shared.contactStore.textWithMentions(textWithBlanks, orderedMentions: orderedMentions) {
+                    attrText.append(mentionText.with(font: font, color: color))
+                }
+            } else {
+                attrText.append(NSMutableAttributedString(string: textWithBlanks, attributes: [.font: font, .foregroundColor: color]))
+            }
             
         } else {
             // special case for large emoji
@@ -496,17 +511,18 @@ class OutboundMsgViewCell: UITableViewCell, MsgUIProtocol {
             paragraph.alignment = .right
 
             // set the font size to large
-            let attrString = NSMutableAttributedString(string: text,
+            attrText.append(NSMutableAttributedString(string: text,
                                                        attributes: [.font: UIFont.preferredFont(forTextStyle: .largeTitle),
-                                                                    .paragraphStyle: paragraph])
+                                                                    .paragraphStyle: paragraph]))
 
             // add newline and pad with spaces to accommodate timestamp below it
-            attrString.append(NSMutableAttributedString(string: "\n \u{2800}\(blanks)",
+            attrText.append(NSMutableAttributedString(string: "\n \u{2800}\(blanks)",
                                                         attributes: [.font: UIFont.preferredFont(forTextStyle: .body),
                                                                      .paragraphStyle: paragraph]))
 
-            textView.attributedText = attrString
         }
+        
+        textView.attributedText = attrText
     
     }
     

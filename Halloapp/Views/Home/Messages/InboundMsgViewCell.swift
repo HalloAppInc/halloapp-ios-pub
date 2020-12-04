@@ -323,6 +323,7 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
                    text: text,
+                   orderedMentions: [],
                    media: chatMessage.media,
                    timestamp: chatMessage.timestamp)
         
@@ -355,12 +356,13 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
                 textRow.layoutMargins = UIEdgeInsets(top: 0, left: 10, bottom: 10, right: 10)
             }
         }
-        
+
         updateWith(isPreviousMsgSameSender: isPreviousMsgSameSender,
                    isNextMsgSameSender: isNextMsgSameSender,
                    isNextMsgSameTime: isNextMsgSameTime,
                    isQuotedMessage: isQuotedMessage,
                    text: text,
+                   orderedMentions: chatGroupMessage.orderedMentions,
                    media: chatGroupMessage.media,
                    timestamp: chatGroupMessage.timestamp)
         
@@ -432,7 +434,7 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
     }
     
     
-    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, media: Set<ChatMedia>?, timestamp: Date?) {
+    func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, orderedMentions: [ChatMention], media: Set<ChatMedia>?, timestamp: Date?) {
         
         if isNextMsgSameSender {
             contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 0)
@@ -446,8 +448,13 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
             textView.font = UIFont.preferredFont(forTextStyle: .largeTitle)
         }
         
-        self.textView.text = text
+        textView.text = text
         
+        if orderedMentions.count > 0 {
+            let mentionText = MainAppContext.shared.contactStore.textWithMentions(text, orderedMentions: orderedMentions)
+            textView.attributedText = mentionText?.with(font: textView.font, color: textView.textColor)
+        }
+            
         // media
         if let media = media {
             

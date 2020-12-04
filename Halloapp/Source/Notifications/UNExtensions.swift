@@ -84,7 +84,7 @@ extension UNMutableNotificationContent {
         } else if protoContainer.hasChatMessage {
             let protoMessage = protoContainer.chatMessage
 
-            body = protoMessage.text
+            body = protoContainer.chatMessage.mentionText.expandedText(nameProvider: mentionNameProvider).string
             if !protoMessage.media.isEmpty {
                 // Display how many photos and videos message contains if there's no caption.
                 if body.isEmpty {
