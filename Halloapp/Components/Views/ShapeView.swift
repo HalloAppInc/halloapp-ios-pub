@@ -167,3 +167,42 @@ class RingView: ShapeView {
     }
 
 }
+
+class RoundedRectView: ShapeView {
+
+    var cornerRadius: CGFloat = 0 {
+        didSet { reloadPath() }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        if frame != .zero {
+            reloadPath()
+        }
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+
+    override var bounds: CGRect {
+        didSet {
+            if oldValue != bounds {
+                reloadPath()
+            }
+        }
+    }
+
+    override var frame: CGRect {
+        didSet {
+            if oldValue != frame {
+                reloadPath()
+            }
+        }
+    }
+
+    private func reloadPath() {
+        path = UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius)
+    }
+}
+
