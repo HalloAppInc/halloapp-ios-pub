@@ -29,6 +29,10 @@ private extension Localizations {
     static var help: String {
         NSLocalizedString("profile.row.help", value: "Help", comment: "Row in Profile screen.")
     }
+
+    static var about: String {
+        NSLocalizedString("profile.row.about", value: "About HalloApp", comment: "Row in Profile screen.")
+    }
 }
 
 class ProfileViewController: UITableViewController {
@@ -49,6 +53,7 @@ class ProfileViewController: UITableViewController {
         case settings
         case invite
         case help
+        case about
     }
 
     private var dataSource: UITableViewDiffableDataSource<Section, Row>!
@@ -57,6 +62,7 @@ class ProfileViewController: UITableViewController {
     private let cellSettings = SettingsTableViewCell(text: Localizations.titleSettings, image: UIImage(named: "profile.settings"))
     private let cellInviteFriends = SettingsTableViewCell(text: Localizations.inviteFriends, image: UIImage(named: "profile.invite"))
     private let cellHelp = SettingsTableViewCell(text: Localizations.help, image: UIImage(named: "profile.help"))
+    private let cellAbout = SettingsTableViewCell(text: Localizations.about, image: UIImage(named: "profile.about"))
 
     // MARK: View Controller
 
@@ -94,12 +100,13 @@ class ProfileViewController: UITableViewController {
             case .settings: return self.cellSettings
             case .invite: return self.cellInviteFriends
             case .help: return self.cellHelp
+            case .about: return self.cellAbout
             }
         })
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         snapshot.appendSections([ .one, .two ])
-        snapshot.appendItems([ .feed, .settings ], toSection: .one)
-        snapshot.appendItems([ .invite, .help ], toSection: .two)
+        snapshot.appendItems([ .feed, .settings, .help ], toSection: .one)
+        snapshot.appendItems([ .about, .invite ], toSection: .two)
         dataSource.apply(snapshot, animatingDifferences: false)
 
         headerViewController = ProfileHeaderViewController()
@@ -154,6 +161,8 @@ class ProfileViewController: UITableViewController {
             openInviteFriends()
         case .help:
             openHelp()
+        case .about:
+            openAbout()
         }
     }
 
@@ -188,6 +197,13 @@ class ProfileViewController: UITableViewController {
         let viewController = HelpViewController(title: Localizations.help)
         viewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(viewController, animated: true)
+    }
+
+    private func openAbout() {
+        if let viewController = UIStoryboard.init(name: "AboutView", bundle: Bundle.main).instantiateInitialViewController() {
+            viewController.hidesBottomBarWhenPushed = true
+            navigationController?.pushViewController(viewController, animated: true)
+        }
     }
 
     @objc private func openDeveloperMenu() {

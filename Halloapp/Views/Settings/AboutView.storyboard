@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="up4-tE-HL8">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17505"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--About View Controller-->
+        <scene sceneID="MNV-ue-5bZ">
+            <objects>
+                <viewController id="up4-tE-HL8" customClass="AboutViewController" customModule="HalloApp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="fNa-Of-UFP">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="E8y-YI-sAw">
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" translatesAutoresizingMaskIntoConstraints="NO" id="MgJ-2c-gbL">
+                                        <rect key="frame" x="0.0" y="0.0" width="414" height="774"/>
+                                        <subviews>
+                                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="5Kb-4H-A1G">
+                                                <rect key="frame" x="20" y="241.5" width="374" height="291.5"/>
+                                                <subviews>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Oh Hallo" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="z8v-fS-Ud0">
+                                                        <rect key="frame" x="0.0" y="0.0" width="374" height="41"/>
+                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleTitle0"/>
+                                                        <color key="textColor" name="LavaOrange"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kFe-M6-Ajb">
+                                                        <rect key="frame" x="0.0" y="49" width="374" height="145.5"/>
+                                                        <string key="text">HalloApp is here! And we’re building it for you and your loved ones. We’ve brought social apps back to basics, while adding a layer of security and privacy that we think everyone in the world should have access to. HalloApp will never use your personal information or show you ads. Instead, we plan to eventually offer additional features at a small cost.</string>
+                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleCallout"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Thank you for using and sharing HalloApp with your friends and family. We’re improving it every week." textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bUX-MF-Hu6">
+                                                        <rect key="frame" x="0.0" y="202.5" width="374" height="40.5"/>
+                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleCallout"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hQw-Cp-2vA" customClass="TextLabel" customModule="HalloApp" customModuleProvider="target">
+                                                        <rect key="frame" x="0.0" y="251" width="374" height="40.5"/>
+                                                        <string key="text">If you have any questions or feedback 
+email us at support@halloapp.com</string>
+                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleCallout"/>
+                                                        <color key="textColor" systemColor="secondaryLabelColor"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                </subviews>
+                                            </stackView>
+                                        </subviews>
+                                        <constraints>
+                                            <constraint firstItem="5Kb-4H-A1G" firstAttribute="leading" secondItem="MgJ-2c-gbL" secondAttribute="leadingMargin" id="1fG-5m-aIC"/>
+                                            <constraint firstAttribute="trailingMargin" secondItem="5Kb-4H-A1G" secondAttribute="trailing" id="PKF-n1-rox"/>
+                                            <constraint firstItem="5Kb-4H-A1G" firstAttribute="top" relation="greaterThanOrEqual" secondItem="MgJ-2c-gbL" secondAttribute="top" id="S19-B9-Rhp"/>
+                                            <constraint firstItem="5Kb-4H-A1G" firstAttribute="centerY" secondItem="MgJ-2c-gbL" secondAttribute="centerY" id="j39-AH-mcl"/>
+                                        </constraints>
+                                    </view>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="MgJ-2c-gbL" firstAttribute="bottom" secondItem="7OI-lg-bKr" secondAttribute="bottom" id="2jw-I6-6Bs"/>
+                                    <constraint firstItem="MgJ-2c-gbL" firstAttribute="leading" secondItem="7OI-lg-bKr" secondAttribute="leading" id="LbK-2M-fQR"/>
+                                    <constraint firstItem="MgJ-2c-gbL" firstAttribute="top" secondItem="7OI-lg-bKr" secondAttribute="top" id="OYd-uq-Zw6"/>
+                                    <constraint firstItem="MgJ-2c-gbL" firstAttribute="trailing" secondItem="7OI-lg-bKr" secondAttribute="trailing" id="T1E-7x-RuJ"/>
+                                    <constraint firstItem="MgJ-2c-gbL" firstAttribute="width" secondItem="oiB-bV-gVC" secondAttribute="width" id="qyv-T9-Tl4"/>
+                                </constraints>
+                                <viewLayoutGuide key="contentLayoutGuide" id="7OI-lg-bKr"/>
+                                <viewLayoutGuide key="frameLayoutGuide" id="oiB-bV-gVC"/>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="w9P-ZY-5cZ"/>
+                        <color key="backgroundColor" name="FeedBackground"/>
+                        <constraints>
+                            <constraint firstItem="E8y-YI-sAw" firstAttribute="trailing" secondItem="w9P-ZY-5cZ" secondAttribute="trailing" id="LmA-GS-6qK"/>
+                            <constraint firstItem="E8y-YI-sAw" firstAttribute="leading" secondItem="w9P-ZY-5cZ" secondAttribute="leading" id="bzv-Zs-PQY"/>
+                            <constraint firstItem="MgJ-2c-gbL" firstAttribute="height" secondItem="w9P-ZY-5cZ" secondAttribute="height" priority="500" id="jOy-vA-b96"/>
+                            <constraint firstItem="E8y-YI-sAw" firstAttribute="top" secondItem="fNa-Of-UFP" secondAttribute="top" id="lUj-tP-3zj"/>
+                            <constraint firstAttribute="bottom" secondItem="E8y-YI-sAw" secondAttribute="bottom" id="phw-UN-3lO"/>
+                        </constraints>
+                    </view>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
+                    <connections>
+                        <outlet property="bodyLabel1" destination="kFe-M6-Ajb" id="qhz-32-WMy"/>
+                        <outlet property="bodyLabel2" destination="bUX-MF-Hu6" id="vWq-ze-g4z"/>
+                        <outlet property="footerLabel" destination="hQw-Cp-2vA" id="AZW-Xu-04x"/>
+                        <outlet property="titleLabel" destination="z8v-fS-Ud0" id="Q3Z-24-PUE"/>
+                        <outlet property="vStack" destination="5Kb-4H-A1G" id="NzV-un-c0i"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="yMV-Lp-AFA" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="253.62318840579712" y="-185.49107142857142"/>
+        </scene>
+    </scenes>
+    <resources>
+        <namedColor name="FeedBackground">
+            <color red="0.95294117647058818" green="0.94901960784313721" blue="0.93725490196078431" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="LavaOrange">
+            <color red="1" green="0.27058823529411763" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <systemColor name="secondaryLabelColor">
+            <color red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
+</document>
