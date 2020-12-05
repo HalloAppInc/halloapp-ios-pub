@@ -415,10 +415,20 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
 
     private var needsDetectHyperlinks = false
 
+    var linkColor: UIColor? = .systemBlue {
+        didSet {
+            invalidateTextStorage()
+        }
+    }
+
     private var links = [AttributedTextLink]()
 
-    private static let linkAttributes: [ NSAttributedString.Key: Any ] =
-        [ .foregroundColor: UIColor.systemBlue ]
+    private var linkAttributes: [ NSAttributedString.Key: Any ] {
+        if let linkColor = linkColor {
+            return [ .foregroundColor: linkColor ]
+        }
+        return [:]
+    }
 
     private static let addressAttributes: [ NSAttributedString.Key: Any ] =
         [ .underlineStyle: NSUnderlineStyle.single.rawValue,
@@ -453,7 +463,7 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
 
             for link in linksFullyContainedInRange {
                 if let linkBaseFont = textStorage.attribute(.font, at: link.range.location, effectiveRange: nil) as? UIFont {
-                    textStorage.addAttributes(Self.textAttributes(for: link.linkType, baseFont: linkBaseFont), range: link.range)
+                    textStorage.addAttributes(textAttributes(for: link.linkType, baseFont: linkBaseFont), range: link.range)
                 }
             }
         }
@@ -464,14 +474,14 @@ class TextLabel: UILabel, NSLayoutManagerDelegate {
         }
     }
 
-    private class func textAttributes(for textCheckingType: NSTextCheckingResult.CheckingType, baseFont: UIFont) -> [ NSAttributedString.Key: Any ] {
+    private func textAttributes(for textCheckingType: NSTextCheckingResult.CheckingType, baseFont: UIFont) -> [ NSAttributedString.Key: Any ] {
         switch textCheckingType {
         case .address, .date:
             return TextLabel.addressAttributes
         case .userMention:
             return [:]
         default:
-            return TextLabel.linkAttributes
+            return linkAttributes
         }
     }
 
