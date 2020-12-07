@@ -208,36 +208,45 @@ class ChatData: ObservableObject {
         cancellableSet.insert(
             contactStore.didDiscoverNewUsers.sink { [weak self] (userIDs) in
                 DDLogInfo("ChatData/didDiscoverNewUsers/count: \(userIDs.count)")
-                self?.updateThreads(for: userIDs, areNewUsers: true)
+                var contactsDict = [UserID:String]()
+                userIDs.forEach {
+                    contactsDict[$0] = contactStore.fullName(for: $0)
+                }
+                self?.updateThreads(for: contactsDict, areNewUsers: true)
             })
 
     }
-    
+
     func populateThreadsWithSymmetricContacts() {
         let contactStore = MainAppContext.shared.contactStore
         let contacts = contactStore.allInNetworkContacts(sorted: true)
         DDLogInfo("ChatData/populateThreadsWithSymmetricContacts/allInNetworkContacts: \(contacts.count)")
-        updateThreads(for: contacts.compactMap { $0.userId }, areNewUsers: false)
+        var contactsDict = [UserID:String]()
+        contacts.forEach {
+            guard let userID = $0.userId else { return }
+            contactsDict[userID] = $0.fullName
+        }
+        updateThreads(for: contactsDict, areNewUsers: false)
     }
 
-    func updateThreads(for userIDs: [UserID], areNewUsers: Bool) {
+    func updateThreads(for userIDs: [UserID:String], areNewUsers: Bool) {
         guard !userIDs.isEmpty else { return }
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
 
-            for userId in userIDs {
+            for (userId, fullName) in userIDs {
                 if let chatThread = self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) {
                     guard chatThread.lastMsgTimestamp == nil else { continue }
-                    if chatThread.title != self.contactStore.fullName(for: userId) {
+                    if chatThread.title != fullName {
                         DDLogDebug("ChatData/populateThreads/contact/rename \(userId)")
                         self.updateChatThread(type: .oneToOne, for: userId) { (chatThread) in
-                            chatThread.title = self.contactStore.fullName(for: userId)
+                            chatThread.title = fullName
                         }
                     }
                 } else {
                     DDLogInfo("ChatData/populateThreads/contact/new \(userId)")
-                    let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
-                    chatThread.title = self.contactStore.fullName(for: userId)
+                    let chatThread = ChatThread(context: managedObjectContext)
+                    chatThread.title = fullName
                     chatThread.chatWithUserId = userId
                     chatThread.lastMsgUserId = userId
                     chatThread.lastMsgText = nil
@@ -1523,7 +1532,9 @@ extension ChatData {
             }
             self.save(managedObjectContext)
             
-            self.populateThreadsWithSymmetricContacts()
+            DispatchQueue.main.async { [weak self] in
+                self?.populateThreadsWithSymmetricContacts()
+            }
         }
     }
     
