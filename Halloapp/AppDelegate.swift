@@ -116,9 +116,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
             DDLogInfo("application/background-push/connected")
 
-            // Disconnect gracefully after 3 seconds, which should be enough to finish processing.
+            // Disconnect gracefully after 10 seconds, which should be enough to finish processing.
             // TODO: disconnect immediately after receiving "offline marker".
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
                 // Make sure to check if the app is still backgrounded.
                 if application.applicationState == .background {
                     DDLogInfo("application/background-push/disconnect")
