@@ -234,6 +234,9 @@
 		F5E5842640950E619AA50E59 /* Pods_HalloAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6B5578700125D5FF5728637 /* Pods_HalloAppTests.framework */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
 		F851E9512500E47300BC0FAA /* MediaPickerSnapshotManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */; };
+		F8606DD1257E7340006CD1A6 /* MediaExplorerVideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DD0257E7340006CD1A6 /* MediaExplorerVideoCell.swift */; };
+		F8606DD6257E7402006CD1A6 /* MediaExplorerImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DD5257E7402006CD1A6 /* MediaExplorerImageCell.swift */; };
+		F8606DDB257E7C2A006CD1A6 /* MediaExplorerAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DDA257E7C2A006CD1A6 /* MediaExplorerAnimator.swift */; };
 		F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F878427B24F6C0FB0040B723 /* MediaAlbumsViewController.swift */; };
 		F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */; };
 		F8DA6F38252370BE007833A7 /* MediaExplorerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */; };
@@ -556,6 +559,9 @@
 		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
 		F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerSnapshotManager.swift; sourceTree = "<group>"; };
+		F8606DD0257E7340006CD1A6 /* MediaExplorerVideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerVideoCell.swift; sourceTree = "<group>"; };
+		F8606DD5257E7402006CD1A6 /* MediaExplorerImageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerImageCell.swift; sourceTree = "<group>"; };
+		F8606DDA257E7C2A006CD1A6 /* MediaExplorerAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerAnimator.swift; sourceTree = "<group>"; };
 		F878427B24F6C0FB0040B723 /* MediaAlbumsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAlbumsViewController.swift; sourceTree = "<group>"; };
 		F8C92C9924CF17BC00B1D4E6 /* MediaEditViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaEditViewController.swift; sourceTree = "<group>"; };
 		F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerController.swift; sourceTree = "<group>"; };
@@ -987,6 +993,7 @@
 			children = (
 				EA5414D623EE16D500390EF6 /* Comment */,
 				EA5414D423EE164C00390EF6 /* Media */,
+				F8606DCB257E7245006CD1A6 /* MediaExplorer */,
 				EA5414D523EE169E00390EF6 /* MediaSlider */,
 				76271381252D247700389FBC /* Post */,
 				7653F2F9255DB4E7001CC946 /* FeedCollectionViewController.swift */,
@@ -1040,7 +1047,6 @@
 			children = (
 				EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */,
 				765D03D62492C971007A7D3B /* ZoomableImageView.swift */,
-				F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */,
 			);
 			path = MediaSlider;
 			sourceTree = "<group>";
@@ -1278,6 +1284,17 @@
 				EAF3A1E62334192000805FF9 /* Info.plist */,
 			);
 			path = HalloappUITests;
+			sourceTree = "<group>";
+		};
+		F8606DCB257E7245006CD1A6 /* MediaExplorer */ = {
+			isa = PBXGroup;
+			children = (
+				F8DA6F37252370BE007833A7 /* MediaExplorerController.swift */,
+				F8606DD0257E7340006CD1A6 /* MediaExplorerVideoCell.swift */,
+				F8606DD5257E7402006CD1A6 /* MediaExplorerImageCell.swift */,
+				F8606DDA257E7C2A006CD1A6 /* MediaExplorerAnimator.swift */,
+			);
+			path = MediaExplorer;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1774,6 +1791,7 @@
 				68D45A0E25544813000BF04E /* ContactsPermissionsViewController.swift in Sources */,
 				EAD476D324588E0000EF8591 /* ChatMediaSlider.swift in Sources */,
 				761905A32459EB07008FC600 /* InputTextView.swift in Sources */,
+				F8606DD1257E7340006CD1A6 /* MediaExplorerVideoCell.swift in Sources */,
 				EAA4906625311CD1003348B5 /* OutboundMsgViewCell.swift in Sources */,
 				EA0B9919249C205E00B05094 /* String.swift in Sources */,
 				76407DFC245CBAD40031F96A /* PhoneInputViewController.swift in Sources */,
@@ -1820,6 +1838,8 @@
 				761BD0FE24B3EE0A00B567F6 /* InvitePeopleView.swift in Sources */,
 				EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */,
 				F878427C24F6C0FB0040B723 /* MediaAlbumsViewController.swift in Sources */,
+				F8606DDB257E7C2A006CD1A6 /* MediaExplorerAnimator.swift in Sources */,
+				F8606DD6257E7402006CD1A6 /* MediaExplorerImageCell.swift in Sources */,
 				761BD0FC24B3D75800B567F6 /* InviteManager.swift in Sources */,
 				765D03D72492C971007A7D3B /* ZoomableImageView.swift in Sources */,
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
