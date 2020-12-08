@@ -71,7 +71,10 @@ class FeedViewController: FeedCollectionViewController {
 
         // When the user was not on this view, and HomeView sends user to here
         if let metadata = NotificationMetadata.fromUserDefaults()  {
-            self.processNotification(metadata: metadata)
+            // dispatch_async is needed because collection view isn't ready to scroll to a given item at this point.
+            DispatchQueue.main.async {
+                self.processNotification(metadata: metadata)
+            }
         }
     }
 
