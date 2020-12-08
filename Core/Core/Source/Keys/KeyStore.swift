@@ -681,7 +681,10 @@ extension KeyStore {
         let savedInboundEphemeralKeyId = keyBundle.inboundEphemeralKeyId
         var savedInboundChainIndex = keyBundle.inboundChainIndex
 //        let savedInboundPreviousChainLength = keyBundle.inboundPreviousChainLength
-        
+
+        DDLogInfo("KeyStore/decryptMessage/user/\(userId)/savedInboundEphemeralKeyId \(savedInboundEphemeralKeyId)")
+        DDLogInfo("KeyStore/decryptMessage/user/\(userId)/savedInboundChainIndex \(inboundChainIndex)")
+
         // only for saving
         var outboundChainKey = [UInt8](keyBundle.outboundChainKey)
         var outboundEphemeralPrivateKey = keyBundle.outboundEphemeralPrivateKey
@@ -819,6 +822,7 @@ extension KeyStore {
             
             self.performSeriallyOnBackgroundContext { (managedObjectContext) in
                 if let messageKeyBundle = self.messageKeyBundle(for: userId, in: managedObjectContext) {
+                    DDLogInfo("KeyStore/decryptMessage/user/\(userId)/updating key bundle")
                     messageKeyBundle.inboundEphemeralPublicKey = Data(inboundEphemeralPublicKey)
                     messageKeyBundle.inboundEphemeralKeyId = Int32(inboundEphemeralKeyIdInt)
                     messageKeyBundle.inboundChainKey = Data(inboundChainKey)
@@ -836,6 +840,8 @@ extension KeyStore {
                     
                     messageKeyBundle.outboundIdentityPublicEdKey = outboundIdentityPublicEdKey
                     messageKeyBundle.outboundOneTimePreKeyId = outboundOneTimePreKeyId
+                } else {
+                    DDLogError("KeyStore/decryptMessage/user/\(userId)/error no key bundle to update")
                 }
                 self.save(managedObjectContext)
             }
