@@ -23,10 +23,11 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var collectionView: UICollectionView!
     private var pageControl: UIPageControl!
     private var tapRecorgnizer: UITapGestureRecognizer!
-    private var swipeDownRecognizer: UIPanGestureRecognizer!
-    private var swipeDownStart: CGPoint?
+    private var swipeExitRecognizer: UIPanGestureRecognizer!
+    private var swipeExitInProgress = false
     private var isSystemUIHidden = false
     private var isTransition = false
+    private var animator: MediaExplorerAnimator!
 
     private var currentIndex: Int {
         didSet {
@@ -114,6 +115,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarBack"), style: .plain, target: self, action: #selector(backAction))
 
+        view.backgroundColor = .black
+
         collectionView = makeCollectionView()
         self.view.addSubview(collectionView)
 
@@ -177,9 +180,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         coordinator.animate(alongsideTransition: { [weak self] context in
             guard let self = self else { return }
 
-            if let cell = self.collectionView.cellForItem(at: indexPath) as? VideoCell {
+            if let cell = self.collectionView.cellForItem(at: indexPath) as? MediaExplorerVideoCell {
                 cell.resetVideoSize()
-            } else if let cell = self.collectionView.cellForItem(at: indexPath) as? ImageCell {
+            } else if let cell = self.collectionView.cellForItem(at: indexPath) as? MediaExplorerImageCell {
                 cell.computeConstraints()
                 cell.reset()
             }
@@ -197,7 +200,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         layout.scrollDirection = .horizontal
 
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.backgroundColor = .black
+        collectionView.backgroundColor = .clear
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.isPagingEnabled = true
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -213,11 +216,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         tapRecorgnizer.delegate = self
         collectionView.addGestureRecognizer(tapRecorgnizer)
 
-        // Not using UISwipeGestureRecognizer because slow swipes are indistinguishable from drag down on images
-        swipeDownRecognizer = UIPanGestureRecognizer(target: self, action: #selector(onSwipeDownAction(sender:)))
-        swipeDownRecognizer.maximumNumberOfTouches = 1
-        swipeDownRecognizer.delegate = self
-        collectionView.addGestureRecognizer(swipeDownRecognizer)
+        swipeExitRecognizer = UIPanGestureRecognizer(target: self, action: #selector(onSwipeExitAction(sender:)))
+        swipeExitRecognizer.maximumNumberOfTouches = 1
+        swipeExitRecognizer.delegate = self
+        collectionView.addGestureRecognizer(swipeExitRecognizer)
 
         return collectionView
     }
@@ -285,7 +287,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             }
         }
 
-        if gestureRecognizer == swipeDownRecognizer {
+        if gestureRecognizer == swipeExitRecognizer {
             return true
         }
 
@@ -344,45 +346,81 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         toggleSystemUI()
     }
 
-    @objc private func onSwipeDownAction(sender: UIPanGestureRecognizer) {
-        let location = sender.location(in: sender.view)
-        let velocity = sender.velocity(in: sender.view)
+    @objc private func onSwipeExitAction(sender: UIPanGestureRecognizer) {
+        let translation = sender.translation(in: sender.view)
+
+        let startThreshold: CGFloat = 20
+        let finishThreshold: CGFloat = 100
 
         switch sender.state {
-        case .began:
-            swipeDownStart = location
-        case .cancelled:
-            swipeDownStart = nil
-        case .ended:
-            guard let start = swipeDownStart else { return }
-            let distance = location.y - start.y
+        case .changed:
+            let cell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0))
+            if let cell = cell as? MediaExplorerImageCell, cell.isZoomed {
+                return
+            }
 
-            if distance > 100 && velocity.y > 200 {
+            if !swipeExitInProgress && translation.y > startThreshold && translation.y > abs(translation.x) {
+                sender.setTranslation(.zero, in: sender.view)
+                swipeExitInProgress = true
                 backAction()
+            } else if swipeExitInProgress {
+                animator.move(translation)
             }
+        case .cancelled:
+            guard swipeExitInProgress else { return }
+            swipeExitInProgress = false
+            animator.cancelInteractiveTransition()
+        case .ended:
+            guard swipeExitInProgress else { return }
+            swipeExitInProgress = false
 
-            swipeDownStart = nil
-        default:
-            if velocity.y < 200 {
-                swipeDownStart = nil
+            if translation.x * translation.x + translation.y * translation.y > finishThreshold * finishThreshold {
+                animator.finishInteractiveTransition()
+            } else {
+                animator.cancelInteractiveTransition()
             }
+        default:
+            break
         }
     }
 
     // MARK: UIViewControllerTransitioningDelegate
 
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        let animator = MediaExplorerAnimator(media: media[currentIndex], atPosition: currentIndex, presenting: true)
+        animator = MediaExplorerAnimator(media: media[currentIndex], atPosition: currentIndex, presenting: true)
         animator.delegate = delegate
+        animator.delegateExplorer = self
 
         return animator
     }
 
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        let animator = MediaExplorerAnimator(media: media[currentIndex], atPosition: currentIndex, presenting: false)
+        animator = MediaExplorerAnimator(media: media[currentIndex], atPosition: currentIndex, presenting: false)
         animator.delegate = delegate
+        animator.delegateExplorer = self
 
         return animator
+    }
+
+    func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+        return swipeExitInProgress ? self.animator : nil
+    }
+}
+
+extension MediaExplorerController: MediaExplorerTransitionDelegate {
+    func getTransitionView(atPostion index: Int) -> UIView? {
+        return collectionView.cellForItem(at: IndexPath(item: index, section: 0))
+    }
+
+    func scrollMediaToVisible(atPostion index: Int) {
+    }
+
+    func hideCollectionView() {
+        collectionView.isHidden = true
+    }
+
+    func showCollectionView() {
+        collectionView.isHidden = false
     }
 }
 

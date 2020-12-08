@@ -64,6 +64,8 @@ class MediaExplorerImageCell: UICollectionViewCell, UIGestureRecognizerDelegate 
         }
     }
 
+    var isZoomed: Bool { scale > 1.001 }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
 
