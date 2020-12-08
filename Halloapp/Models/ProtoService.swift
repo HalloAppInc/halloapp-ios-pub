@@ -26,13 +26,13 @@ final class ProtoService: ProtoServiceCore {
 
         self.cancellableSet.insert(
             userData.didLogIn.sink {
-                DDLogInfo("xmpp/userdata/didLogIn")
+                DDLogInfo("proto/userdata/didLogIn")
                 self.stream.myJID = self.userData.userJID
                 self.connect()
             })
         self.cancellableSet.insert(
             userData.didLogOff.sink {
-                DDLogInfo("xmpp/userdata/didLogOff")
+                DDLogInfo("proto/userdata/didLogOff")
                 self.disconnectImmediately() // this is only necessary when manually logging out from a developer menu.
                 self.stream.myJID = nil
             })
@@ -383,6 +383,7 @@ final class ProtoService: ProtoServiceCore {
                     }
                     if let error = decryptionError {
                         DDLogError("ProtoService/didReceive/\(requestID)/decrypt/error \(error)")
+                        AppContext.shared.errorLogger?.logError(error)
                         self.rerequestMessage(msg)
                     }
                     AppContext.shared.eventMonitor.observe(.decryption(error: decryptionError))
@@ -393,6 +394,7 @@ final class ProtoService: ProtoServiceCore {
                 decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, decryptionError) in
                     if let error = decryptionError {
                         DDLogError("ProtoService/didReceive/\(requestID)/decrypt-silent/error \(error)")
+                        AppContext.shared.errorLogger?.logError(error)
                         self.rerequestMessage(msg)
                     }
                     AppContext.shared.eventMonitor.observe(.decryption(error: decryptionError))
@@ -405,11 +407,13 @@ final class ProtoService: ProtoServiceCore {
                     keyStore.performSeriallyOnBackgroundContext { context in
                         let needsNewIdentityKey: Bool = {
                             guard let savedKey = keyStore.messageKeyBundle(for: userID)?.inboundIdentityPublicEdKey else {
+                                DDLogInfo("proto/rerequest/user/\(userID) no saved key")
                                 return true
                             }
                             return savedKey != rerequest.identityKey
                         }()
                         if needsNewIdentityKey {
+                            DDLogInfo("proto/rerequest/user/\(userID) refreshing keys")
                             keyStore.deleteMessageKeyBundles(for: userID)
                         }
                         DispatchQueue.main.async {
@@ -624,6 +628,7 @@ final class ProtoService: ProtoServiceCore {
                     // Decrypted message does not match plaintext
                     completion(plainTextMessage, .plaintextMismatch)
                 } else {
+                    DDLogInfo("proto/decryptChat/plaintext not available")
                     completion(decryptedMessage, nil)
                 }
             case .failure(let error):
@@ -847,11 +852,11 @@ extension ProtoService: HalloService {
 
     func sendGroupChatMessage(_ message: HalloGroupChatMessage) {
         guard let messageData = try? message.protoContainer.serializedData() else {
-            DDLogError("ProtoServiceCore/sendGroupChatMessage/\(message.id)/error could not serialize message data")
+            DDLogError("ProtoService/sendGroupChatMessage/\(message.id)/error could not serialize message data")
             return
         }
          guard let fromUID = Int64(userData.userId) else {
-            DDLogError("ProtoServiceCore/sendGroupChatMessage/\(message.id)/error invalid sender uid")
+            DDLogError("ProtoService/sendGroupChatMessage/\(message.id)/error invalid sender uid")
             return
         }
 
@@ -870,11 +875,11 @@ extension ProtoService: HalloService {
         packet.msg.payload = .groupChat(chat)
         
         guard let packetData = try? packet.serializedData() else {
-            DDLogError("ProtoServiceCore/sendGroupChatMessage/\(message.id)/error could not serialize packet")
+            DDLogError("ProtoService/sendGroupChatMessage/\(message.id)/error could not serialize packet")
             return
         }
 
-        DDLogInfo("ProtoServiceCore/sendGroupChatMessage/\(message.id) sending (unencrypted)")
+        DDLogInfo("ProtoService/sendGroupChatMessage/\(message.id) sending (unencrypted)")
         stream.send(packetData)
         sendSilentChats(ServerProperties.silentChatMessages)
     }

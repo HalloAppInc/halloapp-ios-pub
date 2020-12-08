@@ -68,6 +68,7 @@ open class AppContext {
     public let eventMonitor = EventMonitor()
 
     public var coreService: CoreService
+    public var errorLogger: ErrorLogger?
 
     private let contactStoreImpl: ContactStore
     open var contactStore: ContactStore {

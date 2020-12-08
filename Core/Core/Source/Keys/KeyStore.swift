@@ -13,6 +13,7 @@ import CryptoSwift
 import Foundation
 import Sodium
 
+// Add new error cases at the end (the index is used as the error code)
 public enum DecryptionError: String, Error {
     case aesError
     case deserialization
@@ -31,6 +32,7 @@ public enum DecryptionError: String, Error {
     case x25519Conversion
 }
 
+// Add new error cases at the end (the index is used as the error code)
 public enum EncryptionError: String, Error {
     case aesError
     case hmacError
@@ -479,6 +481,8 @@ extension KeyStore {
         let inboundOneTimePreKeyId = oneTimeKeyID ?? -1
         
         guard let x25519Key = sodium.sign.convertToX25519PublicKey(publicKey: [UInt8](inboundIdentityPublicEdKey)) else {
+            DDLogError("KeyStore/receiveSessionSetup/error X25519 conversion error")
+            DDLogInfo("Inbound Key: \(inboundIdentityPublicEdKey)")
             return .failure(.x25519Conversion)
         }
         let I_initiator = Data(x25519Key)
@@ -521,7 +525,7 @@ extension KeyStore {
                                                recipientSignedPreKey: S_recipient,
                                                recipientOneTimePreKey: O_recipient) else
         {
-            DDLogDebug("KeyStore/receiveSessionSetup/invalidMasterKey")
+            DDLogError("KeyStore/receiveSessionSetup/invalidMasterKey")
             return .failure(.masterKeyComputation)
         }
         
@@ -792,7 +796,7 @@ extension KeyStore {
 
         // 32 byte AES + 32 byte HMAC + 16 byte IV
         guard messageKey.count >= 80 else {
-            DDLogInfo("KeyStore/decryptMessage/invalidMessageKey")
+            DDLogError("KeyStore/decryptMessage/invalidMessageKey [\(messageKey.count) bytes]")
             return .failure(.invalidMessageKey)
         }
         
@@ -802,7 +806,10 @@ extension KeyStore {
         let calculatedHMAC = try! CryptoSwift.HMAC(key: HMACKey, variant: .sha256).authenticate([UInt8](encryptedMessage))
         
         guard [UInt8](inboundHMAC) == calculatedHMAC else {
-            DDLogInfo("KeyStore/decryptMessage/hmacMismatch")
+            DDLogError("KeyStore/decryptMessage/hmacMismatch")
+            DDLogInfo("Computed HMAC: \(calculatedHMAC)")
+            DDLogInfo(" Inbound HMAC: \(inboundHMAC)")
+            DDLogInfo("  Message Key: \(messageKey)")
             return .failure(.hmacMismatch)
         }
         
@@ -1035,7 +1042,7 @@ extension KeyStore {
     }
 
     public func wrapMessage(for userId: String, with service: CoreService, unencrypted: Data, completion: @escaping (Result<EncryptedData, EncryptionError>) -> Void) {
-        DDLogInfo("KeyStore/wrapMessage")
+        DDLogInfo("KeyStore/wrapMessage/user/\(userId)")
         var keyBundle: KeyBundle? = nil
         let group = DispatchGroup()
         group.enter()
@@ -1048,9 +1055,10 @@ extension KeyStore {
                 service.requestWhisperKeyBundle(userID: userId) { result in
                     switch result {
                     case .success(let keys):
+                        DDLogError("KeyStore/wrapMessage/user/\(userId)/requestWhisperKeys/success")
                         keyBundle = self.initiateSessionSetup(for: userId, with: keys)
                     case .failure(let error):
-                        DDLogInfo("KeyStore/wrapMessage/error \(error)")
+                        DDLogError("KeyStore/wrapMessage/user/\(userId)/requestWhisperKeys/error \(error)")
                     }
                     group.leave()
                 }
@@ -1084,11 +1092,12 @@ extension KeyStore {
             var isNewReceiveSession: Bool
 
             if let savedKeyBundle = self.messageKeyBundle(for: userId)?.keyBundle {
+                DDLogInfo("KeyData/decryptPayload/user/\(userId)/found key bundle")
                 keyBundle = savedKeyBundle
                 isNewReceiveSession = false
             } else {
                 guard let publicKey = publicKey else {
-                    DDLogError("KeyData/decryptPayload/error missing public key")
+                    DDLogError("KeyData/decryptPayload/user/\(userId)/error missing public key")
                     DispatchQueue.main.async {
                         completion(.failure(.missingPublicKey))
                     }
@@ -1097,10 +1106,11 @@ extension KeyStore {
                 let setup = self.receiveSessionSetup(for: userId, from: encryptedPayload, publicKey: publicKey, oneTimeKeyID: oneTimeKeyID)
                 switch setup {
                 case .success(let newKeyBundle):
+                    DDLogInfo("KeyData/decryptPayload/user/\(userId)/receiveSessionSetup/success")
                     keyBundle = newKeyBundle
                     isNewReceiveSession = true
                 case .failure(let error):
-                    DDLogError("KeyData/decryptPayload/error receiveSessionSetup failed")
+                    DDLogError("KeyData/decryptPayload/user/\(userId)/receiveSessionSetup/error \(error)")
                     DispatchQueue.main.async {
                         completion(.failure(error))
                     }

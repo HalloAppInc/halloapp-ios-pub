@@ -6,6 +6,7 @@
 //  Copyright © 2020 Hallo App, Inc. All rights reserved.
 //
 
+import Core
 import Foundation
 import CocoaLumberjack
 import FirebaseCrashlytics
@@ -22,5 +23,11 @@ public final class CrashlyticsLogger: DDAbstractLogger {
         }
 
         Crashlytics.crashlytics().log(message)
+    }
+}
+
+extension CrashlyticsLogger: ErrorLogger {
+    public func logError(_ error: Error) {
+        Crashlytics.crashlytics().record(error: error)
     }
 }

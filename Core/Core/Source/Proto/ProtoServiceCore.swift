@@ -477,6 +477,10 @@ extension ProtoServiceCore: CoreService {
                     completion(.failure(ProtoServiceCoreError.disconnected))
                     return
                 }
+                if let error = error {
+                    DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id)/error \(error)")
+                    AppContext.shared.errorLogger?.logError(error)
+                }
                 AppContext.shared.eventMonitor.observe(.encryption(error: error))
                 DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
                 self.stream.send(packetData)

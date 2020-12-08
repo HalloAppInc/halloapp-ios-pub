@@ -103,6 +103,11 @@ class MainAppContext: AppContext {
         avatarStore = AvatarStore()
         coreService.avatarDelegate = avatarStore
         privacySettings = PrivacySettings(contactStore: contactStore, service: service)
+
+        #if !DEBUG
+        // Log errors to firebase
+        errorLogger = logger
+        #endif
     }
     
     private var mergingSharedData = false
