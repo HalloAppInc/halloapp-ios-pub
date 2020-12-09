@@ -1702,6 +1702,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             DDLogInfo("FeedData/share-posts/\(userId) User is blocked")
             return
         }
+        guard userId != userData.userId else {
+            DDLogInfo("FeedData/share-posts/\(userId) Cannot share posts with self")
+            return
+        }
 
         let predicate = NSPredicate(format: "statusValue == %d AND groupId == nil AND timestamp > %@", FeedPost.Status.sent.rawValue, NSDate(timeIntervalSinceNow: -Date.days(7)))
         let posts = feedPosts(predicate: predicate, in: viewContext)
