@@ -629,7 +629,9 @@ final class ProtoService: ProtoServiceCore {
                     // Decrypted message does not match plaintext
                     completion(plainTextMessage, .plaintextMismatch)
                 } else {
-                    DDLogInfo("proto/decryptChat/plaintext not available")
+                    if plainTextMessage == nil {
+                        DDLogInfo("proto/decryptChat/plaintext not available")
+                    }
                     completion(decryptedMessage, nil)
                 }
             case .failure(let error):
