@@ -3610,8 +3610,6 @@ extension XMPPChatMessage {
         chatReplyMessageID = protoChat.chatReplyMessageID.isEmpty ? nil : protoChat.chatReplyMessageID
         chatReplyMessageSenderID = protoChat.chatReplyMessageSenderID.isEmpty ? nil : protoChat.chatReplyMessageSenderID
         chatReplyMessageMediaIndex = protoChat.chatReplyMessageMediaIndex
-
-        DDLogDebug("ChatData/XMPPChatMessage/plainText: \(text ?? "")")
     }
 }
 

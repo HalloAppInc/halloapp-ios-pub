@@ -379,6 +379,7 @@ final class ProtoService: ProtoServiceCore {
                 decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionError) in
                     if let clientChat = clientChat {
                         let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount)
+                        DDLogInfo("proto/didReceive/\(requestID)/chat/user/\(chatMessage.fromUserId) [length=\(chatMessage.text?.count ?? 0)] [media=\(chatMessage.media.count)]")
                         self.didGetNewChatMessage.send(chatMessage)
                     }
                     if let error = decryptionError {
