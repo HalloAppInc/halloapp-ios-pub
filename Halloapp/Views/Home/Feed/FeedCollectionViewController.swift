@@ -409,14 +409,14 @@ extension FeedCollectionViewController: UICollectionViewDelegate {
 extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        guard let feedPost = fetchedResultsController?.object(at: indexPath),
-              let feedItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id) else
-        {
+        guard let feedPost = fetchedResultsController?.object(at: indexPath) else {
+            DDLogError("FeedCollectionView Automatic size for index path [\(indexPath)]")
             return UICollectionViewFlowLayout.automaticSize
         }
 
+        let feedItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)
         let cellWidth = collectionView.frame.width
-        if let cachedCellHeight = feedItem.cachedCellHeight {
+        if let cachedCellHeight = feedItem?.cachedCellHeight {
             DDLogDebug("FeedCollectionView Using cached height [\(cachedCellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
             return CGSize(width: cellWidth, height: cachedCellHeight)
         }
@@ -424,7 +424,7 @@ extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
         let gutterWidth = (1 - FeedPostCollectionViewCellBase.LayoutConstants.backgroundPanelHMarginRatio) * collectionView.layoutMargins.left
         let cellClass = FeedPostCollectionViewCellBase.cellClass(forPost: feedPost)
         let cellHeight = cellClass.height(forPost: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth)
-        feedItem.cachedCellHeight = cellHeight
+        feedItem?.cachedCellHeight = cellHeight
         DDLogDebug("FeedCollectionView Calculated cell height [\(cellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
         return CGSize(width: cellWidth, height: cellHeight)
     }
