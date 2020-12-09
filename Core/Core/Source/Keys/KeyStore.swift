@@ -811,7 +811,7 @@ extension KeyStore {
         guard [UInt8](inboundHMAC) == calculatedHMAC else {
             DDLogError("KeyStore/decryptMessage/hmacMismatch")
             DDLogInfo("Computed HMAC: \(calculatedHMAC)")
-            DDLogInfo(" Inbound HMAC: \(inboundHMAC)")
+            DDLogInfo(" Inbound HMAC: \([UInt8](inboundHMAC))")
             DDLogInfo("  Message Key: \(messageKey)")
             return .failure(.hmacMismatch)
         }
