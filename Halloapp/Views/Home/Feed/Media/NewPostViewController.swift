@@ -87,9 +87,19 @@ final class NewPostViewController: UIViewController {
     }
 
     private func makeComposerViewController(showAddMoreMediaButton: Bool = true) -> UIViewController {
+        var titleMode: PostComposerViewController.TitleMode = .userPost
+        var recipientName: String? = nil
+        if case .groupFeed(let groupId) = destination {
+            titleMode = .groupPost
+            if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                recipientName = group.name
+            }
+        }
         return PostComposerViewController(
             mediaToPost: state.pendingMedia,
             initialInput: state.pendingInput,
+            titleMode: titleMode,
+            recipientName: recipientName,
             showAddMoreMediaButton: showAddMoreMediaButton,
             useTransparentNavigationBar: true,
             delegate: self)

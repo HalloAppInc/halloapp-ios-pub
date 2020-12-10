@@ -57,7 +57,8 @@ private extension Localizations {
 
 class PostComposerViewController: UIViewController {
     enum TitleMode {
-        case post
+        case userPost
+        case groupPost
         case message
     }
 
@@ -69,7 +70,7 @@ class PostComposerViewController: UIViewController {
     fileprivate let imageServer = ImageServer()
 
     private let titleMode: TitleMode
-    private var messageRecipientName: String?
+    private var recipientName: String?
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
     private var shouldAutoPlay = GenericObservable(false)
@@ -86,8 +87,8 @@ class PostComposerViewController: UIViewController {
     init(
         mediaToPost media: [PendingMedia],
         initialInput: MentionInput,
-        titleMode: TitleMode = .post,
-        messageRecipientName: String? = nil,
+        titleMode: TitleMode,
+        recipientName: String? = nil,
         disableMentions: Bool = false,
         showAddMoreMediaButton: Bool = true,
         useTransparentNavigationBar: Bool = false,
@@ -97,7 +98,7 @@ class PostComposerViewController: UIViewController {
         self.isMediaPost = media.count > 0
         self.inputToPost = GenericObservable(initialInput)
         self.titleMode = titleMode
-        self.messageRecipientName = messageRecipientName
+        self.recipientName = recipientName
         self.disableMentions = disableMentions
         self.showAddMoreMediaButton = showAddMoreMediaButton
         self.useTransparentNavigationBar = useTransparentNavigationBar
@@ -145,36 +146,42 @@ class PostComposerViewController: UIViewController {
         addChild(postComposerViewController)
         view.addSubview(postComposerViewController.view)
         postComposerViewController.view.translatesAutoresizingMaskIntoConstraints = false
-        postComposerViewController.view.backgroundColor =
-            mediaItems.value.count > 0 ? .secondarySystemGroupedBackground : .feedBackground
+        postComposerViewController.view.backgroundColor = .feedBackground
         postComposerViewController.view.constrain(to: view)
         postComposerViewController.didMove(toParent: self)
 
-        switch titleMode {
-        case .post:
-            let titleView = TitleView()
-            titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
-            titleView.subtitleLabel.text = privacySettings?.composerIndicator ?? ""
-            privacySubscription = privacySettings?.$composerIndicator.assign(to: \.text!, on: titleView.subtitleLabel)
-            navigationItem.titleView = titleView
-
-        case .message:
-            let titleView = TitleView()
-            titleView.titleLabel.text = NSLocalizedString("composer.message.title", value: "New Message", comment: "Composer New Message title.")
-            if let messageRecipientName = messageRecipientName {
-                let formatString = NSLocalizedString("composer.message.subtitle", value: "Sending to %@", comment: "Composer subtitle for messages.")
-                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, messageRecipientName)
-            } else {
-                titleView.isHidden = true
-            }
-            navigationItem.titleView = titleView
-        }
-
-        navigationItem.leftBarButtonItem =
-            UIBarButtonItem(image: isMediaPost ? backIcon : closeIcon, style: .plain, target: self, action: #selector(backAction))
+        let titleView = TitleView()
         let shareTitle = NSLocalizedString("composer.post.button.share", value: "Share", comment: "Share button title.")
         shareButton = UIBarButtonItem(title: shareTitle, style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
+
+        switch titleMode {
+        case .userPost:
+            titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
+            titleView.subtitleLabel.text = privacySettings?.composerIndicator ?? ""
+            privacySubscription = privacySettings?.$composerIndicator.assign(to: \.text!, on: titleView.subtitleLabel)
+        case .groupPost:
+            titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
+            if let recipientName = recipientName {
+                let formatString = NSLocalizedString("composer.post.subtitle", value: "Sharing with %@", comment: "Composer subtitle for group posts.")
+                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, recipientName)
+            } else {
+                titleView.isHidden = true
+            }
+        case .message:
+            titleView.titleLabel.text = NSLocalizedString("composer.message.title", value: "New Message", comment: "Composer New Message title.")
+            if let recipientName = recipientName {
+                let formatString = NSLocalizedString("composer.message.subtitle", value: "Sending to %@", comment: "Composer subtitle for messages.")
+                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, recipientName)
+            } else {
+                titleView.isHidden = true
+            }
+            shareButton.title = NSLocalizedString("composer.post.button.send", value: "Send", comment: "Send button title.")
+        }
+
+        navigationItem.titleView = titleView
+        navigationItem.leftBarButtonItem =
+            UIBarButtonItem(image: isMediaPost ? backIcon : closeIcon, style: .plain, target: self, action: #selector(backAction))
     }
 
     override func viewWillAppear(_ animated: Bool) {
