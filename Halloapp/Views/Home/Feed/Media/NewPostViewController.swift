@@ -99,7 +99,7 @@ final class NewPostViewController: UIViewController {
             mediaToPost: state.pendingMedia,
             initialInput: state.pendingInput,
             titleMode: titleMode,
-            messageRecipientName: messageRecipientName,
+            recipientName: messageRecipientName,
             showAddMoreMediaButton: showAddMoreMediaButton,
             useTransparentNavigationBar: true,
             delegate: self)

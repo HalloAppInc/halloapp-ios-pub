@@ -70,7 +70,7 @@ class PostComposerViewController: UIViewController {
     fileprivate let imageServer = ImageServer()
 
     private let titleMode: TitleMode
-    private var messageRecipientName: String?
+    private var recipientName: String?
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
     private var shouldAutoPlay = GenericObservable(false)
@@ -87,8 +87,8 @@ class PostComposerViewController: UIViewController {
     init(
         mediaToPost media: [PendingMedia],
         initialInput: MentionInput,
-        titleMode: TitleMode = .userPost,
-        messageRecipientName: String? = nil,
+        titleMode: TitleMode,
+        recipientName: String? = nil,
         disableMentions: Bool = false,
         showAddMoreMediaButton: Bool = true,
         useTransparentNavigationBar: Bool = false,
@@ -98,7 +98,7 @@ class PostComposerViewController: UIViewController {
         self.isMediaPost = media.count > 0
         self.inputToPost = GenericObservable(initialInput)
         self.titleMode = titleMode
-        self.messageRecipientName = messageRecipientName
+        self.recipientName = recipientName
         self.disableMentions = disableMentions
         self.showAddMoreMediaButton = showAddMoreMediaButton
         self.useTransparentNavigationBar = useTransparentNavigationBar
@@ -162,17 +162,17 @@ class PostComposerViewController: UIViewController {
             privacySubscription = privacySettings?.$composerIndicator.assign(to: \.text!, on: titleView.subtitleLabel)
         case .groupPost:
             titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
-            if let messageRecipientName = messageRecipientName {
+            if let recipientName = recipientName {
                 let formatString = NSLocalizedString("composer.post.subtitle", value: "Sharing with %@", comment: "Composer subtitle for group posts.")
-                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, messageRecipientName)
+                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, recipientName)
             } else {
                 titleView.isHidden = true
             }
         case .message:
             titleView.titleLabel.text = NSLocalizedString("composer.message.title", value: "New Message", comment: "Composer New Message title.")
-            if let messageRecipientName = messageRecipientName {
+            if let recipientName = recipientName {
                 let formatString = NSLocalizedString("composer.message.subtitle", value: "Sending to %@", comment: "Composer subtitle for messages.")
-                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, messageRecipientName)
+                titleView.subtitleLabel.text = String.localizedStringWithFormat(formatString, recipientName)
             } else {
                 titleView.isHidden = true
             }
