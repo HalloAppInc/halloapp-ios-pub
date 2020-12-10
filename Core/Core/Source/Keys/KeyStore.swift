@@ -670,10 +670,10 @@ extension KeyStore {
         let inboundHMAC = encryptedPayloadWithoutHeader.suffix(32)
         let encryptedMessage = encryptedPayloadWithoutHeader.dropLast(32)
         
-        DDLogDebug("KeyStore/decryptMessage/inboundEphemeralPublicKey:   \([UInt8](inboundEphemeralPublicKey))")
-        DDLogDebug("KeyStore/decryptMessage/inboundEphemeralKeyId:       \([UInt8](inboundEphemeralKeyId))")
-        DDLogDebug("KeyStore/decryptMessage/previousChainLengthInt:      \([UInt8](inboundPreviousChainLength))")
-        DDLogDebug("KeyStore/decryptMessage/inboundChainIndexInt:        \([UInt8](inboundChainIndex))")
+        DDLogDebug("KeyStore/decryptMessage/user/\(userId)/inboundEphemeralPublicKey:   \([UInt8](inboundEphemeralPublicKey))")
+        DDLogDebug("KeyStore/decryptMessage/user/\(userId)/inboundEphemeralKeyId:       \([UInt8](inboundEphemeralKeyId))")
+        DDLogDebug("KeyStore/decryptMessage/user/\(userId)/previousChainLengthInt:      \([UInt8](inboundPreviousChainLength))")
+        DDLogDebug("KeyStore/decryptMessage/user/\(userId)/inboundChainIndexInt:        \([UInt8](inboundChainIndex))")
         
         var rootKey = [UInt8](keyBundle.rootKey)
         var inboundChainKey = [UInt8](keyBundle.inboundChainKey)
@@ -683,7 +683,6 @@ extension KeyStore {
 //        let savedInboundPreviousChainLength = keyBundle.inboundPreviousChainLength
 
         DDLogInfo("KeyStore/decryptMessage/user/\(userId)/savedInboundEphemeralKeyId \(savedInboundEphemeralKeyId)")
-        DDLogInfo("KeyStore/decryptMessage/user/\(userId)/savedInboundChainIndex \(inboundChainIndex)")
 
         // only for saving
         var outboundChainKey = [UInt8](keyBundle.outboundChainKey)
