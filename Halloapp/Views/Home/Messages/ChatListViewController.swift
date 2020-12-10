@@ -13,9 +13,10 @@ import CoreData
 import SwiftUI
 import UIKit
 
-// MARK: Constraint Constants
-fileprivate struct LayoutConstants {
-    static let avatarSize: CGFloat = 50
+fileprivate struct Constants {
+    static let AvatarSize: CGFloat = 50
+    static let LastMsgFont = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize + 1) // 14
+    static let LastMsgColor = UIColor.secondaryLabel
 }
 
 fileprivate enum ChatListViewSection {
@@ -377,7 +378,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         if let lastCheckedForNewContacts = lastCheckedForNewContacts {
             isTimeToCheck = abs(lastCheckedForNewContacts.timeIntervalSinceNow) >= Date.minutes(1)
         }
-
+        
         if isTimeToCheck {
             DDLogDebug("ChatListViewController/populateWithSymmetricContacts")
             MainAppContext.shared.chatData.populateThreadsWithSymmetricContacts()
@@ -737,7 +738,7 @@ private class ChatListInviteFriendsTableViewCell: UITableViewCell {
         let view = UIImageView(image: image)
         view.contentMode = .center
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.cornerRadius = LayoutConstants.avatarSize / 2
+        view.layer.cornerRadius = Constants.AvatarSize / 2
         view.tintColor = .white
         view.backgroundColor = .systemBlue
         return view
@@ -760,7 +761,7 @@ private class ChatListInviteFriendsTableViewCell: UITableViewCell {
         contentView.addSubview(label)
 
         contentView.addConstraints([
-            iconView.widthAnchor.constraint(equalToConstant: LayoutConstants.avatarSize),
+            iconView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize),
             iconView.heightAnchor.constraint(equalTo: iconView.widthAnchor),
             iconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             iconView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
@@ -808,10 +809,6 @@ private class ChatListTableViewCell: UITableViewCell {
 
     // 14 points for font
     private func lastMessageText(for chatThread: ChatThread) -> NSAttributedString {
-
-        let textColor = UIColor.secondaryLabel
-        let footnoteFont = UIFont.preferredFont(forTextStyle: .footnote)
-        let font = UIFont.systemFont(ofSize: footnoteFont.pointSize + 1)
 
         var contactNamePart = ""
         if chatThread.type == .group {
@@ -869,7 +866,7 @@ private class ChatListTableViewCell: UITableViewCell {
 
         if let messageStatusIcon = messageStatusIcon {
             let imageSize = messageStatusIcon.size
-            let scale = font.capHeight / imageSize.height
+            let scale = Constants.LastMsgFont.capHeight / imageSize.height
 
             let iconAttachment = NSTextAttachment(image: messageStatusIcon)
             iconAttachment.bounds.size = CGSize(width: ceil(imageSize.width * scale), height: ceil(imageSize.height * scale))
@@ -880,11 +877,11 @@ private class ChatListTableViewCell: UITableViewCell {
 
         result.append(NSAttributedString(string: messageText))
 
-        result.addAttributes([ .font: font, .foregroundColor: textColor ],
+        result.addAttributes([ .font: Constants.LastMsgFont, .foregroundColor: Constants.LastMsgColor ],
                              range: NSRange(location: 0, length: result.length))
         if !contactNamePart.isEmpty {
             // Note that the assumption is that we are using system font for the rest of the text.
-            let participantNameFont = UIFont.systemFont(ofSize: font.pointSize, weight: .medium)
+            let participantNameFont = UIFont.systemFont(ofSize: Constants.LastMsgFont.pointSize, weight: .medium)
             result.addAttribute(.font, value: participantNameFont, range: NSRange(location: 0, length: contactNamePart.count))
         }
 
@@ -947,12 +944,7 @@ private class ChatListTableViewCell: UITableViewCell {
             return
         }
         
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 14, weight: .medium),
-            .foregroundColor: UIColor.systemGray,
-        ]
-        
-        let attributedString = NSMutableAttributedString(string: typingIndicatorStr, attributes: attributes)
+        let attributedString = NSMutableAttributedString(string: typingIndicatorStr, attributes: [.font: Constants.LastMsgFont, .foregroundColor: Constants.LastMsgColor])
         lastMsgLabel.attributedText = attributedString
         
         isShowingTypingIndicator = true
@@ -984,12 +976,12 @@ private class ChatListTableViewCell: UITableViewCell {
         vStack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(vStack)
 
-        let avatarSize: CGFloat = LayoutConstants.avatarSize + (avatarView.hasNewPostsIndicator ? 2*(avatarView.newPostsIndicatorRingSpacing + avatarView.newPostsIndicatorRingWidth) : 0)
+        let avatarSize: CGFloat = Constants.AvatarSize + (avatarView.hasNewPostsIndicator ? 2*(avatarView.newPostsIndicatorRingSpacing + avatarView.newPostsIndicatorRingWidth) : 0)
         contentView.addConstraints([
             avatarView.widthAnchor.constraint(equalToConstant: avatarSize),
             avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor),
             avatarView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            avatarView.centerXAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: 0.5*LayoutConstants.avatarSize),
+            avatarView.centerXAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: 0.5*Constants.AvatarSize),
             avatarView.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8),
             
             vStack.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 10),

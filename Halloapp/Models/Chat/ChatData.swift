@@ -816,27 +816,24 @@ extension ChatData {
     // MARK: Thread
     
     func markSeenMessages(type: ChatType, for id: String, in managedObjectContext: NSManagedObjectContext) {
-        
         if type == .oneToOne {
-            let unseenChatMessages = self.unseenChatMessages(with: id, in: managedObjectContext)
+            let unseenChatMsgs = unseenChatMessages(with: id, in: managedObjectContext)
             
-            unseenChatMessages.forEach {
-                self.sendSeenReceipt(for: $0)
+            unseenChatMsgs.forEach {
+                sendSeenReceipt(for: $0)
                 $0.incomingStatus = ChatMessage.IncomingStatus.haveSeen
             }
         } else if type == .group {
-            let unseenChatGroupMessages = self.unseenChatGroupMessages(with: id, in: managedObjectContext)
-            
-            unseenChatGroupMessages.forEach {
-                self.sendSeenGroupReceipt(for: $0)
+            let unseenGroupChatMsgs = unseenChatGroupMessages(with: id, in: managedObjectContext)
+            unseenGroupChatMsgs.forEach {
+                sendSeenGroupReceipt(for: $0)
                 $0.inboundStatus = ChatGroupMessage.InboundStatus.haveSeen
             }
         }
         
         if managedObjectContext.hasChanges {
-            self.save(managedObjectContext)
+            save(managedObjectContext)
         }
-        
     }
     
     func markThreadAsRead(type: ChatType, for id: String) {
@@ -848,7 +845,9 @@ extension ChatData {
                     chatThread.unreadCount = 0
                 }
 
-                chatThread.isNew = false
+                if chatThread.isNew {
+                    chatThread.isNew = false
+                }
             }
             
             self.markSeenMessages(type: type, for: id, in: managedObjectContext)
@@ -875,8 +874,8 @@ extension ChatData {
         }
     }
     
-    func saveDraft(type: ChatType, for groupId: GroupID, with draft: String?) {
-        updateChatThread(type: type, for: groupId) { chatThread in
+    func saveDraft(type: ChatType, for id: String, with draft: String?) {
+        updateChatThread(type: type, for: id) { chatThread in
             guard chatThread.draft != draft else { return }
             chatThread.draft = draft
         }

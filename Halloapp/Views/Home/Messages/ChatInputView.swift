@@ -235,7 +235,7 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
         subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.insertSubview(subView, at: 0)
         
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 15, bottom: 3, right: 15)
+        view.layoutMargins = UIEdgeInsets(top: 5, left: 15, bottom: 8, right: 15)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false

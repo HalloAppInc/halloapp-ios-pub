@@ -9,6 +9,10 @@
 import Core
 import UIKit
 
+fileprivate struct Constants {
+    static let QuotedMediaSize: CGFloat = 50
+}
+
 protocol OutboundMsgViewCellDelegate: AnyObject {
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewQuotedMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
@@ -96,11 +100,15 @@ class OutboundMsgViewCell: UITableViewCell, MsgUIProtocol {
     private lazy var quotedRow: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ quotedTextVStack, quotedImageView ])
         view.axis = .horizontal
+        view.alignment = .top
         view.spacing = 10
         view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 15)
         view.isLayoutMarginsRelativeArrangement = true
         view.translatesAutoresizingMaskIntoConstraints = false
         
+        quotedImageView.widthAnchor.constraint(equalToConstant: Constants.QuotedMediaSize).isActive = true
+        quotedImageView.heightAnchor.constraint(equalToConstant: Constants.QuotedMediaSize).isActive = true
+
         let baseSubView = UIView(frame: view.bounds)
         baseSubView.layer.cornerRadius = 15
         baseSubView.layer.masksToBounds = true
@@ -169,7 +177,7 @@ class OutboundMsgViewCell: UITableViewCell, MsgUIProtocol {
         view.layer.masksToBounds = true
         view.isHidden = true
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.gotoQuotedPreview(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoQuotedPreview(_:)))
         view.isUserInteractionEnabled = true
         view.addGestureRecognizer(tapGesture)
         
@@ -385,11 +393,6 @@ class OutboundMsgViewCell: UITableViewCell, MsgUIProtocol {
                         }
                     }
 
-                    let imageSize: CGFloat = 40.0
-
-                    NSLayoutConstraint(item: quotedImageView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: imageSize).isActive = true
-                    NSLayoutConstraint(item: quotedImageView, attribute: .height, relatedBy: .equal, toItem: quotedImageView, attribute: .width, multiplier: 1, constant: 0).isActive = true
-
                     quotedImageView.isHidden = false
                 }
             }
@@ -554,9 +557,8 @@ class OutboundMsgViewCell: UITableViewCell, MsgUIProtocol {
         quotedRow.isHidden = true
         quotedNameLabel.textColor = .label
         quotedNameLabel.text = ""
-        quotedTextView.font = UIFont.preferredFont(forTextStyle: TextFontStyle)
+        quotedTextView.font = UIFont.preferredFont(forTextStyle: .footnote)
         quotedTextView.text = ""
-        quotedImageView.removeConstraints(quotedImageView.constraints)
         quotedImageView.isHidden = true
 
         mediaImageView.reset()

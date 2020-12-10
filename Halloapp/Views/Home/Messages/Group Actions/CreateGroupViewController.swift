@@ -172,7 +172,7 @@ class CreateGroupViewController: UIViewController {
         let view = UIStackView(arrangedSubviews: [groupNameLabel])
         view.axis = .horizontal
         
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 3, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 5, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         
         return view
@@ -182,7 +182,7 @@ class CreateGroupViewController: UIViewController {
         let label = UILabel()
         label.textAlignment = .left
         label.textColor = .secondaryLabel
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.text = "GROUP NAME"
         label.translatesAutoresizingMaskIntoConstraints = false
         
@@ -196,9 +196,8 @@ class CreateGroupViewController: UIViewController {
         
         view.backgroundColor = .secondarySystemGroupedBackground
         
-        view.textContainerInset.right = 10
-        view.textContainerInset.left = 10
-        
+        view.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+
         view.font = UIFont.preferredFont(forTextStyle: .body)
         view.tintColor = .systemBlue
         
@@ -234,7 +233,7 @@ class CreateGroupViewController: UIViewController {
         view.axis = .horizontal
         view.spacing = 20
 
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 3, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 15, bottom: 5, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -246,7 +245,7 @@ class CreateGroupViewController: UIViewController {
         let label = UILabel()
         label.numberOfLines = 1
         
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.font = UIFont.preferredFont(forTextStyle: .caption1)
         label.textColor = .secondaryLabel
         label.text = "MEMBERS (\(String(selectedMembers.count)))"
       

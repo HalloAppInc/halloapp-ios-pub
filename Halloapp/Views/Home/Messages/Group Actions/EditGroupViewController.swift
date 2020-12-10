@@ -63,6 +63,8 @@ class EditGroupViewController: UIViewController {
         view.addSubview(mainView)
         view.backgroundColor = UIColor.feedBackground
         
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(closeAction))
+        
         mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
@@ -77,7 +79,7 @@ class EditGroupViewController: UIViewController {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ textView, spacer ])
+        let view = UIStackView(arrangedSubviews: [ groupNameLabelRow, textView, spacer ])
         
         view.axis = .vertical
         view.spacing = 0
@@ -90,15 +92,38 @@ class EditGroupViewController: UIViewController {
         return view
     }()
     
+    private lazy var groupNameLabelRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [groupNameLabel])
+        view.axis = .horizontal
+        
+        view.layoutMargins = UIEdgeInsets(top: 50, left: 20, bottom: 5, right: 0)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        return view
+    }()
+    
+    private lazy var groupNameLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .left
+        label.textColor = .secondaryLabel
+        label.font = .systemFont(ofSize: 12)
+        label.text = Localizations.chatGroupNameLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        
+        return label
+    }()
+    
     private lazy var textView: UITextView = {
         let view = UITextView()
         view.isScrollEnabled = false
         view.delegate = self
         
-        view.textAlignment = .center
+        view.textAlignment = .left
         view.backgroundColor = .secondarySystemGroupedBackground
         view.font = UIFont.preferredFont(forTextStyle: .body)
         view.tintColor = .systemBlue
+        
+        view.textContainerInset = UIEdgeInsets(top: 15, left: 20, bottom: 15, right: 20)
         
         view.translatesAutoresizingMaskIntoConstraints = false
         
@@ -130,6 +155,10 @@ class EditGroupViewController: UIViewController {
     
     // MARK: Actions
 
+    @objc private func closeAction() {
+        dismiss(animated: true)
+    }
+    
     @objc private func updateAction() {
         navigationItem.rightBarButtonItem?.isEnabled = false
         

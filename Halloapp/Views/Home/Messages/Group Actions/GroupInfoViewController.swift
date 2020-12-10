@@ -16,7 +16,7 @@ import UIKit
 fileprivate struct Constants {
     static let AvatarSize: CGFloat = 100
     static let PhotoIconSize: CGFloat = 40
-    static let HeaderHeight: CGFloat = 255
+    static let HeaderHeight: CGFloat = 270
     static let FooterHeight: CGFloat = 250
 }
 
@@ -189,7 +189,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     @objc private func editAction() {
         guard let chatGroup = chatGroup else { return }
         let controller = EditGroupViewController(chatGroup: chatGroup)
-        navigationController?.pushViewController(controller, animated: true)
+        present(UINavigationController(rootViewController: controller), animated: true)
     }
     
     @objc private func openEditAvatarOptions() {
@@ -286,21 +286,22 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     // MARK: Helpers
     
     func checkIfMember() {
+        let headerView = self.tableView.tableHeaderView as! GroupInfoHeaderView
         let footerView = self.tableView.tableFooterView as! GroupInfoFooterView
-                
+        
         if let chatGroupMember = MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) {
             if chatGroupMember.type == .admin {
                 isAdmin = true
-                footerView.setIsAdmin(true)
+                headerView.setIsAdmin(true)
                 footerView.setIsMember(true)
             } else if chatGroupMember.type == .member {
                 isAdmin = false
-                footerView.setIsAdmin(false)
+                headerView.setIsAdmin(false)
                 footerView.setIsMember(true)
             }
         } else {
             isAdmin = false
-            footerView.setIsAdmin(false)
+            headerView.setIsAdmin(false)
             footerView.setIsMember(false)
         }
     }
@@ -374,6 +375,19 @@ extension GroupInfoViewController: GroupInfoHeaderViewDelegate {
         editAction()
     }
     
+    func groupInfoHeaderViewAddMember(_ groupInfoFooterView: GroupInfoHeaderView) {
+        var currentMembers: [UserID] = []
+        if let objects = fetchedResultsController?.fetchedObjects {
+            for groupMember in objects {
+                currentMembers.append(groupMember.userId)
+            }
+        }
+
+        let vController = NewGroupMembersViewController(currentMembers: currentMembers)
+        vController.delegate = self
+        self.navigationController?.pushViewController(vController, animated: true)
+    }
+    
 }
 
 extension GroupInfoViewController: GroupInfoFooterViewDelegate {
@@ -419,6 +433,7 @@ extension GroupInfoViewController: NewGroupMembersViewControllerDelegate {
 protocol GroupInfoHeaderViewDelegate: AnyObject {
     func groupInfoHeaderViewAvatar(_ groupInfoHeaderView: GroupInfoHeaderView)
     func groupInfoHeaderViewEdit(_ groupInfoHeaderView: GroupInfoHeaderView)
+    func groupInfoHeaderViewAddMember(_ groupInfoHeaderView: GroupInfoHeaderView)
 }
 
 class GroupInfoHeaderView: UIView {
@@ -438,6 +453,10 @@ class GroupInfoHeaderView: UIView {
         membersLabel.text = "\(Localizations.chatGroupMembersLabel) (\(String(chatGroup.members?.count ?? 0)))"
         
         avatarView.configure(groupId: chatGroup.groupId, using: MainAppContext.shared.avatarStore)
+    }
+    
+    public func setIsAdmin(_ isAdmin: Bool) {
+        addMembersLabel.isHidden = isAdmin ? false : true
     }
     
     private func setup() {
@@ -533,7 +552,7 @@ class GroupInfoHeaderView: UIView {
         let view = UIStackView(arrangedSubviews: [groupNameLabel])
         view.axis = .horizontal
         
-        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 3, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 5, right: 0)
         view.isLayoutMarginsRelativeArrangement = true
         
         return view
@@ -543,7 +562,7 @@ class GroupInfoHeaderView: UIView {
         let label = UILabel()
         label.textAlignment = .left
         label.textColor = .secondaryLabel
-        label.font = .systemFont(ofSize: 11)
+        label.font = .systemFont(ofSize: 12)
         label.text = Localizations.chatGroupNameLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         
@@ -572,12 +591,12 @@ class GroupInfoHeaderView: UIView {
     }()
     
     private lazy var membersLabelRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ membersLabel ])
+        let view = UIStackView(arrangedSubviews: [ membersLabel, addMembersLabel ])
         
         view.axis = .horizontal
         view.spacing = 20
 
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 20, bottom: 3, right: 0)
+        view.layoutMargins = UIEdgeInsets(top: 30, left: 20, bottom: 5, right: 20)
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -589,7 +608,7 @@ class GroupInfoHeaderView: UIView {
         let label = UILabel()
         label.numberOfLines = 1
         
-        label.font = .systemFont(ofSize: 11)
+        label.font = .systemFont(ofSize: 12)
         label.textColor = .secondaryLabel
         
         label.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
@@ -599,6 +618,23 @@ class GroupInfoHeaderView: UIView {
         return label
     }()
 
+    private lazy var addMembersLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .systemBlue
+        label.textAlignment = .left
+        label.text = Localizations.chatGroupInfoAddMembers
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(openAddGroupMemberView(_:)))
+        label.isUserInteractionEnabled = true
+        label.addGestureRecognizer(tapGesture)
+
+        label.isHidden = true
+        
+        return label
+    }()
+    
     @objc func groupAvatarAction (_ sender: UITapGestureRecognizer) {
         delegate?.groupInfoHeaderViewAvatar(self)
     }
@@ -606,11 +642,14 @@ class GroupInfoHeaderView: UIView {
     @objc func editAction (_ sender: UITapGestureRecognizer) {
         delegate?.groupInfoHeaderViewEdit(self)
     }
+    
+    @objc func openAddGroupMemberView (_ sender: UITapGestureRecognizer) {
+        self.delegate?.groupInfoHeaderViewAddMember(self)
+    }
 }
 
 
 protocol GroupInfoFooterViewDelegate: AnyObject {
-    func groupInfoFooterViewAddMember(_ groupInfoFooterView: GroupInfoFooterView)
     func groupInfoFooterView(_ groupInfoFooterView: GroupInfoFooterView)
 }
 
@@ -625,10 +664,6 @@ class GroupInfoFooterView: UIView {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
-    public func setIsAdmin(_ isAdmin: Bool) {
-        addMembersRow.isHidden = isAdmin ? false : true
-    }
-    
     public func setIsMember(_ isMember: Bool) {
         leaveGroupLabel.isHidden = isMember ? false : true
         notAMemberLabel.isHidden = isMember ? true : false
@@ -643,53 +678,13 @@ class GroupInfoFooterView: UIView {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
-        let view = UIStackView(arrangedSubviews: [ addMembersRow, fixedSpacerRow, leaveGroupRow, spacer ])
+        let view = UIStackView(arrangedSubviews: [ fixedSpacerRow, leaveGroupRow, spacer ])
         view.axis = .vertical
 //        view.spacing = 0
         
         view.translatesAutoresizingMaskIntoConstraints = false
 
         return view
-    }()
-    
-    
-    private lazy var addMembersRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ addMembersLabel ])
-
-        view.axis = .horizontal
-        view.layoutMargins = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
-        view.isLayoutMarginsRelativeArrangement = true
-        
-        view.translatesAutoresizingMaskIntoConstraints = false
-        
-        let subView = UIView(frame: view.bounds)
-        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        subView.backgroundColor = .secondarySystemGroupedBackground
-        view.insertSubview(subView, at: 0)
-        
-        let topBorder = UIView(frame: CGRect(x: 20, y: 0, width: view.bounds.size.width, height: 1))
-        topBorder.backgroundColor = UIColor.feedBackground
-        topBorder.autoresizingMask = [.flexibleWidth]
-        view.insertSubview(topBorder, at: 1)
-        
-        view.isHidden = true
-        
-        return view
-    }()
-    
-    private lazy var addMembersLabel: UILabel = {
-        let label = UILabel()
-        label.numberOfLines = 1
-        label.font = .gothamFont(forTextStyle: .headline, weight: .regular)
-        label.textColor = .systemBlue
-        label.textAlignment = .left
-        label.text = Localizations.chatGroupInfoAddMembers
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(openAddGroupMemberView(_:)))
-        label.isUserInteractionEnabled = true
-        label.addGestureRecognizer(tapGesture)
-
-        return label
     }()
     
     private lazy var fixedSpacerRow: UIView = {
@@ -748,11 +743,6 @@ class GroupInfoFooterView: UIView {
         return label
     }()
 
-    
-    @objc func openAddGroupMemberView (_ sender: UITapGestureRecognizer) {
-        self.delegate?.groupInfoFooterViewAddMember(self)
-    }
-    
     @objc func leaveGroupAction (_ sender: UITapGestureRecognizer) {
         self.delegate?.groupInfoFooterView(self)
     }
