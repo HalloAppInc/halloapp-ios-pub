@@ -42,7 +42,6 @@ class ZoomableImageView: UIImageView {
         didSet {
             if oldValue.size != frame.size {
                 applyCornerRadius()
-                applyBorder()
             }
         }
     }
@@ -50,7 +49,6 @@ class ZoomableImageView: UIImageView {
         didSet {
             if oldValue.size != bounds.size {
                 applyCornerRadius()
-                applyBorder()
             }
         }
     }
@@ -81,6 +79,10 @@ class ZoomableImageView: UIImageView {
     }
 
     private func applyCornerRadius() {
+        if let borderView = borderView {
+            borderView.cornerRadius = cornerRadius
+        }
+
         if cornerRadius == 0 {
             self.layer.mask = nil
             return
@@ -103,37 +105,38 @@ class ZoomableImageView: UIImageView {
             let maskLayer = CAShapeLayer()
             maskLayer.path = UIBezierPath(roundedRect: rect, cornerRadius: cornerRadius).cgPath
             self.layer.mask = maskLayer
+
+            if let borderView = borderView {
+                borderView.frame = rect
+            }
         }
     }
 
-    private var borderLayer: CAShapeLayer? = nil
+    private var borderView: RoundedRectView?
     private func applyBorder() {
         // No border
         if borderColor == nil || borderWidth == 0 {
-            if let borderLayer = borderLayer {
-                borderLayer.removeFromSuperlayer()
-                self.borderLayer = nil
+            if let borderView = borderView {
+                borderView.removeFromSuperview()
+                self.borderView = nil
             }
             return
         }
 
         // Border
-        let borderLayer: CAShapeLayer
-        if let existingBorderLayer = self.borderLayer {
-            borderLayer = existingBorderLayer
+        let borderView: RoundedRectView
+        if let existingBorderView = self.borderView {
+            borderView = existingBorderView
         } else {
-            borderLayer = CAShapeLayer()
-            borderLayer.fillColor = UIColor.clear.cgColor
-            layer.addSublayer(borderLayer)
-            self.borderLayer = borderLayer
+            borderView = RoundedRectView(frame: bounds)
+            borderView.fillColor = .clear
+            borderView.cornerRadius = cornerRadius
+            borderView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
+            addSubview(borderView)
+            self.borderView = borderView
         }
-        if let maskLayer = layer.mask as? CAShapeLayer, let maskLayerPath = maskLayer.path {
-            borderLayer.path = maskLayerPath
-        } else {
-            borderLayer.path = UIBezierPath(rect: bounds).cgPath
-        }
-        borderLayer.strokeColor = borderColor?.cgColor
-        borderLayer.lineWidth = borderWidth
+        borderView.strokeColor = borderColor
+        borderView.lineWidth = borderWidth
     }
 }
 
