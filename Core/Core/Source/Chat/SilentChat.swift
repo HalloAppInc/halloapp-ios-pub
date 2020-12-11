@@ -25,14 +25,14 @@ public struct SilentChatMessage: ChatMessageProtocol {
     public var chatReplyMessageMediaIndex: Int32 = 0
     public var timeIntervalSince1970: TimeInterval?
 
-    public var resendAttempts: Int
+    public var rerequestCount: Int32
 
-    init(from fromUserID: UserID, to toUserID: UserID, ts: TimeInterval = Date().timeIntervalSince1970, resendAttempts: Int = 0) {
+    init(from fromUserID: UserID, to toUserID: UserID, ts: TimeInterval = Date().timeIntervalSince1970, resendAttempts: Int32 = 0) {
         self.fromUserId = fromUserID
         self.toUserId = toUserID
         self.text = Self.text
         self.timeIntervalSince1970 = ts
-        self.resendAttempts = resendAttempts
+        self.rerequestCount = resendAttempts
 
         self.id = [Self.text, fromUserID, toUserID, String(ts), String(resendAttempts)].joined(separator: ":")
     }
@@ -43,7 +43,7 @@ public struct SilentChatMessage: ChatMessageProtocol {
         guard components.count == 5,
               components[0] == Self.text,
               let ts = TimeInterval(components[3]),
-              let resends = Int(components[4]) else
+              let resends = Int32(components[4]) else
         {
             return nil
         }

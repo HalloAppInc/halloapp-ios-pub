@@ -3586,6 +3586,7 @@ extension XMPPChatMessage {
         self.chatReplyMessageID = chatMessage.chatReplyMessageID
         self.chatReplyMessageSenderID = chatMessage.chatReplyMessageSenderID
         self.chatReplyMessageMediaIndex = chatMessage.chatReplyMessageMediaIndex
+        self.rerequestCount = Int32(chatMessage.resendAttempts)
         
         if let media = chatMessage.media {
             self.media = media.sorted(by: { $0.order < $1.order }).map{ XMPPChatMedia(chatMedia: $0) }
@@ -3600,6 +3601,7 @@ extension XMPPChatMessage {
         self.toUserId = toUserID
         self.timestamp = TimeInterval(timestamp)
         self.retryCount = retryCount
+        self.rerequestCount = 0 // we don't care about rerequest count for incoming messages
         
         text = protoChat.text.isEmpty ? nil : protoChat.text
         media = protoChat.media.compactMap { XMPPChatMedia(protoMedia: $0) }

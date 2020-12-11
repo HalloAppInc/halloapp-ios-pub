@@ -34,6 +34,9 @@ public protocol ChatMessageProtocol {
 
     /// 1 and higher means it's an offline message and that server has sent out a push notification already
     var retryCount: Int32? { get }
+
+    /// 0 when the message is first sent, incrementing each time the message is rerequested
+    var rerequestCount: Int32 { get }
     
     var text: String? { get }
     var orderedMedia: [ChatMediaProtocol] { get }

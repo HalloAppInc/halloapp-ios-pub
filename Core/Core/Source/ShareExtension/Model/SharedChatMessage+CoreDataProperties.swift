@@ -60,6 +60,10 @@ extension SharedChatMessage {
 
 extension SharedChatMessage: ChatMessageProtocol {
 
+    public var rerequestCount: Int32 {
+        0
+    }
+
     public var retryCount: Int32? {
         nil
     }

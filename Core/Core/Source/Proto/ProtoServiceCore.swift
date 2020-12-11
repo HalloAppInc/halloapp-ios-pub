@@ -185,6 +185,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
                 to: message.toUserId,
                 id: message.id,
                 type: .chat,
+                rerequestCount: message.rerequestCount,
                 payload: .silentChatStanza(silentStanza))
 
             guard let packetData = try? packet.serializedData() else {
@@ -462,6 +463,7 @@ extension ProtoServiceCore: CoreService {
                 to: message.toUserId,
                 id: message.id,
                 type: .chat,
+                rerequestCount: message.rerequestCount,
                 payload: .chatStanza(chat))
 
             guard let packetData = try? packet.serializedData() else {

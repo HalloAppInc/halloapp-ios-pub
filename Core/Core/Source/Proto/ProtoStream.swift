@@ -183,6 +183,7 @@ public extension Server_Packet {
         to: UserID,
         id: String = UUID().uuidString,
         type: Server_Msg.TypeEnum = .normal,
+        rerequestCount: Int32 = 0,
         payload: Server_Msg.OneOf_Payload) -> Server_Packet
     {
         var msg = Server_Msg()
@@ -202,6 +203,7 @@ public extension Server_Packet {
         msg.type = type
         msg.id = id
         msg.payload = payload
+        msg.rerequestCount = rerequestCount
 
         var packet = Server_Packet()
         packet.msg = msg
