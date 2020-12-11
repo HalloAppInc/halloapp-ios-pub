@@ -161,7 +161,7 @@ public struct Server_ClientLog {
 
   public var counts: [Server_Count] = []
 
-  public var events: [Server_Event] = []
+  public var events: [Server_EventData] = []
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -180,20 +180,6 @@ public struct Server_Count {
   public var count: Int64 = 0
 
   public var dims: [Server_Dim] = []
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-}
-
-public struct Server_Event {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var namespace: String = String()
-
-  public var event: Data = SwiftProtobuf.Internal.emptyData
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -1773,6 +1759,11 @@ public struct Server_Msg {
     set {_uniqueStorage()._retryCount = newValue}
   }
 
+  public var rerequestCount: Int32 {
+    get {return _storage._rerequestCount}
+    set {_uniqueStorage()._rerequestCount = newValue}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Payload: Equatable {
@@ -3100,41 +3091,6 @@ extension Server_Count: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementat
     if lhs.metric != rhs.metric {return false}
     if lhs.count != rhs.count {return false}
     if lhs.dims != rhs.dims {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Server_Event: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".Event"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "namespace"),
-    2: .same(proto: "event"),
-  ]
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      switch fieldNumber {
-      case 1: try decoder.decodeSingularStringField(value: &self.namespace)
-      case 2: try decoder.decodeSingularBytesField(value: &self.event)
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.namespace.isEmpty {
-      try visitor.visitSingularStringField(value: self.namespace, fieldNumber: 1)
-    }
-    if !self.event.isEmpty {
-      try visitor.visitSingularBytesField(value: self.event, fieldNumber: 2)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Server_Event, rhs: Server_Event) -> Bool {
-    if lhs.namespace != rhs.namespace {return false}
-    if lhs.event != rhs.event {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4907,6 +4863,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     23: .standard(proto: "silent_chat_stanza"),
     24: .standard(proto: "group_feed_items"),
     21: .standard(proto: "retry_count"),
+    25: .standard(proto: "rerequest_count"),
   ]
 
   fileprivate class _StorageClass {
@@ -4916,6 +4873,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     var _fromUid: Int64 = 0
     var _payload: Server_Msg.OneOf_Payload?
     var _retryCount: Int32 = 0
+    var _rerequestCount: Int32 = 0
 
     static let defaultInstance = _StorageClass()
 
@@ -4928,6 +4886,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       _fromUid = source._fromUid
       _payload = source._payload
       _retryCount = source._retryCount
+      _rerequestCount = source._rerequestCount
     }
   }
 
@@ -5100,6 +5059,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
           }
           try decoder.decodeSingularMessageField(value: &v)
           if let v = v {_storage._payload = .groupFeedItems(v)}
+        case 25: try decoder.decodeSingularInt32Field(value: &_storage._rerequestCount)
         default: break
         }
       }
@@ -5169,6 +5129,9 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       case nil: break
       default: break
       }
+      if _storage._rerequestCount != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._rerequestCount, fieldNumber: 25)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -5184,6 +5147,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
         if _storage._fromUid != rhs_storage._fromUid {return false}
         if _storage._payload != rhs_storage._payload {return false}
         if _storage._retryCount != rhs_storage._retryCount {return false}
+        if _storage._rerequestCount != rhs_storage._rerequestCount {return false}
         return true
       }
       if !storagesAreEqual {return false}

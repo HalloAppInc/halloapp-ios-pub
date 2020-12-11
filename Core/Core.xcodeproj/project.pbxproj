@@ -31,6 +31,7 @@
 		686814AF252BA91E003C8784 /* server.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AD252BA91E003C8784 /* server.pb.swift */; };
 		686CDFD9254A3E0900DB7266 /* SilentChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFD8254A3E0900DB7266 /* SilentChat.swift */; };
 		6880F354258017C400D1F585 /* ErrorLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6880F353258017C400D1F585 /* ErrorLogger.swift */; };
+		6880F35E2584241C00D1F585 /* log_events.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6880F35D2584241C00D1F585 /* log_events.pb.swift */; };
 		688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1D24ED979400258BB9 /* MentionText.swift */; };
 		688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */; };
 		68A64E8024D2128300F40F1F /* NSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E7F24D2128300F40F1F /* NSAttributedString.swift */; };
@@ -117,6 +118,7 @@
 		686814AD252BA91E003C8784 /* server.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = server.pb.swift; sourceTree = "<group>"; };
 		686CDFD8254A3E0900DB7266 /* SilentChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SilentChat.swift; sourceTree = "<group>"; };
 		6880F353258017C400D1F585 /* ErrorLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLogger.swift; sourceTree = "<group>"; };
+		6880F35D2584241C00D1F585 /* log_events.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = log_events.pb.swift; sourceTree = "<group>"; };
 		688D8A1D24ED979400258BB9 /* MentionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MentionText.swift; sourceTree = "<group>"; };
 		688D8A1F24ED9B3300258BB9 /* Proto+Mentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Proto+Mentions.swift"; sourceTree = "<group>"; };
 		68A64E7F24D2128300F40F1F /* NSAttributedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSAttributedString.swift; sourceTree = "<group>"; };
@@ -396,6 +398,7 @@
 		76812415248619BB008C5216 /* Proto */ = {
 			isa = PBXGroup;
 			children = (
+				6880F35D2584241C00D1F585 /* log_events.pb.swift */,
 				686814AC252BA91E003C8784 /* clients.pb.swift */,
 				686814AD252BA91E003C8784 /* server.pb.swift */,
 				6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */,
@@ -596,6 +599,7 @@
 				768123F924861068008C5216 /* ABContact+CoreDataClass.swift in Sources */,
 				2490287924C525030019C4D5 /* UIImage.swift in Sources */,
 				6880F354258017C400D1F585 /* ErrorLogger.swift in Sources */,
+				6880F35E2584241C00D1F585 /* log_events.pb.swift in Sources */,
 				68A64E8424D2398C00F40F1F /* SharedFeedMention+CoreDataClass.swift in Sources */,
 				688D8A2024ED9B3300258BB9 /* Proto+Mentions.swift in Sources */,
 				EAF47E0B251D80930056196F /* GroupAvatar+CoreDataProperties.swift in Sources */,
