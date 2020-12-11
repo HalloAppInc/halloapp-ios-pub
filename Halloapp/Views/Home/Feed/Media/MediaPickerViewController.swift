@@ -894,15 +894,30 @@ fileprivate class AssetViewCell: UICollectionViewCell {
     }()
     private var activeConstraints = [NSLayoutConstraint]()
 
-    private let checkmark = UIImage(systemName: "checkmark")?.withTintColor(.white, renderingMode: .alwaysOriginal)
-    lazy var indicator: UIImageView = {
-        let indicator = UIImageView()
+    lazy var indicatorMark: UIImageView = {
+        let mark = UIImageView()
+        mark.translatesAutoresizingMaskIntoConstraints = false
+        mark.contentMode = .scaleAspectFit
+        mark.image = UIImage(named: "SelectMark")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+
+        return mark
+    }()
+
+    lazy var indicator: UIView = {
+        let indicator = UIView()
         indicator.translatesAutoresizingMaskIntoConstraints = false
-        indicator.contentMode = .center
-        indicator.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)
         indicator.layer.cornerRadius = 10
         indicator.layer.borderWidth = 2.5
         indicator.layer.masksToBounds = true
+
+        indicator.addSubview(indicatorMark)
+
+        NSLayoutConstraint.activate([
+            indicatorMark.topAnchor.constraint(equalTo: indicator.topAnchor, constant: 1),
+            indicatorMark.bottomAnchor.constraint(equalTo: indicator.bottomAnchor, constant: -1),
+            indicatorMark.leadingAnchor.constraint(equalTo: indicator.leadingAnchor, constant: 1),
+            indicatorMark.trailingAnchor.constraint(equalTo: indicator.trailingAnchor, constant: -1),
+        ])
 
         return indicator
     }()
@@ -1014,11 +1029,11 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         if let asset = item?.asset, delegate?.selected.contains(asset) == true {
             indicator.layer.borderColor = UIColor.lavaOrange.cgColor
             indicator.backgroundColor = .lavaOrange
-            indicator.image = checkmark
+            indicatorMark.isHidden = false
         } else {
             indicator.layer.borderColor = CGColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.7)
             indicator.backgroundColor = .clear
-            indicator.image = nil
+            indicatorMark.isHidden = true
         }
 
         if let multiselect = delegate?.multiselect, !multiselect {
