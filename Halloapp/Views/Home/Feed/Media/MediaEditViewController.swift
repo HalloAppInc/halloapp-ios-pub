@@ -53,7 +53,7 @@ class MediaEditViewController: UIViewController {
             return
         }
         
-        let mediaEditView = MediaEditView(cropToCircle: cropToCircle, media: items, selected: selected) { [weak self] media, selected, cancel in
+        let mediaEditView = MediaEditView(cropToCircle: cropToCircle, media: MediaItems(items), selected: selected) { [weak self] media, selected, cancel in
             guard let self = self else { return }
             self.didFinish(self, media.map { $0.process() }, selected, cancel)
         }
@@ -368,7 +368,7 @@ fileprivate struct CropRegion: View {
     let cropToCircle: Bool
     let region: CGRect
     
-    private let borderThickness: CGFloat = 8
+    private let borderThickness: CGFloat = 4
     private let cornerSize = CGSize(width: 15, height: 15)
     private let shadowColor = Color(red: 0, green: 0, blue: 0, opacity: 0.7)
     
@@ -376,10 +376,7 @@ fileprivate struct CropRegion: View {
         GeometryReader { geometry in
             // Shadow
             Path { path in
-                path.addRect(CGRect(x: 0, y: 0, width: geometry.size.width, height: geometry.size.height))
-
-                let offset = borderThickness / 2
-                let region = self.region.insetBy(dx: offset, dy: offset)
+                path.addRect(CGRect(x: -1, y: -1, width: geometry.size.width + 2, height: geometry.size.height + 2))
 
                 if self.cropToCircle {
                     path.addEllipse(in: region)
@@ -392,7 +389,7 @@ fileprivate struct CropRegion: View {
             // Border
             Path { path in
                 let offset = borderThickness / 2
-                let region = self.region.insetBy(dx: offset, dy: offset)
+                let region = self.region.insetBy(dx: -offset + 1, dy: -offset + 1)
 
                 if self.cropToCircle {
                     path.addEllipse(in: region)
@@ -428,9 +425,9 @@ fileprivate struct Preview: View {
             }
         }
         .frame(width: 65, height: 80)
-        .background(Color(white: 1.0, opacity: selected === media ? 1.0 : 0.2))
+        .background(Color(white: 1.0, opacity: 0.2))
         .cornerRadius(5)
-        .padding(5)
+        .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.blue, lineWidth: selected === media ? 4 : 0))
         .onTapGesture {
             if selected !== media && media.type == .image {
                 selected = media
@@ -439,10 +436,18 @@ fileprivate struct Preview: View {
     }
 }
 
+fileprivate class MediaItems : ObservableObject {
+    @Published var items: [MediaEdit]
+
+    init(_ items: [MediaEdit]) {
+        self.items = items
+    }
+}
+
 fileprivate struct PreviewCollection: UIViewControllerRepresentable {
     typealias UIViewControllerType = UICollectionViewController
 
-    @Binding var media: [MediaEdit]
+    @ObservedObject var media: MediaItems
     @Binding var selected: MediaEdit
 
     func makeUIViewController(context: Context) -> UICollectionViewController {
@@ -465,6 +470,7 @@ fileprivate struct PreviewCollection: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ controller: UICollectionViewController, context: Context) {
+        controller.collectionView.reloadData()
     }
 
     func makeCoordinator() -> Coordinator {
@@ -476,20 +482,21 @@ fileprivate struct PreviewCollection: UIViewControllerRepresentable {
 
         init(_ collection: PreviewCollection) {
             parent = collection
+
         }
 
         func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-            return parent.media.count
+            return parent.media.items.count
         }
 
         func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PreviewCell.reuseIdentifier, for: indexPath) as! PreviewCell
-            cell.preview = Preview(media: parent.media[indexPath.row], selected: parent.$selected)
+            cell.preview = Preview(media: parent.media.items[indexPath.row], selected: parent.$selected)
             return cell
         }
 
         func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-            parent.media.swapAt(sourceIndexPath.row, destinationIndexPath.row)
+            parent.media.items.swapAt(sourceIndexPath.row, destinationIndexPath.row)
         }
 
         @objc func handleLongGesture(gesture: UILongPressGestureRecognizer) {
@@ -500,7 +507,8 @@ fileprivate struct PreviewCollection: UIViewControllerRepresentable {
                 guard let indexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) else { return }
                 collectionView.beginInteractiveMovementForItem(at: indexPath)
             case .changed:
-                collectionView.updateInteractiveMovementTargetPosition(gesture.location(in: collectionView))
+                let location = gesture.location(in: collectionView)
+                collectionView.updateInteractiveMovementTargetPosition(CGPoint(x: location.x, y: collectionView.bounds.midY))
             case .ended:
                 collectionView.endInteractiveMovement()
             default:
@@ -780,8 +788,6 @@ fileprivate struct CropImage: View {
     }
     
     private func isCropRegionWithinLimit(_ crop: CGRect, limit: CGSize) -> Bool {
-        print(crop.minX >= 0, crop.minY >= 0, crop.maxX <= limit.width, crop.maxY <= limit.height)
-        print(crop, limit)
         return crop.minX >= 0 && crop.minY >= 0 && crop.maxX <= limit.width && crop.maxY <= limit.height
     }
     
@@ -914,7 +920,7 @@ private extension Localizations {
 
 fileprivate struct MediaEditView : View {
     let cropToCircle: Bool
-    @State var media: [MediaEdit]
+    @State var media: MediaItems
     @State var selected: MediaEdit
     var complete: (([MediaEdit], Int, Bool) -> Void)?
 
@@ -941,18 +947,22 @@ fileprivate struct MediaEditView : View {
             
             Button(action: { self.selected.rotate() }) {
                 Image("Rotate")
+                    .resizable()
                     .renderingMode(.template)
                     .foregroundColor(.white)
-                    .imageScale(.large)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 22)
                     .accessibility(label: Text(Localizations.voiceOverButtonRotate))
                     .padding()
             }
             
             Button(action: { self.selected.flip() }) {
                 Image("Flip")
+                    .resizable()
                     .renderingMode(.template)
                     .foregroundColor(.white)
-                    .imageScale(.large)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 22)
                     .accessibility(label: Text(Localizations.voiceOverButtonFlip))
                     .padding()
             }
@@ -964,8 +974,12 @@ fileprivate struct MediaEditView : View {
             Spacer()
                 .frame(width: 40)
 
-            Button(action: { self.selected.reset() }) {
+            Button(action: {
+                self.selected.reset()
+                self.media.items.sort { $0.media.order < $1.media.order }
+            }) {
                 Text(Localizations.buttonReset)
+                    .font(.gotham(fixedSize: 15, weight: .medium))
                     .foregroundColor(.white)
                     .padding()
             }
@@ -973,12 +987,12 @@ fileprivate struct MediaEditView : View {
             Spacer()
             
             Button(action: {
-                guard let index = self.media.firstIndex(where: { $0 === self.selected }) else { return }
-                self.complete?(self.media, index, false)
+                guard let index = self.media.items.firstIndex(where: { $0 === self.selected }) else { return }
+                self.complete?(self.media.items, index, false)
             }) {
                 Text(Localizations.buttonDone)
+                    .font(.gotham(fixedSize: 15, weight: .medium))
                     .foregroundColor(.blue)
-                    .fontWeight(.medium)
                     .padding()
             }
 
@@ -996,7 +1010,8 @@ fileprivate struct MediaEditView : View {
             VStack {
                 topBar
                 CropImage(cropToCircle: cropToCircle, media: selected)
-                PreviewCollection(media: $media, selected: $selected)
+                    .padding(8)
+                PreviewCollection(media: media, selected: $selected)
                     .frame(height: 80)
                 Spacer()
                     .frame(height: 30)
