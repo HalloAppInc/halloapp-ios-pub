@@ -44,6 +44,13 @@ private extension Localizations {
         return String(format: format, contactName)
     }
 
+    static func invitesRemaining(_ count: Int) -> String {
+        let format = NSLocalizedString("invite.remaining.count",
+                                       value: "You have %@ invitations remaining this week",
+                                       comment: "Indicates how many invites are remaining in the current week")
+        return String(format: format, String(count))
+    }
+
     static var inviteErrorTitle: String {
         NSLocalizedString("invite.error.alert.title",
                           value: "Could not invite",
@@ -109,9 +116,17 @@ struct InvitePeopleView: View {
     var body: some View {
         Group {
             if inviteManager.isDataCurrent && inviteManager.numberOfInvitesAvailable > 0 {
-                InvitePeopleTableView { (contact) in
-                    self.inviteManager.contactToInvite = contact
-                    self.isActionSheetPresented = true
+                VStack(spacing: 0) {
+                    InvitePeopleTableView { (contact) in
+                        self.inviteManager.contactToInvite = contact
+                        self.isActionSheetPresented = true
+                    }
+                    Text(Localizations.invitesRemaining(inviteManager.numberOfInvitesAvailable))
+                        .padding()
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .background(Color(UIColor.systemBlue))
                 }
                 .disabled(self.inviteManager.redeemInProgress)
                 .blur(radius: self.inviteManager.redeemInProgress ? 4 : 0)
