@@ -12,6 +12,33 @@ import CoreGraphics
 import SwiftUI
 
 extension UIImage {
+    public func aspectRatioCropped(to ratio: CGFloat) -> UIImage? {
+        guard size.height / size.width > ratio else { return self }
+        guard let cgImage = self.cgImage else { return nil }
+
+        let degree90Orientations: [UIImage.Orientation] = [.left, .leftMirrored, .right, .rightMirrored]
+        let hasDegree90Orientation = degree90Orientations.contains(imageOrientation)
+        DDLogDebug("UIImage/aspectRatioCropped cgImage size: \(cgImage.width) \(cgImage.height) is90Degree: \(hasDegree90Orientation)")
+
+        var cgImageCropped: CGImage?
+        if !hasDegree90Orientation && CGFloat(cgImage.height) / CGFloat(cgImage.width) > ratio {
+            let croppedHeight = Int((ratio * CGFloat(cgImage.width)).rounded())
+            let yStart = (cgImage.height - croppedHeight) / 2
+            let croppingRect = CGRect(x: 0, y: yStart, width: cgImage.width, height: croppedHeight)
+            DDLogDebug("UIImage/aspectRatioCropped crop rect: \(croppingRect)")
+            cgImageCropped = cgImage.cropping(to: croppingRect)
+        } else if hasDegree90Orientation && CGFloat(cgImage.width) / CGFloat(cgImage.height) > ratio {
+            let croppedWidth = Int((ratio * CGFloat(cgImage.height)).rounded())
+            let xStart = (cgImage.width - croppedWidth) / 2
+            let croppingRect = CGRect(x: xStart, y: 0, width: croppedWidth, height: cgImage.height)
+            DDLogDebug("UIImage/aspectRatioCropped crop rect: \(croppingRect)")
+            cgImageCropped = cgImage.cropping(to: croppingRect)
+        }
+
+        guard let cgImageResult = cgImageCropped else { return nil }
+        DDLogDebug("UIImage/aspectRatioCropped cropped size: \(cgImageResult.width) \(cgImageResult.height)")
+        return UIImage(cgImage: cgImageResult, scale: scale, orientation: imageOrientation)
+    }
 
     public func fastResized(to size: CGSize) -> UIImage? {
         if AppContext.shared.isAppExtension {

@@ -101,14 +101,13 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         collectionView.setContentOffset(contentOffset, animated: animated)
     }
 
-    class func preferredHeight(for media: [FeedMedia], width: CGFloat) -> CGFloat {
+    class func preferredHeight(for media: [FeedMedia], width: CGFloat, maxAllowedAspectRatio: CGFloat = 5 / 4) -> CGFloat {
         let aspectRatios: [CGFloat] = media.compactMap {
             guard $0.size.width > 0 else { return nil }
             return $0.size.height / $0.size.width
         }
         guard let tallestItemAspectRatio = aspectRatios.max() else { return 0 }
 
-        let maxAllowedAspectRatio: CGFloat = 5/4
         var height = (width * min(maxAllowedAspectRatio, tallestItemAspectRatio)).rounded()
 
         if media.count > 1 {
