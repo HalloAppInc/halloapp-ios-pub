@@ -512,7 +512,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         var result = [PendingMedia]()
         self.selected.sort {
             if let d0 = $0.creationDate, let d1 = $1.creationDate {
-                return d0 > d1
+                return d0 < d1
             }
 
             return false
