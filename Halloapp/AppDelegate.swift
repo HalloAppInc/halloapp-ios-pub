@@ -28,7 +28,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DDLogInfo("application/didFinishLaunching")
 
         BGTaskScheduler.shared.register(forTaskWithIdentifier: BackgroundFeedRefreshTaskIdentifier, using: DispatchQueue.main) { (task) in
-            self.handleFeedRefresh(task: task as! BGAppRefreshTask)
+            guard let refreshTask = task as? BGAppRefreshTask else {
+                DDLogError("bg-feed-refresh/error invalid task \(task)")
+                return
+            }
+            self.handleFeedRefresh(task: refreshTask)
         }
 
         // This is necessary otherwise application(_:didReceiveRemoteNotification:fetchCompletionHandler:) won't be called.
