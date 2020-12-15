@@ -67,39 +67,36 @@ extension Date {
      - otherwise: 5d
      */
     func feedTimestamp() -> String {
-        let seconds = -self.timeIntervalSinceNow
+        let seconds = -timeIntervalSinceNow
 
         if seconds < Date.minutes(1) {
             return Localizations.nowCapitalized
         } else if seconds < Date.hours(6) || Calendar.current.isDateInToday(self) {
             return DateFormatter.dateTimeFormatterTime.string(from: self)
-        } else if seconds < Date.weeks(1) {
+        } else if seconds < Date.days(5) {
             return DateFormatter.dateTimeFormatterDayOfWeekTime.string(from: self)
+        } else if Calendar.current.isDate(self, equalTo: Date(), toGranularity: .year) {
+            return DateFormatter.dateTimeFormatterMonthDay.string(from: self)
         } else {
-            let format = NSLocalizedString("timestamp.n.days.short", comment: "Timestamp displaying age of feed post in days.")
-            return String.localizedStringWithFormat(format, Date.toDays(seconds))
+            return DateFormatter.dateTimeFormatterShortDate.string(from: self)
         }
     }
 
     func chatListTimestamp() -> String {
-        let seconds = -self.timeIntervalSinceNow
+        let seconds = -timeIntervalSinceNow
         
         if seconds < Date.minutes(1) {
             return Localizations.nowCapitalized
         } else if Calendar.current.isDateInToday(self) {
-            let dateFormatter = DateFormatter.dateTimeFormatterTime
-            return dateFormatter.string(from: self)
+            return DateFormatter.dateTimeFormatterTime.string(from: self)
         } else if Calendar.current.isDateInYesterday(self) {
             return Localizations.yesterday
-        } else if seconds < Date.weeks(1) {
-            let dateFormatter = DateFormatter.dateTimeFormatterDayOfWeek
-            return dateFormatter.string(from: self)
-        } else if seconds < Date.weeks(52) {
-            let dateFormatter = DateFormatter.dateTimeFormatterMonthDay
-            return dateFormatter.string(from: self)
+        } else if seconds < Date.days(5) {
+            return DateFormatter.dateTimeFormatterDayOfWeek.string(from: self)
+        } else if Calendar.current.isDate(self, equalTo: Date(), toGranularity: .year) {
+            return DateFormatter.dateTimeFormatterMonthDay.string(from: self)
         } else {
-            let dateFormatter = DateFormatter.dateTimeFormatterMonthYear
-            return dateFormatter.string(from: self)
+            return DateFormatter.dateTimeFormatterShortDate.string(from: self)
         }
     }
     

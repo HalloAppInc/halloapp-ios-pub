@@ -18,22 +18,6 @@
 			<string>Sharing with %d of my contacts</string>
 		</dict>
 	</dict>
-	<key>timestamp.n.days.short</key>
-	<dict>
-		<key>NSStringLocalizedFormatKey</key>
-		<string>%#@days@</string>
-		<key>days</key>
-		<dict>
-			<key>NSStringFormatSpecTypeKey</key>
-			<string>NSStringPluralRuleType</string>
-			<key>NSStringFormatValueTypeKey</key>
-			<string>d</string>
-			<key>one</key>
-			<string>%dd</string>
-			<key>other</key>
-			<string>%dd</string>
-		</dict>
-	</dict>
 	<key>privacy.n.contacts</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
