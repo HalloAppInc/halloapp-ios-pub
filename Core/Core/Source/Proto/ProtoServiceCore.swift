@@ -156,7 +156,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     // MARK: Silent chats
 
     public func sendSilentChats(_ n: Int) {
-        let contactIDs = AppContext.shared.contactStore.allInNetworkContactIDs()
+        let contactIDs = AppContext.shared.contactStore.allInNetworkContactIDs().filter { $0 != userData.userId }
         var messagesRemaining = n
         while messagesRemaining > 0 {
             guard let toUserID = contactIDs.randomElement() else {
