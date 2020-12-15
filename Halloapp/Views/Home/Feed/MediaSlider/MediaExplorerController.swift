@@ -140,9 +140,9 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
-        if let page = pageControl?.currentPage, page != currentIndex {
+        let x = collectionView.frame.width * CGFloat(currentIndex)
+        if abs(collectionView.contentOffset.x - x) > 0.01 {
             pageControl?.currentPage = currentIndex
-            let x = collectionView.frame.width * CGFloat(currentIndex)
             collectionView.setContentOffset(CGPoint(x: x, y: collectionView.contentOffset.y), animated: false)
         }
     }
@@ -170,22 +170,12 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         isTransition = true
 
+        super.viewWillTransition(to: size, with: coordinator)
+        collectionView.collectionViewLayout.invalidateLayout()
+
         let indexPath = IndexPath(item: currentIndex, section: 0)
-        var isPlaying = false
-        var time = CMTime.zero
-        if let cell = collectionView.cellForItem(at: indexPath) as? VideoCell {
-            isPlaying = cell.isPlaying()
-
-            if isPlaying {
-                time = cell.currentTime()
-                cell.pause()
-            }
-        }
-
         coordinator.animate(alongsideTransition: { [weak self] context in
             guard let self = self else { return }
-            let x = self.collectionView.frame.width * CGFloat(self.currentIndex)
-            self.collectionView.setContentOffset(CGPoint(x: x, y: self.collectionView.contentOffset.y), animated: false)
 
             if let cell = self.collectionView.cellForItem(at: indexPath) as? VideoCell {
                 cell.resetVideoSize()
@@ -195,26 +185,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             }
         }) { [weak self] context in
             guard let self = self else { return }
-
-            for cell in self.collectionView.visibleCells {
-                if let cell = cell as? VideoCell {
-                    cell.resetVideoSize()
-                } else if let cell = cell as? ImageCell {
-                    cell.computeConstraints()
-                    cell.reset()
-                }
-            }
-
-            if let cell = self.collectionView.cellForItem(at: indexPath) as? VideoCell {
-                if isPlaying {
-                    cell.play(time: time)
-                }
-            }
-
             self.isTransition = false
         }
-
-        super.viewWillTransition(to: size, with: coordinator)
     }
 
     private func makeCollectionView() -> UICollectionView {
