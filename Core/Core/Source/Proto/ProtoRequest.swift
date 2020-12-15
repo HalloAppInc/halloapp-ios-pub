@@ -37,7 +37,7 @@ open class ProtoRequestBase {
         state = .sending
 
         do {
-            service.stream.send(try request.serializedData())
+            service.send(try request.serializedData())
         } catch {
             DDLogError("request/\(Self.self)/\(requestId)/send/error: \(error)")
         }

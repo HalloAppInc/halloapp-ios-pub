@@ -27,14 +27,14 @@ final class ProtoService: ProtoServiceCore {
         self.cancellableSet.insert(
             userData.didLogIn.sink {
                 DDLogInfo("proto/userdata/didLogIn")
-                self.stream.myJID = self.userData.userJID
+                self.configureStream(with: self.userData)
                 self.connect()
             })
         self.cancellableSet.insert(
             userData.didLogOff.sink {
                 DDLogInfo("proto/userdata/didLogOff")
                 self.disconnectImmediately() // this is only necessary when manually logging out from a developer menu.
-                self.stream.myJID = nil
+                self.configureStream(with: nil)
             })
     }
 
@@ -175,7 +175,7 @@ final class ProtoService: ProtoServiceCore {
 
         if let data = try? packet.serializedData(), self.isConnected {
             DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/sending")
-            stream.send(data)
+            send(data)
         } else {
             DDLogInfo("proto/_sendReceipt/\(receipt.itemId)/skipping (disconnected)")
         }
@@ -188,7 +188,7 @@ final class ProtoService: ProtoServiceCore {
         packet.stanza = .ack(ack)
         if let data = try? packet.serializedData(), isConnected {
             DDLogInfo("ProtoService/sendAck/\(messageID)/sending")
-            stream.send(data)
+            send(data)
         } else {
             DDLogInfo("ProtoService/sendAck/\(messageID)/skipping (disconnected)")
         }
@@ -536,7 +536,7 @@ final class ProtoService: ProtoServiceCore {
                 pong.iq.id = packet.iq.id
                 pong.iq.ping = ping
                 do {
-                    try stream.send(pong.serializedData())
+                    try send(pong.serializedData())
                     DDLogInfo("proto/ping/\(requestID)/pong")
                 } catch {
                     DDLogError("proto/ping/\(requestID)/error could not serialize pong")
@@ -710,7 +710,7 @@ extension ProtoService: HalloService {
         }
 
         DDLogInfo("ProtoService/retractChatMessage")
-        stream.send(packetData)
+        send(packetData)
     }
     
     func sendPresenceIfPossible(_ presenceType: PresenceType) {
@@ -737,7 +737,7 @@ extension ProtoService: HalloService {
             DDLogError("ProtoService/sendPresenceIfPossible/error could not serialize")
             return
         }
-        stream.send(packetData)
+        send(packetData)
     }
 
     func subscribeToPresenceIfPossible(to userID: UserID) -> Bool {
@@ -757,7 +757,7 @@ extension ProtoService: HalloService {
             DDLogError("ProtoService/subscribeToPresenceIfPossible/error could not serialize")
             return false
         }
-        stream.send(packetData)
+        send(packetData)
    
         return true
     }
@@ -786,7 +786,7 @@ extension ProtoService: HalloService {
             DDLogError("ProtoService/sendChatStateIfPossible/error could not serialize \(type) \(id) \(state)")
             return
         }
-        stream.send(packetData)
+        send(packetData)
     }
     
     func requestInviteAllowance(completion: @escaping ServiceRequestCompletion<(Int, Date)>) {
@@ -883,7 +883,7 @@ extension ProtoService: HalloService {
         }
 
         DDLogInfo("ProtoService/sendGroupChatMessage/\(message.id) sending (unencrypted)")
-        stream.send(packetData)
+        send(packetData)
         sendSilentChats(ServerProperties.silentChatMessages)
     }
 
@@ -910,7 +910,7 @@ extension ProtoService: HalloService {
         }
 
         DDLogInfo("ProtoService/retractChatGroupMessage")
-        stream.send(packetData)
+        send(packetData)
     }
     
     func createGroup(name: String, members: [UserID], completion: @escaping ServiceRequestCompletion<String>) {

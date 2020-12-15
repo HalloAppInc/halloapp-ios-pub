@@ -47,7 +47,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     public let didConnect = PassthroughSubject<Void, Never>()
 
-    public let stream = ProtoStream()
+    private let stream = ProtoStream()
     public let userData: UserData
 
     required public init(userData: UserData) {
@@ -55,15 +55,19 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
         super.init()
 
-        configure(stream: stream)
+        configureStream(with: userData)
         stream.addDelegate(self, delegateQueue: DispatchQueue.main)
     }
 
     // MARK: Connection management
 
-    open func configure(stream: ProtoStream) {
+    public func send(_ data: Data) {
+        stream.send(data)
+    }
+
+    open func configureStream(with userData: UserData?) {
         stream.startTLSPolicy = .required
-        stream.myJID = userData.userJID
+        stream.myJID = userData?.userJID
         stream.protoService = self
 
         let userAgent = NSString(string: AppContext.userAgent)
@@ -203,7 +207,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
                 }
                 AppContext.shared.eventMonitor.observe(.encryption(error: error))
                 DDLogInfo("ProtoServiceCore/sendSilentChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
-                self.stream.send(packetData)
+                self.send(packetData)
                 completion(.success(()))
             }
         }
@@ -219,7 +223,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     public func enqueue(request: ProtoRequestBase) {
         requestsQueue.async {
-            if self.stream.isConnected {
+            if self.isConnected {
                 request.send(using: self)
                 self.requestsInFlight.append(request)
             } else if request.retriesRemaining > 0 {
@@ -238,7 +242,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             guard !self.requestsToSend.isEmpty else {
                 return
             }
-            guard self.stream.isConnected else {
+            guard self.isConnected else {
                 DDLogWarn("connection/requests/resend/skipped [\(self.requestsToSend.count)] [no connection]")
                 return
             }
@@ -485,7 +489,7 @@ extension ProtoServiceCore: CoreService {
                 }
                 AppContext.shared.eventMonitor.observe(.encryption(error: error))
                 DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
-                self.stream.send(packetData)
+                self.send(packetData)
                 self.sendSilentChats(ServerProperties.silentChatMessages)
                 completion(.success(()))
             }
