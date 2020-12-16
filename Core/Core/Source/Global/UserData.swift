@@ -91,14 +91,14 @@ public final class UserData: ObservableObject {
 
         let isPasswordStoredInCoreData = !password.isEmpty
 
-        if let keychainPassword = Self.loadPasswordFromKeychain(userID: userId) {
+        if let keychainPassword = Keychain.loadPassword(userID: userId) {
             DDLogInfo("UserData/init/password loaded from keychain")
             password = keychainPassword
         } else {
             DDLogInfo("UserData/init/password not found on keychain")
         }
 
-        self.needsKeychainMigration = isPasswordStoredInCoreData || Self.needsKeychainUpdate(userID: userId, password: password)
+        self.needsKeychainMigration = isPasswordStoredInCoreData || Keychain.needsKeychainUpdate(userID: userId, password: password)
 
         userNamePublisher = CurrentValueSubject(name)
         if !self.userId.isEmpty && !self.password.isEmpty {
@@ -129,7 +129,7 @@ public final class UserData: ObservableObject {
     public func logout() {
         didLogOff.send()
 
-        if Self.removePasswordFromKeychain(userID: userId) {
+        if Keychain.removePassword(userID: userId) {
             DDLogInfo("UserData/logout cleared password")
         } else {
             DDLogError("UserData/logout/error unable to clear password")
@@ -152,100 +152,7 @@ public final class UserData: ObservableObject {
 
     private var needsKeychainMigration = false
 
-    @discardableResult
-    private static func savePasswordToKeychain(userID: UserID, password: String) -> Bool {
 
-        guard needsKeychainUpdate(userID: userID, password: password) else {
-            // Existing entry is up to date
-            return true
-        }
-
-        guard let passwordData = password.data(using: .utf8), let kFalse = kCFBooleanFalse, !password.isEmpty else {
-            return false
-        }
-
-        if loadKeychainItem(userID: userID) == nil {
-            // Add new entry
-            let keychainItem = [
-                kSecClass: kSecClassGenericPassword,
-                kSecAttrAccount: userID,
-                kSecAttrService: "hallo",
-                kSecAttrSynchronizable: kFalse,
-                kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-                kSecValueData: passwordData,
-            ] as CFDictionary
-            let status = SecItemAdd(keychainItem, nil)
-            return status == errSecSuccess
-        } else {
-            // Update existing entry
-            let query = [
-                kSecClass: kSecClassGenericPassword,
-                kSecAttrAccount: userID,
-                kSecAttrService: "hallo",
-            ] as CFDictionary
-
-            let update = [
-                kSecValueData: passwordData,
-                kSecAttrSynchronizable: kFalse,
-                kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-            ] as CFDictionary
-
-            let status = SecItemUpdate(query, update)
-            return status == errSecSuccess
-        }
-    }
-
-    @discardableResult
-    private static func removePasswordFromKeychain(userID: UserID) -> Bool {
-        let keychainItem = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrAccount: userID,
-            kSecAttrService: "hallo",
-        ] as CFDictionary
-        let status = SecItemDelete(keychainItem)
-        return status == errSecSuccess
-    }
-
-    private static func needsKeychainUpdate(userID: UserID, password: String) -> Bool {
-        guard let item = loadKeychainItem(userID: userID) as? NSDictionary,
-              let data = item[kSecValueData] as? Data,
-              let accesibleSetting = item[kSecAttrAccessible] as? String,
-              let keychainPassword = String(data: data, encoding: .utf8),
-              keychainPassword == password,
-              accesibleSetting == kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly as String
-              else
-        {
-            return true
-        }
-        return false
-    }
-
-    private static func loadPasswordFromKeychain(userID: UserID) -> String? {
-        guard let item = loadKeychainItem(userID: userID) as? NSDictionary,
-              let data = item[kSecValueData] as? Data,
-              let password = String(data: data, encoding: .utf8) else
-        {
-            return nil
-        }
-
-        return password.isEmpty ? nil : password
-    }
-
-    private static func loadKeychainItem(userID: UserID) -> AnyObject? {
-        let query = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrAccount: userID,
-            kSecAttrService: "hallo",
-            kSecReturnAttributes: true,
-            kSecReturnData: true,
-        ] as CFDictionary
-
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query, &result)
-        DDLogInfo("UserData/Keychain/load status [\(status)]")
-
-        return result
-    }
 
     // MARK: CoreData Stack
 
@@ -294,7 +201,7 @@ public final class UserData: ObservableObject {
         user.userId = userId
         user.name = name
 
-        let passwordSaveSuccess = Self.savePasswordToKeychain(userID: userId, password: password)
+        let passwordSaveSuccess = Keychain.savePassword(userID: userId, password: password)
 
         // Clear password from DB if it was saved to keychain
         user.password = passwordSaveSuccess ? "" : password
