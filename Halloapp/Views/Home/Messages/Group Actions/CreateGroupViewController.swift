@@ -341,7 +341,7 @@ class CreateGroupViewController: UIViewController {
                         guard let image = media[0].image else { return }
                         
                         guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
-                            DDLogError("EditGroupViewController/resizeImage error resize failed")
+                            DDLogError("CreateGroupViewController/resizeImage error resize failed")
                             return
                         }
 

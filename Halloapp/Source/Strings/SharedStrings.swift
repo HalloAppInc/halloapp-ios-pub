@@ -31,6 +31,10 @@ extension Localizations {
     static var buttonDone: String {
         NSLocalizedString("button.done", value: "Done", comment: "Title for generic Done button. Mostly used to complete some modal flow.")
     }
+    
+    static var buttonSave: String {
+        NSLocalizedString("button.done", value: "Save", comment: "Title for generic Save button. Mostly used to complete some modal flow.")
+    }
 
     // MARK: Links
 

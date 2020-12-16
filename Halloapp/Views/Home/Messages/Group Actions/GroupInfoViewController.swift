@@ -189,6 +189,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
     @objc private func editAction() {
         guard let chatGroup = chatGroup else { return }
         let controller = EditGroupViewController(chatGroup: chatGroup)
+        controller.delegate = self
         present(UINavigationController(rootViewController: controller), animated: true)
     }
     
@@ -251,7 +252,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         actionSheet.view.tintColor = UIColor.systemBlue
         
         if chatGroupMember.type == .admin {
-            actionSheet.addAction(UIAlertAction(title: "Demote", style: .destructive) { [weak self] _ in
+            actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoDemote, style: .destructive) { [weak self] _ in
                 guard let self = self else { return }
                 
                 MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.demote) { result in
@@ -259,7 +260,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 }
             })
         } else {
-            actionSheet.addAction(UIAlertAction(title: "Make Group Admin", style: .default) { [weak self] _ in
+            actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMakeGroupAdmin, style: .default) { [weak self] _ in
                 guard let self = self else { return }
                 
                 MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.promote) { result in
@@ -267,7 +268,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                 }
             })
         }
-        actionSheet.addAction(UIAlertAction(title: "Remove From Group", style: .destructive) { [weak self] _ in
+        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoRemoveFromGroup, style: .destructive) { [weak self] _ in
             guard let self = self else { return }
             
             MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.remove) { [weak self] result in
@@ -321,7 +322,7 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
                         guard let image = media[0].image else { return }
                         
                         guard let resizedImage = image.fastResized(to: CGSize(width: AvatarStore.avatarSize, height: AvatarStore.avatarSize)) else {
-                            DDLogError("EditGroupViewController/resizeImage error resize failed")
+                            DDLogError("GroupInfoViewController/resizeImage error resize failed")
                             return
                         }
 
@@ -331,8 +332,14 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             
                             switch result {
                             case .success:
-                                DispatchQueue.main.async() {
-//                                    self.avatarView.configure(groupId: self.groupId, using: MainAppContext.shared.avatarStore)
+                                DispatchQueue.main.async() { [weak self] in
+                                    guard let self = self else { return }
+                                    
+                                    // configure again as avatar listens to cached object that's evicted if app goes into background
+                                    if let tableHeaderView = self.tableView.tableHeaderView as? GroupInfoHeaderView {
+                                        tableHeaderView.configure(chatGroup: self.chatGroup)
+                                    }
+                                    
                                     controller.dismiss(animated: true)
                                 }
                             case .failure(let error):
@@ -749,6 +756,14 @@ class GroupInfoFooterView: UIView {
 
 }
 
+extension GroupInfoViewController: EditGroupViewControllerDelegate
+{
+    func editGroupViewController(_ editGroupViewController: EditGroupViewController) {
+        self.refreshGroupInfo()
+    }
+        
+}
+
 private extension ContactTableViewCell {
 
     func configure(with chatGroupMember: ChatGroupMember) {
@@ -788,6 +803,20 @@ private extension Localizations {
     
     static var chatGroupInfoNotAMemberLabel: String {
         NSLocalizedString("chat.group.info.not.a.member.label", value: "You are not a member of this group", comment: "Text label shown when the user is not a member of the group")
+    }
+    
+    // action menu for group members
+    
+    static var chatGroupInfoDemote: String {
+        NSLocalizedString("chat.group.info.demote", value: "Demote", comment: "Text for menu option of demoting a group member")
+    }
+    
+    static var chatGroupInfoMakeGroupAdmin: String {
+        NSLocalizedString("chat.group.info.make.group.admin", value: "Make Group Admin", comment: "Text for menu option of making a group member admin")
+    }
+    
+    static var chatGroupInfoRemoveFromGroup: String {
+        NSLocalizedString("chat.group.info.remove.from.group", value: "Remove From Group", comment: "Text for menu option of removing a group member")
     }
     
 }

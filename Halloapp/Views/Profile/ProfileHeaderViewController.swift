@@ -136,6 +136,9 @@ final class ProfileHeaderViewController: UIViewController {
         DDLogInfo("profile/edit-photo Will upload new photo")
         MainAppContext.shared.avatarStore.save(image: resizedImage, forUserId: MainAppContext.shared.userData.userId, avatarId: "self")
         MainAppContext.shared.service.sendCurrentAvatarIfPossible()
+        
+        // need to configure again as avatar listens to cached objects and they get evicted once app goes to the background
+        headerView.avatarViewButton.avatarView.configure(with: MainAppContext.shared.userData.userId, using: MainAppContext.shared.avatarStore)
     }
 
     private func promptToDeleteProfilePhoto() {

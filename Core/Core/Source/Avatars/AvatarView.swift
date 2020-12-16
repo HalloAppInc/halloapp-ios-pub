@@ -119,6 +119,7 @@ public class AvatarView: UIView {
             }
         }
         
+        avatarUpdatingCancellable?.cancel()
         avatarUpdatingCancellable = userAvatar.imageDidChange.sink { [weak self] image in
             guard let self = self else { return }
             self.hasImage = image != nil
@@ -203,6 +204,7 @@ extension AvatarView {
             }
         }
 
+        avatarUpdatingCancellable?.cancel()
         avatarUpdatingCancellable = groupAvatarData.imageDidChange.sink { [weak self] image in
             guard let self = self else { return }
             

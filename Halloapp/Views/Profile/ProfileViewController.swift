@@ -123,6 +123,7 @@ class ProfileViewController: UITableViewController {
     }
 
     override func viewWillAppear(_ animated: Bool) {
+        DDLogInfo("ProfileViewController/viewWillAppear")
         super.viewWillAppear(animated)
 
         // This VC pushes SwiftUI views that hide the tab bar and use `navigationBarTitle` to display custom titles.

@@ -35,7 +35,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var filteredChats: [ChatThread] = []
-    private var searchController: DismissableUISearchController!
+    private var searchController: UISearchController!
     private var searchBarHeight: CGFloat = 0
     
     private var isSearchBarEmpty: Bool {
@@ -60,7 +60,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         
-        searchController = DismissableUISearchController(searchResultsController: nil)
+        searchController = UISearchController(searchResultsController: nil)
         searchController.delegate = self
         searchController.searchResultsUpdater = self
         searchController.searchBar.autocapitalizationType = .none
@@ -140,7 +140,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        DDLogInfo("ChatListViewController/viewDidAppear")
         super.viewDidAppear(animated)
         isVisible = true
         
@@ -158,8 +157,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         floatingMenu.setState(.collapsed, animated: true)
         
         searchController.isActive = false
-        searchController.searchBar.text = ""
-        searchController.dismiss(animated: false)
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -618,11 +615,9 @@ extension ChatListViewController: UISearchControllerDelegate {
 extension ChatListViewController: UISearchResultsUpdating {
     
     func updateSearchResults(for searchController: UISearchController) {
-        DDLogDebug("ChatListViewController/updateSearchResults")
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
         guard let searchBarText = searchController.searchBar.text else { return }
     
-        DDLogDebug("ChatListViewController/updateSearchResults/searchBarText \(searchBarText)")
         let strippedString = searchBarText.trimmingCharacters(in: CharacterSet.whitespaces)
         
         let searchItems = strippedString.components(separatedBy: " ")
@@ -644,7 +639,7 @@ extension ChatListViewController: UISearchResultsUpdating {
             }
             return false
         }
-        DDLogDebug("ChatListViewController/updateSearchResults/filteredChats count \(filteredChats.count)")
+        DDLogDebug("ChatListViewController/updateSearchResults/filteredChats count \(filteredChats.count) for: \(searchBarText)")
         
         tableView.reloadData()
     }
@@ -1082,10 +1077,3 @@ private class UnreadBadgeView: UIView {
     }
 }
 
-fileprivate class DismissableUISearchController: UISearchController {
-
-    // dismiss controller when switching tabs while searching
-    override func viewWillDisappear(_ animated: Bool) {
-        dismiss(animated: true)
-    }
-}

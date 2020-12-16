@@ -19,7 +19,7 @@ fileprivate struct Constants {
 }
 
 protocol EditGroupViewControllerDelegate: AnyObject {
-    func createGroupViewController(_ createGroupViewController: CreateGroupViewController)
+    func editGroupViewController(_ editGroupViewController: EditGroupViewController)
 }
 
 class EditGroupViewController: UIViewController {
@@ -40,11 +40,11 @@ class EditGroupViewController: UIViewController {
     override func viewDidLoad() {
         DDLogInfo("EditGroupViewController/viewDidLoad")
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(updateAction))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonSave, style: .plain, target: self, action: #selector(updateAction))
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
         
-        navigationItem.title = "Edit"
+        navigationItem.title = Localizations.chatEditGroupTitle
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         
@@ -52,7 +52,7 @@ class EditGroupViewController: UIViewController {
     }
 
     deinit {
-        DDLogDebug("CreateGroupViewController/deinit ")
+        DDLogDebug("EditGroupViewController/deinit ")
     }
 
     private var canUpdate: Bool {
@@ -123,7 +123,7 @@ class EditGroupViewController: UIViewController {
         view.font = UIFont.preferredFont(forTextStyle: .body)
         view.tintColor = .systemBlue
         
-        view.textContainerInset = UIEdgeInsets(top: 15, left: 20, bottom: 15, right: 20)
+        view.textContainerInset = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
         
         view.translatesAutoresizingMaskIntoConstraints = false
         
@@ -169,11 +169,12 @@ class EditGroupViewController: UIViewController {
 
             switch result {
             case .success:
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0) {
-                    self.navigationController?.popViewController(animated: true)
+                self.delegate?.editGroupViewController(self)
+                DispatchQueue.main.async {
+                    self.dismiss(animated: true)
                 }
             case .failure(let error):
-                DDLogError("CreateGroupViewController/createAction/error \(error)")
+                DDLogError("EditGroupViewController/updateAction/error \(error)")
             }
         }
     }
@@ -192,4 +193,12 @@ extension EditGroupViewController: UITextViewDelegate {
         updateCount()
         navigationItem.rightBarButtonItem?.isEnabled = canUpdate
     }
+}
+
+private extension Localizations {
+
+    static var chatEditGroupTitle: String {
+        NSLocalizedString("chat.edit.group.title", value: "Edit", comment: "Title of group name edit screen")
+    }
+    
 }

@@ -505,7 +505,8 @@ class ChatData: ObservableObject {
         let messageID = chatAck.id
         
         // search for pending 1-1 message
-        updateChatMessageByStatus(for: messageID, status: .pending) { (chatMessage) in
+        updateChatMessageByStatus(for: messageID, status: .pending) { [weak self] (chatMessage) in
+            guard let self = self else { return }
             DDLogDebug("ChatData/processInboundChatAck/updatePendingChatMessage/ [\(messageID)]")
 
             chatMessage.outgoingStatus = .sentOut
@@ -1040,18 +1041,38 @@ extension ChatData {
         }
         
     }
-    
+        
     private func processInboundChatRetractInBg(_ chatRetractInfo: ChatRetractInfo) {
-        backgroundProcessingQueue.async {
-            if chatRetractInfo.threadType == .oneToOne {
-                self.processInboundChatMessageRetract(from: chatRetractInfo.from, messageID: chatRetractInfo.messageID)
-            } else {
-                self.processInboundGroupChatMessageRetract(groupID: chatRetractInfo.threadID, messageID: chatRetractInfo.messageID)
-            }
+
+        backgroundProcessingQueue.asyncAfter(deadline: .now() + 1) {
+            self.retractMsgIfFound(chatRetractInfo: chatRetractInfo, attemptsLeft: 3)
         }
+                
     }
     
     
+    private func retractMsgIfFound(chatRetractInfo: ChatRetractInfo, attemptsLeft: Int) {
+        guard attemptsLeft > 0 else { return }
+        DDLogInfo("ChatData/retractMsgIfFound/attemptsLeft: \(attemptsLeft)")
+ 
+        switch chatRetractInfo.threadType {
+        case .oneToOne:
+            if chatMessage(with: chatRetractInfo.messageID, in: bgContext) != nil {
+                processInboundChatMessageRetract(from: chatRetractInfo.from, messageID: chatRetractInfo.messageID)
+                return
+            }
+        case .group:
+            if chatGroupMessage(with: chatRetractInfo.messageID, in: bgContext) != nil {
+                processInboundGroupChatMessageRetract(groupID: chatRetractInfo.threadID, messageID: chatRetractInfo.messageID)
+                return
+            }
+        }
+        
+        backgroundProcessingQueue.asyncAfter(deadline: .now() + 3) {
+            self.retractMsgIfFound(chatRetractInfo: chatRetractInfo, attemptsLeft: attemptsLeft - 1)
+        }
+        
+    }
     
 }
 
@@ -1094,10 +1115,12 @@ extension ChatData {
                      chatReplyMessageID: String? = nil,
                      chatReplyMessageSenderID: UserID? = nil,
                      chatReplyMessageMediaIndex: Int32) {
+        
         let messageId = UUID().uuidString
-
+        let isMsgToYourself: Bool = toUserId == userData.userId
+        
         // Create and save new ChatMessage object.
-        DDLogDebug("ChatData/new-msg/\(messageId)")
+        DDLogDebug("ChatData/createChatMsg/\(messageId)")
         let chatMessage = ChatMessage(context: bgContext)
         chatMessage.id = messageId
         chatMessage.toUserId = toUserId
@@ -1109,13 +1132,13 @@ extension ChatData {
         chatMessage.chatReplyMessageSenderID = chatReplyMessageSenderID
         chatMessage.chatReplyMessageMediaIndex = chatReplyMessageMediaIndex
         chatMessage.incomingStatus = .none
-        chatMessage.outgoingStatus = .pending
+        chatMessage.outgoingStatus = isMsgToYourself ? .seen : .pending
         chatMessage.timestamp = Date()
 
         var lastMsgMediaType: ChatThread.LastMsgMediaType = .none // going with the first media
         
         for (index, mediaItem) in media.enumerated() {
-            DDLogDebug("ChatData/new-msg/\(messageId)/add-media [\(mediaItem)]")
+            DDLogDebug("ChatData/createChatMsg/\(messageId)/add-media [\(mediaItem)]")
             
             let chatMedia = ChatMedia(context: bgContext)
             switch mediaItem.type {
@@ -1130,7 +1153,7 @@ extension ChatData {
                     lastMsgMediaType = .video
                 }
             }
-            chatMedia.outgoingStatus = .pending
+            chatMedia.outgoingStatus = isMsgToYourself ? .uploaded : .pending
             chatMedia.url = mediaItem.url
             chatMedia.uploadUrl = mediaItem.uploadUrl
             chatMedia.size = mediaItem.size!
@@ -1143,7 +1166,7 @@ extension ChatData {
                 try copyFiles(toChatMedia: chatMedia, fileUrl: mediaItem.fileURL!, encryptedFileUrl: mediaItem.encryptedFileUrl)
             }
             catch {
-                DDLogError("ChatData/new-msg/\(messageId)/copy-media/error [\(error)]")
+                DDLogError("ChatData/createChatMsg/\(messageId)/copy-media/error [\(error)]")
             }
         }
         
@@ -1184,14 +1207,14 @@ extension ChatData {
                     try copyMediaToQuotedMedia(fromDir: MainAppContext.mediaDirectoryURL, fromPath: feedPostMedia.relativeFilePath, to: quotedMedia)
                 }
                 catch {
-                    DDLogError("ChatData/new-msg/\(messageId)/quoted/copy-media/error [\(error)]")
+                    DDLogError("ChatData/createChatMsg/\(messageId)/quoted/copy-media/error [\(error)]")
                 }
             }
         }
         
         if let chatReplyMessageID = chatReplyMessageID,
            let chatReplyMessageSenderID = chatReplyMessageSenderID,
-           let quotedChatMessage = MainAppContext.shared.chatData.chatMessage(with: chatReplyMessageID) {
+           let quotedChatMessage = self.chatMessage(with: chatReplyMessageID, in: bgContext) {
             
             let quoted = ChatQuoted(context: bgContext)
             quoted.type = .message
@@ -1215,36 +1238,39 @@ extension ChatData {
                     try copyMediaToQuotedMedia(fromDir: MainAppContext.chatMediaDirectoryURL, fromPath: quotedChatMessageMedia.relativeFilePath, to: quotedMedia)
                 }
                 catch {
-                    DDLogError("ChatData/new-msg/\(messageId)/quoted/copy-media/error [\(error)]")
+                    DDLogError("ChatData/createChatMsg/\(messageId)/quoted/copy-media/error [\(error)]")
                 }
             }
         }
         
         // Update Chat Thread
         if let chatThread = self.chatThread(type: ChatType.oneToOne, id: chatMessage.toUserId, in: bgContext) {
-            DDLogDebug("ChatData/new-msg/ update-thread")
+            DDLogDebug("ChatData/createChatMsg/ update-thread")
             chatThread.lastMsgId = chatMessage.id
             chatThread.lastMsgUserId = chatMessage.fromUserId
             chatThread.lastMsgText = chatMessage.text
             chatThread.lastMsgMediaType = lastMsgMediaType
-            chatThread.lastMsgStatus = .pending
+            chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
             chatThread.lastMsgTimestamp = chatMessage.timestamp
         } else {
-            DDLogDebug("ChatData/new-msg/\(messageId)/new-thread")
+            DDLogDebug("ChatData/createChatMsg/\(messageId)/new-thread")
             let chatThread = ChatThread(context: bgContext)
             chatThread.chatWithUserId = chatMessage.toUserId
             chatThread.lastMsgId = chatMessage.id
             chatThread.lastMsgUserId = chatMessage.fromUserId
             chatThread.lastMsgText = chatMessage.text
             chatThread.lastMsgMediaType = lastMsgMediaType
-            chatThread.lastMsgStatus = .pending
+            chatThread.lastMsgStatus = isMsgToYourself ? .seen : .pending
             chatThread.lastMsgTimestamp = chatMessage.timestamp
             chatThread.unreadCount = 0
         }
+        
         save(bgContext)
 
-        let xmppChatMsg = XMPPChatMessage(chatMessage: chatMessage)
-        uploadChatMsgMediaAndSend(xmppChatMsg)
+        if !isMsgToYourself {
+            let xmppChatMsg = XMPPChatMessage(chatMessage: chatMessage)
+            uploadChatMsgMediaAndSend(xmppChatMsg)
+        }
     }
 
     private func uploadChatMsgMediaAndSend(_ xmppChatMsg: XMPPChatMessage) {
@@ -1430,13 +1456,6 @@ extension ChatData {
         return chatMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
-    func inboundPendingGroupChatMsgMedia(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
-        let sortDescriptors = [
-            NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
-        ]
-        return chatGroupMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
-    }
-
     // MARK: 1-1 Core Data Updating
     
     private func updateChatMessage(with chatMessageId: String, block: @escaping (ChatMessage) -> (), performAfterSave: (() -> ())? = nil) {
@@ -2542,7 +2561,7 @@ extension ChatData {
     }
     
     func chatGroupMember(groupId id: GroupID, memberUserId: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatGroupMember? {
-        return self.chatGroupMembers(predicate: NSPredicate(format: "groupId == %@ && userId == %@", id, memberUserId), in: managedObjectContext).first
+        return chatGroupMembers(predicate: NSPredicate(format: "groupId == %@ && userId == %@", id, memberUserId), in: managedObjectContext).first
     }
     
     private func chatGroupMessages(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
@@ -2563,7 +2582,7 @@ extension ChatData {
     }
     
     func chatGroupMessage(with id: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatGroupMessage? {
-        return self.chatGroupMessages(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
+        return chatGroupMessages(predicate: NSPredicate(format: "id == %@", id), in: managedObjectContext).first
     }
     
     // includes seen but not sent messages
@@ -2571,7 +2590,7 @@ extension ChatData {
         let sortDescriptors = [
             NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
         ]
-        return self.chatGroupMessages(predicate: NSPredicate(format: "(groupId = %@) && (event.@count == 0) && (inboundStatusValue = %d OR inboundStatusValue = %d)", groupId, ChatGroupMessage.InboundStatus.none.rawValue, ChatGroupMessage.InboundStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+        return chatGroupMessages(predicate: NSPredicate(format: "(groupId = %@) && (event.@count == 0) && (inboundStatusValue = %d OR inboundStatusValue = %d)", groupId, ChatGroupMessage.InboundStatus.none.rawValue, ChatGroupMessage.InboundStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     func pendingOutboundGroupChatMsgs(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
@@ -2592,7 +2611,14 @@ extension ChatData {
         let sortDescriptors = [
             NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
         ]
-        return self.chatGroupMessages(predicate: NSPredicate(format: "inboundStatusValue = %d", ChatGroupMessage.InboundStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+        return chatGroupMessages(predicate: NSPredicate(format: "inboundStatusValue = %d", ChatGroupMessage.InboundStatus.haveSeen.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
+    }
+    
+    func inboundPendingGroupChatMsgMedia(in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessage] {
+        let sortDescriptors = [
+            NSSortDescriptor(keyPath: \ChatGroupMessage.timestamp, ascending: true)
+        ]
+        return chatGroupMessages(predicate: NSPredicate(format: "ANY media.incomingStatusValue == %d", ChatMedia.IncomingStatus.pending.rawValue), sortDescriptors: sortDescriptors, in: managedObjectContext)
     }
     
     private func chatGroupMessageAllInfo(predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, in managedObjectContext: NSManagedObjectContext? = nil) -> [ChatGroupMessageInfo] {
@@ -2613,17 +2639,17 @@ extension ChatData {
     }
     
     func chatGroupMessageInfo(messageId: String, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatGroupMessageInfo? {
-        return self.chatGroupMessageAllInfo(predicate: NSPredicate(format: "chatGroupMessageId == %@", messageId), in: managedObjectContext).first
+        return chatGroupMessageAllInfo(predicate: NSPredicate(format: "chatGroupMessageId == %@", messageId), in: managedObjectContext).first
     }
     
     func chatGroupMessageInfoForUser(messageId: String, userId: UserID, in managedObjectContext: NSManagedObjectContext? = nil) -> ChatGroupMessageInfo? {
-        return self.chatGroupMessageAllInfo(predicate: NSPredicate(format: "chatGroupMessageId == %@ && userId == %@", messageId, userId), in: managedObjectContext).first
+        return chatGroupMessageAllInfo(predicate: NSPredicate(format: "chatGroupMessageId == %@ && userId == %@", messageId, userId), in: managedObjectContext).first
     }
     
     // MARK: Group Core Data Updating
     
     public func updateChatGroupMessageCellHeight(for chatGroupMessageId: String, with cellHeight: Int) {
-        self.updateChatGroupMessage(with: chatGroupMessageId) { (chatGroupMessage) in
+        updateChatGroupMessage(with: chatGroupMessageId) { (chatGroupMessage) in
             chatGroupMessage.cellHeight = Int16(cellHeight)
         }
     }
