@@ -11,7 +11,6 @@ import CocoaLumberjack
 import Combine
 import CoreData
 import UIKit
-import XMPPFramework
 
 
 public typealias AvatarID = String

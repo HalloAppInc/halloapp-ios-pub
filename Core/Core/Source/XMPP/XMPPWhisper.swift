@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import XMPPFramework
 
 public struct PreKey {
     public let id: Int32

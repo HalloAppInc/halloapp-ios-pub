@@ -9,7 +9,6 @@
 import CocoaLumberjack
 import Core
 import Foundation
-import XMPPFramework
 
 final class ProtoAvatarRequest: ProtoRequest<AvatarInfo> {
 

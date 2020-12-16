@@ -8,7 +8,6 @@
 
 import Core
 import Foundation
-import XMPPFramework
 
 typealias HalloContact = XMPPContact
 

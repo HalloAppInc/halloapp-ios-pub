@@ -6,8 +6,8 @@
 //  Copyright © 2020 Hallo App, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Foundation
-import XMPPFramework
 
 enum ProtoRequestError: Error {
     case apiResponseMissingMediaURL

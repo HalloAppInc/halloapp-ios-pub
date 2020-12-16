@@ -5,9 +5,11 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Combine
 import Core
-import XMPPFramework
+import CoreData
+import UIKit
 
 typealias ChatAck = (id: String, timestamp: Date?)
 

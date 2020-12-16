@@ -6,9 +6,9 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Foundation
 import SwiftProtobuf
-import XMPPFramework
 
 enum XMPPFeedMediaType: String {
     case image = "image"

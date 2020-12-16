@@ -7,7 +7,6 @@
 //
 import Core
 import Foundation
-import XMPPFramework
 
 typealias HalloGroup = XMPPGroup
 typealias HalloGroupChatMessage = XMPPChatGroupMessage

@@ -5,13 +5,14 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Combine
 import Core
+import CoreData
 import CryptoKit
 import CryptoSwift
 import Foundation
 import Sodium
-import XMPPFramework
 
 class KeyData {
     let oneTimePreKeysToUpload: Int32 = 20

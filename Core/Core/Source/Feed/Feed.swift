@@ -9,7 +9,6 @@
 import CoreGraphics
 import Photos
 import SwiftProtobuf
-import XMPPFramework
 import UIKit
 
 // MARK: Types

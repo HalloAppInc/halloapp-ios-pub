@@ -6,8 +6,8 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Core
-import XMPPFramework
 
 private struct HalloPrivacyList: PrivacyListProtocol {
     let type: PrivacyListType

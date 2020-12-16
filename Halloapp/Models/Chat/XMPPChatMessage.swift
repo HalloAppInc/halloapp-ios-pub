@@ -8,7 +8,6 @@
 
 import Core
 import UIKit
-import XMPPFramework
 
 struct XMPPChatMessage {
     let id: String

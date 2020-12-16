@@ -6,9 +6,8 @@
 //  Copyright © 2020 Hallo App, Inc. All rights reserved.
 //
 
-import Foundation
+import CocoaLumberjack
 import UIKit
-import XMPPFramework
 
 public typealias GroupID = String
 

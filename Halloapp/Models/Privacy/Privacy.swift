@@ -6,9 +6,9 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Combine
 import Core
-import XMPPFramework
 
 public enum PrivacyListItemUpdateAction: String, RawRepresentable {
     case add

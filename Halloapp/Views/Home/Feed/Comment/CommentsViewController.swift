@@ -11,7 +11,6 @@ import Combine
 import Core
 import CoreData
 import UIKit
-import XMPPFramework
 
 private extension Localizations {
 

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import XMPPFramework
 
 public typealias WhisperKeyBundle = XMPPWhisperKey
 

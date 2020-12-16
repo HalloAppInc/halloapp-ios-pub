@@ -6,8 +6,9 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Core
-import XMPPFramework
+import Foundation
 
 typealias InviteResponse = (results: [String: InviteResult], count: Int, refreshDate: Date)
 
