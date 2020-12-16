@@ -6,9 +6,20 @@
 //  Copyright © 2019 Halloapp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Combine
+import CoreData
 import SwiftUI
-import XMPPFramework
+
+public enum Credentials {
+    case v1(userID: UserID, password: String)
+
+    var userID: UserID {
+        switch self {
+        case .v1(let userID, _): return userID
+        }
+    }
+}
 
 public final class UserData: ObservableObject {
 
@@ -51,12 +62,7 @@ public final class UserData: ObservableObject {
     // Provided by the server.
     public var normalizedPhoneNumber: String = ""
     public var userId: UserID = ""
-    public var password = ""
-
-    public var userJID: XMPPJID? {
-        guard !userId.isEmpty && !password.isEmpty else { return nil }
-        return XMPPJID(user: userId, domain: "s.halloapp.net", resource: "iphone")
-    }
+    private var password: String?
 
     public var hostName: String {
         useTestServer ? "s-test.halloapp.net" : "s.halloapp.net"
@@ -64,6 +70,24 @@ public final class UserData: ObservableObject {
 
     public var hostPort: UInt16 {
         5210
+    }
+
+    public var credentials: Credentials? {
+        guard !userId.isEmpty else { return nil }
+        if let password = password, !password.isEmpty {
+            return .v1(userID: userId, password: password)
+        } else {
+            return nil
+        }
+    }
+
+    public func update(credentials: Credentials) {
+        switch credentials {
+        case .v1(let userID, let password):
+            self.userId = userID
+            self.password = password
+        }
+        save()
     }
 
     public var formattedPhoneNumber: String {
@@ -89,7 +113,7 @@ public final class UserData: ObservableObject {
             self.name = user.name ?? ""
         }
 
-        let isPasswordStoredInCoreData = !password.isEmpty
+        let isPasswordStoredInCoreData = !(password?.isEmpty ?? true)
 
         if let keychainPassword = Keychain.loadPassword(userID: userId) {
             DDLogInfo("UserData/init/password loaded from keychain")
@@ -98,16 +122,18 @@ public final class UserData: ObservableObject {
             DDLogInfo("UserData/init/password not found on keychain")
         }
 
-        self.needsKeychainMigration = isPasswordStoredInCoreData || Keychain.needsKeychainUpdate(userID: userId, password: password)
+        if let password = password {
+            self.needsKeychainMigration = isPasswordStoredInCoreData || Keychain.needsKeychainUpdate(userID: userId, password: password)
+        }
 
         userNamePublisher = CurrentValueSubject(name)
-        if !self.userId.isEmpty && !self.password.isEmpty {
+        if credentials != nil {
             self.isLoggedIn = true
         }
     }
     
     public func tryLogIn() {
-        if !userId.isEmpty && !password.isEmpty {
+        if credentials != nil {
             self.isLoggedIn = true
             self.didLogIn.send()
         }
@@ -151,8 +177,6 @@ public final class UserData: ObservableObject {
     // MARK: Keychain
 
     private var needsKeychainMigration = false
-
-
 
     // MARK: CoreData Stack
 
@@ -201,7 +225,10 @@ public final class UserData: ObservableObject {
         user.userId = userId
         user.name = name
 
-        let passwordSaveSuccess = Keychain.savePassword(userID: userId, password: password)
+        let passwordSaveSuccess: Bool = {
+            guard let password = password else { return false }
+            return Keychain.savePassword(userID: userId, password: password)
+        }()
 
         // Clear password from DB if it was saved to keychain
         user.password = passwordSaveSuccess ? "" : password

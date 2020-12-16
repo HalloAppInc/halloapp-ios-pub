@@ -7,11 +7,11 @@
 //
 
 import CocoaLumberjack
-import Foundation
+import Core
 
 protocol VerificationCodeService {
     func requestVerificationCode(for phoneNumber: String, completion: @escaping (Result<String, Error>) -> Void)
-    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, completion: @escaping (Result<(String, String), Error>) -> Void)
+    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, completion: @escaping (Result<Credentials, Error>) -> Void)
 }
 
 final class VerificationCodeServiceSMS: VerificationCodeService {
@@ -84,7 +84,7 @@ final class VerificationCodeServiceSMS: VerificationCodeService {
         task.resume()
     }
 
-    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, completion: @escaping (Result<(String, String), Error>) -> Void) {
+    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, completion: @escaping (Result<Credentials, Error>) -> Void) {
         let json: [String : String] = [ "name": name, "phone": normalizedPhoneNumber, "code": verificationCode ]
         var request = URLRequest(url: URL(string: "https://\(hostName)/api/registration/register")!)
         request.httpMethod = "POST"
@@ -143,7 +143,7 @@ final class VerificationCodeServiceSMS: VerificationCodeService {
             DDLogInfo("reg/validate-code/success")
 
             DispatchQueue.main.async {
-                completion(.success((userID, password)))
+                completion(.success(.v1(userID: userID, password: password)))
             }
         }
         task.resume()

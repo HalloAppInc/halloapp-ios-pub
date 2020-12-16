@@ -66,11 +66,8 @@ final class DefaultRegistrationManager: RegistrationManager {
 
         verificationCodeService.validateVerificationCode(verificationCode, name: userData.name, normalizedPhoneNumber: userData.normalizedPhoneNumber) { result in
             switch result {
-            case .success((let userID, let password)):
-                let userData = MainAppContext.shared.userData
-                userData.userId = userID
-                userData.password = password
-                userData.save()
+            case .success(let credentials):
+                MainAppContext.shared.userData.update(credentials: credentials)
                 completion(.success(()))
             case .failure(let error):
                 completion(.failure(error))

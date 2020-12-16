@@ -67,7 +67,10 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     open func configureStream(with userData: UserData?) {
         stream.startTLSPolicy = .required
-        stream.myJID = userData?.userJID
+        stream.myJID = {
+            guard let credentials = userData?.credentials else { return nil }
+            return XMPPJID(user: credentials.userID, domain: "s.halloapp.net", resource: "iphone")
+        }()
         stream.protoService = self
 
         let userAgent = NSString(string: AppContext.userAgent)
@@ -369,9 +372,12 @@ extension ProtoServiceCore: XMPPStreamDelegate {
     }
 
     public func xmppStreamDidSecure(_ sender: XMPPStream) {
-        DDLogInfo("proto/stream/didSecure")
-
-        stream.sendAuthRequestWithPassword(password: userData.password)
+        guard let credentials = userData.credentials, case .v1(_, let password) = credentials else {
+            DDLogError("proto/stream/didSecure/error password missing")
+            return
+        }
+        DDLogInfo("proto/stream/didSecure/sending auth request")
+        stream.sendAuthRequestWithPassword(password: password)
     }
 
     public func xmppStreamDidConnect(_ stream: XMPPStream) {
