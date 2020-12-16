@@ -210,11 +210,11 @@ fileprivate struct CameraView: View {
             }
             Spacer()
 
-            VStack() {
-                Circle()
-                    .strokeBorder(self.captureButtonColor, lineWidth: CameraViewLayoutConstants.captureButtonStroke)
-                    .frame(width: CameraViewLayoutConstants.captureButtonSize, height: CameraViewLayoutConstants.captureButtonSize)
-            }
+
+            Circle()
+                .strokeBorder(self.captureButtonColor, lineWidth: CameraViewLayoutConstants.captureButtonStroke)
+                .frame(width: CameraViewLayoutConstants.captureButtonSize, height: CameraViewLayoutConstants.captureButtonSize)
+                .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local).onChanged { _ in
                 self.capturePressed()
             }.onEnded { value in
