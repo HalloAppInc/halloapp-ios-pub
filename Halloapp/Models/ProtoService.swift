@@ -387,7 +387,12 @@ final class ProtoService: ProtoServiceCore {
                         AppContext.shared.errorLogger?.logError(error)
                         self.rerequestMessage(msg)
                     }
-                    AppContext.shared.eventMonitor.observe(.decryption(error: decryptionError))
+                    let senderPlatform: String? = {
+                        if msg.id == msg.id.lowercased() { return "android" }
+                        if msg.id == msg.id.uppercased() { return "ios" }
+                        return nil
+                    }()
+                    AppContext.shared.eventMonitor.observe(.decryption(error: decryptionError, senderPlatform: senderPlatform))
                     self.sendAck(messageID: msg.id)
                 }
             case .silentChatStanza(let silent):
@@ -398,7 +403,7 @@ final class ProtoService: ProtoServiceCore {
                         AppContext.shared.errorLogger?.logError(error)
                         self.rerequestMessage(msg)
                     }
-                    AppContext.shared.eventMonitor.observe(.decryption(error: decryptionError))
+                    AppContext.shared.eventMonitor.observe(.decryption(error: decryptionError, senderPlatform: nil))
                     self.sendAck(messageID: msg.id)
                 }
             case .rerequest(let rerequest):
