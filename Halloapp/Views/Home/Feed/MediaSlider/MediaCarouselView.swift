@@ -102,10 +102,12 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     }
 
     class func preferredHeight(for media: [FeedMedia], width: CGFloat) -> CGFloat {
-        guard !media.isEmpty else { return 0 }
+        let aspectRatios: [CGFloat] = media.compactMap {
+            guard $0.size.width > 0 else { return nil }
+            return $0.size.height / $0.size.width
+        }
+        guard let tallestItemAspectRatio = aspectRatios.max() else { return 0 }
 
-        let tallestItem = media.max { return $0.size.height < $1.size.height }
-        let tallestItemAspectRatio = tallestItem!.size.height / tallestItem!.size.width
         let maxAllowedAspectRatio: CGFloat = 5/4
         var height = (width * min(maxAllowedAspectRatio, tallestItemAspectRatio)).rounded()
 
