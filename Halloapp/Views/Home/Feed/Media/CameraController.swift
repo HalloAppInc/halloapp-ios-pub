@@ -140,6 +140,8 @@ class CameraController: UIViewController {
         super.viewDidLoad()
         view.layer.cornerRadius = 15
         view.layer.masksToBounds = true
+        let pinchToZoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(pinchToZoom(_:)))
+        view.addGestureRecognizer(pinchToZoomRecognizer)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -306,6 +308,7 @@ class CameraController: UIViewController {
     private func setFocusAndExposure(camera: AVCaptureDevice, point: CGPoint? = nil) {
         do {
             try camera.lockForConfiguration()
+            defer { camera.unlockForConfiguration() }
             if camera.isFocusModeSupported(.continuousAutoFocus) {
                 camera.focusMode = .continuousAutoFocus
             }
@@ -320,7 +323,6 @@ class CameraController: UIViewController {
                 camera.exposureMode = .autoExpose
                 camera.exposurePointOfInterest = point!
             }
-            camera.unlockForConfiguration()
         } catch {
             DDLogError("CameraController/focusCameraOnPoint \(error)")
         }
@@ -395,6 +397,27 @@ class CameraController: UIViewController {
     private func clearVieoTimeout() {
         videoTimeout?.cancel()
         videoTimeout = nil
+    }
+
+    @objc private func pinchToZoom(_ pinchRecognizer: UIPinchGestureRecognizer) {
+        guard let captureSession = captureSession,
+            captureSession.isRunning,
+            sessionIsStarted,
+            let camera = isUsingBackCamera ? backCamera : frontCamera else { return }
+
+        let zoom = camera.videoZoomFactor * pinchRecognizer.scale
+        pinchRecognizer.scale = 1.0
+        do {
+            try camera.lockForConfiguration()
+            defer { camera.unlockForConfiguration() }
+            if camera.minAvailableVideoZoomFactor <= zoom && zoom <= camera.maxAvailableVideoZoomFactor {
+                camera.videoZoomFactor = zoom
+            } else {
+                DDLogWarn("CameraController/pinchToZoom zoom \(zoom) out of range [\(camera.minAvailableVideoZoomFactor) \(camera.maxAvailableVideoZoomFactor)]")
+            }
+        } catch {
+            DDLogError("CameraController/pinchToZoom \(error)")
+        }
     }
 
     public func setOrientation(_ orientation: UIDeviceOrientation) {
