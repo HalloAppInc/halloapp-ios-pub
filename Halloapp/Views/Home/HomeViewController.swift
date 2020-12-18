@@ -135,18 +135,22 @@ class HomeViewController: UITabBarController {
                 DDLogError("Client version check did not return expiration")
                 return
             }
+            
             let numDaysLeft = numSecondsLeft/86400
             if numDaysLeft < 10 {
+                DDLogInfo("HomeViewController/updateNotice/days left: \(numDaysLeft)")
                 let isExpired = numDaysLeft <= 0
-                let alert = UIAlertController(title: "", message: "\(numDaysLeft) This beta version is out of date\nPlease install the latest version of HalloApp via TestFlight", preferredStyle: UIAlertController.Style.alert)
-                let updateAction = UIAlertAction(title: "Update", style: .default, handler: { action in
-                    if let customAppURL = URL(string: "itms-beta://"){
+                let alert = UIAlertController(title: Localizations.homeUpdateNoticeTitle, message: Localizations.homeUpdateNoticeText, preferredStyle: UIAlertController.Style.alert)
+                let updateAction = UIAlertAction(title: Localizations.buttonUpdate, style: .default, handler: { action in
+                    DDLogInfo("HomeViewController/updateNotice/update clicked")
+                    if let customAppURL = URL(string: "itms-apps://apple.com/app/1501583052"){
                         if UIApplication.shared.canOpenURL(customAppURL) {
                             UIApplication.shared.open(customAppURL, options: [:], completionHandler: nil)
                         }
                     }
                 })
-                let dismissAction = UIAlertAction(title: isExpired ? "Exit" : "Dismiss", style: .default, handler: { action in
+                let dismissAction = UIAlertAction(title: isExpired ? Localizations.homeUpdateNoticeButtonExit : Localizations.buttonDismiss, style: .default, handler: { action in
+                    DDLogInfo("HomeViewController/updateNotice/dismiss clicked")
                     if isExpired {
                         exit(0)
                     }
@@ -200,4 +204,20 @@ extension HomeViewController {
         self.present(activityViewController, animated: true)
     }
 
+}
+
+private extension Localizations {
+
+    static var homeUpdateNoticeTitle: String {
+        NSLocalizedString("home.update.notice.title", value: "This version is out of date", comment: "Title of update notice shown to users who have old versions of the app")
+    }
+    
+    static var homeUpdateNoticeText: String {
+        NSLocalizedString("home.update.notice.text", value: "Please update to the latest version of HalloApp", comment: "Text shown to users who have old versions of the app")
+    }
+    
+    static var homeUpdateNoticeButtonExit: String {
+        NSLocalizedString("home.update.notice.button.exit", value: "Exit", comment: "Title for exit button that closes the app")
+    }
+    
 }

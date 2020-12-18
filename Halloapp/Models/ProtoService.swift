@@ -930,6 +930,10 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoGroupInfoRequest(groupID: groupID, completion: completion))
     }
     
+    func getGroupsList(completion: @escaping ServiceRequestCompletion<HalloGroups>) {
+        enqueue(request: ProtoGroupsListRequest(completion: completion))
+    }
+    
     func modifyGroup(groupID: GroupID, with members: [UserID], groupAction: ChatGroupAction,
                      action: ChatGroupMemberAction, completion: @escaping ServiceRequestCompletion<Void>) {
         enqueue(request: ProtoGroupModifyRequest(

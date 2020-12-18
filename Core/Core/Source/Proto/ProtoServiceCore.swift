@@ -86,8 +86,8 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     public func connect() {
         guard stream.myJID != nil else { return }
 
-        DDLogInfo("proto/connect [version: \(stream.clientVersion), passiveMode: \(stream.passiveMode)]")
-
+        DDLogInfo("proto/connect [passiveMode: \(stream.passiveMode), \(stream.clientVersion), \(UIDevice.current.getModelName()) (iOS \(UIDevice.current.systemVersion))]")
+            
         stream.hostName = userData.hostName
         stream.hostPort = userData.hostPort
 

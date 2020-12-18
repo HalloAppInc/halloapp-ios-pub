@@ -8,6 +8,7 @@
 import Core
 import Foundation
 
+typealias HalloGroups = XMPPGroups
 typealias HalloGroup = XMPPGroup
 typealias HalloGroupChatMessage = XMPPChatGroupMessage
 
@@ -41,6 +42,14 @@ public struct XMPPChatMention: FeedMentionProtocol {
     public let name: String
 }
 
+struct XMPPGroups {
+    private(set) var groups: [XMPPGroup]? = nil
+    
+    init?(protoGroups: Server_GroupsStanza) {
+        self.groups = protoGroups.groupStanzas.compactMap { XMPPGroup(protoGroup: $0) }
+    }
+}
+
 struct XMPPGroup {
     let groupId: GroupID
     let name: String
@@ -69,7 +78,7 @@ struct XMPPGroup {
         self.name = protoGroup.name
         self.avatarID = protoGroup.avatarID
         self.members = protoGroup.members.compactMap { XMPPGroupMember(protoMember: $0) }
-
+        
         self.action = {
             switch protoGroup.action {
             case .set: return nil

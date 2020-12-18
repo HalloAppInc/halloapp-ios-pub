@@ -218,6 +218,22 @@ final class ProtoGroupInfoRequest: ProtoRequest<HalloGroup> {
     }
 }
 
+final class ProtoGroupsListRequest: ProtoRequest<HalloGroups> {
+
+    init(completion: @escaping Completion) {
+        var groups = Server_GroupsStanza()
+        groups.action = .get
+
+        super.init(
+            iqPacket: .iqPacket(type: .get, payload: .groupsStanza(groups)),
+            transform: { (iq) in
+                guard let groups = HalloGroups(protoGroups: iq.groupsStanza) else {
+                    return .failure(ProtoServiceError.unexpectedResponseFormat)
+                }
+                return .success(groups) },
+            completion: completion)
+    }
+}
 
 final class ProtoGroupLeaveRequest: ProtoRequest<Void> {
 

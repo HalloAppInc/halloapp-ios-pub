@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17511" systemVersion="20B50" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="20C69" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="ChatGroup" representedClassName="ChatGroup" syncable="YES">
         <attribute name="avatar" optional="YES" attributeType="String"/>
         <attribute name="desc" optional="YES" attributeType="String"/>
@@ -88,7 +88,7 @@
         <attribute name="text" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="toUserId" attributeType="String"/>
-        <relationship name="media" optional="YES" toMany="YES" deletionRule="Deny" destinationEntity="ChatMedia" inverseName="message" inverseEntity="ChatMedia"/>
+        <relationship name="media" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ChatMedia" inverseName="message" inverseEntity="ChatMedia"/>
         <relationship name="quoted" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChatQuoted" inverseName="message" inverseEntity="ChatQuoted"/>
     </entity>
     <entity name="ChatQuoted" representedClassName="ChatQuoted" syncable="YES">
@@ -132,7 +132,7 @@
         <element name="ChatGroupMessageInfo" positionX="-18" positionY="162" width="128" height="118"/>
         <element name="ChatMedia" positionX="-54" positionY="36" width="128" height="253"/>
         <element name="ChatMention" positionX="-36" positionY="144" width="128" height="104"/>
-        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="298"/>
+        <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="284"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="148"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="133"/>
         <element name="ChatThread" positionX="-36" positionY="108" width="128" height="239"/>

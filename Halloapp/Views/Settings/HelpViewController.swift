@@ -183,14 +183,15 @@ private extension MFMailComposeViewController {
         formatter.dateFormat = "MMdd_HHmm"
         let timeStr = formatter.string(from: Date())
         let version = MainAppContext.appVersionForService
+        let model = "\(UIDevice.current.getModelName()) (iOS \(UIDevice.current.systemVersion))"
         let userID = MainAppContext.shared.userData.userId
 
         let vc = MFMailComposeViewController()
         vc.setSubject("iOS Logs \(timeStr) [\(version)]")
         vc.setToRecipients(["iphone-support@halloapp.com"])
         
-        let formatString = NSLocalizedString("help.send.logs.email.body", value: "\n\n\nPlease leave feedback or a description of the issue in the space above. \n\nVersion %1@ - %2@", comment: "Text shown in the email body when sending logs from the help screen")
-        let localizedEmailStr = String(format: formatString, version, userID)
+        let formatString = NSLocalizedString("help.send.logs.email.body", value: "\n\n\nPlease leave feedback or a description of the issue in the space above. \n\nVersion %1@ - %2@\n%3@", comment: "Text shown in the email body when sending logs from the help screen")
+        let localizedEmailStr = String(format: formatString, version, userID, model)
         
         vc.setMessageBody(localizedEmailStr, isHTML:false)
         

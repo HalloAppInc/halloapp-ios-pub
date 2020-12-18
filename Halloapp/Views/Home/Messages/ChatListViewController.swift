@@ -812,7 +812,9 @@ private class ChatListTableViewCell: UITableViewCell {
             }
         }
 
-        var messageText = chatThread.lastMsgText ?? Localizations.chatListMessageDefault(name: chatThread.title)
+        let defaultText = chatThread.type == .oneToOne ? Localizations.chatListMessageDefault(name: chatThread.title) : ""
+        
+        var messageText = chatThread.lastMsgText ?? defaultText
         
         if [.retracting, .retracted].contains(chatThread.lastMsgStatus) {
             messageText = Localizations.chatMessageDeleted

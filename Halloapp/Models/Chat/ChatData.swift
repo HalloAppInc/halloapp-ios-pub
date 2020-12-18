@@ -92,6 +92,10 @@ class ChatData: ObservableObject {
     var viewContext: NSManagedObjectContext
     private var bgContext: NSManagedObjectContext
     
+    private struct UserDefaultsKey {
+        static let persistentStoreUserID = "chat.store.userID"
+    }
+    
     private var cancellableSet: Set<AnyCancellable> = []
     
     init(service: HalloService, contactStore: ContactStoreMain, userData: UserData) {
@@ -109,6 +113,8 @@ class ChatData: ObservableObject {
         mediaUploader.resolveMediaPath = { relativePath in
             return MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
         }
+        
+        var shouldGetGroupsList = false
         
         cancellableSet.insert(
             service.didGetChatAck.sink { [weak self] chatAck in
@@ -130,20 +136,21 @@ class ChatData: ObservableObject {
             service.didConnect.sink { [weak self] in
                 guard let self = self else { return }
                 DDLogInfo("ChatData/didConnect")
-
-                if (UIApplication.shared.applicationState == .active) {
-                    DDLogInfo("ChatData/didConnect/sendPresence")
+                
+                // include inactive as app is still in foreground (one case found is when app is freshly installed and the scene is in transition)
+                if ([.active, .inactive].contains(UIApplication.shared.applicationState)) {
+                    DDLogInfo("ChatData/didConnect/sendPresence \(UIApplication.shared.applicationState.rawValue)")
                     self.sendPresence(type: .available)
-
+                    
                     if let currentUser = self.currentlyChattingWithUserId {
                         if !self.isSubscribedToCurrentUser {
                             self.subscribeToPresence(to: currentUser)
                         }
                     }
                 } else {
-                    DDLogDebug("ChatData/didConnect/app is in background")
+                    DDLogDebug("ChatData/didConnect/app is in background \(UIApplication.shared.applicationState.rawValue)")
                 }
-
+                
                 self.processPendingChatMsgs()
                 self.processRetractingChatMsgs()
                 self.processPendingSeenReceipts()
@@ -156,6 +163,19 @@ class ChatData: ObservableObject {
                     self.processInboundPendingChatMsgMedia()
                     self.processInboundPendingGroupChatMsgMedia()
                 }
+                
+                // temporary setting for builds older than 87 since they don't have the key set yet
+                if MainAppContext.shared.userDefaults?.string(forKey: UserDefaultsKey.persistentStoreUserID) == nil {
+                    DDLogInfo("ChatData/no persistent userID found")
+                    MainAppContext.shared.userDefaults?.setValue(userData.userId, forKey: UserDefaultsKey.persistentStoreUserID)
+                    self.getGroupsList()
+                }
+                
+                if shouldGetGroupsList {
+                    self.getGroupsList()
+                    shouldGetGroupsList = false
+                }
+                
             }
         )
                 
@@ -217,7 +237,74 @@ class ChatData: ObservableObject {
                 self?.updateThreads(for: contactsDict, areNewUsers: true)
             })
 
+        cancellableSet.insert(
+            userData.didLogIn.sink { [weak self] in
+                guard let self = self else { return }
+                DDLogInfo("ChatData/didLogIn")
+                
+                if let previousID = MainAppContext.shared.userDefaults?.string(forKey: UserDefaultsKey.persistentStoreUserID) {
+                    
+                    if previousID != self.userData.userId {
+                        DDLogInfo("ChatData/didLogIn/userID mismatch previous: [\(previousID)] current [\(self.userData.userId)], clear previous chats and media")
+                        self.clearAllChatsAndMedia()
+                    } else {
+                        DDLogInfo("ChatData/didLogin/userID matches")
+                    }
+                    
+                } else {
+                    DDLogInfo("ChatData/didLogin/fresh app install")
+                }
+                
+                MainAppContext.shared.userDefaults?.setValue(self.userData.userId, forKey: UserDefaultsKey.persistentStoreUserID)
+                shouldGetGroupsList = true
+            }
+        )
+        
     }
+
+    func clearAllChatsAndMedia() {
+
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            
+            let model = self.persistentContainer.managedObjectModel
+            let entities = model.entities
+           
+            /* nb: batchdelete will not auto delete entities with a cascade delete rule for core data relationships but
+               can result in not deleting an entity if there's a deny delete rule in place */
+            for entity in entities {
+                guard let entityName = entity.name else { continue }
+                DDLogDebug("ChatData/clearAllChatsAndMedia/clear/\(entityName)")
+                
+                let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+                let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                batchDeleteRequest.resultType = .resultTypeObjectIDs
+                do {
+                    let result = try managedObjectContext.execute(batchDeleteRequest) as? NSBatchDeleteResult
+                    guard let objectIDs = result?.result as? [NSManagedObjectID] else { continue }
+                    let changes = [NSDeletedObjectsKey: objectIDs]
+                    DDLogDebug("ChatData/clearAllChatsAndMedia/clear/\(entityName)/num: \(objectIDs.count)")
+
+                    // update main context manually as batchdelete does not notify other contexts
+                    NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [self.viewContext])
+                    
+                } catch {
+                    DDLogError("ChatData/clearAllChatsAndMedia/clear/\(entityName)/error \(error)")
+                }
+            }
+            
+            // clear media
+            do {
+                try FileManager.default.removeItem(at: MainAppContext.chatMediaDirectoryURL)
+                DDLogError("ChatData/clearAllChatsAndMedia/clear/media finished")
+            }
+            catch {
+                DDLogError("ChatData/clearAllChatsAndMedia/clear/media/error [\(error)]")
+            }
+        }
+        
+    }
+    
 
     func populateThreadsWithSymmetricContacts() {
         let contactStore = MainAppContext.shared.contactStore
@@ -2159,6 +2246,18 @@ extension ChatData {
         }
     }
     
+    public func getGroupsList() {
+        DDLogDebug("ChatData/group/getGroupsList")
+        service.getGroupsList() { [weak self] result in
+            switch result {
+            case .success(let groups):
+                self?.processGroupsList(groups)
+            case .failure(let error):
+                DDLogError("ChatData/group/getGroupsList/error \(error)")
+            }
+        }
+    }
+    
     public func getAndSyncGroup(groupId: GroupID) {
         DDLogDebug("ChatData/group/getAndSyncGroupInfo/group \(groupId)")
         service.getGroupInfo(groupID: groupId) { [weak self] result in
@@ -2876,7 +2975,7 @@ extension ChatData {
         if chatGroup(groupId: xmppChatGroupMessage.groupId, in: managedObjectContext) == nil {
             DDLogDebug("ChatData/group/processInboundChatGroupMessage/group not exist yet [\(xmppChatGroupMessage.groupId)]")
             groupExist = false
-            let chatGroup = NSEntityDescription.insertNewObject(forEntityName: ChatGroup.entity().name!, into: managedObjectContext) as! ChatGroup
+            let chatGroup = ChatGroup(context: managedObjectContext)
             chatGroup.groupId = xmppChatGroupMessage.groupId
             if let groupName = xmppChatGroupMessage.groupName {
                 chatGroup.name = groupName
@@ -3135,6 +3234,20 @@ extension ChatData {
     
     // MARK: Group Process Inbound Actions/Events
 
+    private func processGroupsList(_ groups: XMPPGroups) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            
+            groups.groups?.forEach({
+                if self.chatGroup(groupId: $0.groupId, in: managedObjectContext) == nil {
+                    _ = self.addGroup(xmppGroup: $0, in: managedObjectContext)
+                    self.getAndSyncGroup(groupId: $0.groupId)
+                }
+            })
+            
+        }
+    }
+    
     private func processIncomingXMPPGroup(_ group: XMPPGroup) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -3172,7 +3285,7 @@ extension ChatData {
             existingCreator.type = .admin
         } else {
             guard let sender = xmppGroup.sender else { return }
-            let groupCreator = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMember.entity().name!, into: managedObjectContext) as! ChatGroupMember
+            let groupCreator =  ChatGroupMember(context: managedObjectContext)
             groupCreator.groupId = xmppGroup.groupId
             groupCreator.userId = sender
             groupCreator.type = .admin
@@ -3280,27 +3393,31 @@ extension ChatData {
             DDLogDebug("ChatData/group/processGroupCreateIfNotExist/groupExist [\(xmppGroup.groupId)]")
             return existingChatGroup
         } else {
-            
-            // Add new Group to database
-            DDLogDebug("ChatData/group/processGroupCreateIfNotExist/new [\(xmppGroup.groupId)]")
-            let chatGroup = NSEntityDescription.insertNewObject(forEntityName: ChatGroup.entity().name!, into: managedObjectContext) as! ChatGroup
-            chatGroup.groupId = xmppGroup.groupId
-            chatGroup.name = xmppGroup.name
-            
-            // Add Chat Thread
-            if self.chatThread(type: .group, id: chatGroup.groupId, in: managedObjectContext) == nil {
-                let chatThread = NSEntityDescription.insertNewObject(forEntityName: ChatThread.entity().name!, into: managedObjectContext) as! ChatThread
-                chatThread.type = ChatType.group
-                chatThread.groupId = chatGroup.groupId
-                chatThread.title = chatGroup.name
-                chatThread.lastMsgTimestamp = Date()
-            }
-            return chatGroup
+            return addGroup(xmppGroup: xmppGroup, in: managedObjectContext)
         }
     }
     
+    private func addGroup(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) -> ChatGroup {
+        DDLogDebug("ChatData/group/addGroup/new [\(xmppGroup.groupId)]")
+
+        // Add Group to database
+        let chatGroup = ChatGroup(context: managedObjectContext)
+        chatGroup.groupId = xmppGroup.groupId
+        chatGroup.name = xmppGroup.name
+        
+        // Add Chat Thread
+        if chatThread(type: .group, id: chatGroup.groupId, in: managedObjectContext) == nil {
+            let chatThread = ChatThread(context: managedObjectContext)
+            chatThread.type = ChatType.group
+            chatThread.groupId = chatGroup.groupId
+            chatThread.title = chatGroup.name
+            chatThread.lastMsgTimestamp = nil
+        }
+        return chatGroup
+    }
+    
     private func recordGroupMessageEvent(xmppGroup: XMPPGroup, xmppGroupMember: XMPPGroupMember?, in managedObjectContext: NSManagedObjectContext) {
-        let chatGroupMessage = NSEntityDescription.insertNewObject(forEntityName: ChatGroupMessage.entity().name!, into: managedObjectContext) as! ChatGroupMessage
+        let chatGroupMessage = ChatGroupMessage(context: managedObjectContext)
 
         if let messageId = xmppGroup.messageId {
             chatGroupMessage.id = messageId
