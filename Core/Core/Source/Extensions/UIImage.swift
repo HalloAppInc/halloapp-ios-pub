@@ -72,7 +72,7 @@ extension UIImage {
         var format = vImage_CGImageFormat(
             bitsPerComponent: 8,
             bitsPerPixel: 32,
-            colorSpace: nil,
+            colorSpace: cgImage.colorSpace != nil ? Unmanaged.passRetained(cgImage.colorSpace!) : nil,
             bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.first.rawValue),
             version: 0,
             decode: nil,

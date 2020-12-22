@@ -214,21 +214,17 @@ fileprivate class MediaEdit : ObservableObject {
         guard let image = original else { return }
         
         let size = (numberOfRotations % 2) == 0 ? image.size : CGSize(width: image.size.height, height: image.size.width)
-        
-        UIGraphicsBeginImageContext(size)
-        guard let context = UIGraphicsGetCurrentContext() else { return }
-        
-        context.translateBy(x: size.width / 2, y: size.height / 2)
-        
-        context.scaleBy(x: vFlipped ? -1 : 1, y: hFlipped ? -1 : 1)
-        context.rotate(by: CGFloat(numberOfRotations) * CGFloat(-Double.pi) / 2)
-        
-        image.draw(at: CGPoint(x: -image.size.width / 2, y: -image.size.height / 2))
-        let result = context.makeImage()
-        UIGraphicsEndImageContext()
-        
-        if let result = result {
-            self.image = UIImage(cgImage: result)
+
+        let format = UIGraphicsImageRendererFormat()
+        format.preferredRange = .extended
+
+        self.image = UIGraphicsImageRenderer(size: size, format: format).image { context in
+            context.cgContext.translateBy(x: size.width / 2, y: size.height / 2)
+
+            context.cgContext.scaleBy(x: vFlipped ? -1 : 1, y: hFlipped ? -1 : 1)
+            context.cgContext.rotate(by: CGFloat(numberOfRotations) * CGFloat(-Double.pi) / 2)
+
+            image.draw(at: CGPoint(x: -image.size.width / 2, y: -image.size.height / 2))
         }
     }
     
@@ -346,22 +342,18 @@ fileprivate class MediaEdit : ObservableObject {
         let imgCenterY = image.size.height / 2
         let cropOffsetX = cropRect.midX - imgCenterX
         let cropOffsetY = cropRect.midY - imgCenterY
-        
-        UIGraphicsBeginImageContext(cropRect.size)
-        guard let context = UIGraphicsGetCurrentContext() else { return nil }
-        
-        context.translateBy(x: contextCenterX, y: contextCenterY)
-        context.translateBy(x: -cropOffsetX, y: -cropOffsetY)
-        context.translateBy(x: offset.x, y: offset.y)
-        context.scaleBy(x: scale, y: scale)
 
-        image.draw(at: CGPoint(x: -imgCenterX, y: -imgCenterY))
-        let result = context.makeImage()
-        UIGraphicsEndImageContext()
-        
-        guard result != nil else { return nil }
-        
-        return UIImage(cgImage: result!)
+        let format = UIGraphicsImageRendererFormat()
+        format.preferredRange = .extended
+
+        return UIGraphicsImageRenderer(size: cropRect.size, format: format).image { context in
+            context.cgContext.translateBy(x: contextCenterX, y: contextCenterY)
+            context.cgContext.translateBy(x: -cropOffsetX, y: -cropOffsetY)
+            context.cgContext.translateBy(x: offset.x, y: offset.y)
+            context.cgContext.scaleBy(x: scale, y: scale)
+
+            image.draw(at: CGPoint(x: -imgCenterX, y: -imgCenterY))
+        }
     }
 }
 
