@@ -340,6 +340,7 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var currentPosition = GenericObservable(0)
     @ObservedObject private var postTextHeight = GenericObservable<CGFloat>(0)
     @ObservedObject private var postTextComputedHeight = GenericObservable<CGFloat>(0)
+    private var shouldStopTextEdit = GenericObservable(false)
     @State private var keyboardHeight: CGFloat = 0
     @State private var presentPicker = false
 
@@ -378,10 +379,6 @@ fileprivate struct PostComposerView: View {
 
     private var showCropButton: Bool {
         currentPosition.value < mediaCount && mediaItems.value[currentPosition.value].type == FeedMediaType.image
-    }
-
-    static func stopTextEdit() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
     }
 
     init(
@@ -517,7 +514,7 @@ fileprivate struct PostComposerView: View {
                     .padding(.leading, 4)
                     .frame(height: postTextComputedHeight.value, alignment: .topLeading)
             }
-            TextView(mediaItems: mediaItems, input: inputToPost, textHeight: postTextHeight, areMentionsDisabled: areMentionsDisabled)
+            TextView(mediaItems: mediaItems, input: inputToPost, textHeight: postTextHeight, areMentionsDisabled: areMentionsDisabled, shouldStopTextEdit: shouldStopTextEdit)
                 .frame(height: postTextComputedHeight.value)
         }
         .background(Color(mediaCount == 0 ? .secondarySystemGroupedBackground : .clear))
@@ -537,6 +534,7 @@ fileprivate struct PostComposerView: View {
                                     MediaPreviewSlider(
                                         mediaItems: self.mediaItems,
                                         shouldAutoPlay: self.shouldAutoPlay,
+                                        shouldStopTextEdit: self.shouldStopTextEdit,
                                         currentPosition: self.currentPosition)
                                     .frame(height: self.getMediaSliderHeight(width: geometry.size.width), alignment: .center)
 
@@ -571,7 +569,7 @@ fileprivate struct PostComposerView: View {
                         }
                         .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
                         .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
-                        .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
+                        .onReceive(self.pageChangedPublisher) { _ in self.shouldStopTextEdit.value = true }
                         .onReceive(self.postTextComputedHeightPublisher) { self.postTextComputedHeight.value = $0 }
                     }
                     .frame(minHeight: geometry.size.height)
@@ -579,7 +577,7 @@ fileprivate struct PostComposerView: View {
                         YOffsetGetter(coordinateSpace: .named(PostComposerLayoutConstants.mainScrollCoordinateSpace))
                             .onPreferenceChange(YOffsetPreferenceKey.self, perform: {
                                 if $0 > 0 { // top overscroll
-                                    PostComposerView.stopTextEdit()
+                                    self.shouldStopTextEdit.value = true
                                 }
                             })
                     )
@@ -693,6 +691,7 @@ fileprivate struct TextView: UIViewRepresentable {
     @ObservedObject var input: GenericObservable<MentionInput>
     @ObservedObject var textHeight: GenericObservable<CGFloat>
     @ObservedObject var areMentionsDisabled: GenericObservable<Bool>
+    @ObservedObject var shouldStopTextEdit: GenericObservable<Bool>
     @State var pendingMention: PendingMention?
 
     func makeCoordinator() -> Coordinator {
@@ -723,6 +722,13 @@ fileprivate struct TextView: UIViewRepresentable {
             textSize: input.value.text.count, isPostWithMedia: mediaItems.value.count > 0)
         if uiView.font != fontToUse {
             uiView.font = fontToUse
+        }
+
+        if shouldStopTextEdit.value {
+            DispatchQueue.main.async {
+                uiView.endEditing(true)
+            }
+            shouldStopTextEdit.value = false
         }
 
         if let mention = pendingMention {
@@ -853,6 +859,7 @@ fileprivate struct TextView: UIViewRepresentable {
 fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     @ObservedObject var mediaItems: ObservableMediaItems
     @ObservedObject var shouldAutoPlay: GenericObservable<Bool>
+    var shouldStopTextEdit: GenericObservable<Bool>
     var currentPosition: GenericObservable<Int>
 
     var feedMediaItems: [FeedMedia] {
@@ -892,7 +899,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         }
 
         func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-            PostComposerView.stopTextEdit()
+            parent.shouldStopTextEdit.value = true
         }
 
         func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
