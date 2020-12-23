@@ -207,14 +207,14 @@ class ImageServer {
     }
 
     private func cropImage(inMediaItem item: PendingMedia, image: UIImage, completion: @escaping (Result<ProcessedImageData, Error>) -> ()) {
-        guard let maxAllowedAspectRatio = maxAllowedAspectRatio, image.size.height / image.size.width > maxAllowedAspectRatio else {
+        guard let maxAllowedAspectRatio = maxAllowedAspectRatio, image.size.height > maxAllowedAspectRatio * image.size.width else {
             completion(.success(ProcessedImageData(image: image)))
             return
         }
 
         DDLogInfo("ImageServer/image/prepare  Cropping image to ratio: [\(maxAllowedAspectRatio)]")
         let ts = Date()
-        guard let croppedImage = image.aspectRatioCropped(to: maxAllowedAspectRatio) else {
+        guard let croppedImage = image.aspectRatioCropped(heightToWidthRatio: maxAllowedAspectRatio) else {
             DDLogError("ImageServer/image/prepare/error  Cropping failed [\(item)]")
             completion(.failure(ImageProcessingError.cropFailure))
             return
