@@ -10,6 +10,34 @@ protocol PostComposerViewDelegate: AnyObject {
     func willDismissWithInput(mentionInput: MentionInput)
 }
 
+struct PostComposerViewConfiguration {
+    var titleMode: PostComposerViewController.TitleMode = .userPost
+    var disableMentions = false
+    var showAddMoreMediaButton = true
+    var useTransparentNavigationBar = false
+    var mediaCarouselMaxAspectRatio: CGFloat = 1.25
+    var mediaEditMaxAspectRatio: CGFloat = 1.25
+    var imageServerMaxAspectRatio: CGFloat? = 1.25
+
+    static var userPost: PostComposerViewConfiguration {
+        get { PostComposerViewConfiguration(useTransparentNavigationBar: true) }
+    }
+
+    static var groupPost: PostComposerViewConfiguration {
+        get { PostComposerViewConfiguration(titleMode: .groupPost, useTransparentNavigationBar: true) }
+    }
+
+    static var message: PostComposerViewConfiguration {
+        get { PostComposerViewConfiguration(
+            titleMode: .message,
+            disableMentions: true,
+            mediaCarouselMaxAspectRatio: 1.0,
+            mediaEditMaxAspectRatio: 100,
+            imageServerMaxAspectRatio: nil
+        ) }
+    }
+}
+
 fileprivate class GenericObservable<T>: ObservableObject {
     init(_ value: T) {
         self.value = value
@@ -67,19 +95,16 @@ class PostComposerViewController: UIViewController {
 
     let backIcon = UIImage(named: "NavbarBack")
     let closeIcon = UIImage(named: "NavbarClose")
-    fileprivate let imageServer = ImageServer()
+    var imageServer: ImageServer?
 
-    private let titleMode: TitleMode
-    private var recipientName: String?
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
+    private var recipientName: String?
     private var shouldAutoPlay = GenericObservable(false)
     private var postComposerView: PostComposerView?
     private var shareButton: UIBarButtonItem!
     private let isMediaPost: Bool
-    private let disableMentions: Bool
-    private let showAddMoreMediaButton: Bool
-    private var useTransparentNavigationBar: Bool
+    private let configuration: PostComposerViewConfiguration
     private weak var delegate: PostComposerViewDelegate?
 
     private var barState: NavigationBarState?
@@ -87,21 +112,15 @@ class PostComposerViewController: UIViewController {
     init(
         mediaToPost media: [PendingMedia],
         initialInput: MentionInput,
-        titleMode: TitleMode,
         recipientName: String? = nil,
-        disableMentions: Bool = false,
-        showAddMoreMediaButton: Bool = true,
-        useTransparentNavigationBar: Bool = false,
+        configuration: PostComposerViewConfiguration,
         delegate: PostComposerViewDelegate)
     {
         self.mediaItems.value = media
         self.isMediaPost = media.count > 0
         self.inputToPost = GenericObservable(initialInput)
-        self.titleMode = titleMode
         self.recipientName = recipientName
-        self.disableMentions = disableMentions
-        self.showAddMoreMediaButton = showAddMoreMediaButton
-        self.useTransparentNavigationBar = useTransparentNavigationBar
+        self.configuration = configuration
         self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
     }
@@ -114,15 +133,20 @@ class PostComposerViewController: UIViewController {
         super.viewDidLoad()
 
         postComposerView = PostComposerView(
-            imageServer: imageServer,
             mediaItems: mediaItems,
             inputToPost: inputToPost,
             shouldAutoPlay: shouldAutoPlay,
-            disableMentions: disableMentions,
-            showAddMoreMediaButton: showAddMoreMediaButton,
+            configuration: configuration,
+            prepareImages: { [weak self] isReady, numberOfFailedItems in
+                guard let self = self else { return }
+                self.imageServer?.cancel()
+
+                self.imageServer = ImageServer(maxAllowedAspectRatio: self.configuration.imageServerMaxAspectRatio)
+                self.imageServer!.prepare(mediaItems: self.mediaItems.value, isReady: isReady, numberOfFailedItems: numberOfFailedItems)
+            },
             crop: { [weak self] index in
                 guard let self = self else { return }
-                let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value) { controller, media, selected, cancel in
+                let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value, maxAspectRatio: self.configuration.mediaEditMaxAspectRatio) { controller, media, selected, cancel in
                     controller.dismiss(animated: true)
                     
                     guard !cancel else { return }
@@ -154,8 +178,10 @@ class PostComposerViewController: UIViewController {
         let shareTitle = NSLocalizedString("composer.post.button.share", value: "Share", comment: "Share button title.")
         shareButton = UIBarButtonItem(title: shareTitle, style: .done, target: self, action: #selector(shareAction))
         shareButton.tintColor = .systemBlue
+        navigationItem.rightBarButtonItem = shareButton
+        navigationItem.rightBarButtonItem!.isEnabled = false
 
-        switch titleMode {
+        switch configuration.titleMode {
         case .userPost:
             titleView.titleLabel.text = NSLocalizedString("composer.post.title", value: "New Post", comment: "Composer New Post title.")
             titleView.subtitleLabel.text = privacySettings?.composerIndicator ?? ""
@@ -188,7 +214,7 @@ class PostComposerViewController: UIViewController {
         super.viewWillAppear(animated)
         shouldAutoPlay.value = true
 
-        guard useTransparentNavigationBar, let navigationController = navigationController else { return }
+        guard configuration.useTransparentNavigationBar, let navigationController = navigationController else { return }
 
         barState = NavigationBarState(
             standardAppearance: navigationController.navigationBar.standardAppearance,
@@ -205,7 +231,7 @@ class PostComposerViewController: UIViewController {
         self.shouldAutoPlay.value = false
         delegate?.willDismissWithInput(mentionInput: inputToPost.value)
 
-        guard useTransparentNavigationBar, let navigationController = navigationController, let barState = barState else { return }
+        guard configuration.useTransparentNavigationBar, let navigationController = navigationController, let barState = barState else { return }
         navigationController.navigationBar.standardAppearance = barState.standardAppearance
         navigationController.navigationBar.isTranslucent = barState.isTranslucent
         navigationController.navigationBar.backgroundColor = barState.backgroundColor
@@ -214,7 +240,7 @@ class PostComposerViewController: UIViewController {
     override func willMove(toParent parent: UIViewController?) {
         super.willMove(toParent: parent)
         if parent == nil && isMediaPost {
-            imageServer.cancel()
+            imageServer?.cancel()
         }
     }
 
@@ -227,17 +253,13 @@ class PostComposerViewController: UIViewController {
 
     @objc private func backAction() {
         if isMediaPost {
-            imageServer.cancel()
+            imageServer?.cancel()
         }
         delegate?.composerDidFinish(controller: self, media: self.mediaItems.value, isBackAction: true)
     }
 
     private func setShareVisibility(_ visibility: Bool) {
-        if (visibility && navigationItem.rightBarButtonItem == nil) {
-            navigationItem.rightBarButtonItem = shareButton
-        } else if (!visibility && navigationItem.rightBarButtonItem != nil) {
-            navigationItem.rightBarButtonItem = nil
-        }
+        navigationItem.rightBarButtonItem?.isEnabled = visibility
     }
 }
 
@@ -325,13 +347,14 @@ fileprivate struct PostComposerLayoutConstants {
 }
 
 fileprivate struct PostComposerView: View {
-    private let imageServer: ImageServer
     private let showAddMoreMediaButton: Bool
+    private let mediaCarouselMaxAspectRatio: CGFloat
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     @ObservedObject private var areMentionsDisabled: GenericObservable<Bool>
-    private let crop: (_ index: GenericObservable<Int>) -> Void
+    private let prepareImages: (Binding<Bool>, Binding<Int>) -> Void
+    private let crop: (GenericObservable<Int>) -> Void
     private let goBack: () -> Void
     private let setShareVisibility: (Bool) -> Void
 
@@ -382,22 +405,22 @@ fileprivate struct PostComposerView: View {
     }
 
     init(
-        imageServer: ImageServer,
         mediaItems: ObservableMediaItems,
         inputToPost: GenericObservable<MentionInput>,
         shouldAutoPlay: GenericObservable<Bool>,
-        disableMentions: Bool,
-        showAddMoreMediaButton: Bool,
-        crop: @escaping (_ index: GenericObservable<Int>) -> Void,
+        configuration: PostComposerViewConfiguration,
+        prepareImages: @escaping (Binding<Bool>, Binding<Int>) -> Void,
+        crop: @escaping (GenericObservable<Int>) -> Void,
         goBack: @escaping () -> Void,
-        setShareVisibility: @escaping (_ visibility: Bool) -> Void)
+        setShareVisibility: @escaping (Bool) -> Void)
     {
-        self.imageServer = imageServer
         self.mediaItems = mediaItems
         self.inputToPost = inputToPost
         self.shouldAutoPlay = shouldAutoPlay
-        self.areMentionsDisabled = GenericObservable(disableMentions)
-        self.showAddMoreMediaButton = showAddMoreMediaButton
+        self.areMentionsDisabled = GenericObservable(configuration.disableMentions)
+        self.showAddMoreMediaButton = configuration.showAddMoreMediaButton
+        self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
+        self.prepareImages = prepareImages
         self.crop = crop
         self.goBack = goBack
         self.setShareVisibility = setShareVisibility
@@ -447,7 +470,7 @@ fileprivate struct PostComposerView: View {
     }
     
     private func getMediaSliderHeight(width: CGFloat) -> CGFloat {
-        return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding)
+        return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding, maxAllowedAspectRatio: mediaCarouselMaxAspectRatio)
     }
 
     var pageIndex: some View {
@@ -467,13 +490,12 @@ fileprivate struct PostComposerView: View {
             guard !cancel else { return }
 
             mediaState.isReady = false
-            imageServer.cancel()
 
             let lastAsset = mediaItems.value[currentPosition.value].asset
             mediaItems.value = newMediaItems
             currentPosition.value = newMediaItems.firstIndex { $0.asset == lastAsset } ?? 0
 
-            imageServer.prepare(mediaItems: mediaItems.value, isReady: $mediaState.isReady, numberOfFailedItems: $mediaState.numberOfFailedItems)
+            prepareImages($mediaState.isReady, $mediaState.numberOfFailedItems)
         }
     }
 
@@ -491,7 +513,7 @@ fileprivate struct PostComposerView: View {
                 Button(action: deleteMedia) {
                     ControlIconView(imageLabel: "ComposerDeleteMedia")
                 }
-                if (showCropButton) {
+                if mediaState.isReady && showCropButton {
                     Button(action: cropMedia) {
                         ControlIconView(imageLabel: "ComposerCropMedia")
                     }
@@ -533,6 +555,7 @@ fileprivate struct PostComposerView: View {
                                 ZStack(alignment: .bottom) {
                                     MediaPreviewSlider(
                                         mediaItems: self.mediaItems,
+                                        mediaState: self.mediaState,
                                         shouldAutoPlay: self.shouldAutoPlay,
                                         shouldStopTextEdit: self.shouldStopTextEdit,
                                         currentPosition: self.currentPosition)
@@ -562,7 +585,8 @@ fileprivate struct PostComposerView: View {
                         .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
                         .onAppear {
                             if (self.mediaCount > 0) {
-                                self.imageServer.prepare(mediaItems: self.mediaItems.value, isReady: self.$mediaState.isReady, numberOfFailedItems: self.$mediaState.numberOfFailedItems)
+                                self.mediaState.isReady = false
+                                self.prepareImages(self.$mediaState.isReady, self.$mediaState.numberOfFailedItems)
                             } else {
                                 self.mediaState.isReady = true
                             }
@@ -858,6 +882,7 @@ fileprivate struct TextView: UIViewRepresentable {
 
 fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     @ObservedObject var mediaItems: ObservableMediaItems
+    @ObservedObject var mediaState: ObservableMediaState
     @ObservedObject var shouldAutoPlay: GenericObservable<Bool>
     var shouldStopTextEdit: GenericObservable<Bool>
     var currentPosition: GenericObservable<Int>

@@ -6,6 +6,7 @@
 //  Copyright © 2020 Hallo App, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import CoreGraphics
 import Photos
 import SwiftProtobuf
@@ -133,7 +134,6 @@ extension FeedMediaProtocol {
 }
 
 public struct PendingMediaEdit {
-    public var originalURL: URL?
     public var image: UIImage?
     public var cropRect: CGRect = CGRect.zero
     public var hFlipped: Bool = false
@@ -142,13 +142,14 @@ public struct PendingMediaEdit {
     public var scale: CGFloat = 1.0
     public var offset = CGPoint.zero
     
-    public init(originalURL: URL?, image: UIImage?) {
-        self.originalURL = originalURL
+    public init(image: UIImage?) {
         self.image = image
     }
 }
 
 public class PendingMedia {
+    private static let homeDirURL = URL(fileURLWithPath: NSHomeDirectory()).standardizedFileURL
+
     public var order: Int = 0
     public var type: FeedMediaType
     public var url: URL?
@@ -157,8 +158,24 @@ public class PendingMedia {
     public var key: String?
     public var sha256: String?
     public var image: UIImage?
-    public var videoURL: URL?
-    public var fileURL: URL?
+
+    // TODO(VL): Possibly create custom type for videoURL and fileURL, that mangaes their lifecycle?
+    public var videoURL: URL? {
+        didSet {
+            if videoURL != nil { DDLogDebug("PendingMedia: set videoURL \(videoURL!)") }
+            if let previousVideoURL = oldValue, !isInUseURL(previousVideoURL) {
+                clearTemporaryMedia(tempURL: previousVideoURL)
+            }
+        }
+    }
+    public var fileURL: URL? {
+        didSet {
+            if fileURL != nil { DDLogDebug("PendingMedia: set fileUrl \(fileURL!)") }
+            if let previousFileURL = oldValue, !isInUseURL(previousFileURL) {
+                clearTemporaryMedia(tempURL: previousFileURL)
+            }
+        }
+    }
     public var encryptedFileUrl: URL?
     public var error: Error?
     public var asset: PHAsset?
@@ -168,21 +185,20 @@ public class PendingMedia {
     public init(type: FeedMediaType) {
         self.type = type
     }
-    
-    private func clearTemporaryMedia() {
-        guard self.edit != nil else { return }
-        guard let url = self.fileURL else { return }
-        try? FileManager.default.removeItem(at: url)
+
+    private func clearTemporaryMedia(tempURL: URL?) {
+        guard let toBeClearedURL = tempURL, toBeClearedURL.isFileURL, toBeClearedURL.standardizedFileURL.path.hasPrefix(PendingMedia.homeDirURL.path) else { return }
+        DDLogDebug("PendingMedia: free tempURL \(toBeClearedURL)")
+        try? FileManager.default.removeItem(at: toBeClearedURL)
     }
 
-    private func clearVideo() {
-        guard let url = self.videoURL else { return }
-        try? FileManager.default.removeItem(at: url)
+    private func isInUseURL(_ previousURL: URL) -> Bool {
+        return previousURL == fileURL || previousURL == videoURL
     }
     
     deinit {
-        clearTemporaryMedia()
-        clearVideo()
+        clearTemporaryMedia(tempURL: fileURL)
+        clearTemporaryMedia(tempURL: videoURL)
     }
 }
 
