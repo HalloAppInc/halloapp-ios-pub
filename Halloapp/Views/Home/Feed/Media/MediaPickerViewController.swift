@@ -561,30 +561,15 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     options.isNetworkAccessAllowed = true
 
                     group.enter()
-                    manager.requestExportSession(forVideo: asset, options: options, exportPreset: AVAssetExportPresetPassthrough) { session, _ in
-                        guard let session = session else {
-                            DDLogError("MediaPicker/nextAction: missing video asset")
-                            result.removeAll { $0.asset == asset }
-                            group.leave()
-                            return
+                    manager.requestAVAsset(forVideo: asset, options: options) { avasset, _, _ in
+                        let video = avasset as! AVURLAsset
+                        media.videoURL = video.url
+
+                        if let size = VideoUtils.resolutionForLocalVideo(url: media.videoURL!) {
+                            media.size = size
                         }
 
-                        session.outputURL = media.videoURL
-                        session.outputFileType = .mp4
-                        session.exportAsynchronously {
-                            guard session.error == nil else {
-                                DDLogError("MediaPicker/nextAction/export: [\(session.error!)]")
-                                result.removeAll { $0.asset == asset }
-                                group.leave()
-                                return
-                            }
-
-                            if let size = VideoUtils.resolutionForLocalVideo(url: media.videoURL!) {
-                                media.size = size
-                            }
-
-                            group.leave()
-                        }
+                        group.leave()
                     }
                     
                     result.append(media)

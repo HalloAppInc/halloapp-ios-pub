@@ -20,6 +20,7 @@ enum ImageProcessingError: Error {
 enum VideoProcessingError: Error {
     case emptyURL
     case failedToLoad
+    case failedToCopyLocally
 }
 
 fileprivate struct ProcessedImageData {
@@ -286,7 +287,19 @@ class ImageServer {
         let fileSize = fileAttrs[FileAttributeKey.size] as! NSNumber
         DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)]")
 
-        VideoUtils.resizeVideo(inputUrl: videoUrl) { (result) in
+        // Sometimes NextLevelSessionExporterError/AVAssetReader is unable to process videos if they are not copied first
+        let tempMediaURL = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(UUID().uuidString, isDirectory: false)
+            .appendingPathExtension("mp4")
+
+        do {
+            try FileManager.default.copyItem(at: videoUrl, to: tempMediaURL)
+        } catch {
+            completion(.failure(VideoProcessingError.failedToCopyLocally))
+            return
+        }
+
+        VideoUtils.resizeVideo(inputUrl: tempMediaURL) { (result) in
             switch result {
             case .success(let (_, videoResolution)):
                 DDLogInfo("ImageServer/video/prepare/ready  New video resolution: [\(videoResolution)]")
