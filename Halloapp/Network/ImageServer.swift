@@ -295,7 +295,7 @@ class ImageServer {
         do {
             try FileManager.default.copyItem(at: videoUrl, to: tempMediaURL)
         } catch {
-            DDLogInfo("ImageServer/video/prepare/error Failed to copy [\(error)] url=[\(videoUrl.description)] tmp=[\(tempMediaURL.description)]")
+            DDLogError("ImageServer/video/prepare/error Failed to copy [\(error)] url=[\(videoUrl.description)] tmp=[\(tempMediaURL.description)]")
             completion(.failure(VideoProcessingError.failedToCopyLocally))
             return
         }

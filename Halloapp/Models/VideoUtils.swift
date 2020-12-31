@@ -166,7 +166,7 @@ final class VideoUtils {
         exporter.audioOutputConfiguration = audioOutputConfiguration
 
         DDLogInfo("video-processing/export/start")
-        exporter.export(progressHandler: { (progress) in
+        exporter.export(retryOnCancel: 2, progressHandler: { (progress) in
             DDLogInfo("video-processing/export/progress [\(progress)] input=[\(inputUrl.description)]")
         }) { (result) in
             switch result {
@@ -214,4 +214,25 @@ final class VideoUtils {
             return nil
         }
     }
+}
+
+private extension NextLevelSessionExporter {
+    func export(retryOnCancel times: Int,
+                renderHandler: RenderHandler? = nil,
+                progressHandler: ProgressHandler? = nil,
+                completionHandler: CompletionHandler? = nil) {
+
+        export(renderHandler: renderHandler, progressHandler: progressHandler) { [weak self] result in
+            switch result {
+            case .failure(let error as NextLevelSessionExporterError) where error == NextLevelSessionExporterError.cancelled && times > 0:
+                DDLogWarn("VideoUtils/export/retryOnCancel times=[\(times)] url=[\(self?.outputURL?.description ?? "")]")
+                self?.export(retryOnCancel: times - 1, renderHandler: renderHandler, progressHandler: progressHandler, completionHandler: completionHandler)
+            default:
+                if let handler = completionHandler {
+                    handler(result)
+                }
+            }
+        }
+    }
+
 }
