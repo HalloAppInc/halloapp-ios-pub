@@ -47,7 +47,7 @@ class ImageServer {
 
     func prepare(mediaItems: [PendingMedia], completion: @escaping (Bool) -> ()) {
         mediaItems.forEach{ prepare(mediaItem: $0) }
-        self.mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
+        mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
             guard let self = self else { return }
             if !self.isCancelled {
                 let allItemsPrepared = mediaItems.filter{ $0.error != nil }.isEmpty
@@ -58,7 +58,7 @@ class ImageServer {
     
     func prepare(mediaItems: [PendingMedia], isReady: Binding<Bool>, numberOfFailedItems: Binding<Int>) {
         mediaItems.forEach{ prepare(mediaItem: $0) }
-        self.mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
+        mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
             guard let self = self else { return }
             if !self.isCancelled {
                 isReady.wrappedValue = true
@@ -94,6 +94,7 @@ class ImageServer {
                                     item.edit = PendingMediaEdit(image: originalImage)
                                     item.edit!.cropRect = cropRect
                                 }
+                                item.isResized = true
                                 mediaResizeCropGroup.leave()
                             }
                         }
@@ -106,28 +107,38 @@ class ImageServer {
 
             case .video:
                 mediaResizeCropGroup.enter()
-                ImageServer.mediaProcessingSemaphore.wait()
-                self.resizeVideo(inMediaItem: item) { (result) in
-                    switch (result) {
-                    case .success(let (videoUrl, videoResolution)):
-                        mediaResizeCropGroup.enter()
-                        DispatchQueue.main.async {
-                            item.videoURL = videoUrl
-                            item.size = videoResolution
+                defer { mediaResizeCropGroup.leave() }
+
+                if !item.isResized {
+                    mediaResizeCropGroup.enter()
+                    ImageServer.mediaProcessingSemaphore.wait()
+                    self.resizeVideo(inMediaItem: item) { (result) in
+                        defer {
                             mediaResizeCropGroup.leave()
+                            ImageServer.mediaProcessingSemaphore.signal()
                         }
 
-                    case .failure(let error):
-                        item.error = error
-                    }
+                        switch (result) {
+                        case .success(let (videoUrl, videoResolution)):
+                            mediaResizeCropGroup.enter()
+                            DispatchQueue.main.async {
+                                item.videoURL = videoUrl
+                                item.size = videoResolution
+                                item.isResized = true
+                                mediaResizeCropGroup.leave()
+                            }
 
-                    mediaResizeCropGroup.leave()
-                    ImageServer.mediaProcessingSemaphore.signal()
+                        case .failure(let error):
+                            item.error = error
+                        }
+                    }
                 }
             }
 
             // 2. Encrypt media.
+            self.mediaProcessingGroup.enter()
             mediaResizeCropGroup.notify(queue: self.mediaProcessingQueue) {
+                defer { self.mediaProcessingGroup.leave() }
                 guard item.error == nil, !self.isCancelled else { return }
 
                 /// TODO: Encrypt media without loading into memory.

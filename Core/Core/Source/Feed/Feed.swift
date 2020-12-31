@@ -158,8 +158,9 @@ public class PendingMedia {
     public var key: String?
     public var sha256: String?
     public var image: UIImage?
+    public var isResized = false
 
-    // TODO(VL): Possibly create custom type for videoURL and fileURL, that mangaes their lifecycle?
+    // TODO(VL): Possibly create custom type for videoURL and fileURL, that manages their lifecycle?
     public var videoURL: URL? {
         didSet {
             if videoURL != nil { DDLogDebug("PendingMedia: set videoURL \(videoURL!)") }
