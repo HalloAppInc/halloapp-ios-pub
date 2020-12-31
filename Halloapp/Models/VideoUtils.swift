@@ -167,23 +167,23 @@ final class VideoUtils {
 
         DDLogInfo("video-processing/export/start")
         exporter.export(progressHandler: { (progress) in
-            DDLogInfo("video-processing/export/progress [\(progress)]")
+            DDLogInfo("video-processing/export/progress [\(progress)] input=[\(inputUrl.description)]")
         }) { (result) in
             switch result {
             case .success(let status):
                 switch status {
                 case .completed:
-                    DDLogInfo("video-processing/export/completed url=[\(exporter.outputURL?.description ?? "")]")
+                    DDLogInfo("video-processing/export/completed url=[\(exporter.outputURL?.description ?? "")] input=[\(inputUrl.description)]")
                     completion(.success((exporter.outputURL!, targetVideoSize)))
 
                 default:
-                    DDLogWarn("video-processing/export/finished status=[\(status)] url=[\(exporter.outputURL?.description ?? "")]")
+                    DDLogWarn("video-processing/export/finished status=[\(status)] url=[\(exporter.outputURL?.description ?? "")] input=[\(inputUrl.description)]")
                     //todo: take care of error case
                 }
                 break
 
             case .failure(let error):
-                DDLogError("video-processing/export/failed error=[\(error)]")
+                DDLogError("video-processing/export/failed error=[\(error)] input=[\(inputUrl.description)]")
                 completion(.failure(error))
             }
         }

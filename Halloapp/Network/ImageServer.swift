@@ -285,7 +285,7 @@ class ImageServer {
             return
         }
         let fileSize = fileAttrs[FileAttributeKey.size] as! NSNumber
-        DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)]")
+        DDLogInfo("ImageServer/video/prepare/ready  Original Video size: [\(fileSize)] url=[\(videoUrl.description)]")
 
         // Sometimes NextLevelSessionExporterError/AVAssetReader is unable to process videos if they are not copied first
         let tempMediaURL = URL(fileURLWithPath: NSTemporaryDirectory())
@@ -295,17 +295,19 @@ class ImageServer {
         do {
             try FileManager.default.copyItem(at: videoUrl, to: tempMediaURL)
         } catch {
+            DDLogInfo("ImageServer/video/prepare/error Failed to copy [\(error)] url=[\(videoUrl.description)] tmp=[\(tempMediaURL.description)]")
             completion(.failure(VideoProcessingError.failedToCopyLocally))
             return
         }
+        DDLogInfo("ImageServer/video/prepare/ready  Temporary url: [\(tempMediaURL.description)] url=[\(videoUrl.description)] original order=[\(item.order)]")
 
         VideoUtils.resizeVideo(inputUrl: tempMediaURL) { (result) in
             switch result {
             case .success(let (_, videoResolution)):
-                DDLogInfo("ImageServer/video/prepare/ready  New video resolution: [\(videoResolution)]")
+                DDLogInfo("ImageServer/video/prepare/ready  New video resolution: [\(videoResolution)] [\(tempMediaURL.description)]")
 
             case .failure(let error):
-                DDLogError("ImageServer/video/prepare/error [\(error)]")
+                DDLogError("ImageServer/video/prepare/error [\(error)] [\(tempMediaURL.description)]")
             }
             completion(result)
         }
