@@ -286,7 +286,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
 
     open func authenticationFailed(with authResult: Server_AuthResult) {
-        DDLogInfo("ProtoServiceCore/authenticationFailed")
+        DDLogInfo("ProtoServiceCore/authenticationFailed [\(authResult)]")
         DispatchQueue.main.async {
             self.userData.logout()
         }

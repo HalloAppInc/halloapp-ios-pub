@@ -138,7 +138,7 @@ public final class ProtoStream: XMPPStream {
                 protoService?.authenticationFailed(with: authResult)
             }
         } catch {
-            DDLogError("ProtoStream/handleAuth/error could not deserialize packet")
+            DDLogError("ProtoStream/handleAuth/error could not deserialize packet [\(data.base64EncodedString())]")
         }
     }
 
