@@ -39,6 +39,7 @@ class ImageServer {
 
     private let mediaProcessingQueue = DispatchQueue(label: "ImageServer.MediaProcessing")
     private let mediaProcessingGroup = DispatchGroup()
+    private let imageProcessingGroup = DispatchGroup()
     private var isCancelled = false
     private var maxAllowedAspectRatio: CGFloat? = nil
 
@@ -57,8 +58,14 @@ class ImageServer {
         }
     }
     
-    func prepare(mediaItems: [PendingMedia], isReady: Binding<Bool>, numberOfFailedItems: Binding<Int>) {
+    func prepare(mediaItems: [PendingMedia], isReady: Binding<Bool>, imagesAreProcessed: Binding<Bool>, numberOfFailedItems: Binding<Int>) {
         mediaItems.forEach{ prepare(mediaItem: $0) }
+        imageProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
+            guard let self = self else { return }
+            if !self.isCancelled {
+                imagesAreProcessed.wrappedValue = true
+            }
+        }
         mediaProcessingGroup.notify(queue: DispatchQueue.main) { [weak self] in
             guard let self = self else { return }
             if !self.isCancelled {
@@ -73,7 +80,10 @@ class ImageServer {
     }
 
     private func prepare(mediaItem item: PendingMedia) {
+        let typeSepcificProcessingGroup = item.type == .image ? imageProcessingGroup : nil
+        typeSepcificProcessingGroup?.enter()
         mediaProcessingQueue.async(group: mediaProcessingGroup) { [weak self] in
+            defer { typeSepcificProcessingGroup?.leave() }
             guard let self = self, !self.isCancelled else { return }
             // 1. Resize media as necessary.
             let mediaResizeCropGroup = DispatchGroup()
@@ -138,8 +148,12 @@ class ImageServer {
 
             // 2. Encrypt media.
             self.mediaProcessingGroup.enter()
+            typeSepcificProcessingGroup?.enter()
             mediaResizeCropGroup.notify(queue: self.mediaProcessingQueue) {
-                defer { self.mediaProcessingGroup.leave() }
+                defer {
+                    self.mediaProcessingGroup.leave()
+                    typeSepcificProcessingGroup?.leave()
+                }
                 guard item.error == nil, !self.isCancelled else { return }
 
                 /// TODO: Encrypt media without loading into memory.
