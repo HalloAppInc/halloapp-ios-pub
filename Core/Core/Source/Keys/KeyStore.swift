@@ -474,6 +474,11 @@ extension KeyStore {
         return keyBundle
     }
 
+    private func ephemeralPublicKey(in encryptedPayload: Data) -> Data? {
+        guard encryptedPayload.count >= 32 else { return nil }
+        return encryptedPayload[0...31]
+    }
+
     public func receiveSessionSetup(for userId: UserID, from encryptedPayload: Data, publicKey inboundIdentityPublicEdKey: Data, oneTimeKeyID: Int?) -> Result<KeyBundle, DecryptionError> {
         DDLogInfo("KeyStore/receiveSessionSetup \(userId)")
         let sodium = Sodium()
@@ -1096,8 +1101,10 @@ extension KeyStore {
             var keyBundle: KeyBundle
             var isNewReceiveSession: Bool
 
-            if let savedKeyBundle = self.messageKeyBundle(for: userId)?.keyBundle {
-                DDLogInfo("KeyData/decryptPayload/user/\(userId)/found key bundle")
+            if let savedKeyBundle = self.messageKeyBundle(for: userId)?.keyBundle,
+               savedKeyBundle.inboundEphemeralPublicKey == self.ephemeralPublicKey(in: encryptedPayload)
+            {
+                DDLogInfo("KeyData/decryptPayload/user/\(userId)/found key bundle with matching ephemeral key")
                 keyBundle = savedKeyBundle
                 isNewReceiveSession = false
             } else {

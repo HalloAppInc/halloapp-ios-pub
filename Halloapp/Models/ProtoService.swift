@@ -411,17 +411,8 @@ final class ProtoService: ProtoServiceCore {
                     let keyStore = AppContext.shared.keyStore
                     let userID = UserID(msg.fromUid)
                     keyStore.performSeriallyOnBackgroundContext { context in
-                        let needsNewIdentityKey: Bool = {
-                            guard let savedKey = keyStore.messageKeyBundle(for: userID)?.inboundIdentityPublicEdKey else {
-                                DDLogInfo("proto/rerequest/user/\(userID) no saved key")
-                                return true
-                            }
-                            return savedKey != rerequest.identityKey
-                        }()
-                        if needsNewIdentityKey {
-                            DDLogInfo("proto/rerequest/user/\(userID) refreshing keys")
-                            keyStore.deleteMessageKeyBundles(for: userID)
-                        }
+                        DDLogInfo("proto/rerequest/user/\(userID) will clear keys to trigger new session")
+                        keyStore.deleteMessageKeyBundles(for: userID)
                         DispatchQueue.main.async {
                             if let silentChat = SilentChatMessage.forRerequest(incomingID: rerequest.id) {
                                 if silentChat.rerequestCount < 5 {
@@ -621,7 +612,7 @@ final class ProtoService: ProtoServiceCore {
         AppContext.shared.keyStore.decryptPayload(
             for: fromUserID,
             encryptedPayload: serverChat.encPayload,
-            publicKey: serverChat.publicKey,
+            publicKey: serverChat.publicKey.isEmpty ? nil : serverChat.publicKey,
             oneTimeKeyID: Int(serverChat.oneTimePreKeyID)) { result in
             switch result {
             case .success(let decryptedData):
