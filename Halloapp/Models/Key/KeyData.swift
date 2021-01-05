@@ -203,7 +203,7 @@ extension KeyData: HalloKeyDelegate {
         switch message {
         case .update(let uid):
             self.keyStore.deleteMessageKeyBundles(for: uid)
-        case .normal(let otpKeyCountNum):
+        case .count(let otpKeyCountNum):
             self.uploadMoreOTPKeysIfNeeded(currentNum: otpKeyCountNum)
         }
     }

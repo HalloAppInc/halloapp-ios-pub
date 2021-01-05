@@ -10,13 +10,14 @@ import Foundation
 public typealias WhisperKeyBundle = XMPPWhisperKey
 
 public enum WhisperMessage {
-    case normal(keyCount: Int32)
+    case count(Int32)
     case update(userID: UserID)
 
     public init?(_ pbKeys: Server_WhisperKeys) {
         switch pbKeys.action {
-        case .normal:
-            self = .normal(keyCount: pbKeys.otpKeyCount)
+        case .normal, .count:
+            // NB: Server has been setting action to `.normal` for OTP key count but we want to transition to `.count`
+            self = .count(pbKeys.otpKeyCount)
         case .update:
             self = .update(userID: UserID(pbKeys.uid))
         default:
