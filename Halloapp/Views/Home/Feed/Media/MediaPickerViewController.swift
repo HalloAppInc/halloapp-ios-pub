@@ -565,7 +565,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                         let video = avasset as! AVURLAsset
                         media.videoURL = video.url
 
-                        if let size = VideoUtils.resolutionForLocalVideo(url: media.videoURL!) {
+                        if let url = media.videoURL, let size = VideoUtils.resolutionForLocalVideo(url: url) {
                             media.size = size
                         }
 
