@@ -193,13 +193,19 @@ open class KeyStore {
                 return
             }
 
+            let ephemeralKeyIDs = keys.map { $0.ephemeralKeyID }
+            let chainIndices = keys.map { $0.chainIndex }
+            if let eID = ephemeralKeyIDs.first, let maxChainIndex = chainIndices.max(), Set(ephemeralKeyIDs).count == 1 {
+                DDLogInfo("KeyStore/addMessageKeys/\(userID)/adding \(keys.count) keys [eID=\(eID)] [maxChainIndex=\(maxChainIndex)]")
+            } else {
+                DDLogInfo("KeyStore/addMessageKeys/\(userID)/adding \(keys.count) keys to \(ephemeralKeyIDs.count) eIDs")
+            }
+
             for keyData in keys {
                 let messageKey = NSEntityDescription.insertNewObject(forEntityName: MessageKey.entity().name!, into: managedObjectContext) as! MessageKey
                 messageKey.ephemeralKeyId = keyData.ephemeralKeyID
                 messageKey.chainIndex = keyData.chainIndex
                 messageKey.messageKeyBundle = messageKeyBundle
-
-                DDLogInfo("KeyStore/addMessageKeys/\(userID)/adding [\(keyData.ephemeralKeyID)] [\(keyData.chainIndex)]")
             }
 
             if managedObjectContext.hasChanges {
@@ -780,9 +786,13 @@ extension KeyStore {
             }
 
             var newKeys = [MessageKeyData]()
+
+            DDLogInfo("KeyStore/decryptMessage/symmetricRachet/begin [\(savedInboundChainIndex)]")
             while savedInboundChainIndex < inboundChainIndexInt {
-                DDLogInfo("KeyStore/decryptMessage/symmetricRachet/currentChainIndex \(savedInboundChainIndex)")
-                guard let symmetricRachet = self.symmetricRachet(chainKey: inboundChainKey) else { return .failure(.ratchetFailure) }
+                guard let symmetricRachet = self.symmetricRachet(chainKey: inboundChainKey) else {
+                    DDLogError("KeyStore/decryptMessage/symmetricRachet/error [\(savedInboundChainIndex)]")
+                    return .failure(.ratchetFailure)
+                }
                 messageKey = symmetricRachet.messageKey
                 inboundChainKey = symmetricRachet.updatedChainKey
                 
@@ -796,6 +806,7 @@ extension KeyStore {
                     newKeys.append(newKey)
                 }
             }
+            DDLogInfo("KeyStore/decryptMessage/symmetricRachet/finished [\(savedInboundChainIndex)]")
             addMessageKeys(newKeys, for: userId)
         }
         
