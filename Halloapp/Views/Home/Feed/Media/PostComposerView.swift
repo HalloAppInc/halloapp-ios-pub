@@ -137,12 +137,12 @@ class PostComposerViewController: UIViewController {
             inputToPost: inputToPost,
             shouldAutoPlay: shouldAutoPlay,
             configuration: configuration,
-            prepareImages: { [weak self] isReady, numberOfFailedItems in
+            prepareImages: { [weak self] isReady, imagesAreProcessed, numberOfFailedItems in
                 guard let self = self else { return }
                 self.imageServer?.cancel()
 
                 self.imageServer = ImageServer(maxAllowedAspectRatio: self.configuration.imageServerMaxAspectRatio)
-                self.imageServer!.prepare(mediaItems: self.mediaItems.value, isReady: isReady, numberOfFailedItems: numberOfFailedItems)
+                self.imageServer!.prepare(mediaItems: self.mediaItems.value, isReady: isReady, imagesAreProcessed: imagesAreProcessed, numberOfFailedItems: numberOfFailedItems)
             },
             crop: { [weak self] index in
                 guard let self = self else { return }
@@ -353,7 +353,7 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
     @ObservedObject private var areMentionsDisabled: GenericObservable<Bool>
-    private let prepareImages: (Binding<Bool>, Binding<Int>) -> Void
+    private let prepareImages: (Binding<Bool>, Binding<Bool>, Binding<Int>) -> Void
     private let crop: (GenericObservable<Int>) -> Void
     private let goBack: () -> Void
     private let setShareVisibility: (Bool) -> Void
@@ -366,6 +366,7 @@ fileprivate struct PostComposerView: View {
     private var shouldStopTextEdit = GenericObservable(false)
     @State private var keyboardHeight: CGFloat = 0
     @State private var presentPicker = false
+    @State private var imagesAreProcessed = false
 
     private var keyboardHeightPublisher: AnyPublisher<CGFloat, Never> =
         Publishers.Merge3(
@@ -409,7 +410,7 @@ fileprivate struct PostComposerView: View {
         inputToPost: GenericObservable<MentionInput>,
         shouldAutoPlay: GenericObservable<Bool>,
         configuration: PostComposerViewConfiguration,
-        prepareImages: @escaping (Binding<Bool>, Binding<Int>) -> Void,
+        prepareImages: @escaping (Binding<Bool>, Binding<Bool>, Binding<Int>) -> Void,
         crop: @escaping (GenericObservable<Int>) -> Void,
         goBack: @escaping () -> Void,
         setShareVisibility: @escaping (Bool) -> Void)
@@ -489,13 +490,14 @@ fileprivate struct PostComposerView: View {
             presentPicker = false
             guard !cancel else { return }
 
+            imagesAreProcessed = false
             mediaState.isReady = false
 
             let lastAsset = mediaItems.value[currentPosition.value].asset
             mediaItems.value = newMediaItems
             currentPosition.value = newMediaItems.firstIndex { $0.asset == lastAsset } ?? 0
 
-            prepareImages($mediaState.isReady, $mediaState.numberOfFailedItems)
+            prepareImages($mediaState.isReady, $imagesAreProcessed, $mediaState.numberOfFailedItems)
         }
     }
 
@@ -513,7 +515,7 @@ fileprivate struct PostComposerView: View {
                 Button(action: deleteMedia) {
                     ControlIconView(imageLabel: "ComposerDeleteMedia")
                 }
-                if mediaState.isReady && showCropButton {
+                if imagesAreProcessed && showCropButton {
                     Button(action: cropMedia) {
                         ControlIconView(imageLabel: "ComposerCropMedia")
                     }
@@ -585,8 +587,9 @@ fileprivate struct PostComposerView: View {
                         .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
                         .onAppear {
                             if (self.mediaCount > 0) {
+                                self.imagesAreProcessed = false
                                 self.mediaState.isReady = false
-                                self.prepareImages(self.$mediaState.isReady, self.$mediaState.numberOfFailedItems)
+                                self.prepareImages(self.$mediaState.isReady, $imagesAreProcessed, self.$mediaState.numberOfFailedItems)
                             } else {
                                 self.mediaState.isReady = true
                             }
@@ -623,6 +626,7 @@ fileprivate struct PostComposerView: View {
     }
 
     private func cropMedia() {
+        imagesAreProcessed = false
         mediaState.isReady = false
         crop(currentPosition)
     }
