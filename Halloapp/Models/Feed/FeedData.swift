@@ -1307,6 +1307,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         let postId = feedPost.id
         updateFeedPost(with: postId) { (post) in
+            // Check status again in case one of these blocks was already queued
+            guard post.status == .incoming else { return }
             self.internalSendSeenReceipt(for: post)
         }
     }
