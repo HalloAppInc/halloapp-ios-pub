@@ -417,7 +417,6 @@ extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
         let feedItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)
         let cellWidth = collectionView.frame.width
         if let cachedCellHeight = feedItem?.cachedCellHeight {
-            DDLogDebug("FeedCollectionView Using cached height [\(cachedCellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
             return CGSize(width: cellWidth, height: cachedCellHeight)
         }
         let contentWidth = collectionView.frame.size.width - collectionView.layoutMargins.left - collectionView.layoutMargins.right
