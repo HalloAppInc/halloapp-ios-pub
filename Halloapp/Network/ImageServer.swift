@@ -80,10 +80,10 @@ class ImageServer {
     }
 
     private func prepare(mediaItem item: PendingMedia) {
-        let typeSepcificProcessingGroup = item.type == .image ? imageProcessingGroup : nil
-        typeSepcificProcessingGroup?.enter()
+        let typeSpecificProcessingGroup = item.type == .image ? imageProcessingGroup : nil
+        typeSpecificProcessingGroup?.enter()
         mediaProcessingQueue.async(group: mediaProcessingGroup) { [weak self] in
-            defer { typeSepcificProcessingGroup?.leave() }
+            defer { typeSpecificProcessingGroup?.leave() }
             guard let self = self, !self.isCancelled else { return }
             // 1. Resize media as necessary.
             let mediaResizeCropGroup = DispatchGroup()
@@ -148,11 +148,11 @@ class ImageServer {
 
             // 2. Encrypt media.
             self.mediaProcessingGroup.enter()
-            typeSepcificProcessingGroup?.enter()
+            typeSpecificProcessingGroup?.enter()
             mediaResizeCropGroup.notify(queue: self.mediaProcessingQueue) {
                 defer {
                     self.mediaProcessingGroup.leave()
-                    typeSepcificProcessingGroup?.leave()
+                    typeSpecificProcessingGroup?.leave()
                 }
                 guard item.error == nil, !self.isCancelled else { return }
 
