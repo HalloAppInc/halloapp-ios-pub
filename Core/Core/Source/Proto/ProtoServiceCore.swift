@@ -77,7 +77,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         stream.clientVersion = userAgent
     }
 
-    open func startConnectingIfNecessary() {
+    public func startConnectingIfNecessary() {
         if stream.myJID != nil && stream.isDisconnected {
             connect()
         }
@@ -98,16 +98,17 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             return
         }
 
-        /* we do our own manual connection timeout as the xmppStream.connect timeout is not working */
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            self.startConnectingIfNecessary()
-        }
+        // Retry if we're not connected in 10 seconds
+        let retryConnection = DispatchWorkItem { self.startConnectingIfNecessary() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: retryConnection)
+        retryConnectionTask = retryConnection
     }
 
     public func disconnect() {
         DDLogInfo("proto/disconnect")
 
         isAutoReconnectEnabled = false
+        retryConnectionTask?.cancel()
         connectionState = .disconnecting
         stream.disconnectAfterSending()
     }
@@ -116,6 +117,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         DDLogInfo("proto/disconnectImmediately")
 
         isAutoReconnectEnabled = false
+        retryConnectionTask?.cancel()
         connectionState = .notConnected
         stream.disconnect()
     }
@@ -133,6 +135,8 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
 
     private var isAutoReconnectEnabled = false
+
+    private var retryConnectionTask: DispatchWorkItem?
 
     // MARK: State Change Callbacks
 
