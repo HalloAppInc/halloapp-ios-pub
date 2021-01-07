@@ -1910,14 +1910,20 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func merge(posts: [SharedFeedPost], from sharedDataStore: SharedDataStore, using managedObjectContext: NSManagedObjectContext, completion: @escaping () -> ()) {
         let postIds = Set(posts.map{ $0.id })
         let existingPosts = feedPosts(with: postIds, in: managedObjectContext).reduce(into: [FeedPostID: FeedPost]()) { $0[$1.id] = $1 }
+        var addedPostIDs = Set<FeedPostID>()
 
         for post in posts {
             guard existingPosts[post.id] == nil else {
-                DDLogError("FeedData/merge-data/duplicate [\(post.id)]")
+                DDLogError("FeedData/merge-data/duplicate (pre-existing) [\(post.id)]")
+                continue
+            }
+            guard !addedPostIDs.contains(post.id) else {
+                DDLogError("FeedData/merge-data/duplicate (duplicate in batch) [\(post.id)")
                 continue
             }
 
             let postId = post.id
+            addedPostIDs.insert(postId)
 
             DDLogDebug("FeedData/merge-data/post/\(postId)")
             let feedPost = NSEntityDescription.insertNewObject(forEntityName: FeedPost.entity().name!, into: managedObjectContext) as! FeedPost

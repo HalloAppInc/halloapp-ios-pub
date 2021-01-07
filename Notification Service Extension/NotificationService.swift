@@ -68,6 +68,11 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
 
         var invokeHandler = true
         if protoContainer.hasPost && metadata.feedPostId != nil {
+            guard !dataStore.posts().contains(where: { $0.id == metadata.feedPostId }) else {
+                DDLogError("didReceiveRequest/error duplicate post ID [\(metadata.feedPostId ?? "nil")]")
+                contentHandler(bestAttemptContent)
+                return
+            }
             let feedPost = dataStore.save(protoPost: protoContainer.post, notificationMetadata: metadata)
             if let firstMediaItem = feedPost.orderedMedia.first as? SharedMedia {
                 let downloadTask = startDownloading(media: firstMediaItem)
@@ -76,6 +81,11 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
             }
         }
         if let messageId = metadata.messageId, protoContainer.hasChatMessage {
+            guard !dataStore.messages().contains(where: { $0.id == metadata.messageId }) else {
+                DDLogError("didReceiveRequest/error duplicate message ID [\(metadata.messageId ?? "nil")]")
+                contentHandler(bestAttemptContent)
+                return
+            }
             if let chatMedia = protoContainer.chatMessage.media.first,
                let xmppMedia = XMPPFeedMedia(id: "\(messageId)", protoMedia: chatMedia) {
                 let downloadTask = startDownloading(media: xmppMedia)
