@@ -406,9 +406,8 @@ fileprivate struct Preview: View {
                 Image(uiImage: media.image!)
                     .resizable()
                     .cornerRadius(3)
-                    .aspectRatio(contentMode: .fit)
-                    .padding(4)
-                    .opacity(selected === media ? 1.0 : 0.6)
+                    .aspectRatio(contentMode: .fill)
+                    .overlay(selected === media ? nil : Rectangle().fill(Color.init(white: 0, opacity: 0.4)))
             }
             
             if media.type == .video {
@@ -418,8 +417,7 @@ fileprivate struct Preview: View {
                     .opacity(0.6)
             }
         }
-        .frame(width: 65, height: 80)
-        .background(Color(white: 1.0, opacity: 0.2))
+        .frame(width: 64, height: 80)
         .cornerRadius(5)
         .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.blue, lineWidth: selected === media ? 4 : 0))
         .onTapGesture {
