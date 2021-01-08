@@ -682,6 +682,7 @@ fileprivate struct CropImage: View {
     }
 
     private let threshold = CGFloat(44)
+    private let outThreshold = CGFloat(22)
 
     let cropToCircle: Bool
     let maxAspectRatio: CGFloat
@@ -695,10 +696,10 @@ fileprivate struct CropImage: View {
     private func findCropSection(_ crop: CGRect, location: CGPoint) -> CropRegionSection {
         let vThreshold = min(threshold, crop.width / 3)
         let hThreshold = min(threshold, crop.height / 3)
-        let isTop = (crop.minY < location.y) && (location.y < (crop.minY + vThreshold))
-        let isBottom = ((crop.maxY - vThreshold) < location.y) && (location.y < crop.maxY)
-        let isLeft = (crop.minX < location.x) && (location.x < (crop.minX + hThreshold))
-        let isRight = ((crop.maxX - hThreshold) < location.x) && (location.x < crop.maxX)
+        let isTop = (crop.minY - outThreshold < location.y) && (location.y < (crop.minY + vThreshold))
+        let isBottom = ((crop.maxY - vThreshold) < location.y) && (location.y < crop.maxY + outThreshold)
+        let isLeft = (crop.minX - outThreshold < location.x) && (location.x < (crop.minX + hThreshold))
+        let isRight = ((crop.maxX - hThreshold) < location.x) && (location.x < crop.maxX + outThreshold)
         
         switch (isLeft, isTop, isRight, isBottom) {
         case (true, true, _, _):
@@ -850,6 +851,11 @@ fileprivate struct CropImage: View {
                                         if self.cropToCircle {
                                             self.lastCropSection = .inside
                                         }
+                                    } else {
+                                        let valid = crop.insetBy(dx: -2 * outThreshold, dy: -2 * outThreshold)
+                                        if !valid.contains(location) {
+                                            return
+                                        }
                                     }
 
                                     let deltaX = location.x - self.lastLocation.x
@@ -871,6 +877,8 @@ fileprivate struct CropImage: View {
                                 .onDragEnded { v in
                                     self.isDragging = false
                                 }
+                                .offset(x: -outThreshold, y: -outThreshold)
+                                .frame(width: inner.size.width + outThreshold * 2, height: inner.size.height + outThreshold * 2)
                         })
                     Spacer()
                 }.frame(maxWidth: .infinity)
