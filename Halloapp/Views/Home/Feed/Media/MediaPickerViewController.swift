@@ -510,14 +510,6 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         nextInProgress = true
         
         var result = [PendingMedia]()
-        self.selected.sort {
-            if let d0 = $0.creationDate, let d1 = $1.creationDate {
-                return d0 < d1
-            }
-
-            return false
-        }
-        
         let manager = PHImageManager.default()
         let group = DispatchGroup()
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -879,32 +871,17 @@ fileprivate class AssetViewCell: UICollectionViewCell {
     }()
     private var activeConstraints = [NSLayoutConstraint]()
 
-    lazy var indicatorMark: UIImageView = {
-        let mark = UIImageView()
-        mark.translatesAutoresizingMaskIntoConstraints = false
-        mark.contentMode = .scaleAspectFit
-        mark.image = UIImage(named: "SelectMark")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+    lazy var indicator: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        label.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        label.textColor = .white
+        label.layer.cornerRadius = 10
+        label.layer.borderWidth = 2.5
+        label.layer.masksToBounds = true
 
-        return mark
-    }()
-
-    lazy var indicator: UIView = {
-        let indicator = UIView()
-        indicator.translatesAutoresizingMaskIntoConstraints = false
-        indicator.layer.cornerRadius = 10
-        indicator.layer.borderWidth = 2.5
-        indicator.layer.masksToBounds = true
-
-        indicator.addSubview(indicatorMark)
-
-        NSLayoutConstraint.activate([
-            indicatorMark.topAnchor.constraint(equalTo: indicator.topAnchor, constant: 1),
-            indicatorMark.bottomAnchor.constraint(equalTo: indicator.bottomAnchor, constant: -1),
-            indicatorMark.leadingAnchor.constraint(equalTo: indicator.leadingAnchor, constant: 1),
-            indicatorMark.trailingAnchor.constraint(equalTo: indicator.trailingAnchor, constant: -1),
-        ])
-
-        return indicator
+        return label
     }()
     
     lazy var image: UIImageView = {
@@ -1011,14 +988,14 @@ fileprivate class AssetViewCell: UICollectionViewCell {
     }
 
     func prepareIndicator() {
-        if let asset = item?.asset, delegate?.selected.contains(asset) == true {
+        if let asset = item?.asset, let idx = delegate?.selected.firstIndex(of: asset) {
             indicator.layer.borderColor = UIColor.lavaOrange.cgColor
             indicator.backgroundColor = .lavaOrange
-            indicatorMark.isHidden = false
+            indicator.text = "\(1 + idx)"
         } else {
             indicator.layer.borderColor = CGColor(srgbRed: 1.0, green: 1.0, blue: 1.0, alpha: 0.7)
             indicator.backgroundColor = .clear
-            indicatorMark.isHidden = true
+            indicator.text = ""
         }
 
         if let multiselect = delegate?.multiselect, !multiselect {
