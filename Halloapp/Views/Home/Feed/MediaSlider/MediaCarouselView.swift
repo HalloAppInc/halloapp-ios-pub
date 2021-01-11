@@ -568,7 +568,12 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
         super.configure(with: media)
 
         if media.isMediaAvailable {
-            show(image: media.image!)
+            if let image = media.image {
+                show(image: image)
+            } else {
+                showPlaceholderImage()
+                MainAppContext.shared.errorLogger?.logError(FeedMediaError.missingImage)
+            }
         } else if imageLoadingCancellable == nil {
             showPlaceholderImage()
             imageLoadingCancellable = media.imageDidBecomeAvailable.sink { [weak self] (image) in

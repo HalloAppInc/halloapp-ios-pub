@@ -11,6 +11,10 @@ import Combine
 import Core
 import Foundation
 
+enum FeedMediaError: Error {
+    case missingImage // Image not available despite isMediaAvailable set to true
+}
+
 class FeedMedia: Identifiable, Hashable {
     private static let imageLoadingQueue = DispatchQueue(label: "com.halloapp.media-loading", qos: .userInitiated)
 
@@ -77,9 +81,9 @@ class FeedMedia: Identifiable, Hashable {
             DispatchQueue.main.async {
                 self.image = image
                 self.isImageLoaded = true
-                self.isMediaAvailable = true
-                if image != nil {
-                    self.imageDidBecomeAvailable.send(image!)
+                if let image = image {
+                    self.isMediaAvailable = true
+                    self.imageDidBecomeAvailable.send(image)
                 }
             }
         }
