@@ -500,6 +500,9 @@ final class ProtoService: ProtoServiceCore {
                     MainAppContext.shared.contactStore.addPushNames([ UserID(pbName.uid): pbName.name ])
                 }
                 sendAck(messageID: msg.id)
+            case .endOfQueue:
+                DDLogInfo("proto/didReceive/endOfQueue")
+                sendAck(messageID: msg.id)
             case .errorStanza(let error):
                 DDLogError("proto/didReceive/\(requestID) received message with error \(error)")
             }

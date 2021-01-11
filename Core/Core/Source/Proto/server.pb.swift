@@ -1163,6 +1163,11 @@ public struct Server_ChatStanza {
 
   public var senderName: String = String()
 
+  /// Use >=16 for temporary elements since 1-15 encode smaller
+  public var senderLogInfo: String = String()
+
+  public var senderClientVersion: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -1220,6 +1225,16 @@ public struct Server_Name {
   public var uid: Int64 = 0
 
   public var name: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Server_EndOfQueue {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -1754,6 +1769,14 @@ public struct Server_Msg {
     set {_uniqueStorage()._payload = .groupFeedItems(newValue)}
   }
 
+  public var endOfQueue: Server_EndOfQueue {
+    get {
+      if case .endOfQueue(let v)? = _storage._payload {return v}
+      return Server_EndOfQueue()
+    }
+    set {_uniqueStorage()._payload = .endOfQueue(newValue)}
+  }
+
   public var retryCount: Int32 {
     get {return _storage._retryCount}
     set {_uniqueStorage()._retryCount = newValue}
@@ -1786,6 +1809,7 @@ public struct Server_Msg {
     case rerequest(Server_Rerequest)
     case silentChatStanza(Server_SilentChatStanza)
     case groupFeedItems(Server_GroupFeedItems)
+    case endOfQueue(Server_EndOfQueue)
 
   #if !swift(>=4.1)
     public static func ==(lhs: Server_Msg.OneOf_Payload, rhs: Server_Msg.OneOf_Payload) -> Bool {
@@ -1809,6 +1833,7 @@ public struct Server_Msg {
       case (.rerequest(let l), .rerequest(let r)): return l == r
       case (.silentChatStanza(let l), .silentChatStanza(let r)): return l == r
       case (.groupFeedItems(let l), .groupFeedItems(let r)): return l == r
+      case (.endOfQueue(let l), .endOfQueue(let r)): return l == r
       default: return false
       }
     }
@@ -4304,6 +4329,8 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     4: .standard(proto: "public_key"),
     5: .standard(proto: "one_time_pre_key_id"),
     6: .standard(proto: "sender_name"),
+    16: .standard(proto: "sender_log_info"),
+    17: .standard(proto: "sender_client_version"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4315,6 +4342,8 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       case 4: try decoder.decodeSingularBytesField(value: &self.publicKey)
       case 5: try decoder.decodeSingularInt64Field(value: &self.oneTimePreKeyID)
       case 6: try decoder.decodeSingularStringField(value: &self.senderName)
+      case 16: try decoder.decodeSingularStringField(value: &self.senderLogInfo)
+      case 17: try decoder.decodeSingularStringField(value: &self.senderClientVersion)
       default: break
       }
     }
@@ -4339,6 +4368,12 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if !self.senderName.isEmpty {
       try visitor.visitSingularStringField(value: self.senderName, fieldNumber: 6)
     }
+    if !self.senderLogInfo.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderLogInfo, fieldNumber: 16)
+    }
+    if !self.senderClientVersion.isEmpty {
+      try visitor.visitSingularStringField(value: self.senderClientVersion, fieldNumber: 17)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -4349,6 +4384,8 @@ extension Server_ChatStanza: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if lhs.publicKey != rhs.publicKey {return false}
     if lhs.oneTimePreKeyID != rhs.oneTimePreKeyID {return false}
     if lhs.senderName != rhs.senderName {return false}
+    if lhs.senderLogInfo != rhs.senderLogInfo {return false}
+    if lhs.senderClientVersion != rhs.senderClientVersion {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4461,6 +4498,25 @@ extension Server_Name: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
   public static func ==(lhs: Server_Name, rhs: Server_Name) -> Bool {
     if lhs.uid != rhs.uid {return false}
     if lhs.name != rhs.name {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Server_EndOfQueue: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".EndOfQueue"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let _ = try decoder.nextFieldNumber() {
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Server_EndOfQueue, rhs: Server_EndOfQueue) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4862,6 +4918,7 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
     22: .same(proto: "rerequest"),
     23: .standard(proto: "silent_chat_stanza"),
     24: .standard(proto: "group_feed_items"),
+    26: .standard(proto: "end_of_queue"),
     21: .standard(proto: "retry_count"),
     25: .standard(proto: "rerequest_count"),
   ]
@@ -5060,6 +5117,14 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
           try decoder.decodeSingularMessageField(value: &v)
           if let v = v {_storage._payload = .groupFeedItems(v)}
         case 25: try decoder.decodeSingularInt32Field(value: &_storage._rerequestCount)
+        case 26:
+          var v: Server_EndOfQueue?
+          if let current = _storage._payload {
+            try decoder.handleConflictingOneOf()
+            if case .endOfQueue(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._payload = .endOfQueue(v)}
         default: break
         }
       }
@@ -5131,6 +5196,9 @@ extension Server_Msg: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
       }
       if _storage._rerequestCount != 0 {
         try visitor.visitSingularInt32Field(value: _storage._rerequestCount, fieldNumber: 25)
+      }
+      if case .endOfQueue(let v)? = _storage._payload {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 26)
       }
     }
     try unknownFields.traverse(visitor: &visitor)
