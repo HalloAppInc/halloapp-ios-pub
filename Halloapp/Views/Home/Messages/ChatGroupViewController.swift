@@ -48,6 +48,8 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
     
     private var mediaPickerController: MediaPickerViewController?
         
+    private var chatStateDebounceTimer: Timer? = nil
+    
     private var cancellableSet: Set<AnyCancellable> = []
     
     // MARK: Lifecycle
@@ -96,6 +98,8 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
             var isNextMsgSameSender = false
             var isNextMsgSameTime = false
             
+            var isNextMsgDifferentDay = false
+            
             let previousRow = indexPath.row - 1
             let nextRow = indexPath.row + 1
 
@@ -106,7 +110,15 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
                     if previousChatGroupMessage.userId == chatGroupMessage.userId {
                         isPreviousMsgSameSender = true
                     }
+                    
+                    if let previousMsgTime = previousChatGroupMessage.timestamp, let currentMsgTime = chatGroupMessage.timestamp  {
+                        if !Calendar.current.isDate(previousMsgTime, inSameDayAs: currentMsgTime) {
+                            isNextMsgDifferentDay = true
+                        }
+                    }
                 }
+            } else {
+                isNextMsgDifferentDay = true
             }
             
             if nextRow < tableView.numberOfRows(inSection: 0) {
@@ -120,7 +132,6 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
                             isNextMsgSameTime = true
                         }
                     }
-
                 }
             }
             
@@ -143,6 +154,10 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
                                 isNextMsgSameSender: isNextMsgSameSender,
                                 isNextMsgSameTime: isNextMsgSameTime)
 
+                    if isNextMsgDifferentDay {
+                        cell.addDateRow(timestamp: chatGroupMessage.timestamp)
+                    }
+                    
                     cell.delegate = self
                     return cell
                 }
@@ -153,6 +168,11 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
                                 isPreviousMsgSameSender: isPreviousMsgSameSender,
                                 isNextMsgSameSender: isNextMsgSameSender,
                                 isNextMsgSameTime: isNextMsgSameTime)
+
+                    if isNextMsgDifferentDay {
+                        cell.addDateRow(timestamp: chatGroupMessage.timestamp)
+                    }
+
                     cell.delegate = self
 
                     return cell
@@ -184,8 +204,8 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         
         cancellableSet.insert(
             MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] in
-                DDLogInfo("ChatGroupViewController/didGetChatStateInfo")
                 guard let self = self else { return }
+                DDLogInfo("ChatGroupViewController/didGetChatStateInfo")
                 DispatchQueue.main.async {
                     self.configureTitleViewWithTypingIndicator()
                 }
@@ -193,7 +213,7 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         )
         
         configureTitleViewWithTypingIndicator()
-        
+                
         guard let thread = MainAppContext.shared.chatData.chatThread(type: .group, id: groupId) else { return }
         guard thread.draft != "", let draft = thread.draft else { return }
         chatInputView.setDraftText(text: draft)
@@ -211,6 +231,8 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         tableView.tableFooterView = nil
         let scrollPoint = CGPoint(x: 0, y: tableView.contentSize.height + 1000)
         tableView.setContentOffset(scrollPoint, animated: false)
+        
+//        tableView.contentInsetAdjustmentBehavior = .never
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -224,6 +246,12 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         chatInputView.didAppear(in: self)
         
         UNUserNotificationCenter.current().removeDeliveredChatNotifications(groupId: groupId)
+        
+        guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
+        keyWindow.addSubview(jumpButton)
+        jumpButton.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor).isActive = true
+        jumpButtonConstraint = jumpButton.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: -100)
+        jumpButtonConstraint?.isActive = true
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -232,6 +260,8 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         MainAppContext.shared.chatData.saveDraft(type: .group, for: groupId, with: chatInputView.text)
         MainAppContext.shared.chatData.setCurrentlyChattingInGroup(for: nil)
         chatInputView.willDisappear(in: self)
+        
+        jumpButton.removeFromSuperview()
     }
     
     deinit {
@@ -273,6 +303,61 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         tableView.register(EventMsgTableViewCell.self, forCellReuseIdentifier: ChatGroupViewController.eventMsgTableViewCellReuseIdentifier)
         tableView.delegate = self
         return tableView
+    }()
+    
+    private var jumpButtonUnreadCount: Int = 0
+    private var jumpButtonConstraint: NSLayoutConstraint?
+
+    private lazy var jumpButton: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ jumpButtonUnreadCountLabel, jumpButtonImageView ])
+        view.axis = .horizontal
+        view.alignment = .center
+        view.spacing = 5
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        jumpButtonImageView.widthAnchor.constraint(equalToConstant: 30).isActive = true
+        jumpButtonImageView.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        
+        let subView = UIView(frame: view.bounds)
+        subView.layer.cornerRadius = 10
+        subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner]
+        
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        subView.backgroundColor = UIColor.secondarySystemGroupedBackground.withAlphaComponent(0.9)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(subView, at: 0)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(jumpDown(_:)))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
+        
+        return view
+    }()
+
+    private lazy var jumpButtonUnreadCountLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.textColor = .systemBlue
+        return label
+    }()
+    
+    private lazy var jumpButtonImageView: UIImageView = {
+        let view = UIImageView()
+        
+        view.image = UIImage(systemName: "chevron.down.circle")
+                
+        view.contentMode = .scaleAspectFill
+        
+        view.tintColor = .systemBlue
+        
+        view.layer.cornerRadius = 3
+        view.layer.masksToBounds = true
+        
+        return view
     }()
     
     // MARK: Data
@@ -366,7 +451,8 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
             }
         case .insert:
             DDLogDebug("ChatGroupViewController/frc/insert")
-            shouldScrollToBottom = true
+            guard let groupChatMsg = anObject as? ChatGroupMessage else { break }
+            shouldScrollToBottom = checkIfShouldScrollToBottom(groupChatMsg)
         case .move:
             DDLogDebug("ChatGroupViewController/frc/move")
         case .delete:
@@ -402,6 +488,22 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         self.dataSource?.apply(diffableDataSourceSnapshot, animatingDifferences: animatingDifferences)
     }
 
+    // MARK: Helpers
+    
+    private func checkIfShouldScrollToBottom(_ groupChatMsg: ChatGroupMessage) -> Bool {
+        var result = true
+                
+        guard groupChatMsg.userId != MainAppContext.shared.userData.userId else { return result }
+        
+        if jumpButton.isHidden == false {
+            result = false
+            jumpButtonUnreadCount += 1
+            jumpButtonUnreadCountLabel.text = String(jumpButtonUnreadCount)
+        }
+        
+        return result
+    }
+    
     private func scrollToBottom(_ animated: Bool = true) {
         if let dataSnapshot = self.dataSource?.snapshot() {
             let numberOfRows = dataSnapshot.numberOfItems(inSection: ChatGroupViewController.sectionMain)
@@ -420,6 +522,19 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         titleView.showChatState(with: typingIndicatorStr)
     }
     
+    private func updateJumpButtonVisibility() {
+        let fromTheBottom = UIScreen.main.bounds.height*1.5 - chatInputView.bottomInset
+        
+        if tableView.contentSize.height - tableView.contentOffset.y > fromTheBottom {
+            let aboveChatInput = chatInputView.bottomInset + 50
+            jumpButtonConstraint?.constant = -aboveChatInput
+            jumpButton.isHidden = false
+        } else {
+            jumpButton.isHidden = true
+            jumpButtonUnreadCount = 0
+            jumpButtonUnreadCountLabel.text = nil
+        }
+    }
     
     // MARK: Input view
 
@@ -518,8 +633,14 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         pickerController.present(UINavigationController(rootViewController: composerController), animated: false)
     }
 
+    // MARK: actions
+    
     @objc func dismissKeyboard (_ sender: UITapGestureRecognizer) {
         chatInputView.hideKeyboard()
+    }
+    
+    @IBAction func jumpDown(_ sender: Any?) {
+        scrollToBottom()
     }
 }
 
@@ -575,6 +696,10 @@ extension ChatGroupViewController: UITableViewDelegate {
         return result
     }
     
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        updateJumpButtonVisibility()
+    }
+
 }
 
 // MARK: UITableView Datasource Delegates
@@ -647,8 +772,15 @@ extension ChatGroupViewController: TitleViewDelegate {
     }
 }
 
+// MARK: InboundMsgViewCell Delegates
 extension ChatGroupViewController: InboundMsgViewCellDelegate {
  
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell) {
+        guard let indexPath = inboundMsgViewCell.indexPath else { return }
+        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+        guard message.media != nil else { return }
+    }
+    
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
@@ -693,7 +825,36 @@ extension ChatGroupViewController: InboundMsgViewCellDelegate {
     }
 }
 
+// MARK: OutboundMsgViewCell Delegates
 extension ChatGroupViewController: OutboundMsgViewCellDelegate {
+    
+    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell) {
+        guard let indexPath = outboundMsgViewCell.indexPath else { return }
+        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+        guard let chatReplyMessageID = message.chatReplyMessageID else { return }
+
+        guard let allMessages = fetchedResultsController?.fetchedObjects else { return }
+        guard let replyMessage = allMessages.first(where: {$0.id == chatReplyMessageID}) else { return }
+        
+        guard let index = allMessages.firstIndex(of: replyMessage) else { return }
+        
+
+        let toIndexPath = IndexPath(row: index, section: ChatGroupViewController.sectionMain)
+        
+        tableView.scrollToRow(at: toIndexPath, at: .middle, animated: true)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            if replyMessage.userId == MainAppContext.shared.userData.userId {
+                guard let cell = self.tableView.cellForRow(at: toIndexPath) as? OutboundMsgViewCell else { return }
+                cell.highlight()
+            } else {
+                guard let cell = self.tableView.cellForRow(at: toIndexPath) as? InboundMsgViewCell else { return }
+                cell.highlight()
+            }
+        }
+
+    }
+    
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = outboundMsgViewCell.indexPath else { return }
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
@@ -768,6 +929,7 @@ extension ChatGroupViewController: ChatInputViewDelegate {
         
         let updateBlock = {
             self.updateTableViewContentInsets(with: inputView.bottomInset, adjustContentOffset: adjustContentOffset)
+            self.updateJumpButtonVisibility()
         }
         if animationDuration > 0 {
             updateBlock()

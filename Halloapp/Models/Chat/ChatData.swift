@@ -66,8 +66,8 @@ class ChatData: ObservableObject {
     }
 
     private let downloadQueue = DispatchQueue(label: "com.halloapp.chat.download", qos: .userInitiated)
-    private let maxNumDownloads: Int = 1
-    private var currentlyDownloading: [URL] = [] // TODO: not currently used, re-evaluate if it's needed
+    private let maxNumDownloads: Int = 3
+    private var currentlyDownloading: [URL] = []
     private let maxTries: Int = 10
     
     private let persistentContainer: NSPersistentContainer = {
@@ -160,6 +160,7 @@ class ChatData: ObservableObject {
                 self.processPendingGroupChatSeenReceipts()
                 
                 if (UIApplication.shared.applicationState == .active) {
+                    self.currentlyDownloading.removeAll()
                     self.processInboundPendingChatMsgMedia()
                     self.processInboundPendingGroupChatMsgMedia()
                 }
@@ -352,7 +353,7 @@ class ChatData: ObservableObject {
     }
 
     func processInboundPendingChatMsgMedia() {
-        guard currentlyDownloading.count < maxNumDownloads else { return }
+        guard currentlyDownloading.count <= maxNumDownloads else { return }
         
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -364,14 +365,22 @@ class ChatData: ObservableObject {
                 guard let media = chatMessage.media else { continue }
                 
                 let sortedMedia = media.sorted(by: { $0.order < $1.order })
-                guard let med = sortedMedia.first(where: { $0.incomingStatus == .pending } ) else { continue }
+                guard let med = sortedMedia.first(where: {
+                    guard let url = $0.url else { return false }
+                    guard $0.incomingStatus == .pending else { return false }
+                    guard !self.currentlyDownloading.contains(url) else { return false }
+                    if $0.numTries > self.maxTries {
+                        // just logging for now and not stopping the attempt
+                        DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\($0.order)/numTries: \($0.numTries)")
+                    }
+                    return true
+                } ) else { continue }
                 
-                DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media order: \(med.order)")
+                DDLogDebug("ChatData/processInboundPendingChatMsgMedia/\(chatMessage.id)/media/order/\(med.order)")
                 
-                guard med.incomingStatus == ChatMedia.IncomingStatus.pending else { continue }
-                guard med.numTries <= self.maxTries else { continue }
                 guard let url = med.url else { continue }
-                guard !self.currentlyDownloading.contains(url) else { continue }
+                
+                self.currentlyDownloading.append(url)
 
                 let threadId = chatMessage.fromUserId
                 let messageId = chatMessage.id
@@ -382,13 +391,17 @@ class ChatData: ObservableObject {
             
                 // save attempts
                 self.updateChatMessage(with: messageId) { (chatMessage) in
-                    if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ) {
+                    if let index = chatMessage.media?.firstIndex(where: { $0.order == order } ), (chatMessage.media?[index].numTries ?? 0) < 9999 {
                         chatMessage.media?[index].numTries += 1
                     }
                 }
                 
-                _ = ChatMediaDownloader(url: url, completion: { (outputUrl) in
-
+                _ = ChatMediaDownloader(url: url, completion: { [weak self] (outputUrl) in
+                    guard let self = self else { return }
+                    if let index = self.currentlyDownloading.firstIndex(of: url) {
+                        self.currentlyDownloading.remove(at: index)
+                    }
+                    
                     var encryptedData: Data
                     do {
                         encryptedData = try Data(contentsOf: outputUrl)
@@ -424,7 +437,7 @@ class ChatData: ObservableObject {
                         }
                     }
                     
-                    // delete the file it already exists, ie. previous attempts
+                    // delete the file if it already exists, ie. previous attempts
                     if FileManager.default.fileExists(atPath: fileURL.path) {
                         try! FileManager.default.removeItem(atPath: fileURL.path)
                     } else {
@@ -453,6 +466,7 @@ class ChatData: ObservableObject {
                     }) { [weak self] in
                         guard let self = self else { return }
                         self.processInboundPendingChatMsgMedia()
+                        self.processInboundPendingGroupChatMsgMedia()
                     }
                 })
             }
@@ -472,15 +486,23 @@ class ChatData: ObservableObject {
                 guard let media = chatGroupMessage.media else { continue }
                 
                 let sortedMedia = media.sorted(by: { $0.order < $1.order })
-                guard let med = sortedMedia.first(where: { $0.incomingStatus == .pending } ) else { continue }
+                guard let med = sortedMedia.first(where: {
+                    guard let url = $0.url else { return false }
+                    guard $0.incomingStatus == .pending else { return false }
+                    guard !self.currentlyDownloading.contains(url) else { return false }
+                    if $0.numTries > self.maxTries {
+                        // just logging for now and not stopping the attempt
+                        DDLogDebug("ChatData/processInboundPendingGroupChatMsgMedia/\(chatGroupMessage.id)/media/order/\($0.order)/numTries: \($0.numTries)")
+                    }
+                    return true
+                } ) else { continue }
                 
-                DDLogDebug("ChatData/processInboundPendingGroupChatMsgMedia/\(chatGroupMessage.id)/ media order: \(med.order)")
+                DDLogDebug("ChatData/processInboundPendingGroupChatMsgMedia/\(chatGroupMessage.id)/media/order/\(med.order)")
                 
-                guard med.incomingStatus == ChatMedia.IncomingStatus.pending else { continue }
-                guard med.numTries <= self.maxTries else { continue }
                 guard let url = med.url else { continue }
-                guard !self.currentlyDownloading.contains(url) else { continue }
 
+                self.currentlyDownloading.append(url)
+                
                 let threadId = chatGroupMessage.groupId
                 let messageId = chatGroupMessage.id
                 let order = med.order
@@ -490,13 +512,17 @@ class ChatData: ObservableObject {
             
                 // save attempts
                 self.updateChatGroupMessage(with: messageId) { (chatGroupMessage) in
-                    if let index = chatGroupMessage.media?.firstIndex(where: { $0.order == order } ) {
+                    if let index = chatGroupMessage.media?.firstIndex(where: { $0.order == order } ), (chatGroupMessage.media?[index].numTries ?? 0) < 9999 {
                         chatGroupMessage.media?[index].numTries += 1
                     }
                 }
                 
                 _ = ChatMediaDownloader(url: url, completion: { [weak self] (outputUrl) in
                     guard let self = self else { return }
+                    if let index = self.currentlyDownloading.firstIndex(of: url) {
+                        self.currentlyDownloading.remove(at: index)
+                    }
+                    
                     var encryptedData: Data
                     do {
                         encryptedData = try Data(contentsOf: outputUrl)
@@ -561,6 +587,7 @@ class ChatData: ObservableObject {
                     }) { [weak self] in
                         guard let self = self else { return }
                         self.processInboundPendingGroupChatMsgMedia()
+                        self.processInboundPendingChatMsgMedia()
                     }
                     
                 })
@@ -1228,7 +1255,14 @@ extension ChatData {
         
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("ChatData/createChatMsg/\(messageId)/add-media [\(mediaItem)]")
-            
+            guard let mediaItemSize = mediaItem.size,
+                  let mediaItemKey = mediaItem.key,
+                  let mediaItemSha256 = mediaItem.sha256,
+                  let mediaItemfileURL = mediaItem.fileURL else {
+                DDLogDebug("ChatData/createChatMsg/\(messageId)/add-media/skip/missing info")
+                continue
+            }
+                  
             let chatMedia = ChatMedia(context: bgContext)
             switch mediaItem.type {
             case .image:
@@ -1245,14 +1279,14 @@ extension ChatData {
             chatMedia.outgoingStatus = isMsgToYourself ? .uploaded : .pending
             chatMedia.url = mediaItem.url
             chatMedia.uploadUrl = mediaItem.uploadUrl
-            chatMedia.size = mediaItem.size!
-            chatMedia.key = mediaItem.key!
-            chatMedia.sha256 = mediaItem.sha256!
+            chatMedia.size = mediaItemSize
+            chatMedia.key = mediaItemKey
+            chatMedia.sha256 = mediaItemSha256
             chatMedia.order = Int16(index)
             chatMedia.message = chatMessage
 
             do {
-                try copyFiles(toChatMedia: chatMedia, fileUrl: mediaItem.fileURL!, encryptedFileUrl: mediaItem.encryptedFileUrl)
+                try copyFiles(toChatMedia: chatMedia, fileUrl: mediaItemfileURL, encryptedFileUrl: mediaItem.encryptedFileUrl)
             }
             catch {
                 DDLogError("ChatData/createChatMsg/\(messageId)/copy-media/error [\(error)]")
@@ -2422,7 +2456,14 @@ extension ChatData {
         
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("ChatData/group/new-msg/\(groupMessageId)/add-media [\(mediaItem)]")
-
+            guard let mediaItemSize = mediaItem.size,
+                  let mediaItemKey = mediaItem.key,
+                  let mediaItemSha256 = mediaItem.sha256,
+                  let mediaItemFileURL = mediaItem.fileURL else {
+                DDLogDebug("ChatData/createChatMsg/\(groupMessageId)/add-media/skip/missing info")
+                continue
+            }
+            
             let chatMedia = ChatMedia(context: bgContext)
             switch mediaItem.type {
             case .image:
@@ -2439,21 +2480,20 @@ extension ChatData {
             chatMedia.outgoingStatus = .pending
             chatMedia.url = mediaItem.url
             chatMedia.uploadUrl = mediaItem.uploadUrl
-            chatMedia.size = mediaItem.size!
-            chatMedia.key = mediaItem.key!
-            chatMedia.sha256 = mediaItem.sha256!
+            chatMedia.size = mediaItemSize
+            chatMedia.key = mediaItemKey
+            chatMedia.sha256 = mediaItemSha256
             chatMedia.order = Int16(index)
             chatMedia.message = nil
             chatMedia.groupMessage = chatGroupMessage
 
             do {
-                try copyFiles(toChatMedia: chatMedia, fileUrl: mediaItem.fileURL!, encryptedFileUrl: mediaItem.encryptedFileUrl)
+                try copyFiles(toChatMedia: chatMedia, fileUrl: mediaItemFileURL, encryptedFileUrl: mediaItem.encryptedFileUrl)
             }
             catch {
                 DDLogError("ChatData/group/new-msg/\(groupMessageId)/copy-media/error [\(error)]")
             }
         }
-        
         
         if let chatReplyMessageID = chatReplyMessageID,
            let chatReplyMessageSenderID = chatReplyMessageSenderID,
@@ -3339,6 +3379,15 @@ extension ChatData {
         var syncGroup = false
         for xmppGroupMember in xmppGroup.members ?? [] {
             DDLogDebug("ChatData/group/process/modifyMembers [\(xmppGroupMember.userId)]")
+            
+            // add pushname first before recording message since user could be new
+            var contactNames = [UserID:String]()
+            if let name = xmppGroupMember.name, !name.isEmpty {
+                contactNames[xmppGroupMember.userId] = name
+            }
+            if !contactNames.isEmpty {
+                contactStore.addPushNames(contactNames)
+            }
             
             if xmppGroupMember.action == .remove {
                 deleteChatGroupMember(groupId: xmppGroup.groupId, memberUserId: xmppGroupMember.userId)

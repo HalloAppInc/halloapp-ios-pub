@@ -26,12 +26,28 @@ extension DateFormatter {
         dateFormatter.setLocalizedDateFormatFromTemplate("E")
         return dateFormatter
     }()
+    
+    // Thursday
+    static let dateTimeFormatterDayOfWeekLong: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = .autoupdatingCurrent
+        dateFormatter.setLocalizedDateFormatFromTemplate("EEEE")
+        return dateFormatter
+    }()
 
-    // Jun 20
+    // Jan 20
     static let dateTimeFormatterMonthDay: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = .autoupdatingCurrent
         dateFormatter.setLocalizedDateFormatFromTemplate("dMMM")
+        return dateFormatter
+    }()
+    
+    // January 20
+    static let dateTimeFormatterMonthDayLong: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = .autoupdatingCurrent
+        dateFormatter.setLocalizedDateFormatFromTemplate("dMMMM")
         return dateFormatter
     }()
     
@@ -73,6 +89,14 @@ extension DateFormatter {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = .autoupdatingCurrent
         dateFormatter.setLocalizedDateFormatFromTemplate("jdMMMyyyyHHmm")
+        return dateFormatter
+    }()
+    
+    // January 20 2020
+    static let dateTimeFormatterMonthDayYearLong: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = .autoupdatingCurrent
+        dateFormatter.setLocalizedDateFormatFromTemplate("dMMMMyyyy")
         return dateFormatter
     }()
 }

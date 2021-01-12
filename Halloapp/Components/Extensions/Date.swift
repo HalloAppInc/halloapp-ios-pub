@@ -19,6 +19,10 @@ private extension Localizations {
         NSLocalizedString("timestamp.now.lowercase", value: "now", comment: "Lowercase translation of `Now` to be used as timestamp.")
     }
 
+    static var today: String {
+        NSLocalizedString("timestamp.today", value: "Today", comment: "Timestamp: `Today`")
+    }
+    
     static var yesterday: String {
         NSLocalizedString("timestamp.yesterday", value: "Yesterday", comment: "Timestamp: `Yesterday`")
     }
@@ -100,8 +104,24 @@ extension Date {
         }
     }
     
+    func chatMsgGroupingTimestamp() -> String {
+        let seconds = -timeIntervalSinceNow
+        
+        if Calendar.current.isDateInToday(self) {
+            return Localizations.today
+        } else if Calendar.current.isDateInYesterday(self) {
+            return Localizations.yesterday
+        } else if seconds < Date.days(5) {
+            return DateFormatter.dateTimeFormatterDayOfWeekLong.string(from: self)
+        } else if Calendar.current.isDate(self, equalTo: Date(), toGranularity: .year) {
+            return DateFormatter.dateTimeFormatterMonthDayLong.string(from: self)
+        } else {
+            return DateFormatter.dateTimeFormatterMonthDayYearLong.string(from: self)
+        }
+    }
+    
     func chatTimestamp() -> String {
-        let seconds = -self.timeIntervalSinceNow
+        let seconds = -timeIntervalSinceNow
         
         if seconds < Date.minutes(1) {
             return Localizations.nowLowercase

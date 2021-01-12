@@ -15,12 +15,13 @@ fileprivate struct Constants {
 }
 
 protocol InboundMsgViewCellDelegate: AnyObject {
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell)
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewQuotedMediaAt: Int, withDelegate: MediaExplorerTransitionDelegate)
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, didLongPressOn msgId: String)
 }
 
-class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
+class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     
     weak var delegate: InboundMsgViewCellDelegate?
     public var messageID: String? = nil
@@ -57,25 +58,21 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
         backgroundColor = UIColor.feedBackground
         
         contentView.preservesSuperviewLayoutMargins = false
-        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 0)
         
         contentView.addSubview(mainView)
         
-        mainView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
         mainView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor).isActive = true
-        mainView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = false
+        mainView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor).isActive = true
+        mainView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor).isActive = true
         
         let mainViewBottomConstraint = mainView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor)
         mainViewBottomConstraint.priority = UILayoutPriority(rawValue: 999)
         mainViewBottomConstraint.isActive = true
-        
-        mainView.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(MaxWidthOfMsgBubble).rounded()).isActive = true
     }
 
     private lazy var mainView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ bubbleRow ])
+        let view = UIStackView(arrangedSubviews: [ dateColumn, bubbleRow ])
         view.axis = .vertical
-        view.alignment = .leading
         view.spacing = 0
         
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -84,6 +81,22 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
     }()
     
     private lazy var bubbleRow: UIStackView = {
+        let spacer = UIView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        
+        let view = UIStackView(arrangedSubviews: [ bubbleWrapper, spacer ])
+        view.axis = .horizontal
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        bubbleWrapper.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        
+        bubbleWrapper.widthAnchor.constraint(lessThanOrEqualToConstant: CGFloat(MaxWidthOfMsgBubble).rounded()).isActive = true
+        
+        return view
+    }()
+    
+    private lazy var bubbleWrapper: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ quotedRow, nameRow, mediaRow, textRow ])
         view.axis = .vertical
         view.spacing = 0
@@ -190,7 +203,11 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
         view.insertSubview(subView, at: 1)
         
         view.isHidden = true
-
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(jumpToQuotedMsg(_:)))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
+        
         return view
     }()
     
@@ -243,11 +260,7 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
         view.layer.cornerRadius = 3
         view.layer.masksToBounds = true
         view.isHidden = true
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoQuotedPreview(_:)))
-        view.isUserInteractionEnabled = true
-        view.addGestureRecognizer(tapGesture)
-        
+                
         return view
     }()
     
@@ -306,6 +319,18 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
         return textView
     }()
 
+    func highlight() {
+        UIView.animate(withDuration: 1.0, animations: {
+            self.contentView.backgroundColor = .systemYellow
+        })
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            UIView.animate(withDuration: 1.0, animations: {
+                self.contentView.backgroundColor = .feedBackground
+            })
+        }
+    }
+    
     // MARK: Updates
 
     func updateWithChatMessage(with chatMessage: ChatMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
@@ -314,6 +339,10 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
         var quoteMediaIndex: Int = 0
         if chatMessage.feedPostId != nil {
             quoteMediaIndex = Int(chatMessage.feedPostMediaIndex)
+            
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(showFullScreenQuotedFeedImage(_:)))
+            quotedImageView.isUserInteractionEnabled = true
+            quotedImageView.addGestureRecognizer(tapGesture)
         }
         if chatMessage.chatReplyMessageID != nil {
             quoteMediaIndex = Int(chatMessage.chatReplyMessageMediaIndex)
@@ -336,8 +365,8 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
                    timestamp: chatMessage.timestamp)
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
-        bubbleRow.isUserInteractionEnabled = true
-        bubbleRow.addGestureRecognizer(tapGesture)
+        bubbleWrapper.isUserInteractionEnabled = true
+        bubbleWrapper.addGestureRecognizer(tapGesture)
     }
     
     func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
@@ -440,9 +469,9 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
     func updateWith(isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool, isQuotedMessage: Bool, text: String?, orderedMentions: [ChatMention], media: Set<ChatMedia>?, timestamp: Date?) {
         
         if isNextMsgSameSender {
-            contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 0)
+            contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 3, right: 18)
         } else {
-            contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 12, right: 0)
+            contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 12, right: 18)
         }
                 
         // text
@@ -529,7 +558,8 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
         messageID = nil
         indexPath = nil
         
-        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 13, right: 0)
+        contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 13, right: 18)
+        contentView.backgroundColor = .feedBackground // need to reset since animation of highlighting can be ongoing when jumping
         
         nameRow.isHidden = true
         nameLabel.text = ""
@@ -559,7 +589,11 @@ class InboundMsgViewCell: UITableViewCell, MsgUIProtocol {
         timeLabel.text = nil
     }
 
-    @objc func gotoQuotedPreview(_ sender: UIView) {
+    @objc func jumpToQuotedMsg(_ sender: UIView) {
+        delegate?.inboundMsgViewCell(self)
+    }
+    
+    @objc func showFullScreenQuotedFeedImage(_ sender: UIView) {
         delegate?.inboundMsgViewCell(self, previewQuotedMediaAt: 0, withDelegate: quotedImageView)
     }
     

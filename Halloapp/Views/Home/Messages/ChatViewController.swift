@@ -97,6 +97,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             var isNextMsgSameSender = false
             var isNextMsgSameTime = false
             
+            var isNextMsgDifferentDay = false
+            
             let previousRow = indexPath.row - 1
             let nextRow = indexPath.row + 1
 
@@ -106,7 +108,15 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                     if previousChatMessage.fromUserId == chatMessage.fromUserId {
                         isPreviousMsgSameSender = true
                     }
+                    
+                    if let previousMsgTime = previousChatMessage.timestamp, let currentMsgTime = chatMessage.timestamp  {
+                        if !Calendar.current.isDate(previousMsgTime, inSameDayAs: currentMsgTime) {
+                            isNextMsgDifferentDay = true
+                        }
+                    }
                 }
+            } else {
+                isNextMsgDifferentDay = true
             }
 
             if nextRow < tableView.numberOfRows(inSection: 0) {
@@ -127,14 +137,26 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.outboundMsgViewCellReuseIdentifier, for: indexPath) as? OutboundMsgViewCell {
                     cell.indexPath = indexPath
                     cell.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
+
+                    if isNextMsgDifferentDay {
+                        cell.addDateRow(timestamp: chatMessage.timestamp)
+                    }
+
                     cell.delegate = self
+                    
                     return cell
                 }
             } else {
                 if let cell = tableView.dequeueReusableCell(withIdentifier: ChatViewController.inboundMsgViewCellReuseIdentifier, for: indexPath) as? InboundMsgViewCell {
                     cell.indexPath = indexPath
                     cell.updateWithChatMessage(with: chatMessage, isPreviousMsgSameSender: isPreviousMsgSameSender, isNextMsgSameSender: isNextMsgSameSender, isNextMsgSameTime: isNextMsgSameTime)
+                    
+                    if isNextMsgDifferentDay {
+                        cell.addDateRow(timestamp: chatMessage.timestamp)
+                    }
+                    
                     cell.delegate = self
+                    
                     return cell
                 }
             }
@@ -230,6 +252,12 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             UNUserNotificationCenter.current().removeDeliveredChatNotifications(fromUserId: chatWithUserId)
         }
         chatInputView.didAppear(in: self)
+        
+        guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
+        keyWindow.addSubview(jumpButton)
+        jumpButton.trailingAnchor.constraint(equalTo: keyWindow.trailingAnchor).isActive = true
+        jumpButtonConstraint = jumpButton.bottomAnchor.constraint(equalTo: keyWindow.bottomAnchor, constant: -100)
+        jumpButtonConstraint?.isActive = true
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -239,6 +267,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
         MainAppContext.shared.chatData.setCurrentlyChattingWithUserId(for: nil)
         chatInputView.willDisappear(in: self)
+        
+        jumpButton.removeFromSuperview()
     }
     
     deinit {
@@ -282,6 +312,57 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         return tableView
     }()
 
+    private var jumpButtonUnreadCount: Int = 0
+    private var jumpButtonConstraint: NSLayoutConstraint?
+
+    private lazy var jumpButton: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ jumpButtonUnreadCountLabel, jumpButtonImageView ])
+        view.axis = .horizontal
+        view.alignment = .center
+        view.spacing = 5
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        view.isLayoutMarginsRelativeArrangement = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        jumpButtonImageView.widthAnchor.constraint(equalToConstant: 30).isActive = true
+        jumpButtonImageView.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        
+        let subView = UIView(frame: view.bounds)
+        subView.layer.cornerRadius = 10
+        subView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner]
+        
+        subView.layer.masksToBounds = true
+        subView.clipsToBounds = true
+        subView.backgroundColor = UIColor.secondarySystemGroupedBackground.withAlphaComponent(0.9)
+        subView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(subView, at: 0)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(jumpDown(_:)))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
+        
+        return view
+    }()
+
+    private lazy var jumpButtonUnreadCountLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.preferredFont(forTextStyle: .body)
+        label.textColor = .systemBlue
+        return label
+    }()
+    
+    private lazy var jumpButtonImageView: UIImageView = {
+        let view = UIImageView()
+        view.image = UIImage(systemName: "chevron.down.circle")
+        view.contentMode = .scaleAspectFill
+        view.tintColor = .systemBlue
+
+        view.layer.masksToBounds = true
+        
+        return view
+    }()
+    
     // MARK: Data
 
     private var shouldScrollToBottom = true
@@ -373,7 +454,8 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             }
         case .insert:
             DDLogDebug("ChatViewController/frc/insert")
-            self.shouldScrollToBottom = true
+            guard let chatMsg = anObject as? ChatMessage else { break }
+            shouldScrollToBottom = checkIfShouldScrollToBottom(chatMsg)
         case .move:
             DDLogDebug("ChatViewController/frc/move")
         case .delete:
@@ -385,19 +467,19 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         
-        if self.skipDataUpdate {
+        if skipDataUpdate {
             DDLogDebug("ChatViewController/frc/update/skipDataUpdate")
-            self.skipDataUpdate = false
+            skipDataUpdate = false
             return
         }
         
-        self.updateData(animatingDifferences: false)
+        updateData(animatingDifferences: false)
         
-        if self.shouldScrollToBottom {
+        if shouldScrollToBottom {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 self.scrollToBottom(true)
             }
-            self.shouldScrollToBottom = false
+            shouldScrollToBottom = false
         }
     }
 
@@ -410,6 +492,21 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         self.dataSource?.apply(diffableDataSourceSnapshot, animatingDifferences: animatingDifferences)
     }
 
+    // MARK: Helpers
+    
+    private func checkIfShouldScrollToBottom(_ chatMsg: ChatMessage) -> Bool {
+        var result = true
+        guard chatMsg.fromUserId != MainAppContext.shared.userData.userId else { return result }
+        
+        if jumpButton.isHidden == false {
+            result = false
+            jumpButtonUnreadCount += 1
+            jumpButtonUnreadCountLabel.text = String(jumpButtonUnreadCount)
+        }
+        
+        return result
+    }
+    
     private func scrollToBottom(_ animated: Bool = true) {
         if let dataSnapshot = self.dataSource?.snapshot() {
             let numberOfRows = dataSnapshot.numberOfItems(inSection: ChatViewController.sectionMain)
@@ -427,6 +524,27 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
 
         titleView.showChatState(with: typingIndicatorStr)
+    }
+    
+    private func updateJumpButtonVisibility() {
+        let fromTheBottom = UIScreen.main.bounds.height*1.5 - chatInputView.bottomInset
+        
+        if tableView.contentSize.height - tableView.contentOffset.y > fromTheBottom {
+            // using chatInput instead of tableView.contentInset.bottom since for some reason that changes when entering app from a notification
+            let aboveChatInput = chatInputView.bottomInset + 50
+            jumpButtonConstraint?.constant = -aboveChatInput
+            jumpButton.isHidden = false
+        } else {
+            jumpButton.isHidden = true
+            jumpButtonUnreadCount = 0
+            jumpButtonUnreadCountLabel.text = nil
+        }
+    }
+    
+    // MARK: Actions
+    
+    @IBAction func jumpDown(_ sender: Any?) {
+        scrollToBottom()
     }
     
     // MARK: Input view
@@ -594,6 +712,10 @@ extension ChatViewController: UITableViewDelegate {
 //        DDLogDebug("ChatViewController/estimateCellHeight/\(chatMessage.id)")
         return result
     }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        updateJumpButtonVisibility()
+    }
 }
 
 // MARK: UITableView Datasource Delegates
@@ -657,8 +779,15 @@ extension ChatViewController: TitleViewDelegate {
     }
 }
 
+// MARK: InboundMsgViewCell Delegates
 extension ChatViewController: InboundMsgViewCellDelegate {
 
+    func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell) {
+        guard let indexPath = inboundMsgViewCell.indexPath else { return }
+        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+        guard message.media != nil else { return }
+    }
+    
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
@@ -704,7 +833,35 @@ extension ChatViewController: InboundMsgViewCellDelegate {
     }
 }
 
+// MARK: OutboundMsgViewCell Delegates
 extension ChatViewController: OutboundMsgViewCellDelegate {
+    
+    func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell) {
+        guard let indexPath = outboundMsgViewCell.indexPath else { return }
+        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+      
+        guard let chatReplyMessageID = message.chatReplyMessageID else { return }
+
+        guard let allMessages = fetchedResultsController?.fetchedObjects else { return }
+        guard let replyMessage = allMessages.first(where: {$0.id == chatReplyMessageID}) else { return }
+        
+        guard let index = allMessages.firstIndex(of: replyMessage) else { return }
+        
+        let toIndexPath = IndexPath(row: index, section: ChatViewController.sectionMain)
+        
+        tableView.scrollToRow(at: toIndexPath, at: .middle, animated: true)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            if replyMessage.fromUserId == MainAppContext.shared.userData.userId {
+                guard let cell = self.tableView.cellForRow(at: toIndexPath) as? OutboundMsgViewCell else { return }
+                cell.highlight()
+            } else {
+                guard let cell = self.tableView.cellForRow(at: toIndexPath) as? InboundMsgViewCell else { return }
+                cell.highlight()
+            }
+        }
+    }
+    
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         guard let indexPath = outboundMsgViewCell.indexPath else { return }
         guard let message = fetchedResultsController?.object(at: indexPath) else { return }
@@ -774,6 +931,7 @@ extension ChatViewController: ChatInputViewDelegate {
         
         let updateBlock = {
             self.updateTableViewContentInsets(with: inputView.bottomInset, adjustContentOffset: adjustContentOffset)
+            self.updateJumpButtonVisibility()
         }
         if animationDuration > 0 {
             updateBlock()
@@ -960,6 +1118,8 @@ fileprivate class TitleView: UIView {
         label.isHidden = true
         return label
     }()
+    
+    // MARK: actions
     
     @objc func gotoProfile(_ sender: UIView) {
         delegate?.titleView(self)

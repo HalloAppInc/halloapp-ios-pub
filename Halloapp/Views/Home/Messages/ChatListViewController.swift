@@ -812,7 +812,10 @@ private class ChatListTableViewCell: UITableViewCell {
             }
         }
 
-        let defaultText = chatThread.type == .oneToOne ? Localizations.chatListMessageDefault(name: chatThread.title) : ""
+        var defaultText = ""
+        if chatThread.type == .oneToOne && chatThread.lastMsgMediaType == .none {
+            defaultText = Localizations.chatListMessageDefault(name: chatThread.title)
+        }
         
         var messageText = chatThread.lastMsgText ?? defaultText
         
