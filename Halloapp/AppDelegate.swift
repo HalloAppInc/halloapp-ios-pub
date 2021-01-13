@@ -47,6 +47,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         DDLogInfo("application/willTermimate")
     }
 
+    func applicationDidReceiveMemoryWarning(_ application: UIApplication) {
+        DDLogInfo("application/didReceiveMemoryWarning")
+    }
+
     // MARK: UISceneSession Lifecycle
 
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
