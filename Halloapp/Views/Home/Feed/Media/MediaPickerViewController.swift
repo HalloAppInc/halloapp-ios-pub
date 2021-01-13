@@ -9,7 +9,7 @@ import AVKit
 import CocoaLumberjack
 import Core
 import Foundation
-import Photos
+import PhotosUI
 import UIKit
 
 private extension Localizations {
@@ -23,6 +23,26 @@ private extension Localizations {
 
     static var photoAccessDeniedMessage: String {
         NSLocalizedString("picker.access.denied.message", value: "Please grant access from Settings", comment: "Message in media picker when access is denied.")
+    }
+
+    static var photoAccessDeniedSettings: String {
+        NSLocalizedString("picker.access.denied.settings", value: "Settings", comment: "An option to give access from settings")
+    }
+
+    static var limitedAccessMessage: String {
+        NSLocalizedString("picker.access.limited.message", value: "You've given HalloApp access to a selected number of photos and videos.", comment: "Message shown only limited access to media.")
+    }
+
+    static var limitedAccessButton: String {
+        NSLocalizedString("picker.media.limit.button", value: "Update", comment: "Button shown to update limited access to media.")
+    }
+
+    static var limitedAccessUpdateSelection: String {
+        NSLocalizedString("picker.media.limit.updateSelection", value: "Update image & video selection", comment: "An option to update limited access.")
+    }
+
+    static var limitedAccessChangeSettings: String {
+        NSLocalizedString("picker.media.limit.settings", value: "Change settings", comment: "An option to update limited access.")
     }
 
     static var mediaLimitTitle: String {
@@ -69,6 +89,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private var initialTransitionVelocity: CGFloat = 0
     private var transitionState: TransitionState = .ready
     private var preview: UIView?
+    private var limitedAccessBubble: UIView!
     private var updatingSnapshot = false
     private var nextInProgress = false
     private var originalMedia: [PendingMedia] = []
@@ -105,6 +126,8 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
 
+        limitedAccessBubble = makeLimitedAccessBubble()
+
         setupZoom()
         setupPreviews()
 
@@ -117,9 +140,14 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     }
     
     private func fetchAssets(album: PHAssetCollection? = nil) {
-        switch(PHPhotoLibrary.authorizationStatus()) {
-        case .authorized, .limited:
-            break
+        let status: PHAuthorizationStatus
+        if #available(iOS 14, *) {
+            status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        } else {
+            status = PHPhotoLibrary.authorizationStatus()
+        }
+
+        switch(status) {
         case .notDetermined:
             PHPhotoLibrary.requestAuthorization { status in
                 DispatchQueue.main.async {
@@ -129,6 +157,11 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             return
         case .denied, .restricted:
             let alert = UIAlertController(title: Localizations.photoAccessDeniedTitle, message: Localizations.photoAccessDeniedMessage, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: Localizations.photoAccessDeniedSettings, style: .default, handler: { _ in
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }))
             alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
             self.present(alert, animated: true)
             return
@@ -161,6 +194,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             
             DispatchQueue.main.async {
                 self.dataSource.apply(snapshot)
+                self.showLimitedAccessBubbleIfNecessary()
             }
         }
     }
@@ -173,6 +207,67 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             DispatchQueue.main.async {
                 self.dataSource.apply(snapshot, animatingDifferences: true)
             }
+        }
+    }
+
+    func makeLimitedAccessBubble() -> UIView {
+        let bubble = UIView()
+        bubble.translatesAutoresizingMaskIntoConstraints = false
+        bubble.backgroundColor = .nux
+        bubble.layer.cornerRadius = 10
+        bubble.layer.shadowColor = UIColor.black.cgColor
+        bubble.layer.shadowOpacity = 0.25
+        bubble.layer.shadowRadius = 4
+        bubble.layer.shadowOffset = .init(width: 0, height: 4)
+        view.addSubview(bubble)
+
+        let close = UIButton(type: .system)
+        close.translatesAutoresizingMaskIntoConstraints = false
+        close.setImage(UIImage(systemName: "xmark", withConfiguration: UIImage.SymbolConfiguration(pointSize: 12, weight: .bold)), for: .normal)
+        close.tintColor = UIColor.white
+        close.alpha = 0.7
+        close.addTarget(self, action: #selector(closeLimitedAccessBuble), for: .touchUpInside)
+        bubble.addSubview(close)
+
+        let msg = UILabel()
+        msg.translatesAutoresizingMaskIntoConstraints = false
+        msg.text = Localizations.limitedAccessMessage
+        msg.textColor = UIColor.white
+        msg.numberOfLines = 0
+        bubble.addSubview(msg)
+
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle(Localizations.limitedAccessButton, for: .normal)
+        button.tintColor = UIColor.white
+        button.alpha = 0.7
+        button.addTarget(self, action: #selector(askForLimitedAccessUpdate), for: .touchUpInside)
+        bubble.addSubview(button)
+
+        NSLayoutConstraint.activate([
+            bubble.heightAnchor.constraint(equalToConstant: 104),
+            bubble.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 20),
+            bubble.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -20),
+            bubble.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20),
+            close.widthAnchor.constraint(equalToConstant: 13),
+            close.heightAnchor.constraint(equalToConstant: 13),
+            close.topAnchor.constraint(equalTo: bubble.topAnchor, constant: 8),
+            close.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -8),
+            msg.topAnchor.constraint(equalTo: close.bottomAnchor, constant: 4),
+            msg.leftAnchor.constraint(equalTo: bubble.leftAnchor, constant: 20),
+            msg.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -20),
+            button.topAnchor.constraint(equalTo: msg.bottomAnchor),
+            button.rightAnchor.constraint(equalTo: bubble.rightAnchor, constant: -20),
+        ])
+
+        return bubble
+    }
+
+    func showLimitedAccessBubbleIfNecessary() {
+        if #available(iOS 14, *), PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
+            limitedAccessBubble.isHidden = false
+        } else {
+            limitedAccessBubble.isHidden = true
         }
     }
     
@@ -610,6 +705,27 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             }
         }
         self.present(controller, animated: true)
+    }
+
+    @objc private func closeLimitedAccessBuble() {
+        limitedAccessBubble.isHidden = true
+    }
+
+    @objc private func askForLimitedAccessUpdate() {
+        if #available(iOS 14, *) {
+            let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+            sheet.addAction(UIAlertAction(title: Localizations.limitedAccessUpdateSelection, style: .default, handler: { _ in
+                PHPhotoLibrary.shared().presentLimitedLibraryPicker(from: self)
+            }))
+            sheet.addAction(UIAlertAction(title: Localizations.limitedAccessChangeSettings, style: .default, handler: { _ in
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }))
+            sheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+
+            self.present(sheet, animated: true)
+        }
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
