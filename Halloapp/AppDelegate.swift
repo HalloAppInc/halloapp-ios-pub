@@ -44,7 +44,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
-        DDLogInfo("application/willTermimate")
+        DDLogInfo("application/willTerminate")
     }
 
     func applicationDidReceiveMemoryWarning(_ application: UIApplication) {
