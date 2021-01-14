@@ -29,6 +29,7 @@
 		6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */; };
 		686814AE252BA91E003C8784 /* clients.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AC252BA91E003C8784 /* clients.pb.swift */; };
 		686814AF252BA91E003C8784 /* server.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AD252BA91E003C8784 /* server.pb.swift */; };
+		686A1034259152F100F7B53F /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = 686A1033259152F100F7B53F /* SwiftNoise */; };
 		686CDFD9254A3E0900DB7266 /* SilentChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFD8254A3E0900DB7266 /* SilentChat.swift */; };
 		6880F354258017C400D1F585 /* ErrorLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6880F353258017C400D1F585 /* ErrorLogger.swift */; };
 		6880F35E2584241C00D1F585 /* log_events.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6880F35D2584241C00D1F585 /* log_events.pb.swift */; };
@@ -117,6 +118,7 @@
 		6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoCommonRequests.swift; sourceTree = "<group>"; };
 		686814AC252BA91E003C8784 /* clients.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = clients.pb.swift; sourceTree = "<group>"; };
 		686814AD252BA91E003C8784 /* server.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = server.pb.swift; sourceTree = "<group>"; };
+		686A10392591539E00F7B53F /* swift-noise-protocol */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-noise-protocol"; path = "../swift-noise-protocol"; sourceTree = "<group>"; };
 		686CDFD8254A3E0900DB7266 /* SilentChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SilentChat.swift; sourceTree = "<group>"; };
 		6880F353258017C400D1F585 /* ErrorLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorLogger.swift; sourceTree = "<group>"; };
 		6880F35D2584241C00D1F585 /* log_events.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = log_events.pb.swift; sourceTree = "<group>"; };
@@ -189,6 +191,7 @@
 				7681242B2486D4E6008C5216 /* CryptoSwift in Frameworks */,
 				ABB1E4D7A28DBC122AE8FED8 /* Pods_Core.framework in Frameworks */,
 				7681240D24861634008C5216 /* SwiftProtobuf in Frameworks */,
+				686A1034259152F100F7B53F /* SwiftNoise in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,6 +290,7 @@
 		768123AE2485D9C7008C5216 = {
 			isa = PBXGroup;
 			children = (
+				686A10392591539E00F7B53F /* swift-noise-protocol */,
 				768123BA2485D9C7008C5216 /* Core */,
 				768123B92485D9C7008C5216 /* Products */,
 				65D497413B5EACBECD8FBCC7 /* Pods */,
@@ -497,6 +501,7 @@
 				768124212486CF8E008C5216 /* PhoneNumberKit */,
 				7681242A2486D4E6008C5216 /* CryptoSwift */,
 				76E5152E24A1761E003F1273 /* Alamofire */,
+				686A1033259152F100F7B53F /* SwiftNoise */,
 			);
 			productName = Core;
 			productReference = 768123B82485D9C7008C5216 /* Core.framework */;
@@ -531,6 +536,7 @@
 				768124202486CF8E008C5216 /* XCRemoteSwiftPackageReference "PhoneNumberKit" */,
 				768124292486D4E6008C5216 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
 				76E5152D24A1761E003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */,
 			);
 			productRefGroup = 768123B92485D9C7008C5216 /* Products */;
 			projectDirPath = "";
@@ -965,6 +971,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/samueltangz/swift-noise-protocol.git";
+			requirement = {
+				kind = revision;
+				revision = 4fd493ae25cb74e65a2ac2d7635a73a4f2af67a4;
+			};
+		};
 		7681240B24861634008C5216 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:apple/swift-protobuf.git";
@@ -1000,6 +1014,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		686A1033259152F100F7B53F /* SwiftNoise */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 686A1032259152F100F7B53F /* XCRemoteSwiftPackageReference "swift-noise-protocol" */;
+			productName = SwiftNoise;
+		};
 		7681240C24861634008C5216 /* SwiftProtobuf */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 7681240B24861634008C5216 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
