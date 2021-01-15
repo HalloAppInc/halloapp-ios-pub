@@ -76,6 +76,7 @@ final class ProtoUpdatePrivacyListRequest: ProtoRequest<Void> {
     init(update: PrivacyListUpdateProtocol, completion: @escaping Completion) {
         var list = Server_PrivacyList()
         list.type = Server_PrivacyList.TypeEnum(update.type)
+        list.hash = update.resultHash ?? Data()
         list.uidElements = update.updates.compactMap { (userID, action) in
             guard let uid = Int64(userID) else {
                 DDLogError("ProtoUpdatePrivacyListRequest/error invalid userID \(userID)")

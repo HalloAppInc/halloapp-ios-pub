@@ -20,7 +20,7 @@ public protocol PrivacyListUpdateProtocol {
     var updates: [UserID: PrivacyListItemUpdateAction] { get }
 
     /// Hash of the final list with updates applied
-    var resultHash: String? { get }
+    var resultHash: Data? { get }
 }
 
 extension PrivacyList: PrivacyListUpdateProtocol {
@@ -33,7 +33,7 @@ extension PrivacyList: PrivacyListUpdateProtocol {
             }
         })
     }
-    public var resultHash: String? {
+    public var resultHash: Data? {
         hash
     }
 }
@@ -50,7 +50,7 @@ final class PrivacyListAllContacts: PrivacyListUpdateProtocol {
         [:]
     }
 
-    var resultHash: String? {
+    var resultHash: Data? {
         nil
     }
 }

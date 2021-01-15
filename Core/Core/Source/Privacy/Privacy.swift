@@ -27,15 +27,14 @@ public protocol PrivacyListProtocol {
 
     var userIds: [UserID] { get }
 
-    var hash: String { get }
+    var hash: Data? { get }
 }
 
 public extension PrivacyListProtocol {
 
-    var hash: String {
+    var hash: Data? {
         let string = userIds.sorted().map({ "," + $0 }).joined()
-        let hash = string.sha256()?.base64urlEncodedString()
-        return hash!
+        return string.sha256()
     }
 }
 
