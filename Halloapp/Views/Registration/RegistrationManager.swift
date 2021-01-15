@@ -68,7 +68,7 @@ final class DefaultRegistrationManager: RegistrationManager {
             verificationCode,
             name: userData.name,
             normalizedPhoneNumber: userData.normalizedPhoneNumber,
-            noiseKeys: userData.generateNoiseKeys()) { result in
+            noiseKeys: userData.generateNoiseKeysForRegistration()) { result in
             switch result {
             case .success(let credentials):
                 MainAppContext.shared.userData.update(credentials: credentials)

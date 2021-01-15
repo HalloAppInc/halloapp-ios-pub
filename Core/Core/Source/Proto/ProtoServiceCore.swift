@@ -17,6 +17,11 @@ enum ProtoServiceCoreError: Error {
     case serialization
 }
 
+enum Stream {
+    case proto(ProtoStream)
+    case noise(NoiseStream)
+}
+
 open class ProtoServiceCore: NSObject, ObservableObject {
 
     // MARK: Avatar
@@ -47,55 +52,84 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     public let didConnect = PassthroughSubject<Void, Never>()
 
-    private let stream = ProtoStream()
+
+    private let stream: Stream
     public let userData: UserData
 
     required public init(userData: UserData) {
         self.userData = userData
-
+        self.stream = {
+            if userData.useNoise {
+                return .noise(NoiseStream(
+                                userAgent: AppContext.userAgent,
+                                userID: userData.userId,
+                                serverStaticKey: Keychain.loadServerStaticKey(userID: userData.userId)))
+            } else {
+                return .proto(ProtoStream())
+            }
+        }()
         super.init()
 
         configureStream(with: userData)
-        stream.addDelegate(self, delegateQueue: DispatchQueue.main)
     }
 
     // MARK: Connection management
 
     public func send(_ data: Data) {
-        stream.send(data)
+        switch stream {
+        case .noise(let noise):
+            noise.send(data)
+        case .proto(let proto):
+            proto.send(data)
+        }
     }
 
     open func configureStream(with userData: UserData?) {
-        stream.startTLSPolicy = .required
-        stream.myJID = {
-            guard let credentials = userData?.credentials else { return nil }
-            return XMPPJID(user: credentials.userID, domain: "s.halloapp.net", resource: "iphone")
-        }()
-        stream.protoService = self
+        DDLogInfo("proto/stream/configure [\(userData?.userId ?? "nil")]")
+        switch stream {
+        case .noise(let noise):
+            if case .v2(_, let noiseKeys) = userData?.credentials {
+                noise.noiseKeys = noiseKeys
+            }
+            noise.protoService = self
 
-        let userAgent = NSString(string: AppContext.userAgent)
-        stream.clientVersion = userAgent
+        case .proto(let proto):
+            proto.startTLSPolicy = .required
+            proto.myJID = {
+                guard let credentials = userData?.credentials else { return nil }
+                return XMPPJID(user: credentials.userID, domain: "s.halloapp.net", resource: "iphone")
+            }()
+            proto.protoService = self
+
+            let userAgent = NSString(string: AppContext.userAgent)
+            proto.clientVersion = userAgent
+
+            // NB: `configureStream` may be called multiple times, so we need
+            // to remove the pre-existing delegate relationship if it exists.
+            proto.removeDelegate(self)
+            proto.addDelegate(self, delegateQueue: DispatchQueue.main)
+        }
     }
 
     public func startConnectingIfNecessary() {
-        if stream.myJID != nil && stream.isDisconnected {
-            connect()
+        switch stream {
+        case .noise(let noise):
+            if noise.isReadyToConnect {
+                connect()
+            }
+        case .proto(let proto):
+            if proto.myJID != nil && proto.isDisconnected {
+                connect()
+            }
         }
     }
 
     public func connect() {
-        guard stream.myJID != nil else { return }
-
-        DDLogInfo("proto/connect [passiveMode: \(stream.passiveMode), \(stream.clientVersion), \(UIDevice.current.getModelName()) (iOS \(UIDevice.current.systemVersion))]")
-            
-        stream.hostName = userData.hostName
-        stream.hostPort = userData.hostPort
-
-        do {
-            try stream.connect(withTimeout: XMPPStreamTimeoutNone)
-        } catch {
-            DDLogError("proto/connect/error \(error)")
-            return
+        switch stream {
+        case .noise(let noise):
+            noise.connect(host: userData.hostName, port: userData.hostPort)
+        case .proto(let proto):
+            connect(proto: proto)
         }
 
         // Retry if we're not connected in 10 seconds
@@ -104,13 +138,34 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         retryConnectionTask = retryConnection
     }
 
+    public func connect(proto: ProtoStream) {
+        guard proto.myJID != nil else { return }
+
+        DDLogInfo("proto/connect [passiveMode: \(proto.passiveMode), \(proto.clientVersion), \(UIDevice.current.getModelName()) (iOS \(UIDevice.current.systemVersion))]")
+            
+        proto.hostName = userData.hostName
+        proto.hostPort = userData.hostPort
+
+        do {
+            try proto.connect(withTimeout: XMPPStreamTimeoutNone)
+        } catch {
+            DDLogError("proto/connect/error \(error)")
+            return
+        }
+    }
+
     public func disconnect() {
         DDLogInfo("proto/disconnect")
 
         isAutoReconnectEnabled = false
         retryConnectionTask?.cancel()
         connectionState = .disconnecting
-        stream.disconnectAfterSending()
+        switch stream {
+        case .noise(let noise):
+            noise.disconnect(afterSending: true)
+        case .proto(let proto):
+            proto.disconnectAfterSending()
+        }
     }
 
     public func disconnectImmediately() {
@@ -119,7 +174,12 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         isAutoReconnectEnabled = false
         retryConnectionTask?.cancel()
         connectionState = .notConnected
-        stream.disconnect()
+        switch stream {
+        case .noise(let noise):
+            noise.disconnect()
+        case .proto(let proto):
+            proto.disconnect()
+        }
     }
 
     private func startReconnectTimerIfNecessary() {
@@ -381,7 +441,9 @@ extension ProtoServiceCore: XMPPStreamDelegate {
             return
         }
         DDLogInfo("proto/stream/didSecure/sending auth request")
-        stream.sendAuthRequestWithPassword(password: password)
+        if case .proto(let proto) = stream {
+            proto.sendAuthRequestWithPassword(password: password)
+        }
     }
 
     public func xmppStreamDidConnect(_ stream: XMPPStream) {

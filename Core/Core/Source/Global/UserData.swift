@@ -13,10 +13,12 @@ import SwiftUI
 
 public enum Credentials {
     case v1(userID: UserID, password: String)
+    case v2(userID: UserID, noiseKeys: NoiseKeys)
 
     var userID: UserID {
         switch self {
         case .v1(let userID, _): return userID
+        case .v2(let userID, _): return userID
         }
     }
 }
@@ -47,6 +49,22 @@ public final class UserData: ObservableObject {
             UserDefaults.shared.set(newValue, forKey: "UseTestServer")
         }
     }
+
+    public lazy var useNoise: Bool = {
+        if noiseKeys == nil { return false }
+        return AppContext.userDefaultsForAppGroup.bool(forKey: "UseNoise")
+    }()
+
+    /// Returns TRUE for success, FALSE for failure (e.g., if user attempted to enable noise before adding keys)
+    @discardableResult
+    public func setNoiseEnabled(_ enabled: Bool) -> Bool {
+        if enabled && noiseKeys == nil {
+            // Do not permit enabling Noise until we have added keys
+            return false
+        }
+        AppContext.userDefaultsForAppGroup.set(enabled, forKey: "UseNoise")
+        return true
+    }
     
     public static var compressionQuality: Float = 0.4
 
@@ -63,18 +81,21 @@ public final class UserData: ObservableObject {
     public var normalizedPhoneNumber: String = ""
     public var userId: UserID = ""
     private var password: String?
+    public private(set) var noiseKeys: NoiseKeys?
 
     public var hostName: String {
         useTestServer ? "s-test.halloapp.net" : "s.halloapp.net"
     }
 
     public var hostPort: UInt16 {
-        5210
+        useNoise ? 5208 : 5210
     }
 
     public var credentials: Credentials? {
         guard !userId.isEmpty else { return nil }
-        if let password = password, !password.isEmpty {
+        if let noiseKeys = noiseKeys, useNoise {
+            return .v2(userID: userId, noiseKeys: noiseKeys)
+        } else if let password = password, !password.isEmpty {
             return .v1(userID: userId, password: password)
         } else {
             return nil
@@ -84,8 +105,13 @@ public final class UserData: ObservableObject {
     public func update(credentials: Credentials) {
         switch credentials {
         case .v1(let userID, let password):
+            DDLogInfo("UserData/credentials/updating [\(userID)] [pwd]")
             self.userId = userID
             self.password = password
+        case .v2(let userID, let noiseKeys):
+            DDLogInfo("UserData/credentials/updating [\(userID)] [noise]")
+            self.userId = userID
+            self.noiseKeys = noiseKeys
         }
         save()
     }
@@ -126,6 +152,8 @@ public final class UserData: ObservableObject {
             self.needsKeychainMigration = isPasswordStoredInCoreData || Keychain.needsKeychainUpdate(userID: userId, password: password)
         }
 
+        noiseKeys = Keychain.loadNoiseUserKeypair(userID: userId)
+
         userNamePublisher = CurrentValueSubject(name)
         if credentials != nil {
             self.isLoggedIn = true
@@ -151,7 +179,7 @@ public final class UserData: ObservableObject {
             self.save()
         }
     }
-    
+
     public func logout() {
         didLogOff.send()
 
@@ -177,6 +205,13 @@ public final class UserData: ObservableObject {
     // MARK: Keychain
 
     private var needsKeychainMigration = false
+
+    // MARK: Noise
+
+    public func generateNoiseKeysForRegistration() -> NoiseKeys? {
+        // Only provide keys if we've already enabled noise
+        return useNoise ? NoiseKeys() : nil
+    }
 
     // MARK: CoreData Stack
 
@@ -232,6 +267,14 @@ public final class UserData: ObservableObject {
 
         // Clear password from DB if it was saved to keychain
         user.password = passwordSaveSuccess ? "" : password
+
+        if let noiseKeys = noiseKeys {
+            if Keychain.saveNoiseUserKeypair(userID: userId, keypair: noiseKeys) {
+                DDLogInfo("UserData/save/noiseKeys/saved")
+            } else {
+                DDLogError("UserData/save/noiseKeys/error keychain save failed")
+            }
+        }
 
         do {
             try managedObjectContext.save()

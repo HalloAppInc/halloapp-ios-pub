@@ -53,6 +53,7 @@ final class ProtoService: ProtoServiceCore {
         NotificationSettings.current.sendConfigIfNecessary(using: self)
         MainAppContext.shared.startReportingEvents()
         userData.migratePasswordToKeychain()
+        establishNoiseKeysIfNecessary()
     }
 
     override func authenticationSucceeded(with authResult: Server_AuthResult) {
@@ -605,6 +606,35 @@ final class ProtoService: ProtoServiceCore {
                 DDLogError("ProtoService/resendAvatarIfNecessary/error avatar not \(logAction): \(error)")
             }
         })
+    }
+
+    // MARK: Noise
+
+    private func establishNoiseKeysIfNecessary() {
+        guard case .v1(let userID, let password) = userData.credentials,
+              userData.noiseKeys == nil else
+        {
+            DDLogInfo("ProtoService/establishNoiseKeys/skipping [already exist]")
+            return
+        }
+        guard let keys = NoiseKeys() else {
+            DDLogError("ProtoService/establishNoiseKeys/error unable to generate keys")
+            return
+        }
+
+        let registrationService = DefaultRegistrationService()
+        registrationService.updateNoiseKeys(keys, userID: userID, password: password) { result in
+            switch result {
+            case .success(let credentials):
+                DDLogInfo("ProtoService/establishNoiseKeys/success")
+                self.userData.update(credentials: credentials)
+                if ServerProperties.isInternalUser {
+                    self.userData.setNoiseEnabled(true)
+                }
+            case .failure(let error):
+                DDLogError("ProtoService/establishNoiseKeys/error [\(error)]")
+            }
+        }
     }
 
     // MARK: Decryption
