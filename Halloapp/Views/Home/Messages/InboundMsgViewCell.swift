@@ -404,8 +404,8 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                    timestamp: chatGroupMessage.timestamp)
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
-        bubbleRow.isUserInteractionEnabled = true
-        bubbleRow.addGestureRecognizer(tapGesture)
+        bubbleWrapper.isUserInteractionEnabled = true
+        bubbleWrapper.addGestureRecognizer(tapGesture)
     }
         
     func updateQuoted(chatQuoted: ChatQuoted?, mediaIndex: Int, groupID: GroupID? = nil) -> Bool {
