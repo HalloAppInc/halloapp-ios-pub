@@ -6,8 +6,8 @@
         "repositoryURL": "git@github.com:Alamofire/Alamofire.git",
         "state": {
           "branch": null,
-          "revision": "becd9a729a37bdbef5bc39dc3c702b99f9e3d046",
-          "version": "5.2.2"
+          "revision": "eaf6e622dd41b07b251d8f01752eab31bc811493",
+          "version": "5.4.1"
         }
       },
       {
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/marmelroy/Zip.git",
         "state": {
           "branch": null,
-          "revision": "80b1c3005ee25b4c7ce46c4029ac3347e8d5e37e",
-          "version": "2.0.0"
+          "revision": "bd19d974e8a38cc8d3a88c90c8a107386c3b8ccf",
+          "version": "2.1.1"
         }
       }
     ]
