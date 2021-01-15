@@ -33,7 +33,7 @@
 		6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */; };
 		6829F78324CFA41F00207F6B /* FeedMention+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */; };
 		6829F78724D0A62800207F6B /* UserFeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6829F78624D0A62800207F6B /* UserFeedViewController.swift */; };
-		682FFCCD25479B1A00143401 /* VerificationCodeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682FFCCC25479B1A00143401 /* VerificationCodeService.swift */; };
+		682FFCCD25479B1A00143401 /* RegistrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682FFCCC25479B1A00143401 /* RegistrationService.swift */; };
 		6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4F924FEE97800A9C202 /* HalloService.swift */; };
 		6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FB24FEE97800A9C202 /* ProtoService.swift */; };
 		6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */; };
@@ -347,7 +347,7 @@
 		6829F77F24CFA3DB00207F6B /* FeedMention+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedMention+CoreDataClass.swift"; sourceTree = "<group>"; };
 		6829F78224CFA41F00207F6B /* FeedMention+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FeedMention+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		6829F78624D0A62800207F6B /* UserFeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFeedViewController.swift; sourceTree = "<group>"; };
-		682FFCCC25479B1A00143401 /* VerificationCodeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationCodeService.swift; sourceTree = "<group>"; };
+		682FFCCC25479B1A00143401 /* RegistrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationService.swift; sourceTree = "<group>"; };
 		6832F4F924FEE97800A9C202 /* HalloService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HalloService.swift; sourceTree = "<group>"; };
 		6832F4FB24FEE97800A9C202 /* ProtoService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoService.swift; sourceTree = "<group>"; };
 		6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequests.swift; sourceTree = "<group>"; };
@@ -1126,7 +1126,7 @@
 				76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */,
 				761442C0245CE4E800DD9D1A /* VerificationCodeViewController.swift */,
 				68F046B12543856E001D602E /* RegistrationManager.swift */,
-				682FFCCC25479B1A00143401 /* VerificationCodeService.swift */,
+				682FFCCC25479B1A00143401 /* RegistrationService.swift */,
 				68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */,
 				68D45A0D25544813000BF04E /* ContactsPermissionsViewController.swift */,
 			);
@@ -1747,7 +1747,7 @@
 				6829F78024CFA3DB00207F6B /* FeedMention+CoreDataClass.swift in Sources */,
 				76B95CE4242A7A3F007435AC /* CommentInputView.swift in Sources */,
 				F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */,
-				682FFCCD25479B1A00143401 /* VerificationCodeService.swift in Sources */,
+				682FFCCD25479B1A00143401 /* RegistrationService.swift in Sources */,
 				EA0B991B249C228700B05094 /* DateFormatter.swift in Sources */,
 				EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */,
 				EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */,

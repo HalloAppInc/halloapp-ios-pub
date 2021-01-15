@@ -11,80 +11,33 @@ import Foundation
 
 final class Keychain {
 
-    static private let serviceIdentifier = "hallo"
-
-    static func loadKeychainItem(userID: UserID) -> AnyObject? {
-        let query = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrAccount: userID,
-            kSecAttrService: serviceIdentifier,
-            kSecReturnAttributes: true,
-            kSecReturnData: true,
-        ] as CFDictionary
-
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query, &result)
-        DDLogInfo("UserData/Keychain/load status [\(status)]")
-
-        return result
+    enum ServiceIdentifier: String, RawRepresentable {
+        case password = "hallo"
+        case noiseServer = "noise.server"
+        case noiseUser = "noise.user"
     }
 
     @discardableResult
     static func savePassword(userID: UserID, password: String) -> Bool {
-
         guard needsKeychainUpdate(userID: userID, password: password) else {
             // Existing entry is up to date
             return true
         }
 
-        guard let passwordData = password.data(using: .utf8), let kFalse = kCFBooleanFalse, !password.isEmpty else {
+        guard let passwordData = password.data(using: .utf8), !password.isEmpty else {
             return false
         }
 
-        if loadKeychainItem(userID: userID) == nil {
-            // Add new entry
-            let keychainItem = [
-                kSecClass: kSecClassGenericPassword,
-                kSecAttrAccount: userID,
-                kSecAttrService: serviceIdentifier,
-                kSecAttrSynchronizable: kFalse,
-                kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-                kSecValueData: passwordData,
-            ] as CFDictionary
-            let status = SecItemAdd(keychainItem, nil)
-            return status == errSecSuccess
-        } else {
-            // Update existing entry
-            let query = [
-                kSecClass: kSecClassGenericPassword,
-                kSecAttrAccount: userID,
-                kSecAttrService: serviceIdentifier,
-            ] as CFDictionary
-
-            let update = [
-                kSecValueData: passwordData,
-                kSecAttrSynchronizable: kFalse,
-                kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-            ] as CFDictionary
-
-            let status = SecItemUpdate(query, update)
-            return status == errSecSuccess
-        }
+        return saveOrUpdateKeychainItem(userID: userID, data: passwordData, service: .password)
     }
 
     @discardableResult
     static func removePassword(userID: UserID) -> Bool {
-        let keychainItem = [
-            kSecClass: kSecClassGenericPassword,
-            kSecAttrAccount: userID,
-            kSecAttrService: serviceIdentifier,
-        ] as CFDictionary
-        let status = SecItemDelete(keychainItem)
-        return status == errSecSuccess
+        return removeKeychainItem(userID: userID, service: .password)
     }
 
     static func needsKeychainUpdate(userID: UserID, password: String) -> Bool {
-        guard let item = loadKeychainItem(userID: userID) as? NSDictionary,
+        guard let item = loadKeychainItem(userID: userID, service: .password) as? NSDictionary,
               let data = item[kSecValueData] as? Data,
               let accesibleSetting = item[kSecAttrAccessible] as? String,
               let keychainPassword = String(data: data, encoding: .utf8),
@@ -98,7 +51,7 @@ final class Keychain {
     }
 
     static func loadPassword(userID: UserID) -> String? {
-        guard let item = loadKeychainItem(userID: userID) as? NSDictionary,
+        guard let item = loadKeychainItem(userID: userID, service: .password) as? NSDictionary,
               let data = item[kSecValueData] as? Data,
               let password = String(data: data, encoding: .utf8) else
         {
@@ -106,5 +59,121 @@ final class Keychain {
         }
 
         return password.isEmpty ? nil : password
+    }
+
+    @discardableResult
+    static func saveServerStaticKey(userID: UserID, key: Data) -> Bool {
+        return saveOrUpdateKeychainItem(userID: userID, data: key, service: .noiseServer)
+    }
+
+    @discardableResult
+    static func removeServerStaticKey(userID: UserID) -> Bool {
+        return removeKeychainItem(userID: userID, service: .noiseServer)
+    }
+
+    static func loadServerStaticKey(userID: UserID) -> Data? {
+        guard let item = loadKeychainItem(userID: userID, service: .noiseServer) as? NSDictionary,
+              let data = item[kSecValueData] as? Data else
+        {
+            return nil
+        }
+
+        return data.isEmpty ? nil : data
+    }
+
+    @discardableResult
+    static func saveNoiseUserKeypair(userID: UserID, keypair: NoiseKeys) -> Bool {
+        do {
+            let data = try PropertyListEncoder().encode(keypair)
+            return saveOrUpdateKeychainItem(userID: userID, data: data, service: .noiseUser)
+        } catch {
+            DDLogError("Keychain/saveNoiseUserKeypair/error [\(error)]")
+            return false
+        }
+    }
+
+    @discardableResult
+    static func removeNoiseUserKeypair(userID: UserID) -> Bool {
+        return removeKeychainItem(userID: userID, service: .noiseUser)
+    }
+
+    static func loadNoiseUserKeypair(userID: UserID) -> NoiseKeys? {
+        guard let item = loadKeychainItem(userID: userID, service: .noiseUser) as? NSDictionary,
+              let data = item[kSecValueData] as? Data else
+        {
+            return nil
+        }
+        do {
+            let keys = try PropertyListDecoder().decode(NoiseKeys.self, from: data)
+            return keys
+        } catch {
+            DDLogError("Keychain/loadNoiseUserKeypair/error [\(error)]")
+            return nil
+        }
+    }
+
+    // MARK: Private
+
+    private static func loadKeychainItem(userID: UserID, service: ServiceIdentifier) -> AnyObject? {
+        let query = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrAccount: userID,
+            kSecAttrService: service.rawValue,
+            kSecReturnAttributes: true,
+            kSecReturnData: true,
+        ] as CFDictionary
+
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query, &result)
+        DDLogInfo("Keychain/load status [\(status)]")
+
+        return result
+    }
+
+    private static func saveOrUpdateKeychainItem(userID: UserID, data: Data, service: ServiceIdentifier) -> Bool {
+        guard let kFalse = kCFBooleanFalse else {
+            DDLogError("Keychain/error kCFBooleanFalse not defined")
+            return false
+        }
+
+        if loadKeychainItem(userID: userID, service: service) == nil {
+            // Add new entry
+            let keychainItem = [
+                kSecClass: kSecClassGenericPassword,
+                kSecAttrAccount: userID,
+                kSecAttrService: service.rawValue,
+                kSecAttrSynchronizable: kFalse,
+                kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+                kSecValueData: data,
+            ] as CFDictionary
+            let status = SecItemAdd(keychainItem, nil)
+            return status == errSecSuccess
+        } else {
+            // Update existing entry
+            let query = [
+                kSecClass: kSecClassGenericPassword,
+                kSecAttrAccount: userID,
+                kSecAttrService: service.rawValue,
+            ] as CFDictionary
+
+            let update = [
+                kSecValueData: data,
+                kSecAttrSynchronizable: kFalse,
+                kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+            ] as CFDictionary
+
+            let status = SecItemUpdate(query, update)
+            return status == errSecSuccess
+        }
+    }
+
+    private static func removeKeychainItem(userID: UserID, service: ServiceIdentifier) -> Bool {
+        let keychainItem = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrAccount: userID,
+            kSecAttrService: service.rawValue,
+        ] as CFDictionary
+        let status = SecItemDelete(keychainItem)
+        return status == errSecSuccess
     }
 }

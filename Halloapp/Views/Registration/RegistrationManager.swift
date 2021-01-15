@@ -22,11 +22,11 @@ protocol RegistrationManager: AnyObject {
 
 final class DefaultRegistrationManager: RegistrationManager {
 
-    init(verificationCodeService: VerificationCodeService = VerificationCodeServiceSMS()) {
-        self.verificationCodeService = verificationCodeService
+    init(registrationService: RegistrationService = DefaultRegistrationService()) {
+        self.registrationService = registrationService
     }
 
-    private let verificationCodeService: VerificationCodeService
+    private let registrationService: RegistrationService
 
     var contactsAccessStatus: CNAuthorizationStatus {
         return CNContactStore.authorizationStatus(for: .contacts)
@@ -48,7 +48,7 @@ final class DefaultRegistrationManager: RegistrationManager {
     func requestVerificationCode(completion: @escaping (Result<Void, Error>) -> Void) {
         let userData = MainAppContext.shared.userData
         let phoneNumber = userData.countryCode.appending(userData.phoneInput)
-        verificationCodeService.requestVerificationCode(for: phoneNumber) { result in
+        registrationService.requestVerificationCode(for: phoneNumber) { result in
             switch result {
             case .success(let normalizedPhoneNumber):
                 let userData = MainAppContext.shared.userData
@@ -64,7 +64,11 @@ final class DefaultRegistrationManager: RegistrationManager {
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void) {
         let userData = MainAppContext.shared.userData
 
-        verificationCodeService.validateVerificationCode(verificationCode, name: userData.name, normalizedPhoneNumber: userData.normalizedPhoneNumber) { result in
+        registrationService.validateVerificationCode(
+            verificationCode,
+            name: userData.name,
+            normalizedPhoneNumber: userData.normalizedPhoneNumber,
+            noiseKeys: userData.generateNoiseKeys()) { result in
             switch result {
             case .success(let credentials):
                 MainAppContext.shared.userData.update(credentials: credentials)
