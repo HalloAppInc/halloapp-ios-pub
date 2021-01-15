@@ -62,16 +62,16 @@ final class Keychain {
     }
 
     @discardableResult
-    static func saveServerStaticKey(userID: UserID, key: Data) -> Bool {
+    static func saveServerStaticKey(_ key: Data, for userID: UserID) -> Bool {
         return saveOrUpdateKeychainItem(userID: userID, data: key, service: .noiseServer)
     }
 
     @discardableResult
-    static func removeServerStaticKey(userID: UserID) -> Bool {
+    static func removeServerStaticKey(for userID: UserID) -> Bool {
         return removeKeychainItem(userID: userID, service: .noiseServer)
     }
 
-    static func loadServerStaticKey(userID: UserID) -> Data? {
+    static func loadServerStaticKey(for userID: UserID) -> Data? {
         guard let item = loadKeychainItem(userID: userID, service: .noiseServer) as? NSDictionary,
               let data = item[kSecValueData] as? Data else
         {
@@ -82,7 +82,7 @@ final class Keychain {
     }
 
     @discardableResult
-    static func saveNoiseUserKeypair(userID: UserID, keypair: NoiseKeys) -> Bool {
+    static func saveNoiseUserKeypair(_ keypair: NoiseKeys, for userID: UserID) -> Bool {
         do {
             let data = try PropertyListEncoder().encode(keypair)
             return saveOrUpdateKeychainItem(userID: userID, data: data, service: .noiseUser)
@@ -93,11 +93,11 @@ final class Keychain {
     }
 
     @discardableResult
-    static func removeNoiseUserKeypair(userID: UserID) -> Bool {
+    static func removeNoiseUserKeypair(for userID: UserID) -> Bool {
         return removeKeychainItem(userID: userID, service: .noiseUser)
     }
 
-    static func loadNoiseUserKeypair(userID: UserID) -> NoiseKeys? {
+    static func loadNoiseUserKeypair(for userID: UserID) -> NoiseKeys? {
         guard let item = loadKeychainItem(userID: userID, service: .noiseUser) as? NSDictionary,
               let data = item[kSecValueData] as? Data else
         {

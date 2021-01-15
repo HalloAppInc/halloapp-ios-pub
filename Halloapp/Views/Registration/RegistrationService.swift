@@ -206,7 +206,7 @@ final class DefaultRegistrationService: RegistrationService {
         request.httpMethod = "POST"
         request.httpBody = jsonData
         request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
-        DDLogInfo("reg/update-noise-keys/begin url=[\(url.absoluteString)]  data=[\(json)]")
+        DDLogInfo("reg/update-noise-keys/begin url=[\(url.absoluteString)] [\(userID)]")
         let task = URLSession.shared.dataTask(with: request) { (data, urlResponse, error) in
             if let error = error {
                 DDLogError("reg/update-noise-keys/error [\(error)]")

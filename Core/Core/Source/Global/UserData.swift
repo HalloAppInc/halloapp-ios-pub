@@ -152,7 +152,7 @@ public final class UserData: ObservableObject {
             self.needsKeychainMigration = isPasswordStoredInCoreData || Keychain.needsKeychainUpdate(userID: userId, password: password)
         }
 
-        noiseKeys = Keychain.loadNoiseUserKeypair(userID: userId)
+        noiseKeys = Keychain.loadNoiseUserKeypair(for: userId)
 
         userNamePublisher = CurrentValueSubject(name)
         if credentials != nil {
@@ -269,7 +269,7 @@ public final class UserData: ObservableObject {
         user.password = passwordSaveSuccess ? "" : password
 
         if let noiseKeys = noiseKeys {
-            if Keychain.saveNoiseUserKeypair(userID: userId, keypair: noiseKeys) {
+            if Keychain.saveNoiseUserKeypair(noiseKeys, for: userId) {
                 DDLogInfo("UserData/save/noiseKeys/saved")
             } else {
                 DDLogError("UserData/save/noiseKeys/error keychain save failed")

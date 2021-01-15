@@ -38,6 +38,7 @@ public final class NoiseStream: NSObject {
         do {
             DDLogInfo("noise/connect [passiveMode: \(passiveMode), \(userAgent), \(UIDevice.current.getModelName()) (iOS \(UIDevice.current.systemVersion))]")
             try socket.connect(toHost: host, onPort: port)
+            protoService?.connectionState = .connecting
         } catch {
             DDLogError("noise/connect/error [\(error)]")
         }
@@ -46,6 +47,7 @@ public final class NoiseStream: NSObject {
     public func disconnect(afterSending: Bool = false) {
         DDLogInfo("noise/disconnect [afterSending=\(afterSending)]")
         state = .disconnecting
+        protoService?.connectionState = .disconnecting
         if afterSending {
             socket.disconnectAfterWriting()
         } else {
@@ -68,6 +70,7 @@ public final class NoiseStream: NSObject {
         }
     }
 
+    // TODO: Move this to a delegate relationship (stream should not depend on service)
     public weak var protoService: ProtoServiceCore?
     public var noiseKeys: NoiseKeys?
 
@@ -108,17 +111,13 @@ public final class NoiseStream: NSObject {
     private func writeToSocket(_ data: Data, prependLengthHeader: Bool = true) {
         let finalData: Data = {
             guard prependLengthHeader else { return data }
-
-            let length = Int32(data.count)
-            var finalData = Data()
-
-            // The first byte should always be 0, and the next 3 bytes are the size of the payload.
-            // Since it is almost impossible to have a payload larger than 16777215 (the maximum unsigned 3 bytes number),
-            // I just use the 4 bytes of a Int32 number.
-
-            withUnsafeBytes(of: length.bigEndian) { finalData.append(contentsOf: $0) }
-            finalData.append(data)
-            return finalData
+            let length = data.count
+            guard length < 2<<24 else {
+                DDLogError("noise/writeToSocket/error data exceeds max packet size")
+                return Data()
+            }
+            let lengthHeader = Data(withUnsafeBytes(of: Int32(length).bigEndian, Array.init))
+            return lengthHeader + data
         }()
 
         socket.write(finalData, withTimeout: -1, tag: SocketTag.writeStream.rawValue)
@@ -239,9 +238,7 @@ public final class NoiseStream: NSObject {
             }
 
             serverStaticKey = staticKey
-
-            // TODO: Save via delegate (stream shouldn't modify keychain)
-            Keychain.saveServerStaticKey(userID: userID, key: staticKey)
+            protoService?.receivedServerStaticKey(staticKey, for: userID)
 
             do {
                 let serializedConfig = try makeClientConfig().serializedData()
@@ -318,26 +315,35 @@ public final class NoiseStream: NSObject {
                 DDLogError("noise/receive/error received packet while disconnected")
             case .handshake:
                 guard let noiseMessage = try? Server_NoiseMessage(serializedData: packetData) else {
-                    DDLogError("noise/receive/error could not deserialize noise message")
+                    DDLogError("noise/receive/error could not deserialize noise message [\(packetData.base64EncodedString())]")
                     break
                 }
                 continueHandshake(noiseMessage)
             case .authorizing(_, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
-                    DDLogError("noise/receive/error could not decrypt auth result")
+                    DDLogError("noise/receive/error could not decrypt auth result [\(packetData.base64EncodedString())]")
                     break
                 }
                 guard let authResult = try? Server_AuthResult(serializedData: decryptedData) else {
-                    DDLogError("noise/receive/error could not deserialize auth result")
+                    DDLogError("noise/receive/error could not deserialize auth result [\(decryptedData.base64EncodedString())]")
                     break
                 }
                 handleAuthResult(authResult)
             case .connected(_, let recv):
                 guard let decryptedData = try? recv.decryptWithAd(ad: Data(), ciphertext: packetData) else {
-                    DDLogError("noise/receive/error could not decrypt packet")
+                    DDLogError("noise/receive/error could not decrypt packet [\(packetData.base64EncodedString())]")
                     break
                 }
-                handlePacket(data: decryptedData)
+                guard let packet = try? Server_Packet(serializedData: decryptedData) else {
+                    DDLogError("noise/receive/error could not deserialize packet [\(decryptedData.base64EncodedString())]")
+                    break
+                }
+                guard let requestID = packet.requestID else {
+                    // TODO: Remove this limitation (only present for parity with XMPP/ProtoStream behavior)
+                    DDLogError("noise/receive/error packet missing request ID [\(packet)]")
+                    break
+                }
+                protoService?.didReceive(packet: packet, requestID: requestID)
             }
 
             offset = packetEnd
@@ -364,26 +370,12 @@ public final class NoiseStream: NSObject {
         }
     }
 
-    /// Handle all packets except AuthResult, which will be handled by handleAuth.
-    /// - Parameter data: A serialized data of the ProtoBuf Packet
-    private func handlePacket(data: Data) {
-        do {
-            let packet = try Server_Packet(serializedData: data)
-
-            if let requestID = packet.requestID {
-                protoService?.didReceive(packet: packet, requestID: requestID)
-            }
-        } catch {
-            DDLogError("ProtoStream/handlePacket/error could not deserialize packet")
-        }
-    }
-
     private let userAgent: String
     private let userID: UserID
     private let passiveMode: Bool
 
     private let socket: GCDAsyncSocket
-    private let socketQueue = DispatchQueue(label: "hallo.noise.dispatch", qos: .userInitiated)
+    private let socketQueue = DispatchQueue(label: "hallo.noise", qos: .userInitiated)
     private var socketBuffer: Data?
 
     private var clientKeyPair: NoiseKeys?
@@ -437,6 +429,7 @@ extension NoiseStream: GCDAsyncSocketDelegate {
             DDLogInfo("noise/socket-did-disconnect")
         }
         state = .disconnected
+        protoService?.connectionState = .notConnected
     }
 
     public func socket(_ sock: GCDAsyncSocket, didConnectTo url: URL) {

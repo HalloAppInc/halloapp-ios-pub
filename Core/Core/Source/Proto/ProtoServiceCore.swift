@@ -38,7 +38,8 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
 
     // MARK: Connection State
-    @Published public private(set) var connectionState: ConnectionState = .notConnected {
+    // TODO: Only allow stream to set this value (e.g. via delegate callback)
+    @Published public var connectionState: ConnectionState = .notConnected {
         didSet {
             DDLogDebug("proto/connectionState/change [\(oldValue)] -> [\(connectionState)]")
             runCallbacksForCurrentConnectionState()
@@ -52,7 +53,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     public let didConnect = PassthroughSubject<Void, Never>()
 
-
     private let stream: Stream
     public let userData: UserData
 
@@ -63,7 +63,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
                 return .noise(NoiseStream(
                                 userAgent: AppContext.userAgent,
                                 userID: userData.userId,
-                                serverStaticKey: Keychain.loadServerStaticKey(userID: userData.userId)))
+                                serverStaticKey: Keychain.loadServerStaticKey(for: userData.userId)))
             } else {
                 return .proto(ProtoStream())
             }
@@ -71,6 +71,12 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         super.init()
 
         configureStream(with: userData)
+    }
+
+    // MARK: Credentials
+
+    public func receivedServerStaticKey(_ key: Data, for userID: UserID) {
+        Keychain.saveServerStaticKey(key, for: userID)
     }
 
     // MARK: Connection management
