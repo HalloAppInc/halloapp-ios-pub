@@ -13,7 +13,7 @@ import Sodium
 
 protocol RegistrationService {
     func requestVerificationCode(for phoneNumber: String, completion: @escaping (Result<String, Error>) -> Void)
-    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys?, completion: @escaping (Result<Credentials, Error>) -> Void)
+    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, completion: @escaping (Result<Credentials, Error>) -> Void)
 
     // Temporary (used for Noise migration)
     func updateNoiseKeys(_ noiseKeys: NoiseKeys, userID: UserID, password: String, completion: @escaping (Result<Credentials, Error>) -> Void)
@@ -88,21 +88,21 @@ final class DefaultRegistrationService: RegistrationService {
         task.resume()
     }
 
-    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys?, completion: @escaping (Result<Credentials, Error>) -> Void) {
-        var json: [String : String] = [ "name": name, "phone": normalizedPhoneNumber, "code": verificationCode ]
+    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, completion: @escaping (Result<Credentials, Error>) -> Void) {
 
-        var url: URL
-        if let noiseKeys = noiseKeys {
-            guard let phraseData = "HALLO".data(using: .utf8), let signedPhrase = noiseKeys.sign(phraseData) else {
-                completion(.failure(VerificationCodeValidationError.phraseSigningError))
-                return
-            }
-            json["s_ed_pub"] = noiseKeys.publicEdKey.base64EncodedString()
-            json["signed_phrase"] = signedPhrase.base64EncodedString()
-            url = URL(string: "https://\(hostName)/api/registration/register2")!
-        } else {
-            url = URL(string: "https://\(hostName)/api/registration/register")!
+        guard let phraseData = "HALLO".data(using: .utf8), let signedPhrase = noiseKeys.sign(phraseData) else {
+            completion(.failure(VerificationCodeValidationError.phraseSigningError))
+            return
         }
+
+        let json: [String : String] = [
+            "name": name,
+            "phone": normalizedPhoneNumber,
+            "code": verificationCode,
+            "s_ed_pub": noiseKeys.publicEdKey.base64EncodedString(),
+            "signed_phrase": signedPhrase.base64EncodedString(),
+        ]
+        let url = URL(string: "https://\(hostName)/api/registration/register2")!
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -158,24 +158,10 @@ final class DefaultRegistrationService: RegistrationService {
                 return
             }
 
-            if let noiseKeys = noiseKeys {
-                DDLogInfo("reg/validate-code/success [noise]")
+            DDLogInfo("reg/validate-code/success [noise]")
 
-                DispatchQueue.main.async {
-                    completion(.success(.v2(userID: userID, noiseKeys: noiseKeys)))
-                }
-            } else if let password = response["password"] as? String {
-                DDLogInfo("reg/validate-code/success [password]")
-
-                DispatchQueue.main.async {
-                    completion(.success(.v1(userID: userID, password: password)))
-                }
-            } else {
-                DDLogInfo("reg/validate-code/invalid Missing password")
-
-                DispatchQueue.main.async {
-                    completion(.failure(VerificationCodeValidationError.malformedResponse))
-                }
+            DispatchQueue.main.async {
+                completion(.success(.v2(userID: userID, noiseKeys: noiseKeys)))
             }
 
         }
@@ -291,6 +277,7 @@ enum VerificationCodeValidationError: String, Error, RawRepresentable {
     case badRequest = "bad_request"                         // Could be several reasons, one is UserAgent does not follow the HalloApp.
     case signedPhraseError = "unable_to_open_signed_phrase" // Server unable to read signed phrase
     case phraseSigningError                                 // Error signing key phrase
+    case keyGenerationError                                 // Unable to generate keys
     case malformedResponse                                  // Everything else
 }
 

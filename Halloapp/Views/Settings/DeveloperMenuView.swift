@@ -13,7 +13,6 @@ private enum MenuTitles {
     static var server: String { "Server" }
     static var userId: String { "User ID" }
     static var useDevServer: String { "Use Dev Server" }
-    static var useNoise: String { "Use Noise" }
     static var videoResolution: String { "Resolution" }
     static var videoBitRate: String { "BitRate" }
     static var reSyncContacts: String { "Re-Sync Contacts" }
@@ -24,8 +23,6 @@ private enum MenuTitles {
 struct DeveloperMenuView: View {
 
     @State var useTestServer = MainAppContext.shared.userData.useTestServer
-    @State var useNoise = MainAppContext.shared.userData.useNoise
-    @State var showRestartAlert = false
 
     @ObservedObject var videoSettings = VideoSettings.shared
     @State var showVideoResolutionActionSheet = false
@@ -77,24 +74,6 @@ struct DeveloperMenuView: View {
                                 self.service.connect()
                             }
                         }
-                }
-
-                // Use Noise?
-                HStack {
-                    Toggle(MenuTitles.useNoise, isOn: $useNoise)
-                        .onReceive(Just(self.useNoise)) { value in
-                            if value != self.userData.useNoise && self.userData.setNoiseEnabled(value)
-                            {
-                                self.userData.useNoise = value
-                                self.showRestartAlert = true
-                            }
-                        }
-                }
-                .alert(isPresented: $showRestartAlert) {
-                    Alert(
-                        title: Text("Please restart your app"),
-                        message: Text("Restart the app for this setting to take effect"),
-                        dismissButton: .default(Text("OK")))
                 }
             }
 

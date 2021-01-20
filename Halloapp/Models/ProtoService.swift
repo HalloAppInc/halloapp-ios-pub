@@ -644,10 +644,6 @@ final class ProtoService: ProtoServiceCore {
             case .success(let credentials):
                 DDLogInfo("ProtoService/establishNoiseKeys/success")
                 self.userData.update(credentials: credentials)
-                if ServerProperties.isInternalUser {
-                    DDLogInfo("ProtoService/establishNoiseKeys/enabling noise [internal user]")
-                    self.userData.setNoiseEnabled(true)
-                }
             case .failure(let error):
                 DDLogError("ProtoService/establishNoiseKeys/error [\(error)]")
             }

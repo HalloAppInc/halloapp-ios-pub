@@ -50,22 +50,8 @@ public final class UserData: ObservableObject {
         }
     }
 
-    public lazy var useNoise: Bool = {
-        if noiseKeys == nil { return false }
-        return AppContext.userDefaultsForAppGroup.bool(forKey: "UseNoise")
-    }()
+    public var useNoise = true
 
-    /// Returns TRUE for success, FALSE for failure (e.g., if user attempted to enable noise before adding keys)
-    @discardableResult
-    public func setNoiseEnabled(_ enabled: Bool) -> Bool {
-        if enabled && noiseKeys == nil {
-            // Do not permit enabling Noise until we have added keys
-            return false
-        }
-        AppContext.userDefaultsForAppGroup.set(enabled, forKey: "UseNoise")
-        return true
-    }
-    
     public static var compressionQuality: Float = 0.4
 
     // Entered by user.
@@ -93,7 +79,7 @@ public final class UserData: ObservableObject {
 
     public var credentials: Credentials? {
         guard !userId.isEmpty else { return nil }
-        if let noiseKeys = noiseKeys, useNoise {
+        if let noiseKeys = noiseKeys {
             return .v2(userID: userId, noiseKeys: noiseKeys)
         } else if let password = password, !password.isEmpty {
             return .v1(userID: userId, password: password)
@@ -157,6 +143,9 @@ public final class UserData: ObservableObject {
         userNamePublisher = CurrentValueSubject(name)
         if credentials != nil {
             self.isLoggedIn = true
+
+            // Disable noise for logged in users who haven't generated noise keys yet
+            useNoise = noiseKeys != nil
         }
     }
     
@@ -209,8 +198,7 @@ public final class UserData: ObservableObject {
     // MARK: Noise
 
     public func generateNoiseKeysForRegistration() -> NoiseKeys? {
-        // Only provide keys if we've already enabled noise
-        return useNoise ? NoiseKeys() : nil
+        return NoiseKeys()
     }
 
     // MARK: CoreData Stack
