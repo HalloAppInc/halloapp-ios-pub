@@ -50,9 +50,9 @@
         "package": "PhoneNumberKit",
         "repositoryURL": "git@github.com:marmelroy/PhoneNumberKit.git",
         "state": {
-          "branch": "master",
-          "revision": "d8457aabee9774c762edb0c15bb9a8f03d30aaf3",
-          "version": null
+          "branch": null,
+          "revision": "1ef0431b971f69c48ca5eb4cdba07f2c5da54c35",
+          "version": "3.3.3"
         }
       },
       {
