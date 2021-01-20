@@ -269,55 +269,54 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    private func handleGroupFeedItem(_ item: Server_GroupFeedItem, message: Server_Msg) {
-        let messageID = message.id
+    private func payloadContents(for items: [Server_GroupFeedItem]) -> [HalloServiceFeedPayload.Content] {
 
-        guard let delegate = feedDelegate else {
-            sendAck(messageID: messageID)
-            return
-        }
-        var group = HalloGroup(id: item.gid, name: item.name)
-        group.avatarID = item.avatarID
+        // NB: This function should not assume group fields are populated! [gid, name, avatarID]
+        // They aren't included on each child when server sends a `Server_GroupFeedItems` stanza.
 
-        var element: FeedElement?
-        var retract: FeedRetract?
-        switch item.item {
-        case .post(let pbPost):
-            switch item.action {
-            case .publish:
-                if let post = XMPPFeedPost(pbPost) {
-                    element = .post(post)
+        var retracts = [FeedRetract]()
+        var elements = [FeedElement]()
+
+        for item in items {
+            switch item.item {
+            case .post(let serverPost):
+                switch item.action {
+                case .publish:
+                    guard let post = XMPPFeedPost(serverPost) else {
+                        DDLogError("proto/payloadContents/\(serverPost.id)/error could not make post object")
+                        continue
+                    }
+                    elements.append(.post(post))
+                case .retract:
+                    retracts.append(.post(serverPost.id))
+                case .UNRECOGNIZED(let action):
+                    DDLogError("proto/payloadContents/\(serverPost.id)/error unrecognized post action \(action)")
                 }
-            case .retract:
-                retract = .post(pbPost.id)
-            case .UNRECOGNIZED(let action):
-                    DDLogError("ProtoService/handleFeedItems/error unrecognized post action \(action)")
-            }
-        case .comment(let pbComment):
-            switch item.action {
-            case .publish:
-                if let comment = XMPPComment(pbComment) {
-                    element = .comment(comment, publisherName: pbComment.publisherName)
+            case .comment(let serverComment):
+                switch item.action {
+                case .publish:
+                    guard let comment = XMPPComment(serverComment) else {
+                        DDLogError("proto/payloadContents/\(serverComment.id)/error could not make comment object")
+                        continue
+                    }
+                    elements.append(.comment(comment, publisherName: serverComment.publisherName))
+                case .retract:
+                    retracts.append(.comment(serverComment.id))
+                case .UNRECOGNIZED(let action):
+                    DDLogError("proto/payloadContents/\(serverComment.id)/error unrecognized comment action \(action)")
                 }
-            case .retract:
-                retract = .comment(pbComment.id)
-            case .UNRECOGNIZED(let action):
-                DDLogError("ProtoService/handleFeedItems/error unrecognized comment action \(action)")
+            case .none:
+                DDLogError("ProtoService/handleFeedItems/error missing item")
             }
-        case .none:
-            DDLogError("ProtoService/handleFeedItems/error missing item")
         }
-        if let element = element {
-            let payload = HalloServiceFeedPayload(content: .newItems([ element ]), group: group, isPushSent: message.retryCount > 0)
-            delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: messageID) })
+
+        switch (elements.isEmpty, retracts.isEmpty) {
+        case (true, true): return []
+        case (true, false): return [.retracts(retracts)]
+        case (false, true): return [.newItems(elements)]
+        case (false, false): return [.retracts(retracts), .newItems(elements)]
         }
-        else if let retract = retract {
-            let payload = HalloServiceFeedPayload(content: .retracts([ retract ]), group: group, isPushSent: message.retryCount > 0)
-            delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: messageID) })
-        }
-        else {
-            sendAck(messageID: messageID)
-        }
+
     }
 
     private func rerequestMessage(_ message: Server_Msg) {
@@ -460,11 +459,27 @@ final class ProtoService: ProtoServiceCore {
                 handleFeedItems([pbFeedItem], message: msg)
             case .feedItems(let pbFeedItems):
                 handleFeedItems(pbFeedItems.items, message: msg)
-            case .groupFeedItem(let pbGroupFeedItem):
-                handleGroupFeedItem(pbGroupFeedItem, message: msg)
-            case .groupFeedItems(_):
-                DDLogError("proto/didReceive/\(requestID)/groupFeedItems/error unimplemented")
-                sendAck(messageID: msg.id)
+            case .groupFeedItem(let item):
+                guard let delegate = feedDelegate else {
+                    sendAck(messageID: msg.id)
+                    break
+                }
+                let group = HalloGroup(id: item.gid, name: item.name, avatarID: item.avatarID)
+                for content in payloadContents(for: [item]) {
+                    let payload = HalloServiceFeedPayload(content: content, group: group, isPushSent: msg.retryCount > 0)
+                    delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: msg.id) })
+                }
+            case .groupFeedItems(let items):
+                guard let delegate = feedDelegate else {
+                    sendAck(messageID: msg.id)
+                    break
+                }
+                let group = HalloGroup(id: items.gid, name: items.name, avatarID: items.avatarID)
+                for content in payloadContents(for: items.items) {
+                    // TODO: Wait until all payloads have been processed before acking.
+                    let payload = HalloServiceFeedPayload(content: content, group: group, isPushSent: msg.retryCount > 0)
+                    delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: msg.id) })
+                }
             case .contactHash(let pbContactHash):
                 if pbContactHash.hash.isEmpty {
                     // Trigger full sync

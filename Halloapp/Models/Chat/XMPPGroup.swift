@@ -61,9 +61,10 @@ struct XMPPGroup {
     private(set) var action: ChatGroupAction? = nil // getGroupInfo has no action
     private(set) var members: [XMPPGroupMember]? = nil
 
-    init(id: GroupID, name: String) {
+    init(id: GroupID, name: String, avatarID: String? = nil) {
         self.groupId = id
         self.name = name
+        self.avatarID = avatarID
     }
 
     // used for inbound and outbound
