@@ -53,21 +53,11 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     public let didConnect = PassthroughSubject<Void, Never>()
 
-    private let stream: Stream
+    private var stream: Stream?
     public let userData: UserData
 
     required public init(userData: UserData) {
         self.userData = userData
-        self.stream = {
-            if userData.useNoise {
-                return .noise(NoiseStream(
-                                userAgent: AppContext.userAgent,
-                                userID: userData.userId,
-                                serverStaticKey: Keychain.loadServerStaticKey(for: userData.userId)))
-            } else {
-                return .proto(ProtoStream())
-            }
-        }()
         super.init()
 
         configureStream(with: userData)
@@ -87,37 +77,41 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             noise.send(data)
         case .proto(let proto):
             proto.send(data)
+        case .none:
+            DDLogError("proto/send/error no stream configured!")
         }
     }
 
-    open func configureStream(with userData: UserData?) {
+    public func configureStream(with userData: UserData?) {
         DDLogInfo("proto/stream/configure [\(userData?.userId ?? "nil")]")
-        switch stream {
-        case .noise(let noise):
-            if case .v2(_, let noiseKeys) = userData?.credentials {
-                noise.noiseKeys = noiseKeys
-            }
-            noise.protoService = self
-
-        case .proto(let proto):
+        switch userData?.credentials {
+        case .v1(let userID, _):
+            let proto = ProtoStream()
             proto.startTLSPolicy = .required
             proto.myJID = {
-                guard let credentials = userData?.credentials else { return nil }
-                return XMPPJID(user: credentials.userID, domain: "s.halloapp.net", resource: "iphone")
+                return XMPPJID(user: userID, domain: "s.halloapp.net", resource: "iphone")
             }()
             proto.protoService = self
 
             let userAgent = NSString(string: AppContext.userAgent)
             proto.clientVersion = userAgent
-
-            // NB: `configureStream` may be called multiple times, so we need
-            // to remove the pre-existing delegate relationship if it exists.
-            proto.removeDelegate(self)
             proto.addDelegate(self, delegateQueue: DispatchQueue.main)
+            stream = .proto(proto)
+        case .v2(let userID, let noiseKeys):
+            let noise = NoiseStream(
+                            userAgent: AppContext.userAgent,
+                            userID: userID,
+                            serverStaticKey: Keychain.loadServerStaticKey(for: userID))
+            noise.noiseKeys = noiseKeys
+            noise.protoService = self
+            stream = .noise(noise)
+        case .none:
+            return
         }
     }
 
     public func startConnectingIfNecessary() {
+        guard let stream = stream else { return }
         switch stream {
         case .noise(let noise):
             if noise.isReadyToConnect {
@@ -131,6 +125,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
 
     public func connect() {
+        guard let stream = stream else { return }
         switch stream {
         case .noise(let noise):
             noise.connect(host: userData.hostName, port: userData.hostPort)
@@ -171,6 +166,8 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             noise.disconnect(afterSending: true)
         case .proto(let proto):
             proto.disconnectAfterSending()
+        case .none:
+            break
         }
     }
 
@@ -185,6 +182,8 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             noise.disconnect()
         case .proto(let proto):
             proto.disconnect()
+        case .none:
+            break
         }
     }
 
