@@ -506,6 +506,7 @@ final class ProtoService: ProtoServiceCore {
                 sendAck(messageID: msg.id)
             case .errorStanza(let error):
                 DDLogError("proto/didReceive/\(requestID) received message with error \(error)")
+                sendAck(messageID: msg.id)
             }
         case .haError(let error):
             DDLogError("proto/didReceive/\(requestID) received packet with error \(error)")
