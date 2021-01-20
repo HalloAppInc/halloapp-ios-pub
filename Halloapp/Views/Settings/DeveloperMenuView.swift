@@ -144,7 +144,7 @@ struct DeveloperMenuView: View {
 
                 // Re-Sync Contacts
                 Button(action: {
-                    MainAppContext.shared.syncManager.requestFullSync()
+                    MainAppContext.shared.syncManager.requestSync(forceFullSync: true)
                     self.dismiss?()
                 }) {
                     Text(MenuTitles.reSyncContacts)

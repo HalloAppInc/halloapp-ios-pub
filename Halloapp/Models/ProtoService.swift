@@ -468,7 +468,7 @@ final class ProtoService: ProtoServiceCore {
             case .contactHash(let pbContactHash):
                 if pbContactHash.hash.isEmpty {
                     // Trigger full sync
-                    MainAppContext.shared.syncManager.requestFullSync()
+                    MainAppContext.shared.syncManager.requestSync(forceFullSync: true)
                     sendAck(messageID: msg.id)
                 } else if let decodedData = Data(base64Encoded: pbContactHash.hash) {
                     // Legacy Base64 protocol

@@ -16,7 +16,6 @@ import Foundation
  - full: all contacts from device address book.
  */
 enum SyncMode {
-    case none
     case delta
     case full
 }

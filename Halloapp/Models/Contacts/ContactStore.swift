@@ -264,7 +264,7 @@ class ContactStoreMain: ContactStore {
                                     }
 
                                     if syncManager.isSyncEnabled {
-                                        syncManager.requestDeltaSync()
+                                        syncManager.requestSync()
                                     } else if self.userData.isLoggedIn {
                                         DispatchQueue.main.async {
                                             self.enableContactSync()
@@ -294,22 +294,8 @@ class ContactStoreMain: ContactStore {
         }
     }
 
-    private var syncWillBeEnabled = false
-    
     func enableContactSync() {
-        let service = MainAppContext.shared.service
-        let syncManager = MainAppContext.shared.syncManager!
-        if service.isConnected {
-            syncManager.enableSync()
-        } else if (!self.syncWillBeEnabled) {
-            self.syncWillBeEnabled = true
-            cancellableSet.insert(
-                service.didConnect.sink {
-                    syncManager.enableSync()
-                    self.syncWillBeEnabled = false
-                }
-            )
-        }
+        MainAppContext.shared.syncManager?.enableSync()
     }
 
     /**

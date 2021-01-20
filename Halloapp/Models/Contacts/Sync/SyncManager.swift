@@ -32,10 +32,21 @@ class SyncManager {
     private(set) var isSyncEnabled = false
     private var isSyncInProgress = false
 
-    private var nextSyncMode: SyncMode = .none
-    private var nextSyncDate: Date?
+    private var nextFullSyncDate: Date? {
+        didSet {
+            guard nextFullSyncDate != oldValue else {
+                return
+            }
+            contactStore.mutateDatabaseMetadata { (metadata) in
+                DDLogInfo("syncmanager/saving next full sync date [\(nextFullSyncDate?.description ?? "nil")]")
+                metadata[ContactStoreMetadataNextFullSyncDate] = nextFullSyncDate
+            }
+        }
+    }
+
     let queue = DispatchQueue(label: "com.halloapp.syncmanager")
     private var fullSyncTimer: DispatchSourceTimer
+    private var fullSyncTimerIsSuspended = false
 
     private var cancellableSet: Set<AnyCancellable> = []
 
@@ -47,12 +58,16 @@ class SyncManager {
     init(contactStore: ContactStoreMain, service: HalloService, userData: UserData) {
         self.contactStore = contactStore
         self.service = service
+        self.nextFullSyncDate = contactStore.databaseMetadata?[ContactStoreMetadataNextFullSyncDate] as? Date
 
         fullSyncTimer = DispatchSource.makeTimerSource(queue: queue)
         fullSyncTimer.setEventHandler { [weak self] in
-            guard let self = self else { return }
+            guard let self = self, !self.isSyncInProgress, self.isFullSyncRequired() else {
+                DDLogInfo("syncmanager/fullsynctimer/skipping")
+                return
+            }
             self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
-                self.runFullSyncIfNecessary(using: managedObjectContext)
+                self.runSyncIfNecessary(using: managedObjectContext)
             }
         }
 
@@ -79,13 +94,14 @@ class SyncManager {
 
         fullSyncTimer.schedule(wallDeadline: DispatchWallTime.now(), repeating: 60)
         fullSyncTimer.activate()
+        if fullSyncTimerIsSuspended {
+            fullSyncTimer.resume()
+            fullSyncTimerIsSuspended = false
+        }
 
         queue.async {
             self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
-                self.runFullSyncIfNecessary(using: managedObjectContext)
-                if !self.isSyncInProgress {
-                    self.runSyncWith(mode: .delta, using: managedObjectContext)
-                }
+                self.runSyncIfNecessary(using: managedObjectContext)
             }
         }
 
@@ -100,20 +116,17 @@ class SyncManager {
         isSyncEnabled = false
         isSyncInProgress = false
 
-        nextSyncDate = nil
-        nextSyncMode = .none
+        nextFullSyncDate = nil
         pendingDeletes.removeAll()
         processedDeletes.removeAll()
 
-        fullSyncTimer.suspend()
+        if !fullSyncTimerIsSuspended {
+            fullSyncTimer.suspend()
+            fullSyncTimerIsSuspended = true
+        }
 
         if !ContactStore.contactsAccessAuthorized {
             UserDefaults.standard.removeObject(forKey: SyncManager.UDDisabledAddressBookSynced)
-        }
-
-        // Reset next full sync date.
-        contactStore.mutateDatabaseMetadata { (metadata) in
-            metadata[ContactStoreMetadataNextFullSyncDate] = nil
         }
     }
 
@@ -124,71 +137,43 @@ class SyncManager {
 
     // MARK: Scheduling
 
-    func requestDeltaSync() {
-        DDLogInfo("syncmanager/request/delta")
-        queue.async {
-            self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
-                self.runSyncWith(mode: .delta, using: managedObjectContext)
-            }
-        }
-    }
+    func requestSync(forceFullSync: Bool = false) {
+        DDLogInfo("syncmanager/requestSync [forceFullSync=\(forceFullSync)]")
 
-    func requestFullSync() {
-        DDLogInfo("syncmanager/request/full")
-
-        // Remember that database is due for a full sync in case we get interrupted
-        contactStore.mutateDatabaseMetadata { (metadata) in
-            metadata[ContactStoreMetadataNextFullSyncDate] = Date()
+        if forceFullSync {
+            nextFullSyncDate = Date()
         }
 
         queue.async {
             self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
-                self.runSyncWith(mode: .full, using: managedObjectContext)
+                self.runSyncIfNecessary(using: managedObjectContext)
             }
-        }
-    }
-
-    // Must be called from `queue`.
-    private func runSyncWith(mode: SyncMode, using managedObjectContext: NSManagedObjectContext) {
-        nextSyncDate = Date()
-        nextSyncMode = mode
-
-        if case .failure(let failureReason) = runSyncIfNecessary(using: managedObjectContext) {
-            DDLogError("syncmanager/sync/failed [\(failureReason)]")
         }
     }
 
     // MARK: Run sync
 
-    private func runFullSyncIfNecessary(using managedObjectContext: NSManagedObjectContext) {
-        let nextFullSyncDate = contactStore.databaseMetadata?[ContactStoreMetadataNextFullSyncDate] as? Date
+    private func isFullSyncRequired() -> Bool {
         DDLogInfo("syncmanager/full/check-schedule Next full sync is scheduled at [\(String(describing: nextFullSyncDate))]")
-
-        var runFullSync = false
 
         // Force full sync on address book permissions change.
         if ContactStore.contactsAccessAuthorized == UserDefaults.standard.bool(forKey: SyncManager.UDDisabledAddressBookSynced) {
-            DDLogInfo("syncmanager/full/check-schedule Force full sync on contacts permissions change. Access granted: \(ContactStore.contactsAccessAuthorized)")
-            runFullSync = true
-            nextSyncDate = Date()
-        }
-        // Sync was never run - do it now.
-        if nextFullSyncDate == nil {
-            if !isSyncInProgress {
-                runFullSync = true
-                nextSyncDate = Date()
-            }
-        }
-        // Time for a scheduled sync
-        else if nextFullSyncDate!.timeIntervalSinceNow < 0 {
-            runFullSync = true
-            nextSyncDate = nextFullSyncDate
+            DDLogInfo("syncmanager/full/required/true Contacts permissions change. Access granted: \(ContactStore.contactsAccessAuthorized)")
+            return true
         }
 
-        if runFullSync {
-            nextSyncMode = .full
-            runSyncIfNecessary(using: managedObjectContext)
+        guard let nextFullSyncDate = nextFullSyncDate else {
+            DDLogInfo("syncmanager/full/required/true Not yet scheduled.")
+            return true
         }
+
+        if nextFullSyncDate.timeIntervalSinceNow < 0 {
+            DDLogInfo("syncmanager/full/required/true Scheduled for [\(nextFullSyncDate)]")
+            return true
+        }
+
+        DDLogInfo("syncmanager/full/required/false Not necessary at this time")
+        return false
     }
 
     @discardableResult private func runSyncIfNecessary(using managedObjectContext: NSManagedObjectContext) -> SyncResult {
@@ -204,20 +189,6 @@ class SyncManager {
             return .failure(.notEnabled)
         }
 
-        // Sync mode must be set.
-        guard nextSyncMode != .none else {
-            return .failure(.empty)
-        }
-
-        // Next sync date should be set.
-        guard nextSyncDate != nil else {
-            return .failure(.empty)
-        }
-        guard nextSyncDate!.timeIntervalSinceNow < 0 else {
-            return .failure(.empty)
-        }
-
-        // Must be connected.
         guard service.isConnected else {
             return .failure(.notAllowed)
         }
@@ -226,23 +197,22 @@ class SyncManager {
     }
 
     private func reallyPerformSync(using managedObjectContext: NSManagedObjectContext) -> SyncResult {
-        DDLogInfo("syncmanager/sync/prepare/\(nextSyncMode)")
 
-        defer {
-            nextSyncMode = .none
-            nextSyncDate = nil
-        }
+        let isFullSync = isFullSyncRequired()
+        let syncMode = isFullSync ? SyncMode.full : .delta
+
+        DDLogInfo("syncmanager/sync/prepare/\(syncMode)")
 
         let contactsToSync: [ABContact]
         if ContactStore.contactsAccessAuthorized {
-            contactsToSync = contactStore.contactsFor(fullSync: nextSyncMode == .full, in: managedObjectContext)
+            contactsToSync = contactStore.contactsFor(fullSync: isFullSync, in: managedObjectContext)
         } else {
             DDLogInfo("syncmanager/sync/prepare Access to contacts disabled - syncing an empty list")
             contactsToSync = []
         }
 
         // Do not run delta syncs with an empty set of users.
-        guard nextSyncMode == .full || !contactsToSync.isEmpty || !pendingDeletes.isEmpty else {
+        guard isFullSync || !contactsToSync.isEmpty || !pendingDeletes.isEmpty else {
             DDLogInfo("syncmanager/sync/prepare Empty delta sync - exiting now")
             return .failure(.empty)
         }
@@ -251,7 +221,7 @@ class SyncManager {
         var xmppContacts = contactsToSync.map { XMPPContact($0) }
 
         // Individual deleted phone don't matter if the entire address book is about to be synced.
-        if nextSyncMode == .full {
+        if isFullSync {
             pendingDeletes.removeAll()
         } else {
             xmppContacts.append(contentsOf: pendingDeletes.map { XMPPContact.deletedContact(with: $0) })
@@ -260,8 +230,7 @@ class SyncManager {
 
         isSyncInProgress = true
 
-        let syncMode = nextSyncMode
-        DDLogInfo("syncmanager/sync/start/\(nextSyncMode) [\(xmppContacts.count)]")
+        DDLogInfo("syncmanager/sync/start/\(syncMode) [\(xmppContacts.count)]")
         let syncSession = SyncSession(mode: syncMode, contacts: xmppContacts) { results, error in
             self.queue.async {
                 self.processSyncResponse(mode: syncMode, contacts: results, error: error)
@@ -292,9 +261,7 @@ class SyncManager {
             }
 
             // Set next full sync date: now + 1 day
-            contactStore.mutateDatabaseMetadata { (metadata) in
-                metadata[ContactStoreMetadataNextFullSyncDate] = Date(timeIntervalSinceNow: 3600*24)
-            }
+            nextFullSyncDate = Date(timeIntervalSinceNow: 3600*24)
         }
 
         if let contacts = contacts {
@@ -342,7 +309,9 @@ class SyncManager {
         queue.async {
             self.contactStore.performOnBackgroundContextAndWait { managedObjectContext in
                 self.contactStore.processNotification(contactHashes: contactHashes, using: managedObjectContext)
-                self.runSyncWith(mode: .delta, using: managedObjectContext)
+                if case .failure(let failureReason) = self.runSyncIfNecessary(using: managedObjectContext) {
+                    DDLogError("syncmanager/sync/failed [\(failureReason)]")
+                }
             }
             completion()
         }
@@ -365,10 +334,7 @@ class SyncManager {
 
             queue.asyncAfter(deadline: .now() + retryDelay) {
                 self.contactStore.performOnBackgroundContextAndWait { (managedObjectContext) in
-                    self.runFullSyncIfNecessary(using: managedObjectContext)
-                    if !self.isSyncInProgress {
-                        self.runSyncWith(mode: .delta, using: managedObjectContext)
-                    }
+                    self.runSyncIfNecessary(using: managedObjectContext)
                 }
             }
         }
