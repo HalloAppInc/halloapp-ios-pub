@@ -213,8 +213,7 @@ final class ProtoService: ProtoServiceCore {
             }
         }
     }
-
-    /// Should only be accessed on serviceQueue
+    /// IDs for messages that we need to ack once we've connected. Should only be accessed on serviceQueue.
     private var pendingAcks = [String]()
 
     private func resendAllPendingAcks() {
@@ -230,6 +229,25 @@ final class ProtoService: ProtoServiceCore {
             let acksToSend = self.pendingAcks
             self.pendingAcks.removeAll()
             self._sendAcks(messageIDs: acksToSend)
+        }
+    }
+
+    /// IDs for messages that have been processed in the current session. Should only be accessed on serviceQueue.
+    private var processedMessageIDs = Set<String>()
+
+    private func updateMessageStatus(id: String, isProcessed: Bool) {
+        serviceQueue.async {
+            if isProcessed {
+                self.processedMessageIDs.insert(id)
+            } else {
+                self.processedMessageIDs.remove(id)
+            }
+        }
+    }
+
+    private func shouldProcessMessage(id: String) -> Bool {
+        serviceQueue.sync {
+            return !self.processedMessageIDs.contains(id)
         }
     }
 
@@ -393,6 +411,11 @@ final class ProtoService: ProtoServiceCore {
                 DDLogError("proto/didReceive/\(requestID)/error missing payload")
                 break
             }
+            guard shouldProcessMessage(id: msg.id) else {
+                DDLogInfo("proto/didReceive/\(requestID)/skipping (already processed)")
+                break
+            }
+            updateMessageStatus(id: msg.id, isProcessed: true)
             switch payload {
             case .contactList(let pbContactList):
                 let contacts = pbContactList.contacts.compactMap { HalloContact($0) }
@@ -423,6 +446,10 @@ final class ProtoService: ProtoServiceCore {
                     if let error = decryptionError {
                         DDLogError("proto/didReceive/\(requestID)/decrypt/error \(error)")
                         AppContext.shared.errorLogger?.logError(error)
+
+                        // Mark message as unprocessed before rerequesting
+                        self.updateMessageStatus(id: msg.id, isProcessed: false)
+
                         self.rerequestMessage(msg)
                     }
                     if !serverChat.senderClientVersion.isEmpty {
