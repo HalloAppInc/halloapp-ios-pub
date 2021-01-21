@@ -12,7 +12,7 @@ class SettingsTableViewCell: UITableViewCell {
 
     init(text: String, image: UIImage? = nil) {
         super.init(style: .default, reuseIdentifier: nil)
-        accessoryType = .disclosureIndicator
+//        accessoryType = .disclosureIndicator
         textLabel?.text = text
         if let image = image {
             imageView?.image = image

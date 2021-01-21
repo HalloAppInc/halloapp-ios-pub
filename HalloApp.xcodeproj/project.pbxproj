@@ -128,7 +128,7 @@
 		766103AA2461F08A00728870 /* FeedPostInfo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A82461F08A00728870 /* FeedPostInfo+CoreDataClass.swift */; };
 		766103AB2461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766103A92461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift */; };
 		7661D947255A5E3A0063404E /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 7661D945255A5E3A0063404E /* Localizable.stringsdict */; };
-		7661D958255B184C0063404E /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7661D957255B184C0063404E /* SettingsViewController.swift */; };
+		7661D958255B184C0063404E /* SettingsNotificationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7661D957255B184C0063404E /* SettingsNotificationsViewController.swift */; };
 		766492232450DDB9009BC368 /* BadgedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492222450DDB9009BC368 /* BadgedButton.swift */; };
 		766492252450E04D009BC368 /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766492242450E04D009BC368 /* BadgeView.swift */; };
 		76649227245119F2009BC368 /* FeedNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76649226245119F2009BC368 /* FeedNotifications.swift */; };
@@ -177,13 +177,14 @@
 		EA0C315723EB97C800016EDB /* PostComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0C315623EB97C800016EDB /* PostComposerView.swift */; };
 		EA0D20152368B04B008B8289 /* FeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0D20142368B04B008B8289 /* FeedData.swift */; };
 		EA220B7B24D0EA1500C44CE7 /* KeyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA220B7A24D0EA1500C44CE7 /* KeyData.swift */; };
+		EA27790925B91E58009CA884 /* PrivacyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA27790825B91E58009CA884 /* PrivacyViewController.swift */; };
 		EA3585712450BE2900E6E8AB /* Chat.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = EA35856C2450BE2900E6E8AB /* Chat.xcdatamodeld */; };
 		EA3585732450BE2900E6E8AB /* ChatData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA35856F2450BE2900E6E8AB /* ChatData.swift */; };
 		EA3585792450BE3300E6E8AB /* ChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3585742450BE3300E6E8AB /* ChatViewController.swift */; };
 		EA35857A2450BE3300E6E8AB /* ChatInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3585752450BE3300E6E8AB /* ChatInputView.swift */; };
 		EA36B5F024FDB83700A7E4CE /* MessageSeenByViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */; };
 		EA388C5C2520EB9500DEAB53 /* Banner.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA388C5B2520EB9500DEAB53 /* Banner.swift */; };
-		EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* ProfileViewController.swift */; };
+		EA454B64234E769F002B960D /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA454B63234E769F002B960D /* SettingsViewController.swift */; };
 		EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */; };
 		EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713223EB7DB3008C2E44 /* FeedMedia.swift */; };
 		EA45713D23EB7F47008C2E44 /* MediaCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */; };
@@ -384,8 +385,8 @@
 		7626CCDD24C738F50023FC2E /* CrashlyticsLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CrashlyticsLogger.swift; path = HalloApp/Logging/CrashlyticsLogger.swift; sourceTree = SOURCE_ROOT; };
 		76271383252D24AD00389FBC /* FeedPostTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPostTableViewCell.swift; path = HalloApp/Views/Home/Feed/Post/FeedPostTableViewCell.swift; sourceTree = SOURCE_ROOT; };
 		76271388252D250E00389FBC /* FacePileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FacePileView.swift; path = HalloApp/Views/Home/Feed/Post/FacePileView.swift; sourceTree = SOURCE_ROOT; };
-		7627173A257B0744006F7F3D /* AboutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AboutViewController.swift; path = HalloApp/Views/Settings/AboutViewController.swift; sourceTree = SOURCE_ROOT; };
-		76271757257B08E5006F7F3D /* AboutView.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = AboutView.storyboard; path = HalloApp/Views/Settings/AboutView.storyboard; sourceTree = SOURCE_ROOT; };
+		7627173A257B0744006F7F3D /* AboutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AboutViewController.swift; path = Halloapp/Views/Settings/About/AboutViewController.swift; sourceTree = SOURCE_ROOT; };
+		76271757257B08E5006F7F3D /* AboutView.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = AboutView.storyboard; path = Halloapp/Views/Settings/About/AboutView.storyboard; sourceTree = SOURCE_ROOT; };
 		762EDBBA244E2EB500986617 /* Gotham-BlackIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-BlackIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-BlackIta.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBBB244E2EB500986617 /* Gotham-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-Medium.otf"; path = "HalloApp/Resources/Fonts/Gotham-Medium.otf"; sourceTree = SOURCE_ROOT; };
 		762EDBBC244E2EB600986617 /* Gotham-UltraIta.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Gotham-UltraIta.otf"; path = "HalloApp/Resources/Fonts/Gotham-UltraIta.otf"; sourceTree = SOURCE_ROOT; };
@@ -443,7 +444,7 @@
 		766103A92461F08A00728870 /* FeedPostInfo+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FeedPostInfo+CoreDataProperties.swift"; path = "HalloApp/Models/Feed/CoreData Stack/FeedPostInfo+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		7661D946255A5E3A0063404E /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = Base; path = HalloApp/Base.lproj/Localizable.stringsdict; sourceTree = SOURCE_ROOT; };
 		7661D94E255A5ECB0063404E /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = Base; path = Base.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
-		7661D957255B184C0063404E /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsViewController.swift; path = HalloApp/Views/Settings/SettingsViewController.swift; sourceTree = SOURCE_ROOT; };
+		7661D957255B184C0063404E /* SettingsNotificationsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsNotificationsViewController.swift; path = HalloApp/Views/Settings/SettingsNotificationsViewController.swift; sourceTree = SOURCE_ROOT; };
 		766492222450DDB9009BC368 /* BadgedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgedButton.swift; path = HalloApp/Components/Views/BadgedButton.swift; sourceTree = SOURCE_ROOT; };
 		766492242450E04D009BC368 /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BadgeView.swift; path = HalloApp/Components/Views/BadgeView.swift; sourceTree = SOURCE_ROOT; };
 		76649226245119F2009BC368 /* FeedNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedNotifications.swift; path = HalloApp/Models/Feed/FeedNotifications.swift; sourceTree = SOURCE_ROOT; };
@@ -459,7 +460,7 @@
 		7688FA3F25489E26006B86B3 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		7688FA4225489E26006B86B3 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76955DE924746E4C0088BE8C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = "GoogleService-Info.plist"; path = "HalloApp/GoogleService-Info.plist"; sourceTree = SOURCE_ROOT; };
-		769CD3AB255CDB8D006F21BB /* NameEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NameEditViewController.swift; path = HalloApp/Views/Profile/NameEditViewController.swift; sourceTree = SOURCE_ROOT; };
+		769CD3AB255CDB8D006F21BB /* NameEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NameEditViewController.swift; path = Halloapp/Views/Settings/Profile/NameEditViewController.swift; sourceTree = SOURCE_ROOT; };
 		76A92443244E659600794859 /* FeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedViewController.swift; path = HalloApp/Views/Home/Feed/FeedViewController.swift; sourceTree = SOURCE_ROOT; };
 		76A92448244EBCB600794859 /* ShapeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ShapeView.swift; path = HalloApp/Components/Views/ShapeView.swift; sourceTree = SOURCE_ROOT; };
 		76A9244A244EC49000794859 /* UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIView.swift; path = HalloApp/Components/Extensions/UIView.swift; sourceTree = SOURCE_ROOT; };
@@ -477,7 +478,7 @@
 		76DF9FEC24122EF900F49CA4 /* Feed.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Feed.xcdatamodel; sourceTree = "<group>"; };
 		76DF9FF52412E6E700F49CA4 /* ContactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactStore.swift; sourceTree = "<group>"; };
 		76DFA00424195F2400F49CA4 /* XMPPContactSyncRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPContactSyncRequest.swift; sourceTree = "<group>"; };
-		76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileHeaderViewController.swift; path = Halloapp/Views/Profile/ProfileHeaderViewController.swift; sourceTree = SOURCE_ROOT; };
+		76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileHeaderViewController.swift; path = Halloapp/Views/Settings/Profile/ProfileHeaderViewController.swift; sourceTree = SOURCE_ROOT; };
 		76E81D24255E482E0068CD62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76E81D26255E48570068CD62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		76E81D27255E485F0068CD62 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -499,13 +500,14 @@
 		EA0C315623EB97C800016EDB /* PostComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostComposerView.swift; sourceTree = "<group>"; };
 		EA0D20142368B04B008B8289 /* FeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedData.swift; sourceTree = "<group>"; };
 		EA220B7A24D0EA1500C44CE7 /* KeyData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyData.swift; sourceTree = "<group>"; };
+		EA27790825B91E58009CA884 /* PrivacyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyViewController.swift; sourceTree = "<group>"; };
 		EA35856D2450BE2900E6E8AB /* Chat.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Chat.xcdatamodel; sourceTree = "<group>"; };
 		EA35856F2450BE2900E6E8AB /* ChatData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatData.swift; sourceTree = "<group>"; };
 		EA3585742450BE3300E6E8AB /* ChatViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatViewController.swift; sourceTree = "<group>"; };
 		EA3585752450BE3300E6E8AB /* ChatInputView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatInputView.swift; sourceTree = "<group>"; };
 		EA36B5EF24FDB83700A7E4CE /* MessageSeenByViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageSeenByViewController.swift; sourceTree = "<group>"; };
 		EA388C5B2520EB9500DEAB53 /* Banner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Banner.swift; sourceTree = "<group>"; };
-		EA454B63234E769F002B960D /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
+		EA454B63234E769F002B960D /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		EA45712E23EB7D94008C2E44 /* FeedDataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDataItem.swift; sourceTree = "<group>"; };
 		EA45713223EB7DB3008C2E44 /* FeedMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedMedia.swift; sourceTree = "<group>"; };
 		EA45713C23EB7F47008C2E44 /* MediaCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCarouselView.swift; sourceTree = "<group>"; };
@@ -806,14 +808,15 @@
 		764AB41B24A6BE1900D4E354 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				EA27791725BA3C66009CA884 /* Profile */,
 				764AB42224A71D3D00D4E354 /* Privacy */,
-				76271757257B08E5006F7F3D /* AboutView.storyboard */,
-				7627173A257B0744006F7F3D /* AboutViewController.swift */,
+				EA27792425BA3E35009CA884 /* About */,
+				EA454B63234E769F002B960D /* SettingsViewController.swift */,
 				761C6160242D2AE50028AE19 /* DeveloperMenuView.swift */,
+				7661D957255B184C0063404E /* SettingsNotificationsViewController.swift */,
+				76333084254A352100A1ED68 /* SettingsTableViewCell.swift */,
 				7633307E254A331D00A1ED68 /* HelpViewController.swift */,
 				686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */,
-				76333084254A352100A1ED68 /* SettingsTableViewCell.swift */,
-				7661D957255B184C0063404E /* SettingsViewController.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -821,6 +824,7 @@
 		764AB42224A71D3D00D4E354 /* Privacy */ = {
 			isa = PBXGroup;
 			children = (
+				EA27790825B91E58009CA884 /* PrivacyViewController.swift */,
 				764AB42024A7188600D4E354 /* FeedPrivacyView.swift */,
 				764AB42324A71D6900D4E354 /* PrivacyListView.swift */,
 				76C2D1F824AA6B9700930320 /* PrivacyListViewController.swift */,
@@ -858,16 +862,6 @@
 				768123DD2485DFA1008C5216 /* Core.framework */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		7688FA64254A14F7006B86B3 /* Profile */ = {
-			isa = PBXGroup;
-			children = (
-				769CD3AB255CDB8D006F21BB /* NameEditViewController.swift */,
-				76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */,
-				EA454B63234E769F002B960D /* ProfileViewController.swift */,
-			);
-			path = Profile;
 			sourceTree = "<group>";
 		};
 		76B5B5292501EE110055E712 /* Source */ = {
@@ -962,6 +956,34 @@
 			path = Key;
 			sourceTree = "<group>";
 		};
+		EA27791725BA3C66009CA884 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				76E00DF324FEC2FC00E06252 /* ProfileHeaderViewController.swift */,
+				769CD3AB255CDB8D006F21BB /* NameEditViewController.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		EA27792425BA3E35009CA884 /* About */ = {
+			isa = PBXGroup;
+			children = (
+				76271757257B08E5006F7F3D /* AboutView.storyboard */,
+				7627173A257B0744006F7F3D /* AboutViewController.swift */,
+			);
+			path = About;
+			sourceTree = "<group>";
+		};
+		EA27792825BA3FEA009CA884 /* Groups */ = {
+			isa = PBXGroup;
+			children = (
+				EAC465502514827800783821 /* Actions */,
+				EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */,
+				EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */,
+			);
+			path = Groups;
+			sourceTree = "<group>";
+		};
 		EA35856A2450BE2900E6E8AB /* Chat */ = {
 			isa = PBXGroup;
 			children = (
@@ -1011,15 +1033,12 @@
 			path = Feed;
 			sourceTree = "<group>";
 		};
-		EA38843523A15D2C00E8BF92 /* Messages */ = {
+		EA38843523A15D2C00E8BF92 /* Chats */ = {
 			isa = PBXGroup;
 			children = (
-				EAC465502514827800783821 /* Group Actions */,
 				EAD476D124588DB600EF8591 /* MediaSlider */,
 				EA1112DC2527C12200F42D41 /* Seen By */,
 				EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */,
-				EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */,
-				EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */,
 				EAD476CC245513EF00EF8591 /* ChatListViewController.swift */,
 				EAA0799625AFC71600B384AB /* ThreadListCell.swift */,
 				EA3585742450BE3300E6E8AB /* ChatViewController.swift */,
@@ -1032,7 +1051,7 @@
 				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
 				EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */,
 			);
-			path = Messages;
+			path = Chats;
 			sourceTree = "<group>";
 		};
 		EA5414D423EE164C00390EF6 /* Media */ = {
@@ -1098,7 +1117,6 @@
 			children = (
 				EA880C3B2368EE53008965CF /* Home */,
 				76B7E2F5243BB0560048A2FC /* Notifications */,
-				7688FA64254A14F7006B86B3 /* Profile */,
 				EA880C3A2368EE3C008965CF /* Registration */,
 				764AB41B24A6BE1900D4E354 /* Settings */,
 			);
@@ -1143,7 +1161,8 @@
 			isa = PBXGroup;
 			children = (
 				EA38843423A15C9D00E8BF92 /* Feed */,
-				EA38843523A15D2C00E8BF92 /* Messages */,
+				EA27792825BA3FEA009CA884 /* Groups */,
+				EA38843523A15D2C00E8BF92 /* Chats */,
 				685B76CB24E4A37600BF666A /* FloatingMenu.swift */,
 				762EDBDC244E5A7800986617 /* HomeViewController.swift */,
 				680FB660250C45C000CA5D40 /* OverlayView.swift */,
@@ -1188,7 +1207,7 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
-		EAC465502514827800783821 /* Group Actions */ = {
+		EAC465502514827800783821 /* Actions */ = {
 			isa = PBXGroup;
 			children = (
 				EAD944F624F73E4C004A27B1 /* GroupInfoViewController.swift */,
@@ -1196,7 +1215,7 @@
 				EAC46555251484FE00783821 /* EditGroupViewController.swift */,
 				EA5975DD252D3CF600810F48 /* GroupMemberAvatars.swift */,
 			);
-			path = "Group Actions";
+			path = Actions;
 			sourceTree = "<group>";
 		};
 		EAC4AF21233E8D9700739B2B /* Network */ = {
@@ -1771,6 +1790,7 @@
 				76538091243D4B33000AD9A1 /* FeedNotification+CoreDataClass.swift in Sources */,
 				761442C9245D4DE500DD9D1A /* UIButton.swift in Sources */,
 				768123A42485C56E008C5216 /* MainAppContext.swift in Sources */,
+				EA27790925B91E58009CA884 /* PrivacyViewController.swift in Sources */,
 				EAD476F62458F03700EF8591 /* ChatMessage+CoreDataClass.swift in Sources */,
 				761C6168242D89F90028AE19 /* TextLabel.swift in Sources */,
 				686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */,
@@ -1805,7 +1825,7 @@
 				EAA4906625311CD1003348B5 /* OutboundMsgViewCell.swift in Sources */,
 				EA0B9919249C205E00B05094 /* String.swift in Sources */,
 				76407DFC245CBAD40031F96A /* PhoneInputViewController.swift in Sources */,
-				7661D958255B184C0063404E /* SettingsViewController.swift in Sources */,
+				7661D958255B184C0063404E /* SettingsNotificationsViewController.swift in Sources */,
 				6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */,
 				68CFF38F2551FF6F009B0D81 /* Localizations+Registration.swift in Sources */,
 				EAB1FFEE2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift in Sources */,
@@ -1887,7 +1907,7 @@
 				6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */,
 				76649227245119F2009BC368 /* FeedNotifications.swift in Sources */,
 				EAA4250524F0DE360025CBBE /* ChatGroupViewController.swift in Sources */,
-				EA454B64234E769F002B960D /* ProfileViewController.swift in Sources */,
+				EA454B64234E769F002B960D /* SettingsViewController.swift in Sources */,
 				EA9B750F25A9003B00389A8E /* MsgViewCell.swift in Sources */,
 				681E0DAA24C8E0190073A03E /* NewPostViewController.swift in Sources */,
 				EA35857A2450BE3300E6E8AB /* ChatInputView.swift in Sources */,

@@ -227,7 +227,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     private lazy var floatingMenu: FloatingMenu = {
         FloatingMenu(
             permanentButton: .standardActionButton(
-                iconTemplate: UIImage(named: "TabBarGroupsActive")?.withRenderingMode(.alwaysTemplate),
+                iconTemplate: UIImage(named: "icon_fab_group_add")?.withRenderingMode(.alwaysTemplate),
                 accessibilityLabel: Localizations.fabAccessibilityNewGroup,
                 action: { [weak self] in self?.showContacts() }))
     }()

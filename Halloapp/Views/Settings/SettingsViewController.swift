@@ -1,101 +1,75 @@
 //
-//  SettingsViewController.swift
+//  ProfileViewController.swift
 //  HalloApp
 //
-//  Created by Igor Solomennikov on 11/10/20.
+//  Created by Igor Solomennikov on 10/28/20.
 //  Copyright © 2020 HalloApp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
+import Combine
 import Core
 import SwiftUI
 import UIKit
 
 private extension Localizations {
 
-    static var notifications: String {
-        NSLocalizedString("settings.notifications", value: "Notifications", comment: "Settings menu section.")
+    static var archive: String {
+        NSLocalizedString("profile.row.archive", value: "Archive", comment: "Row in Profile screen.")
     }
 
-    static var postNotifications: String {
-        NSLocalizedString("settings.notifications.posts", value: "Posts", comment: "Settings > Notifications: label for the toggle that turns new post notifications on or off.")
+    static var inviteFriends: String {
+        NSLocalizedString("profile.row.invite", value: "Invite Friends", comment: "Row in Profile screen.")
     }
 
-    static var commentNotifications: String {
-        NSLocalizedString("settings.notifications.comments", value: "Comments", comment: "Settings > Notifications: label for the toggle that turns new comment notifications on or off.")
+    static var help: String {
+        NSLocalizedString("profile.row.help", value: "Help", comment: "Row in Profile screen.")
     }
 
-    static var privacy: String {
-        NSLocalizedString("settings.privacy", value: "Privacy", comment: "Settings menu section")
-    }
-
-    static var postsPrivacy: String {
-        NSLocalizedString("settings.privacy.posts", value: "Posts", comment: "Settings > Privacy: name of a setting that defines who can see your posts.")
+    static var about: String {
+        NSLocalizedString("profile.row.about", value: "About HalloApp", comment: "Row in Profile screen.")
     }
 }
 
 class SettingsViewController: UITableViewController {
 
+    private var cancellables = Set<AnyCancellable>()
+    private var headerViewController: ProfileHeaderViewController!
+
     // MARK: Table View Data Source and Rows
 
     private enum Section {
-        case notifications
-        case privacy
+        case one
+        case two
+        case three
     }
 
     private enum Row {
-        case notificationPosts
-        case notificationComments
-        case privacyPosts
-        case privacyBlocked
+        case feed
+        case archive
+        case settings
+        case notifications
+        case privacy
+        case invite
+        case help
+        case about
     }
 
-    private class SettingsTableViewDataSource: UITableViewDiffableDataSource<Section, Row> {
-
-        override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-            let section = snapshot().sectionIdentifiers[section]
-            switch section {
-            case .notifications:
-                return Localizations.notifications
-            case .privacy:
-                return Localizations.privacy
-            }
-        }
-    }
-
-
-    private var dataSource: SettingsTableViewDataSource!
-    private var switchPostNotifications: UISwitch!
-    private var switchCommentNotifications: UISwitch!
-    private let cellPostNotifications: UITableViewCell = {
-        let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
-        cell.selectionStyle = .none
-        cell.textLabel?.text = Localizations.postNotifications
-        return cell
-    }()
-    private let cellCommentNotifications: UITableViewCell = {
-        let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
-        cell.selectionStyle = .none
-        cell.textLabel?.text = Localizations.commentNotifications
-        return cell
-    }()
-    private let cellPostsPrivacy: UITableViewCell = {
-        let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
-        cell.accessoryType = .disclosureIndicator
-        cell.textLabel?.text = Localizations.postsPrivacy
-        return cell
-    }()
-    private let cellBlockedContacts: UITableViewCell = {
-        let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
-        cell.accessoryType = .disclosureIndicator
-        cell.textLabel?.text = PrivacyList.name(forPrivacyListType: .blocked)
-        return cell
-    }()
+    private var dataSource: UITableViewDiffableDataSource<Section, Row>!
+    private let cellMyPosts = SettingsTableViewCell(text: Localizations.titleMyPosts, image: UIImage(named: "settingsMyPosts"))
+    private let cellArchive = SettingsTableViewCell(text: Localizations.archive, image: UIImage(named: "settingsArchive"))
+    private let cellSettings = SettingsTableViewCell(text: Localizations.titleSettings, image: UIImage(named: "settingsSettings"))
+    private let cellNotifications = SettingsTableViewCell(text: Localizations.titleNotifications, image: UIImage(named: "settingsNotifications"))
+    private let cellPrivacy = SettingsTableViewCell(text: Localizations.titlePrivacy, image: UIImage(named: "settingsPrivacy"))
+    private let cellInviteFriends = SettingsTableViewCell(text: Localizations.inviteFriends, image: UIImage(named: "settingsInvite"))
+    private let cellHelp = SettingsTableViewCell(text: Localizations.help, image: UIImage(named: "settingsHelp"))
+    private let cellAbout = SettingsTableViewCell(text: Localizations.about, image: UIImage(named: "settingsAbout"))
 
     // MARK: View Controller
 
-    init() {
+    init(title: String) {
         super.init(style: .grouped)
-        title = Localizations.titleSettings
+        self.title = title
     }
 
     required init?(coder: NSCoder) {
@@ -105,105 +79,165 @@ class SettingsViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        installLargeTitleUsingGothamFont()
+
+        #if DEBUG
+        let showDeveloperMenu = true
+        #else
+        let showDeveloperMenu = ServerProperties.isInternalUser
+        #endif
+        if showDeveloperMenu {
+            let image = UIImage(systemName: "hammer", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(openDeveloperMenu))
+        }
+
         tableView.backgroundColor = .feedBackground
 
-        switchPostNotifications = UISwitch()
-        switchPostNotifications.addTarget(self, action: #selector(postNotificationsValueChanged), for: .valueChanged)
-        cellPostNotifications.accessoryView = switchPostNotifications
-
-        switchCommentNotifications = UISwitch()
-        switchCommentNotifications.addTarget(self, action: #selector(commentNotificationsValueChanged), for: .valueChanged)
-        cellCommentNotifications.accessoryView = switchCommentNotifications
-
-        dataSource = SettingsTableViewDataSource(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
+        dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
             guard let self = self else { return nil }
             switch row {
-            case .notificationPosts: return self.cellPostNotifications
-            case .notificationComments: return self.cellCommentNotifications
-            case .privacyPosts: return self.cellPostsPrivacy
-            case .privacyBlocked: return self.cellBlockedContacts
+            case .feed: return self.cellMyPosts
+            case .archive: return self.cellArchive
+            case .settings: return self.cellSettings
+            case .notifications: return self.cellNotifications
+            case .privacy: return self.cellPrivacy
+            case .invite: return self.cellInviteFriends
+            case .help: return self.cellHelp
+            case .about: return self.cellAbout
             }
         })
-
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
-        snapshot.appendSections([ .notifications, .privacy ])
-        snapshot.appendItems([ .notificationPosts, .notificationComments ], toSection: .notifications)
-        snapshot.appendItems([ .privacyPosts, .privacyBlocked ], toSection: .privacy)
+        snapshot.appendSections([ .one, .two, .three ])
+        snapshot.appendItems([ .feed ], toSection: .one)
+        snapshot.appendItems([ .notifications, .privacy ], toSection: .two)
+        snapshot.appendItems([ .help, .about, .invite ], toSection: .three)
         dataSource.apply(snapshot, animatingDifferences: false)
+
+        headerViewController = ProfileHeaderViewController()
+        headerViewController.isEditingAllowed = true
+        headerViewController.configureAsHorizontal()
+        headerViewController.view.layoutMargins.bottom = 32
+        
+        cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
+            guard let self = self else { return }
+            self.headerViewController.configureForCurrentUser(withName: userName)
+            self.viewIfLoaded?.setNeedsLayout()
+        }))
+        tableView.tableHeaderView = headerViewController.view
+        tableView.contentInset.top = 10
+        addChild(headerViewController)
+        headerViewController.didMove(toParent: self)
     }
 
     override func viewWillAppear(_ animated: Bool) {
+        DDLogInfo("SettingsViewController/viewWillAppear")
         super.viewWillAppear(animated)
-        reloadSettingValues()
+
+        // This VC pushes SwiftUI views that hide the tab bar and use `navigationBarTitle` to display custom titles.
+        // These titles aren't reset when the SwiftUI views are dismissed, so we need to manually update the title
+        // here or the tab bar will show the wrong title when it reappears.
+        navigationController?.title = title
     }
 
-    // MARK: UITableViewDelegate
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
 
-    override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
-        guard let cell = tableView.cellForRow(at: indexPath) else {
-            return nil
-        }
-        guard cell.selectionStyle != .none else {
-            return nil
-        }
-        return indexPath
-    }
-
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let row = dataSource.itemIdentifier(for: indexPath) else {
-            tableView.deselectRow(at: indexPath, animated: true)
-            return
-        }
-
-        switch row {
-        case .privacyPosts:
-            openPostsPrivacy()
-        case .privacyBlocked:
-            openBlockedContacts()
-        default:
-            tableView.deselectRow(at: indexPath, animated: true)
-        }
-
-    }
-
-    // MARK: Settings
-
-    @objc private func postNotificationsValueChanged() {
-        NotificationSettings.current.isPostsEnabled = switchPostNotifications.isOn
-    }
-
-    @objc private func commentNotificationsValueChanged() {
-        NotificationSettings.current.isCommentsEnabled = switchCommentNotifications.isOn
-    }
-
-    private func reloadSettingValues() {
-        let notificationSettings = NotificationSettings.current
-        switchPostNotifications.isOn = notificationSettings.isPostsEnabled
-        switchCommentNotifications.isOn = notificationSettings.isCommentsEnabled
-
-        let privacySettings = MainAppContext.shared.privacySettings!
-        cellPostsPrivacy.detailTextLabel?.text = privacySettings.shortFeedSetting
-        cellBlockedContacts.detailTextLabel?.text = privacySettings.blockedSetting
-    }
-
-    private func openPostsPrivacy() {
-        let privacySettings = MainAppContext.shared.privacySettings!
-        let feedPrivacyView = FeedPrivacyView(privacySettings: privacySettings)
-        navigationController?.pushViewController(UIHostingController(rootView: feedPrivacyView), animated: true)
-    }
-
-    private func openBlockedContacts() {
-        let privacySettings = MainAppContext.shared.privacySettings!
-        let viewController = PrivacyListViewController(privacyList: privacySettings.blocked, settings: privacySettings)
-        viewController.dismissAction = {
-            self.reloadSettingValues()
-            self.dismiss(animated: true)
-        }
-        present(UINavigationController(rootViewController: viewController), animated: true) {
-            if let indexPathForSelectedRow = self.tableView.indexPathForSelectedRow {
-                self.tableView.deselectRow(at: indexPathForSelectedRow, animated: false)
+        // Update header's height: necessary when user changes text size setting.
+        if let headerView = tableView.tableHeaderView {
+            var targetSize = UIView.layoutFittingCompressedSize
+            targetSize.width = tableView.bounds.width
+            let headerViewHeight = headerView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel).height
+            if headerView.bounds.height != headerViewHeight {
+                headerView.bounds.size.height = headerViewHeight
+                tableView.tableHeaderView = headerView
             }
         }
     }
 
+    // MARK: Presenting View Controllers
+
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let row = dataSource.itemIdentifier(for: indexPath) else { return }
+        switch row {
+        case .feed:
+            openMyFeed()
+        case .archive:
+            openArchive()
+        case .settings:
+            openSettings()
+        case .notifications:
+            openNotifications()
+        case .privacy:
+            openPrivacy()
+        case .invite:
+            openInviteFriends()
+        case .help:
+            openHelp()
+        case .about:
+            openAbout()
+        }
+    }
+
+    private func openMyFeed() {
+        let viewController = UserFeedViewController(userId: MainAppContext.shared.userData.userId)
+        viewController.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+
+    private func openArchive() {
+
+    }
+
+    private func openSettings() {
+        let viewController = SettingsNotificationsViewController()
+        viewController.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+
+    private func openNotifications() {
+        let viewController = SettingsNotificationsViewController()
+        viewController.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+    
+    private func openPrivacy() {
+        let viewController = PrivacyViewController()
+        viewController.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+    
+    private func openInviteFriends() {
+        InviteManager.shared.requestInvitesIfNecessary()
+        let inviteView = InvitePeopleView(dismiss: { [weak self] in self?.dismiss(animated: true, completion: nil) })
+        let viewController = UIHostingController(rootView: inviteView)
+        present(UINavigationController(rootViewController: viewController), animated: true) {
+            if let indexPath = self.dataSource.indexPath(for: .invite) {
+                self.tableView.deselectRow(at: indexPath, animated: true)
+            }
+        }
+    }
+
+    private func openHelp() {
+        let viewController = HelpViewController(title: Localizations.help)
+        viewController.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+
+    private func openAbout() {
+        if let viewController = UIStoryboard.init(name: "AboutView", bundle: Bundle.main).instantiateInitialViewController() {
+            viewController.hidesBottomBarWhenPushed = true
+            navigationController?.pushViewController(viewController, animated: true)
+        }
+    }
+
+    @objc private func openDeveloperMenu() {
+        var developerMenuView = DeveloperMenuView()
+        developerMenuView.dismiss = {
+            self.navigationController?.popViewController(animated: true)
+        }
+        let viewController = UIHostingController(rootView: developerMenuView)
+        viewController.hidesBottomBarWhenPushed = true
+        viewController.title = "Developer Menu"
+        navigationController?.pushViewController(viewController, animated: true)
+    }
 }

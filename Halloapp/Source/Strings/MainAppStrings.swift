@@ -27,11 +27,19 @@ extension Localizations {
     static var titleSettings: String {
         NSLocalizedString("title.settings", value: "Settings", comment: "Fourth tab in the main app interface")
     }
-
+    
     static var titleMyPosts: String {
-        NSLocalizedString("profile.row.my.posts", value: "My Posts", comment: "Row in Profile screen.")
+        NSLocalizedString("profile.row.my.posts", value: "My Posts", comment: "Row in Settings screen")
+    }
+    
+    static var titleNotifications: String {
+        NSLocalizedString("title.notifications", value: "Notifications", comment: "Row in Settings screen")
     }
 
+    static var titlePrivacy: String {
+        NSLocalizedString("title.privacy", value: "Privacy", comment: "Row in Settings screen")
+    }
+    
     // MARK: FAB Accessibility
 
     static var fabAccessibilityCamera: String {

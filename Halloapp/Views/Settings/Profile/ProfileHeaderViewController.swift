@@ -30,7 +30,7 @@ final class ProfileHeaderViewController: UIViewController {
             }
         }
     }
-
+    
     private var headerView: ProfileHeaderView {
         view as! ProfileHeaderView
     }
@@ -64,6 +64,10 @@ final class ProfileHeaderViewController: UIViewController {
         }
     }
 
+    func configureAsHorizontal() {
+        headerView.configureAsHorizontal()
+    }
+    
     // MARK: Profile Name Editing
 
     @objc private func editName() {
@@ -169,7 +173,6 @@ private final class ProfileHeaderView: UIView {
         commonInit()
     }
 
-    private var vStack: UIStackView!
     private(set) var avatarViewButton: AvatarViewButton!
     private(set) var nameButton: UIButton!
     private var nameLabel: UILabel!
@@ -190,7 +193,7 @@ private final class ProfileHeaderView: UIView {
             }
         }
     }
-
+    
     var name: String? {
         get {
             nameLabel.text
@@ -200,7 +203,15 @@ private final class ProfileHeaderView: UIView {
             nameButton.setTitle(newValue, for: .normal)
         }
     }
-
+    
+    func configureAsHorizontal() {
+        backgroundColor = .secondarySystemGroupedBackground
+        vStack.axis = .horizontal
+        vStackTopAnchorConstraint?.constant = 16
+        vStackBottomAnchorConstraint?.constant = -16
+        avatarViewButtonHeightAnchor?.constant = 80
+    }
+    
     private func addCameraOverlayToAvatarViewButton() {
         let overlayViewDiameter: CGFloat = 27
         let cameraOverlayView = UIButton(type: .custom)
@@ -218,19 +229,24 @@ private final class ProfileHeaderView: UIView {
             cameraOverlayView.bottomAnchor.constraint(equalTo: avatarViewButton.avatarView.bottomAnchor),
             cameraOverlayView.trailingAnchor.constraint(equalTo: avatarViewButton.avatarView.trailingAnchor, constant: 8)
         ])
+        
     }
 
+    private var vStackTopAnchorConstraint: NSLayoutConstraint?
+    private var vStackBottomAnchorConstraint: NSLayoutConstraint?
+    private var avatarViewButtonHeightAnchor: NSLayoutConstraint?
+    
     private func commonInit() {
         preservesSuperviewLayoutMargins = true
-
+        
         avatarViewButton = AvatarViewButton(type: .custom)
         avatarViewButton.isUserInteractionEnabled = isEditingAllowed
         avatarViewButton.translatesAutoresizingMaskIntoConstraints = false
-        avatarViewButton.addConstraints([
-            avatarViewButton.heightAnchor.constraint(equalToConstant: 100),
-            avatarViewButton.widthAnchor.constraint(equalTo: avatarViewButton.heightAnchor)
-        ])
-
+        
+        avatarViewButtonHeightAnchor = avatarViewButton.heightAnchor.constraint(equalToConstant: 100)
+        avatarViewButton.widthAnchor.constraint(equalTo: avatarViewButton.heightAnchor).isActive = true
+        avatarViewButtonHeightAnchor?.isActive = true
+        
         let nameFont = UIFont.gothamFont(forTextStyle: .headline, pointSizeChange: 1, weight: .medium)
 
         nameLabel = UILabel()
@@ -256,16 +272,34 @@ private final class ProfileHeaderView: UIView {
         secondaryLabel.adjustsFontForContentSizeCategory = true
         secondaryLabel.font = .preferredFont(forTextStyle: .callout)
 
-        vStack = UIStackView(arrangedSubviews: [ avatarViewButton, nameLabel, nameButton, secondaryLabel ])
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.spacing = 8
-        vStack.axis = .vertical
-        vStack.alignment = .center
-        vStack.setCustomSpacing(12, after: avatarViewButton)
-        vStack.setCustomSpacing(vStack.spacing - nameButton.contentEdgeInsets.bottom, after: nameButton)
         addSubview(vStack)
-        vStack.constrain(anchor: .top, to: self, constant: 32)
-        vStack.constrain(anchor: .bottom, to: self, constant: -20)
+        vStackTopAnchorConstraint = vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 32)
+        vStackBottomAnchorConstraint = vStack.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -20)
+        vStackTopAnchorConstraint?.isActive = true
+        vStackBottomAnchorConstraint?.isActive = true
+        
         vStack.constrainMargins([ .leading, .trailing ], to: self)
     }
+    
+    private lazy var vStack: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ avatarViewButton, nameColumn ])
+        view.spacing = 8
+        view.axis = .vertical
+        view.alignment = .center
+        view.setCustomSpacing(12, after: avatarViewButton)
+        view.setCustomSpacing(view.spacing - nameButton.contentEdgeInsets.bottom, after: nameButton)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var nameColumn: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, secondaryLabel ])
+        view.axis = .vertical
+        view.alignment = .leading
+        view.spacing = 0
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+    
+        return view
+    }()
 }

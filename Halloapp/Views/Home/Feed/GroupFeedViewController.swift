@@ -53,7 +53,7 @@ class GroupFeedViewController: FeedCollectionViewController {
         navigationItem.compactAppearance = appearance
         
         NSLayoutConstraint.activate([
-            titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.7))
+            titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
         ])
         
         navigationItem.titleView = titleView

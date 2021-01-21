@@ -165,7 +165,7 @@ class HomeViewController: UITabBarController {
     }
     
     private func profileNavigationController() -> UINavigationController {
-        let navigationController = UINavigationController(rootViewController: ProfileViewController(title: Localizations.titleSettings))
+        let navigationController = UINavigationController(rootViewController: SettingsViewController(title: Localizations.titleSettings))
         navigationController.tabBarItem.image = UIImage(named: "TabBarSettings")
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarSettingsActive")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets

@@ -72,9 +72,9 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         navigationItem.scrollEdgeAppearance = appearance
         navigationItem.compactAppearance = appearance
         
-//        NSLayoutConstraint.activate([
-//            titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.7))
-//        ])
+        NSLayoutConstraint.activate([
+            titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
+        ])
         
         navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
@@ -1086,23 +1086,28 @@ class GroupTitleView: UIView {
             avatarView.isUserInteractionEnabled = false
         }
 
-        let hStack = UIStackView(arrangedSubviews: [ avatarView, nameColumn ])
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.axis = .horizontal
-        hStack.alignment = .center
-        hStack.spacing = 10
-
         addSubview(hStack)
         hStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
         hStack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor).isActive = true
         hStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor).isActive = true
-        
+
         isUserInteractionEnabled = true
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap(gesture:)))
         addGestureRecognizer(tapGesture)
     }
+    
+    private lazy var hStack: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [avatarView, nameColumn])
+        view.axis = .horizontal
+        view.alignment = .center
+        view.spacing = 10
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        
+        return view
+    }()
     
     private var avatarView: AvatarViewButton!
     
