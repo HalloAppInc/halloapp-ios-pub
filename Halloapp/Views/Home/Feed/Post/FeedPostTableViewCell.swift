@@ -608,6 +608,7 @@ final class FeedItemHeaderView: UIView {
     }
 
     var showUserAction: (() -> ())? = nil
+    var showGroupFeedAction: (() -> ())? = nil
 
     private var contentSizeCategoryDidChangeCancellable: AnyCancellable!
 
@@ -632,6 +633,22 @@ final class FeedItemHeaderView: UIView {
         label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showUser)))
         return label
     }()
+    
+    private lazy var groupNameLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .label
+        label.textAlignment = .natural
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow - 20, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        label.isUserInteractionEnabled = true
+        label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showGroupFeed)))
+        label.isHidden = true
+        return label
+    }()
 
     // Gotham Medium, 14 pt (Footnote + 1)
     private lazy var timestampLabel: UILabel = {
@@ -650,7 +667,7 @@ final class FeedItemHeaderView: UIView {
 
         addSubview(avatarViewButton)
 
-        let hStack = UIStackView(arrangedSubviews: [ nameLabel, timestampLabel ])
+        let hStack = UIStackView(arrangedSubviews: [ nameLabel, groupNameLabel, timestampLabel ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
         hStack.spacing = 8
         configure(stackView: hStack, forVerticalLayout: UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory)
@@ -690,13 +707,38 @@ final class FeedItemHeaderView: UIView {
         timestampLabel.text = post.timestamp.feedTimestamp()
         avatarViewButton.avatarView.configure(with: post.userId, using: MainAppContext.shared.avatarStore)
     }
+    
+    func configureGroupLabel(with post: FeedPost) {
+        if let groupID = post.groupId, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) {
+            
+            let attrText = NSMutableAttributedString(string: "")
+            let groupIndicatorImage: UIImage? = UIImage(systemName: "arrowtriangle.forward.fill")?.withTintColor(.systemGray3)
+            
+            if let groupIndicator = groupIndicatorImage {
+                let iconAttachment = NSTextAttachment(image: groupIndicator)
+                attrText.append(NSAttributedString(attachment: iconAttachment))
+                if let font = groupNameLabel.font {
+                    attrText.addAttributes([.font: font], range: NSRange(location: 0, length: attrText.length))
+                }
+            }
+            attrText.append(NSAttributedString(string: " \(groupChat.name)"))
+            
+            groupNameLabel.attributedText = attrText
+            groupNameLabel.isHidden = false
+        }
+    }
 
     func prepareForReuse() {
         avatarViewButton.avatarView.prepareForReuse()
+        groupNameLabel.attributedText = nil
     }
 
     @objc func showUser() {
         showUserAction?()
+    }
+    
+    @objc func showGroupFeed() {
+        showGroupFeedAction?()
     }
 
 }

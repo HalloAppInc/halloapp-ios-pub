@@ -1,9 +1,9 @@
 //
-//  ChatListViewController.swift
+//  GroupsListViewController.swift
 //  HalloApp
 //
-//  Created by Tony Jiang on 4/25/20.
-//  Copyright © 2020 Halloapp, Inc. All rights reserved.
+//  Created by Tony Jiang on 1/12/21.
+//  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
 import CocoaLumberjack
@@ -14,19 +14,19 @@ import SwiftUI
 import UIKit
 
 fileprivate struct Constants {
-    static let AvatarSize: CGFloat = 50
-//    static let LastMsgFont = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize + 1) // 14
-//    static let LastMsgColor = UIColor.secondaryLabel
+    static let AvatarSize: CGFloat = 80
+    static let LastMsgFont = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize + 1) // 14
+    static let LastMsgColor = UIColor.secondaryLabel
 }
 
 fileprivate enum ChatListViewSection {
     case main
 }
 
-class ChatListViewController: UIViewController, NSFetchedResultsControllerDelegate {
+class GroupsListViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     private static let cellReuseIdentifier = "ThreadListCell"
-    private static let inviteFriendsReuseIdentifier = "ChatListInviteFriendsCell"
+    private static let inviteFriendsReuseIdentifier = "GroupsListInviteFriendsCell"
     private let tableView = UITableView()
     
     private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
@@ -55,12 +55,12 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
     override func viewDidLoad() {
-        DDLogInfo("ChatListViewController/viewDidLoad")
+        DDLogInfo("GroupsListViewController/viewDidLoad")
 
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         installLargeTitleUsingGothamFont()
-
+        
         searchController = UISearchController(searchResultsController: nil)
         searchController.delegate = self
         searchController.searchResultsUpdater = self
@@ -97,15 +97,15 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         tableView.backgroundColor = .feedBackground
         tableView.separatorStyle = .none
-        tableView.register(ThreadListCell.self, forCellReuseIdentifier: ChatListViewController.cellReuseIdentifier)
-        tableView.register(ChatListInviteFriendsTableViewCell.self, forCellReuseIdentifier: ChatListViewController.inviteFriendsReuseIdentifier)
+        tableView.register(ThreadListCell.self, forCellReuseIdentifier: GroupsListViewController.cellReuseIdentifier)
+        tableView.register(GroupsListInviteFriendsTableViewCell.self, forCellReuseIdentifier: GroupsListViewController.inviteFriendsReuseIdentifier)
         tableView.delegate = self
         tableView.dataSource = self
         
         
-        let chatListHeaderView = ChatListHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 20))
-        chatListHeaderView.delegate = self
-        tableView.tableHeaderView = chatListHeaderView
+        let groupsListHeaderView = GroupsListHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 20))
+        groupsListHeaderView.delegate = self
+        tableView.tableHeaderView = groupsListHeaderView
         
         
         setupFetchedResultsController()
@@ -134,9 +134,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        DDLogInfo("ChatListViewController/viewWillAppear")
+        DDLogInfo("GroupsListViewController/viewWillAppear")
         super.viewWillAppear(animated)
-        populateWithSymmetricContacts()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -150,7 +149,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 
     override func viewWillDisappear(_ animated: Bool) {
-        DDLogInfo("ChatListViewController/viewWillDisappear")
+        DDLogInfo("GroupsListViewController/viewWillDisappear")
         super.viewWillDisappear(animated)
         isVisible = false
 
@@ -228,8 +227,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     private lazy var floatingMenu: FloatingMenu = {
         FloatingMenu(
             permanentButton: .standardActionButton(
-                iconTemplate: UIImage(named: "icon_fab_compose_message")?.withRenderingMode(.alwaysTemplate),
-                accessibilityLabel: Localizations.fabAccessibilityNewMessage,
+                iconTemplate: UIImage(named: "TabBarGroupsActive")?.withRenderingMode(.alwaysTemplate),
+                accessibilityLabel: Localizations.fabAccessibilityNewGroup,
                 action: { [weak self] in self?.showContacts() }))
     }()
 
@@ -240,7 +239,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 
     private func showContacts() {
-        present(UINavigationController(rootViewController: NewChatViewController(delegate: self)), animated: true)
+        present(UINavigationController(rootViewController: NewGroupMembersViewController(currentMembers: [])), animated: true)
     }
 
     // MARK: Invite friends
@@ -259,11 +258,10 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     public var fetchRequest: NSFetchRequest<ChatThread> {
         let fetchRequest = NSFetchRequest<ChatThread>(entityName: "ChatThread")
         fetchRequest.sortDescriptors = [
-            NSSortDescriptor(key: "isNew", ascending: false),
-            NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
+            NSSortDescriptor(key: "lastFeedTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
-        fetchRequest.predicate = NSPredicate(format: "groupId != nil || chatWithUserId != nil")
+        fetchRequest.predicate = NSPredicate(format: "groupId != nil")
         return fetchRequest
     }
 
@@ -277,7 +275,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             try fetchedResultsController?.performFetch()
             updateEmptyView()
         } catch {
-            fatalError("Failed to fetch feed items \(error)")
+            fatalError("Failed to fetch thread items \(error)")
         }
     }
 
@@ -294,7 +292,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         reloadTableViewInDidChangeContent = false
         trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
-        DDLogDebug("ChatListView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+        DDLogDebug("GroupsListView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
         
         if trackPerRowFRCChanges {
             tableView.beginUpdates()
@@ -307,7 +305,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         switch type {
         case .insert:
             guard let indexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/insert [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
+            DDLogDebug("GroupsListView/frc/insert [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
             if trackPerRowFRCChanges && !isFiltering {
                 tableView.insertRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -316,7 +314,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         case .delete:
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/delete [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
+            DDLogDebug("GroupsListView/frc/delete [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
       
             if trackPerRowFRCChanges && !isFiltering {
                 tableView.deleteRows(at: [ indexPath ], with: .left)
@@ -326,7 +324,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             
         case .move:
             guard let fromIndexPath = indexPath, let toIndexPath = newIndexPath, let chatThread = anObject as? ChatThread else { break }
-            DDLogDebug("ChatListView/frc/move [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] from [\(fromIndexPath)] to [\(toIndexPath)]")
+            DDLogDebug("GroupsListView/frc/move [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] from [\(fromIndexPath)] to [\(toIndexPath)]")
             if trackPerRowFRCChanges && !isFiltering {
                 tableView.moveRow(at: fromIndexPath, to: toIndexPath)
                 reloadTableViewInDidChangeContent = true
@@ -336,7 +334,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         case .update:
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { return }
-            DDLogDebug("ChatListView/frc/update [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
+            DDLogDebug("GroupsListView/frc/update [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
             if trackPerRowFRCChanges && !isFiltering {
                 tableView.reloadRows(at: [ indexPath ], with: .automatic)
             } else {
@@ -351,7 +349,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        DDLogDebug("ChatListView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
+        DDLogDebug("GroupsListView/frc/did-change perRowChanges=[\(trackPerRowFRCChanges)]  reload=[\(reloadTableViewInDidChangeContent)]")
         if trackPerRowFRCChanges {
             tableView.endUpdates()
         }
@@ -369,20 +367,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     func isScrolledFromTop(by fromTop: CGFloat) -> Bool {
         return tableView.contentOffset.y < fromTop
     }
-    
-    private func populateWithSymmetricContacts() {
-        var isTimeToCheck = true
-        if let lastCheckedForNewContacts = lastCheckedForNewContacts {
-            isTimeToCheck = abs(lastCheckedForNewContacts.timeIntervalSinceNow) >= Date.minutes(1)
-        }
         
-        if isTimeToCheck {
-            DDLogDebug("ChatListViewController/populateWithSymmetricContacts")
-            MainAppContext.shared.chatData.populateThreadsWithSymmetricContacts()
-            lastCheckedForNewContacts = Date()
-        }
-    }
-    
     private func updateVisibleCellsWithTypingIndicator() {
         guard isVisible else { return }
         for tableCell in tableView.visibleCells {
@@ -411,26 +396,31 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     // MARK: Tap Notification
     
     private func processNotification(metadata: NotificationMetadata) {
-        guard metadata.isChatNotification else {
+        guard metadata.isGroupNotification else {
             return
         }
 
         // If the user tapped on a notification, move to the chat view
-        DDLogInfo("ChatListViewController/notification/open-chat \(metadata.fromId)")
+        DDLogInfo("GroupsListViewController/notification/open-chat \(metadata.fromId)")
 
         navigationController?.popToRootViewController(animated: false)
-
-        if metadata.contentType == .chatMessage {
-            navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
-        } else if metadata.contentType == .groupChatMessage, let groupId = metadata.groupId {
-            navigationController?.pushViewController(ChatGroupViewController(for: groupId), animated: true)
+        
+        switch metadata.contentType {
+        case .groupFeedPost, .groupFeedComment:
+            if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                navigationController?.pushViewController(GroupFeedViewController(groupId: groupId), animated: false)
+            }
+            break
+        default:
+            break
         }
-        metadata.removeFromUserDefaults()
+        
+//        metadata.removeFromUserDefaults()
     }
 
     private func openFeed(forGroupId groupId: GroupID) {
         let viewController = GroupFeedViewController(groupId: groupId)
-        viewController.hidesBottomBarWhenPushed = true
+        viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
 
@@ -440,7 +430,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     }
 }
 
-extension ChatListViewController: UIViewControllerScrollsToTop {
+extension GroupsListViewController: UIViewControllerScrollsToTop {
 
     func scrollToTop(animated: Bool) {
         guard let firstSection = fetchedResultsController?.sections?.first else { return }
@@ -475,20 +465,14 @@ extension ChatListViewController: UIViewControllerScrollsToTop {
 }
 
 // MARK: Table Header Delegate
-extension ChatListViewController: ChatListHeaderViewDelegate {
-    func chatListHeaderView(_ chatListHeaderView: ChatListHeaderView) {
-        if ServerProperties.isInternalUser {
-            startInviteFriendsFlow()
-            
-        } else {
-            present(UINavigationController(rootViewController: NewGroupMembersViewController()), animated: true)
-        }
-        
+extension GroupsListViewController: GroupsListHeaderViewDelegate {
+    func groupsListHeaderView(_ groupsListHeaderView: GroupsListHeaderView) {
+        present(UINavigationController(rootViewController: NewGroupMembersViewController()), animated: true)
     }
 }
 
 // MARK: UITableView Delegates
-extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
+extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func chatThread(at indexPath: IndexPath) -> ChatThread? {
         
@@ -523,13 +507,14 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let chatThread = chatThread(at: indexPath) else {
-            let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.inviteFriendsReuseIdentifier, for: indexPath)
+            let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+            cell.backgroundColor = .clear
             return cell
         }
-        let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: GroupsListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
 
-        cell.configureAvatarSize(50)
-        cell.configure(with: chatThread)
+        cell.configureAvatarSize(80)
+        cell.configureForGroupsList(with: chatThread)
         updateCellWithChatState(cell: cell, chatThread: chatThread)
   
         if isFiltering {
@@ -551,7 +536,6 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
                 self.openFeed(forGroupId: groupId)
             }
         }
-        
         return cell
     }
 
@@ -564,16 +548,15 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
             return
         }
         
-        if chatThread.type == .oneToOne {
+        switch chatThread.type {
+        case .oneToOne:
             guard let chatWithUserId = chatThread.chatWithUserId else { return }
             let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
             vc.hidesBottomBarWhenPushed = true
-            self.navigationController?.pushViewController(vc, animated: true)
-        } else {
+            navigationController?.pushViewController(vc, animated: true)
+        case .group:
             guard let groupId = chatThread.groupId else { return }
-            let vc = ChatGroupViewController(for: groupId)
-            vc.hidesBottomBarWhenPushed = true
-            self.navigationController?.pushViewController(vc, animated: true)
+            openFeed(forGroupId: groupId)
         }
         
         tableView.deselectRow(at: indexPath, animated: true)
@@ -581,8 +564,8 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == .delete) {
-            let actionSheet = UIAlertController(title: "Are you sure you want to clear this chat?", message: nil, preferredStyle: .actionSheet)
-            actionSheet.addAction(UIAlertAction(title: "Clear Chat", style: .destructive) { [weak self] action in
+            let actionSheet = UIAlertController(title: "Are you sure you want to clear this group?", message: nil, preferredStyle: .actionSheet)
+            actionSheet.addAction(UIAlertAction(title: "Clear Group", style: .destructive) { [weak self] action in
                 guard let self = self else { return }
                 if let chatThread = self.chatThread(at: indexPath) {
                     if chatThread.type == .oneToOne {
@@ -611,7 +594,7 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
 
 }
 
-extension ChatListViewController: UISearchControllerDelegate {
+extension GroupsListViewController: UISearchControllerDelegate {
     func willDismissSearchController(_ searchController: UISearchController) {
         searchController.dismiss(animated: false, completion: {
         })
@@ -620,7 +603,7 @@ extension ChatListViewController: UISearchControllerDelegate {
 }
 
 // MARK: Search Updating Delegates
-extension ChatListViewController: UISearchResultsUpdating {
+extension GroupsListViewController: UISearchResultsUpdating {
     
     func updateSearchResults(for searchController: UISearchController) {
         guard let allChats = fetchedResultsController?.fetchedObjects else { return }
@@ -647,13 +630,13 @@ extension ChatListViewController: UISearchResultsUpdating {
             }
             return false
         }
-        DDLogDebug("ChatListViewController/updateSearchResults/filteredChats count \(filteredChats.count) for: \(searchBarText)")
+        DDLogDebug("GroupsListViewController/updateSearchResults/filteredChats count \(filteredChats.count) for: \(searchBarText)")
         
         tableView.reloadData()
     }
 }
 
-extension ChatListViewController: NewChatViewControllerDelegate {
+extension GroupsListViewController: NewChatViewControllerDelegate {
     func newChatViewController(_ controller: NewChatViewController, didSelect userId: UserID) {
         controller.dismiss(animated: true) {
             let vc = ChatViewController(for: userId)
@@ -665,12 +648,12 @@ extension ChatListViewController: NewChatViewControllerDelegate {
     }
 }
 
-protocol ChatListHeaderViewDelegate: AnyObject {
-    func chatListHeaderView(_ chatListHeaderView: ChatListHeaderView)
+protocol GroupsListHeaderViewDelegate: AnyObject {
+    func groupsListHeaderView(_ groupsListHeaderView: GroupsListHeaderView)
 }
 
-class ChatListHeaderView: UIView {
-    weak var delegate: ChatListHeaderViewDelegate?
+class GroupsListHeaderView: UIView {
+    weak var delegate: GroupsListHeaderViewDelegate?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -701,17 +684,11 @@ class ChatListHeaderView: UIView {
         label.font = UIFont.systemFont(ofSize: 15)
         label.textColor = .systemBlue
         label.textAlignment = .right
-        
-        if ServerProperties.isInternalUser {
-            label.text = Localizations.chatInviteFriends
-        } else {
-            label.text = Localizations.chatCreateNewGroup
-        }
+        label.text = Localizations.chatCreateNewGroup
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.openNewGroupView(_:)))
         label.isUserInteractionEnabled = true
         label.addGestureRecognizer(tapGesture)
-        
 
         return label
     }()
@@ -724,11 +701,11 @@ class ChatListHeaderView: UIView {
     }()
 
     @objc func openNewGroupView (_ sender: UITapGestureRecognizer) {
-        self.delegate?.chatListHeaderView(self)
+        self.delegate?.groupsListHeaderView(self)
     }
 }
 
-private class ChatListInviteFriendsTableViewCell: UITableViewCell {
+private class GroupsListInviteFriendsTableViewCell: UITableViewCell {
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)

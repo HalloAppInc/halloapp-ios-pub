@@ -24,10 +24,15 @@ extension ChatThread {
         case retracted = 7
     }
     
-    enum LastMsgMediaType: Int16 {
+    enum LastMediaType: Int16 {
         case none = 0
         case image = 1
         case video = 2
+    }
+    
+    enum LastFeedStatus: Int16 {
+        case none = 0
+        case retracted = 11
     }
     
     @nonobjc class func fetchRequest() -> NSFetchRequest<ChatThread> {
@@ -40,7 +45,6 @@ extension ChatThread {
     @NSManaged var chatWithUserId: UserID?
     
     @NSManaged var title: String?
-    @NSManaged var unreadCount: Int32
     @NSManaged var isNew: Bool
     
     @NSManaged var lastMsgId: String?
@@ -49,9 +53,18 @@ extension ChatThread {
     @NSManaged var lastMsgText: String?
     @NSManaged private var lastMsgMediaTypeValue: Int16
     @NSManaged var lastMsgTimestamp: Date?
-
+    @NSManaged var unreadCount: Int32
+    
     @NSManaged var draft: String?
     @NSManaged var draftMentions: Set<ChatMention>?
+    
+    @NSManaged var lastFeedId: String?
+    @NSManaged var lastFeedUserID: String?
+    @NSManaged private var lastFeedStatusValue: Int16
+    @NSManaged var lastFeedText: String?
+    @NSManaged private var lastFeedMediaTypeValue: Int16
+    @NSManaged var lastFeedTimestamp: Date?
+    @NSManaged var unreadFeedCount: Int32
     
     var type: ChatType {
         get {
@@ -71,14 +84,33 @@ extension ChatThread {
         }
     }
     
-    var lastMsgMediaType: LastMsgMediaType {
+    var lastMsgMediaType: LastMediaType {
         get {
-            return LastMsgMediaType(rawValue: self.lastMsgMediaTypeValue)!
+            return LastMediaType(rawValue: self.lastMsgMediaTypeValue)!
         }
         set {
             self.lastMsgMediaTypeValue = newValue.rawValue
         }
     }
+
+    var lastFeedStatus: LastFeedStatus {
+        get {
+            return LastFeedStatus(rawValue: self.lastFeedStatusValue)!
+        }
+        set {
+            self.lastFeedStatusValue = newValue.rawValue
+        }
+    }
+    
+    var lastFeedMediaType: LastMediaType {
+        get {
+            return LastMediaType(rawValue: self.lastMsgMediaTypeValue)!
+        }
+        set {
+            self.lastMsgMediaTypeValue = newValue.rawValue
+        }
+    }
+    
     
     public var orderedDraftMentions: [ChatMention] {
         get {
@@ -86,4 +118,5 @@ extension ChatThread {
             return mentions.sorted { $0.index < $1.index }
         }
     }
+
 }

@@ -20,7 +20,7 @@ extension UIViewController {
         guard let title = title else { return }
         let fontDescriptor = UIFontDescriptor
             .preferredFontDescriptor(withTextStyle: .largeTitle)
-            .addingAttributes([ .traits: [ UIFontDescriptor.TraitKey.weight: UIFont.Weight.semibold ] ])
+            .addingAttributes([ .traits: [ UIFontDescriptor.TraitKey.weight: UIFont.Weight.bold ] ])
         let attributes: [ NSAttributedString.Key : Any ] =
             [ .font: UIFont(descriptor: fontDescriptor, size: fontDescriptor.pointSize - 10), // 24 for default text size
               .foregroundColor: UIColor.label.withAlphaComponent(0.75),

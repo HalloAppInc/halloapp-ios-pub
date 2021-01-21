@@ -442,7 +442,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     private func feedPosts(with ids: Set<FeedPostID>, in managedObjectContext: NSManagedObjectContext? = nil) -> [FeedPost] {
         return feedPosts(predicate: NSPredicate(format: "id in %@", ids), in: managedObjectContext)
     }
-
+    
     func feedComment(with id: FeedPostCommentID, in managedObjectContext: NSManagedObjectContext? = nil) -> FeedPostComment? {
         let managedObjectContext = managedObjectContext ?? self.viewContext
         let fetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
@@ -682,6 +682,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPosts.forEach({ self.didReceiveFeedPost.send($0) })
         }
 
+        checkForUnreadFeed()
         return newPosts
     }
 
@@ -1311,6 +1312,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             guard post.status == .incoming else { return }
             self.internalSendSeenReceipt(for: post)
         }
+
+        checkForUnreadFeed()
     }
 
     func seenReceipts(for feedPost: FeedPost) -> [FeedPostReceipt] {
@@ -1371,6 +1374,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         return receipts
     }
 
+    let didFindUnreadFeed = PassthroughSubject<Int, Never>()
+    
+    func checkForUnreadFeed() {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let unreadFeedPosts = self.feedPosts(predicate: NSPredicate(format: "groupId = nil && statusValue = %d", FeedPost.Status.incoming.rawValue ), in: managedObjectContext)
+            self.didFindUnreadFeed.send(unreadFeedPosts.count)
+        }
+    }
+    
     // MARK: Feed Media
 
     func downloadTask(for mediaItem: FeedMedia) -> FeedDownloadManager.Task? {
@@ -1505,6 +1518,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     // MARK: Posting
+    
+    let didSendGroupFeedPost = PassthroughSubject<FeedPost, Never>()
 
     func post(text: MentionText, media: [PendingMedia], to destination: FeedPostDestination) {
         let postId: FeedPostID = UUID().uuidString
@@ -1574,6 +1589,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         save(managedObjectContext)
 
         uploadMediaAndSend(feedPost: feedPost)
+        
+        if feedPost.groupId != nil {
+            didSendGroupFeedPost.send(feedPost)
+        }
     }
 
     @discardableResult

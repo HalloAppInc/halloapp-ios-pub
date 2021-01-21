@@ -18,6 +18,8 @@ public struct ServerProperties {
         case groups
         case maxGroupSize = "max_group_size"
         case groupFeed = "group_feed"
+        case groupChat = "group_chat"
+        case combineFeed = "combine_feed"
         case silentChatMessages = "silent_chat_messages"
     }
 
@@ -35,6 +37,8 @@ public struct ServerProperties {
         static let internalUser = false
         static let groups = false
         static let groupFeed = false
+        static let groupChat = true
+        static let combineFeed = false
         static let maxGroupSize = 25
         static let silentChatMessages = 0
     }
@@ -179,7 +183,14 @@ public struct ServerProperties {
     public static var maxGroupSize: Int {
         ServerProperties.integer(forKey: .maxGroupSize) ?? Defaults.maxGroupSize
     }
+    
+    public static var isGroupChatEnabled: Bool {
+        ServerProperties.bool(forKey: .groupChat) ?? Defaults.groupChat
+    }
 
+    public static var isCombineFeedEnabled: Bool {
+        ServerProperties.bool(forKey: .combineFeed) ?? Defaults.combineFeed
+    }
     /// Number of silent chat messages to send alongside each user-initiated message
     public static var silentChatMessages: Int {
         ServerProperties.integer(forKey: .silentChatMessages) ?? Defaults.silentChatMessages

@@ -141,13 +141,13 @@ class AvatarViewButton: UIButton {
         newPostsIndicatorState = .noPosts
     }
 
-    func configure(groupId: GroupID, using avatarStore: AvatarStore) {
+    func configure(groupId: GroupID, squareSize: CGFloat = 0, using avatarStore: AvatarStore) {
         if newGroupPostsCancellable != nil {
             newGroupPostsCancellable?.cancel()
             newGroupPostsCancellable = nil
         }
 
-        avatarView.configure(groupId: groupId, using: avatarStore)
+        avatarView.configure(groupId: groupId, squareSize: squareSize, using: avatarStore)
 
         if hasNewPostsIndicator {
             newGroupPostsCancellable = MainAppContext.shared.feedData

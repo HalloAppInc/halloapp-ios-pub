@@ -777,7 +777,9 @@ fileprivate struct TextView: UIViewRepresentable {
         let newSize = textView.sizeThatFits(CGSize(width: textView.frame.size.width, height: CGFloat.greatestFiniteMagnitude))
         if resultHeight.wrappedValue != newSize.height {
             DispatchQueue.main.async {
-                resultHeight.wrappedValue = newSize.height
+                if newSize.height < 125 { // quick fix, should revisit why keyboard collapses for some phones (12 pro max) and not others (se)
+                    resultHeight.wrappedValue = newSize.height
+                }
             }
         }
     }

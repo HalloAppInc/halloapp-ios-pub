@@ -39,6 +39,10 @@ extension Localizations {
     
     // MARK: Chat Group
     
+    static var chatInviteFriends: String {
+        NSLocalizedString("chat.invite.friends", value: "Invite Friends", comment: "Label for inviting friends")
+    }
+    
     static var chatCreateNewGroup: String {
         NSLocalizedString("chat.create.new.group", value: "Create New Group", comment: "Label for creating a new group")
     }

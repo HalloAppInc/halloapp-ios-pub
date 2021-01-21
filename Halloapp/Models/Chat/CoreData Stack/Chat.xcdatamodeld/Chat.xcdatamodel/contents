@@ -113,6 +113,12 @@
         <attribute name="draft" optional="YES" attributeType="String"/>
         <attribute name="groupId" optional="YES" attributeType="String"/>
         <attribute name="isNew" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="lastFeedId" optional="YES" attributeType="String"/>
+        <attribute name="lastFeedMediaTypeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lastFeedStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lastFeedText" optional="YES" attributeType="String"/>
+        <attribute name="lastFeedTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastFeedUserID" optional="YES" attributeType="String"/>
         <attribute name="lastMsgId" optional="YES" attributeType="String"/>
         <attribute name="lastMsgMediaTypeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="lastMsgStatusValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -122,6 +128,7 @@
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="typeValue" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="unreadCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="unreadFeedCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="draftMentions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChatMention" inverseName="chatThread" inverseEntity="ChatMention"/>
     </entity>
     <elements>
@@ -135,6 +142,6 @@
         <element name="ChatMessage" positionX="-54" positionY="-9" width="128" height="284"/>
         <element name="ChatQuoted" positionX="-45" positionY="99" width="128" height="148"/>
         <element name="ChatQuotedMedia" positionX="-36" positionY="108" width="128" height="133"/>
-        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="239"/>
+        <element name="ChatThread" positionX="-36" positionY="108" width="128" height="344"/>
     </elements>
 </model>

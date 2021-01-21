@@ -33,20 +33,53 @@ class GroupFeedViewController: FeedCollectionViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-            let headerView = GroupFeedHeaderView(frame: CGRect(origin: .zero, size: CGSize(width: collectionView.frame.width, height: collectionView.frame.width)))
-            headerView.configure(withGroup: group)
-            headerView.action = { [weak self] in
-                guard let self = self else { return }
-                self.navigationController?.pushViewController(GroupInfoViewController(for: self.groupId), animated: true)
-            }
-            self.headerView = headerView
-        }
-        collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
+//        if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+//            let headerView = GroupFeedHeaderView(frame: CGRect(origin: .zero, size: CGSize(width: collectionView.frame.width, height: collectionView.frame.width)))
+//            headerView.configure(withGroup: group)
+//            headerView.action = { [weak self] in
+//                guard let self = self else { return }
+//                self.navigationController?.pushViewController(GroupInfoViewController(for: self.groupId), animated: true)
+//            }
+//            self.headerView = headerView
+//        }
+//        collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
 
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.backgroundColor = UIColor.feedBackground
+        appearance.shadowColor = .clear
+        navigationItem.standardAppearance = appearance
+        navigationItem.scrollEdgeAppearance = appearance
+        navigationItem.compactAppearance = appearance
+        
+        NSLayoutConstraint.activate([
+            titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.7))
+        ])
+        
+        navigationItem.titleView = titleView
+        titleView.translatesAutoresizingMaskIntoConstraints = false
+        titleView.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        
+        titleView.delegate = self
+        
         installFloatingActionMenu()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        titleView.update(with: groupId, isFeedView: true)
+    }
+    
+    override func showGroupName() -> Bool {
+        return false
+    }
+    
+    private lazy var titleView: GroupTitleView = {
+        let titleView = GroupTitleView()
+        titleView.translatesAutoresizingMaskIntoConstraints = false
+        return titleView
+    }()
+    
     // MARK: New post
 
     private lazy var floatingMenu: FloatingMenu = {
@@ -131,9 +164,28 @@ class GroupFeedViewController: FeedCollectionViewController {
         let layout = collectionViewLayout as! UICollectionViewFlowLayout
         var inset = layout.sectionInset
         if section == 0 {
+            inset.top = 20
             inset.bottom = 20
         }
         return inset
+    }
+}
+
+// MARK: Title View Delegates
+extension GroupFeedViewController: GroupTitleViewDelegate {
+
+    func groupTitleViewRequestsOpenGroupInfo(_ groupTitleView: GroupTitleView) {
+        let vc = GroupInfoViewController(for: groupId)
+        vc.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
+    func groupTitleViewRequestsOpenGroupFeed(_ groupTitleView: GroupTitleView) {
+        if MainAppContext.shared.chatData.chatGroup(groupId: groupId) != nil {
+            let vc = GroupFeedViewController(groupId: groupId)
+            vc.hidesBottomBarWhenPushed = true
+            navigationController?.pushViewController(vc, animated: true)
+        }
     }
 }
 

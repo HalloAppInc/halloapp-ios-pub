@@ -136,7 +136,7 @@ class FeedPostCollectionViewCellBase: UICollectionViewCell {
         return post.isPostRetracted ? DeletedPostCollectionViewCell.self : FeedPostCollectionViewCell.self
     }
 
-    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) {
+    func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool) {
         DDLogVerbose("FeedPostCollectionViewCell/configure [\(post.id)]")
 
         postId = post.id
@@ -176,6 +176,7 @@ class FeedPostCollectionViewCellBase: UICollectionViewCell {
 
 class FeedPostCollectionViewCell: FeedPostCollectionViewCellBase {
 
+    var showGroupFeedAction: ((GroupID) -> ())?
     var commentAction: (() -> ())?
     var messageAction: (() -> ())?
     var showSeenByAction: (() -> ())?
@@ -277,12 +278,19 @@ class FeedPostCollectionViewCell: FeedPostCollectionViewCellBase {
         "active-post"
     }
 
-    override func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) {
-        super.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth)
+    override func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool) {
+        super.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, showGroupName: showGroupName)
 
         headerView.configure(with: post)
+        if showGroupName {
+            headerView.configureGroupLabel(with: post)
+        }
         headerView.showUserAction = { [weak self] in
             self?.showUserAction?(post.userId)
+        }
+        headerView.showGroupFeedAction = { [weak self] in
+            guard let groupID = post.groupId else { return }
+            self?.showGroupFeedAction?(groupID)
         }
         itemContentView.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth)
         footerView.configure(with: post, contentWidth: contentWidth)
@@ -441,8 +449,8 @@ final class DeletedPostCollectionViewCell: FeedPostCollectionViewCellBase {
         "deleted-post"
     }
 
-    override func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) {
-        super.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth)
+    override func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool) {
+        super.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, showGroupName: showGroupName)
 
         headerView.configure(with: post)
         headerView.showUserAction = { [weak self] in

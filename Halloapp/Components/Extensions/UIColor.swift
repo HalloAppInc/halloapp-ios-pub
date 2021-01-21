@@ -10,6 +10,10 @@ import UIKit
 
 extension UIColor {
 
+    class var primaryBlue: UIColor {
+        UIColor(named: "PrimaryBlue")!
+    }
+    
     class var feedBackground: UIColor {
         UIColor(named: "FeedBackground")!
     }
@@ -48,5 +52,9 @@ extension UIColor {
 
     class var composerButton: UIColor {
         get { UIColor(named: "ComposerButton")! }
+    }
+    
+    class var avatarDefaultBg: UIColor {
+        UIColor(named: "AvatarDefaultBg")!
     }
 }

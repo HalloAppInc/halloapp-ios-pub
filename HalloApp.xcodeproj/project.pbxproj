@@ -198,6 +198,8 @@
 		EA79C6FD2554E89400E0525F /* Localizations+Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */; };
 		EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */; };
 		EA9B750F25A9003B00389A8E /* MsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA9B750E25A9003B00389A8E /* MsgViewCell.swift */; };
+		EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */; };
+		EAA0799725AFC71600B384AB /* ThreadListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA0799625AFC71600B384AB /* ThreadListCell.swift */; };
 		EAA424F124EC71450025CBBE /* XMPPGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F024EC71450025CBBE /* XMPPGroup.swift */; };
 		EAA424FA24ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F424ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift */; };
 		EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F524ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift */; };
@@ -518,6 +520,8 @@
 		EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Chat.swift"; sourceTree = "<group>"; };
 		EA8D4720233C25B8006E2BA5 /* VerificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationViewController.swift; sourceTree = "<group>"; };
 		EA9B750E25A9003B00389A8E /* MsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MsgViewCell.swift; sourceTree = "<group>"; };
+		EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsListViewController.swift; sourceTree = "<group>"; };
+		EAA0799625AFC71600B384AB /* ThreadListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadListCell.swift; sourceTree = "<group>"; };
 		EAA424F024EC71450025CBBE /* XMPPGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPGroup.swift; sourceTree = "<group>"; };
 		EAA424F424ECF1480025CBBE /* ChatGroupMember+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMember+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAA424F524ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMember+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -1015,7 +1019,9 @@
 				EA1112DC2527C12200F42D41 /* Seen By */,
 				EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */,
 				EABBF72524E4EDF100FE1F1F /* NewGroupMembersViewController.swift */,
+				EAA0798525AEAC9200B384AB /* GroupsListViewController.swift */,
 				EAD476CC245513EF00EF8591 /* ChatListViewController.swift */,
+				EAA0799625AFC71600B384AB /* ThreadListCell.swift */,
 				EA3585742450BE3300E6E8AB /* ChatViewController.swift */,
 				EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */,
 				EA9B750E25A9003B00389A8E /* MsgViewCell.swift */,
@@ -1789,6 +1795,7 @@
 				7653F2FA255DB4E7001CC946 /* FeedCollectionViewController.swift in Sources */,
 				EA8D4721233C25B8006E2BA5 /* VerificationViewController.swift in Sources */,
 				68C8264B251A77A000BB8F3A /* NUX.swift in Sources */,
+				EAA0799725AFC71600B384AB /* ThreadListCell.swift in Sources */,
 				EA62C28C2563577D008EA9C9 /* MsgUIProtocol.swift in Sources */,
 				76DFA00524195F2400F49CA4 /* XMPPContactSyncRequest.swift in Sources */,
 				68D45A0E25544813000BF04E /* ContactsPermissionsViewController.swift in Sources */,
@@ -1848,6 +1855,7 @@
 				76DF9FED24122EF900F49CA4 /* Feed.xcdatamodeld in Sources */,
 				146B93792405F40500768AC6 /* Font.swift in Sources */,
 				76B95CDE24295AB5007435AC /* CommentView.swift in Sources */,
+				EAA0798625AEAC9200B384AB /* GroupsListViewController.swift in Sources */,
 				76B5B52C2501EE790055E712 /* NotificationMetadata.swift in Sources */,
 				76DF9FF62412E6E700F49CA4 /* ContactStore.swift in Sources */,
 				765EB4EB24D92404002FA5D9 /* SafariView.swift in Sources */,

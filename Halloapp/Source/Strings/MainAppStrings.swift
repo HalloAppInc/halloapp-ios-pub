@@ -16,12 +16,16 @@ extension Localizations {
         NSLocalizedString("title.home", value: "Home", comment: "First tab in the main app interface.")
     }
 
-    static var titleMessages: String {
-        NSLocalizedString("title.messages", value: "Messages", comment: "Second tab in the main app interface.")
+    static var titleGroups: String {
+        NSLocalizedString("title.groups", value: "Groups", comment: "Second tab in the main app interface.")
+    }
+    
+    static var titleChats: String {
+        NSLocalizedString("title.chats", value: "Chats", comment: "Third tab in the main app interface.")
     }
 
     static var titleSettings: String {
-        NSLocalizedString("title.settings", value: "Settings", comment: "Row in Profile screen.")
+        NSLocalizedString("title.settings", value: "Settings", comment: "Fourth tab in the main app interface")
     }
 
     static var titleMyPosts: String {
@@ -31,21 +35,25 @@ extension Localizations {
     // MARK: FAB Accessibility
 
     static var fabAccessibilityCamera: String {
-        NSLocalizedString("fab.accessibility.camera", value: "Camera", comment: "VoiceOver label for camera button in floating compose post menu in Feed view.")
+        NSLocalizedString("fab.accessibility.camera", value: "Camera", comment: "VoiceOver label for camera button in floating compose post menu in Home view.")
     }
 
     static var fabAccessibilityPhotoLibrary: String {
-        NSLocalizedString("fab.accessibility.photo.library", value: "Photo Library", comment: "VoiceOver label for photo button in floating compose post menu in Feed view.")
+        NSLocalizedString("fab.accessibility.photo.library", value: "Photo Library", comment: "VoiceOver label for photo button in floating compose post menu in Home view.")
     }
 
     static var fabAccessibilityTextPost: String {
-        NSLocalizedString("fab.accessibility.text", value: "Text", comment: "VoiceOver label for text post button in floating compose post menu in Feed view.")
+        NSLocalizedString("fab.accessibility.text", value: "Text", comment: "VoiceOver label for text post button in floating compose post menu in Home view.")
     }
     
     static var fabAccessibilityNewMessage: String {
-        NSLocalizedString("fab.accessibility.new.message", value: "New message", comment: "VoiceOver label for floating compose message button in Messages view ")
+        NSLocalizedString("fab.accessibility.new.message", value: "New message", comment: "VoiceOver label for floating compose message button in Chats List view ")
     }
 
+    static var fabAccessibilityNewGroup: String {
+        NSLocalizedString("fab.accessibility.new.group", value: "New group", comment: "VoiceOver label for floating compose group button in Groups List view ")
+    }
+    
     // MARK: Message Actions
 
     static var messageReply: String {

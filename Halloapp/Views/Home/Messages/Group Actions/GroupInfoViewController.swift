@@ -459,7 +459,7 @@ class GroupInfoHeaderView: UIView {
         groupNameTextView.text = chatGroup.name
         membersLabel.text = "\(Localizations.chatGroupMembersLabel) (\(String(chatGroup.members?.count ?? 0)))"
         
-        avatarView.configure(groupId: chatGroup.groupId, using: MainAppContext.shared.avatarStore)
+        avatarView.configure(groupId: chatGroup.groupId, squareSize: Constants.AvatarSize, using: MainAppContext.shared.avatarStore)
     }
     
     public func setIsAdmin(_ isAdmin: Bool) {

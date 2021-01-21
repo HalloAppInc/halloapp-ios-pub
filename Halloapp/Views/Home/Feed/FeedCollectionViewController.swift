@@ -126,6 +126,10 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     public func shouldOpenFeed(for userId: UserID) -> Bool {
         return true
     }
+    
+    public func showGroupName() -> Bool {
+        return true
+    }
 
     // MARK: Fetched Results Controller
 
@@ -267,6 +271,11 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         navigationController?.pushViewController(userViewController, animated: true)
     }
 
+    private func showGroupFeed(for groupID: GroupID) {
+        guard MainAppContext.shared.chatData.chatGroup(groupId: groupID) != nil else { return }
+        navigationController?.pushViewController(GroupFeedViewController(groupId: groupID), animated: true)
+    }
+    
     private func cancelSending(postId: FeedPostID) {
         MainAppContext.shared.feedData.cancelMediaUpload(postId: postId)
     }
@@ -351,7 +360,7 @@ extension FeedCollectionViewController: UICollectionViewDataSource {
         let gutterWidth = (1 - FeedPostCollectionViewCellBase.LayoutConstants.backgroundPanelHMarginRatio) * collectionView.layoutMargins.left
 
         cell.maxWidth = collectionView.frame.width
-        cell.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth)
+        cell.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth, showGroupName: showGroupName())
 
         if let activePostCell = cell as? FeedPostCollectionViewCell {
             activePostCell.commentAction = { [weak self] in
@@ -369,6 +378,10 @@ extension FeedCollectionViewController: UICollectionViewDataSource {
             activePostCell.showUserAction = { [weak self] userID in
                 guard let self = self else { return }
                 self.showUserFeed(for: userID)
+            }
+            activePostCell.showGroupFeedAction = { [weak self] groupID in
+                guard let self = self else { return }
+                self.showGroupFeed(for: groupID)
             }
             activePostCell.cancelSendingAction = { [weak self] in
                 guard let self = self else { return }

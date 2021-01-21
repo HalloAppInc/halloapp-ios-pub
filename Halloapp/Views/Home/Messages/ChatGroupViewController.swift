@@ -72,9 +72,9 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         navigationItem.scrollEdgeAppearance = appearance
         navigationItem.compactAppearance = appearance
         
-        NSLayoutConstraint.activate([
-            titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.7))
-        ])
+//        NSLayoutConstraint.activate([
+//            titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.7))
+//        ])
         
         navigationItem.titleView = titleView
         titleView.translatesAutoresizingMaskIntoConstraints = false
@@ -212,6 +212,9 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
             }
         )
         
+        if !ServerProperties.isGroupChatEnabled {
+            inputAccessoryView?.isHidden = true
+        }
         configureTitleViewWithTypingIndicator()
                 
         guard let thread = MainAppContext.shared.chatData.chatThread(type: .group, id: groupId) else { return }
@@ -284,8 +287,8 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         present(controller.withNavigationController(), animated: true)
     }
     
-    private lazy var titleView: TitleView = {
-        let titleView = TitleView()
+    private lazy var titleView: GroupTitleView = {
+        let titleView = GroupTitleView()
         titleView.translatesAutoresizingMaskIntoConstraints = false
         return titleView
     }()
@@ -756,14 +759,15 @@ extension ChatGroupViewController {
     
 }
 
-extension ChatGroupViewController: TitleViewDelegate {
-    fileprivate func titleViewRequestsOpenGroupInfo(_ titleView: TitleView) {
+// MARK: Title View Delegates
+extension ChatGroupViewController: GroupTitleViewDelegate {
+    func groupTitleViewRequestsOpenGroupInfo(_ groupTitleView: GroupTitleView) {
         let vc = GroupInfoViewController(for: groupId)
         vc.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(vc, animated: true)
     }
 
-    fileprivate func titleViewRequestsOpenGroupFeed(_ titleView: TitleView) {
+    func groupTitleViewRequestsOpenGroupFeed(_ groupTitleView: GroupTitleView) {
         if MainAppContext.shared.chatData.chatGroup(groupId: groupId) != nil {
             let vc = GroupFeedViewController(groupId: groupId)
             vc.hidesBottomBarWhenPushed = true
@@ -1004,18 +1008,18 @@ fileprivate struct TrackedChatGroupMessage {
     }
 }
 
-fileprivate protocol TitleViewDelegate: AnyObject {
-    func titleViewRequestsOpenGroupInfo(_ titleView: TitleView)
-    func titleViewRequestsOpenGroupFeed(_ titleView: TitleView)
+protocol GroupTitleViewDelegate: AnyObject {
+    func groupTitleViewRequestsOpenGroupInfo(_ groupTitleView: GroupTitleView)
+    func groupTitleViewRequestsOpenGroupFeed(_ groupTitleView: GroupTitleView)
 }
 
-fileprivate class TitleView: UIView {
+class GroupTitleView: UIView {
 
     private struct LayoutConstants {
         static let avatarSize: CGFloat = 30
     }
     
-    weak var delegate: TitleViewDelegate?
+    weak var delegate: GroupTitleViewDelegate?
     
     public var isShowingTypingIndicator: Bool = false
     
@@ -1026,18 +1030,40 @@ fileprivate class TitleView: UIView {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
 
-    func update(with groupId: String) {
+    func update(with groupId: String, isFeedView: Bool = false) {
         if let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
             nameLabel.text = chatGroup.name
+            
+            var firstNameList: [String] = []
+            for member in chatGroup.orderedMembers {
+                if member.userId != MainAppContext.shared.userData.userId {
+                    firstNameList.append(MainAppContext.shared.contactStore.firstName(for: member.userId))
+                }
+            }
+            
+            let localizedFirstNameList = ListFormatter.localizedString(byJoining: firstNameList)
+
+            memberNamesLabel.text = localizedFirstNameList
+            
+            memberNamesLabel.isHidden = false
         }
         
-        avatarView.configure(groupId: groupId, using: MainAppContext.shared.avatarStore)
+        if isFeedView {
+            avatarView.configure(groupId: groupId, squareSize: 30, using: MainAppContext.shared.avatarStore)
+        } else {
+            avatarView.configure(groupId: groupId, using: MainAppContext.shared.avatarStore)
+        }
+        
+        if isFeedView {
+            avatarView.hasNewPostsIndicator = false
+            avatarView.isUserInteractionEnabled = false
+        }
     }
 
     func showChatState(with typingIndicatorStr: String?) {
         let show: Bool = typingIndicatorStr != nil
         
-        lastSeenLabel.isHidden = show
+        memberNamesLabel.isHidden = show
         typingLabel.isHidden = !show
         isShowingTypingIndicator = show
         
@@ -1081,7 +1107,7 @@ fileprivate class TitleView: UIView {
     private var avatarView: AvatarViewButton!
     
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [nameLabel, lastSeenLabel, typingLabel])
+        let view = UIStackView(arrangedSubviews: [nameLabel, memberNamesLabel, typingLabel])
         view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .vertical
         view.spacing = 0
@@ -1097,7 +1123,7 @@ fileprivate class TitleView: UIView {
         return label
     }()
     
-    private lazy var lastSeenLabel: UILabel = {
+    private lazy var memberNamesLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -1119,12 +1145,12 @@ fileprivate class TitleView: UIView {
     
     @objc func handleSingleTap(gesture: UITapGestureRecognizer) {
         if gesture.state == .ended {
-            delegate?.titleViewRequestsOpenGroupInfo(self)
+            delegate?.groupTitleViewRequestsOpenGroupInfo(self)
         }
     }
 
     @objc private func avatarButtonTapped() {
-        delegate?.titleViewRequestsOpenGroupFeed(self)
+        delegate?.groupTitleViewRequestsOpenGroupFeed(self)
     }
 }
 

@@ -11,14 +11,14 @@ import UIKit
 
 public class AvatarView: UIView {
     public static let defaultImage = UIImage(named: "UserAvatar")
-    public static let defaultGroupImage = UIImage(named: "GroupAvatar")
+    public static var defaultGroupImage = UIImage(named: "GroupAvatar")
 
     public private(set) var hasImage: Bool = false {
         didSet {
             placeholderOverlayView?.isHidden = hasImage
         }
     }
-    private let avatar = UIImageView()
+    private var avatar = UIImageView()
     private let avatarContainerView = UIView()
     private var avatarUpdatingCancellable: AnyCancellable?
     private var borderLayer: CAShapeLayer?
@@ -192,9 +192,24 @@ public class AvatarView: UIView {
 
 extension AvatarView {
     
-    public func configure(groupId: GroupID, using avatarStore: AvatarStore) {
+    public func configure(groupId: GroupID, squareSize: CGFloat = 0, using avatarStore: AvatarStore) {
+        
         let groupAvatarData = avatarStore.groupAvatarData(for: groupId)
+        
+        let isSquare = squareSize > 0
+        let borderRadius = squareSize/4
 
+        if isSquare && self.avatarContainerView.layer.cornerRadius != borderRadius {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.avatarContainerView.backgroundColor = UIColor(named: "AvatarDefaultBg")!
+                self.avatarContainerView.layer.mask = nil
+                self.avatarContainerView.layer.cornerRadius = borderRadius
+                self.avatarContainerView.clipsToBounds = true
+                self.avatarContainerView.layoutIfNeeded()
+            }
+        }
+        
         if let image = groupAvatarData.image {
             avatar.image = image
         } else {
@@ -203,7 +218,7 @@ extension AvatarView {
                 groupAvatarData.loadImage(using: avatarStore)
             }
         }
-
+                
         avatarUpdatingCancellable?.cancel()
         avatarUpdatingCancellable = groupAvatarData.imageDidChange.sink { [weak self] image in
             guard let self = self else { return }
@@ -214,5 +229,6 @@ extension AvatarView {
                 self.avatar.image = AvatarView.defaultGroupImage
             }
         }
+        
     }
 }

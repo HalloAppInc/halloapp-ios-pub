@@ -135,10 +135,11 @@ class CreateGroupViewController: UIViewController {
     private lazy var avatarView: UIImageView = {
         let view = UIImageView()
         view.image = AvatarView.defaultGroupImage
+        view.backgroundColor = .avatarDefaultBg
         view.contentMode = .scaleAspectFit
         
         view.layer.masksToBounds = false
-        view.layer.cornerRadius = Constants.AvatarSize/2
+        view.layer.cornerRadius = Constants.AvatarSize/4
         view.clipsToBounds = true
      
         view.translatesAutoresizingMaskIntoConstraints = false

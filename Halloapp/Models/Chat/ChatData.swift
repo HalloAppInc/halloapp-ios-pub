@@ -28,9 +28,11 @@ public enum UserPresenceType: Int16 {
 }
 
 class ChatData: ObservableObject {
+
     public var currentPage: Int = 0
     
     let didChangeUnreadThreadCount = PassthroughSubject<Int, Never>()
+    let didChangeUnreadThreadGroupsCount = PassthroughSubject<Int, Never>()
     let didChangeUnreadCount = PassthroughSubject<Int, Never>()
     let didGetCurrentChatPresence = PassthroughSubject<(UserPresenceType, Date?), Never>()
     let didGetChatStateInfo = PassthroughSubject<Void, Never>()
@@ -56,6 +58,12 @@ class ChatData: ObservableObject {
 //            DispatchQueue.main.async {
 //                UIApplication.shared.applicationIconBadgeNumber = self.unreadThreadCount
 //            }
+        }
+    }
+    
+    private var unreadThreadGroupsCount: Int = 0 {
+        didSet {
+            didChangeUnreadThreadGroupsCount.send(unreadThreadGroupsCount)
         }
     }
     
@@ -132,6 +140,33 @@ class ChatData: ObservableObject {
             }
         )
         
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.cancellableSet.insert(
+                MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] (feedPost) in
+                    guard let self = self else { return }
+                    guard let groupID = feedPost.groupId else { return }
+                    DDLogInfo("ChatData/didReceiveFeedPost/group/\(groupID)")
+                    self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                        guard let self = self else { return }
+                        self.updateThreadWithGroupFeed(feedPost, isInbound: true, using: managedObjectContext)
+                    }
+
+            })
+            
+            self.cancellableSet.insert(
+                MainAppContext.shared.feedData.didSendGroupFeedPost.sink { [weak self] (feedPost) in
+                    guard let self = self else { return }
+                    guard let groupID = feedPost.groupId else { return }
+                    DDLogInfo("ChatData/didSendGroupFeedPost/group/\(groupID)")
+                    self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                        guard let self = self else { return }
+                        self.updateThreadWithGroupFeed(feedPost, isInbound: false, using: managedObjectContext)
+                    }
+
+            })
+        }
+                
         cancellableSet.insert(
             service.didConnect.sink { [weak self] in
                 guard let self = self else { return }
@@ -835,7 +870,7 @@ class ChatData: ObservableObject {
             }
             chatMessage.timestamp = message.timestamp
             
-            var lastMsgMediaType: ChatThread.LastMsgMediaType = .none
+            var lastMsgMediaType: ChatThread.LastMediaType = .none
             
             message.media?.forEach { media in
                 DDLogDebug("ChatData/mergeSharedData/message/\(messageId)/add-media [\(media)]")
@@ -920,7 +955,8 @@ class ChatData: ObservableObject {
         guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return false }
         guard let topController = keyWindow.rootViewController else { return false }
         guard let homeView = topController as? UITabBarController else { return false }
-        guard homeView.selectedIndex == 1 else { return false }
+        
+        guard homeView.selectedIndex == (ServerProperties.isInternalUser ? 2 : 1) else { return false }
         guard let navigationController = homeView.selectedViewController as? UINavigationController else { return false }
         guard let chatListViewController = navigationController.topViewController as? ChatListViewController else { return false }
 
@@ -953,6 +989,22 @@ extension ChatData {
         }
     }
     
+    func setThreadUnreadFeedCount(type: ChatType, for id: String, num: Int32) {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            
+            if let chatThread = self.chatThread(type: type, id: id, in: managedObjectContext) {
+                if chatThread.unreadFeedCount != num {
+                    chatThread.unreadFeedCount = num
+                }
+            }
+
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+    
     func markThreadAsRead(type: ChatType, for id: String) {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -975,6 +1027,14 @@ extension ChatData {
         }
     }
     
+    func updateUnreadThreadGroupsCount() {
+        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+            guard let self = self else { return }
+            let threads = self.chatThreads(predicate: NSPredicate(format: "unreadFeedCount > 0"), in: managedObjectContext)
+            self.unreadThreadGroupsCount = Int(threads.count)
+        }
+    }
+
     func updateUnreadThreadCount() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
@@ -1251,7 +1311,7 @@ extension ChatData {
         chatMessage.outgoingStatus = isMsgToYourself ? .seen : .pending
         chatMessage.timestamp = Date()
 
-        var lastMsgMediaType: ChatThread.LastMsgMediaType = .none // going with the first media
+        var lastMsgMediaType: ChatThread.LastMediaType = .none // going with the first media
         
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("ChatData/createChatMsg/\(messageId)/add-media [\(mediaItem)]")
@@ -1789,7 +1849,7 @@ extension ChatData {
             chatMessage.timestamp = Date()
         }
         
-        var lastMsgMediaType: ChatThread.LastMsgMediaType = .none // going with the first media found
+        var lastMsgMediaType: ChatThread.LastMediaType = .none // going with the first media found
         
         // Process chat media
         for (index, xmppMedia) in xmppChatMessage.orderedMedia.enumerated() {
@@ -2452,7 +2512,7 @@ extension ChatData {
             }
         }
         
-        var lastMsgMediaType: ChatThread.LastMsgMediaType = .none // going with the first media
+        var lastMsgMediaType: ChatThread.LastMediaType = .none // going with the first media
         
         for (index, mediaItem) in media.enumerated() {
             DDLogDebug("ChatData/group/new-msg/\(groupMessageId)/add-media [\(mediaItem)]")
@@ -2992,6 +3052,79 @@ extension ChatData {
     
 }
 
+// MARK: Group Process Inbound/Outbound Group Feed
+extension ChatData {
+
+    private func updateThreadWithGroupFeed(_ groupFeedPost: FeedPost, isInbound: Bool, using managedObjectContext: NSManagedObjectContext) {
+        guard let groupID = groupFeedPost.groupId else { return }
+        
+        var groupExist = true
+        
+        if isInbound {
+            // if group doesn't exist yet, create
+            if chatGroup(groupId: groupID, in: managedObjectContext) == nil {
+                DDLogDebug("ChatData/group/updateThreadWithGroupFeed/group not exist yet [\(groupID)]")
+                groupExist = false
+                let chatGroup = ChatGroup(context: managedObjectContext)
+                chatGroup.groupId = groupID
+            }
+        }
+        
+        var lastFeedMediaType: ChatThread.LastMediaType = .none // going with the first media found
+        
+        // Process chat media
+        if groupFeedPost.orderedMedia.count > 0 {
+            if let firstMedia = groupFeedPost.orderedMedia.first {
+                switch firstMedia.type {
+                case .image:
+                    lastFeedMediaType = .image
+                case .video:
+                    lastFeedMediaType = .video
+                }
+            }
+        }
+        
+        // Update Chat Thread
+        let mentionText = contactStore.textWithMentions(groupFeedPost.text, orderedMentions: groupFeedPost.orderedMentions)
+        if let chatThread = chatThread(type: .group, id: groupID, in: managedObjectContext) {
+            chatThread.lastFeedId = groupFeedPost.id
+            chatThread.lastFeedUserID = groupFeedPost.userId
+            chatThread.lastFeedText = mentionText?.string ?? ""
+            chatThread.lastFeedMediaType = lastFeedMediaType
+            chatThread.lastFeedStatus = .none
+            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
+            if isInbound {
+                chatThread.unreadFeedCount = chatThread.unreadFeedCount + 1
+            }
+        } else {
+            let chatThread = ChatThread(context: managedObjectContext)
+            chatThread.type = ChatType.group
+            chatThread.groupId = groupID
+            chatThread.lastFeedId = groupFeedPost.id
+            chatThread.lastFeedUserID = groupFeedPost.userId
+            chatThread.lastFeedText = mentionText?.string ?? ""
+            chatThread.lastFeedMediaType = lastFeedMediaType
+            chatThread.lastFeedStatus = .none
+            chatThread.lastFeedTimestamp = groupFeedPost.timestamp
+            if isInbound {
+                chatThread.unreadFeedCount = 1
+            }
+        }
+        
+        save(managedObjectContext)
+        
+        if isInbound {
+            if !groupExist {
+                getAndSyncGroup(groupId: groupID)
+            }
+            
+            updateUnreadThreadGroupsCount()
+        }
+        
+    }
+    
+}
+
 extension ChatData {
     
     // MARK: Group Process Inbound Messages
@@ -3048,7 +3181,7 @@ extension ChatData {
         }
         chatGroupMessage.mentions = mentions
         
-        var lastMsgMediaType: ChatThread.LastMsgMediaType = .none // going with the first media found
+        var lastMsgMediaType: ChatThread.LastMediaType = .none // going with the first media found
         
         // Process chat media
         for (index, xmppMedia) in xmppChatGroupMessage.media.enumerated() {
@@ -3514,8 +3647,12 @@ extension ChatData {
             chatThread.lastMsgMediaType = .none
             chatThread.lastMsgStatus = .none
             
+            chatThread.lastFeedUserID = chatGroupMessage.userId
+            chatThread.lastFeedText = chatGroupMessageEvent.text
+            
             if chatGroupMessageEvent.action != .changeAvatar {
                 chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
+                chatThread.lastFeedTimestamp = chatGroupMessage.timestamp
             }
             // unreadCount is not incremented for group event messages
         }

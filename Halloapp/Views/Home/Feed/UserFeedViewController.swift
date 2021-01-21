@@ -52,12 +52,16 @@ class UserFeedViewController: FeedCollectionViewController {
         collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
     }
 
+    override func showGroupName() -> Bool {
+        return true
+    }
+    
     // MARK: FeedTableViewController
 
     override var fetchRequest: NSFetchRequest<FeedPost> {
         get {
             let fetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "userId == %@ AND groupId == nil", userId)
+            fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
             fetchRequest.sortDescriptors = [ NSSortDescriptor(keyPath: \FeedPost.timestamp, ascending: false) ]
             return fetchRequest
         }

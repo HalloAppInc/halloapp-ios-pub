@@ -14,10 +14,6 @@ import UIKit
 
 private extension Localizations {
 
-    static var titleProfile: String {
-        NSLocalizedString("title.profile", value: "Profile", comment: "Third tab in the main app interface.")
-    }
-
     static var archive: String {
         NSLocalizedString("profile.row.archive", value: "Archive", comment: "Row in Profile screen.")
     }
@@ -66,9 +62,9 @@ class ProfileViewController: UITableViewController {
 
     // MARK: View Controller
 
-    init() {
+    init(title: String) {
         super.init(style: .grouped)
-        title = Localizations.titleProfile
+        self.title = title
     }
 
     required init?(coder: NSCoder) {
