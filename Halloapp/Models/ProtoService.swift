@@ -48,6 +48,7 @@ final class ProtoService: ProtoServiceCore {
         resendNameIfNecessary()
         resendAvatarIfNecessary()
         resendAllPendingReceipts()
+        resendAllPendingAcks()
         queryAvatarForCurrentUserIfNecessary()
         requestServerPropertiesIfNecessary()
         NotificationSettings.current.sendConfigIfNecessary(using: self)
@@ -75,6 +76,8 @@ final class ProtoService: ProtoServiceCore {
     let didGetChatState = PassthroughSubject<ChatStateInfo, Never>()
     let didGetChatRetract = PassthroughSubject<ChatRetractInfo, Never>()
 
+    private let serviceQueue = DispatchQueue(label: "com.halloapp.proto.service", qos: .default)
+
     // MARK: Server Properties
 
     private var propsHash: String?
@@ -101,13 +104,12 @@ final class ProtoService: ProtoServiceCore {
     // MARK: Receipts
 
     typealias ReceiptData = (receipt: HalloReceipt, userID: UserID)
-    private let receiptsQueue = DispatchQueue(label: "com.halloapp.proto.receipts", qos: .default)
 
-    /// Maps message ID of outgoing receipts to receipt data in case we need to resend. Should only be accessed on receiptsQueue.
+    /// Maps message ID of outgoing receipts to receipt data in case we need to resend. Should only be accessed on serviceQueue.
     private var unackedReceipts: [ String : ReceiptData ] = [:]
 
     private func resendAllPendingReceipts() {
-        receiptsQueue.async {
+        serviceQueue.async {
             for (messageID, receiptData) in self.unackedReceipts {
                 self._sendReceipt(receiptData.receipt, to: receiptData.userID, messageID: messageID)
             }
@@ -115,14 +117,14 @@ final class ProtoService: ProtoServiceCore {
     }
 
     private func sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = UUID().uuidString) {
-        receiptsQueue.async {
+        serviceQueue.async {
             self._sendReceipt(receipt, to: toUserID, messageID: messageID)
         }
     }
 
     /// Handles ack if it corresponds to an unacked receipt. Calls completion block on main thread.
     private func handlePossibleReceiptAck(id: String, didFindReceipt: @escaping (Bool) -> Void) {
-        receiptsQueue.async {
+        serviceQueue.async {
             var wasReceiptFound = false
             if let (receipt, _) = self.unackedReceipts[id] {
                 DDLogInfo("proto/ack/\(id)/receipt found [\(receipt.itemId)]")
@@ -141,7 +143,7 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    /// Should only be called on receiptsQueue.
+    /// Should only be called on serviceQueue.
     private func _sendReceipt(_ receipt: HalloReceipt, to toUserID: UserID, messageID: String = UUID().uuidString) {
         unackedReceipts[messageID] = (receipt, toUserID)
 
@@ -183,15 +185,51 @@ final class ProtoService: ProtoServiceCore {
     }
 
     private func sendAck(messageID: String) {
-        var ack = Server_Ack()
-        ack.id = messageID
-        var packet = Server_Packet()
-        packet.stanza = .ack(ack)
-        if let data = try? packet.serializedData(), isConnected {
-            DDLogInfo("ProtoService/sendAck/\(messageID)/sending")
-            send(data)
-        } else {
-            DDLogInfo("ProtoService/sendAck/\(messageID)/skipping (disconnected)")
+        serviceQueue.async {
+            self._sendAcks(messageIDs: [messageID])
+        }
+    }
+
+    /// Should only be called on serviceQueue
+    private func _sendAcks(messageIDs: [String]) {
+        guard self.isConnected else {
+            DDLogInfo("proto/_sendAcks/enqueueing (disconnected) [\(messageIDs.joined(separator: ","))]")
+            self.pendingAcks += messageIDs
+            return
+        }
+        let packets: [Server_Packet] = Set(messageIDs).map {
+            var ack = Server_Ack()
+            ack.id = $0
+            var packet = Server_Packet()
+            packet.stanza = .ack(ack)
+            return packet
+        }
+        for packet in packets {
+            if let data = try? packet.serializedData() {
+                DDLogInfo("ProtoService/_sendAcks/\(packet.ack.id)/sending")
+                send(data)
+            } else {
+                DDLogError("ProtoService/_sendAcks/\(packet.ack.id)/error could not serialize packet")
+            }
+        }
+    }
+
+    /// Should only be accessed on serviceQueue
+    private var pendingAcks = [String]()
+
+    private func resendAllPendingAcks() {
+        serviceQueue.async {
+            guard self.isConnected else {
+                DDLogInfo("proto/resendPendingAcks/skipping (disconnected)")
+                return
+            }
+            guard !self.pendingAcks.isEmpty else {
+                DDLogInfo("proto/resendPendingAcks/skipping (empty)")
+                return
+            }
+            let acksToSend = self.pendingAcks
+            self.pendingAcks.removeAll()
+            self._sendAcks(messageIDs: acksToSend)
         }
     }
 
