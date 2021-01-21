@@ -592,7 +592,14 @@ fileprivate class MediaCarouselImageCollectionViewCell: MediaCarouselCollectionV
         placeholderImageView.isHidden = true
         imageView.isHidden = false
         imageView.image = image
-        imageView.contentMode = image.size.width > image.size.height || scaleContentToFit ? .scaleAspectFit : .scaleAspectFill
+
+        let isImageWideEnoughToFit: Bool = {
+            guard image.size.height > 0 && imageView.frame.height > 0 else { return true }
+            let imageAspectRatio = image.size.width / image.size.height
+            let viewAspectRatio = imageView.frame.width / imageView.frame.height
+            return imageAspectRatio >= viewAspectRatio
+        }()
+        imageView.contentMode = isImageWideEnoughToFit || scaleContentToFit ? .scaleAspectFit : .scaleAspectFill
 
         // Loading cancellable is no longer needed
         imageLoadingCancellable?.cancel()
