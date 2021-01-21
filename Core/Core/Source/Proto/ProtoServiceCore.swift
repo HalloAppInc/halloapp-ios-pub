@@ -203,6 +203,13 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     private var retryConnectionTask: DispatchWorkItem?
 
+    private lazy var dateTimeFormatterMonthDayTime: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = .autoupdatingCurrent
+        dateFormatter.setLocalizedDateFormatFromTemplate("jdMMMHHmm")
+        return dateFormatter
+    }()
+
     // MARK: State Change Callbacks
 
     private var stateChangeCallbacks: [ConnectionStateCallback] = []
@@ -507,6 +514,7 @@ extension ProtoServiceCore: CoreService {
             switch result {
             case .success(let encryptedData):
                 var chat = Server_ChatStanza()
+                chat.senderLogInfo = self.dateTimeFormatterMonthDayTime.string(from: Date())
                 chat.payload = messageData
                 chat.encPayload = encryptedData.data
                 chat.oneTimePreKeyID = Int64(encryptedData.oneTimeKeyId)

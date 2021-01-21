@@ -368,7 +368,7 @@ final class ProtoService: ProtoServiceCore {
                 if let whisperMessage = WhisperMessage(pbKeys) {
                     keyDelegate?.halloService(self, didReceiveWhisperMessage: whisperMessage)
                 } else {
-                    DDLogError("ProtoService/didReceive/\(requestID)/error could not read whisper message")
+                    DDLogError("proto/didReceive/\(requestID)/error could not read whisper message")
                 }
                 self.sendAck(messageID: msg.id)
             case .seenReceipt(let pbReceipt):
@@ -383,9 +383,15 @@ final class ProtoService: ProtoServiceCore {
                         self.didGetNewChatMessage.send(chatMessage)
                     }
                     if let error = decryptionError {
-                        DDLogError("ProtoService/didReceive/\(requestID)/decrypt/error \(error)")
+                        DDLogError("proto/didReceive/\(requestID)/decrypt/error \(error)")
                         AppContext.shared.errorLogger?.logError(error)
                         self.rerequestMessage(msg)
+                    }
+                    if !serverChat.senderClientVersion.isEmpty {
+                        DDLogError("proto/didReceive/\(requestID)/senderClient [\(serverChat.senderClientVersion)]")
+                    }
+                    if !serverChat.senderLogInfo.isEmpty {
+                        DDLogError("proto/didReceive/\(requestID)/senderLog [\(serverChat.senderLogInfo)]")
                     }
                     let senderPlatform: String? = {
                         if msg.id == msg.id.lowercased() { return "android" }
@@ -399,7 +405,7 @@ final class ProtoService: ProtoServiceCore {
                 // We ignore message content from silent messages (only interested in decryption success)
                 decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, decryptionError) in
                     if let error = decryptionError {
-                        DDLogError("ProtoService/didReceive/\(requestID)/decrypt-silent/error \(error)")
+                        DDLogError("proto/didReceive/\(requestID)/decrypt-silent/error \(error)")
                         AppContext.shared.errorLogger?.logError(error)
                         self.rerequestMessage(msg)
                     }
@@ -416,14 +422,14 @@ final class ProtoService: ProtoServiceCore {
                         DispatchQueue.main.async {
                             if let silentChat = SilentChatMessage.forRerequest(incomingID: rerequest.id) {
                                 if silentChat.rerequestCount < 5 {
-                                    DDLogInfo("Proto/didReceive/rerequest/silent/\(silentChat.id) resending")
+                                    DDLogInfo("proto/didReceive/rerequest/silent/\(silentChat.id) resending")
                                     self.sendSilentChatMessage(silentChat, encryption: AppContext.shared.encryptOperation(for: silentChat.toUserId)) { _ in }
                                 } else {
-                                    DDLogInfo("Proto/didReceive/rerequest/silent/\(silentChat.id) skipping (\(silentChat.rerequestCount) resends)")
+                                    DDLogInfo("proto/didReceive/rerequest/silent/\(silentChat.id) skipping (\(silentChat.rerequestCount) resends)")
                                 }
                                 self.sendAck(messageID: msg.id)
                             } else {
-                                DDLogInfo("Proto/didReceive/\(requestID)/rerequest/chat")
+                                DDLogInfo("proto/didReceive/\(requestID)/rerequest/chat")
                                 delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID) {
                                     self.sendAck(messageID: msg.id)
                                 }
@@ -500,14 +506,14 @@ final class ProtoService: ProtoServiceCore {
                 if let group = HalloGroup(protoGroup: pbGroup, msgId: msg.id) {
                     chatDelegate?.halloService(self, didReceiveGroupMessage: group)
                 } else {
-                    DDLogError("ProtoService/didReceive/\(requestID)/error could not read group stanza")
+                    DDLogError("proto/didReceive/\(requestID)/error could not read group stanza")
                 }
                 sendAck(messageID: msg.id)
             case .groupChat(let pbGroupChat):
                 if let groupChatMessage = HalloGroupChatMessage(pbGroupChat, id: msg.id, retryCount: msg.retryCount) {
                     chatDelegate?.halloService(self, didReceiveGroupChatMessage: groupChatMessage)
                 } else {
-                    DDLogError("ProtoService/didReceive/\(requestID)/error could not read group chat message")
+                    DDLogError("proto/didReceive/\(requestID)/error could not read group chat message")
                 }
                 sendAck(messageID: msg.id)
             case .name(let pbName):
