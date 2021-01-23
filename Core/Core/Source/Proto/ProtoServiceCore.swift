@@ -272,7 +272,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
                 payload: .silentChatStanza(silentStanza))
 
             guard let packetData = try? packet.serializedData() else {
-                AppContext.shared.eventMonitor.observe(.encryption(error: .serialization))
+                AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
                 DDLogError("ProtoServiceCore/sendSilentChatMessage/\(message.id)/error could not serialize chat message!")
                 completion(.failure(ProtoServiceCoreError.serialization))
                 return
@@ -284,7 +284,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
                     completion(.failure(ProtoServiceCoreError.disconnected))
                     return
                 }
-                AppContext.shared.eventMonitor.observe(.encryption(error: error))
+                AppContext.shared.eventMonitor.count(.encryption(error: error))
                 DDLogInfo("ProtoServiceCore/sendSilentChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
                 self.send(packetData)
                 completion(.success(()))
@@ -556,7 +556,7 @@ extension ProtoServiceCore: CoreService {
                 payload: .chatStanza(chat))
 
             guard let packetData = try? packet.serializedData() else {
-                AppContext.shared.eventMonitor.observe(.encryption(error: .serialization))
+                AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
                 DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
                 completion(.failure(ProtoServiceCoreError.serialization))
                 return
@@ -572,7 +572,7 @@ extension ProtoServiceCore: CoreService {
                     DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id)/error \(error)")
                     AppContext.shared.errorLogger?.logError(error)
                 }
-                AppContext.shared.eventMonitor.observe(.encryption(error: error))
+                AppContext.shared.eventMonitor.count(.encryption(error: error))
                 DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) sending (\(error == nil ? "encrypted" : "unencrypted"))")
                 self.send(packetData)
                 self.sendSilentChats(ServerProperties.silentChatMessages)
@@ -585,7 +585,7 @@ extension ProtoServiceCore: CoreService {
         enqueue(request: ProtoMessageRerequest(messageID: messageID, fromUserID: userData.userId, toUserID: senderID,  identityKey: identityKey, completion: completion))
     }
 
-    public func log(events: [CountableEvent], completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoLoggingRequest(events: events, completion: completion))
+    public func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoLoggingRequest(countableEvents: countableEvents, discreteEvents: discreteEvents, completion: completion))
     }
 }

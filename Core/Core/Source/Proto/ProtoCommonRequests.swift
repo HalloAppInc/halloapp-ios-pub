@@ -168,9 +168,9 @@ public final class ProtoMessageRerequest: ProtoRequest<Void> {
 
 public final class ProtoLoggingRequest: ProtoRequest<Void> {
 
-    public init(events: [CountableEvent], completion: @escaping Completion) {
+    public init(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping Completion) {
         var clientLog = Server_ClientLog()
-        clientLog.counts = events.map { event in
+        clientLog.counts = countableEvents.map { event in
             var count = Server_Count()
             count.namespace = event.namespace
             count.metric = event.metric
@@ -183,10 +183,45 @@ public final class ProtoLoggingRequest: ProtoRequest<Void> {
             }
             return count
         }
+        clientLog.events = discreteEvents.map { $0.eventData }
         
         super.init(
             iqPacket: .iqPacket(type: .set, payload: .clientLog(clientLog)),
             transform: { _ in .success(()) },
             completion: completion)
+    }
+}
+
+private extension DiscreteEvent {
+    var eventData: Server_EventData {
+        var eventData = Server_EventData()
+        eventData.edata = eData
+        return eventData
+    }
+
+    private var eData: Server_EventData.OneOf_Edata {
+        switch self {
+        case .mediaUpload(let postID, let duration, let numPhotos, let numVideos):
+            var upload = Server_MediaUpload()
+            upload.id = postID
+            upload.durationMs = UInt32(duration * 1000)
+            upload.numPhotos = UInt32(numPhotos)
+            upload.numVideos = UInt32(numVideos)
+            return .mediaUpload(upload)
+
+        case .mediaDownload(let postID, let duration, let numPhotos, let numVideos):
+            var download = Server_MediaDownload()
+            download.id = postID
+            download.durationMs = UInt32(duration * 1000)
+            download.numPhotos = UInt32(numPhotos)
+            download.numVideos = UInt32(numVideos)
+            return .mediaDownload(download)
+
+        case .pushReceived(let id, let timestamp):
+            var push = Server_PushReceived()
+            push.id = id
+            push.clientTimestamp = UInt64(timestamp.timeIntervalSince1970)
+            return .pushReceived(push)
+        }
     }
 }

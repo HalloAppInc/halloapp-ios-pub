@@ -6,71 +6,105 @@
 //  Copyright © 2020 Hallo App, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Foundation
 
 final public class EventMonitor {
 
-    public init(events: [CountableEvent] = []) {
-        for event in events {
-            add(event, to: &activeReport)
+    /// Records event count for future report
+    public func count(_ event: CountableEvent) {
+        monitorQueue.async {
+            self.activeReport.add(event: event)
         }
     }
 
-    /// Records event count for future report
-    public func observe(_ event: CountableEvent) {
+    /// Records event for future report
+    public func observe(_ event: DiscreteEvent) {
         monitorQueue.async {
-            self.add(event, to: &self.activeReport)
+            self.activeReport.discreteEvents.append(event)
         }
     }
 
     /// Records event counts for future report
-    public func observe<S: Sequence>(_ events: S) where S.Element == CountableEvent {
+    public func count<S: Sequence>(_ events: S) where S.Element == CountableEvent {
         monitorQueue.async {
             for event in events {
-                self.add(event, to: &self.activeReport)
+                self.activeReport.add(event: event)
             }
         }
     }
 
-    /// Aggregates event counts observed since last report and runs completion handler on main thread
-    public func generateReport(completion: @escaping ([CountableEvent]) -> Void) {
+    /// Aggregates events observed since last report and runs completion handler on main thread
+    public func generateReport(completion: @escaping ([CountableEvent], [DiscreteEvent]) -> Void) {
         monitorQueue.async {
-            let eventsInReport = self.events(in: self.activeReport)
+            let countableEventsInReport = self.activeReport.countableEvents
+            let discreteEventsInReport = self.activeReport.discreteEvents
             self.activeReport = Report()
             DispatchQueue.main.async {
-                completion(eventsInReport)
+                completion(countableEventsInReport, discreteEventsInReport)
             }
+        }
+    }
+
+    public func saveReport(to userDefaults: UserDefaults) {
+        monitorQueue.async {
+            do {
+                let archive = try PropertyListEncoder().encode(self.activeReport)
+                userDefaults.set(archive, forKey: self.UserDefaultsKey)
+                self.activeReport = Report()
+            } catch {
+                DDLogError("EventMonitor/save/error \(error)")
+            }
+        }
+    }
+
+    /// Loads values from user defaults
+    public func loadReport(from userDefaults: UserDefaults, clearingData: Bool = true) throws {
+        guard let data = userDefaults.data(forKey: UserDefaultsKey) else {
+            return
+        }
+        let report = try PropertyListDecoder().decode(Report.self, from: data)
+        if clearingData {
+            userDefaults.removeObject(forKey: UserDefaultsKey)
+        }
+        monitorQueue.async {
+            self.activeReport = report
         }
     }
 
     // MARK: Private
 
+    private let UserDefaultsKey = "com.halloapp.eventmonitor.report"
+    private var activeReport = Report()
+    private var monitorQueue = DispatchQueue(label: "com.halloapp.eventmonitor", qos: .userInitiated)
+
     private typealias Metric = [CountableEvent]
     private typealias Namespace = [String: Metric]
-    private typealias Report = [String: Namespace]
 
-    private var activeReport = Report()
-    private var monitorQueue = DispatchQueue(label: "EventMonitor", qos: .userInitiated)
+    private struct Report: Codable {
+        var namespaces = [String: Namespace]()
+        var discreteEvents = [DiscreteEvent]()
 
-    private func add(_ event: CountableEvent, to report: inout Report) {
-        var namespace = report[event.namespace] ?? Namespace()
-        var metric = namespace[event.metric] ?? Metric()
-        if let existingEvent = metric.first(where: { $0.dimensions == event.dimensions }) {
-            existingEvent.count += event.count
-        } else {
-            metric.append(event)
+        var countableEvents: [CountableEvent] {
+            return namespaces.values.reduce([]) { events, namespace in
+                let eventsInNamespace = namespace.values.reduce([]) { namespaceEvents, metric in
+                    namespaceEvents + metric
+                }
+                return events + eventsInNamespace
+            }
         }
 
-        namespace[event.metric] = metric
-        report[event.namespace] = namespace
-    }
-
-    private func events(in report: Report) -> [CountableEvent] {
-        return report.values.reduce([]) { events, namespace in
-            let eventsInNamespace = namespace.values.reduce([]) { namespaceEvents, metric in
-                namespaceEvents + metric
+        mutating func add(event: CountableEvent) {
+            var namespace = namespaces[event.namespace] ?? Namespace()
+            var metric = namespace[event.metric] ?? Metric()
+            if let existingEvent = metric.first(where: { $0.dimensions == event.dimensions }) {
+                existingEvent.count += event.count
+            } else {
+                metric.append(event)
             }
-            return events + eventsInNamespace
+
+            namespace[event.metric] = metric
+            namespaces[event.namespace] = namespace
         }
     }
 }

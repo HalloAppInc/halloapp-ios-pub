@@ -65,7 +65,15 @@ open class AppContext {
     public let keyStore: KeyStore
     public let fileLogger: DDFileLogger
     public let phoneNumberFormatter = PhoneNumberKit(metadataCallback: AppContext.phoneNumberKitMetadataCallback)
-    public let eventMonitor = EventMonitor()
+    public lazy var eventMonitor: EventMonitor = {
+        let monitor = EventMonitor()
+        do {
+            try monitor.loadReport(from: userDefaults)
+        } catch {
+            DDLogError("AppContext/EventMonitor/load/error \(error)")
+        }
+        return monitor
+    }()
 
     public var coreService: CoreService
     public var errorLogger: ErrorLogger?
@@ -99,7 +107,7 @@ open class AppContext {
         timer.setEventHandler(handler: { [weak self] in
             self?.sendEventReport()
         })
-        timer.schedule(deadline: .now() + interval, repeating: interval)
+        timer.schedule(deadline: .now(), repeating: interval)
         timer.resume()
         eventMonitorTimer = timer
     }
@@ -114,22 +122,25 @@ open class AppContext {
 
     private func sendEventReport() {
         DDLogInfo("AppContext/sendEventReport")
-        eventMonitor.generateReport { [weak self] events in
+        eventMonitor.generateReport { [weak self] countable, discrete in
             #if DEBUG
             DDLogInfo("AppContext/sendEventReport skipping (debug)")
             return
             #endif
-            guard !events.isEmpty else {
+            guard !countable.isEmpty || !discrete.isEmpty else {
                 DDLogInfo("AppContext/sendEventReport skipping (no events)")
                 return
             }
-            self?.coreService.log(events: events) { [weak self] result in
+            self?.coreService.log(countableEvents: countable, discreteEvents: discrete) { [weak self] result in
                 switch result {
                 case .success:
-                    DDLogInfo("AppContext/sendEventReport/success [\(events.count)]")
+                    DDLogInfo("AppContext/sendEventReport/success [\(countable.count)] [\(discrete.count)]")
                 case .failure(let error):
                     DDLogError("AppContext/sendEventReport/error \(error)")
-                    self?.eventMonitor.observe(events)
+                    self?.eventMonitor.count(countable)
+                    for event in discrete {
+                        self?.eventMonitor.observe(event)
+                    }
                 }
             }
         }

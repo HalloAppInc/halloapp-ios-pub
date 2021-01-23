@@ -55,7 +55,7 @@ public protocol CoreService {
     func rerequestMessage(_ messageID: String, senderID: UserID, identityKey: Data, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Event Logging
-    func log(events: [CountableEvent], completion: @escaping ServiceRequestCompletion<Void>)
+    func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Delegates
     var avatarDelegate: ServiceAvatarDelegate? { get set }

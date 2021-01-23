@@ -163,7 +163,7 @@ public final class UserData: ObservableObject {
         }
 
         // NB: Log event through service (not EventMonitor) so we can wait for it to be received before we migrate
-        AppContext.shared.coreService.log(events: [.passwordMigrationBegan()]) { result in
+        AppContext.shared.coreService.log(countableEvents: [.passwordMigrationBegan()], discreteEvents: []) { result in
             guard case .success = result else { return }
             self.save()
         }
@@ -268,7 +268,7 @@ public final class UserData: ObservableObject {
             try managedObjectContext.save()
             if needsKeychainMigration && passwordSaveSuccess {
                 DDLogInfo("UserData/save/keychain migrated")
-                AppContext.shared.coreService.log(events: [.passwordMigrationSucceeded()]) { _ in }
+                AppContext.shared.coreService.log(countableEvents: [.passwordMigrationSucceeded()], discreteEvents: []) { _ in }
                 needsKeychainMigration = false
             }
         } catch {

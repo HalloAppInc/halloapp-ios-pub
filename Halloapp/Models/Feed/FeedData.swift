@@ -1406,17 +1406,50 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         var downloadStarted = false
         feedPosts.forEach { feedPost in
+            let postDownloadGroup = DispatchGroup()
+            var startTime: Date?
+            var photosDownloaded = 0
+            var videosDownloaded = 0
+
             feedPost.media?.forEach { feedPostMedia in
                 // Status could be "downloading" if download has previously started
                 // but the app was terminated before the download has finished.
                 if feedPostMedia.url != nil && (feedPostMedia.status == .none || feedPostMedia.status == .downloading || feedPostMedia.status == .downloadError) {
                     let (taskAdded, task) = downloadManager.downloadMedia(for: feedPostMedia)
                     if taskAdded {
+                        switch feedPostMedia.type {
+                        case .image: photosDownloaded += 1
+                        case .video: videosDownloaded += 1
+                        }
+                        if startTime == nil {
+                            startTime = Date()
+                            DDLogInfo("FeedData/downloadMedia/post/\(feedPost.id)/starting")
+                        }
+                        postDownloadGroup.enter()
+                        cancellableSet.insert(task.downloadProgress.sink() { progress in
+                            if progress == 1 { postDownloadGroup.leave() }
+                        })
+
                         task.feedMediaObjectId = feedPostMedia.objectID
                         feedPostMedia.status = .downloading
                         downloadStarted = true
                     }
                 }
+            }
+            postDownloadGroup.notify(queue: .main) {
+                guard photosDownloaded > 0 || videosDownloaded > 0 else { return }
+                guard let startTime = startTime else {
+                    DDLogError("FeedData/downloadMedia/post/\(feedPost.id)/error start time not set")
+                    return
+                }
+                let duration = Date().timeIntervalSince(startTime)
+                DDLogInfo("FeedData/downloadMedia/post/\(feedPost.id)/finished [photos: \(photosDownloaded)] [videos: \(videosDownloaded)] [t: \(duration)]")
+                AppContext.shared.eventMonitor.observe(
+                    .mediaDownload(
+                        postID: feedPost.id,
+                        duration: duration,
+                        numPhotos: photosDownloaded,
+                        numVideos: videosDownloaded))
             }
         }
         // Use `downloadStarted` to prevent recursive saves when posting media.
@@ -1778,6 +1811,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
         var numberOfFailedUploads = 0
         let totalUploads = mediaItemsToUpload.count
+        let startTime = Date()
         DDLogInfo("FeedData/upload-media/\(postId)/starting [\(totalUploads)]")
 
         let uploadGroup = DispatchGroup()
@@ -1832,6 +1866,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 }
             } else if let feedPost = self.feedPost(with: postId) {
                 self.send(post: feedPost)
+                AppContext.shared.eventMonitor.observe(
+                    .mediaUpload(
+                        postID: postId,
+                        duration: Date().timeIntervalSince(startTime),
+                        numPhotos: mediaItemsToUpload.filter { $0.type == .image }.count,
+                        numVideos: mediaItemsToUpload.filter { $0.type == .video }.count))
             }
         }
     }

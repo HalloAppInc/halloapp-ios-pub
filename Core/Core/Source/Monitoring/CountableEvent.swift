@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class CountableEvent {
+public class CountableEvent: Codable {
 
     /// Extra dimensions should not include spaces! Keys and values should match regex [a-zA-Z_:][a-zA-Z0-9_:]*
     public init(
