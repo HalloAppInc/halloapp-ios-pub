@@ -1426,8 +1426,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                             DDLogInfo("FeedData/downloadMedia/post/\(feedPost.id)/starting")
                         }
                         postDownloadGroup.enter()
+                        var isDownloadInProgress = true
                         cancellableSet.insert(task.downloadProgress.sink() { progress in
-                            if progress == 1 { postDownloadGroup.leave() }
+                            if isDownloadInProgress && progress == 1 {
+                                isDownloadInProgress = false
+                                postDownloadGroup.leave()
+                            }
                         })
 
                         task.feedMediaObjectId = feedPostMedia.objectID
