@@ -20,6 +20,7 @@ public struct MentionableUser: Hashable {
 
 public final class Mentions {
     public static func mentionableUsersForNewPost() -> [MentionableUser] {
+
         let allContactIDs = Set(AppContext.shared.contactStore.allInNetworkContactIDs())
 
         return AppContext.shared.contactStore.fullNames(forUserIds: allContactIDs)

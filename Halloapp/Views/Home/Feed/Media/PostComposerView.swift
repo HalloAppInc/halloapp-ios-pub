@@ -12,7 +12,7 @@ protocol PostComposerViewDelegate: AnyObject {
 
 struct PostComposerViewConfiguration {
     var titleMode: PostComposerViewController.TitleMode = .userPost
-    var disableMentions = false
+    var mentionableUsers: [MentionableUser]
     var showAddMoreMediaButton = true
     var useTransparentNavigationBar = false
     var mediaCarouselMaxAspectRatio: CGFloat = 1.25
@@ -20,17 +20,22 @@ struct PostComposerViewConfiguration {
     var imageServerMaxAspectRatio: CGFloat? = 1.25
 
     static var userPost: PostComposerViewConfiguration {
-        get { PostComposerViewConfiguration(useTransparentNavigationBar: true) }
+        get { PostComposerViewConfiguration(
+            mentionableUsers: Mentions.mentionableUsersForNewPost(),
+            useTransparentNavigationBar: true) }
     }
 
-    static var groupPost: PostComposerViewConfiguration {
-        get { PostComposerViewConfiguration(titleMode: .groupPost, useTransparentNavigationBar: true) }
+    static func groupPost(id groupID: GroupID) -> PostComposerViewConfiguration {
+        PostComposerViewConfiguration(
+            titleMode: .groupPost,
+            mentionableUsers: Mentions.mentionableUsers(forGroupID: groupID),
+            useTransparentNavigationBar: true)
     }
 
     static var message: PostComposerViewConfiguration {
         get { PostComposerViewConfiguration(
             titleMode: .message,
-            disableMentions: true,
+            mentionableUsers: [],
             mediaCarouselMaxAspectRatio: 1.0,
             mediaEditMaxAspectRatio: 100,
             imageServerMaxAspectRatio: nil
@@ -135,6 +140,7 @@ class PostComposerViewController: UIViewController {
         postComposerView = PostComposerView(
             mediaItems: mediaItems,
             inputToPost: inputToPost,
+            mentionableUsers: configuration.mentionableUsers,
             shouldAutoPlay: shouldAutoPlay,
             configuration: configuration,
             prepareImages: { [weak self] isReady, imagesAreProcessed, numberOfFailedItems in
@@ -352,7 +358,7 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
-    @ObservedObject private var areMentionsDisabled: GenericObservable<Bool>
+    private let mentionableUsers: [MentionableUser]
     private let prepareImages: (Binding<Bool>, Binding<Bool>, Binding<Int>) -> Void
     private let crop: (GenericObservable<Int>) -> Void
     private let goBack: () -> Void
@@ -408,6 +414,7 @@ fileprivate struct PostComposerView: View {
     init(
         mediaItems: ObservableMediaItems,
         inputToPost: GenericObservable<MentionInput>,
+        mentionableUsers: [MentionableUser],
         shouldAutoPlay: GenericObservable<Bool>,
         configuration: PostComposerViewConfiguration,
         prepareImages: @escaping (Binding<Bool>, Binding<Bool>, Binding<Int>) -> Void,
@@ -417,8 +424,8 @@ fileprivate struct PostComposerView: View {
     {
         self.mediaItems = mediaItems
         self.inputToPost = inputToPost
+        self.mentionableUsers = mentionableUsers
         self.shouldAutoPlay = shouldAutoPlay
-        self.areMentionsDisabled = GenericObservable(configuration.disableMentions)
         self.showAddMoreMediaButton = configuration.showAddMoreMediaButton
         self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
         self.prepareImages = prepareImages
@@ -538,7 +545,12 @@ fileprivate struct PostComposerView: View {
                     .padding(.leading, 4)
                     .frame(height: postTextComputedHeight.value, alignment: .topLeading)
             }
-            TextView(mediaItems: mediaItems, input: inputToPost, textHeight: postTextHeight, areMentionsDisabled: areMentionsDisabled, shouldStopTextEdit: shouldStopTextEdit)
+            TextView(
+                mediaItems: mediaItems,
+                input: inputToPost,
+                mentionableUsers: mentionableUsers,
+                textHeight: postTextHeight,
+                shouldStopTextEdit: shouldStopTextEdit)
                 .frame(height: postTextComputedHeight.value)
         }
         .background(Color(mediaCount == 0 ? .secondarySystemGroupedBackground : .clear))
@@ -717,8 +729,8 @@ fileprivate struct PageIndexView: UIViewRepresentable {
 fileprivate struct TextView: UIViewRepresentable {
     @ObservedObject var mediaItems: ObservableMediaItems
     @ObservedObject var input: GenericObservable<MentionInput>
+    let mentionableUsers: [MentionableUser]
     @ObservedObject var textHeight: GenericObservable<CGFloat>
-    @ObservedObject var areMentionsDisabled: GenericObservable<Bool>
     @ObservedObject var shouldStopTextEdit: GenericObservable<Bool>
     @State var pendingMention: PendingMention?
 
@@ -806,13 +818,7 @@ fileprivate struct TextView: UIViewRepresentable {
             return picker
         }()
 
-        private lazy var mentionableUsers: [MentionableUser] = {
-            return Mentions.mentionableUsersForNewPost()
-        }()
-
         private func updateMentionPickerContent() {
-            guard !parent.areMentionsDisabled.value else { return }
-
             let mentionableUsers = fetchMentionPickerContent(for: parent.input.value)
 
             mentionPicker.items = mentionableUsers
@@ -840,7 +846,7 @@ fileprivate struct TextView: UIViewRepresentable {
             }
             let mentionCandidate = input.text[mentionCandidateRange]
             let trimmedInput = String(mentionCandidate.dropFirst())
-            return mentionableUsers.filter {
+            return parent.mentionableUsers.filter {
                 Mentions.isPotentialMatch(fullName: $0.fullName, input: trimmedInput)
             }
         }
@@ -849,8 +855,6 @@ fileprivate struct TextView: UIViewRepresentable {
         // MARK: UITextViewDelegate
 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-            guard !parent.areMentionsDisabled.value else { return true }
-
             var mentionInput = parent.input.value
 
             // Treat mentions atomically (editing any part of the mention should remove the whole thing)

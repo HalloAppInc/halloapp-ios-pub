@@ -91,7 +91,7 @@ final class NewPostViewController: UIViewController {
         configuration.showAddMoreMediaButton = showAddMoreMediaButton
         var recipientName: String? = nil
         if case .groupFeed(let groupId) = destination {
-            configuration = .groupPost
+            configuration = .groupPost(id: groupId)
             if let group = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                 recipientName = group.name
             }
