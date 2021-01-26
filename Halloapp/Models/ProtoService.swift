@@ -376,6 +376,10 @@ final class ProtoService: ProtoServiceCore {
     }
 
     private func rerequestMessage(_ message: Server_Msg) {
+
+        // Mark message as unprocessed before rerequesting
+        self.updateMessageStatus(id: message.id, isProcessed: false)
+
         let keyStore = AppContext.shared.keyStore
         keyStore.performSeriallyOnBackgroundContext { context in
             guard let identityKey = keyStore.keyBundle(in: context)?.identityPublicEdKey else {
@@ -446,10 +450,6 @@ final class ProtoService: ProtoServiceCore {
                     if let error = decryptionError {
                         DDLogError("proto/didReceive/\(requestID)/decrypt/error \(error)")
                         AppContext.shared.errorLogger?.logError(error)
-
-                        // Mark message as unprocessed before rerequesting
-                        self.updateMessageStatus(id: msg.id, isProcessed: false)
-
                         self.rerequestMessage(msg)
                     }
                     if !serverChat.senderClientVersion.isEmpty {
