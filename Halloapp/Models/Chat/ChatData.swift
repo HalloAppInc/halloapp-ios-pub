@@ -146,10 +146,11 @@ class ChatData: ObservableObject {
                 MainAppContext.shared.feedData.didReceiveFeedPost.sink { [weak self] (feedPost) in
                     guard let self = self else { return }
                     guard let groupID = feedPost.groupId else { return }
+                    let postID = feedPost.id
                     DDLogInfo("ChatData/didReceiveFeedPost/group/\(groupID)")
                     self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                         guard let self = self else { return }
-                        self.updateThreadWithGroupFeed(feedPost, isInbound: true, using: managedObjectContext)
+                        self.updateThreadWithGroupFeed(postID, isInbound: true, using: managedObjectContext)
                     }
 
             })
@@ -158,10 +159,11 @@ class ChatData: ObservableObject {
                 MainAppContext.shared.feedData.didSendGroupFeedPost.sink { [weak self] (feedPost) in
                     guard let self = self else { return }
                     guard let groupID = feedPost.groupId else { return }
+                    let postID = feedPost.id
                     DDLogInfo("ChatData/didSendGroupFeedPost/group/\(groupID)")
                     self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                         guard let self = self else { return }
-                        self.updateThreadWithGroupFeed(feedPost, isInbound: false, using: managedObjectContext)
+                        self.updateThreadWithGroupFeed(postID, isInbound: false, using: managedObjectContext)
                     }
 
             })
@@ -3055,7 +3057,9 @@ extension ChatData {
 // MARK: Group Process Inbound/Outbound Group Feed
 extension ChatData {
 
-    private func updateThreadWithGroupFeed(_ groupFeedPost: FeedPost, isInbound: Bool, using managedObjectContext: NSManagedObjectContext) {
+    private func updateThreadWithGroupFeed(_ id: FeedPostID, isInbound: Bool, using managedObjectContext: NSManagedObjectContext) {
+
+        guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id) else { return }
         guard let groupID = groupFeedPost.groupId else { return }
         
         var groupExist = true
