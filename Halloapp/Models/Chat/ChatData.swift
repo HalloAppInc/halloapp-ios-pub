@@ -1547,13 +1547,13 @@ extension ChatData {
                 DDLogInfo("ChatData/handleRerequest/\(messageID)/skipping (\(chatMessage.resendAttempts) resend attempts)")
                 return
             }
+            chatMessage.resendAttempts += 1
 
             let xmppChatMessage = XMPPChatMessage(chatMessage: chatMessage)
             self.backgroundProcessingQueue.async {
                 self.send(message: xmppChatMessage)
             }
 
-            chatMessage.resendAttempts += 1
             self.save(managedObjectContext)
         }
     }
