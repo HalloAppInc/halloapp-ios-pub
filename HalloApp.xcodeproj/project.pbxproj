@@ -66,7 +66,7 @@
 		761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761EE21D24B5135400B30632 /* MFMessageComposeView.swift */; };
 		7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */; };
 		7626CCDE24C738F50023FC2E /* CrashlyticsLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7626CCDD24C738F50023FC2E /* CrashlyticsLogger.swift */; };
-		76271384252D24AD00389FBC /* FeedPostTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76271383252D24AD00389FBC /* FeedPostTableViewCell.swift */; };
+		76271384252D24AD00389FBC /* FeedItemContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76271383252D24AD00389FBC /* FeedItemContentView.swift */; };
 		76271389252D250E00389FBC /* FacePileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76271388252D250E00389FBC /* FacePileView.swift */; };
 		7627173B257B0744006F7F3D /* AboutViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7627173A257B0744006F7F3D /* AboutViewController.swift */; };
 		76271758257B08E5006F7F3D /* AboutView.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 76271757257B08E5006F7F3D /* AboutView.storyboard */; };
@@ -92,7 +92,6 @@
 		76333085254A352100A1ED68 /* SettingsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76333084254A352100A1ED68 /* SettingsTableViewCell.swift */; };
 		7639BA39251944920023850E /* NextLevelSessionExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7639BA38251944920023850E /* NextLevelSessionExporter.swift */; };
 		7639BA3A251944920023850E /* NextLevelSessionExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7639BA38251944920023850E /* NextLevelSessionExporter.swift */; };
-		763B42AC243274F400FF0E82 /* FeedTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AB243274F400FF0E82 /* FeedTableViewController.swift */; };
 		763B42AE2435A74E00FF0E82 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763B42AD2435A74E00FF0E82 /* Date.swift */; };
 		76407DF8245CA3F00031F96A /* UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DF7245CA3F00031F96A /* UIViewController.swift */; };
 		76407DFC245CBAD40031F96A /* PhoneInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */; };
@@ -383,7 +382,7 @@
 		761EE21D24B5135400B30632 /* MFMessageComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MFMessageComposeView.swift; path = HalloApp/Components/Views/MFMessageComposeView.swift; sourceTree = SOURCE_ROOT; };
 		7626CCD624C69EDC0023FC2E /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CircularProgressView.swift; path = HalloApp/Components/Views/CircularProgressView.swift; sourceTree = SOURCE_ROOT; };
 		7626CCDD24C738F50023FC2E /* CrashlyticsLogger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CrashlyticsLogger.swift; path = HalloApp/Logging/CrashlyticsLogger.swift; sourceTree = SOURCE_ROOT; };
-		76271383252D24AD00389FBC /* FeedPostTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedPostTableViewCell.swift; path = HalloApp/Views/Home/Feed/Post/FeedPostTableViewCell.swift; sourceTree = SOURCE_ROOT; };
+		76271383252D24AD00389FBC /* FeedItemContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedItemContentView.swift; path = HalloApp/Views/Home/Feed/Post/FeedItemContentView.swift; sourceTree = SOURCE_ROOT; };
 		76271388252D250E00389FBC /* FacePileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FacePileView.swift; path = HalloApp/Views/Home/Feed/Post/FacePileView.swift; sourceTree = SOURCE_ROOT; };
 		7627173A257B0744006F7F3D /* AboutViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AboutViewController.swift; path = Halloapp/Views/Settings/About/AboutViewController.swift; sourceTree = SOURCE_ROOT; };
 		76271757257B08E5006F7F3D /* AboutView.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = AboutView.storyboard; path = Halloapp/Views/Settings/About/AboutView.storyboard; sourceTree = SOURCE_ROOT; };
@@ -408,7 +407,6 @@
 		7633307E254A331D00A1ED68 /* HelpViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HelpViewController.swift; path = HalloApp/Views/Settings/HelpViewController.swift; sourceTree = SOURCE_ROOT; };
 		76333084254A352100A1ED68 /* SettingsTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsTableViewCell.swift; path = HalloApp/Views/Settings/SettingsTableViewCell.swift; sourceTree = SOURCE_ROOT; };
 		7639BA38251944920023850E /* NextLevelSessionExporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NextLevelSessionExporter.swift; path = "HalloApp/Components/Third Party/NextLevelSessionExporter.swift"; sourceTree = SOURCE_ROOT; };
-		763B42AB243274F400FF0E82 /* FeedTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FeedTableViewController.swift; path = Halloapp/Views/Home/Feed/FeedTableViewController.swift; sourceTree = SOURCE_ROOT; };
 		763B42AD2435A74E00FF0E82 /* Date.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Date.swift; path = HalloApp/Components/Extensions/Date.swift; sourceTree = SOURCE_ROOT; };
 		76407DF7245CA3F00031F96A /* UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UIViewController.swift; path = HalloApp/Components/Extensions/UIViewController.swift; sourceTree = SOURCE_ROOT; };
 		76407DFB245CBAD40031F96A /* PhoneInputViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhoneInputViewController.swift; path = HalloApp/Views/Registration/PhoneInputViewController.swift; sourceTree = SOURCE_ROOT; };
@@ -773,7 +771,7 @@
 			children = (
 				76271388252D250E00389FBC /* FacePileView.swift */,
 				7653F301255DB7FE001CC946 /* FeedPostCollectionViewCell.swift */,
-				76271383252D24AD00389FBC /* FeedPostTableViewCell.swift */,
+				76271383252D24AD00389FBC /* FeedItemContentView.swift */,
 				764F7750246226120063645A /* PostDashboardViewController.swift */,
 			);
 			path = Post;
@@ -1025,7 +1023,6 @@
 				EA5414D523EE169E00390EF6 /* MediaSlider */,
 				76271381252D247700389FBC /* Post */,
 				7653F2F9255DB4E7001CC946 /* FeedCollectionViewController.swift */,
-				763B42AB243274F400FF0E82 /* FeedTableViewController.swift */,
 				76A92443244E659600794859 /* FeedViewController.swift */,
 				76654789252BE44C00379BEF /* GroupFeedViewController.swift */,
 				6829F78624D0A62800207F6B /* UserFeedViewController.swift */,
@@ -1762,7 +1759,7 @@
 				761442C1245CE4E800DD9D1A /* VerificationCodeViewController.swift in Sources */,
 				761EE21E24B5135400B30632 /* MFMessageComposeView.swift in Sources */,
 				EAA424FB24ECF1480025CBBE /* ChatGroupMember+CoreDataProperties.swift in Sources */,
-				76271384252D24AD00389FBC /* FeedPostTableViewCell.swift in Sources */,
+				76271384252D24AD00389FBC /* FeedItemContentView.swift in Sources */,
 				EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */,
 				EAA424FD24ECF1480025CBBE /* ChatGroupMessage+CoreDataProperties.swift in Sources */,
 				764F774E246224C30063645A /* ContactTableViewCell.swift in Sources */,
@@ -1829,7 +1826,6 @@
 				6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */,
 				68CFF38F2551FF6F009B0D81 /* Localizations+Registration.swift in Sources */,
 				EAB1FFEE2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift in Sources */,
-				763B42AC243274F400FF0E82 /* FeedTableViewController.swift in Sources */,
 				76538095243D4B33000AD9A1 /* FeedPostMedia+CoreDataClass.swift in Sources */,
 				764AB41824A67A5C00D4E354 /* Privacy.swift in Sources */,
 				F8C92C9A24CF17BC00B1D4E6 /* MediaEditViewController.swift in Sources */,

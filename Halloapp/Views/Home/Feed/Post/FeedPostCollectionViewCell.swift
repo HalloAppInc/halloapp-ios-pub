@@ -55,7 +55,7 @@ class FeedPostCollectionViewCellBase: UICollectionViewCell {
         static let backgroundPanelHMarginRatio: CGFloat = 0.5
     }
 
-    private(set) var backgroundPanelView: FeedTableViewCellBackgroundPanelView!
+    private(set) var backgroundPanelView: FeedItemBackgroundPanelView!
 
     private var maxWidthConstraint: NSLayoutConstraint!
     var maxWidth: CGFloat = 0 {
@@ -81,7 +81,7 @@ class FeedPostCollectionViewCellBase: UICollectionViewCell {
         contentView.constrain([ .leading, .top, .trailing ], to: self)
 
         // Background
-        backgroundPanelView = FeedTableViewCellBackgroundPanelView()
+        backgroundPanelView = FeedItemBackgroundPanelView()
         backgroundPanelView.cornerRadius = LayoutConstants.backgroundCornerRadius
         let backgroundView = UIView()
         backgroundView.preservesSuperviewLayoutMargins = true

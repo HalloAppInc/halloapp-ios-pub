@@ -88,7 +88,7 @@ class FeedViewController: FeedCollectionViewController {
         self.cancellables.forEach { $0.cancel() }
     }
 
-    // MARK: FeedTableViewController
+    // MARK: FeedCollectionViewController
 
     override var fetchRequest: NSFetchRequest<FeedPost> {
         get {

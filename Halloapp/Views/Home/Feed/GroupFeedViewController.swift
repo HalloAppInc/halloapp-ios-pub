@@ -120,7 +120,7 @@ class GroupFeedViewController: FeedCollectionViewController {
         present(newPostViewController, animated: true)
     }
 
-    // MARK: FeedTableViewController
+    // MARK: FeedCollectionViewController
 
     override var fetchRequest: NSFetchRequest<FeedPost> {
         get {

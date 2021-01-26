@@ -56,7 +56,7 @@ class UserFeedViewController: FeedCollectionViewController {
         return true
     }
     
-    // MARK: FeedTableViewController
+    // MARK: FeedCollectionViewController
 
     override var fetchRequest: NSFetchRequest<FeedPost> {
         get {
