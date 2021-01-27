@@ -127,7 +127,7 @@ fileprivate struct AlbumsView: View {
             }
             
             Text(Localizations.albums)
-                .font(.system(size: 20, weight: .medium))
+                .font(.gotham(fixedSize: 17, weight: .medium))
         }
     }
     
@@ -160,6 +160,7 @@ fileprivate struct AlbumView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 64, height: 64)
+                    .cornerRadius(8)
                     .clipped()
                     .padding()
                 

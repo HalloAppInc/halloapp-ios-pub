@@ -1018,6 +1018,15 @@ fileprivate class AssetViewCell: UICollectionViewCell {
 
         return label
     }()
+
+    lazy var favorite: UIImageView = {
+        let image = UIImage(systemName: "heart.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .bold))!.withTintColor(.init(white: 1.0, alpha: 0.6), renderingMode: .alwaysOriginal)
+        let favorite = UIImageView(image: image)
+        favorite.contentMode = .scaleAspectFit
+        favorite.translatesAutoresizingMaskIntoConstraints = false
+
+        return favorite
+    }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -1025,6 +1034,7 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         contentView.addSubview(image)
         contentView.addSubview(indicator)
         contentView.addSubview(duration)
+        contentView.addSubview(favorite)
         contentView.clipsToBounds = true
     }
     
@@ -1079,6 +1089,10 @@ fileprivate class AssetViewCell: UICollectionViewCell {
             indicator.heightAnchor.constraint(equalToConstant: 20),
             duration.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
             duration.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -6),
+            favorite.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+            favorite.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 6),
+            favorite.widthAnchor.constraint(equalToConstant: 20),
+            favorite.heightAnchor.constraint(equalToConstant: 20),
         ]
         
         NSLayoutConstraint.activate(activeConstraints)
@@ -1097,6 +1111,8 @@ fileprivate class AssetViewCell: UICollectionViewCell {
         } else {
             duration.isHidden = true
         }
+
+        favorite.isHidden = item?.asset?.isFavorite != true
 
         prepareIndicator()
 
