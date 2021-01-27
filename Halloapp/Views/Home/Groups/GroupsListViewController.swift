@@ -107,18 +107,8 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         groupsListHeaderView.delegate = self
         tableView.tableHeaderView = groupsListHeaderView
         
-        
         setupFetchedResultsController()
-        
-        cancellableSet.insert(
-            MainAppContext.shared.chatData.didGetChatStateInfo.sink { [weak self] in
-                guard let self = self else { return }
-                DispatchQueue.main.async {
-                    self.updateVisibleCellsWithTypingIndicator()
-                }
-            }
-        )
-        
+                
         // When the user was on this view
         cancellableSet.insert(
             MainAppContext.shared.didTapNotification.sink { [weak self] (metadata) in
@@ -259,6 +249,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         let fetchRequest = NSFetchRequest<ChatThread>(entityName: "ChatThread")
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(key: "lastFeedTimestamp", ascending: false),
+            NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
         fetchRequest.predicate = NSPredicate(format: "groupId != nil")
@@ -367,32 +358,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     func isScrolledFromTop(by fromTop: CGFloat) -> Bool {
         return tableView.contentOffset.y < fromTop
     }
-        
-    private func updateVisibleCellsWithTypingIndicator() {
-        guard isVisible else { return }
-        for tableCell in tableView.visibleCells {
-            guard let cell = tableCell as? ThreadListCell else { continue }
-            guard let chatThread = cell.chatThread else { continue }
-            updateCellWithChatState(cell: cell, chatThread: chatThread)
-        }
-    }
-    
-    private func updateCellWithChatState(cell: ThreadListCell, chatThread: ChatThread) {
-        var typingIndicatorStr: String? = nil
-        
-        if chatThread.type == .oneToOne {
-            typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: chatThread.type, id: chatThread.chatWithUserId)
-        } else if chatThread.type == .group {
-            typingIndicatorStr = MainAppContext.shared.chatData.getTypingIndicatorString(type: chatThread.type, id: chatThread.groupId)
-        }
 
-        if typingIndicatorStr == nil && !cell.isShowingTypingIndicator {
-            return
-        }
-        
-        cell.configureTypingIndicator(typingIndicatorStr)
-    }
-   
     // MARK: Tap Notification
     
     private func processNotification(metadata: NotificationMetadata) {
@@ -515,7 +481,6 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
 
         cell.configureAvatarSize(80)
         cell.configureForGroupsList(with: chatThread)
-        updateCellWithChatState(cell: cell, chatThread: chatThread)
   
         if isFiltering {
             let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)
@@ -762,3 +727,4 @@ private class GroupsListInviteFriendsTableViewCell: UITableViewCell {
         ])
     }
 }
+

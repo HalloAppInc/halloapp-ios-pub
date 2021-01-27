@@ -982,6 +982,17 @@
 			path = Groups;
 			sourceTree = "<group>";
 		};
+		EA27793225BA4682009CA884 /* Message */ = {
+			isa = PBXGroup;
+			children = (
+				EA62C28B2563577D008EA9C9 /* MsgUIProtocol.swift */,
+				EA9B750E25A9003B00389A8E /* MsgViewCell.swift */,
+				EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */,
+				EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */,
+			);
+			path = Message;
+			sourceTree = "<group>";
+		};
 		EA35856A2450BE2900E6E8AB /* Chat */ = {
 			isa = PBXGroup;
 			children = (
@@ -1035,16 +1046,13 @@
 			children = (
 				EAD476D124588DB600EF8591 /* MediaSlider */,
 				EA1112DC2527C12200F42D41 /* Seen By */,
+				EA27793225BA4682009CA884 /* Message */,
 				EA52EB17245A012700FB03F6 /* NewMessageViewController.swift */,
 				EAD476CC245513EF00EF8591 /* ChatListViewController.swift */,
 				EAA0799625AFC71600B384AB /* ThreadListCell.swift */,
 				EA3585742450BE3300E6E8AB /* ChatViewController.swift */,
 				EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */,
-				EA9B750E25A9003B00389A8E /* MsgViewCell.swift */,
-				EABDC976253424E1005FE00A /* InboundMsgViewCell.swift */,
-				EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */,
 				EA3585752450BE3300E6E8AB /* ChatInputView.swift */,
-				EA62C28B2563577D008EA9C9 /* MsgUIProtocol.swift */,
 				EA388C5B2520EB9500DEAB53 /* Banner.swift */,
 				EA79C6FC2554E89400E0525F /* Localizations+Chat.swift */,
 			);

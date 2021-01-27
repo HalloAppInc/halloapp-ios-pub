@@ -12,8 +12,8 @@ extension Localizations {
 
     // MARK: Chat
     
-    static var chatTypingCapitalized: String {
-        NSLocalizedString("chat.typing.capitalized", value: "Typing...", comment: "Capitalized label shown when user is typing")
+    static var chatTyping: String {
+        NSLocalizedString("chat.typing.capitalized", value: "typing...", comment: "Label shown when user is typing")
     }
     
     static var chatMessageDeleted: String {

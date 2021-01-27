@@ -1138,6 +1138,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     // MARK: Retracts
+    
+    let didProcessGroupFeedPostRetract = PassthroughSubject<FeedPostID, Never>()
 
     private func processPostRetract(_ postId: FeedPostID, completion: @escaping () -> Void) {
         performSeriallyOnBackgroundContext { (managedObjectContext) in
@@ -1178,6 +1180,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.save(managedObjectContext)
             }
 
+            if feedPost.groupId != nil {
+                self.didProcessGroupFeedPostRetract.send(feedPost.id)
+            }
+            
             completion()
         }
     }
@@ -1955,6 +1961,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     
     // MARK: Merge Data
     
+    let didMergeFeedPost = PassthroughSubject<FeedPostID, Never>()
+    
     func mergeData(from sharedDataStore: SharedDataStore, completion: @escaping () -> ()) {
         let posts = sharedDataStore.posts()
         guard !posts.isEmpty else {
@@ -1974,7 +1982,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         let postIds = Set(posts.map{ $0.id })
         let existingPosts = feedPosts(with: postIds, in: managedObjectContext).reduce(into: [FeedPostID: FeedPost]()) { $0[$1.id] = $1 }
         var addedPostIDs = Set<FeedPostID>()
-
+        var newMergedPosts: [FeedPostID] = []
+        
         for post in posts {
             guard existingPosts[post.id] == nil else {
                 DDLogError("FeedData/merge-data/duplicate (pre-existing) [\(post.id)]")
@@ -2069,10 +2078,15 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
             }
+            
+            newMergedPosts.append(feedPost.id)
+            
         }
 
         save(managedObjectContext)
 
+        newMergedPosts.forEach({ didMergeFeedPost.send($0) })
+    
         DDLogInfo("FeedData/merge-data/finished")
 
         sharedDataStore.delete(posts: posts) {

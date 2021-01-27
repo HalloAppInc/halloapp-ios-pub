@@ -23,8 +23,6 @@ class ThreadListCell: UITableViewCell {
     
     public var avatarSize: CGFloat = 50
     
-    private var newGroupPostsCancellable: AnyCancellable?
-
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
@@ -48,8 +46,6 @@ class ThreadListCell: UITableViewCell {
         unreadCountView.isHidden = true
 
         avatarView.avatarView.prepareForReuse()
-        
-        newGroupPostsCancellable?.cancel()
     }
 
     // 14 points for font
@@ -151,7 +147,7 @@ class ThreadListCell: UITableViewCell {
         var messageText = chatThread.lastFeedText ?? ""
 
         if [.retracted].contains(chatThread.lastFeedStatus) {
-            messageText = Localizations.chatMessageDeleted
+            messageText = Localizations.postHasBeenDeleted
         }
 
         var mediaIcon: UIImage?
@@ -246,7 +242,7 @@ class ThreadListCell: UITableViewCell {
     }
     
     func configureForGroupsList(with chatThread: ChatThread) {
-        guard let groupID = chatThread.groupId else { return }
+        guard chatThread.groupId != nil else { return }
         self.chatThread = chatThread
         nameLabel.text = chatThread.title
         
@@ -271,20 +267,6 @@ class ThreadListCell: UITableViewCell {
 
         avatarView.configure(groupId: chatThread.groupId ?? "", squareSize: 80, using: MainAppContext.shared.avatarStore)
         
-        newGroupPostsCancellable?.cancel()
-        newGroupPostsCancellable = MainAppContext.shared.feedData
-            .groupFeedStates
-            .map({ $0[groupID] ?? .noPosts })
-            .sink(receiveValue: { (state) in
-                switch state {
-                case .noPosts: break
-                case .newPosts(let numNew, _):
-                    MainAppContext.shared.chatData.setThreadUnreadFeedCount(type: .group, for: groupID, num: Int32(numNew))
-                case .seenPosts(_):
-                    MainAppContext.shared.chatData.setThreadUnreadFeedCount(type: .group, for: groupID, num: 0)
-                    MainAppContext.shared.chatData.updateUnreadThreadGroupsCount()
-                }
-            })
     }
 
     func highlightTitle(_ searchItems: [String]) {
@@ -441,4 +423,12 @@ private class UnreadBadgeView: UIView {
         label.widthAnchor.constraint(greaterThanOrEqualTo: label.heightAnchor, multiplier: 1).isActive = true
         label.constrainMargins(to: self)
     }
+}
+
+private extension Localizations {
+
+    static var postHasBeenDeleted: String {
+        NSLocalizedString("post.has.been.deleted", value: "This post has been deleted", comment: "Displayed in place of a deleted group feed post at group list screen")
+    }
+
 }

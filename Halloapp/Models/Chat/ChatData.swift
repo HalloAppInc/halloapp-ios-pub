@@ -27,6 +27,7 @@ public enum UserPresenceType: Int16 {
     case away = 2
 }
 
+
 class ChatData: ObservableObject {
 
     public var currentPage: Int = 0
@@ -36,6 +37,8 @@ class ChatData: ObservableObject {
     let didChangeUnreadCount = PassthroughSubject<Int, Never>()
     let didGetCurrentChatPresence = PassthroughSubject<(UserPresenceType, Date?), Never>()
     let didGetChatStateInfo = PassthroughSubject<Void, Never>()
+    
+    let didGetMediaDownloadProgress = PassthroughSubject<Void, Never>()
     
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
@@ -78,6 +81,8 @@ class ChatData: ObservableObject {
     private var currentlyDownloading: [URL] = []
     private let maxTries: Int = 10
     
+    
+    
     private let persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: MainAppContext.chatStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
@@ -110,12 +115,13 @@ class ChatData: ObservableObject {
         self.service = service
         self.contactStore = contactStore
         self.userData = userData
-        mediaUploader = MediaUploader(service: service)
         
-        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
-        viewContext = persistentContainer.viewContext
-        bgContext = persistentContainer.newBackgroundContext()
-
+        self.mediaUploader = MediaUploader(service: service)
+        
+        self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+        self.viewContext = persistentContainer.viewContext
+        self.bgContext = persistentContainer.newBackgroundContext()
+        
         self.service.chatDelegate = self
         
         mediaUploader.resolveMediaPath = { relativePath in
@@ -152,8 +158,19 @@ class ChatData: ObservableObject {
                         guard let self = self else { return }
                         self.updateThreadWithGroupFeed(postID, isInbound: true, using: managedObjectContext)
                     }
-
-            })
+                }
+            )
+            
+            self.cancellableSet.insert(
+                MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] (postID) in
+                    guard let self = self else { return }
+                    DDLogInfo("ChatData/didMergeFeedPost")
+                    self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                        guard let self = self else { return }
+                        self.updateThreadWithGroupFeed(postID, isInbound: true, using: managedObjectContext)
+                    }
+                }
+            )
             
             self.cancellableSet.insert(
                 MainAppContext.shared.feedData.didSendGroupFeedPost.sink { [weak self] (feedPost) in
@@ -165,8 +182,40 @@ class ChatData: ObservableObject {
                         guard let self = self else { return }
                         self.updateThreadWithGroupFeed(postID, isInbound: false, using: managedObjectContext)
                     }
+                }
+            )
+            
+            self.cancellableSet.insert(
+                MainAppContext.shared.feedData.didProcessGroupFeedPostRetract.sink { [weak self] (feedPostID) in
+                    guard let self = self else { return }
+                    DDLogInfo("ChatData/didProcessGroupFeedPostRetract")
+                    self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+                        guard let self = self else { return }
 
-            })
+                        self.updateThreadWithGroupFeedRetract(feedPostID, using: managedObjectContext)
+                    }
+                }
+            )
+            
+            self.cancellableSet.insert(
+                MainAppContext.shared.feedData.groupFeedStates.sink{ [weak self] (statesList) in
+                    guard let self = self else { return }
+                    statesList.forEach({ (keyGroupId, state) in
+                        switch state {
+                        case .noPosts: break
+                        case .newPosts(let numNew, _):
+                            self.setThreadUnreadFeedCount(type: .group, for: keyGroupId, num: Int32(numNew))
+                        case .seenPosts(_):
+                            self.updateChatThread(type: .group, for: keyGroupId, block: { thread in
+                                guard thread.unreadFeedCount > 0 else { return }
+                                thread.unreadFeedCount = 0
+                                self.updateUnreadThreadGroupsCount()
+                            })
+                        }
+                    })
+                }
+            )
+            
         }
                 
         cancellableSet.insert(
@@ -388,7 +437,7 @@ class ChatData: ObservableObject {
             }
         }
     }
-
+    
     func processInboundPendingChatMsgMedia() {
         guard currentlyDownloading.count <= maxNumDownloads else { return }
         
@@ -432,7 +481,7 @@ class ChatData: ObservableObject {
                         chatMessage.media?[index].numTries += 1
                     }
                 }
-                
+                                
                 _ = ChatMediaDownloader(url: url, completion: { [weak self] (outputUrl) in
                     guard let self = self else { return }
                     if let index = self.currentlyDownloading.firstIndex(of: url) {
@@ -506,6 +555,7 @@ class ChatData: ObservableObject {
                         self.processInboundPendingGroupChatMsgMedia()
                     }
                 })
+
             }
         }
     }
@@ -1128,6 +1178,7 @@ extension ChatData {
             }
         }
     }
+
 }
 
 // MARK: Chat State
@@ -1149,7 +1200,7 @@ extension ChatData {
         switch type {
         case .oneToOne:
             chatStateList = chatStateInfoList.filter { $0.threadType == .oneToOne && $0.threadID == id }
-            typingStr = Localizations.chatTypingCapitalized
+            typingStr = Localizations.chatTyping
         case .group:
             chatStateList = chatStateInfoList.filter { $0.threadType == .group && $0.threadID == id }
         }
@@ -3124,6 +3175,21 @@ extension ChatData {
             
             updateUnreadThreadGroupsCount()
         }
+        
+    }
+    
+    private func updateThreadWithGroupFeedRetract(_ id: FeedPostID, using managedObjectContext: NSManagedObjectContext) {
+        
+        guard let groupFeedPost = MainAppContext.shared.feedData.feedPost(with: id) else { return }
+        guard let groupID = groupFeedPost.groupId else { return }
+        
+        guard let thread = chatThread(type: .group, id: groupID, in: managedObjectContext) else { return }
+        
+        guard thread.lastFeedId == id else { return }
+        
+        thread.lastFeedStatus = .retracted
+        
+        save(managedObjectContext)
         
     }
     
