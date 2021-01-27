@@ -53,6 +53,14 @@ private extension Localizations {
         let format = NSLocalizedString("picker.media.n.limit", comment: "Message in media picker when selecting over limit.")
         return String.localizedStringWithFormat(format, maxNumberOfPhotos)
     }
+
+    static var mediaFailTitle: String {
+        NSLocalizedString("picker.media.fail.title", value: "Failed to load media", comment: "Alert title in media picker when unable to load media file.")
+    }
+
+    static var mediaFailMessage: String {
+        NSLocalizedString("picker.media.fail.message", value: "Please try again or select different photo or video.", comment: "Alert message in media picker when unable to load media file.")
+    }
 }
 
 private struct Constants {
@@ -641,22 +649,19 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     media.asset = asset
                     media.order = i + 1
 
-                    let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                    media.videoURL = base.appendingPathComponent("video-\(UUID().uuidString).mp4")
-
                     let options = PHVideoRequestOptions()
                     options.isNetworkAccessAllowed = true
 
                     group.enter()
                     manager.requestAVAsset(forVideo: asset, options: options) { avasset, _, _ in
-                        let video = avasset as! AVURLAsset
+                        defer { group.leave() }
+                        guard let video = avasset as? AVURLAsset else { return }
+
                         media.videoURL = video.url
 
                         if let url = media.videoURL, let size = VideoUtils.resolutionForLocalVideo(url: url) {
                             media.size = size
                         }
-
-                        group.leave()
                     }
                     
                     result.append(media)
@@ -667,12 +672,23 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
             
             group.notify(queue: .main) { [weak self] in
                 guard let self = self else { return }
+                self.nextInProgress = false
+
+                for media in result {
+                    if (media.type == .video && media.videoURL == nil) || (media.type == .image && media.image == nil) {
+                        let alert = UIAlertController(title: Localizations.mediaFailTitle,
+                                                      message: Localizations.mediaFailMessage,
+                                                      preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
+                        self.present(alert, animated: true)
+                        return
+                    }
+                }
 
                 if !self.multiselect {
                     self.selected.removeAll()
                 }
 
-                self.nextInProgress = false
                 self.didFinish(self, result, false)
             }
         }
