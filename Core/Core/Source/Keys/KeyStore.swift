@@ -45,8 +45,11 @@ open class KeyStore {
     public let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.keys")
     public let userData: UserData
     
+    private var bgContext: NSManagedObjectContext
+    
     required public init(userData: UserData) {
         self.userData = userData
+        self.bgContext = persistentContainer.newBackgroundContext()
     }
     
     // MARK: CoreData stack
@@ -70,7 +73,7 @@ open class KeyStore {
         }
     }
     
-    public private(set) lazy var persistentContainer: NSPersistentContainer = {
+    public private(set) var persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: KeyStore.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
@@ -94,12 +97,12 @@ open class KeyStore {
     }
     
     public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
-        self.backgroundProcessingQueue.async {
-            let managedObjectContext = self.persistentContainer.newBackgroundContext()
-            managedObjectContext.performAndWait { block(managedObjectContext) }
+        backgroundProcessingQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.bgContext.performAndWait { block(self.bgContext) }
         }
     }
-    
+        
     public var viewContext: NSManagedObjectContext {
         get {
             self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
@@ -1069,7 +1072,7 @@ extension KeyStore {
         group.enter()
 
         performSeriallyOnBackgroundContext { (managedObjectContext) in
-            if let savedKeyBundle = self.messageKeyBundle(for: userId)?.keyBundle {
+            if let savedKeyBundle = self.messageKeyBundle(for: userId, in: managedObjectContext)?.keyBundle {
                 keyBundle = savedKeyBundle
                 group.leave()
             } else {
@@ -1108,11 +1111,11 @@ extension KeyStore {
     /// Decrypts on background serial queue and dispatches completion handler onto main queue.
     public func decryptPayload(for userId: String, encryptedPayload: Data, publicKey: Data?, oneTimeKeyID: Int?, completion: @escaping (Result<Data, DecryptionError>) -> Void) {
 
-        performSeriallyOnBackgroundContext { _ in
+        performSeriallyOnBackgroundContext { managedObjectContext in
             var keyBundle: KeyBundle
             var isNewReceiveSession: Bool
 
-            if let savedKeyBundle = self.messageKeyBundle(for: userId)?.keyBundle,
+            if let savedKeyBundle = self.messageKeyBundle(for: userId, in: managedObjectContext)?.keyBundle,
                savedKeyBundle.inboundEphemeralPublicKey == self.ephemeralPublicKey(in: encryptedPayload)
             {
                 DDLogInfo("KeyData/decryptPayload/user/\(userId)/found key bundle with matching ephemeral key")
