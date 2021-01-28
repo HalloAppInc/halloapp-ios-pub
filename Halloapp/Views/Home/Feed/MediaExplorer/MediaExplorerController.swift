@@ -7,6 +7,7 @@
 
 import AVKit
 import Core
+import CoreData
 import Foundation
 import UIKit
 
@@ -28,6 +29,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     private var isSystemUIHidden = false
     private var isTransition = false
     private var animator: MediaExplorerAnimator!
+    private var fetchedResultsController: NSFetchedResultsController<ChatMedia>?
 
     private var currentIndex: Int {
         didSet {
@@ -78,6 +80,11 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         self.currentIndex = index
 
         super.init(nibName: nil, bundle: nil)
+
+        self.currentIndex = computePosition(for: media[index])
+
+        fetchedResultsController = makeFetchedResultsController(media[index])
+        try? fetchedResultsController?.performFetch()
     }
 
     init(media: [ChatQuotedMedia], index: Int) {
@@ -127,7 +134,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
             collectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
         ])
 
-        if media.count > 1 {
+        if media.count > 1 && fetchedResultsController == nil {
             pageControl = makePageControl()
             self.view.addSubview(pageControl)
 
@@ -153,10 +160,8 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if media[currentIndex].type == .video {
-            if let cell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0)) as? MediaExplorerVideoCell {
-                cell.play()
-            }
+        if let cell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0)) as? MediaExplorerVideoCell {
+            cell.play()
         }
     }
 
@@ -239,6 +244,49 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         return pageControl
     }
 
+    private func makeFetchedResultsController(_ media: ChatMedia) -> NSFetchedResultsController<ChatMedia> {
+        let request: NSFetchRequest<ChatMedia> = ChatMedia.fetchRequest()
+        request.fetchBatchSize = 5
+
+        if let message = media.message {
+            request.predicate = .init(format: "(message.fromUserId = %@ AND message.toUserId = %@) || (message.toUserId = %@ && message.fromUserId = %@)", message.fromUserId, message.toUserId, message.fromUserId, message.toUserId)
+            request.sortDescriptors = [
+                NSSortDescriptor(key: "message.timestamp", ascending: true),
+                NSSortDescriptor(keyPath: \ChatMedia.order, ascending: true),
+            ]
+        } else if let message = media.groupMessage {
+            request.predicate = .init(format: "groupMessage.groupId = %@", message.groupId)
+            request.sortDescriptors = [
+                NSSortDescriptor(key: "groupMessage.timestamp", ascending: true),
+                NSSortDescriptor(keyPath: \ChatMedia.order, ascending: true),
+            ]
+        }
+
+        return NSFetchedResultsController(fetchRequest: request, managedObjectContext: MainAppContext.shared.chatData.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+    }
+
+    private func computePosition(for media: ChatMedia) -> Int {
+        let request: NSFetchRequest<ChatMedia> = ChatMedia.fetchRequest()
+
+        if let message = media.message {
+            request.predicate = .init(format: "((message.fromUserId = %@ AND message.toUserId = %@) || (message.toUserId = %@ && message.fromUserId = %@)) && message.timestamp < %@", message.fromUserId, message.toUserId, message.fromUserId, message.toUserId, message.timestamp! as NSDate)
+            request.sortDescriptors = [
+                NSSortDescriptor(key: "message.timestamp", ascending: true),
+                NSSortDescriptor(keyPath: \ChatMedia.order, ascending: true),
+            ]
+        } else if let message = media.groupMessage {
+            request.predicate = .init(format: "groupMessage.groupId = %@ && groupMessage.timestamp < %@", message.groupId, message.timestamp! as NSDate)
+            request.sortDescriptors = [
+                NSSortDescriptor(key: "groupMessage.timestamp", ascending: true),
+                NSSortDescriptor(keyPath: \ChatMedia.order, ascending: true),
+            ]
+        }
+
+        let preceding = try? MainAppContext.shared.chatData.viewContext.count(for: request)
+
+        return (preceding ?? 0) + media.index
+    }
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard !isTransition else { return }
         let rem = scrollView.contentOffset.x.truncatingRemainder(dividingBy: scrollView.frame.width)
@@ -253,15 +301,15 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return 1
+        return fetchedResultsController?.sections?.count ?? 1
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return media.count
+        return fetchedResultsController?.sections?[section].numberOfObjects ?? media.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let item = media[indexPath.item]
+        let item = explorerMedia(at: indexPath)
 
         switch item.type {
         case .image:
@@ -278,6 +326,21 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return collectionView.frame.size
+    }
+
+    func explorerMedia(at index: Int) -> MediaExplorerMedia {
+        return explorerMedia(at: IndexPath(item: index, section: 0))
+    }
+
+    func explorerMedia(at indexPath: IndexPath) -> MediaExplorerMedia {
+        if let controller = fetchedResultsController {
+            let chatMedia = controller.object(at: indexPath)
+            let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent(chatMedia.relativeFilePath ?? "", isDirectory: false)
+            let image: UIImage? = chatMedia.type == .image ? UIImage(contentsOfFile: url.path) : nil
+            return MediaExplorerMedia(url: url, image: image, type: (chatMedia.type == .image ? .image : .video), size: chatMedia.size)
+        } else {
+            return media[indexPath.item]
+        }
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -331,7 +394,13 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 
     @objc private func backAction() {
-        delegate?.scrollMediaToVisible(atPostion: currentIndex)
+        let currentMedia = explorerMedia(at: currentIndex)
+        let originalPosition = media.firstIndex { $0.url == currentMedia.url }
+
+        if let position = originalPosition {
+            delegate?.scrollMediaToVisible(atPostion: position)
+        }
+
         dismiss(animated: true)
     }
 
@@ -387,7 +456,11 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     // MARK: UIViewControllerTransitioningDelegate
 
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        animator = MediaExplorerAnimator(media: media[currentIndex], atPosition: currentIndex, presenting: true)
+
+        let currentMedia = explorerMedia(at: currentIndex)
+        let originalPosition = media.firstIndex { $0.url == currentMedia.url }
+
+        animator = MediaExplorerAnimator(media: currentMedia, between: originalPosition, and: currentIndex, presenting: true)
         animator.delegate = delegate
         animator.delegateExplorer = self
 
@@ -395,7 +468,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
     }
 
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        animator = MediaExplorerAnimator(media: media[currentIndex], atPosition: currentIndex, presenting: false)
+        let currentMedia = explorerMedia(at: currentIndex)
+        let originalPosition = media.firstIndex { $0.url == currentMedia.url }
+
+        animator = MediaExplorerAnimator(media: currentMedia, between: originalPosition, and: currentIndex, presenting: false)
         animator.delegate = delegate
         animator.delegateExplorer = self
 

@@ -15,14 +15,16 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
     weak var delegateExplorer: MediaExplorerController?
 
     private var media: MediaExplorerMedia
-    private let index: Int
+    private let originIndex: Int?
+    private let explorerIndex: Int
     private let presenting: Bool
     private var context: UIViewControllerContextTransitioning?
     private var interactiveTransitionView: UIView?
 
-    init(media: MediaExplorerMedia, atPosition index: Int, presenting: Bool) {
+    init(media: MediaExplorerMedia, between originIndex: Int?, and explorerIndex: Int, presenting: Bool) {
         self.media = media
-        self.index = index
+        self.originIndex = originIndex
+        self.explorerIndex = explorerIndex
         self.presenting = presenting
 
         self.media.computeSize()
@@ -100,7 +102,8 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
     }
 
     func runTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        guard let transitionView = getTransitionView(),
+        guard let index = originIndex,
+              let transitionView = getTransitionView(),
               let explorer = delegateExplorer,
               let originView = delegate?.getTransitionView(atPostion: index),
               let originFrame = originView.superview?.convert(originView.frame, to: transitionContext.containerView),
@@ -184,7 +187,7 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
         guard !presenting,
               let explorer = delegateExplorer,
               let fromController = transitionContext.viewController(forKey: .from),
-              let transitionView = explorer.getTransitionView(atPostion: index)?.snapshotView(afterScreenUpdates: true)
+              let transitionView = explorer.getTransitionView(atPostion: explorerIndex)?.snapshotView(afterScreenUpdates: true)
         else {
             cancelInteractiveTransition()
             return
