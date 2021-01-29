@@ -451,6 +451,8 @@ final class ProtoService: ProtoServiceCore {
                         DDLogError("proto/didReceive/\(requestID)/decrypt/error \(error)")
                         AppContext.shared.errorLogger?.logError(error)
                         self.rerequestMessage(msg)
+                    } else {
+                        DDLogInfo("proto/didReceive/\(requestID)/decrypt/success")
                     }
                     if !serverChat.senderClientVersion.isEmpty {
                         DDLogError("proto/didReceive/\(requestID)/senderClient [\(serverChat.senderClientVersion)]")
@@ -470,9 +472,11 @@ final class ProtoService: ProtoServiceCore {
                 // We ignore message content from silent messages (only interested in decryption success)
                 decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, decryptionError) in
                     if let error = decryptionError {
-                        DDLogError("proto/didReceive/\(requestID)/decrypt-silent/error \(error)")
+                        DDLogError("proto/didReceive/\(requestID)/silent-decrypt/error \(error)")
                         AppContext.shared.errorLogger?.logError(error)
                         self.rerequestMessage(msg)
+                    } else {
+                        DDLogInfo("proto/didReceive/\(requestID)/silent-decrypt/success")
                     }
                     AppContext.shared.eventMonitor.count(.decryption(error: decryptionError, senderPlatform: nil))
                     self.sendAck(messageID: msg.id)

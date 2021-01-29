@@ -245,13 +245,14 @@ open class KeyStore {
             self.save(managedObjectContext)
         }
     }
-    
-    public func deleteUserOneTimePreKey(oneTimeKeyId: Int) {
+
+    /// Note: must be called on background processing queue!
+    private func deleteUserOneTimePreKey(oneTimeKeyId: Int) {
         DDLogInfo("KeyStore/deleteUserOneTimePreKey/id/\(oneTimeKeyId)")
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+        bgContext.performAndWait {
             let fetchRequest = NSFetchRequest<UserKeyBundle>(entityName: UserKeyBundle.entity().name!)
             do {
-                let userKeyBundles = try managedObjectContext.fetch(fetchRequest)
+                let userKeyBundles = try bgContext.fetch(fetchRequest)
                 userKeyBundles.forEach {
                     guard let oneTimePreKeys = $0.oneTimePreKeys else {
                         DDLogInfo("KeyStore/deleteUserOneTimePreKey/no oneTimePreKeys found")
@@ -260,7 +261,7 @@ open class KeyStore {
                     for oneTimeKey in oneTimePreKeys {
                         if oneTimeKey.id == oneTimeKeyId {
                             DDLogInfo("KeyStore/deleteUserOneTimePreKey/delete/id/\(oneTimeKeyId)")
-                            managedObjectContext.delete(oneTimeKey)
+                            bgContext.delete(oneTimeKey)
                             break
                         }
                     }
@@ -271,7 +272,9 @@ open class KeyStore {
                 DDLogError("KeyStore/deleteUserOneTimePreKey/error  [\(error)]")
                 return
             }
-            self.save(managedObjectContext)
+            if self.bgContext.hasChanges {
+                self.save(bgContext)
+            }
         }
     }
     
@@ -488,7 +491,8 @@ extension KeyStore {
         return encryptedPayload[0...31]
     }
 
-    public func receiveSessionSetup(for userId: UserID, from encryptedPayload: Data, publicKey inboundIdentityPublicEdKey: Data, oneTimeKeyID: Int?) -> Result<KeyBundle, DecryptionError> {
+    /// Note: must be called on background processing queue!
+    private func receiveSessionSetup(for userId: UserID, from encryptedPayload: Data, publicKey inboundIdentityPublicEdKey: Data, oneTimeKeyID: Int?) -> Result<KeyBundle, DecryptionError> {
         DDLogInfo("KeyStore/receiveSessionSetup \(userId)")
         let sodium = Sodium()
 
@@ -523,6 +527,7 @@ extension KeyStore {
                 return .failure(.missingOneTimeKey)
             }
             guard let oneTimePreKey = oneTimePreKeys.first(where: {$0.id == inboundOneTimePreKeyId}) else {
+                DDLogError("KeyStore/receiveSessionSetup/missingOneTimeKey [\(inboundOneTimePreKeyId)]")
                 return .failure(.missingOneTimeKey)
             }
             O_recipient = oneTimePreKey.privateKey
@@ -607,7 +612,8 @@ extension KeyStore {
         
         return .success(keyBundle)
     }
-    
+
+    /// Note: must be called on background processing queue!
     private func encryptMessage(for userId: String, unencrypted: Data, keyBundle: KeyBundle) -> Result<Data, EncryptionError> {
         DDLogInfo("KeyStore/encryptMessage/for \(userId)")
         
@@ -652,12 +658,12 @@ extension KeyStore {
         DDLogDebug("KeyStore/encryptMessage/outboundPreviousChainLengthData: \([UInt8](outboundPreviousChainLengthData))")
         DDLogDebug("KeyStore/encryptMessage/outboundChainIndexData:          \([UInt8](outboundChainIndexData))")
 
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            if let messageKeyBundle = self.messageKeyBundle(for: userId, in: managedObjectContext) {
+        bgContext.performAndWait {
+            if let messageKeyBundle = self.messageKeyBundle(for: userId, in: bgContext) {
                 messageKeyBundle.outboundChainKey = Data(outboundChainKey)
                 messageKeyBundle.outboundChainIndex = outboundChainIndex + 1
             }
-            self.save(managedObjectContext)
+            self.save(bgContext)
         }
 
         return .success(data)
@@ -814,6 +820,11 @@ extension KeyStore {
         }
         
         /*TODO: End section needs refactoring */
+
+        guard !messageKey.isEmpty else {
+            DDLogError("KeyStore/decryptMessage/missingMessageKey [no ratchet?]")
+            return .failure(.missingMessageKey)
+        }
 
         // 32 byte AES + 32 byte HMAC + 16 byte IV
         guard messageKey.count >= 80 else {
