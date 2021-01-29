@@ -128,7 +128,7 @@ final class NewPostViewController: UIViewController {
     }
     
     private func makeMediaPickerViewControllerNew() -> UINavigationController {
-        let pickerController = MediaPickerViewController() { [weak self] controller, media, cancel in
+        let pickerController = MediaPickerViewController(maxVideoLength: ServerProperties.maxFeedVideoDuration) { [weak self] controller, media, cancel in
             guard let self = self else { return }
             
             if cancel {

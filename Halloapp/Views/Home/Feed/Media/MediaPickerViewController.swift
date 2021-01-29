@@ -61,6 +61,15 @@ private extension Localizations {
     static var mediaFailMessage: String {
         NSLocalizedString("picker.media.fail.message", value: "Please try again or select different photo or video.", comment: "Alert message in media picker when unable to load media file.")
     }
+
+    static func maxVideoLengthTitle(_ maxVideoLength: TimeInterval) -> String {
+        let format = NSLocalizedString("picker.media.max.video.length.title", value: "This video is over %.0f seconds long", comment: "Alert title in media picker when selected video is too long")
+        return String.localizedStringWithFormat(format, maxVideoLength)
+    }
+
+    static var maxVideoLengthMessage: String {
+        NSLocalizedString("picker.media.max.video.length.message", value: "Please select another video.", comment: "Alert message in media picker when selected video is too long")
+    }
 }
 
 private struct Constants {
@@ -91,6 +100,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private let camera: Bool
     private let filter: MediaPickerFilter
     private let snapshotManager: MediaPickerSnapshotManager
+    private let maxVideoLength: TimeInterval
     private var dataSource: UICollectionViewDiffableDataSource<Int, PickerItem>!
     private var collectionView: UICollectionView!
     private var transitionLayout: UICollectionViewTransitionLayout?
@@ -102,7 +112,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     private var nextInProgress = false
     private var originalMedia: [PendingMedia] = []
     
-    init(filter: MediaPickerFilter = .all, multiselect: Bool = true, camera: Bool = false, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
+    init(filter: MediaPickerFilter = .all, multiselect: Bool = true, maxVideoLength: TimeInterval = 500, camera: Bool = false, selected: [PendingMedia] = [] , didFinish: @escaping MediaPickerViewControllerCallback) {
         self.originalMedia.append(contentsOf: selected)
         self.selected.append(contentsOf: selected.filter { $0.asset != nil }.map { $0.asset! })
         self.didFinish = didFinish
@@ -110,6 +120,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         self.multiselect = multiselect
         self.filter = filter
         self.snapshotManager = MediaPickerSnapshotManager(filter: filter)
+        self.maxVideoLength = maxVideoLength
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -798,6 +809,15 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         guard let cell = collectionView.cellForItem(at: indexPath) as? AssetViewCell else { return false }
         guard let asset = cell.item?.asset else { return false }
+
+        if asset.mediaType == .video && asset.duration > maxVideoLength {
+            let alert = UIAlertController(title: Localizations.maxVideoLengthTitle(maxVideoLength),
+                                          message: Localizations.maxVideoLengthMessage,
+                                          preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
+            self.present(alert, animated: true)
+            return false
+        }
 
         if selected.contains(asset) {
             deselect(collectionView, cell: cell, asset: asset)

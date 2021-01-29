@@ -21,6 +21,8 @@ public struct ServerProperties {
         case groupChat = "group_chat"
         case combineFeed = "combine_feed"
         case silentChatMessages = "silent_chat_messages"
+        case maxFeedVideoDuration = "max_feed_video_duration"
+        case maxChatVideoDuration = "max_chat_video_duration"
     }
 
     private struct UserDefaultsKey {
@@ -41,6 +43,8 @@ public struct ServerProperties {
         static let combineFeed = false
         static let maxGroupSize = 25
         static let silentChatMessages = 0
+        static let maxFeedVideoDuration = 60.0
+        static let maxChatVideoDuration = 120.0
     }
 
     // MARK: Storage
@@ -194,6 +198,14 @@ public struct ServerProperties {
     /// Number of silent chat messages to send alongside each user-initiated message
     public static var silentChatMessages: Int {
         ServerProperties.integer(forKey: .silentChatMessages) ?? Defaults.silentChatMessages
+    }
+
+    public static var maxFeedVideoDuration: TimeInterval {
+        ServerProperties.double(forKey: .maxFeedVideoDuration) ?? Defaults.maxFeedVideoDuration
+    }
+
+    public static var maxChatVideoDuration: TimeInterval {
+        ServerProperties.double(forKey: .maxChatVideoDuration) ?? Defaults.maxChatVideoDuration
     }
 
 }

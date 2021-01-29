@@ -18,28 +18,34 @@ struct PostComposerViewConfiguration {
     var mediaCarouselMaxAspectRatio: CGFloat = 1.25
     var mediaEditMaxAspectRatio: CGFloat = 1.25
     var imageServerMaxAspectRatio: CGFloat? = 1.25
+    var maxVideoLength: TimeInterval = 500
 
     static var userPost: PostComposerViewConfiguration {
-        get { PostComposerViewConfiguration(
+        PostComposerViewConfiguration(
             mentionableUsers: Mentions.mentionableUsersForNewPost(),
-            useTransparentNavigationBar: true) }
+            useTransparentNavigationBar: true,
+            maxVideoLength: ServerProperties.maxFeedVideoDuration
+        )
     }
 
     static func groupPost(id groupID: GroupID) -> PostComposerViewConfiguration {
         PostComposerViewConfiguration(
             titleMode: .groupPost,
             mentionableUsers: Mentions.mentionableUsers(forGroupID: groupID),
-            useTransparentNavigationBar: true)
+            useTransparentNavigationBar: true,
+            maxVideoLength: ServerProperties.maxFeedVideoDuration
+        )
     }
 
     static var message: PostComposerViewConfiguration {
-        get { PostComposerViewConfiguration(
+        PostComposerViewConfiguration(
             titleMode: .message,
             mentionableUsers: [],
             mediaCarouselMaxAspectRatio: 1.0,
             mediaEditMaxAspectRatio: 100,
-            imageServerMaxAspectRatio: nil
-        ) }
+            imageServerMaxAspectRatio: nil,
+            maxVideoLength: ServerProperties.maxChatVideoDuration
+        )
     }
 }
 
@@ -355,6 +361,7 @@ fileprivate struct PostComposerLayoutConstants {
 fileprivate struct PostComposerView: View {
     private let showAddMoreMediaButton: Bool
     private let mediaCarouselMaxAspectRatio: CGFloat
+    private let maxVideoLength: TimeInterval
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
@@ -428,6 +435,7 @@ fileprivate struct PostComposerView: View {
         self.shouldAutoPlay = shouldAutoPlay
         self.showAddMoreMediaButton = configuration.showAddMoreMediaButton
         self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
+        self.maxVideoLength = configuration.maxVideoLength
         self.prepareImages = prepareImages
         self.crop = crop
         self.goBack = goBack
@@ -493,7 +501,7 @@ fileprivate struct PostComposerView: View {
     }
 
     var picker: some View {
-        Picker(mediaItems: mediaItems.value) { newMediaItems, cancel in
+        Picker(maxVideoLength: maxVideoLength, mediaItems: mediaItems.value) { newMediaItems, cancel in
             presentPicker = false
             guard !cancel else { return }
 
@@ -949,11 +957,12 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
 fileprivate struct Picker: UIViewControllerRepresentable {
     typealias UIViewControllerType = UINavigationController
 
+    let maxVideoLength: TimeInterval
     @State var mediaItems: [PendingMedia]
     let complete: ([PendingMedia], Bool) -> Void
 
     func makeUIViewController(context: Context) -> UINavigationController {
-        let controller = MediaPickerViewController(selected: mediaItems) { controller, media, cancel in
+        let controller = MediaPickerViewController(maxVideoLength: maxVideoLength, selected: mediaItems) { controller, media, cancel in
             self.complete(media, cancel)
         }
 
