@@ -560,77 +560,78 @@ fileprivate struct PostComposerView: View {
     }
 
     var body: some View {
-        return VStack(spacing: 0) {
-            GeometryReader { geometry in
-                ScrollView {
-                    VStack {
-                        VStack (alignment: .center) {
-                            if self.mediaCount > 0 {
-                                ZStack(alignment: .bottom) {
-                                    MediaPreviewSlider(
-                                        mediaItems: self.mediaItems,
-                                        mediaState: self.mediaState,
-                                        shouldAutoPlay: self.shouldAutoPlay,
-                                        shouldStopTextEdit: self.shouldStopTextEdit,
-                                        currentPosition: self.currentPosition)
-                                    .frame(height: self.getMediaSliderHeight(width: geometry.size.width), alignment: .center)
+        return GeometryReader { geometry in
+            VStack(spacing: 0) {
+                GeometryReader { scrollGeometry in
+                    ScrollView {
+                        VStack {
+                            VStack (alignment: .center) {
+                                if self.mediaCount > 0 {
+                                    ZStack(alignment: .bottom) {
+                                        MediaPreviewSlider(
+                                            mediaItems: self.mediaItems,
+                                            mediaState: self.mediaState,
+                                            shouldAutoPlay: self.shouldAutoPlay,
+                                            shouldStopTextEdit: self.shouldStopTextEdit,
+                                            currentPosition: self.currentPosition)
+                                        .frame(height: self.getMediaSliderHeight(width: scrollGeometry.size.width), alignment: .center)
 
-                                    self.controls
-                                }
-                                .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
-                                .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
+                                        self.controls
+                                    }
+                                    .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
+                                    .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
 
-                                if self.mediaState.numberOfFailedItems > 0 {
-                                    Text(Localizations.mediaPrepareFailed(self.mediaState.numberOfFailedItems))
-                                        .multilineTextAlignment(.center)
-                                        .foregroundColor(.red)
-                                        .padding(.horizontal)
+                                    if self.mediaState.numberOfFailedItems > 0 {
+                                        Text(Localizations.mediaPrepareFailed(self.mediaState.numberOfFailedItems))
+                                            .multilineTextAlignment(.center)
+                                            .foregroundColor(.red)
+                                            .padding(.horizontal)
+                                    }
+                                } else {
+                                    self.postTextView
                                 }
-                            } else {
-                                self.postTextView
                             }
+                            .clipShape(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius))
+                            .background(
+                                RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
+                                    .fill(Color(.secondarySystemGroupedBackground))
+                                    .shadow(color: Color.black.opacity(self.colorScheme == .dark ? 0 : 0.08), radius: 8, y: 8))
+                            .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
+                            .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
+                            .onAppear {
+                                if (self.mediaCount > 0) {
+                                    self.imagesAreProcessed = false
+                                    self.mediaState.isReady = false
+                                    self.prepareImages(self.$mediaState.isReady, $imagesAreProcessed, self.$mediaState.numberOfFailedItems)
+                                } else {
+                                    self.mediaState.isReady = true
+                                }
+                            }
+                            .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
+                            .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
+                            .onReceive(self.pageChangedPublisher) { _ in self.shouldStopTextEdit.value = true }
+                            .onReceive(self.postTextComputedHeightPublisher) { self.postTextComputedHeight.value = $0 }
                         }
-                        .clipShape(RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius))
+                        .frame(minHeight: scrollGeometry.size.height)
                         .background(
-                            RoundedRectangle(cornerRadius: PostComposerLayoutConstants.backgroundRadius)
-                                .fill(Color(.secondarySystemGroupedBackground))
-                                .shadow(color: Color.black.opacity(self.colorScheme == .dark ? 0 : 0.08), radius: 8, y: 8))
-                        .padding(.horizontal, PostComposerLayoutConstants.horizontalPadding)
-                        .padding(.vertical, PostComposerLayoutConstants.verticalPadding)
-                        .onAppear {
-                            if (self.mediaCount > 0) {
-                                self.imagesAreProcessed = false
-                                self.mediaState.isReady = false
-                                self.prepareImages(self.$mediaState.isReady, $imagesAreProcessed, self.$mediaState.numberOfFailedItems)
-                            } else {
-                                self.mediaState.isReady = true
-                            }
-                        }
-                        .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
-                        .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
-                        .onReceive(self.pageChangedPublisher) { _ in self.shouldStopTextEdit.value = true }
-                        .onReceive(self.postTextComputedHeightPublisher) { self.postTextComputedHeight.value = $0 }
+                            YOffsetGetter(coordinateSpace: .named(PostComposerLayoutConstants.mainScrollCoordinateSpace))
+                                .onPreferenceChange(YOffsetPreferenceKey.self, perform: {
+                                    if $0 > 0 { // top overscroll
+                                        self.shouldStopTextEdit.value = true
+                                    }
+                                })
+                        )
                     }
-                    .frame(minHeight: geometry.size.height)
-                    .background(
-                        YOffsetGetter(coordinateSpace: .named(PostComposerLayoutConstants.mainScrollCoordinateSpace))
-                            .onPreferenceChange(YOffsetPreferenceKey.self, perform: {
-                                if $0 > 0 { // top overscroll
-                                    self.shouldStopTextEdit.value = true
-                                }
-                            })
-                    )
+                    .coordinateSpace(name: PostComposerLayoutConstants.mainScrollCoordinateSpace)
+                }
+
+                if self.mediaCount > 0 {
+                    self.postTextView
                 }
             }
-
-            if self.mediaCount > 0 {
-                self.postTextView
-            }
+            .background(Color.feedBackground)
+            .frame(height: geometry.size.height + geometry.safeAreaInsets.bottom - self.keyboardHeight)
         }
-        .coordinateSpace(name: PostComposerLayoutConstants.mainScrollCoordinateSpace)
-        .background(Color.feedBackground)
-        .padding(.bottom, self.keyboardHeight)
-        .edgesIgnoringSafeArea(.bottom)
     }
 
     private func addMedia() {
@@ -789,9 +790,7 @@ fileprivate struct TextView: UIViewRepresentable {
         let newSize = textView.sizeThatFits(CGSize(width: textView.frame.size.width, height: CGFloat.greatestFiniteMagnitude))
         if resultHeight.wrappedValue != newSize.height {
             DispatchQueue.main.async {
-                if newSize.height < 125 { // quick fix, should revisit why keyboard collapses for some phones (12 pro max) and not others (se)
-                    resultHeight.wrappedValue = newSize.height
-                }
+                resultHeight.wrappedValue = newSize.height
             }
         }
     }
