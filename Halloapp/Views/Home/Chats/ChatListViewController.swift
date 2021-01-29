@@ -72,7 +72,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         searchController.searchBar.showsCancelButton = false
 
         navigationItem.searchController = searchController
-        navigationItem.hidesSearchBarWhenScrolling = false
+//        navigationItem.hidesSearchBarWhenScrolling = false
         
         searchBarHeight = searchController.searchBar.frame.height
         
@@ -133,7 +133,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         isVisible = true
         
         // after showing searchbar on top, turn on hidesSearchBarWhenScrolling so search will disappear when scrolling
-        navigationItem.hidesSearchBarWhenScrolling = true
+//        navigationItem.hidesSearchBarWhenScrolling = true
         
         showNUXIfNecessary()
     }
