@@ -142,25 +142,52 @@ class KeyData {
             self.service.requestAddOneTimeKeys(whisperKeyBundle) { result in
                 switch result {
                 case .success:
-                    DDLogDebug("KeyData/uploadMoreOneTimePreKeys/save")
-                    userKeyBundle.oneTimePreKeysCounter = generatedOTPKeys.counter
-
-                    // Process one time keys
-                    for preKey in whisperKeyBundle.oneTime {
-                        DDLogDebug("KeyData/uploadMoreOneTimePreKeys/save/new/oneTimeKey id: \(preKey.id) \(preKey.publicKey.base64EncodedString())")
-                        let oneTimeKey = NSEntityDescription.insertNewObject(forEntityName: OneTimePreKey.entity().name!, into: managedObjectContext) as! OneTimePreKey
-                        oneTimeKey.id = preKey.id
-                        if let privateKey = preKey.privateKey {
-                            oneTimeKey.privateKey = privateKey
-                        }
-                        oneTimeKey.publicKey  = preKey.publicKey
-                        oneTimeKey.userKeyBundle = userKeyBundle
+                    self.saveOneTimePreKeys(whisperKeyBundle.oneTime) {
+                        self.isOneTimePreKeyUploadInProgress = false
                     }
-                    self.keyStore.save(managedObjectContext)
                 case .failure(let error):
-                    DDLogInfo("KeyData/uploadMoreOneTimePreKeys/save/error \(error)")
+                    DDLogError("KeyStore/uploadMoreOneTimePreKeys/error \(error)")
+                    self.isOneTimePreKeyUploadInProgress = false
                 }
-                self.isOneTimePreKeyUploadInProgress = false
+            }
+        }
+    }
+
+    private func saveOneTimePreKeys(_ preKeys: [PreKey], completion: (() -> Void)?) {
+        guard let maxKeyID = preKeys.map({ $0.id }).max() else {
+            DDLogInfo("KeyData/saveOneTimePreKeys/skipping (empty)")
+            completion?()
+            return
+        }
+
+        DDLogInfo("KeyData/saveOneTimePreKeys")
+        self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let userKeyBundle = self.keyStore.keyBundle(in: managedObjectContext) else {
+                DDLogInfo("KeyData/saveOneTimePreKeys/noKeysFound")
+                completion?()
+                return
+            }
+
+            for preKey in preKeys {
+                guard preKey.id >= userKeyBundle.oneTimePreKeysCounter else {
+                    DDLogError("KeyData/saveOneTimePreKeys/invalid key [id=\(preKey.id)] [counter=\(userKeyBundle.oneTimePreKeysCounter)]")
+                    continue
+                }
+                DDLogDebug("KeyData/saveOneTimePreKeys/oneTimeKey id: \(preKey.id) \(preKey.publicKey.base64EncodedString())")
+                let oneTimeKey = NSEntityDescription.insertNewObject(forEntityName: OneTimePreKey.entity().name!, into: managedObjectContext) as! OneTimePreKey
+                oneTimeKey.id = preKey.id
+                if let privateKey = preKey.privateKey {
+                    oneTimeKey.privateKey = privateKey
+                }
+                oneTimeKey.publicKey  = preKey.publicKey
+                oneTimeKey.userKeyBundle = userKeyBundle
+            }
+
+            userKeyBundle.oneTimePreKeysCounter = maxKeyID + 1
+
+            if managedObjectContext.hasChanges {
+                self.keyStore.save(managedObjectContext)
+                completion?()
             }
         }
     }
