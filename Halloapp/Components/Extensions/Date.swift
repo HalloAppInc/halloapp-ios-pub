@@ -86,6 +86,18 @@ extension Date {
         }
     }
 
+    func deletedPostTimestamp() -> String {
+        let seconds = -timeIntervalSinceNow
+
+        if seconds < Date.minutes(1) {
+            return Localizations.nowCapitalized
+        } else if Calendar.current.isDateInToday(self) {
+            return Localizations.today
+        } else {
+            return DateFormatter.dateTimeFormatterShortDate.string(from: self)
+        }
+    }
+
     func chatListTimestamp() -> String {
         let seconds = -timeIntervalSinceNow
         

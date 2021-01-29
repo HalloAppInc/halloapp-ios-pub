@@ -38,7 +38,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         layout.estimatedItemSize.width = view.frame.width
         layout.estimatedItemSize.height = view.frame.width
         layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 50
+        layout.minimumLineSpacing = 0
 
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: layout)
         collectionView.delegate = self
@@ -351,8 +351,15 @@ extension FeedCollectionViewController: UICollectionViewDataSource {
         guard let feedPost = fetchedResultsController?.object(at: indexPath) else {
             return UICollectionViewCell(frame: .zero)
         }
-        let cellClass = FeedPostCollectionViewCellBase.cellClass(forPost: feedPost)
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellClass.reuseIdentifier, for: indexPath) as! FeedPostCollectionViewCellBase
+        guard !feedPost.isPostRetracted else {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DeletedPostCollectionViewCell.reuseIdentifier, for: indexPath)
+            (cell as? DeletedPostCollectionViewCell)?.configure(with: feedPost)
+            return cell
+        }
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedPostCollectionViewCell.reuseIdentifier, for: indexPath) as? FeedPostCollectionViewCell else {
+            DDLogError("FeedCollectionViewController/error FeedPostCollectionViewCell reuse identifier not registered correctly")
+            return UICollectionViewCell(frame: .zero)
+        }
 
         let postId = feedPost.id
         let isGroupPost = feedPost.groupId != nil
@@ -393,12 +400,6 @@ extension FeedCollectionViewController: UICollectionViewDataSource {
             }
             activePostCell.delegate = self
         }
-        if let deletedPostCell = cell as? DeletedPostCollectionViewCell {
-            deletedPostCell.showUserAction = { [weak self] userID in
-                guard let self = self else { return }
-                self.showUserFeed(for: userID)
-            }
-        }
         return cell
     }
 }
@@ -426,16 +427,15 @@ extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
             DDLogError("FeedCollectionView Automatic size for index path [\(indexPath)]")
             return UICollectionViewFlowLayout.automaticSize
         }
-
+        let cellClass: FeedPostHeightDetermining.Type = feedPost.isPostRetracted ? DeletedPostCollectionViewCell.self : FeedPostCollectionViewCell.self
         let feedItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)
         let cellWidth = collectionView.frame.width
         if let cachedCellHeight = feedItem?.cachedCellHeight {
             return CGSize(width: cellWidth, height: cachedCellHeight)
         }
-        let contentWidth = collectionView.frame.size.width - collectionView.layoutMargins.left - collectionView.layoutMargins.right
-        let gutterWidth = (1 - FeedPostCollectionViewCellBase.LayoutConstants.backgroundPanelHMarginRatio) * collectionView.layoutMargins.left
-        let cellClass = FeedPostCollectionViewCellBase.cellClass(forPost: feedPost)
-        let cellHeight = cellClass.height(forPost: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth)
+        // NB: Retracted post cell has larger margins... for now let's pass it the entire width to simplify calculation
+        let contentWidth = feedPost.isPostRetracted ? collectionView.frame.width : collectionView.frame.size.width - collectionView.layoutMargins.left - collectionView.layoutMargins.right
+        let cellHeight = cellClass.height(forPost: feedPost, contentWidth: contentWidth)
         feedItem?.cachedCellHeight = cellHeight
         DDLogDebug("FeedCollectionView Calculated cell height [\(cellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
         return CGSize(width: cellWidth, height: cellHeight)

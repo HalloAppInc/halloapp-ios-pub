@@ -11,6 +11,9 @@ import Combine
 import Core
 import UIKit
 
+protocol FeedPostHeightDetermining {
+    static func height(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat
+}
 
 fileprivate extension FeedPost {
     var hideFooterSeparator: Bool {
@@ -25,7 +28,7 @@ protocol FeedPostCollectionViewCellDelegate: AnyObject {
     func feedPostCollectionViewCellDidRequestReloadHeight(_ cell: FeedPostCollectionViewCell, animations animationBlock: @escaping () -> Void)
 }
 
-class FeedPostCollectionViewCellBase: UICollectionViewCell {
+class FeedPostCollectionViewCellBase: UICollectionViewCell, FeedPostHeightDetermining {
 
     static var metricsCache: [String: CGFloat] = [:]
 
@@ -42,6 +45,7 @@ class FeedPostCollectionViewCellBase: UICollectionViewCell {
     // MARK: Layout
 
     struct LayoutConstants {
+        static let interCardSpacing: CGFloat = 50
         static let backgroundCornerRadius: CGFloat = 15
         /**
          Content view (vertical stack takes standard table view content width: tableView.width - tableView.layoutMargins.left - tableView.layoutMargins.right
@@ -102,9 +106,9 @@ class FeedPostCollectionViewCellBase: UICollectionViewCell {
 
         if let backgroundView = backgroundView {
             let panelInsets = UIEdgeInsets(
-                top: 0,
+                top: LayoutConstants.interCardSpacing / 2,
                 left: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.left,
-                bottom: 0,
+                bottom: LayoutConstants.interCardSpacing / 2,
                 right: LayoutConstants.backgroundPanelHMarginRatio * backgroundView.layoutMargins.right)
             backgroundPanelView.frame = backgroundView.bounds.inset(by: panelInsets)
         }
@@ -132,22 +136,17 @@ class FeedPostCollectionViewCellBase: UICollectionViewCell {
         fatalError("Subclasses must implement")
     }
 
-    final class func cellClass(forPost post: FeedPost) -> FeedPostCollectionViewCellBase.Type {
-        return post.isPostRetracted ? DeletedPostCollectionViewCell.self : FeedPostCollectionViewCell.self
-    }
-
     func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool) {
         DDLogVerbose("FeedPostCollectionViewCell/configure [\(post.id)]")
 
         postId = post.id
     }
 
-    final class func height(forPost post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat) -> CGFloat {
-        let cellClass = FeedPostCollectionViewCellBase.cellClass(forPost: post)
-        let headerHeight = cellClass.headerHeight(forPost: post, contentWidth: contentWidth)
-        let contentHeight = cellClass.contentHeight(forPost: post, contentWidth: contentWidth)
-        let footerHeight = cellClass.footerHeight(forPost: post, contentWidth: contentWidth)
-        return headerHeight + contentHeight + footerHeight + 2 * LayoutConstants.backgroundPanelViewOutsetV
+    final class func height(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
+        let headerHeight = Self.headerHeight(forPost: post, contentWidth: contentWidth)
+        let contentHeight = Self.contentHeight(forPost: post, contentWidth: contentWidth)
+        let footerHeight = Self.footerHeight(forPost: post, contentWidth: contentWidth)
+        return headerHeight + contentHeight + footerHeight + 2 * LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing
     }
 
     private static let cacheKey = "\(FeedPostCollectionViewCellBase.self).header"
@@ -216,13 +215,13 @@ class FeedPostCollectionViewCell: FeedPostCollectionViewCellBase {
         contentView.addSubview(footerView)
 
         // Lower constraint priority to avoid unsatisfiable constraints situation when UITableViewCell's height is 44 during early table view layout passes.
-        let footerViewBottomConstraint = footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV)
+        let footerViewBottomConstraint = footerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV - LayoutConstants.interCardSpacing / 2)
         footerViewBottomConstraint.priority = .defaultHigh
 
         contentView.addConstraints([
             // HEADER
             headerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            headerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: LayoutConstants.backgroundPanelViewOutsetV),
+            headerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: LayoutConstants.backgroundPanelViewOutsetV + LayoutConstants.interCardSpacing / 2),
             headerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
 
             // CONTENT
@@ -367,7 +366,7 @@ extension FeedPostCollectionViewCell: TextLabelDelegate {
     }
 }
 
-final class DeletedPostCollectionViewCell: FeedPostCollectionViewCellBase {
+final class DeletedPostCollectionViewCell: UICollectionViewCell {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -379,96 +378,77 @@ final class DeletedPostCollectionViewCell: FeedPostCollectionViewCellBase {
         commonInit()
     }
 
-    // MARK: Layout
-
-    private class ContentView: UIView {
-
-        override init(frame: CGRect) {
-            super.init(frame: frame)
-            commonInit()
-        }
-
-        required init?(coder: NSCoder) {
-            super.init(coder: coder)
-            commonInit()
-        }
-
-        private func commonInit() {
-            layoutMargins.top = 20
-            layoutMargins.bottom = 12
-            translatesAutoresizingMaskIntoConstraints = false
-
-            let textLabel = UILabel()
-            textLabel.translatesAutoresizingMaskIntoConstraints = false
-            textLabel.textAlignment = .center
-            textLabel.textColor = .secondaryLabel
-            textLabel.text = NSLocalizedString("post.has.been.deleted", value: "This post has been deleted", comment: "Displayed in place of a deleted feed post.")
-            textLabel.font = UIFont.preferredFont(forTextStyle: .body)
-            textLabel.adjustsFontForContentSizeCategory = true
-            addSubview(textLabel)
-            textLabel.constrainMargins(to: self)
-        }
-    }
-
-    private var headerView: FeedItemHeaderView!
-
-    private func commonInit() {
-        headerView = FeedItemHeaderView()
-        headerView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(headerView)
-
-        let view = ContentView()
-        contentView.addSubview(view)
-
-        // Lower constraint priority to avoid unsatisfiable constraints situation when UITableViewCell's height is 44 during early table view layout passes.
-        let viewBottomConstraint = view.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -LayoutConstants.backgroundPanelViewOutsetV)
-        viewBottomConstraint.priority = .required - 10
-
-        contentView.addConstraints([
-            // HEADER
-            headerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            headerView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: LayoutConstants.backgroundPanelViewOutsetV),
-            headerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
-
-            // TEXT
-            view.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            view.topAnchor.constraint(equalTo: headerView.bottomAnchor),
-            view.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
-            viewBottomConstraint
-        ])
-    }
-
     override func prepareForReuse() {
-        super.prepareForReuse()
-        headerView.prepareForReuse()
+        textLabel.text = nil
     }
 
-    // MARK: FeedPostCollectionViewCellBase
-
-    override class var reuseIdentifier: String {
+    class var reuseIdentifier: String {
         "deleted-post"
     }
 
-    override func configure(with post: FeedPost, contentWidth: CGFloat, gutterWidth: CGFloat, showGroupName: Bool) {
-        super.configure(with: post, contentWidth: contentWidth, gutterWidth: gutterWidth, showGroupName: showGroupName)
-
-        headerView.configure(with: post)
-        headerView.showUserAction = { [weak self] in
-            self?.showUserAction?(post.userId)
-        }
+    func configure(with post: FeedPost) {
+        textLabel.text = Localizations.deletedPost(from: post.userId)
+        timeLabel.text = post.timestamp.deletedPostTimestamp()
     }
 
     private static let cacheKey = "\(DeletedPostCollectionViewCell.self).content"
+    private static let sizingLabel = makeLabel(alignment: .natural, isMultiLine: true)
+    private static let directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 24, bottom: 8, trailing: 24)
+    private static let labelSpacing: CGFloat = 8
+    private let textLabel = makeLabel(alignment: .natural, isMultiLine: true)
+    private let timeLabel = makeLabel(alignment: .unnatural, isMultiLine: false)
 
-    override class func contentHeight(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
-        // It is possible to cache content height because all deleted posts look the same.
-        if let cachedContentHeight = FeedPostCollectionViewCellBase.metricsCache[cacheKey] {
-            return cachedContentHeight
+    private func commonInit() {
+        contentView.directionalLayoutMargins = Self.directionalLayoutMargins
+        contentView.addSubview(textLabel)
+        contentView.addSubview(timeLabel)
+
+        textLabel.constrainMargins([.top, .leading, .bottom], to: contentView)
+        timeLabel.constrainMargins([.top, .trailing], to: contentView)
+        timeLabel.leadingAnchor.constraint(equalTo: textLabel.trailingAnchor, constant: Self.labelSpacing).isActive = true
+
+        contentView.widthAnchor.constraint(equalToConstant: bounds.width).isActive = true
+    }
+
+    static func makeLabel(alignment: NSTextAlignment, isMultiLine: Bool) -> UILabel {
+        let textLabel = UILabel()
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        textLabel.textAlignment = alignment
+        textLabel.numberOfLines = isMultiLine ? 0 : 1
+        if !isMultiLine {
+            textLabel.setContentCompressionResistancePriority(.required - 1, for: .horizontal)
         }
-        let contentView = ContentView()
-        let targetSize = CGSize(width: contentWidth, height: UIView.layoutFittingCompressedSize.height)
-        let contentSize = contentView.systemLayoutSizeFitting(targetSize, withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
-        FeedPostCollectionViewCellBase.metricsCache[cacheKey] = contentSize.height
-        return contentSize.height
+        textLabel.textColor = .secondaryLabel
+        textLabel.font = UIFont.preferredFont(forTextStyle: .footnote)
+        textLabel.adjustsFontForContentSizeCategory = true
+        return textLabel
+    }
+}
+
+extension DeletedPostCollectionViewCell: FeedPostHeightDetermining {
+    static func height(forPost post: FeedPost, contentWidth: CGFloat) -> CGFloat {
+        sizingLabel.text = Localizations.deletedPost(from: post.userId) + post.timestamp.feedTimestamp()
+        let availableWidth = contentWidth - labelSpacing - directionalLayoutMargins.leading - directionalLayoutMargins.trailing
+        let size = sizingLabel.sizeThatFits(CGSize(width: availableWidth, height: 0))
+        return size.height + directionalLayoutMargins.bottom + directionalLayoutMargins.top
+    }
+}
+
+private extension Localizations {
+    static func deletedPost(from userID: UserID) -> String {
+        if userID == MainAppContext.shared.userData.userId {
+            return  NSLocalizedString("post.has.been.deleted.by.you", value: "You deleted your post", comment: "Displayed in place of a deleted feed post.")
+        } else if let name = MainAppContext.shared.contactStore.fullNameIfAvailable(for: userID) {
+            let format = NSLocalizedString("post.has.been.deleted.by.author", value: "%@ deleted their post", comment: "Displayed in place of a deleted feed post.")
+            return String(format: format, name)
+        } else {
+            return NSLocalizedString("post.has.been.deleted", value: "This post has been deleted", comment: "Displayed in place of a deleted feed post.")
+        }
+    }
+}
+
+extension NSTextAlignment {
+    static var unnatural: NSTextAlignment {
+        UIApplication.shared.userInterfaceLayoutDirection == .rightToLeft ? .left : .right
     }
 }

@@ -1176,6 +1176,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             feedPost.text = nil
             feedPost.status = .retracted
 
+            // 5. Clear cached cell height
+            self.feedDataItem(with: feedPost.id)?.cachedCellHeight = nil
+
             if managedObjectContext.hasChanges {
                 self.save(managedObjectContext)
             }
