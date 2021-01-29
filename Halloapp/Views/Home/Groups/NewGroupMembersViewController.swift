@@ -87,13 +87,6 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
-        
-        searchController.searchBar.searchTextField.layer.cornerRadius = 20
-        searchController.searchBar.searchTextField.layer.masksToBounds = true
-        
-        searchController.searchBar.setSearchFieldBackgroundImage(UIImage(), for: .normal)
-        searchController.searchBar.backgroundColor = .feedBackground
-        searchController.searchBar.searchTextField.backgroundColor = .secondarySystemGroupedBackground
 
         tableView.tableHeaderView = nil
 

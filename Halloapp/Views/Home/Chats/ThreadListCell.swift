@@ -125,11 +125,11 @@ class ThreadListCell: UITableViewCell {
 
         result.addAttributes([ .font: Constants.LastMsgFont, .foregroundColor: Constants.LastMsgColor ],
                              range: NSRange(location: 0, length: result.length))
-        if !contactNamePart.isEmpty {
-            // Note that the assumption is that we are using system font for the rest of the text.
-            let participantNameFont = UIFont.systemFont(ofSize: Constants.LastMsgFont.pointSize, weight: .medium)
-            result.addAttribute(.font, value: participantNameFont, range: NSRange(location: 0, length: contactNamePart.count))
-        }
+//        if !contactNamePart.isEmpty {
+//            // Note that the assumption is that we are using system font for the rest of the text.
+//            let participantNameFont = UIFont.systemFont(ofSize: Constants.LastMsgFont.pointSize, weight: .medium)
+//            result.addAttribute(.font, value: participantNameFont, range: NSRange(location: 0, length: contactNamePart.count))
+//        }
 
         return result
     }
@@ -150,16 +150,13 @@ class ThreadListCell: UITableViewCell {
             messageText = Localizations.postHasBeenDeleted
         }
 
-        var mediaIcon: UIImage?
         switch chatThread.lastFeedMediaType {
         case .image:
-            mediaIcon = UIImage(systemName: "photo")
             if messageText.isEmpty {
                 messageText = Localizations.chatMessagePhoto
             }
 
         case .video:
-            mediaIcon = UIImage(systemName: "video.fill")
             if messageText.isEmpty {
                 messageText = Localizations.chatMessageVideo
             }
@@ -170,20 +167,15 @@ class ThreadListCell: UITableViewCell {
 
         let result = NSMutableAttributedString(string: contactNamePart)
 
-        if let mediaIcon = mediaIcon {
-            result.append(NSAttributedString(attachment: NSTextAttachment(image: mediaIcon)))
-            result.append(NSAttributedString(string: " "))
-        }
-
         result.append(NSAttributedString(string: messageText))
 
         result.addAttributes([ .font: Constants.LastMsgFont, .foregroundColor: Constants.LastMsgColor ],
                              range: NSRange(location: 0, length: result.length))
-        if !contactNamePart.isEmpty {
-            // Note that the assumption is that we are using system font for the rest of the text.
-            let participantNameFont = UIFont.systemFont(ofSize: Constants.LastMsgFont.pointSize, weight: .medium)
-            result.addAttribute(.font, value: participantNameFont, range: NSRange(location: 0, length: contactNamePart.count))
-        }
+//        if !contactNamePart.isEmpty {
+//            // Note that the assumption is that we are using system font for the rest of the text.
+//            let participantNameFont = UIFont.systemFont(ofSize: Constants.LastMsgFont.pointSize, weight: .medium)
+//            result.addAttribute(.font, value: participantNameFont, range: NSRange(location: 0, length: contactNamePart.count))
+//        }
 
         return result
     }
@@ -241,7 +233,7 @@ class ThreadListCell: UITableViewCell {
         }
     }
     
-    func configureForGroupsList(with chatThread: ChatThread) {
+    func configureForGroupsList(with chatThread: ChatThread, squareSize: CGFloat = 0) {
         guard chatThread.groupId != nil else { return }
         self.chatThread = chatThread
         nameLabel.text = chatThread.title
@@ -265,7 +257,7 @@ class ThreadListCell: UITableViewCell {
             timeLabel.text = timestamp.chatListTimestamp()
         }
 
-        avatarView.configure(groupId: chatThread.groupId ?? "", squareSize: 80, using: MainAppContext.shared.avatarStore)
+        avatarView.configure(groupId: chatThread.groupId ?? "", squareSize: squareSize, using: MainAppContext.shared.avatarStore)
         
     }
 
@@ -348,22 +340,21 @@ class ThreadListCell: UITableViewCell {
         return view
     }()
     
-    // 16 points for font
+    // 15 points for font
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = .gothamFont(forTextStyle: .callout, weight: .medium)
-        label.textColor = .label
+        label.font = .systemFont(forTextStyle: .subheadline, weight: .semibold)
+        label.textColor = UIColor.label.withAlphaComponent(0.8)
         return label
     }()
 
-    // 14 points for font
+    // 13 points for font
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
 
-        let font = UIFont.preferredFont(forTextStyle: .caption1)
-        label.font = UIFont.systemFont(ofSize: font.pointSize + 1)
+        label.font = UIFont.preferredFont(forTextStyle: .footnote)
 
         label.textColor = .secondaryLabel
         label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
@@ -378,9 +369,12 @@ class ThreadListCell: UITableViewCell {
         return label
     }()
 
+    // 12 points for font
     private lazy var unreadCountView: UnreadBadgeView = {
         let view = UnreadBadgeView(frame: .zero)
-        view.label.font = .preferredFont(forTextStyle: .footnote)
+        
+        view.label.font = .systemFont(forTextStyle: .caption1, weight: .medium)
+        
         view.widthAnchor.constraint(greaterThanOrEqualToConstant: 18).isActive = true
         return view
     }()

@@ -1008,7 +1008,7 @@ class ChatData: ObservableObject {
         guard let topController = keyWindow.rootViewController else { return false }
         guard let homeView = topController as? UITabBarController else { return false }
         
-        guard homeView.selectedIndex == (ServerProperties.isInternalUser ? 2 : 1) else { return false }
+        guard homeView.selectedIndex == (ServerProperties.isGroupFeedEnabled ? 2 : 1) else { return false }
         guard let navigationController = homeView.selectedViewController as? UINavigationController else { return false }
         guard let chatListViewController = navigationController.topViewController as? ChatListViewController else { return false }
 

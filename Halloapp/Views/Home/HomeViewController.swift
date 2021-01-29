@@ -50,7 +50,7 @@ class HomeViewController: UITabBarController {
 
         updateTabBarBackgroundEffect()
 
-        if ServerProperties.isInternalUser {
+        if ServerProperties.isGroupFeedEnabled {
             viewControllers = [
                 feedNavigationController(),
                 groupsNavigationController(),
@@ -282,7 +282,7 @@ class HomeViewController: UITabBarController {
 
         let dot = UIView(frame: CGRect(x: x, y: y, width: size, height: size))
         dot.tag = tag
-        dot.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.7)
+        dot.backgroundColor = .primaryBlue
         dot.layer.cornerRadius = size/2
 
         tabBarItemView.addSubview(dot)

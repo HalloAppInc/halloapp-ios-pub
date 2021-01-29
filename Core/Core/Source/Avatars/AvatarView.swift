@@ -197,7 +197,7 @@ extension AvatarView {
         let groupAvatarData = avatarStore.groupAvatarData(for: groupId)
         
         let isSquare = squareSize > 0
-        let borderRadius = squareSize/4
+        let borderRadius = CGFloat(squareSize < 50 ? 10 : 15)
 
         if isSquare && self.avatarContainerView.layer.cornerRadius != borderRadius {
             DispatchQueue.main.async { [weak self] in

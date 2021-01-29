@@ -14,7 +14,7 @@ import SwiftUI
 import UIKit
 
 fileprivate struct Constants {
-    static let AvatarSize: CGFloat = 80
+    static let AvatarSize: CGFloat = 52
     static let LastMsgFont = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize + 1) // 14
     static let LastMsgColor = UIColor.secondaryLabel
 }
@@ -69,17 +69,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         searchController.definesPresentationContext = true
         searchController.hidesNavigationBarDuringPresentation = false
 
-        // set bg first before cornerRadius due to ios 13 bug where corners get reset by bg
-        searchController.searchBar.setSearchFieldBackgroundImage(UIImage(), for: .normal)
-        
-        searchController.searchBar.searchTextField.layer.cornerRadius = 20
-        searchController.searchBar.searchTextField.layer.masksToBounds = true
-        searchController.searchBar.searchTextField.backgroundColor = .secondarySystemGroupedBackground
-        
-        searchController.searchBar.backgroundColor = .feedBackground
-        searchController.searchBar.tintColor = UIColor.systemBlue
-        
-//        searchController.searchBar.setImage(UIImage(systemName: "xmark"), for: .clear, state: .normal)
         searchController.searchBar.showsCancelButton = false
 
         navigationItem.searchController = searchController
@@ -479,8 +468,8 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: GroupsListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
 
-        cell.configureAvatarSize(80)
-        cell.configureForGroupsList(with: chatThread)
+        cell.configureAvatarSize(Constants.AvatarSize)
+        cell.configureForGroupsList(with: chatThread, squareSize: Constants.AvatarSize)
   
         if isFiltering {
             let strippedString = searchController.searchBar.text!.trimmingCharacters(in: CharacterSet.whitespaces)

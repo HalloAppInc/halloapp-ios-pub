@@ -1313,13 +1313,13 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         guard feedPost.status == .incoming else { return }
 
         let postId = feedPost.id
-        updateFeedPost(with: postId) { (post) in
+        updateFeedPost(with: postId) { [weak self] (post) in
+            guard let self = self else { return }
             // Check status again in case one of these blocks was already queued
             guard post.status == .incoming else { return }
             self.internalSendSeenReceipt(for: post)
+            self.checkForUnreadFeed()
         }
-
-        checkForUnreadFeed()
     }
 
     func seenReceipts(for feedPost: FeedPost) -> [FeedPostReceipt] {
@@ -1385,7 +1385,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     func checkForUnreadFeed() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            let unreadFeedPosts = self.feedPosts(predicate: NSPredicate(format: "groupId = nil && statusValue = %d", FeedPost.Status.incoming.rawValue ), in: managedObjectContext)
+            var predicate = NSPredicate(format: "groupId = nil && statusValue = %d", FeedPost.Status.incoming.rawValue)
+            if ServerProperties.isCombineFeedEnabled {
+                predicate = NSPredicate(format: "statusValue = %d", FeedPost.Status.incoming.rawValue)
+            }
+            let unreadFeedPosts = self.feedPosts(predicate: predicate, in: managedObjectContext)
             self.didFindUnreadFeed.send(unreadFeedPosts.count)
         }
     }

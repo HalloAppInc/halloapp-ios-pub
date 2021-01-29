@@ -14,7 +14,7 @@ import SwiftUI
 import UIKit
 
 fileprivate struct Constants {
-    static let AvatarSize: CGFloat = 50
+    static let AvatarSize: CGFloat = 52
 //    static let LastMsgFont = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize + 1) // 14
 //    static let LastMsgColor = UIColor.secondaryLabel
 }
@@ -69,17 +69,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         searchController.definesPresentationContext = true
         searchController.hidesNavigationBarDuringPresentation = false
 
-        // set bg first before cornerRadius due to ios 13 bug where corners get reset by bg
-        searchController.searchBar.setSearchFieldBackgroundImage(UIImage(), for: .normal)
-        
-        searchController.searchBar.searchTextField.layer.cornerRadius = 20
-        searchController.searchBar.searchTextField.layer.masksToBounds = true
-        searchController.searchBar.searchTextField.backgroundColor = .secondarySystemGroupedBackground
-        
-        searchController.searchBar.backgroundColor = .feedBackground
-        searchController.searchBar.tintColor = UIColor.systemBlue
-        
-//        searchController.searchBar.setImage(UIImage(systemName: "xmark"), for: .clear, state: .normal)
         searchController.searchBar.showsCancelButton = false
 
         navigationItem.searchController = searchController
@@ -477,7 +466,7 @@ extension ChatListViewController: UIViewControllerScrollsToTop {
 // MARK: Table Header Delegate
 extension ChatListViewController: ChatListHeaderViewDelegate {
     func chatListHeaderView(_ chatListHeaderView: ChatListHeaderView) {
-        if ServerProperties.isInternalUser {
+        if ServerProperties.isGroupFeedEnabled {
             startInviteFriendsFlow()
             
         } else {
@@ -528,7 +517,7 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
 
-        cell.configureAvatarSize(50)
+        cell.configureAvatarSize(Constants.AvatarSize)
         cell.configure(with: chatThread)
         updateCellWithChatState(cell: cell, chatThread: chatThread)
   
@@ -702,7 +691,7 @@ class ChatListHeaderView: UIView {
         label.textColor = .systemBlue
         label.textAlignment = .right
         
-        if ServerProperties.isInternalUser {
+        if ServerProperties.isGroupFeedEnabled {
             label.text = Localizations.chatInviteFriends
         } else {
             label.text = Localizations.chatCreateNewGroup
