@@ -17,6 +17,7 @@ import Sodium
 class KeyData {
     let oneTimePreKeysToUpload: Int32 = 20
     let thresholdToUploadMoreOTPKeys: Int32 = 5
+    var isOneTimePreKeyUploadInProgress = false
     
     private var userData: UserData
     private var service: HalloService
@@ -119,7 +120,13 @@ class KeyData {
     }
     
     private func uploadMoreOneTimePreKeys() {
+        guard !isOneTimePreKeyUploadInProgress else {
+            DDLogInfo("KeyData/uploadMoreOneTimePreKeys/skipping (already in progress)")
+            return
+        }
+
         DDLogInfo("KeyStore/uploadMoreOneTimePreKeys")
+        isOneTimePreKeyUploadInProgress = true
         self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
             guard let userKeyBundle = self.keyStore.keyBundle(in: managedObjectContext) else {
                 DDLogInfo("KeyStore/uploadMoreOneTimePreKeys/noKeysFound")
@@ -153,6 +160,7 @@ class KeyData {
                 case .failure(let error):
                     DDLogInfo("KeyData/uploadMoreOneTimePreKeys/save/error \(error)")
                 }
+                self.isOneTimePreKeyUploadInProgress = false
             }
         }
     }
