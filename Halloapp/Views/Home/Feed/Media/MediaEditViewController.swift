@@ -275,6 +275,9 @@ fileprivate class MediaEdit : ObservableObject {
         cropRect.origin.y = image.size.width - w - x
         offset.x = oy
         offset.y = -ox
+
+        let ratio = cropRect.size.height / cropRect.size.width
+        cropRect.size.height = cropRect.size.width * min(maxAspectRatio, ratio)
         
         updateImage()
     }
