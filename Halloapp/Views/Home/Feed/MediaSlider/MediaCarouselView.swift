@@ -707,19 +707,16 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private func initPlayButton() {
-        let size: CGFloat = 60
-        let config = UIImage.SymbolConfiguration(pointSize: 22)
-        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(.white, renderingMode: .alwaysOriginal)
-
-        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
-        blur.translatesAutoresizingMaskIntoConstraints = false
-        blur.isUserInteractionEnabled = false
+        let size: CGFloat = 100
+        let config = UIImage.SymbolConfiguration(pointSize: 30)
+        let iconColor = UIColor(red: 0.54, green: 0.53, blue: 0.48, alpha: 1.00)
+        let icon = UIImage(systemName: "play.fill", withConfiguration: config)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
 
         let button = UIButton.systemButton(with: icon, target: self, action: #selector(startPlayback))
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = size / 2
         button.clipsToBounds = true
-        button.insertSubview(blur, at: 0)
+        button.backgroundColor = UIColor(red: 0.92, green: 0.91, blue: 0.89, alpha: 0.9)
 
         contentView.addSubview(button)
 
@@ -728,10 +725,6 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
             button.heightAnchor.constraint(equalToConstant: size),
             button.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             button.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            blur.leadingAnchor.constraint(equalTo: button.leadingAnchor),
-            blur.trailingAnchor.constraint(equalTo: button.trailingAnchor),
-            blur.topAnchor.constraint(equalTo: button.topAnchor),
-            blur.bottomAnchor.constraint(equalTo: button.bottomAnchor),
         ])
 
         playButton = button
