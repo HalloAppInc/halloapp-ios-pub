@@ -303,7 +303,6 @@ class CommentInputView: UIView, InputTextViewDelegate, ContainerViewDelegate {
     }
 
     func didAppear(in viewController: UIViewController) {
-        viewController.becomeFirstResponder()
     }
 
     func willDisappear(in viewController: UIViewController) {
