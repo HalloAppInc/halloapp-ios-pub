@@ -1915,14 +1915,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func deletePosts(olderThan date: Date, in managedObjectContext: NSManagedObjectContext) {
+    @discardableResult
+    private func deletePosts(olderThan date: Date, in managedObjectContext: NSManagedObjectContext) -> [FeedPostID] {
         let fetchRequest = NSFetchRequest<FeedPost>(entityName: FeedPost.entity().name!)
         fetchRequest.predicate = NSPredicate(format: "timestamp < %@", date as NSDate)
         do {
             let posts = try managedObjectContext.fetch(fetchRequest)
+            let postIDs = posts.map { $0.id }
             guard !posts.isEmpty else {
                 DDLogInfo("FeedData/posts/delete-expired/empty")
-                return
+                return postIDs
             }
             DDLogInfo("FeedData/posts/delete-expired/begin  count=[\(posts.count)]")
             posts.forEach { post in
@@ -1930,9 +1932,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 managedObjectContext.delete(post)
             }
             DDLogInfo("FeedData/posts/delete-expired/finished")
+            return postIDs
         }
         catch {
             DDLogError("FeedData/posts/delete-expired/error  [\(error)]")
+            return []
         }
     }
 
@@ -1956,12 +1960,33 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    private func deleteNotifications(forPosts postIDs: [FeedPostID], in managedObjectContext: NSManagedObjectContext) {
+        let fetchRequest = NSFetchRequest<FeedNotification>(entityName: FeedNotification.entity().name!)
+        fetchRequest.predicate = NSPredicate(format: "postId IN %@", postIDs)
+        do {
+            let notifications = try managedObjectContext.fetch(fetchRequest)
+            guard !notifications.isEmpty else {
+                DDLogInfo("FeedData/notifications/delete-for-post/empty")
+                return
+            }
+            DDLogInfo("FeedData/notifications/delete-for-post/begin  count=[\(notifications.count)]")
+            notifications.forEach { notification in
+                managedObjectContext.delete(notification)
+            }
+            DDLogInfo("FeedData/notifications/delete-for-post/finished")
+        }
+        catch {
+            DDLogError("FeedData/notifications/delete-for-post/error  [\(error)]")
+        }
+    }
+
     private func deleteExpiredPosts() {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
             let cutoffDate = Date(timeIntervalSinceNow: -Date.days(30))
             DDLogInfo("FeedData/delete-expired  date=[\(cutoffDate)]")
-            self.deletePosts(olderThan: cutoffDate, in: managedObjectContext)
+            let expiredPostIDs = self.deletePosts(olderThan: cutoffDate, in: managedObjectContext)
             self.deleteNotifications(olderThan: cutoffDate, in: managedObjectContext)
+            self.deleteNotifications(forPosts: expiredPostIDs, in: managedObjectContext)
             self.save(managedObjectContext)
         }
     }
