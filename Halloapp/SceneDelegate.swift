@@ -8,6 +8,7 @@
 
 import CocoaLumberjack
 import Combine
+import Core
 import UIKit
 
 class SceneDelegate: UIResponder {
@@ -17,12 +18,12 @@ class SceneDelegate: UIResponder {
     private var cancellables = Set<AnyCancellable>()
 
     enum UserInterfaceState {
-        case none
+        case expiredVersion
         case registration
         case mainInterface
     }
 
-    private var userIntefaceState: UserInterfaceState = .none
+    private var userInterfaceState: UserInterfaceState?
 
     private func viewController(forUserInterfaceState state: UserInterfaceState) -> UIViewController? {
         switch state {
@@ -32,15 +33,26 @@ class SceneDelegate: UIResponder {
         case .mainInterface:
             return HomeViewController()
 
-        default:
-            return nil
+        case .expiredVersion:
+            return ExpiredVersionViewController()
         }
     }
 
-    private func transition(toUserInterfaceState newState: UserInterfaceState) {
-        guard newState != userIntefaceState else { return }
-        userIntefaceState = newState
-        if let viewController = viewController(forUserInterfaceState: userIntefaceState) {
+    private func state(for context: AppContext) -> UserInterfaceState {
+        if context.coreService.isAppVersionKnownExpired.value {
+            return .expiredVersion
+        }
+        if context.userData.isLoggedIn {
+            return .mainInterface
+        }
+        return .registration
+    }
+
+    private func transition(to newState: UserInterfaceState) {
+        guard newState != userInterfaceState else { return }
+        DDLogInfo("SceneDelegate/transition [\(newState)]")
+        userInterfaceState = newState
+        if let viewController = viewController(forUserInterfaceState: newState) {
             window?.rootViewController = viewController
         }
     }
@@ -61,9 +73,20 @@ extension SceneDelegate: UIWindowSceneDelegate {
         }
 
         cancellables.insert(
-            MainAppContext.shared.userData.$isLoggedIn.sink { [weak self] (isLoggedIn) in
+            MainAppContext.shared.userData.$isLoggedIn.sink { [weak self] _ in
                 guard let self = self else { return }
-                self.transition(toUserInterfaceState: isLoggedIn ? .mainInterface : .registration)
+                self.transition(to: self.state(for: MainAppContext.shared))
+        })
+
+        cancellables.insert(
+            MainAppContext.shared.coreService.didConnect.sink { [weak self] in
+                self?.checkClientVersionExpiration()
+        })
+
+        cancellables.insert(
+            MainAppContext.shared.coreService.isAppVersionKnownExpired.sink { [weak self] _ in
+                guard let self = self else { return }
+                self.transition(to: self.state(for: MainAppContext.shared))
         })
     }
 
@@ -130,5 +153,60 @@ extension SceneDelegate: UIWindowSceneDelegate {
         if MainAppContext.shared.userData.isLoggedIn {
             appDelegate.scheduleFeedRefresh(after: Date.minutes(5))
         }
+    }
+}
+
+// App expiration
+
+private extension SceneDelegate {
+    private func presentAppUpdateWarning() {
+        let alert = UIAlertController(title: Localizations.appUpdateNoticeTitle, message: Localizations.appUpdateNoticeText, preferredStyle: UIAlertController.Style.alert)
+        let updateAction = UIAlertAction(title: Localizations.buttonUpdate, style: .default, handler: { action in
+            DDLogInfo("SceneDelegate/updateNotice/update clicked")
+            let urlString = "itms-apps://apple.com/app/1501583052"
+            guard let customAppURL = URL(string: urlString),
+                  UIApplication.shared.canOpenURL(customAppURL) else
+            {
+                DDLogError("SceneDelegate/updateNotice/error unable to open \(urlString)")
+                return
+            }
+            UIApplication.shared.open(customAppURL, options: [:], completionHandler: nil)
+        })
+        let dismissAction = UIAlertAction(title: Localizations.buttonDismiss, style: .default, handler: { action in
+            DDLogInfo("SceneDelegate/updateNotice/dismiss clicked")
+        })
+        alert.addAction(updateAction)
+        alert.addAction(dismissAction)
+        window?.rootViewController?.present(alert, animated: true, completion: nil)
+    }
+
+    private func checkClientVersionExpiration() {
+        MainAppContext.shared.service.checkVersionExpiration { result in
+            guard case .success(let numSecondsLeft) = result else {
+                DDLogError("Client version check did not return expiration")
+                return
+            }
+
+            let numDaysLeft = numSecondsLeft/86400
+            if numDaysLeft < 10 {
+                DDLogInfo("SceneDelegate/updateNotice/days left: \(numDaysLeft)")
+                self.presentAppUpdateWarning()
+            }
+        }
+    }
+}
+
+extension Localizations {
+
+    static var appUpdateNoticeTitle: String {
+        NSLocalizedString("home.update.notice.title", value: "This version is out of date", comment: "Title of update notice shown to users who have old versions of the app")
+    }
+
+    static var appUpdateNoticeText: String {
+        NSLocalizedString("home.update.notice.text", value: "Please update to the latest version of HalloApp", comment: "Text shown to users who have old versions of the app")
+    }
+
+    static var appUpdateNoticeButtonExit: String {
+        NSLocalizedString("home.update.notice.button.exit", value: "Exit", comment: "Title for exit button that closes the app")
     }
 }

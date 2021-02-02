@@ -31,6 +31,9 @@ public typealias ServerPropertiesResponse = (version: String, properties: [Strin
 /// Core aspects of the service available in extensions
 public protocol CoreService {
 
+    // MARK: App expiration
+    var isAppVersionKnownExpired: CurrentValueSubject<Bool, Never> { get }
+
     // MARK: Connection
     var didConnect: PassthroughSubject<Void, Never> { get }
     var connectionState: ConnectionState { get }

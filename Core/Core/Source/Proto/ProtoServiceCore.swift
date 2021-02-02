@@ -48,6 +48,9 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             }
         }
     }
+
+    public var isAppVersionKnownExpired = CurrentValueSubject<Bool, Never>(false)
+
     public var isConnected: Bool { get { connectionState == .connected } }
     public var isDisconnected: Bool { get { connectionState == .disconnecting || connectionState == .notConnected } }
 
@@ -125,6 +128,10 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
 
     public func connect() {
+        guard !isAppVersionKnownExpired.value else {
+            DDLogInfo("proto/connect/skipping (expired app version)")
+            return
+        }
         guard let stream = stream else { return }
         switch stream {
         case .noise(let noise):
@@ -363,8 +370,15 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     open func authenticationFailed(with authResult: Server_AuthResult) {
         DDLogInfo("ProtoServiceCore/authenticationFailed [\(authResult)]")
-        DispatchQueue.main.async {
-            self.userData.logout()
+        switch authResult.reason {
+        case "invalid client version":
+            DispatchQueue.main.async {
+                self.isAppVersionKnownExpired.send(true)
+            }
+        default:
+            DispatchQueue.main.async {
+                self.userData.logout()
+            }
         }
     }
 

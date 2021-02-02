@@ -75,14 +75,6 @@ class HomeViewController: UITabBarController {
         UISearchBar.appearance().backgroundColor = .feedBackground
         
         cancellableSet.insert(
-            MainAppContext.shared.service.didConnect.sink {
-                if (UIApplication.shared.applicationState == .active) {
-                    self.checkClientVersionExpiration()
-                }
-            }
-        )
-        
-        cancellableSet.insert(
             MainAppContext.shared.feedData.didFindUnreadFeed.sink { [weak self] (count) in
                 guard let self = self else { return }
                 self.updateFeedNavigationControllerBadge(count)
@@ -170,39 +162,6 @@ class HomeViewController: UITabBarController {
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarSettingsActive")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
-    }
-
-    private func checkClientVersionExpiration() {
-        MainAppContext.shared.service.checkVersionExpiration { result in
-            guard case .success(let numSecondsLeft) = result else {
-                DDLogError("Client version check did not return expiration")
-                return
-            }
-            
-            let numDaysLeft = numSecondsLeft/86400
-            if numDaysLeft < 10 {
-                DDLogInfo("HomeViewController/updateNotice/days left: \(numDaysLeft)")
-                let isExpired = numDaysLeft <= 0
-                let alert = UIAlertController(title: Localizations.homeUpdateNoticeTitle, message: Localizations.homeUpdateNoticeText, preferredStyle: UIAlertController.Style.alert)
-                let updateAction = UIAlertAction(title: Localizations.buttonUpdate, style: .default, handler: { action in
-                    DDLogInfo("HomeViewController/updateNotice/update clicked")
-                    if let customAppURL = URL(string: "itms-apps://apple.com/app/1501583052"){
-                        if UIApplication.shared.canOpenURL(customAppURL) {
-                            UIApplication.shared.open(customAppURL, options: [:], completionHandler: nil)
-                        }
-                    }
-                })
-                let dismissAction = UIAlertAction(title: isExpired ? Localizations.homeUpdateNoticeButtonExit : Localizations.buttonDismiss, style: .default, handler: { action in
-                    DDLogInfo("HomeViewController/updateNotice/dismiss clicked")
-                    if isExpired {
-                        exit(0)
-                    }
-                })
-                alert.addAction(updateAction)
-                alert.addAction(dismissAction)
-                self.present(alert, animated: true, completion: nil)
-            }
-        }
     }
     
     private func updateFeedNavigationControllerBadge(_ count: Int) {
@@ -314,23 +273,6 @@ extension HomeViewController {
     }
 
 }
-
-private extension Localizations {
-
-    static var homeUpdateNoticeTitle: String {
-        NSLocalizedString("home.update.notice.title", value: "This version is out of date", comment: "Title of update notice shown to users who have old versions of the app")
-    }
-    
-    static var homeUpdateNoticeText: String {
-        NSLocalizedString("home.update.notice.text", value: "Please update to the latest version of HalloApp", comment: "Text shown to users who have old versions of the app")
-    }
-    
-    static var homeUpdateNoticeButtonExit: String {
-        NSLocalizedString("home.update.notice.button.exit", value: "Exit", comment: "Title for exit button that closes the app")
-    }
-    
-}
-
 
 fileprivate let tabBarItemTag: Int = 10090
 extension UITabBar {
