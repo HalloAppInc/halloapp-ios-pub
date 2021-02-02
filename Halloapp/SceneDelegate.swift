@@ -38,11 +38,11 @@ class SceneDelegate: UIResponder {
         }
     }
 
-    private func state(for context: AppContext) -> UserInterfaceState {
-        if context.coreService.isAppVersionKnownExpired.value {
+    private func state(isLoggedIn: Bool, isAppVersionKnownExpired: Bool) -> UserInterfaceState {
+        if isAppVersionKnownExpired {
             return .expiredVersion
         }
-        if context.userData.isLoggedIn {
+        if isLoggedIn {
             return .mainInterface
         }
         return .registration
@@ -73,9 +73,9 @@ extension SceneDelegate: UIWindowSceneDelegate {
         }
 
         cancellables.insert(
-            MainAppContext.shared.userData.$isLoggedIn.sink { [weak self] _ in
+            MainAppContext.shared.userData.$isLoggedIn.sink { [weak self] isLoggedIn in
                 guard let self = self else { return }
-                self.transition(to: self.state(for: MainAppContext.shared))
+                self.transition(to: self.state(isLoggedIn: isLoggedIn, isAppVersionKnownExpired: MainAppContext.shared.coreService.isAppVersionKnownExpired.value))
         })
 
         cancellables.insert(
@@ -84,9 +84,9 @@ extension SceneDelegate: UIWindowSceneDelegate {
         })
 
         cancellables.insert(
-            MainAppContext.shared.coreService.isAppVersionKnownExpired.sink { [weak self] _ in
+            MainAppContext.shared.coreService.isAppVersionKnownExpired.sink { [weak self] isExpired in
                 guard let self = self else { return }
-                self.transition(to: self.state(for: MainAppContext.shared))
+                self.transition(to: self.state(isLoggedIn: MainAppContext.shared.userData.isLoggedIn, isAppVersionKnownExpired: isExpired))
         })
     }
 

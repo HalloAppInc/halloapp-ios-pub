@@ -12,7 +12,7 @@ import UIKit
 
 protocol VerificationCodeViewControllerDelegate: AnyObject {
     var formattedPhoneNumber: String? { get }
-    func requestVerificationCode(completion: @escaping (Result<Void, Error>) -> Void)
+    func requestVerificationCode(completion: @escaping (Result<TimeInterval, Error>) -> Void)
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void)
     func verificationCodeViewControllerDidFinish(_ viewController: VerificationCodeViewController)
 }
@@ -46,6 +46,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
     var inputVerticalCenterConstraint: NSLayoutConstraint?
 
     let buttonRetryCodeRequest = UIButton()
+    var retryAvailableDate = Date.distantFuture
 
     let activityIndicatorView = UIActivityIndicatorView(style: .large)
 
@@ -186,7 +187,7 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         let isWaiting = state == .requestingCode || state == .validatingCode
         let shouldHideInput = state == .requestingCode || state == .requestError
         let canEnterText = state == .enteringCode || state == .invalidCode
-        let canRequestNewCode = state == .enteringCode || state == .invalidCode
+        let canRequestNewCode = (state == .enteringCode && Date() > retryAvailableDate) || state == .invalidCode
         let shouldShowError = state == .invalidCode || state == .requestError
         let errorText = state == .invalidCode ? Localizations.registrationCodeIncorrect : Localizations.registrationCodeRequestError
 
@@ -215,12 +216,17 @@ class VerificationCodeViewController: UIViewController, UITextFieldDelegate {
         }
 
         state = .requestingCode
+        retryAvailableDate = .distantFuture
 
         delegate.requestVerificationCode() { [weak self] result in
             switch result {
-            case .success:
+            case .success(let retryDelay):
                 self?.state = .enteringCode
                 self?.textFieldCode.becomeFirstResponder()
+                self?.retryAvailableDate = Date().addingTimeInterval(retryDelay)
+                DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay + 1) {
+                    self?.updateUI()
+                }
 
             case .failure(let error):
                 if let codeRequestError = error as? VerificationCodeRequestError, case .notInvited = codeRequestError {

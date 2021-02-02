@@ -106,7 +106,7 @@ class VerificationViewController: UINavigationController, PhoneInputViewControll
         registrationManager?.formattedPhoneNumber
     }
 
-    func requestVerificationCode(completion: @escaping (Result<Void, Error>) -> Void) {
+    func requestVerificationCode(completion: @escaping (Result<TimeInterval, Error>) -> Void) {
         registrationManager?.requestVerificationCode(completion: completion)
     }
 

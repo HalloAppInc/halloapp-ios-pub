@@ -12,11 +12,16 @@ import CryptoKit
 import Sodium
 
 protocol RegistrationService {
-    func requestVerificationCode(for phoneNumber: String, completion: @escaping (Result<String, Error>) -> Void)
+    func requestVerificationCode(for phoneNumber: String, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
     func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, completion: @escaping (Result<Credentials, Error>) -> Void)
 
     // Temporary (used for Noise migration)
     func updateNoiseKeys(_ noiseKeys: NoiseKeys, userID: UserID, password: String, completion: @escaping (Result<Credentials, Error>) -> Void)
+}
+
+struct RegistrationResponse {
+    var normalizedPhoneNumber: String
+    var retryDelay: TimeInterval
 }
 
 final class DefaultRegistrationService: RegistrationService {
@@ -30,7 +35,7 @@ final class DefaultRegistrationService: RegistrationService {
 
     // MARK: Verification code requests
 
-    func requestVerificationCode(for phoneNumber: String, completion: @escaping (Result<String, Error>) -> Void) {
+    func requestVerificationCode(for phoneNumber: String, completion: @escaping (Result<RegistrationResponse, Error>) -> Void) {
         var request = URLRequest(url: URL(string: "https://\(hostName)/api/registration/request_sms")!)
         request.httpMethod = "POST"
         request.httpBody = try! JSONSerialization.data(withJSONObject: ["phone": phoneNumber])
@@ -81,8 +86,15 @@ final class DefaultRegistrationService: RegistrationService {
                 return
             }
 
+            guard let retryDelay = response["retry_after_secs"] as? TimeInterval else {
+                DispatchQueue.main.async {
+                    completion(.failure(VerificationCodeRequestError.malformedResponse))
+                }
+                return
+            }
+
             DispatchQueue.main.async {
-                completion(.success(normalizedPhoneNumber))
+                completion(.success(RegistrationResponse(normalizedPhoneNumber: normalizedPhoneNumber, retryDelay: retryDelay)))
             }
         }
         task.resume()

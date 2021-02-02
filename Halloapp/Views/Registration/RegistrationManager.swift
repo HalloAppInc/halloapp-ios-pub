@@ -14,7 +14,7 @@ protocol RegistrationManager: AnyObject {
     var contactsAccessStatus: CNAuthorizationStatus { get }
     var formattedPhoneNumber: String? { get }
     func set(countryCode: String, nationalNumber: String, userName: String)
-    func requestVerificationCode(completion: @escaping (Result<Void, Error>) -> Void)
+    func requestVerificationCode(completion: @escaping (Result<TimeInterval, Error>) -> Void)
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void)
     func requestContactsPermissions()
     func didCompleteRegistrationFlow()
@@ -45,16 +45,17 @@ final class DefaultRegistrationManager: RegistrationManager {
         userData.save()
     }
 
-    func requestVerificationCode(completion: @escaping (Result<Void, Error>) -> Void) {
+    /// Completion block includes retry delay
+    func requestVerificationCode(completion: @escaping (Result<TimeInterval, Error>) -> Void) {
         let userData = MainAppContext.shared.userData
         let phoneNumber = userData.countryCode.appending(userData.phoneInput)
         registrationService.requestVerificationCode(for: phoneNumber) { result in
             switch result {
-            case .success(let normalizedPhoneNumber):
+            case .success(let response):
                 let userData = MainAppContext.shared.userData
-                userData.normalizedPhoneNumber = normalizedPhoneNumber
+                userData.normalizedPhoneNumber = response.normalizedPhoneNumber
                 userData.save()
-                completion(.success(()))
+                completion(.success(response.retryDelay))
             case .failure(let error):
                 completion(.failure(error))
             }
