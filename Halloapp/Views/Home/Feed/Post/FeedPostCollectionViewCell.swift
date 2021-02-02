@@ -82,7 +82,7 @@ class FeedPostCollectionViewCellBase: UICollectionViewCell, FeedPostHeightDeterm
         maxWidthConstraint = widthAnchor.constraint(equalToConstant: maxWidth)
 
         contentView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.constrain([ .leading, .top, .trailing ], to: self)
+        contentView.constrain(to: self)
 
         // Background
         backgroundPanelView = FeedItemBackgroundPanelView()
