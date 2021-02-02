@@ -197,6 +197,13 @@ final class ProtoService: ProtoServiceCore {
             self.pendingAcks += messageIDs
             return
         }
+        serviceQueue.async {
+            // Mark .active messages as .processed (leave .rerequested messages as-is)
+            messageIDs
+                .filter { self.messageStatus[$0] == .active }
+                .forEach { self.messageStatus[$0] = .processed }
+        }
+
         let packets: [Server_Packet] = Set(messageIDs).map {
             var ack = Server_Ack()
             ack.id = $0
@@ -213,6 +220,7 @@ final class ProtoService: ProtoServiceCore {
             }
         }
     }
+
     /// IDs for messages that we need to ack once we've connected. Should only be accessed on serviceQueue.
     private var pendingAcks = [String]()
 
@@ -232,22 +240,18 @@ final class ProtoService: ProtoServiceCore {
         }
     }
 
-    /// IDs for messages that have been processed in the current session. Should only be accessed on serviceQueue.
-    private var processedMessageIDs = Set<String>()
+    /// Message processing status. Should only be accessed on serviceQueue.
+    private var messageStatus = [String: MessageStatus]()
 
-    private func updateMessageStatus(id: String, isProcessed: Bool) {
+    private func updateMessageStatus(id: String, status: MessageStatus) {
         serviceQueue.async {
-            if isProcessed {
-                self.processedMessageIDs.insert(id)
-            } else {
-                self.processedMessageIDs.remove(id)
-            }
+            self.messageStatus[id] = status
         }
     }
 
-    private func shouldProcessMessage(id: String) -> Bool {
+    private func retrieveMessageStatus(id: String) -> MessageStatus {
         serviceQueue.sync {
-            return !self.processedMessageIDs.contains(id)
+            return self.messageStatus[id] ?? .new
         }
     }
 
@@ -376,9 +380,7 @@ final class ProtoService: ProtoServiceCore {
     }
 
     private func rerequestMessage(_ message: Server_Msg) {
-
-        // Mark message as unprocessed before rerequesting
-        self.updateMessageStatus(id: message.id, isProcessed: false)
+        self.updateMessageStatus(id: message.id, status: .rerequested)
 
         let keyStore = AppContext.shared.keyStore
         keyStore.performSeriallyOnBackgroundContext { context in
@@ -411,193 +413,7 @@ final class ProtoService: ProtoServiceCore {
                 }
             }
         case .msg(let msg):
-            guard let payload = msg.payload else {
-                DDLogError("proto/didReceive/\(requestID)/error missing payload")
-                break
-            }
-            guard shouldProcessMessage(id: msg.id) else {
-                DDLogInfo("proto/didReceive/\(requestID)/skipping (already processed)")
-                break
-            }
-            updateMessageStatus(id: msg.id, isProcessed: true)
-            switch payload {
-            case .contactList(let pbContactList):
-                let contacts = pbContactList.contacts.compactMap { HalloContact($0) }
-                MainAppContext.shared.syncManager.processNotification(contacts: contacts) {
-                    self.sendAck(messageID: msg.id)
-                }
-            case .avatar(let pbAvatar):
-                avatarDelegate?.service(self, didReceiveAvatarInfo: (userID: UserID(pbAvatar.uid), avatarID: pbAvatar.id))
-                sendAck(messageID: msg.id)
-            case .whisperKeys(let pbKeys):
-                if let whisperMessage = WhisperMessage(pbKeys) {
-                    keyDelegate?.halloService(self, didReceiveWhisperMessage: whisperMessage)
-                } else {
-                    DDLogError("proto/didReceive/\(requestID)/error could not read whisper message")
-                }
-                self.sendAck(messageID: msg.id)
-            case .seenReceipt(let pbReceipt):
-                handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
-            case .deliveryReceipt(let pbReceipt):
-                handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
-            case .chatStanza(let serverChat):
-                decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionError) in
-                    if let clientChat = clientChat {
-                        let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount)
-                        DDLogInfo("proto/didReceive/\(requestID)/chat/user/\(chatMessage.fromUserId) [length=\(chatMessage.text?.count ?? 0)] [media=\(chatMessage.media.count)]")
-                        self.didGetNewChatMessage.send(chatMessage)
-                    }
-                    if let error = decryptionError {
-                        DDLogError("proto/didReceive/\(requestID)/decrypt/error \(error)")
-                        AppContext.shared.errorLogger?.logError(error)
-                        self.rerequestMessage(msg)
-                    } else {
-                        DDLogInfo("proto/didReceive/\(requestID)/decrypt/success")
-                    }
-                    if !serverChat.senderClientVersion.isEmpty {
-                        DDLogError("proto/didReceive/\(requestID)/senderClient [\(serverChat.senderClientVersion)]")
-                    }
-                    if !serverChat.senderLogInfo.isEmpty {
-                        DDLogError("proto/didReceive/\(requestID)/senderLog [\(serverChat.senderLogInfo)]")
-                    }
-                    let senderPlatform: String? = {
-                        if msg.id == msg.id.lowercased() { return "android" }
-                        if msg.id == msg.id.uppercased() { return "ios" }
-                        return nil
-                    }()
-                    AppContext.shared.eventMonitor.count(.decryption(error: decryptionError, senderPlatform: senderPlatform))
-                    self.sendAck(messageID: msg.id)
-                }
-            case .silentChatStanza(let silent):
-                // We ignore message content from silent messages (only interested in decryption success)
-                decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, decryptionError) in
-                    if let error = decryptionError {
-                        DDLogError("proto/didReceive/\(requestID)/silent-decrypt/error \(error)")
-                        AppContext.shared.errorLogger?.logError(error)
-                        self.rerequestMessage(msg)
-                    } else {
-                        DDLogInfo("proto/didReceive/\(requestID)/silent-decrypt/success")
-                    }
-                    AppContext.shared.eventMonitor.count(.decryption(error: decryptionError, senderPlatform: nil))
-                    self.sendAck(messageID: msg.id)
-                }
-            case .rerequest(let rerequest):
-                if let delegate = chatDelegate {
-                    let keyStore = AppContext.shared.keyStore
-                    let userID = UserID(msg.fromUid)
-                    keyStore.performSeriallyOnBackgroundContext { context in
-                        DDLogInfo("proto/rerequest/user/\(userID) will clear keys to trigger new session")
-                        keyStore.deleteMessageKeyBundles(for: userID)
-                        DispatchQueue.main.async {
-                            if let silentChat = SilentChatMessage.forRerequest(incomingID: rerequest.id) {
-                                if silentChat.rerequestCount < 5 {
-                                    DDLogInfo("proto/didReceive/rerequest/silent/\(silentChat.id) resending")
-                                    self.sendSilentChatMessage(silentChat, encryption: AppContext.shared.encryptOperation(for: silentChat.toUserId)) { _ in }
-                                } else {
-                                    DDLogInfo("proto/didReceive/rerequest/silent/\(silentChat.id) skipping (\(silentChat.rerequestCount) resends)")
-                                }
-                                self.sendAck(messageID: msg.id)
-                            } else {
-                                DDLogInfo("proto/didReceive/\(requestID)/rerequest/chat")
-                                delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID) {
-                                    self.sendAck(messageID: msg.id)
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    sendAck(messageID: msg.id)
-                }
-            case .chatRetract(let pbChatRetract):
-                let fromUserID = UserID(msg.fromUid)
-                DispatchQueue.main.async {
-                    self.didGetChatRetract.send((
-                        from: fromUserID,
-                        threadType: .oneToOne,
-                        threadID: fromUserID,
-                        messageID: pbChatRetract.id
-                    ))
-                }
-                self.sendAck(messageID: msg.id)
-            case .groupchatRetract(let pbGroupChatRetract):
-                let fromUserID = UserID(msg.fromUid)
-                DispatchQueue.main.async {
-                    self.didGetChatRetract.send((
-                        from: fromUserID,
-                        threadType: .group,
-                        threadID: pbGroupChatRetract.gid,
-                        messageID: pbGroupChatRetract.id
-                    ))
-                }
-                self.sendAck(messageID: msg.id)
-            case .feedItem(let pbFeedItem):
-                handleFeedItems([pbFeedItem], message: msg)
-            case .feedItems(let pbFeedItems):
-                handleFeedItems(pbFeedItems.items, message: msg)
-            case .groupFeedItem(let item):
-                guard let delegate = feedDelegate else {
-                    sendAck(messageID: msg.id)
-                    break
-                }
-                let group = HalloGroup(id: item.gid, name: item.name, avatarID: item.avatarID)
-                for content in payloadContents(for: [item]) {
-                    let payload = HalloServiceFeedPayload(content: content, group: group, isPushSent: msg.retryCount > 0)
-                    delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: msg.id) })
-                }
-            case .groupFeedItems(let items):
-                guard let delegate = feedDelegate else {
-                    sendAck(messageID: msg.id)
-                    break
-                }
-                let group = HalloGroup(id: items.gid, name: items.name, avatarID: items.avatarID)
-                for content in payloadContents(for: items.items) {
-                    // TODO: Wait until all payloads have been processed before acking.
-                    let payload = HalloServiceFeedPayload(content: content, group: group, isPushSent: msg.retryCount > 0)
-                    delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: msg.id) })
-                }
-            case .contactHash(let pbContactHash):
-                if pbContactHash.hash.isEmpty {
-                    // Trigger full sync
-                    MainAppContext.shared.syncManager.requestSync(forceFullSync: true)
-                    sendAck(messageID: msg.id)
-                } else if let decodedData = Data(base64Encoded: pbContactHash.hash) {
-                    // Legacy Base64 protocol
-                    MainAppContext.shared.syncManager.processNotification(contactHashes: [decodedData]) {
-                        self.sendAck(messageID: msg.id)
-                    }
-                } else {
-                    // Binary protocol
-                    MainAppContext.shared.syncManager.processNotification(contactHashes: [pbContactHash.hash]) {
-                        self.sendAck(messageID: msg.id)
-                    }
-                }
-            case .groupStanza(let pbGroup):
-                if let group = HalloGroup(protoGroup: pbGroup, msgId: msg.id) {
-                    chatDelegate?.halloService(self, didReceiveGroupMessage: group)
-                } else {
-                    DDLogError("proto/didReceive/\(requestID)/error could not read group stanza")
-                }
-                sendAck(messageID: msg.id)
-            case .groupChat(let pbGroupChat):
-                if let groupChatMessage = HalloGroupChatMessage(pbGroupChat, id: msg.id, retryCount: msg.retryCount) {
-                    chatDelegate?.halloService(self, didReceiveGroupChatMessage: groupChatMessage)
-                } else {
-                    DDLogError("proto/didReceive/\(requestID)/error could not read group chat message")
-                }
-                sendAck(messageID: msg.id)
-            case .name(let pbName):
-                if !pbName.name.isEmpty {
-                    // TODO: Is this necessary? Should we clear push name if name is empty?
-                    MainAppContext.shared.contactStore.addPushNames([ UserID(pbName.uid): pbName.name ])
-                }
-                sendAck(messageID: msg.id)
-            case .endOfQueue:
-                DDLogInfo("proto/didReceive/endOfQueue")
-                sendAck(messageID: msg.id)
-            case .errorStanza(let error):
-                DDLogError("proto/didReceive/\(requestID) received message with error \(error)")
-                sendAck(messageID: msg.id)
-            }
+            handleMessage(msg)
         case .haError(let error):
             DDLogError("proto/didReceive/\(requestID) received packet with error \(error)")
         case .presence(let pbPresence):
@@ -649,6 +465,208 @@ final class ProtoService: ProtoServiceCore {
                 UserDefaults.standard.set(true, forKey: userDefaultsKeyForNameSync)
             }
         })
+    }
+
+    // MARK: Message
+
+    private func handleMessage(_ msg: Server_Msg) {
+        guard let payload = msg.payload else {
+            DDLogError("proto/didReceive/\(msg.id)/error missing payload")
+            sendAck(messageID: msg.id)
+            return
+        }
+
+        switch retrieveMessageStatus(id: msg.id) {
+        case .new, .rerequested:
+            DDLogInfo("proto/didReceive/\(msg.id)/processing")
+            updateMessageStatus(id: msg.id, status: .active)
+        case .active:
+            DDLogInfo("proto/didReceive/\(msg.id)/skipping (actively being processed)")
+            return
+        case .processed:
+            DDLogInfo("proto/didReceive/\(msg.id)/acking (already processed)")
+            sendAck(messageID: msg.id)
+            return
+        }
+
+        switch payload {
+        case .contactList(let pbContactList):
+            let contacts = pbContactList.contacts.compactMap { HalloContact($0) }
+            MainAppContext.shared.syncManager.processNotification(contacts: contacts) {
+                self.sendAck(messageID: msg.id)
+            }
+        case .avatar(let pbAvatar):
+            avatarDelegate?.service(self, didReceiveAvatarInfo: (userID: UserID(pbAvatar.uid), avatarID: pbAvatar.id))
+            sendAck(messageID: msg.id)
+        case .whisperKeys(let pbKeys):
+            if let whisperMessage = WhisperMessage(pbKeys) {
+                keyDelegate?.halloService(self, didReceiveWhisperMessage: whisperMessage)
+            } else {
+                DDLogError("proto/didReceive/\(msg.id)/error could not read whisper message")
+            }
+            sendAck(messageID: msg.id)
+        case .seenReceipt(let pbReceipt):
+            handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
+        case .deliveryReceipt(let pbReceipt):
+            handleReceivedReceipt(receipt: pbReceipt, from: UserID(msg.fromUid), messageID: msg.id)
+        case .chatStanza(let serverChat):
+            decryptChat(serverChat, from: UserID(msg.fromUid)) { (clientChat, decryptionError) in
+                if let clientChat = clientChat {
+                    let chatMessage = XMPPChatMessage(clientChat, timestamp: serverChat.timestamp, from: UserID(msg.fromUid), to: UserID(msg.toUid), id: msg.id, retryCount: msg.retryCount)
+                    DDLogInfo("proto/didReceive/\(msg.id)/chat/user/\(chatMessage.fromUserId) [length=\(chatMessage.text?.count ?? 0)] [media=\(chatMessage.media.count)]")
+                    self.didGetNewChatMessage.send(chatMessage)
+                }
+                if let error = decryptionError {
+                    DDLogError("proto/didReceive/\(msg.id)/decrypt/error \(error)")
+                    AppContext.shared.errorLogger?.logError(error)
+                    self.rerequestMessage(msg)
+                } else {
+                    DDLogInfo("proto/didReceive/\(msg.id)/decrypt/success")
+                }
+                if !serverChat.senderClientVersion.isEmpty {
+                    DDLogError("proto/didReceive/\(msg.id)/senderClient [\(serverChat.senderClientVersion)]")
+                }
+                if !serverChat.senderLogInfo.isEmpty {
+                    DDLogError("proto/didReceive/\(msg.id)/senderLog [\(serverChat.senderLogInfo)]")
+                }
+                let senderPlatform: String? = {
+                    if msg.id == msg.id.lowercased() { return "android" }
+                    if msg.id == msg.id.uppercased() { return "ios" }
+                    return nil
+                }()
+                AppContext.shared.eventMonitor.count(.decryption(error: decryptionError, senderPlatform: senderPlatform))
+                self.sendAck(messageID: msg.id)
+            }
+        case .silentChatStanza(let silent):
+            // We ignore message content from silent messages (only interested in decryption success)
+            decryptChat(silent.chatStanza, from: UserID(msg.fromUid)) { (_, decryptionError) in
+                if let error = decryptionError {
+                    DDLogError("proto/didReceive/\(msg.id)/silent-decrypt/error \(error)")
+                    AppContext.shared.errorLogger?.logError(error)
+                    self.rerequestMessage(msg)
+                } else {
+                    DDLogInfo("proto/didReceive/\(msg.id)/silent-decrypt/success")
+                }
+                AppContext.shared.eventMonitor.count(.decryption(error: decryptionError, senderPlatform: nil))
+                self.sendAck(messageID: msg.id)
+            }
+        case .rerequest(let rerequest):
+            if let delegate = chatDelegate {
+                let keyStore = AppContext.shared.keyStore
+                let userID = UserID(msg.fromUid)
+                keyStore.performSeriallyOnBackgroundContext { context in
+                    DDLogInfo("proto/rerequest/user/\(userID) will clear keys to trigger new session")
+                    keyStore.deleteMessageKeyBundles(for: userID)
+                    DispatchQueue.main.async {
+                        if let silentChat = SilentChatMessage.forRerequest(incomingID: rerequest.id) {
+                            if silentChat.rerequestCount < 5 {
+                                DDLogInfo("proto/didReceive/rerequest/silent/\(silentChat.id) resending")
+                                self.sendSilentChatMessage(silentChat, encryption: AppContext.shared.encryptOperation(for: silentChat.toUserId)) { _ in }
+                            } else {
+                                DDLogInfo("proto/didReceive/rerequest/silent/\(silentChat.id) skipping (\(silentChat.rerequestCount) resends)")
+                            }
+                            self.sendAck(messageID: msg.id)
+                        } else {
+                            DDLogInfo("proto/didReceive/\(msg.id)/rerequest/chat")
+                            delegate.halloService(self, didRerequestMessage: rerequest.id, from: userID) {
+                                self.sendAck(messageID: msg.id)
+                            }
+                        }
+                    }
+                }
+            } else {
+                sendAck(messageID: msg.id)
+            }
+        case .chatRetract(let pbChatRetract):
+            let fromUserID = UserID(msg.fromUid)
+            DispatchQueue.main.async {
+                self.didGetChatRetract.send((
+                    from: fromUserID,
+                    threadType: .oneToOne,
+                    threadID: fromUserID,
+                    messageID: pbChatRetract.id
+                ))
+            }
+            sendAck(messageID: msg.id)
+        case .groupchatRetract(let pbGroupChatRetract):
+            let fromUserID = UserID(msg.fromUid)
+            DispatchQueue.main.async {
+                self.didGetChatRetract.send((
+                    from: fromUserID,
+                    threadType: .group,
+                    threadID: pbGroupChatRetract.gid,
+                    messageID: pbGroupChatRetract.id
+                ))
+            }
+            sendAck(messageID: msg.id)
+        case .feedItem(let pbFeedItem):
+            handleFeedItems([pbFeedItem], message: msg)
+        case .feedItems(let pbFeedItems):
+            handleFeedItems(pbFeedItems.items, message: msg)
+        case .groupFeedItem(let item):
+            guard let delegate = feedDelegate else {
+                sendAck(messageID: msg.id)
+                break
+            }
+            let group = HalloGroup(id: item.gid, name: item.name, avatarID: item.avatarID)
+            for content in payloadContents(for: [item]) {
+                let payload = HalloServiceFeedPayload(content: content, group: group, isPushSent: msg.retryCount > 0)
+                delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: msg.id) })
+            }
+        case .groupFeedItems(let items):
+            guard let delegate = feedDelegate else {
+                sendAck(messageID: msg.id)
+                break
+            }
+            let group = HalloGroup(id: items.gid, name: items.name, avatarID: items.avatarID)
+            for content in payloadContents(for: items.items) {
+                // TODO: Wait until all payloads have been processed before acking.
+                let payload = HalloServiceFeedPayload(content: content, group: group, isPushSent: msg.retryCount > 0)
+                delegate.halloService(self, didReceiveFeedPayload: payload, ack: { self.sendAck(messageID: msg.id) })
+            }
+        case .contactHash(let pbContactHash):
+            if pbContactHash.hash.isEmpty {
+                // Trigger full sync
+                MainAppContext.shared.syncManager.requestSync(forceFullSync: true)
+                sendAck(messageID: msg.id)
+            } else if let decodedData = Data(base64Encoded: pbContactHash.hash) {
+                // Legacy Base64 protocol
+                MainAppContext.shared.syncManager.processNotification(contactHashes: [decodedData]) {
+                    self.sendAck(messageID: msg.id)
+                }
+            } else {
+                // Binary protocol
+                MainAppContext.shared.syncManager.processNotification(contactHashes: [pbContactHash.hash]) {
+                    self.sendAck(messageID: msg.id)
+                }
+            }
+        case .groupStanza(let pbGroup):
+            if let group = HalloGroup(protoGroup: pbGroup, msgId: msg.id) {
+                chatDelegate?.halloService(self, didReceiveGroupMessage: group)
+            } else {
+                DDLogError("proto/didReceive/\(msg.id)/error could not read group stanza")
+            }
+            sendAck(messageID: msg.id)
+        case .groupChat(let pbGroupChat):
+            if let groupChatMessage = HalloGroupChatMessage(pbGroupChat, id: msg.id, retryCount: msg.retryCount) {
+                chatDelegate?.halloService(self, didReceiveGroupChatMessage: groupChatMessage)
+            } else {
+                DDLogError("proto/didReceive/\(msg.id)/error could not read group chat message")
+            }
+            sendAck(messageID: msg.id)
+        case .name(let pbName):
+            if !pbName.name.isEmpty {
+                // TODO: Is this necessary? Should we clear push name if name is empty?
+                MainAppContext.shared.contactStore.addPushNames([ UserID(pbName.uid): pbName.name ])
+            }
+            sendAck(messageID: msg.id)
+        case .endOfQueue:
+            DDLogInfo("proto/didReceive/\(msg.id)/endOfQueue")
+            sendAck(messageID: msg.id)
+        case .errorStanza(let error):
+            DDLogError("proto/didReceive/\(msg.id) received message with error \(error)")
+            sendAck(messageID: msg.id)
+        }
     }
 
     // MARK: Avatar
@@ -1102,4 +1120,18 @@ extension PresenceType {
             return nil
         }
     }
+}
+
+enum MessageStatus {
+    /// Not yet processed
+    case new
+
+    /// Actively being processed (e.g., awaiting or undergoing decryption)
+    case active
+
+    /// Already processed (safe to ack immediately without further processing)
+    case processed
+
+    /// Awaiting new copy of message
+    case rerequested
 }
