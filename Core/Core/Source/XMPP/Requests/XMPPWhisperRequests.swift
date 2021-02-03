@@ -7,8 +7,6 @@
 
 import Foundation
 
-public typealias WhisperKeyBundle = XMPPWhisperKey
-
 public enum WhisperMessage {
     case count(Int32)
     case update(userID: UserID)

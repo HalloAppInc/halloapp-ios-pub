@@ -70,7 +70,7 @@ class KeyData {
         // generate onetime keys
         let generatedOTPKeys = self.generateOneTimePreKeys(initialCounter: 0)
         
-        let keyBundle = XMPPWhisperKey(
+        let keyBundle = WhisperKeyBundle(
             identity: Data(identityEdKeyPair.publicKey),
             signed: signedPreKey,
             signature: Data(signature),
@@ -134,15 +134,11 @@ class KeyData {
             }
             
             let generatedOTPKeys = self.generateOneTimePreKeys(initialCounter: userKeyBundle.oneTimePreKeysCounter)
-            
-            let whisperKeyBundle = XMPPWhisperKey(
-                oneTime: generatedOTPKeys.keys
-            )
 
-            self.service.requestAddOneTimeKeys(whisperKeyBundle) { result in
+            self.service.requestAddOneTimeKeys(generatedOTPKeys.keys) { result in
                 switch result {
                 case .success:
-                    self.saveOneTimePreKeys(whisperKeyBundle.oneTime) {
+                    self.saveOneTimePreKeys(generatedOTPKeys.keys) {
                         self.isOneTimePreKeyUploadInProgress = false
                     }
                 case .failure(let error):

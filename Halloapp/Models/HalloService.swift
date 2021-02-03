@@ -42,7 +42,7 @@ protocol HalloService: CoreService {
 
     // MARK: Key requests
     func uploadWhisperKeyBundle(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>)
-    func requestAddOneTimeKeys(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>)
+    func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>)
     func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>)
 
     // MARK: Receipts

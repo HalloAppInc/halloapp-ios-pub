@@ -20,30 +20,18 @@ public struct PreKey {
     }
 }
 
-public struct XMPPWhisperKey {
-    enum XMPPWhisperType: String {
-        case set = "set"
-        case add = "add"
-    }
+public struct WhisperKeyBundle {
     
     public var identity: Data? = nil
     public var signed: PreKey? = nil
     public var signature: Data? = nil
     public var oneTime: [PreKey] = []
-    let type: XMPPWhisperType
 
     // init outgoing key bundle
     public init(identity: Data, signed: PreKey, signature: Data, oneTime: [PreKey]) {
-        self.type = .set
         self.identity = identity
         self.signed = signed
         self.signature = signature
-        self.oneTime = oneTime
-    }
-    
-    // init outgoing one time keys upload
-    public init(oneTime: [PreKey]) {
-        self.type = .add
         self.oneTime = oneTime
     }
     

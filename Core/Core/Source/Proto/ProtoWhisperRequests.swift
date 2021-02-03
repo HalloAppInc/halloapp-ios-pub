@@ -11,7 +11,7 @@ import Foundation
 
 final public class ProtoWhisperUploadRequest: ProtoRequest<Void> {
 
-    public init(keyBundle: XMPPWhisperKey, completion: @escaping Completion) {
+    public init(keyBundle: WhisperKeyBundle, completion: @escaping Completion) {
         var keys = Server_WhisperKeys()
 
         // todo: error if following conditionals fail?
@@ -53,10 +53,10 @@ final public class ProtoWhisperUploadRequest: ProtoRequest<Void> {
 
 final public class ProtoWhisperAddOneTimeKeysRequest: ProtoRequest<Void> {
 
-    public init(whisperKeyBundle: XMPPWhisperKey, completion: @escaping Completion) {
+    public init(preKeys: [PreKey], completion: @escaping Completion) {
         var keys = Server_WhisperKeys()
         keys.action = .add
-        keys.oneTimeKeys = whisperKeyBundle.oneTime.compactMap { oneTimeKey in
+        keys.oneTimeKeys = preKeys.compactMap { oneTimeKey in
             var protoOneTimePreKey = Clients_OneTimePreKey()
             protoOneTimePreKey.id = oneTimeKey.id
             protoOneTimePreKey.publicKey = oneTimeKey.publicKey

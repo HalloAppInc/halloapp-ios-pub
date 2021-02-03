@@ -355,7 +355,7 @@ open class KeyStore {
 
 extension KeyStore {
     
-    public func initiateSessionSetup(for targetUserId: UserID, with targetUserWhisperKeys: XMPPWhisperKey) -> KeyBundle? {
+    public func initiateSessionSetup(for targetUserId: UserID, with targetUserWhisperKeys: WhisperKeyBundle) -> KeyBundle? {
         DDLogInfo("KeyStore/initiateSessionSetup \(targetUserId)")
         
         guard let myKeys = self.keyBundle() else {

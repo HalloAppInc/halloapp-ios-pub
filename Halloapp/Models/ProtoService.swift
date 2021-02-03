@@ -806,8 +806,8 @@ extension ProtoService: HalloService {
         enqueue(request: ProtoWhisperUploadRequest(keyBundle: bundle, completion: completion))
     }
 
-    func requestAddOneTimeKeys(_ bundle: WhisperKeyBundle, completion: @escaping ServiceRequestCompletion<Void>) {
-        enqueue(request: ProtoWhisperAddOneTimeKeysRequest(whisperKeyBundle: bundle, completion: completion))
+    func requestAddOneTimeKeys(_ keys: [PreKey], completion: @escaping ServiceRequestCompletion<Void>) {
+        enqueue(request: ProtoWhisperAddOneTimeKeysRequest(preKeys: keys, completion: completion))
     }
 
     func requestCountOfOneTimeKeys(completion: @escaping ServiceRequestCompletion<Int32>) {
