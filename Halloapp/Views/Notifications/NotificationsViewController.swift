@@ -160,14 +160,13 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
         contentView.addConstraints([
             unreadBadge.heightAnchor.constraint(equalToConstant: 6),
             unreadBadge.widthAnchor.constraint(equalTo: unreadBadge.heightAnchor),
-            unreadBadge.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            unreadBadge.centerYAnchor.constraint(equalTo: contactImage.centerYAnchor),
             unreadBadge.trailingAnchor.constraint(equalTo: contactImage.leadingAnchor, constant: -4),
 
             contactImage.heightAnchor.constraint(equalToConstant: 44),
             contactImage.heightAnchor.constraint(equalTo: contactImage.widthAnchor),
             contactImage.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            contactImage.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
-            contactImage.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            contactImage.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
 
             notificationTextLabel.leadingAnchor.constraint(equalToSystemSpacingAfter: contactImage.trailingAnchor, multiplier: 1),
             notificationTextLabel.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
@@ -177,8 +176,7 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
             mediaPreview.heightAnchor.constraint(equalTo: mediaPreview.widthAnchor),
             mediaPreview.leadingAnchor.constraint(equalToSystemSpacingAfter: notificationTextLabel.trailingAnchor, multiplier: 1),
             mediaPreview.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
-            mediaPreview.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
-            mediaPreview.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            mediaPreview.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
         ])
     }
 
