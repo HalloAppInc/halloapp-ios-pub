@@ -165,8 +165,9 @@ extension FeedNotification {
 
             let textRange = (result.string as NSString).range(of: "<$text$>")
             if textRange.location != NSNotFound {
-                // TODO: truncate as necessary
-                let replacementString = textWithMentions?.string ?? ""
+                let fullText = textWithMentions?.string ?? ""
+                let ellipsis = "..."
+                let replacementString = fullText.count > 80 ? fullText.prefix(80) + ellipsis : fullText
                 result.replaceCharacters(in: textRange, with: replacementString)
             }
 
