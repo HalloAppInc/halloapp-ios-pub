@@ -54,6 +54,7 @@ final class ProfileHeaderViewController: UIViewController {
     }
 
     func configureWith(userId: UserID) {
+        headerView.userID = userId
         headerView.avatarViewButton.avatarView.configure(with: userId, using: MainAppContext.shared.avatarStore)
         headerView.name = MainAppContext.shared.contactStore.fullName(for: userId)
         if let contact = MainAppContext.shared.contactStore.contact(withUserId: userId),
@@ -62,6 +63,7 @@ final class ProfileHeaderViewController: UIViewController {
         } else {
             headerView.secondaryLabel.isHidden = true
         }
+        headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
     }
 
     func configureAsHorizontal() {
@@ -104,6 +106,24 @@ final class ProfileHeaderViewController: UIViewController {
         present(actionSheet, animated: true)
     }
 
+    @objc private func openChatView() {
+        guard let userID = headerView.userID else { return }
+
+        navigationController?.pushViewController(ChatViewController(for: userID), animated: true)
+
+        // special case to prevent user from chaining a loop-like navigation stack
+        guard let nc = navigationController else { return }
+        var viewControllers = nc.viewControllers
+        guard viewControllers.count >= 5 else { return }
+        let thirdLast = viewControllers.count - 3
+        let fourthLast = viewControllers.count - 4
+        guard viewControllers[fourthLast].isKind(of: UserFeedViewController.self),
+              viewControllers[thirdLast].isKind(of: ChatViewController.self) else { return }
+        viewControllers.remove(at: thirdLast)
+        viewControllers.remove(at: fourthLast)
+        navigationController?.viewControllers = viewControllers
+    }
+    
     private func presentPhotoPicker() {
         DDLogInfo("profile/edit-photo Presenting photo picker")
 
@@ -190,9 +210,12 @@ private final class ProfileHeaderView: UIView {
                 avatarViewButton.isUserInteractionEnabled = false
                 nameButton.isHidden = true
                 nameLabel.isHidden = false
+                messageButton.isHidden = false
             }
         }
     }
+    
+    var userID: UserID? = nil
     
     var name: String? {
         get {
@@ -210,6 +233,7 @@ private final class ProfileHeaderView: UIView {
         vStackTopAnchorConstraint?.constant = 16
         vStackBottomAnchorConstraint?.constant = -16
         avatarViewButtonHeightAnchor?.constant = 80
+        nameColumn.alignment = .leading
     }
     
     private func addCameraOverlayToAvatarViewButton() {
@@ -293,13 +317,26 @@ private final class ProfileHeaderView: UIView {
     }()
     
     private lazy var nameColumn: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, secondaryLabel ])
+        let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, secondaryLabel, messageButton ])
         view.axis = .vertical
-        view.alignment = .leading
+        view.alignment = .center
         view.spacing = 0
         
         view.translatesAutoresizingMaskIntoConstraints = false
     
         return view
+    }()
+    
+    private(set) lazy var messageButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 15, bottom: 10, right: 10)
+        button.tintColor = .primaryBlue
+        
+        button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
+        button.setTitle("Message", for: .normal)
+        
+        button.isHidden = true
+        return button
+        
     }()
 }

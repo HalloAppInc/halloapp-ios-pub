@@ -135,6 +135,7 @@ public class AvatarView: UIView {
         avatarUpdatingCancellable?.cancel()
         avatar.image = AvatarView.defaultImage
         hasImage = false
+        applyCornerRadius()
     }
     
     public func resetImage() {
@@ -197,9 +198,19 @@ extension AvatarView {
         let groupAvatarData = avatarStore.groupAvatarData(for: groupId)
         
         let isSquare = squareSize > 0
-        let borderRadius = CGFloat(squareSize < 50 ? 10 : 15)
+        
+        let borderRadius:CGFloat = {
+            switch squareSize {
+            case 1...50:
+                return 11
+            case 50...80:
+                return 15
+            default:
+                return squareSize/4
+            }
+        }()
 
-        if isSquare && self.avatarContainerView.layer.cornerRadius != borderRadius {
+        if isSquare {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 self.avatarContainerView.backgroundColor = UIColor(named: "AvatarDefaultBg")!

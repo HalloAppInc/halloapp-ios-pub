@@ -14,7 +14,7 @@ import SwiftUI
 import UIKit
 
 fileprivate struct Constants {
-    static let AvatarSize: CGFloat = 52
+    static let AvatarSize: CGFloat = 56
     static let LastMsgFont = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize + 1) // 14
     static let LastMsgColor = UIColor.secondaryLabel
 }
@@ -70,9 +70,11 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         searchController.hidesNavigationBarDuringPresentation = false
 
         searchController.searchBar.showsCancelButton = false
+        
+        searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
 
         navigationItem.searchController = searchController
-//        navigationItem.hidesSearchBarWhenScrolling = false
+        navigationItem.hidesSearchBarWhenScrolling = false
         
         searchBarHeight = searchController.searchBar.frame.height
         
@@ -87,12 +89,10 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         tableView.backgroundColor = .feedBackground
         tableView.separatorStyle = .none
         tableView.register(ThreadListCell.self, forCellReuseIdentifier: GroupsListViewController.cellReuseIdentifier)
-        tableView.register(GroupsListInviteFriendsTableViewCell.self, forCellReuseIdentifier: GroupsListViewController.inviteFriendsReuseIdentifier)
         tableView.delegate = self
         tableView.dataSource = self
         
-        
-        let groupsListHeaderView = GroupsListHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 20))
+        let groupsListHeaderView = GroupsListHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 21)) // height is 21, not 20, as requested
         groupsListHeaderView.delegate = self
         tableView.tableHeaderView = groupsListHeaderView
         
@@ -122,7 +122,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         isVisible = true
         
         // after showing searchbar on top, turn on hidesSearchBarWhenScrolling so search will disappear when scrolling
-//        navigationItem.hidesSearchBarWhenScrolling = true
+        navigationItem.hidesSearchBarWhenScrolling = true
         
         showNUXIfNecessary()
     }
@@ -143,12 +143,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         }
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        if (traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection)) {
-            searchController.searchBar.layer.borderColor = UIColor.feedBackground.cgColor
-        }
-    }
-    
     // MARK: NUX
 
     private lazy var overlayContainer: OverlayContainer = {
@@ -412,7 +406,7 @@ extension GroupsListViewController: UIViewControllerScrollsToTop {
         tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: animated)
 
         // after scrolling to the first row, move offset so the searchBar is shown
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) { [weak self] in
             guard let self = self else { return }
             self.tableView.setContentOffset(offsetFromTop, animated: animated)
         }
@@ -463,7 +457,7 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let chatThread = chatThread(at: indexPath) else {
             let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
-            cell.backgroundColor = .clear
+            cell.isHidden = true
             return cell
         }
         let cell = tableView.dequeueReusableCell(withIdentifier: GroupsListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
@@ -496,8 +490,6 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         guard let chatThread = chatThread(at: indexPath) else {
-            // Must be invite friends cell
-            startInviteFriendsFlow()
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
@@ -635,7 +627,7 @@ class GroupsListHeaderView: UIView {
     
     private lazy var textLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 15)
+        label.font = UIFont.systemFont(ofSize: 17)
         label.textColor = .systemBlue
         label.textAlignment = .right
         label.text = Localizations.chatCreateNewGroup
@@ -658,62 +650,3 @@ class GroupsListHeaderView: UIView {
         self.delegate?.groupsListHeaderView(self)
     }
 }
-
-private class GroupsListInviteFriendsTableViewCell: UITableViewCell {
-
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setup()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
-    }
-
-    lazy var iconView: UIImageView = {
-        let image = UIImage(named: "AddFriend")?
-            .withRenderingMode(.alwaysTemplate)
-            .imageFlippedForRightToLeftLayoutDirection()
-        let view = UIImageView(image: image)
-        view.contentMode = .center
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.cornerRadius = Constants.AvatarSize / 2
-        view.tintColor = .white
-        view.backgroundColor = .systemBlue
-        return view
-    }()
-
-    lazy var label: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = Localizations.inviteFriendsAndFamily
-        label.font = .gothamFont(forTextStyle: .subheadline, weight: .medium)
-        label.numberOfLines = 0
-        label.textColor = .systemBlue
-        return label
-    }()
-
-    private func setup() {
-        backgroundColor = .clear
-
-        contentView.addSubview(iconView)
-        contentView.addSubview(label)
-
-        contentView.addConstraints([
-            iconView.widthAnchor.constraint(equalToConstant: Constants.AvatarSize),
-            iconView.heightAnchor.constraint(equalTo: iconView.widthAnchor),
-            iconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            iconView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
-            iconView.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8),
-
-            label.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 10),
-            label.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
-            label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            label.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
-
-            contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 40),
-        ])
-    }
-}
-

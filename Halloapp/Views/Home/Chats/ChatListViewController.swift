@@ -14,9 +14,7 @@ import SwiftUI
 import UIKit
 
 fileprivate struct Constants {
-    static let AvatarSize: CGFloat = 52
-//    static let LastMsgFont = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize + 1) // 14
-//    static let LastMsgColor = UIColor.secondaryLabel
+    static let AvatarSize: CGFloat = 56
 }
 
 fileprivate enum ChatListViewSection {
@@ -60,7 +58,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         navigationItem.standardAppearance = .transparentAppearance
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         installLargeTitleUsingGothamFont()
-
+        
         searchController = UISearchController(searchResultsController: nil)
         searchController.delegate = self
         searchController.searchResultsUpdater = self
@@ -70,10 +68,12 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         searchController.hidesNavigationBarDuringPresentation = false
 
         searchController.searchBar.showsCancelButton = false
-
-        navigationItem.searchController = searchController
-//        navigationItem.hidesSearchBarWhenScrolling = false
         
+        searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
+        
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+                
         searchBarHeight = searchController.searchBar.frame.height
         
         view.addSubview(tableView)
@@ -82,7 +82,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         installEmptyView()
         installFloatingActionMenu()
-        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+//        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
         tableView.backgroundColor = .feedBackground
         tableView.separatorStyle = .none
@@ -91,11 +91,9 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         tableView.delegate = self
         tableView.dataSource = self
         
-        
-        let chatListHeaderView = ChatListHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 20))
+        let chatListHeaderView = ChatListHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 21)) // height is 21, not 20, as requested
         chatListHeaderView.delegate = self
         tableView.tableHeaderView = chatListHeaderView
-        
         
         setupFetchedResultsController()
         
@@ -133,7 +131,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         isVisible = true
         
         // after showing searchbar on top, turn on hidesSearchBarWhenScrolling so search will disappear when scrolling
-//        navigationItem.hidesSearchBarWhenScrolling = true
+        navigationItem.hidesSearchBarWhenScrolling = true
         
         showNUXIfNecessary()
     }
@@ -154,12 +152,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         }
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        if (traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection)) {
-            searchController.searchBar.layer.borderColor = UIColor.feedBackground.cgColor
-        }
-    }
-    
     // MARK: NUX
 
     private lazy var overlayContainer: OverlayContainer = {
@@ -456,7 +448,7 @@ extension ChatListViewController: UIViewControllerScrollsToTop {
         tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: animated)
 
         // after scrolling to the first row, move offset so the searchBar is shown
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) { [weak self] in
             guard let self = self else { return }
             self.tableView.setContentOffset(offsetFromTop, animated: animated)
         }
@@ -518,7 +510,7 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.cellReuseIdentifier, for: indexPath) as! ThreadListCell
 
         cell.configureAvatarSize(Constants.AvatarSize)
-        cell.configure(with: chatThread)
+        cell.configure(with: chatThread, squareSize: Constants.AvatarSize)
         updateCellWithChatState(cell: cell, chatThread: chatThread)
   
         if isFiltering {
@@ -687,7 +679,7 @@ class ChatListHeaderView: UIView {
     
     private lazy var textLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 15)
+        label.font = UIFont.systemFont(ofSize: 17)
         label.textColor = .systemBlue
         label.textAlignment = .right
         

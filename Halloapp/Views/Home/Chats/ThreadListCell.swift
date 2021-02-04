@@ -12,7 +12,8 @@ import Core
 import UIKit
 
 fileprivate struct Constants {
-    static let LastMsgFont = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize + 1) // 14
+    static let TitleFont = UIFont.systemFont(forTextStyle: .body, weight: .semibold) // 17 points
+    static let LastMsgFont = UIFont.systemFont(forTextStyle: .callout) // 16 points
     static let LastMsgColor = UIColor.secondaryLabel
 }
 
@@ -21,7 +22,7 @@ class ThreadListCell: UITableViewCell {
     public var chatThread: ChatThread? = nil
     public var isShowingTypingIndicator: Bool = false
     
-    public var avatarSize: CGFloat = 50
+    private var avatarSize: CGFloat = 56 // default
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -39,7 +40,7 @@ class ThreadListCell: UITableViewCell {
         chatThread = nil
         isShowingTypingIndicator = false
 
-        nameLabel.attributedText = nil
+        titleLabel.attributedText = nil
 
         timeLabel.text = nil
         lastMsgLabel.text = nil
@@ -48,7 +49,6 @@ class ThreadListCell: UITableViewCell {
         avatarView.avatarView.prepareForReuse()
     }
 
-    // 14 points for font
     private func lastMessageText(for chatThread: ChatThread) -> NSAttributedString {
 
         var contactNamePart = ""
@@ -105,7 +105,7 @@ class ThreadListCell: UITableViewCell {
 
         let result = NSMutableAttributedString(string: contactNamePart)
 
-        if let mediaIcon = mediaIcon {
+        if let mediaIcon = mediaIcon, chatThread.type == .oneToOne {
             result.append(NSAttributedString(attachment: NSTextAttachment(image: mediaIcon)))
             result.append(NSAttributedString(string: " "))
         }
@@ -134,7 +134,6 @@ class ThreadListCell: UITableViewCell {
         return result
     }
 
-    // 14 points for font
     private func lastFeedText(for chatThread: ChatThread) -> NSAttributedString {
 
         var contactNamePart = ""
@@ -186,25 +185,17 @@ class ThreadListCell: UITableViewCell {
         contentView.addConstraints([
             avatarView.widthAnchor.constraint(equalToConstant: avatarSizeWithIndicator),
             avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor),
-            avatarView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            avatarView.centerXAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: 0.5*avatarSizeWithIndicator),
-            avatarView.topAnchor.constraint(greaterThanOrEqualTo: contentView.topAnchor, constant: 8),
-
-            vStack.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 10),
-            vStack.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
-            vStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            vStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor)
         ])
     }
     
-    func configure(with chatThread: ChatThread) {
+    func configure(with chatThread: ChatThread, squareSize: CGFloat = 0) {
 
         self.chatThread = chatThread
 
         if chatThread.type == .oneToOne {
-            nameLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId ?? "")
+            titleLabel.text = MainAppContext.shared.contactStore.fullName(for: chatThread.chatWithUserId ?? "")
         } else {
-            nameLabel.text = chatThread.title
+            titleLabel.text = chatThread.title
         }
 
         lastMsgLabel.attributedText = lastMessageText(for: chatThread)
@@ -229,14 +220,14 @@ class ThreadListCell: UITableViewCell {
         if chatThread.type == .oneToOne {
             avatarView.configure(userId: chatThread.chatWithUserId ?? "", using: MainAppContext.shared.avatarStore)
         } else if chatThread.type == .group {
-            avatarView.configure(groupId: chatThread.groupId ?? "", using: MainAppContext.shared.avatarStore)
+            avatarView.configure(groupId: chatThread.groupId ?? "", squareSize: squareSize, using: MainAppContext.shared.avatarStore)
         }
     }
     
     func configureForGroupsList(with chatThread: ChatThread, squareSize: CGFloat = 0) {
         guard chatThread.groupId != nil else { return }
         self.chatThread = chatThread
-        nameLabel.text = chatThread.title
+        titleLabel.text = chatThread.title
         
         lastMsgLabel.attributedText = lastFeedText(for: chatThread)
 
@@ -262,14 +253,14 @@ class ThreadListCell: UITableViewCell {
     }
 
     func highlightTitle(_ searchItems: [String]) {
-        guard let title = nameLabel.text else { return }
+        guard let title = titleLabel.text else { return }
         let titleLowercased = title.lowercased() as NSString
         let attributedString = NSMutableAttributedString(string: title)
         for item in searchItems {
             let range = titleLowercased.range(of: item.lowercased())
             attributedString.addAttribute(.foregroundColor, value: UIColor.systemBlue, range: range)
         }
-        nameLabel.attributedText = attributedString
+        titleLabel.attributedText = attributedString
     }
 
     func configureTypingIndicator(_ typingIndicatorStr: String?) {
@@ -291,21 +282,17 @@ class ThreadListCell: UITableViewCell {
         backgroundColor = .clear
 
         avatarView = AvatarViewButton(type: .custom)
-//        avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
-//        avatarView.newPostsIndicatorRingWidth = 5
-//        avatarView.newPostsIndicatorRingSpacing = 1.5
         avatarView.translatesAutoresizingMaskIntoConstraints = false
-        
-        contentView.addSubview(avatarView)
-        contentView.addSubview(vStack)
-        
-//        if ServerProperties.isGroupFeedEnabled {
-//            avatarView.addTarget(self, action: #selector(avatarButtonTapped), for: .touchUpInside)
-//        } else {
-//            avatarView.isUserInteractionEnabled = false
-//        }
-        
         avatarView.isUserInteractionEnabled = false
+        
+        contentView.addSubview(mainRow)
+        
+        contentView.addConstraints([
+            mainRow.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            mainRow.topAnchor.constraint(greaterThanOrEqualTo: contentView.layoutMarginsGuide.topAnchor),
+            mainRow.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            mainRow.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor)
+        ])
     }
 
     private var avatarView: AvatarViewButton!
@@ -316,19 +303,30 @@ class ThreadListCell: UITableViewCell {
         avatarTappedAction?()
     }
     
+    private lazy var mainRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ avatarView, vStack ])
+        view.axis = .horizontal
+        view.alignment = .center
+        view.spacing = 12
+                
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     private lazy var vStack: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ topRow, bottomRow ])
         view.axis = .vertical
-        view.spacing = 4
+        view.spacing = 6
+        
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
 
     private lazy var topRow: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [ nameLabel, timeLabel ])
+        let view = UIStackView(arrangedSubviews: [ titleLabel, timeLabel ])
         view.axis = .horizontal
         view.alignment = .firstBaseline
-        view.spacing = 8
+        view.spacing = 7
         return view
     }()
     
@@ -340,22 +338,20 @@ class ThreadListCell: UITableViewCell {
         return view
     }()
     
-    // 15 points for font
-    private lazy var nameLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.font = .systemFont(forTextStyle: .subheadline, weight: .semibold)
+        label.font = Constants.TitleFont
         label.textColor = UIColor.label.withAlphaComponent(0.8)
+        label.adjustsFontForContentSizeCategory = true
         return label
     }()
 
-    // 13 points for font
+    // 15 points for font
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
-
+        label.font = UIFont.preferredFont(forTextStyle: .subheadline)
         label.textColor = .secondaryLabel
         label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultHigh + 50, for: .horizontal)
@@ -365,6 +361,7 @@ class ThreadListCell: UITableViewCell {
     private lazy var lastMsgLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
+        label.adjustsFontForContentSizeCategory = true
         label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         return label
     }()
@@ -375,7 +372,7 @@ class ThreadListCell: UITableViewCell {
         
         view.label.font = .systemFont(forTextStyle: .caption1, weight: .medium)
         
-        view.widthAnchor.constraint(greaterThanOrEqualToConstant: 18).isActive = true
+        view.widthAnchor.constraint(greaterThanOrEqualToConstant: 15).isActive = true
         return view
     }()
 

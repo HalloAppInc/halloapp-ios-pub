@@ -50,6 +50,9 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         
     private var chatStateDebounceTimer: Timer? = nil
     
+    private var currentUnseenChatThreadsList: [UserID: Int] = [:]
+    private var currentUnseenGroupChatThreadsList: [GroupID: Int] = [:]
+    
     private var cancellableSet: Set<AnyCancellable> = []
     
     // MARK: Lifecycle
@@ -65,12 +68,15 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let appearance = UINavigationBarAppearance()
-        appearance.backgroundColor = UIColor.feedBackground
-        appearance.shadowColor = .clear
-        navigationItem.standardAppearance = appearance
-        navigationItem.scrollEdgeAppearance = appearance
-        navigationItem.compactAppearance = appearance
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.backgroundColor = UIColor.feedBackground
+        navAppearance.shadowColor = nil
+        navAppearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
+        navigationItem.standardAppearance = navAppearance
+        navigationItem.scrollEdgeAppearance = navAppearance
+        navigationItem.compactAppearance = navAppearance
+
+        updateBackButtonUnreadCount(num: 0, isTopItem: true)
         
         NSLayoutConstraint.activate([
             titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
@@ -212,6 +218,41 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
             }
         )
         
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetAChatMsg.sink { [weak self] (userID) in
+                guard let self = self else { return }
+
+                if self.currentUnseenChatThreadsList[userID] == nil {
+                    self.currentUnseenChatThreadsList[userID] = 1
+                } else {
+                    self.currentUnseenChatThreadsList[userID]? += 1
+                }
+                
+                DispatchQueue.main.async {
+                    let total = self.currentUnseenChatThreadsList.count + self.currentUnseenGroupChatThreadsList.count
+                    self.updateBackButtonUnreadCount(num: total, isTopItem: false)
+                }
+            }
+        )
+        
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetAGroupChatMsg.sink { [weak self] (groupID) in
+                guard let self = self else { return }
+                guard groupID != self.groupId else { return }
+                
+                if self.currentUnseenGroupChatThreadsList[groupID] == nil {
+                    self.currentUnseenGroupChatThreadsList[groupID] = 1
+                } else {
+                    self.currentUnseenGroupChatThreadsList[groupID]? += 1
+                }
+                
+                DispatchQueue.main.async {
+                    let total = self.currentUnseenChatThreadsList.count + self.currentUnseenGroupChatThreadsList.count
+                    self.updateBackButtonUnreadCount(num: total, isTopItem: false)
+                }
+            }
+        )
+        
         if !ServerProperties.isGroupChatEnabled {
             inputAccessoryView?.isHidden = true
         }
@@ -265,10 +306,26 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         chatInputView.willDisappear(in: self)
         
         jumpButton.removeFromSuperview()
+        
+        if isMovingFromParent {
+            navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
+        }
     }
     
     deinit {
         DDLogDebug("ChatGroupViewController/deinit/\(groupId)")
+    }
+    
+    private func updateBackButtonUnreadCount(num: Int, isTopItem: Bool) {
+        let backButton = UIBarButtonItem()
+        backButton.title = num > 0 ? String(num) : " \u{00a0}"
+        backButton.tintColor = UIColor.primaryBlue
+        
+        if isTopItem {
+            navigationController?.navigationBar.topItem?.backBarButtonItem = backButton
+        } else {
+            navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
+        }
     }
     
     // MARK:

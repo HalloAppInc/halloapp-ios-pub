@@ -41,6 +41,9 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     static private let inboundMsgViewCellReuseIdentifier = "InboundMsgViewCell"
     static private let outboundMsgViewCellReuseIdentifier = "OutboundMsgViewCell"
     
+    private var currentUnseenChatThreadsList: [UserID: Int] = [:]
+    private var currentUnseenGroupChatThreadsList: [GroupID: Int] = [:]
+    
     private var cancellableSet: Set<AnyCancellable> = []
 
     private var mediaPickerController: MediaPickerViewController?
@@ -62,15 +65,18 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
         super.viewDidLoad()
         
-        let appearance = UINavigationBarAppearance()
-        appearance.backgroundColor = UIColor.feedBackground
-        appearance.shadowColor = .clear
-        navigationItem.standardAppearance = appearance
-        navigationItem.scrollEdgeAppearance = appearance
-        navigationItem.compactAppearance = appearance
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.backgroundColor = UIColor.feedBackground
+        navAppearance.shadowColor = nil
+        navAppearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
+        navigationItem.standardAppearance = navAppearance
+        navigationItem.scrollEdgeAppearance = navAppearance
+        navigationItem.compactAppearance = navAppearance
+
+        updateBackButtonUnreadCount(num: 0, isTopItem: true)
         
         NSLayoutConstraint.activate([
-            titleView.widthAnchor.constraint(equalToConstant: (self.view.frame.width*0.7))
+            titleView.widthAnchor.constraint(equalToConstant: (self.view.frame.width*0.8))
         ])
         
         navigationItem.titleView = titleView
@@ -220,6 +226,41 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
             }
         )
         
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetAChatMsg.sink { [weak self] (userID) in
+                guard let self = self else { return }
+                guard userID != self.fromUserId else { return }
+                
+                if self.currentUnseenChatThreadsList[userID] == nil {
+                    self.currentUnseenChatThreadsList[userID] = 1
+                } else {
+                    self.currentUnseenChatThreadsList[userID]? += 1
+                }
+                
+                DispatchQueue.main.async {
+                    let total = self.currentUnseenChatThreadsList.count + self.currentUnseenGroupChatThreadsList.count
+                    self.updateBackButtonUnreadCount(num: total, isTopItem: false)
+                }
+            }
+        )
+        
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetAGroupChatMsg.sink { [weak self] (groupID) in
+                guard let self = self else { return }
+                
+                if self.currentUnseenGroupChatThreadsList[groupID] == nil {
+                    self.currentUnseenGroupChatThreadsList[groupID] = 1
+                } else {
+                    self.currentUnseenGroupChatThreadsList[groupID]? += 1
+                }
+                
+                DispatchQueue.main.async {
+                    let total = self.currentUnseenChatThreadsList.count + self.currentUnseenGroupChatThreadsList.count
+                    self.updateBackButtonUnreadCount(num: total, isTopItem: false)
+                }
+            }
+        )
+        
         configureTitleViewWithTypingIndicator()
         
         guard let thread = MainAppContext.shared.chatData.chatThread(type: .oneToOne, id: fromUserId) else { return }
@@ -273,6 +314,17 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     deinit {
         DDLogDebug("ChatViewController/deinit/\(fromUserId ?? "")")
+    }
+    
+    private func updateBackButtonUnreadCount(num: Int, isTopItem: Bool) {
+        let backButton = UIBarButtonItem()
+        backButton.title = num > 0 ? String(num) : " \u{00a0}"
+        
+        if isTopItem {
+            navigationController?.navigationBar.topItem?.backBarButtonItem = backButton
+        } else {
+            navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
+        }
     }
     
     // MARK:
@@ -1057,7 +1109,7 @@ fileprivate class TitleView: UIView {
     }
     
     private func setup() {
-        let imageSize: CGFloat = 35
+        let imageSize: CGFloat = 32
         contactImageView.widthAnchor.constraint(equalToConstant: imageSize).isActive = true
         contactImageView.heightAnchor.constraint(equalTo: contactImageView.widthAnchor).isActive = true
         

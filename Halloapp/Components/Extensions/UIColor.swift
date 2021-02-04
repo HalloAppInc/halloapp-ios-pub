@@ -34,6 +34,10 @@ extension UIColor {
         UIColor(named: "Separator")!
     }
 
+    class var searchBarBg: UIColor {
+        UIColor(named: "SearchBarBg")!
+    }
+    
     class var cameraButton: UIColor {
         UIColor(named: "CameraButton")!
     }

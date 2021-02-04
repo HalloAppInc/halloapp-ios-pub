@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Combine
 import Core
 import CoreData
 import UIKit
@@ -18,6 +19,11 @@ class GroupFeedViewController: FeedCollectionViewController {
 
     private let groupId: GroupID
     private var headerView: GroupFeedHeaderView?
+    
+    private var currentUnreadThreadGroupCount = 0
+    private var currentUnseenGroupFeedList: [GroupID: Int] = [:]
+    
+    private var cancellableSet: Set<AnyCancellable> = []
 
     init(groupId: GroupID) {
         self.groupId = groupId
@@ -44,13 +50,15 @@ class GroupFeedViewController: FeedCollectionViewController {
 //        }
 //        collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
 
-        
-        let appearance = UINavigationBarAppearance()
-        appearance.backgroundColor = UIColor.feedBackground
-        appearance.shadowColor = .clear
-        navigationItem.standardAppearance = appearance
-        navigationItem.scrollEdgeAppearance = appearance
-        navigationItem.compactAppearance = appearance
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.backgroundColor = UIColor.feedBackground
+        navAppearance.shadowColor = nil
+        navAppearance.setBackIndicatorImage(UIImage(named: "NavbarBack"), transitionMaskImage: UIImage(named: "NavbarBack"))
+        navigationItem.standardAppearance = navAppearance
+        navigationItem.scrollEdgeAppearance = navAppearance
+        navigationItem.compactAppearance = navAppearance
+
+        updateBackButtonUnreadCount(num: 0, isTopItem: true)
         
         NSLayoutConstraint.activate([
             titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
@@ -63,11 +71,39 @@ class GroupFeedViewController: FeedCollectionViewController {
         titleView.delegate = self
         
         installFloatingActionMenu()
+        
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetAGroupFeed.sink { [weak self] (groupID) in
+                guard let self = self else { return }
+                guard groupID != self.groupId else { return }
+                
+                if self.currentUnseenGroupFeedList[groupID] == nil {
+                
+                    self.currentUnseenGroupFeedList[groupID] = 1
+                } else {
+                    
+                    self.currentUnseenGroupFeedList[groupID]? += 1
+                }
+                
+                DispatchQueue.main.async {
+                    self.updateBackButtonUnreadCount(num: self.currentUnseenGroupFeedList.count, isTopItem: false)
+                }
+            }
+        )
+        
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         titleView.update(with: groupId, isFeedView: true)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        if isMovingFromParent {
+            navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
+        }
     }
     
     override func showGroupName() -> Bool {
@@ -79,6 +115,18 @@ class GroupFeedViewController: FeedCollectionViewController {
         titleView.translatesAutoresizingMaskIntoConstraints = false
         return titleView
     }()
+    
+    private func updateBackButtonUnreadCount(num: Int, isTopItem: Bool) {
+        let backButton = UIBarButtonItem()
+        backButton.title = num > 0 ? String(num) : " \u{00a0}"
+        backButton.tintColor = UIColor.primaryBlue
+        
+        if isTopItem {
+            navigationController?.navigationBar.topItem?.backBarButtonItem = backButton
+        } else {
+            navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
+        }
+    }
     
     // MARK: New post
 

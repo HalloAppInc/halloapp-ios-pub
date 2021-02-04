@@ -17,7 +17,7 @@ protocol GroupTitleViewDelegate: AnyObject {
 class GroupTitleView: UIView {
 
     private struct LayoutConstants {
-        static let avatarSize: CGFloat = 30
+        static let avatarSize: CGFloat = 32
     }
     
     weak var delegate: GroupTitleViewDelegate?
@@ -52,17 +52,7 @@ class GroupTitleView: UIView {
             }
         }
         
-        
-        if isFeedView {
-            avatarView.configure(groupId: groupId, squareSize: 30, using: MainAppContext.shared.avatarStore)
-        } else {
-            avatarView.configure(groupId: groupId, using: MainAppContext.shared.avatarStore)
-        }
-        
-        if isFeedView {
-            avatarView.hasNewPostsIndicator = false
-            avatarView.isUserInteractionEnabled = false
-        }
+        avatarView.configure(groupId: groupId, squareSize: LayoutConstants.avatarSize, using: MainAppContext.shared.avatarStore)
     }
 
     func showChatState(with typingIndicatorStr: String?) {
@@ -79,18 +69,20 @@ class GroupTitleView: UIView {
     
     private func setup() {
         avatarView = AvatarViewButton(type: .custom)
-        avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
-        avatarView.newPostsIndicatorRingWidth = 3
-        avatarView.newPostsIndicatorRingSpacing = 1
+//        avatarView.hasNewPostsIndicator = ServerProperties.isGroupFeedEnabled
+//        avatarView.newPostsIndicatorRingWidth = 3
+//        avatarView.newPostsIndicatorRingSpacing = 1
         let avatarButtonWidth: CGFloat = LayoutConstants.avatarSize + (avatarView.hasNewPostsIndicator ? 2*(avatarView.newPostsIndicatorRingSpacing + avatarView.newPostsIndicatorRingWidth) : 0)
         avatarView.widthAnchor.constraint(equalToConstant: avatarButtonWidth).isActive = true
         avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor).isActive = true
-        if ServerProperties.isGroupFeedEnabled {
-            avatarView.addTarget(self, action: #selector(avatarButtonTapped), for: .touchUpInside)
-        } else {
-            avatarView.isUserInteractionEnabled = false
-        }
+//        if ServerProperties.isGroupFeedEnabled {
+//            avatarView.addTarget(self, action: #selector(avatarButtonTapped), for: .touchUpInside)
+//        } else {
+//            avatarView.isUserInteractionEnabled = false
+//        }
 
+        avatarView.isUserInteractionEnabled = false
+        
         addSubview(hStack)
         hStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor).isActive = true
         hStack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor).isActive = true
@@ -129,7 +121,7 @@ class GroupTitleView: UIView {
         label.numberOfLines = 1
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.textColor = .label
+        label.textColor = .primaryBlue
         return label
     }()
     

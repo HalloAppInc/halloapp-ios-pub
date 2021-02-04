@@ -40,6 +40,10 @@ class ChatData: ObservableObject {
     
     let didGetMediaDownloadProgress = PassthroughSubject<Void, Never>()
     
+    let didGetAGroupFeed = PassthroughSubject<GroupID, Never>()
+    let didGetAChatMsg = PassthroughSubject<UserID, Never>()
+    let didGetAGroupChatMsg = PassthroughSubject<GroupID, Never>()
+    
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.chat")
     
     private let userData: UserData
@@ -143,6 +147,8 @@ class ChatData: ObservableObject {
                 guard let self = self else { return }
                 DDLogInfo("ChatData/didGetNewChatMessage \(xmppMessage.id)")
                 self.processInboundXMPPChatMessage(xmppMessage)
+                
+                self.didGetAChatMsg.send(xmppMessage.fromUserId)
             }
         )
         
@@ -154,6 +160,9 @@ class ChatData: ObservableObject {
                     guard let groupID = feedPost.groupId else { return }
                     let postID = feedPost.id
                     DDLogInfo("ChatData/didReceiveFeedPost/group/\(groupID)")
+                    
+                    self.didGetAGroupFeed.send(groupID)
+                    
                     self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                         guard let self = self else { return }
                         self.updateThreadWithGroupFeed(postID, isInbound: true, using: managedObjectContext)
@@ -164,7 +173,12 @@ class ChatData: ObservableObject {
             self.cancellableSet.insert(
                 MainAppContext.shared.feedData.didMergeFeedPost.sink { [weak self] (postID) in
                     guard let self = self else { return }
+                    guard let feedPost = MainAppContext.shared.feedData.feedPost(with: postID) else { return }
+                    guard let groupID = feedPost.groupId else { return }
                     DDLogInfo("ChatData/didMergeFeedPost")
+                    
+                    self.didGetAGroupFeed.send(groupID)
+                    
                     self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
                         guard let self = self else { return }
                         self.updateThreadWithGroupFeed(postID, isInbound: true, using: managedObjectContext)
@@ -3722,7 +3736,10 @@ extension ChatData {
             
             if chatGroupMessageEvent.action != .changeAvatar {
                 chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
-                chatThread.lastFeedTimestamp = chatGroupMessage.timestamp
+                
+                if ![.modifyAdmins, .modifyMembers].contains(chatGroupMessageEvent.action) {
+                    chatThread.lastFeedTimestamp = chatGroupMessage.timestamp
+                }
             }
             // unreadCount is not incremented for group event messages
         }
@@ -3958,6 +3975,9 @@ extension ChatData: HalloChatDelegate {
     func halloService(_ halloService: HalloService, didReceiveGroupChatMessage message: HalloGroupChatMessage) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+            
+            self.didGetAGroupChatMsg.send(message.groupId)
+            
             let isAppActive = UIApplication.shared.applicationState == .active
             
             self.performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in

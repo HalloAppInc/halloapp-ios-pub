@@ -128,8 +128,12 @@ class HomeViewController: UITabBarController {
     }
 
     static let tabBarItemImageInsets: UIEdgeInsets = {
-        let vInset: CGFloat = UIDevice.current.hasNotch ? 4 : 2
-        return UIEdgeInsets(top: vInset, left: 0, bottom: -vInset, right: 0)
+        let vInset: CGFloat = UIDevice.current.hasNotch ? 3 : 3 // currently same but can be used to adjust in the future
+        let sizeAdjust: CGFloat = -1
+        let topInset = vInset + sizeAdjust
+        let bottomInset = -vInset + sizeAdjust
+        
+        return UIEdgeInsets(top: topInset, left: sizeAdjust, bottom: bottomInset, right: sizeAdjust)
     }()
 
     private func feedNavigationController() -> UINavigationController {
