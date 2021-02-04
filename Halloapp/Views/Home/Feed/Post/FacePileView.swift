@@ -56,35 +56,16 @@ class FacePileView: UIControl {
 
     func configure(with post: FeedPost) {
         let seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: post)
+        let usersToShow = seenReceipts.suffix(numberOfFaces).map { $0.userId }.reversed()
+        let avatarsToShow = usersToShow.map { MainAppContext.shared.avatarStore.userAvatar(forUserId: $0) }
 
-        var usersWithAvatars: [UserAvatar] = []
-        var usersWithoutAvatar: [UserAvatar] = []
-
-        for receipt in seenReceipts {
-            let userAvatar = MainAppContext.shared.avatarStore.userAvatar(forUserId: receipt.userId)
-            if !userAvatar.isEmpty {
-                usersWithAvatars.append(userAvatar)
-            } else {
-                usersWithoutAvatar.append(userAvatar)
-            }
-            if usersWithAvatars.count >= numberOfFaces {
-                break
-            }
-        }
-
-        if usersWithAvatars.count < numberOfFaces {
-            usersWithAvatars.append(contentsOf: usersWithoutAvatar.prefix(numberOfFaces - usersWithAvatars.count))
-        }
-
-        if !usersWithAvatars.isEmpty {
-            // The avatars are applied from right to left
-            usersWithAvatars.reverse()
-            for userIndex in 0 ..< usersWithAvatars.count {
+        if !avatarsToShow.isEmpty {
+            for (userIndex, avatar) in avatarsToShow.enumerated() {
                 let avatarView = avatarViews[userIndex]
                 avatarView.isHidden = false
-                avatarView.configure(with: usersWithAvatars[userIndex], using: MainAppContext.shared.avatarStore)
+                avatarView.configure(with: avatar, using: MainAppContext.shared.avatarStore)
 
-                switch usersWithAvatars.count - userIndex {
+                switch avatarsToShow.count - userIndex {
                 case 3:
                     avatarView.imageAlpha = 0.7 // The rightmost avatar
                 case 2:
@@ -92,7 +73,6 @@ class FacePileView: UIControl {
                 default:
                     avatarView.imageAlpha = 1 // The leftmost avatar
                 }
-
             }
         } else { // No one has seen this post. Just show a dummy avatar.
             guard let avatarView = avatarViews.first else { return }
