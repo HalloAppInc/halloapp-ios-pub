@@ -25,7 +25,6 @@ public class AvatarStore: ServiceAvatarDelegate {
     }
 
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.avatars")
-    private var bgContext: NSManagedObjectContext
     
     // Please notice that when app moves to the background, `userAvatars` may be evicted.
     private let userAvatars = NSCache<NSString, UserAvatar>()
@@ -61,14 +60,13 @@ public class AvatarStore: ServiceAvatarDelegate {
         return container
     }()
     
-    public init() {
-        bgContext = persistentContainer.newBackgroundContext()
-    }
-        
+    public init() {}
+    
     private func performOnBackgroundContextAndWait(_ block: @escaping (NSManagedObjectContext) -> Void) {
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
-            self.bgContext.performAndWait { block(self.bgContext) }
+            let managedObjectContext = self.persistentContainer.newBackgroundContext()
+            managedObjectContext.performAndWait { block(managedObjectContext) }
         }
     }
     
