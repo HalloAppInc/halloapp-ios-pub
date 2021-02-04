@@ -12,6 +12,10 @@ extension Mentions {
     public static func mentionableUsers(forPostID postID: FeedPostID) -> [MentionableUser] {
         guard let post = MainAppContext.shared.feedData.feedPost(with: postID) else { return [] }
 
+        if let groupID = post.groupId {
+            return mentionableUsers(forGroupID: groupID)
+        }
+
         var contactSet = Set<UserID>()
 
         if post.userId != MainAppContext.shared.userData.userId {
