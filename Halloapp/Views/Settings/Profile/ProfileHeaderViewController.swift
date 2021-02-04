@@ -31,6 +31,8 @@ final class ProfileHeaderViewController: UIViewController {
         }
     }
     
+    var name: String? { headerView.name }
+    
     private var headerView: ProfileHeaderView {
         view as! ProfileHeaderView
     }
@@ -51,6 +53,9 @@ final class ProfileHeaderViewController: UIViewController {
 
         headerView.avatarViewButton.addTarget(self, action: #selector(editProfilePhoto), for: .touchUpInside)
         headerView.nameButton.addTarget(self, action: #selector(editName), for: .touchUpInside)
+        
+        headerView.secondaryLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(editName)))
+        headerView.secondaryLabel.isUserInteractionEnabled = true
     }
 
     func configureWith(userId: UserID) {

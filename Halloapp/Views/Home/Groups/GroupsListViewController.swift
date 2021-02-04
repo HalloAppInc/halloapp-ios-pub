@@ -124,7 +124,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         // after showing searchbar on top, turn on hidesSearchBarWhenScrolling so search will disappear when scrolling
         navigationItem.hidesSearchBarWhenScrolling = true
         
-        showNUXIfNecessary()
+//        showNUXIfNecessary()
     }
 
     override func viewWillDisappear(_ animated: Bool) {

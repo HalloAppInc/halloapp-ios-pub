@@ -57,8 +57,6 @@ class GroupFeedViewController: FeedCollectionViewController {
         navigationItem.standardAppearance = navAppearance
         navigationItem.scrollEdgeAppearance = navAppearance
         navigationItem.compactAppearance = navAppearance
-
-        updateBackButtonUnreadCount(num: 0, isTopItem: true)
         
         NSLayoutConstraint.activate([
             titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
@@ -86,7 +84,7 @@ class GroupFeedViewController: FeedCollectionViewController {
                 }
                 
                 DispatchQueue.main.async {
-                    self.updateBackButtonUnreadCount(num: self.currentUnseenGroupFeedList.count, isTopItem: false)
+                    self.updateBackButtonUnreadCount(num: self.currentUnseenGroupFeedList.count)
                 }
             }
         )
@@ -96,14 +94,15 @@ class GroupFeedViewController: FeedCollectionViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         titleView.update(with: groupId, isFeedView: true)
+        
+        navigationController?.navigationBar.tintColor = .primaryBlue
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-        if isMovingFromParent {
-            navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
-        }
+        navigationController?.navigationBar.tintColor = .label
+        navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
     }
     
     override func showGroupName() -> Bool {
@@ -116,16 +115,11 @@ class GroupFeedViewController: FeedCollectionViewController {
         return titleView
     }()
     
-    private func updateBackButtonUnreadCount(num: Int, isTopItem: Bool) {
+    private func updateBackButtonUnreadCount(num: Int) {
         let backButton = UIBarButtonItem()
         backButton.title = num > 0 ? String(num) : " \u{00a0}"
-        backButton.tintColor = UIColor.primaryBlue
-        
-        if isTopItem {
-            navigationController?.navigationBar.topItem?.backBarButtonItem = backButton
-        } else {
-            navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
-        }
+
+        navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
     }
     
     // MARK: New post

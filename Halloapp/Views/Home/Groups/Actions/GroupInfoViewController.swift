@@ -234,10 +234,10 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
             tableView.deselectRow(at: indexPath, animated: true)
         }
 
-        guard isAdmin else {
-            deselectRow()
-            return
-        }
+//        guard isAdmin else {
+//            deselectRow()
+//            return
+//        }
         guard let chatGroupMember = fetchedResultsController?.object(at: indexPath),
               chatGroupMember.userId != MainAppContext.shared.userData.userId else
         {
@@ -251,32 +251,43 @@ class GroupInfoViewController: UITableViewController, NSFetchedResultsController
         let actionSheet = UIAlertController(title: "\(userName)", message: nil, preferredStyle: .actionSheet)
         actionSheet.view.tintColor = UIColor.systemBlue
         
-        if chatGroupMember.type == .admin {
-            actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoDemote, style: .destructive) { [weak self] _ in
+        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoViewProfile, style: .default) { [weak self] _ in
+            guard let self = self else { return }
+
+            let userViewController = UserFeedViewController(userId: chatGroupMember.userId)
+            self.navigationController?.pushViewController(userViewController, animated: true)
+        })
+        
+        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMessageUser, style: .default) { [weak self] _ in
+            guard let self = self else { return }
+               
+            self.navigationController?.pushViewController(ChatViewController(for: chatGroupMember.userId), animated: true)
+        })
+        
+        if isAdmin {
+            if chatGroupMember.type == .admin {
+                actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoDemote, style: .destructive) { [weak self] _ in
+                    guard let self = self else { return }
+                    
+                    MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.demote) { result in }
+                })
+            } else {
+                actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMakeGroupAdmin, style: .default) { [weak self] _ in
+                    guard let self = self else { return }
+                    
+                    MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.promote) { result in }
+                })
+            }
+            actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoRemoveFromGroup, style: .destructive) { [weak self] _ in
                 guard let self = self else { return }
                 
-                MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.demote) { result in
-                    //            guard let self = self else { return }
+                MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.remove) { [weak self] result in
+                    guard let self = self else { return }
+                    self.refreshGroupInfo()
                 }
-            })
-        } else {
-            actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoMakeGroupAdmin, style: .default) { [weak self] _ in
-                guard let self = self else { return }
                 
-                MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyAdmins, action: ChatGroupMemberAction.promote) { result in
-                    //            guard let self = self else { return }
-                }
             })
         }
-        actionSheet.addAction(UIAlertAction(title: Localizations.chatGroupInfoRemoveFromGroup, style: .destructive) { [weak self] _ in
-            guard let self = self else { return }
-            
-            MainAppContext.shared.service.modifyGroup(groupID: self.groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.remove) { [weak self] result in
-                guard let self = self else { return }
-                self.refreshGroupInfo()
-            }
-            
-        })
         
         actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
         present(actionSheet, animated: true) {
@@ -806,6 +817,14 @@ private extension Localizations {
     }
     
     // action menu for group members
+    
+    static var chatGroupInfoViewProfile: String {
+        NSLocalizedString("chat.group.info.view.profile", value: "View Profile", comment: "Text for menu option of viewing profile")
+    }
+    
+    static var chatGroupInfoMessageUser: String {
+        NSLocalizedString("chat.group.info.message.user", value: "Message", comment: "Text for menu option of messaging user")
+    }
     
     static var chatGroupInfoDemote: String {
         NSLocalizedString("chat.group.info.demote", value: "Demote", comment: "Text for menu option of demoting a group member")

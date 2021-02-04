@@ -112,4 +112,22 @@ class UserFeedViewController: FeedCollectionViewController {
         }
         return inset
     }
+    
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        super.scrollViewDidScroll(scrollView)
+
+        guard !headerViewController.isEditingAllowed else { return }
+        let offset = scrollView.contentOffset.y
+        let scrolledLimit:CGFloat = headerViewController.view.frame.size.height/3.5
+        var titleText = ""
+
+        if offset > scrolledLimit {
+            titleText = headerViewController.name ?? ""
+        }
+        
+        if title != titleText {
+            title = titleText
+        }
+    }
 }
+

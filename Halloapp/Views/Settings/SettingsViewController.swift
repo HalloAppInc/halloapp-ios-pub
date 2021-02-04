@@ -180,7 +180,7 @@ class SettingsViewController: UITableViewController {
 
     private func openMyFeed() {
         let viewController = UserFeedViewController(userId: MainAppContext.shared.userData.userId)
-        viewController.hidesBottomBarWhenPushed = true
+        viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
 
@@ -190,19 +190,19 @@ class SettingsViewController: UITableViewController {
 
     private func openSettings() {
         let viewController = SettingsNotificationsViewController()
-        viewController.hidesBottomBarWhenPushed = true
+        viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
 
     private func openNotifications() {
         let viewController = SettingsNotificationsViewController()
-        viewController.hidesBottomBarWhenPushed = true
+        viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
     
     private func openPrivacy() {
         let viewController = PrivacyViewController()
-        viewController.hidesBottomBarWhenPushed = true
+        viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
     
@@ -219,13 +219,13 @@ class SettingsViewController: UITableViewController {
 
     private func openHelp() {
         let viewController = HelpViewController(title: Localizations.help)
-        viewController.hidesBottomBarWhenPushed = true
+        viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
 
     private func openAbout() {
         if let viewController = UIStoryboard.init(name: "AboutView", bundle: Bundle.main).instantiateInitialViewController() {
-            viewController.hidesBottomBarWhenPushed = true
+            viewController.hidesBottomBarWhenPushed = false
             navigationController?.pushViewController(viewController, animated: true)
         }
     }

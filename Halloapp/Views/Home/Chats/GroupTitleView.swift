@@ -6,6 +6,7 @@
 //  Copyright © 2021 HalloApp, Inc. All rights reserved.
 //
 
+import CocoaLumberjack
 import Core
 import UIKit
 
@@ -38,17 +39,31 @@ class GroupTitleView: UIView {
             
             if !isFeedView {
                 var firstNameList: [String] = []
+                var fullNameList: [String] = []
+                var addYourself = false
                 for member in chatGroup.orderedMembers {
-                    if member.userId != MainAppContext.shared.userData.userId {
+                    if member.userId == MainAppContext.shared.userData.userId {
+                        addYourself = true
+                    } else {
                         firstNameList.append(MainAppContext.shared.contactStore.firstName(for: member.userId))
+                        fullNameList.append(MainAppContext.shared.contactStore.fullName(for: member.userId))
                     }
                 }
                 
+                if addYourself {
+                    firstNameList.append(Localizations.userYouCapitalized)
+                    fullNameList.append(Localizations.userYouCapitalized)
+                }
+                
                 let localizedFirstNameList = ListFormatter.localizedString(byJoining: firstNameList)
+                let localizedFullNameList = ListFormatter.localizedString(byJoining: fullNameList)
 
                 memberNamesLabel.text = localizedFirstNameList
                 
                 memberNamesLabel.isHidden = false
+                
+                DDLogDebug("GroupTitleView/memberFirstNamesList [\(localizedFirstNameList)]")
+                DDLogDebug("GroupTitleView/fullNameList [\(localizedFullNameList)]")
             }
         }
         

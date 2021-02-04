@@ -76,8 +76,6 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         navigationItem.scrollEdgeAppearance = navAppearance
         navigationItem.compactAppearance = navAppearance
 
-        updateBackButtonUnreadCount(num: 0, isTopItem: true)
-        
         NSLayoutConstraint.activate([
             titleView.widthAnchor.constraint(equalToConstant: (view.frame.width*0.8))
         ])
@@ -230,7 +228,7 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
                 
                 DispatchQueue.main.async {
                     let total = self.currentUnseenChatThreadsList.count + self.currentUnseenGroupChatThreadsList.count
-                    self.updateBackButtonUnreadCount(num: total, isTopItem: false)
+                    self.updateBackButtonUnreadCount(num: total)
                 }
             }
         )
@@ -248,7 +246,7 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
                 
                 DispatchQueue.main.async {
                     let total = self.currentUnseenChatThreadsList.count + self.currentUnseenGroupChatThreadsList.count
-                    self.updateBackButtonUnreadCount(num: total, isTopItem: false)
+                    self.updateBackButtonUnreadCount(num: total)
                 }
             }
         )
@@ -267,6 +265,8 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         super.viewWillAppear(animated)
         titleView.update(with: groupId)
 //        chatInputView.willAppear(in: self)
+        
+        navigationController?.navigationBar.tintColor = .primaryBlue
     }
 
     override func viewDidLayoutSubviews() {
@@ -307,29 +307,21 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
         
         jumpButton.removeFromSuperview()
         
-        if isMovingFromParent {
-            navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
-        }
+        navigationController?.navigationBar.tintColor = .label
+        navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
     }
     
     deinit {
         DDLogDebug("ChatGroupViewController/deinit/\(groupId)")
     }
     
-    private func updateBackButtonUnreadCount(num: Int, isTopItem: Bool) {
+    private func updateBackButtonUnreadCount(num: Int) {
         let backButton = UIBarButtonItem()
         backButton.title = num > 0 ? String(num) : " \u{00a0}"
-        backButton.tintColor = UIColor.primaryBlue
-        
-        if isTopItem {
-            navigationController?.navigationBar.topItem?.backBarButtonItem = backButton
-        } else {
-            navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
-        }
+    
+        navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
     }
     
-    // MARK:
-
     private func presentMediaExplorer(media: [ChatMedia], At index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
         let controller = MediaExplorerController(media: media, index: index)
         controller.delegate = delegate

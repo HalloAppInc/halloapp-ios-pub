@@ -94,10 +94,10 @@ extension ChatGroupMessageEvent {
                 let formatString = NSLocalizedString("chat.group.event.created.group", value: "%@ created this group", comment: "Message text shown with the user who created the group")
                 return String(format: formatString, senderName)
             case .changeName:
-                let formatString = NSLocalizedString("chat.group.event.changed.name", value: "%1@ changed the group name to %2@", comment: "Message text shown with the user who changed the group name")
+                let formatString = NSLocalizedString("chat.group.event.changed.name", value: "%1@ changed the group's name to %2@", comment: "Message text shown with the user who changed the group name")
                 return String(format: formatString, senderName, groupName ?? "")
             case .changeAvatar:
-                let formatString = NSLocalizedString("chat.group.event.changed.avatar", value: "%@ changed the group avatar", comment: "Message text shown with the user who changed the group avatar")
+                let formatString = NSLocalizedString("chat.group.event.changed.avatar", value: "%@ changed this group's icon", comment: "Message text shown with the user who changed the group avatar")
                 return String(format: formatString, senderName)
             case .leave, .modifyMembers, .modifyAdmins:
                 guard let memberName = memberName else { return nil }
@@ -109,10 +109,10 @@ extension ChatGroupMessageEvent {
                     let formatString = NSLocalizedString("chat.group.event.removed.member", value: "%1@ removed %2@", comment: "Message text shown with the user who removed a group member")
                     return String(format: formatString, senderName, memberName)
                 case .promote:
-                    let formatString = NSLocalizedString("chat.group.event.promoted.member", value: "%1@ promoted %2@ to admin", comment: "Message text shown with the user who promoted a group member")
+                    let formatString = NSLocalizedString("chat.group.event.promoted.member", value: "%1@ made %2@ an admin", comment: "Message text shown with the user who promoted a group member")
                     return String(format: formatString, senderName, memberName)
                 case .demote:
-                    let formatString = NSLocalizedString("chat.group.event.demoted.member", value: "%1@ demoted %2@", comment: "Message text shown with the user who demoted a group admin")
+                    let formatString = NSLocalizedString("chat.group.event.demoted.member", value: "%1@ removed %2@ as admin", comment: "Message text shown with the user who demoted a group admin")
                     return String(format: formatString, senderName, memberName)
                 case .leave:
                     let formatString = NSLocalizedString("chat.group.event.demoted.member", value: "%@ left the group", comment: "Message text shown with the user who left the group")

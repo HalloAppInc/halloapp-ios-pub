@@ -73,8 +73,6 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         navigationItem.scrollEdgeAppearance = navAppearance
         navigationItem.compactAppearance = navAppearance
 
-        updateBackButtonUnreadCount(num: 0, isTopItem: true)
-        
         NSLayoutConstraint.activate([
             titleView.widthAnchor.constraint(equalToConstant: (self.view.frame.width*0.8))
         ])
@@ -239,7 +237,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 
                 DispatchQueue.main.async {
                     let total = self.currentUnseenChatThreadsList.count + self.currentUnseenGroupChatThreadsList.count
-                    self.updateBackButtonUnreadCount(num: total, isTopItem: false)
+                    self.updateBackButtonUnreadCount(num: total)
                 }
             }
         )
@@ -256,7 +254,7 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
                 
                 DispatchQueue.main.async {
                     let total = self.currentUnseenChatThreadsList.count + self.currentUnseenGroupChatThreadsList.count
-                    self.updateBackButtonUnreadCount(num: total, isTopItem: false)
+                    self.updateBackButtonUnreadCount(num: total)
                 }
             }
         )
@@ -310,21 +308,19 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         chatInputView.willDisappear(in: self)
         
         jumpButton.removeFromSuperview()
+        
+        navigationController?.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem()
     }
     
     deinit {
         DDLogDebug("ChatViewController/deinit/\(fromUserId ?? "")")
     }
     
-    private func updateBackButtonUnreadCount(num: Int, isTopItem: Bool) {
+    private func updateBackButtonUnreadCount(num: Int) {
         let backButton = UIBarButtonItem()
         backButton.title = num > 0 ? String(num) : " \u{00a0}"
-        
-        if isTopItem {
-            navigationController?.navigationBar.topItem?.backBarButtonItem = backButton
-        } else {
-            navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
-        }
+
+        navigationController?.navigationBar.backItem?.backBarButtonItem = backButton
     }
     
     // MARK:
