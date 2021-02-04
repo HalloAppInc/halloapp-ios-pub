@@ -32,6 +32,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private let backgroundProcessingQueue = DispatchQueue(label: "com.halloapp.feed")
+    private var bgContext: NSManagedObjectContext
+    
     private lazy var downloadManager: FeedDownloadManager = {
         let downloadManager = FeedDownloadManager(mediaDirectoryURL: MainAppContext.mediaDirectoryURL)
         downloadManager.delegate = self
@@ -44,8 +46,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         self.service = service
         self.contactStore = contactStore
         self.userData = userData
+        self.bgContext = self.persistentContainer.newBackgroundContext()
         self.mediaUploader = MediaUploader(service: service)
-
+        
         super.init()
 
         self.service.feedDelegate = self
@@ -113,12 +116,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
-    private func loadPersistentContainer() {
-        let container = self.persistentContainer
-        DDLogDebug("FeedData/loadPersistentStore Loaded [\(container)]")
-    }
-
-    private lazy var persistentContainer: NSPersistentContainer = {
+    private var persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: FeedData.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
@@ -126,27 +124,32 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         storeDescription.setValue(NSString("1"), forPragmaNamed: "secure_delete")
         let container = NSPersistentContainer(name: "Feed")
         container.persistentStoreDescriptions = [storeDescription]
-        self.loadPersistentStores(in: container)
+        container.loadPersistentStores { (description, error) in
+            if let error = error {
+                DDLogError("FeedData/Failed to load persistent store: \(error)")
+                fatalError("FeedData/Unable to load persistent store: \(error)")
+            } else {
+                DDLogInfo("FeedData/load-store/completed [\(description)]")
+            }
+        }
         return container
     }()
 
     private func loadPersistentStores(in persistentContainer: NSPersistentContainer) {
         persistentContainer.loadPersistentStores { (description, error) in
             if let error = error {
-                DDLogError("Failed to load persistent store: \(error)")
-                DDLogError("Deleting persistent store at [\(FeedData.persistentStoreURL.absoluteString)]")
-                try! FileManager.default.removeItem(at: FeedData.persistentStoreURL)
-                fatalError("Unable to load persistent store: \(error)")
+                DDLogError("FeedData/loadPersistentStores/Failed to load persistent store: \(error)")
+                fatalError("FeedData/loadPersistentStores/Unable to load persistent store: \(error)")
             } else {
-                DDLogInfo("FeedData/load-store/completed [\(description)]")
+                DDLogInfo("FeedData/loadPersistentStores/load-store/completed [\(description)]")
             }
         }
     }
 
     private func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
-        self.backgroundProcessingQueue.async {
-            let managedObjectContext = self.persistentContainer.newBackgroundContext()
-            managedObjectContext.performAndWait { block(managedObjectContext) }
+        backgroundProcessingQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.bgContext.performAndWait { block(self.bgContext) }
         }
     }
 

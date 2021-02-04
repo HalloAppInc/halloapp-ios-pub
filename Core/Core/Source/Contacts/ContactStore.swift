@@ -21,9 +21,11 @@ public typealias UserID = String
 open class ContactStore {
 
     public let userData: UserData
+    private var bgContext: NSManagedObjectContext
 
     required public init(userData: UserData) {
         self.userData = userData
+        self.bgContext = persistentContainer.newBackgroundContext()
     }
 
     // MARK: Access to Contacts
@@ -54,7 +56,7 @@ open class ContactStore {
         }
     }
 
-    public private(set) lazy var persistentContainer: NSPersistentContainer = {
+    public private(set) var persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: ContactStore.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSInferMappingModelAutomaticallyOption)
@@ -73,9 +75,8 @@ open class ContactStore {
     }()
 
     public func performOnBackgroundContextAndWait(_ block: (NSManagedObjectContext) -> Void) {
-        let managedObjectContext = self.persistentContainer.newBackgroundContext()
-        managedObjectContext.performAndWait {
-            block(managedObjectContext)
+        bgContext.performAndWait {
+            block(bgContext)
         }
     }
 

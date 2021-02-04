@@ -59,20 +59,7 @@ open class KeyStore {
             return AppContext.keyStoreURL
         }
     }
-    
-    private func loadPersistentStores(in persistentContainer: NSPersistentContainer) {
-        persistentContainer.loadPersistentStores { (description, error) in
-            if let error = error {
-                DDLogError("Failed to load persistent store: \(error)")
-                DDLogError("Deleting persistent store at [\(KeyStore.persistentStoreURL.absoluteString)]")
-                try! FileManager.default.removeItem(at: KeyStore.persistentStoreURL)
-                fatalError("Unable to load persistent store: \(error)")
-            } else {
-                DDLogInfo("KeyStore/load-store/completed [\(description)]")
-            }
-        }
-    }
-    
+        
     public private(set) var persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: KeyStore.persistentStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
@@ -85,17 +72,15 @@ open class KeyStore {
         container.persistentStoreDescriptions = [storeDescription]
         container.loadPersistentStores { (description, error) in
             if let error = error {
-                fatalError("Unable to load persistent stores: \(error)")
+                DDLogError("KeyStore/Failed to load persistent store: \(error)")
+                fatalError("KeyStore/Unable to load persistent store: \(error)")
+            } else {
+                DDLogInfo("KeyStore/load-store/completed [\(description)]")
             }
         }
         return container
     }()
-    
-    private func loadPersistentContainer() {
-        let container = self.persistentContainer
-        DDLogDebug("KeyStore/loadPersistentStore Loaded [\(container)]")
-    }
-    
+        
     public func performSeriallyOnBackgroundContext(_ block: @escaping (NSManagedObjectContext) -> Void) {
         backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
