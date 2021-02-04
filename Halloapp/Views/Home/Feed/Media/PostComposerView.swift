@@ -624,7 +624,7 @@ fileprivate struct PostComposerView: View {
                         .background(
                             YOffsetGetter(coordinateSpace: .named(PostComposerLayoutConstants.mainScrollCoordinateSpace))
                                 .onPreferenceChange(YOffsetPreferenceKey.self, perform: {
-                                    if $0 > 0 { // top overscroll
+                                    if $0 > 0, #available(iOS 14.0, *) { // top overscroll, before iOS 14 the reported offset seems inaccurrate
                                         self.shouldStopTextEdit.value = true
                                     }
                                 })
@@ -636,9 +636,11 @@ fileprivate struct PostComposerView: View {
                 if self.mediaCount > 0 {
                     self.postTextView
                 }
+
+                Spacer().frame(height: keyboardHeight)
             }
             .background(Color.feedBackground)
-            .frame(height: geometry.size.height + geometry.safeAreaInsets.bottom - self.keyboardHeight)
+            .edgesIgnoringSafeArea(.bottom)
         }
     }
 
@@ -670,8 +672,7 @@ struct YOffsetGetter: View {
 
     var body: some View {
         GeometryReader { geometry in
-            Rectangle()
-                .fill(Color.clear)
+            Color.clear
                 .preference(key: YOffsetPreferenceKey.self, value: geometry.frame(in: coordinateSpace).minY)
         }
     }
