@@ -376,28 +376,18 @@ extension KeyStore {
         let outboundEphemeralPublicKey = Data(newKeyPair.publicKey)
         let outboundEphemeralPrivateKey = Data(newKeyPair.secretKey)                            // E_initiator
         
-        guard let inboundIdentityPublicEdKey = targetUserWhisperKeys.identity else {
-            DDLogInfo("KeyStore/initiateSessionSetup/missingTargetUserIdentityKey")
-            return nil
-        }
+        let inboundIdentityPublicEdKey = targetUserWhisperKeys.identity
+
         guard let inboundIdentityPublicKeyUInt8 = sodium.sign.convertToX25519PublicKey(publicKey: [UInt8](inboundIdentityPublicEdKey)) else {
             DDLogInfo("KeyStore/initiateSessionSetup/x25519conversionFailed")
             return nil
         }
-        
+
         let inboundIdentityPublicKey = Data(inboundIdentityPublicKeyUInt8)                      // I_recipient
-        
-        guard let targetUserSigned = targetUserWhisperKeys.signed else {
-            DDLogInfo("KeyStore/initiateSessionSetup/missingMyKeyBundle")
-            return nil
-        }
-        
+
+        let targetUserSigned = targetUserWhisperKeys.signed
         let inboundSignedPrePublicKey = targetUserSigned.publicKey                              // S_recipient
-        
-        guard let signature = targetUserWhisperKeys.signature else {
-            DDLogInfo("KeyStore/initiateSessionSetup/missingSignature")
-            return nil
-        }
+        let signature = targetUserWhisperKeys.signature
         
         guard sodium.sign.verify(message: [UInt8](inboundSignedPrePublicKey), publicKey: [UInt8](inboundIdentityPublicEdKey), signature: [UInt8](signature)) else {
             DDLogInfo("KeyStore/initiateSessionSetup/invalidSignature")

@@ -16,24 +16,20 @@ final public class ProtoWhisperUploadRequest: ProtoRequest<Void> {
 
         // todo: error if following conditionals fail?
 
-        if let identity = keyBundle.identity {
-            var protoIdentityKey = Clients_IdentityKey()
-            protoIdentityKey.publicKey = identity
+        var protoIdentityKey = Clients_IdentityKey()
+        protoIdentityKey.publicKey = keyBundle.identity
 
-            if let data = try? protoIdentityKey.serializedData() {
-                keys.identityKey = data
-            }
+        if let data = try? protoIdentityKey.serializedData() {
+            keys.identityKey = data
         }
 
-        if let signed = keyBundle.signed, let signature = keyBundle.signature {
-            var protoSignedPreKey = Clients_SignedPreKey()
-            protoSignedPreKey.id = signed.id
-            protoSignedPreKey.publicKey = signed.publicKey
-            protoSignedPreKey.signature = signature
+        var protoSignedPreKey = Clients_SignedPreKey()
+        protoSignedPreKey.id = keyBundle.signed.id
+        protoSignedPreKey.publicKey = keyBundle.signed.publicKey
+        protoSignedPreKey.signature = keyBundle.signature
 
-            if let data = try? protoSignedPreKey.serializedData() {
-                keys.signedKey = data
-            }
+        if let data = try? protoSignedPreKey.serializedData() {
+            keys.signedKey = data
         }
 
         keys.oneTimeKeys = keyBundle.oneTime.compactMap { oneTimeKey in
@@ -123,7 +119,7 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest<WhisperKeyBundle> 
                 DDLogError("ProtoWhisperGetBundleRequest/didFinish/error could not deserialize one time key")
                 return nil
             }
-            return PreKey(id: protoKey.id, privateKey: nil, publicKey: protoKey.publicKey)
+            return PreKey(id: protoKey.id, publicKey: protoKey.publicKey)
         }
 
         let protoIdentity: Clients_IdentityKey
@@ -140,7 +136,7 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest<WhisperKeyBundle> 
 
         let bundle = WhisperKeyBundle(
             identity: protoIdentity.publicKey,
-            signed: PreKey(id: protoContainer.id, privateKey: nil, publicKey: protoContainer.publicKey),
+            signed: PreKey(id: protoContainer.id, publicKey: protoContainer.publicKey),
             signature: protoContainer.signature,
             oneTime: oneTimeKeys)
 

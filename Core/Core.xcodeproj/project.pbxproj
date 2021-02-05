@@ -21,6 +21,7 @@
 		24AA69D924DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D724DCEF4200ED65CE /* SharedChatMessage+CoreDataProperties.swift */; };
 		24AA69DA24DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24AA69D824DCEF4200ED65CE /* SharedChatMessage+CoreDataClass.swift */; };
 		24D743C724AEA821001111BF /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24D743C624AEA821001111BF /* AvatarView.swift */; };
+		68101F2C25CDE7CA005CD704 /* Keys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68101F2B25CDE7CA005CD704 /* Keys.swift */; };
 		6832F50324FEE9CB00A9C202 /* CoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50224FEE9CB00A9C202 /* CoreService.swift */; };
 		6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */; };
 		6832F50A24FEE9DF00A9C202 /* ProtoWhisperRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */; };
@@ -79,7 +80,6 @@
 		EAAE7B3724DCD98C00946B77 /* Keys.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3524DCD98C00946B77 /* Keys.xcdatamodeld */; };
 		EAAE7B3924DCDEBB00946B77 /* KeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3824DCDEBB00946B77 /* KeyStore.swift */; };
 		EAAE7B3C24DD039900946B77 /* XMPPWhisperRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3B24DD039900946B77 /* XMPPWhisperRequests.swift */; };
-		EAAE7B3E24DD04ED00946B77 /* XMPPWhisper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3D24DD04ED00946B77 /* XMPPWhisper.swift */; };
 		EAAE7B4924DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B3F24DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift */; };
 		EAAE7B4A24DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4024DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift */; };
 		EAAE7B4B24DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAE7B4124DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift */; };
@@ -112,6 +112,7 @@
 		3156278C2E59CE6580A649AA /* Pods_Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0B198880693F180E9B7742 /* Pods-Core.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.release.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.release.xcconfig"; sourceTree = "<group>"; };
 		5840638AD771B0F247A20894 /* Pods-Core.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Core.debug.xcconfig"; path = "Target Support Files/Pods-Core/Pods-Core.debug.xcconfig"; sourceTree = "<group>"; };
+		68101F2B25CDE7CA005CD704 /* Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keys.swift; sourceTree = "<group>"; };
 		6832F50224FEE9CB00A9C202 /* CoreService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreService.swift; sourceTree = "<group>"; };
 		6832F50424FEE9DF00A9C202 /* ProtoRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoRequest.swift; sourceTree = "<group>"; };
 		6832F50524FEE9DF00A9C202 /* ProtoWhisperRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoWhisperRequests.swift; sourceTree = "<group>"; };
@@ -170,7 +171,6 @@
 		EAAE7B3624DCD98C00946B77 /* Keys.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Keys.xcdatamodel; sourceTree = "<group>"; };
 		EAAE7B3824DCDEBB00946B77 /* KeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyStore.swift; sourceTree = "<group>"; };
 		EAAE7B3B24DD039900946B77 /* XMPPWhisperRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPWhisperRequests.swift; sourceTree = "<group>"; };
-		EAAE7B3D24DD04ED00946B77 /* XMPPWhisper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPWhisper.swift; sourceTree = "<group>"; };
 		EAAE7B3F24DD2C3000946B77 /* UserKeyBundle+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserKeyBundle+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAAE7B4024DD2C3000946B77 /* UserKeyBundle+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserKeyBundle+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		EAAE7B4124DD2C3000946B77 /* MessageKeyBundle+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageKeyBundle+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -384,7 +384,6 @@
 				7681240124861487008C5216 /* XMPPError.swift */,
 				76812403248614BA008C5216 /* XMPPFeed.swift */,
 				76812404248614BA008C5216 /* XMPPReceipt.swift */,
-				EAAE7B3D24DD04ED00946B77 /* XMPPWhisper.swift */,
 			);
 			path = XMPP;
 			sourceTree = "<group>";
@@ -451,6 +450,7 @@
 			children = (
 				EAAE7B2F24DBD67800946B77 /* CoreData Stack */,
 				EAAE7B3824DCDEBB00946B77 /* KeyStore.swift */,
+				68101F2B25CDE7CA005CD704 /* Keys.swift */,
 			);
 			path = Keys;
 			sourceTree = "<group>";
@@ -649,10 +649,10 @@
 				686814AF252BA91E003C8784 /* server.pb.swift in Sources */,
 				768123FB2486107E008C5216 /* ContactStore.swift in Sources */,
 				6832F50924FEE9DF00A9C202 /* ProtoRequest.swift in Sources */,
-				EAAE7B3E24DD04ED00946B77 /* XMPPWhisper.swift in Sources */,
 				76925CFA24871506008333FA /* UserDefaults.swift in Sources */,
 				688D8A1E24ED979400258BB9 /* MentionText.swift in Sources */,
 				EAAE7B3C24DD039900946B77 /* XMPPWhisperRequests.swift in Sources */,
+				68101F2C25CDE7CA005CD704 /* Keys.swift in Sources */,
 				246A8B8324902BA600CE0429 /* Avatar+CoreDataClass.swift in Sources */,
 				76608ECD24EC2B5100DD61C3 /* Chat.swift in Sources */,
 				68A64E8224D22E5500F40F1F /* NSRange.swift in Sources */,
