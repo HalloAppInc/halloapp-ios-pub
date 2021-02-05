@@ -213,7 +213,7 @@ class ThreadListCell: UITableViewCell {
             timeLabel.textColor = .secondaryLabel
         }
 
-        if let timestamp = chatThread.lastMsgTimestamp {
+        if let timestamp = chatThread.lastMsgTimestamp, chatThread.lastMsgId != nil {
             timeLabel.text = timestamp.chatListTimestamp()
         }
 

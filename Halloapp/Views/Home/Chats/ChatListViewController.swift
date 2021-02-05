@@ -240,7 +240,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     public var fetchRequest: NSFetchRequest<ChatThread> {
         let fetchRequest = NSFetchRequest<ChatThread>(entityName: "ChatThread")
         fetchRequest.sortDescriptors = [
-            NSSortDescriptor(key: "isNew", ascending: false),
             NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]

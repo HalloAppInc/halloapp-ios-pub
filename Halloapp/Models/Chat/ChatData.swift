@@ -421,12 +421,13 @@ class ChatData: ObservableObject {
 
     func updateThreads(for userIDs: [UserID:String], areNewUsers: Bool) {
         guard !userIDs.isEmpty else { return }
+        let timestampForNewThreads = Date()
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
 
             for (userId, fullName) in userIDs {
                 if let chatThread = self.chatThread(type: ChatType.oneToOne, id: userId, in: managedObjectContext) {
-                    guard chatThread.lastMsgTimestamp == nil else { continue }
+                    guard chatThread.lastMsgId == nil else { continue }
                     if chatThread.title != fullName {
                         DDLogDebug("ChatData/populateThreads/contact/rename \(userId)")
                         self.updateChatThread(type: .oneToOne, for: userId) { (chatThread) in
@@ -440,6 +441,7 @@ class ChatData: ObservableObject {
                     chatThread.chatWithUserId = userId
                     chatThread.lastMsgUserId = userId
                     chatThread.lastMsgText = nil
+                    chatThread.lastMsgTimestamp = timestampForNewThreads
                     chatThread.unreadCount = 0
                     chatThread.isNew = areNewUsers
                 }
