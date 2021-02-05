@@ -355,7 +355,7 @@ final class FeedItemHeaderView: UIView {
 
         let hStack = UIStackView(arrangedSubviews: [ nameLabel, groupNameLabel, timestampLabel ])
         hStack.translatesAutoresizingMaskIntoConstraints = false
-        hStack.spacing = 8
+        hStack.spacing = 4
         configure(stackView: hStack, forVerticalLayout: UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory)
         addSubview(hStack)
 
@@ -398,7 +398,7 @@ final class FeedItemHeaderView: UIView {
         if let groupID = post.groupId, let groupChat = MainAppContext.shared.chatData.chatGroup(groupId: groupID) {
             
             let attrText = NSMutableAttributedString(string: "")
-            let groupIndicatorImage: UIImage? = UIImage(systemName: "arrowtriangle.forward.fill")?.withTintColor(.systemGray3)
+            let groupIndicatorImage: UIImage? = UIImage(named: "GroupNameArrow")
             
             if let groupIndicator = groupIndicatorImage {
                 let iconAttachment = NSTextAttachment(image: groupIndicator)
