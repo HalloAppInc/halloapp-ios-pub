@@ -385,9 +385,9 @@ extension KeyStore {
 
         let inboundIdentityPublicKey = Data(inboundIdentityPublicKeyUInt8)                      // I_recipient
 
-        let targetUserSigned = targetUserWhisperKeys.signed
-        let inboundSignedPrePublicKey = targetUserSigned.publicKey                              // S_recipient
-        let signature = targetUserWhisperKeys.signature
+        let targetUserSigned = targetUserWhisperKeys.signedPreKey
+        let inboundSignedPrePublicKey = targetUserSigned.key.publicKey                              // S_recipient
+        let signature = targetUserSigned.signature
         
         guard sodium.sign.verify(message: [UInt8](inboundSignedPrePublicKey), publicKey: [UInt8](inboundIdentityPublicEdKey), signature: [UInt8](signature)) else {
             DDLogInfo("KeyStore/initiateSessionSetup/invalidSignature")

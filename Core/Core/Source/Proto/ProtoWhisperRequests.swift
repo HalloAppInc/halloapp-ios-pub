@@ -16,18 +16,12 @@ final public class ProtoWhisperUploadRequest: ProtoRequest<Void> {
 
         // todo: error if following conditionals fail?
 
-        var protoIdentityKey = Clients_IdentityKey()
-        protoIdentityKey.publicKey = keyBundle.identity
-
+        let protoIdentityKey = keyBundle.protoIdentityKey
         if let data = try? protoIdentityKey.serializedData() {
             keys.identityKey = data
         }
 
-        var protoSignedPreKey = Clients_SignedPreKey()
-        protoSignedPreKey.id = keyBundle.signed.id
-        protoSignedPreKey.publicKey = keyBundle.signed.publicKey
-        protoSignedPreKey.signature = keyBundle.signature
-
+        let protoSignedPreKey = keyBundle.protoSignedPreKey
         if let data = try? protoSignedPreKey.serializedData() {
             keys.signedKey = data
         }

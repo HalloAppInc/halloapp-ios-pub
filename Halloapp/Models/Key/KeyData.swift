@@ -52,7 +52,7 @@ class KeyData {
         )
     }
 
-    private func generateUserKeys() -> UserKeys? {
+    public func generateUserKeys() -> UserKeys? {
         let sodium = Sodium()
         guard let identityEdKeyPair = sodium.sign.keyPair(),
               let identityKeyPair = sodium.sign.convertToX25519KeyPair(keyPair: identityEdKeyPair),
@@ -66,7 +66,44 @@ class KeyData {
             identityEd: identityEdKeyPair.keyPairEd(),
             identityX25519: identityKeyPair.keyPairX25519(),
             signed: PreKeyPair(id: 1, keyPair: signedPreKeyPair.keyPairX25519()),
-            signature: Data(signature))
+            signature: Data(signature),
+            oneTimeKeyPairs: generateOneTimePreKeys(initialCounter: 0))
+    }
+
+    public func saveUserKeys(_ userKeys: UserKeys) {
+
+        // We only support storing keys for one user at a time!
+        keyStore.deleteUserKeyBundles()
+
+        let maxOneTimeKeyID: Int32 = userKeys.oneTimeKeyPairs.map { $0.id }.max() ?? -1
+        keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            DDLogDebug("KeyData/saveUserKeys/new")
+            let userKeyBundle = NSEntityDescription.insertNewObject(forEntityName: UserKeyBundle.entity().name!, into: managedObjectContext) as! UserKeyBundle
+            userKeyBundle.identityPrivateEdKey = userKeys.identityEd.privateKey
+            userKeyBundle.identityPublicEdKey = userKeys.identityEd.publicKey
+            userKeyBundle.identityPrivateKey = userKeys.identityX25519.privateKey
+            userKeyBundle.identityPublicKey = userKeys.identityX25519.publicKey
+            userKeyBundle.oneTimePreKeysCounter = maxOneTimeKeyID + 1
+
+            let signedKey = NSEntityDescription.insertNewObject(forEntityName: SignedPreKey.entity().name!, into: managedObjectContext) as! SignedPreKey
+            signedKey.id = userKeys.signed.id
+            signedKey.privateKey = userKeys.signed.keyPair.privateKey
+            signedKey.publicKey  = userKeys.signed.keyPair.publicKey
+            signedKey.userKeyBundle = userKeyBundle
+
+            // Process one time keys
+            for preKey in userKeys.oneTimeKeyPairs {
+                DDLogDebug("KeyData/saveUserKeys/oneTimeKey id: \(preKey.id)")
+                let oneTimeKey = NSEntityDescription.insertNewObject(forEntityName: OneTimePreKey.entity().name!, into: managedObjectContext) as! OneTimePreKey
+                oneTimeKey.id = preKey.id
+                oneTimeKey.privateKey = preKey.keyPair.privateKey
+                oneTimeKey.publicKey  = preKey.keyPair.publicKey
+                oneTimeKey.userKeyBundle = userKeyBundle
+            }
+            self.keyStore.save(managedObjectContext)
+
+            self.keyStore.deleteAllMessageKeyBundles()
+        }
     }
     
     private func uploadWhisperKeyBundle() {
@@ -76,46 +113,11 @@ class KeyData {
             DDLogError("Keydata/uploadWhisperKeyBundle/error unable to generate user keys")
             return
         }
-        let generatedOTPKeys = self.generateOneTimePreKeys(initialCounter: 0)
-        
-        let keyBundle = WhisperKeyBundle(
-            identity: userKeys.identityEd.publicKey,
-            signed: userKeys.signed.publicPreKey,
-            signature: userKeys.signature,
-            oneTime: generatedOTPKeys.keys.map { $0.publicPreKey }
-        )
 
-        service.uploadWhisperKeyBundle(keyBundle) { result in
+        service.uploadWhisperKeyBundle(userKeys.whisperKeys) { result in
             switch result {
             case .success:
-                self.keyStore.performSeriallyOnBackgroundContext { (managedObjectContext) in
-                    DDLogDebug("KeyData/uploadWhisperKeyBundle/save/new")
-                    let userKeyBundle = NSEntityDescription.insertNewObject(forEntityName: UserKeyBundle.entity().name!, into: managedObjectContext) as! UserKeyBundle
-                    userKeyBundle.identityPrivateEdKey = userKeys.identityEd.privateKey
-                    userKeyBundle.identityPublicEdKey = userKeys.identityEd.publicKey
-                    userKeyBundle.identityPrivateKey = userKeys.identityX25519.privateKey
-                    userKeyBundle.identityPublicKey = userKeys.identityX25519.publicKey
-                    userKeyBundle.oneTimePreKeysCounter = generatedOTPKeys.counter
-                    
-                    let signedKey = NSEntityDescription.insertNewObject(forEntityName: SignedPreKey.entity().name!, into: managedObjectContext) as! SignedPreKey
-                    signedKey.id = userKeys.signed.id
-                    signedKey.privateKey = userKeys.signed.keyPair.privateKey
-                    signedKey.publicKey  = userKeys.signed.keyPair.publicKey
-                    signedKey.userKeyBundle = userKeyBundle
-                    
-                    // Process one time keys
-                    for preKey in generatedOTPKeys.keys {
-                        DDLogDebug("KeyData/uploadWhisperKeyBundle/save/new/oneTimeKey id: \(preKey.id)")
-                        let oneTimeKey = NSEntityDescription.insertNewObject(forEntityName: OneTimePreKey.entity().name!, into: managedObjectContext) as! OneTimePreKey
-                        oneTimeKey.id = preKey.id
-                        oneTimeKey.privateKey = preKey.keyPair.privateKey
-                        oneTimeKey.publicKey  = preKey.keyPair.publicKey
-                        oneTimeKey.userKeyBundle = userKeyBundle
-                    }
-                    self.keyStore.save(managedObjectContext)
-                    
-                    self.keyStore.deleteAllMessageKeyBundles()
-                }
+                self.saveUserKeys(userKeys)
             case .failure(let error):
                 DDLogInfo("KeyData/uploadWhisperKeyBundle/save/error \(error)")
             }
@@ -138,10 +140,10 @@ class KeyData {
             
             let generatedOTPKeys = self.generateOneTimePreKeys(initialCounter: userKeyBundle.oneTimePreKeysCounter)
 
-            self.service.requestAddOneTimeKeys(generatedOTPKeys.keys.map { $0.publicPreKey }) { result in
+            self.service.requestAddOneTimeKeys(generatedOTPKeys.map { $0.publicPreKey }) { result in
                 switch result {
                 case .success:
-                    self.saveOneTimePreKeys(generatedOTPKeys.keys) {
+                    self.saveOneTimePreKeys(generatedOTPKeys) {
                         self.isOneTimePreKeyUploadInProgress = false
                     }
                 case .failure(let error):
@@ -208,21 +210,15 @@ class KeyData {
         }
     }
     
-    private func generateOneTimePreKeys(initialCounter: Int32) -> (keys: [PreKeyPair<X25519>], counter: Int32) {
+    private func generateOneTimePreKeys(initialCounter: Int32) -> [PreKeyPair<X25519>] {
         DDLogInfo("KeyData/generateOneTimePreKeys")
         let sodium = Sodium()
-        var oneTimePreKeys: [PreKeyPair<X25519>] = []
-        var currentCounter: Int32 = initialCounter
-        let endCounter = currentCounter + self.oneTimePreKeysToUpload
-        while currentCounter < endCounter {
-            guard let oneTimePreKeyPair = sodium.box.keyPair() else { continue }
-            let preKey = PreKeyPair(id: currentCounter, keyPair: oneTimePreKeyPair.keyPairX25519())
-            oneTimePreKeys.append(preKey)
-            currentCounter += 1
+        let endCounter = initialCounter + self.oneTimePreKeysToUpload
+        return (initialCounter ..< endCounter).compactMap {
+            guard let oneTimePreKeyPair = sodium.box.keyPair() else { return nil }
+            return PreKeyPair(id: $0, keyPair: oneTimePreKeyPair.keyPairX25519())
         }
-        return (oneTimePreKeys, currentCounter)
     }
-    
 }
 
 extension KeyData: HalloKeyDelegate {

@@ -64,8 +64,11 @@ final class DefaultRegistrationManager: RegistrationManager {
 
     func confirmVerificationCode(_ verificationCode: String, completion: @escaping (Result<Void, Error>) -> Void) {
         let userData = MainAppContext.shared.userData
+        let keyData = MainAppContext.shared.keyData
 
-        guard let noiseKeys = userData.generateNoiseKeysForRegistration() else {
+        guard let noiseKeys = userData.generateNoiseKeysForRegistration(),
+              let userKeys = keyData?.generateUserKeys() else
+        {
             completion(.failure(VerificationCodeValidationError.keyGenerationError))
             return
         }
@@ -74,10 +77,12 @@ final class DefaultRegistrationManager: RegistrationManager {
             verificationCode,
             name: userData.name,
             normalizedPhoneNumber: userData.normalizedPhoneNumber,
-            noiseKeys: noiseKeys) { result in
+            noiseKeys: noiseKeys,
+            whisperKeys: userKeys.whisperKeys) { result in
             switch result {
             case .success(let credentials):
-                MainAppContext.shared.userData.update(credentials: credentials)
+                userData.update(credentials: credentials)
+                keyData?.saveUserKeys(userKeys)
                 completion(.success(()))
             case .failure(let error):
                 completion(.failure(error))

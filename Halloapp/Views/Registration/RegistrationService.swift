@@ -13,7 +13,7 @@ import Sodium
 
 protocol RegistrationService {
     func requestVerificationCode(for phoneNumber: String, completion: @escaping (Result<RegistrationResponse, Error>) -> Void)
-    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, completion: @escaping (Result<Credentials, Error>) -> Void)
+    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void)
 
     // Temporary (used for Noise migration)
     func updateNoiseKeys(_ noiseKeys: NoiseKeys, userID: UserID, password: String, completion: @escaping (Result<Credentials, Error>) -> Void)
@@ -100,19 +100,31 @@ final class DefaultRegistrationService: RegistrationService {
         task.resume()
     }
 
-    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, completion: @escaping (Result<Credentials, Error>) -> Void) {
+    func validateVerificationCode(_ verificationCode: String, name: String, normalizedPhoneNumber: String, noiseKeys: NoiseKeys, whisperKeys: WhisperKeyBundle, completion: @escaping (Result<Credentials, Error>) -> Void) {
 
-        guard let phraseData = "HALLO".data(using: .utf8), let signedPhrase = noiseKeys.sign(phraseData) else {
+        guard let phraseData = "HALLO".data(using: .utf8),
+              let signedPhrase = noiseKeys.sign(phraseData) else
+        {
             completion(.failure(VerificationCodeValidationError.phraseSigningError))
             return
         }
+        guard let identityKeyData = try? whisperKeys.protoIdentityKey.serializedData(),
+              let signedKeyData = try? whisperKeys.protoSignedPreKey.serializedData() else
+        {
+            completion(.failure(VerificationCodeValidationError.keyGenerationError))
+            return
+        }
+        let oneTimeKeyData = whisperKeys.oneTime.compactMap { try? $0.protoOneTimePreKey.serializedData() }
 
-        let json: [String : String] = [
+        let json: [String : Any] = [
             "name": name,
             "phone": normalizedPhoneNumber,
             "code": verificationCode,
             "s_ed_pub": noiseKeys.publicEdKey.base64EncodedString(),
             "signed_phrase": signedPhrase.base64EncodedString(),
+            "identity_key": identityKeyData.base64EncodedString(),
+            "signed_key": signedKeyData.base64EncodedString(),
+            "one_time_keys": oneTimeKeyData.map { $0.base64EncodedString() },
         ]
         let url = URL(string: "https://\(hostName)/api/registration/register2")!
 

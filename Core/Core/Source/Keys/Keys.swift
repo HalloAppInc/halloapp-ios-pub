@@ -49,36 +49,51 @@ public struct PreKeyPair<T> {
 }
 
 public struct UserKeys {
-    public init?(identityEd: TypedKeyPair<Ed>, identityX25519: TypedKeyPair<X25519>, signed: PreKeyPair<X25519>, signature: Data) {
+    public init?(
+        identityEd: TypedKeyPair<Ed>,
+        identityX25519: TypedKeyPair<X25519>,
+        signed: PreKeyPair<X25519>,
+        signature: Data,
+        oneTimeKeyPairs:[PreKeyPair<X25519>])
+    {
         self.identityEd = identityEd
         self.identityX25519 = identityX25519
         self.signed = signed
         self.signature = signature
+        self.oneTimeKeyPairs = oneTimeKeyPairs
     }
 
     public var identityEd: TypedKeyPair<Ed>
     public var identityX25519: TypedKeyPair<X25519>
     public var signed: PreKeyPair<X25519>
     public var signature: Data
+    public var oneTimeKeyPairs: [PreKeyPair<X25519>]
+
+    public var whisperKeys: WhisperKeyBundle {
+        WhisperKeyBundle(
+            identity: identityEd.publicKey,
+            signed: signed.publicPreKey,
+            signature: signature,
+            oneTime: oneTimeKeyPairs.map { $0.publicPreKey }
+        )
+    }
 }
 
 public struct WhisperKeyBundle {
     public init(identity: Data, signed: PreKey, signature: Data, oneTime: [PreKey]) {
         self.identity = identity
-        self.signed = signed
-        self.signature = signature
+        self.signedPreKey = (key: signed, signature: signature)
         self.oneTime = oneTime
     }
 
     public var identity: Data
-    public var signed: PreKey
-    public var signature: Data
-    public var oneTime: [PreKey] = []
+    public var signedPreKey: (key: PreKey, signature: Data)
+    public var oneTime: [PreKey]
 }
 
 // MARK: - WhisperKeyBundle: Protobufs
 
-extension WhisperKeyBundle {
+public extension WhisperKeyBundle {
     var protoIdentityKey: Clients_IdentityKey {
         get {
             var protoIdentityKey = Clients_IdentityKey()
@@ -90,9 +105,21 @@ extension WhisperKeyBundle {
     var protoSignedPreKey: Clients_SignedPreKey {
         get {
             var protoSignedPreKey = Clients_SignedPreKey()
-            protoSignedPreKey.id = signed.id
-            protoSignedPreKey.publicKey = signed.publicKey
+            protoSignedPreKey.id = signedPreKey.key.id
+            protoSignedPreKey.publicKey = signedPreKey.key.publicKey
+            protoSignedPreKey.signature = signedPreKey.signature
             return protoSignedPreKey
         }
+    }
+}
+
+// MARK: PreKey: Protobufs
+
+public extension PreKey {
+    var protoOneTimePreKey: Clients_OneTimePreKey {
+        var key = Clients_OneTimePreKey()
+        key.id = id
+        key.publicKey = publicKey
+        return key
     }
 }
