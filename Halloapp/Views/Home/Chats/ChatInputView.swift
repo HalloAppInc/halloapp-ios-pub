@@ -65,7 +65,6 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
     func didAppear(in viewController: UIViewController) {
         isVisible = true
-        viewController.becomeFirstResponder()
     }
 
     func willDisappear(in viewController: UIViewController) {
