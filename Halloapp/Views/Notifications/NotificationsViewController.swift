@@ -167,6 +167,7 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
             contactImage.heightAnchor.constraint(equalTo: contactImage.widthAnchor),
             contactImage.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
             contactImage.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
+            contactImage.bottomAnchor.constraint(lessThanOrEqualTo: contentView.layoutMarginsGuide.bottomAnchor),
 
             notificationTextLabel.leadingAnchor.constraint(equalToSystemSpacingAfter: contactImage.trailingAnchor, multiplier: 1),
             notificationTextLabel.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
@@ -177,6 +178,7 @@ fileprivate class NotificationTableViewCell: UITableViewCell {
             mediaPreview.leadingAnchor.constraint(equalToSystemSpacingAfter: notificationTextLabel.trailingAnchor, multiplier: 1),
             mediaPreview.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
             mediaPreview.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
+            mediaPreview.bottomAnchor.constraint(lessThanOrEqualTo: contentView.layoutMarginsGuide.bottomAnchor),
         ])
     }
 
