@@ -168,7 +168,7 @@ final class ProtoClientVersionCheck: ProtoRequest<TimeInterval> {
 
     init(version: String, completion: @escaping Completion) {
         var clientVersion = Server_ClientVersion()
-        clientVersion.version = "HalloApp/iOS1.1.86"
+        clientVersion.version = "HalloApp/iOS\(version)"
 
         super.init(
             iqPacket: .iqPacket(type: .get, payload: .clientVersion(clientVersion)),
