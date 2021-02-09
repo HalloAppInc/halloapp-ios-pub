@@ -811,8 +811,14 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             switch item {
             case .post(let post):
                 feedPosts.append(post)
+                post.orderedMentions.forEach {
+                    contactNames[$0.userID] = $0.name
+                }
             case .comment(let comment, let name):
                 comments.append(comment)
+                comment.orderedMentions.forEach {
+                    contactNames[$0.userID] = $0.name
+                }
                 if let name = name {
                     contactNames[comment.userId] = name
                 }
