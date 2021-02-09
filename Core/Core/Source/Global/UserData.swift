@@ -79,7 +79,7 @@ public final class UserData: ObservableObject {
 
     public var credentials: Credentials? {
         guard !userId.isEmpty else { return nil }
-        if let noiseKeys = noiseKeys {
+        if let noiseKeys = noiseKeys, useNoise {
             return .v2(userID: userId, noiseKeys: noiseKeys)
         } else if let password = password, !password.isEmpty {
             return .v1(userID: userId, password: password)
