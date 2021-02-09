@@ -59,7 +59,7 @@ class ThreadListCell: UITableViewCell {
         }
 
         var defaultText = ""
-        if chatThread.type == .oneToOne && chatThread.lastMsgMediaType == .none {
+        if chatThread.type == .oneToOne && chatThread.lastMsgMediaType == .none && chatThread.chatWithUserId != MainAppContext.shared.userData.userId {
             defaultText = Localizations.chatListMessageDefault(name: chatThread.title)
         }
 
@@ -204,7 +204,7 @@ class ThreadListCell: UITableViewCell {
             unreadCountView.isHidden = false
             unreadCountView.label.text = String(chatThread.unreadCount)
             timeLabel.textColor = .systemBlue
-        } else if chatThread.isNew {
+        } else if chatThread.isNew && chatThread.chatWithUserId != MainAppContext.shared.userData.userId {
             unreadCountView.isHidden = false
             unreadCountView.label.text = " "
             timeLabel.textColor = .systemBlue
