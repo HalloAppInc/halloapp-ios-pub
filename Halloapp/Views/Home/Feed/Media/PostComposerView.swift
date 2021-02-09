@@ -376,10 +376,14 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var currentPosition = GenericObservable(0)
     @ObservedObject private var postTextHeight = GenericObservable<CGFloat>(0)
     @ObservedObject private var postTextComputedHeight = GenericObservable<CGFloat>(0)
-    private var shouldStopTextEdit = GenericObservable(false)
+    @State private var pendingMention: PendingMention? = nil
     @State private var keyboardHeight: CGFloat = 0
     @State private var presentPicker = false
     @State private var imagesAreProcessed = false
+    private var mediaItemsBinding = Binding.constant([PendingMedia]())
+    private var mediaIsReadyBinding = Binding.constant(false)
+    private var numberOfFailedItemsBinding = Binding.constant(0)
+    private var shouldAutoPlayBinding = Binding.constant(false)
 
     private var keyboardHeightPublisher: AnyPublisher<CGFloat, Never> =
         Publishers.Merge3(
@@ -473,6 +477,15 @@ fileprivate struct PostComposerView: View {
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
+
+        self.mediaItemsBinding = self.$mediaItems.value
+        self.mediaIsReadyBinding = self.$mediaState.isReady
+        self.numberOfFailedItemsBinding = self.$mediaState.numberOfFailedItems
+        self.shouldAutoPlayBinding = self.$shouldAutoPlay.value
+    }
+
+    static func stopTextEdit() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
     }
 
     private static func computePostHeight(itemsCount: Int, keyboardHeight: CGFloat, postTextHeight: CGFloat) -> CGFloat {
@@ -489,19 +502,8 @@ fileprivate struct PostComposerView: View {
         return MediaCarouselView.preferredHeight(for: feedMediaItems, width: width - 4 * PostComposerLayoutConstants.horizontalPadding, maxAllowedAspectRatio: mediaCarouselMaxAspectRatio)
     }
 
-    var pageIndex: some View {
-        HStack {
-            if (mediaCount > 1) {
-                PageIndexView(mediaItems: mediaItems, currentPosition: currentPosition)
-                    .frame(height: 20, alignment: .trailing)
-            }
-        }
-        .padding(.horizontal, 2 * PostComposerLayoutConstants.controlSpacing)
-        .offset(y: 2 * PostComposerLayoutConstants.controlSpacing)
-    }
-
     var picker: some View {
-        Picker(maxVideoLength: maxVideoLength, mediaItems: mediaItems.value) { newMediaItems, cancel in
+        Picker(maxVideoLength: maxVideoLength, mediaItems: mediaItemsBinding) { newMediaItems, cancel in
             presentPicker = false
             guard !cancel else { return }
 
@@ -554,11 +556,11 @@ fileprivate struct PostComposerView: View {
                     .frame(height: postTextComputedHeight.value, alignment: .topLeading)
             }
             TextView(
-                mediaItems: mediaItems,
+                mediaItems: mediaItemsBinding,
+                pendingMention: $pendingMention,
                 input: inputToPost,
                 mentionableUsers: mentionableUsers,
-                textHeight: postTextHeight,
-                shouldStopTextEdit: shouldStopTextEdit)
+                textHeight: postTextHeight)
                 .frame(height: postTextComputedHeight.value)
         }
         .background(Color(mediaCount == 0 ? .secondarySystemGroupedBackground : .clear))
@@ -577,10 +579,10 @@ fileprivate struct PostComposerView: View {
                                 if self.mediaCount > 0 {
                                     ZStack(alignment: .bottom) {
                                         MediaPreviewSlider(
-                                            mediaItems: self.mediaItems,
-                                            mediaState: self.mediaState,
-                                            shouldAutoPlay: self.shouldAutoPlay,
-                                            shouldStopTextEdit: self.shouldStopTextEdit,
+                                            mediaItems: self.mediaItemsBinding,
+                                            mediaIsReady: self.mediaIsReadyBinding,
+                                            numberOfFailedItems: self.numberOfFailedItemsBinding,
+                                            shouldAutoPlay: self.shouldAutoPlayBinding,
                                             currentPosition: self.currentPosition)
                                         .frame(height: self.getMediaSliderHeight(width: scrollGeometry.size.width), alignment: .center)
 
@@ -617,7 +619,7 @@ fileprivate struct PostComposerView: View {
                             }
                             .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
                             .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
-                            .onReceive(self.pageChangedPublisher) { _ in self.shouldStopTextEdit.value = true }
+                            .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
                             .onReceive(self.postTextComputedHeightPublisher) { self.postTextComputedHeight.value = $0 }
                         }
                         .frame(minHeight: scrollGeometry.size.height)
@@ -625,7 +627,7 @@ fileprivate struct PostComposerView: View {
                             YOffsetGetter(coordinateSpace: .named(PostComposerLayoutConstants.mainScrollCoordinateSpace))
                                 .onPreferenceChange(YOffsetPreferenceKey.self, perform: {
                                     if $0 > 0, #available(iOS 14.0, *) { // top overscroll, before iOS 14 the reported offset seems inaccurrate
-                                        self.shouldStopTextEdit.value = true
+                                        PostComposerView.stopTextEdit()
                                     }
                                 })
                         )
@@ -699,56 +701,19 @@ private struct PendingMention {
     var range: NSRange
 }
 
-fileprivate struct PageIndexView: UIViewRepresentable {
-    @ObservedObject var mediaItems: ObservableMediaItems
-    @ObservedObject var currentPosition: GenericObservable<Int>
-
-    private let strokeTextAttributes: [NSAttributedString.Key : Any] = [
-        .strokeWidth: -0.5,
-        .foregroundColor: UIColor.white,
-        .strokeColor: UIColor.black.withAlphaComponent(0.4),
-        .font: UIFont.gothamFont(ofFixedSize: 17)
-    ]
-
-    private var attributedString: NSAttributedString {
-        return NSAttributedString(
-            string: "\(currentPosition.value + 1) / \(mediaItems.value.count)",
-            attributes: strokeTextAttributes
-        )
-    }
-
-    func makeUIView(context: Context) -> UILabel {
-        let pageIndexLabel = UILabel()
-        pageIndexLabel.textAlignment = .right
-        pageIndexLabel.backgroundColor = .clear
-        pageIndexLabel.attributedText = attributedString
-
-        pageIndexLabel.layer.shadowColor = UIColor.black.cgColor
-        pageIndexLabel.layer.shadowOffset = CGSize(width: 0, height: 0)
-        pageIndexLabel.layer.shadowOpacity = 0.4
-        pageIndexLabel.layer.shadowRadius = 2.0
-
-        return pageIndexLabel
-    }
-
-    func updateUIView(_ uiView: UILabel, context: Context) {
-        uiView.attributedText = attributedString
-    }
-}
-
 fileprivate struct TextView: UIViewRepresentable {
-    @ObservedObject var mediaItems: ObservableMediaItems
-    @ObservedObject var input: GenericObservable<MentionInput>
+    @Binding var mediaItems: [PendingMedia]
+    @Binding var pendingMention: PendingMention?
+    var input: GenericObservable<MentionInput>
     let mentionableUsers: [MentionableUser]
-    @ObservedObject var textHeight: GenericObservable<CGFloat>
-    @ObservedObject var shouldStopTextEdit: GenericObservable<Bool>
-    @State var pendingMention: PendingMention?
+    var textHeight: GenericObservable<CGFloat>
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
 
     func makeUIView(context: Context) -> UITextView {
+        DDLogInfo("TextView/makeUIView")
         let textView = UITextView()
         textView.delegate = context.coordinator
         textView.font = .preferredFont(forTextStyle: .body)
@@ -759,7 +724,7 @@ fileprivate struct TextView: UIViewRepresentable {
         textView.backgroundColor = UIColor.clear
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.font = PostComposerLayoutConstants.getFontSize(
-            textSize: input.value.text.count, isPostWithMedia: mediaItems.value.count > 0)
+            textSize: input.value.text.count, isPostWithMedia: mediaItems.count > 0)
         textView.textColor = UIColor.label.withAlphaComponent(0.9)
         textView.text = input.value.text
         textView.textContainerInset.bottom = PostComposerLayoutConstants.postTextVerticalPadding
@@ -767,18 +732,13 @@ fileprivate struct TextView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UITextView, context: Context)  {
+        DDLogInfo("TextView/updateUIView")
+
         // Don't set text or selection on uiView (it clears markedTextRange, which breaks IME)
         let fontToUse = PostComposerLayoutConstants.getFontSize(
-            textSize: input.value.text.count, isPostWithMedia: mediaItems.value.count > 0)
+            textSize: input.value.text.count, isPostWithMedia: mediaItems.count > 0)
         if uiView.font != fontToUse {
             uiView.font = fontToUse
-        }
-
-        if shouldStopTextEdit.value {
-            DispatchQueue.main.async {
-                uiView.endEditing(true)
-            }
-            shouldStopTextEdit.value = false
         }
 
         if let mention = pendingMention {
@@ -792,14 +752,14 @@ fileprivate struct TextView: UIViewRepresentable {
             }
         }
 
-        TextView.recomputeHeight(textView: uiView, resultHeight: $textHeight.value)
+        TextView.recomputeHeight(textView: uiView, resultHeight: textHeight)
     }
 
-    private static func recomputeHeight(textView: UIView, resultHeight: Binding<CGFloat>) {
+    private static func recomputeHeight(textView: UIView, resultHeight: GenericObservable<CGFloat>) {
         let newSize = textView.sizeThatFits(CGSize(width: textView.frame.size.width, height: CGFloat.greatestFiniteMagnitude))
-        if resultHeight.wrappedValue != newSize.height {
+        if resultHeight.value != newSize.height {
             DispatchQueue.main.async {
-                resultHeight.wrappedValue = newSize.height
+                resultHeight.value = newSize.height
             }
         }
     }
@@ -887,7 +847,7 @@ fileprivate struct TextView: UIViewRepresentable {
 
         func textViewDidChange(_ textView: UITextView) {
             parent.input.value.text = textView.text ?? ""
-            TextView.recomputeHeight(textView: textView, resultHeight: parent.$textHeight.value)
+            TextView.recomputeHeight(textView: textView, resultHeight: parent.textHeight)
             updateMentionPickerContent()
         }
 
@@ -899,31 +859,30 @@ fileprivate struct TextView: UIViewRepresentable {
 }
 
 fileprivate struct MediaPreviewSlider: UIViewRepresentable {
-    @ObservedObject var mediaItems: ObservableMediaItems
-    @ObservedObject var mediaState: ObservableMediaState
-    @ObservedObject var shouldAutoPlay: GenericObservable<Bool>
-    var shouldStopTextEdit: GenericObservable<Bool>
+    @Binding var mediaItems: [PendingMedia]
+    @Binding var mediaIsReady: Bool
+    @Binding var numberOfFailedItems: Int
+    @Binding var shouldAutoPlay: Bool
     var currentPosition: GenericObservable<Int>
 
     var feedMediaItems: [FeedMedia] {
-        mediaItems.value.map { FeedMedia($0, feedPostId: "") }
+        mediaItems.map { FeedMedia($0, feedPostId: "") }
     }
 
     func makeUIView(context: Context) -> MediaCarouselView {
-        let feedMedia = context.coordinator.parent.feedMediaItems
+        DDLogInfo("MediaPreviewSlider/makeUIView")
         var configuration = MediaCarouselViewConfiguration.composer
         configuration.gutterWidth = PostComposerLayoutConstants.horizontalPadding
-        let carouselView = MediaCarouselView(media: feedMedia, configuration: configuration)
+        let carouselView = MediaCarouselView(media: feedMediaItems, configuration: configuration)
         carouselView.delegate = context.coordinator
-        carouselView.shouldAutoPlay = context.coordinator.parent.shouldAutoPlay.value
+        carouselView.shouldAutoPlay = shouldAutoPlay
         return carouselView
     }
 
     func updateUIView(_ uiView: MediaCarouselView, context: Context) {
-        uiView.shouldAutoPlay = context.coordinator.parent.shouldAutoPlay.value
-        uiView.refreshData(
-            media: context.coordinator.parent.feedMediaItems,
-            index: context.coordinator.parent.currentPosition.value)
+        DDLogInfo("MediaPreviewSlider/updateUIView")
+        uiView.shouldAutoPlay = shouldAutoPlay
+        uiView.refreshData(media: feedMediaItems, index: currentPosition.value)
     }
 
     func makeCoordinator() -> Coordinator {
@@ -942,7 +901,7 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         }
 
         func mediaCarouselView(_ view: MediaCarouselView, didTapMediaAtIndex index: Int) {
-            parent.shouldStopTextEdit.value = true
+            PostComposerView.stopTextEdit()
         }
 
         func mediaCarouselView(_ view: MediaCarouselView, didDoubleTapMediaAtIndex index: Int) {
@@ -959,10 +918,11 @@ fileprivate struct Picker: UIViewControllerRepresentable {
     typealias UIViewControllerType = UINavigationController
 
     let maxVideoLength: TimeInterval
-    @State var mediaItems: [PendingMedia]
+    @Binding var mediaItems: [PendingMedia]
     let complete: ([PendingMedia], Bool) -> Void
 
     func makeUIViewController(context: Context) -> UINavigationController {
+        DDLogInfo("Picker/makeUIViewController")
         let controller = MediaPickerViewController(maxVideoLength: maxVideoLength, selected: mediaItems) { controller, media, cancel in
             self.complete(media, cancel)
         }
@@ -971,5 +931,6 @@ fileprivate struct Picker: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {
+        DDLogInfo("Picker/updateUIViewController")
     }
 }
