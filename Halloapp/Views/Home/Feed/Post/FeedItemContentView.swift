@@ -525,7 +525,7 @@ final class FeedItemFooterView: UIView {
         lazy private var progressView = UIProgressView(progressViewStyle: .default)
         lazy private var textLabel: UILabel = {
             let label = UILabel()
-            label.text = "Posting..."
+            label.text = Localizations.feedPosting
             label.font = .preferredFont(forTextStyle: .subheadline)
             label.textColor = .secondaryLabel
             return label
@@ -569,8 +569,9 @@ final class FeedItemFooterView: UIView {
         case error
     }
 
-    var cancelAction: (() -> ())? = nil
-    var retryAction: (() -> ())? = nil
+    var deleteAction: (() -> ())?
+    var cancelAction: (() -> ())?
+    var retryAction: (() -> ())?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -664,52 +665,49 @@ final class FeedItemFooterView: UIView {
     }
 
     func configure(with post: FeedPost, contentWidth: CGFloat) {
-        separator.isHidden = post.hideFooterSeparator
-
         let state = Self.state(for: post)
 
         buttonStack.isHidden = state == .sending || state == .error || state == .retracting
-        if buttonStack.isHidden {
-            if state == .sending || state == .retracting {
-                showProgressView()
-                hideErrorView()
+        facePileView.isHidden = state != .ownPost
+        separator.isHidden = post.hideFooterSeparator
 
-                let postId = post.id
-                let mediaUploader = MainAppContext.shared.feedData.mediaUploader
-
-                if mediaUploader.hasTasks(forGroupId: postId) {
-                    progressView.isIndeterminate = false
-
-                    if uploadProgressCancellable == nil {
-                        uploadProgressCancellable = mediaUploader.uploadProgressDidChange.sink { [weak self] (groupId, progress) in
-                            guard let self = self else { return }
-                            if postId == groupId {
-                                self.progressView.progress = progress
-                            }
-                        }
-                        progressView.progress = mediaUploader.uploadProgress(forGroupId: postId)
-                    }
-                } else {
-                    progressView.isIndeterminate = true
-                    progressView.indeterminateProgressText = state == .sending ? "Posting..." : "Deleting..."
-                }
-            } else {
-                showSendErrorView()
-                hideProgressView()
-            }
-        } else {
+        switch state {
+        case .normal, .ownPost:
             hideProgressView()
             hideErrorView()
 
             commentButton.badge = (post.comments ?? []).isEmpty ? .hidden : (post.unreadCount > 0 ? .unread : .read)
             messageButton.alpha = state == .ownPost ? 0 : 1
-        }
+            if state == .ownPost {
+                facePileView.configure(with: post)
+            }
+        case .sending, .retracting:
+            showProgressView()
+            hideErrorView()
 
-        facePileView.isHidden = state != .ownPost
-        if !facePileView.isHidden {
-            facePileView.configure(with: post)
-        }
+            let postId = post.id
+            let mediaUploader = MainAppContext.shared.feedData.mediaUploader
 
+            if mediaUploader.hasTasks(forGroupId: postId) {
+                progressView.isIndeterminate = false
+
+                if uploadProgressCancellable == nil {
+                    uploadProgressCancellable = mediaUploader.uploadProgressDidChange.sink { [weak self] (groupId, progress) in
+                        guard let self = self else { return }
+                        if postId == groupId {
+                            self.progressView.progress = progress
+                        }
+                    }
+                    progressView.progress = mediaUploader.uploadProgress(forGroupId: postId)
+                }
+            } else {
+                progressView.isIndeterminate = true
+                progressView.indeterminateProgressText = state == .sending ? Localizations.feedPosting : Localizations.feedDeleting
+            }
+        case .error:
+            showSendErrorView()
+            hideProgressView()
+        }
     }
 
     func prepareForReuse() {
@@ -763,7 +761,12 @@ final class FeedItemFooterView: UIView {
         errorText.font = .preferredFont(forTextStyle: .subheadline)
         errorText.numberOfLines = 0
         errorText.textColor = .systemRed
-        errorText.text = "Failed to post."
+        errorText.text = Localizations.feedPostFailed
+
+        let deleteButton = UIButton(type: .system)
+        deleteButton.translatesAutoresizingMaskIntoConstraints = false
+        deleteButton.setImage(UIImage(systemName: "trash.fill", withConfiguration: UIImage.SymbolConfiguration(textStyle: .subheadline)), for: .normal)
+        deleteButton.addTarget(self, action: #selector(deleteButtonAction), for: .touchUpInside)
 
         let retryButton = UIButton(type: .system)
         retryButton.translatesAutoresizingMaskIntoConstraints = false
@@ -775,12 +778,18 @@ final class FeedItemFooterView: UIView {
         view.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 0, trailing: 0)
         view.tag = Self.errorViewTag
         view.addSubview(errorText)
+        view.addSubview(deleteButton)
         view.addSubview(retryButton)
 
         errorText.constrainMargins([ .leading, .top, .bottom ], to: view)
+
+        deleteButton.constrainMargins([ .top, .bottom ], to: view)
+        deleteButton.widthAnchor.constraint(equalTo: retryButton.heightAnchor).isActive = true
+        deleteButton.leadingAnchor.constraint(equalToSystemSpacingAfter: errorText.trailingAnchor, multiplier: 1).isActive = true
+
         retryButton.constrainMargins([ .trailing, .top, .bottom ], to: view)
         retryButton.widthAnchor.constraint(equalTo: retryButton.heightAnchor).isActive = true
-        retryButton.leadingAnchor.constraint(equalToSystemSpacingAfter: errorText.trailingAnchor, multiplier: 1).isActive = true
+        retryButton.leadingAnchor.constraint(equalToSystemSpacingAfter: deleteButton.trailingAnchor, multiplier: 1).isActive = true
 
         return view
     }()
@@ -800,5 +809,20 @@ final class FeedItemFooterView: UIView {
     @objc private func retryButtonAction() {
         retryAction?()
     }
+
+    @objc private func deleteButtonAction() {
+        deleteAction?()
+    }
 }
 
+extension Localizations {
+    static var feedPosting: String {
+        NSLocalizedString("feed.posting", value: "Posting...", comment: "Shown while content is being posted to feed")
+    }
+    static var feedDeleting: String {
+        NSLocalizedString("feed.deleting", value: "Deleting...", comment: "Shown while content is being retracted from feed")
+    }
+    static var feedPostFailed: String {
+        NSLocalizedString("feed.post.failed", value: "Failed to post.", comment: "Shown when post fails or is canceled.")
+    }
+}

@@ -181,6 +181,7 @@ class FeedPostCollectionViewCell: FeedPostCollectionViewCellBase {
     var showSeenByAction: (() -> ())?
     var cancelSendingAction: (() -> ())?
     var retrySendingAction: (() -> ())?
+    var deleteAction: (() -> ())?
 
     weak var delegate: FeedPostCollectionViewCellDelegate?
 
@@ -251,6 +252,9 @@ class FeedPostCollectionViewCell: FeedPostCollectionViewCellBase {
         }
         footerView.retryAction = { [weak self] in
             self?.retrySendingAction?()
+        }
+        footerView.deleteAction = { [weak self] in
+            self?.deleteAction?()
         }
     }
 

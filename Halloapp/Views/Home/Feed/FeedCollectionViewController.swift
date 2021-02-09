@@ -284,6 +284,10 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         MainAppContext.shared.feedData.retryPosting(postId: postId)
     }
 
+    private func deleteUnsentPost(postID: FeedPostID) {
+        MainAppContext.shared.feedData.deleteUnsentPost(postID: postID)
+    }
+
     // MARK: Misc
 
     private func stopAllVideoPlayback() {
@@ -397,6 +401,10 @@ extension FeedCollectionViewController: UICollectionViewDataSource {
             activePostCell.retrySendingAction = { [weak self] in
                 guard let self = self else { return }
                 self.retrySending(postId: postId)
+            }
+            activePostCell.deleteAction = { [weak self] in
+                guard let self = self else { return }
+                self.deleteUnsentPost(postID: postId)
             }
             activePostCell.delegate = self
         }

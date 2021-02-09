@@ -1906,6 +1906,24 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     // MARK: Deletion
 
+    func deleteUnsentPost(postID: FeedPostID) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            guard let feedPost = self.feedPost(with: postID, in: managedObjectContext) else {
+                DDLogError("FeedData/delete-unsent-post/missing-post [\(postID)]")
+                return
+            }
+            guard feedPost.status == .sendError else {
+                DDLogError("FeedData/delete-unsent-post/invalid status [\(feedPost.status)]")
+                return
+            }
+            self.deleteMedia(in: feedPost)
+            managedObjectContext.delete(feedPost)
+            if managedObjectContext.hasChanges {
+                self.save(managedObjectContext)
+            }
+        }
+    }
+
     private func deleteMedia(in feedPost: FeedPost) {
         feedPost.media?.forEach { (media) in
             if media.relativeFilePath != nil {
