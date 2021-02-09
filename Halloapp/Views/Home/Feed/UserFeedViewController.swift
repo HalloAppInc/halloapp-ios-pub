@@ -31,10 +31,34 @@ class UserFeedViewController: FeedCollectionViewController {
     private var headerViewController: ProfileHeaderViewController!
     private var cancellables = Set<AnyCancellable>()
 
+    private lazy var exchangeNumbersView: UIView = {
+        let image = UIImage(named: "FeedExchangeNumbers")?.withRenderingMode(.alwaysTemplate)
+        let imageView = UIImageView(image: image)
+        imageView.tintColor = UIColor.label.withAlphaComponent(0.2)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 0
+        label.text = Localizations.exchangePhoneNumbersToConnect
+        label.textAlignment = .center
+        label.textColor = .secondaryLabel
+
+        let stackView = UIStackView(arrangedSubviews: [imageView, label])
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .vertical
+        stackView.alignment = .center
+        stackView.spacing = 12
+
+        return stackView
+    }()
+
     // MARK: View Controller
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        installExchangeNumbersView()
 
         headerViewController = ProfileHeaderViewController()
         if userId == MainAppContext.shared.userData.userId {
@@ -50,10 +74,33 @@ class UserFeedViewController: FeedCollectionViewController {
         }
 
         collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: Constants.sectionHeaderReuseIdentifier)
+
+        cancellables.insert(
+            $isFeedEmpty.sink { [weak self] isEmpty in self?.updateExchangeNumbersView(isFeedEmpty: isEmpty) }
+        )
     }
 
     override func showGroupName() -> Bool {
         return true
+    }
+
+
+    private func installExchangeNumbersView() {
+        view.addSubview(exchangeNumbersView)
+
+        exchangeNumbersView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.6).isActive = true
+        exchangeNumbersView.constrain([.centerX, .centerY], to: view)
+    }
+
+    private func updateExchangeNumbersView(isFeedEmpty: Bool) {
+        let isInNetwork: Bool = {
+            guard let contact = MainAppContext.shared.contactStore.contact(withUserId: userId) else {
+                return false
+            }
+            return contact.status == .in
+        }()
+
+        exchangeNumbersView.isHidden = !isFeedEmpty || isInNetwork
     }
     
     // MARK: FeedCollectionViewController
@@ -131,3 +178,12 @@ class UserFeedViewController: FeedCollectionViewController {
     }
 }
 
+
+extension Localizations {
+    static var exchangePhoneNumbersToConnect: String {
+        NSLocalizedString(
+            "exchange.phone.numbers.to.connect",
+            value: "To connect you must exchange phone numbers",
+            comment: "Text to show on profile for users you are not connected with")
+    }
+}

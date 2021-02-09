@@ -66,6 +66,7 @@ final class ProfileHeaderViewController: UIViewController {
            let phoneNumber = contact.phoneNumber {
             headerView.secondaryLabel.text = phoneNumber.formattedPhoneNumber
         } else {
+            headerView.messageButton.isHidden = true
             headerView.secondaryLabel.isHidden = true
         }
         headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
