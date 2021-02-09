@@ -132,7 +132,7 @@ public class FeedDownloadManager {
                         task.encryptedFilePath = self.relativePath(from: fileURL)
                         self.cleanUpResumeData(for: task)
                         self.decryptionQueue.async {
-                            self.decryptData(for: task)
+                            self.decryptDataInChunks(for: task)
                         }
                     } else {
                         task.error = NSError(domain: "com.halloapp.downloadmanager", code: httpURLResponse.statusCode, userInfo: nil)
@@ -198,29 +198,34 @@ public class FeedDownloadManager {
         }
     }
 
-    // MARK: Decryption
+    // MARK: Decryption in chunks
 
-    private func decryptData(for task: Task) {
-        guard task.encryptedFilePath != nil else {
+    private func decryptDataInChunks(for task: Task) {
+        /*
+         First we create an object of MediaChunkCrypter and initialize it with all the keys and hash of the whole file.
+         Then, we read the encrypted file chunk by chunk (10KB at a time) and calculate the sha256 of the entire file.
+         At the same time, we try and calculate the hmac-sha256 signature on the file using the symmetric key.
+         To avoid multiple reads of the file here - we do an iteration of the file and keep track of the last chunk and the current chunk.
+         We always send the current chunk to do streaming hash computation and send the previous chunk to do streaming hmac computation.
+         If the current chunk is less than the requested size - this indicates that the file has ended.
+         For hash computation: - it is simple - just send in the last chunk and then verify. if this fails - return.
+         For hmac computation:
+            - we now observe both last chunk and current chunk and drop the last 32 bytes to get the mac
+            - we send in the remaining data to do stream hmac computation and compare it against the attached mac.
+            - now verify this signature. if this fails - return
+         To decrypt file:
+            - Only after verifying both the hash and hmac we now read the file again to do streaming decryption.
+            - we decrypt the file in chunks and the decrypted chunks are also written to file after that.
+            - after writing all the chunks to the file, we then close and log success and return.
+         */
+        guard let encryptedFilePath = task.encryptedFilePath else {
             self.taskFailed(task)
             return
         }
 
-        // Load data
-        // TODO: decrypt without loading contents of the entire file into memory.
-        let encryptedFileURL = fileURL(forRelativeFilePath: task.encryptedFilePath!)
-        DDLogDebug("FeedDownloadManager/\(task.id)/load-data [\(encryptedFileURL)]")
-        var encryptedData: Data
-        do {
-            encryptedData = try Data(contentsOf: encryptedFileURL)
-        } catch {
-            task.error = error
-            DDLogError("FeedDownloadManager/\(task.id)/load/error [\(error)]")
-            self.taskFailed(task)
-            return
-        }
+        let ts = Date()
 
-        // Decrypt data
+        // Fetch keys
         guard let mediaKey = Data(base64Encoded: task.key), let sha256Hash = Data(base64Encoded: task.sha256) else {
             DDLogError("FeedDownloadManager/\(task.id)/load/error Invalid key or hash.")
             task.error = NSError(domain: "com.halloapp.downloadmanager", code: 1, userInfo: nil)
@@ -228,32 +233,140 @@ public class FeedDownloadManager {
             return
         }
 
-        let ts = Date()
-        DDLogDebug("FeedDownloadManager/\(task.id)/decrypt/begin size=[\(encryptedData.count)]")
-        let decryptedData: Data
+        let chunkSize = 2 * 1024 * 1024 // 2MB
+        let attachedMacLength = 32
+        var prevEncryptedDataChunk: Data
+        var curEncryptedDataChunk: Data
+        let mediaChunkCrypter: MediaChunkCrypter
+        let encryptedFileURL = fileURL(forRelativeFilePath: encryptedFilePath)
+        let encryptedFileHandle: FileHandle
+        var fileSize: Int = 0
         do {
-            decryptedData = try MediaCrypter.decrypt(data: encryptedData, mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: task.mediaType)
+            mediaChunkCrypter  = try MediaChunkCrypter.init(mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: task.mediaType)
+            DDLogError("FeedDownloadManager/\(task.id)/init/MediaChunkCrypter duration: \(-ts.timeIntervalSinceNow) s]")
         } catch {
-            DDLogError("FeedDownloadManager/\(task.id)/decrypt/error [\(error)]")
+            DDLogError("FeedDownloadManager/\(task.id)/load/error Failed to create chunkCrypter: [\(error)]")
             task.error = error
             self.taskFailed(task)
             return
         }
-        DDLogInfo("FeedDownloadManager/\(task.id)/decrypt/finished size=[\(decryptedData.count)] duration: \(-ts.timeIntervalSinceNow) s")
 
-        // Write unencrypted data to file
-        let decryptedFileURL = encryptedFileURL.deletingPathExtension()
-        DDLogDebug("FeedDownloadManager/\(task.id)/save to [\(decryptedFileURL.absoluteString)]")
         do {
-            try decryptedData.write(to: decryptedFileURL)
-        }
-        catch {
+            // see comments under the function signature for more details about the logic below.
+            encryptedFileHandle  = try FileHandle(forReadingFrom: encryptedFileURL)
+
+            prevEncryptedDataChunk = encryptedFileHandle.readData(ofLength: chunkSize)
+            fileSize += prevEncryptedDataChunk.count
+            try mediaChunkCrypter.hashUpdate(input: prevEncryptedDataChunk)
+            curEncryptedDataChunk = encryptedFileHandle.readData(ofLength: chunkSize)
+            fileSize += curEncryptedDataChunk.count
+
+            while (curEncryptedDataChunk.count == chunkSize) {
+                try mediaChunkCrypter.hashUpdate(input: curEncryptedDataChunk)
+                try mediaChunkCrypter.hmacUpdate(input: prevEncryptedDataChunk)
+                prevEncryptedDataChunk = curEncryptedDataChunk
+                curEncryptedDataChunk = encryptedFileHandle.readData(ofLength: chunkSize)
+                fileSize += curEncryptedDataChunk.count
+            }
+            DDLogInfo("FeedDownloadManager/\(task.id)/verifyHash/wip fileSize=[\(fileSize)]")
+
+            // Verify hash-sha256 here and only then proceed.
+            try mediaChunkCrypter.hashUpdate(input: curEncryptedDataChunk)
+            try mediaChunkCrypter.hashFinalizeAndVerify()
+
+            // Verify hmac-sha256 signature here and only then proceed
+            if (curEncryptedDataChunk.count > attachedMacLength) {
+                let attachedMAC = curEncryptedDataChunk.suffix(attachedMacLength)
+                let remainingEncryptedChunk = curEncryptedDataChunk.dropLast(attachedMacLength)
+                try mediaChunkCrypter.hmacUpdate(input: prevEncryptedDataChunk)
+                try mediaChunkCrypter.hmacUpdate(input: remainingEncryptedChunk)
+                try mediaChunkCrypter.hmacFinalizeAndVerify(attachedMAC: attachedMAC)
+            } else if (curEncryptedDataChunk.count == attachedMacLength) {
+                try mediaChunkCrypter.hmacUpdate(input: prevEncryptedDataChunk)
+                try mediaChunkCrypter.hmacFinalizeAndVerify(attachedMAC: curEncryptedDataChunk)
+            } else {
+                let prevPartMACLength = attachedMacLength - curEncryptedDataChunk.count
+                var attachedMAC = prevEncryptedDataChunk.suffix(prevPartMACLength)
+                let remainingEncryptedChunk = prevEncryptedDataChunk.dropLast(prevPartMACLength)
+                attachedMAC.append(curEncryptedDataChunk)
+                try mediaChunkCrypter.hmacUpdate(input: remainingEncryptedChunk)
+                try mediaChunkCrypter.hmacFinalizeAndVerify(attachedMAC: attachedMAC)
+            }
+
+            DDLogInfo("FeedDownloadManager/\(task.id)/verifyHash/success full-fileSize=[\(fileSize)] duration: \(-ts.timeIntervalSinceNow) s]")
+        } catch {
+            DDLogError("FeedDownloadManager/\(task.id)/verifyHash/error Failed to verify hash: [\(error)]")
             task.error = error
-            DDLogError("FeedDownloadManager/\(task.id)/save/failed [\(error)]")
             self.taskFailed(task)
             return
         }
 
+        let decryptedFileURL = encryptedFileURL.deletingPathExtension()
+        DDLogInfo("FeedDownloadManager/\(task.id)/createFile/name=[\(decryptedFileURL.absoluteString)]")
+        do {
+            if FileManager.default.fileExists(atPath: decryptedFileURL.path) {
+                // if the file already exists - delete and decrypt the whole file again!
+                DDLogError("FeedDownloadManager/\(task.id)/exists/duplicate-file exists")
+                try FileManager.default.removeItem(at: decryptedFileURL)
+                DDLogError("FeedDownloadManager/\(task.id)/delete/file [\(decryptedFileURL)]")
+            }
+            try FileManager.default.createDirectory(at: decryptedFileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: nil)
+            FileManager.default.createFile(atPath: decryptedFileURL.path, contents: nil, attributes: nil)
+            DDLogInfo("FeedDownloadManager/\(task.id)/create/file: [\(decryptedFileURL)]")
+        } catch {
+            DDLogError("FeedDownloadManager/\(task.id)/createFile/failed: failed to create file: [\(error)]")
+            task.error = error
+            self.taskFailed(task)
+            return
+        }
+
+        // TODO(murali@): this is duplicated logic - similar loop as above when reading the file.
+        var decryptedDataChunk: Data
+        do {
+            // Seek to beginning to start decryption
+            try encryptedFileHandle.seek(toOffset: 0)
+            try mediaChunkCrypter.decryptInit()
+            let decryptedFileHandle = try FileHandle(forWritingTo: decryptedFileURL)
+
+            prevEncryptedDataChunk = encryptedFileHandle.readData(ofLength: chunkSize)
+            curEncryptedDataChunk = encryptedFileHandle.readData(ofLength: chunkSize)
+
+            while (curEncryptedDataChunk.count == chunkSize) {
+                decryptedDataChunk = try mediaChunkCrypter.decryptUpdate(dataChunk: prevEncryptedDataChunk)
+                prevEncryptedDataChunk = curEncryptedDataChunk
+                curEncryptedDataChunk = encryptedFileHandle.readData(ofLength: chunkSize)
+                decryptedFileHandle.write(decryptedDataChunk)
+            }
+
+            if (curEncryptedDataChunk.count > attachedMacLength) {
+                let remainingEncryptedChunk = curEncryptedDataChunk.dropLast(attachedMacLength)
+                decryptedDataChunk = try mediaChunkCrypter.decryptUpdate(dataChunk: prevEncryptedDataChunk)
+                decryptedFileHandle.write(decryptedDataChunk)
+                decryptedDataChunk = try mediaChunkCrypter.decryptUpdate(dataChunk: remainingEncryptedChunk)
+                decryptedFileHandle.write(decryptedDataChunk)
+            } else if (curEncryptedDataChunk.count == attachedMacLength) {
+                decryptedDataChunk = try mediaChunkCrypter.decryptUpdate(dataChunk: prevEncryptedDataChunk)
+                decryptedFileHandle.write(decryptedDataChunk)
+            } else {
+                let prevPartMACLength = attachedMacLength - curEncryptedDataChunk.count
+                let remainingEncryptedChunk = prevEncryptedDataChunk.dropLast(prevPartMACLength)
+                decryptedDataChunk = try mediaChunkCrypter.decryptUpdate(dataChunk: remainingEncryptedChunk)
+                decryptedFileHandle.write(decryptedDataChunk)
+            }
+
+            decryptedDataChunk = try mediaChunkCrypter.decryptFinalize()
+            decryptedFileHandle.write(decryptedDataChunk)
+            decryptedFileHandle.closeFile()
+
+            DDLogInfo("FeedDownloadManager/\(task.id)/decrypt/successful: full-fileSize=[\(fileSize)] duration: \(-ts.timeIntervalSinceNow) s")
+        } catch {
+            task.error = error
+            DDLogError("FeedDownloadManager/\(task.id)/decrypt/failed [\(error)]")
+            self.taskFailed(task)
+            return
+        }
+
+        DDLogInfo("FeedDownloadManager/\(task.id)/decrypt/finished full-fileSize=[\(fileSize)] duration: \(-ts.timeIntervalSinceNow) s")
         // Delete encrypted file
         do {
             try FileManager.default.removeItem(at: encryptedFileURL)
@@ -264,6 +377,7 @@ public class FeedDownloadManager {
         task.decryptedFilePath = relativePath(from: decryptedFileURL)
 
         self.taskFinished(task)
+
     }
 
     private func taskFinished(_ task: Task) {
