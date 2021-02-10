@@ -1623,6 +1623,11 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             // Copying depends on all data fields being set, so do this last.
             do {
                 try downloadManager.copyMedia(from: mediaItem, to: feedMedia)
+
+                if let encryptedFileURL = mediaItem.encryptedFileUrl {
+                    try FileManager.default.removeItem(at: encryptedFileURL)
+                    DDLogInfo("FeedData/new-post/removed-temporary-file [\(encryptedFileURL.absoluteString)]")
+                }
             }
             catch {
                 DDLogError("FeedData/new-post/copy-media/error [\(error)]")
@@ -1916,6 +1921,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogError("FeedData/delete-unsent-post/invalid status [\(feedPost.status)]")
                 return
             }
+            DDLogError("FeedData/delete-unsent-post/deleting [\(postID)]")
             self.deleteMedia(in: feedPost)
             managedObjectContext.delete(feedPost)
             if managedObjectContext.hasChanges {
@@ -1926,10 +1932,23 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func deleteMedia(in feedPost: FeedPost) {
         feedPost.media?.forEach { (media) in
-            if media.relativeFilePath != nil {
-                let fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(media.relativeFilePath!, isDirectory: false)
+            if let encryptedFilePath = media.encryptedFilePath {
+                let encryptedURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(encryptedFilePath, isDirectory: false)
+                do {
+                    if FileManager.default.fileExists(atPath: encryptedURL.path) {
+                        try FileManager.default.removeItem(at: encryptedURL)
+                        DDLogInfo("FeedData/delete-media-encrypted/deleting [\(encryptedURL)]")
+                    }
+                }
+                catch {
+                    DDLogError("FeedData/delete-media-encrypted/error [\(error)]")
+                }
+            }
+            if let relativeFilePath = media.relativeFilePath {
+                let fileURL = MainAppContext.mediaDirectoryURL.appendingPathComponent(relativeFilePath, isDirectory: false)
                 do {
                     try FileManager.default.removeItem(at: fileURL)
+                    DDLogInfo("FeedData/delete-media/deleting [\(fileURL)]")
                 }
                 catch {
                     DDLogError("FeedData/delete-media/error [\(error)]")

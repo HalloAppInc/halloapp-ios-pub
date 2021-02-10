@@ -213,6 +213,14 @@ class ImageServer {
                 DDLogDebug("ImageServer/encrypt/finished  Duration: \(-ts.timeIntervalSinceNow) s")
 
                 // 2.3 Save encrypted data into a temp file.
+                if let existingFileURL = item.encryptedFileUrl {
+                    do {
+                        try FileManager.default.removeItem(at: existingFileURL)
+                        DDLogInfo("ImageServer/media/delete-existing-encrypted/deleted [\(existingFileURL.absoluteString)]")
+                    } catch {
+                        DDLogError("ImageServer/media/delete-existing-encrypted/error [\(error)]")
+                    }
+                }
                 let encryptedFileURL = URL(fileURLWithPath: NSTemporaryDirectory())
                     .appendingPathComponent(UUID().uuidString, isDirectory: false)
                     .appendingPathExtension("enc")
@@ -316,6 +324,12 @@ class ImageServer {
         DDLogInfo("ImageServer/video/prepare/ready  Temporary url: [\(tempMediaURL.description)] url=[\(videoUrl.description)] original order=[\(item.order)]")
 
         VideoUtils.resizeVideo(inputUrl: tempMediaURL) { (result) in
+            do {
+                try FileManager.default.removeItem(at: tempMediaURL)
+                DDLogInfo("video-processing/export/cleanup/\(tempMediaURL.absoluteString)/deleted")
+            } catch {
+                DDLogError("video-processing/export/cleanup/\(tempMediaURL.absoluteString)/error [\(error)]")
+            }
             switch result {
             case .success(let (_, videoResolution)):
                 DDLogInfo("ImageServer/video/prepare/ready  New video resolution: [\(videoResolution)] [\(tempMediaURL.description)]")

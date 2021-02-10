@@ -70,6 +70,19 @@ final class NewPostViewController: UIViewController {
         return makeNavigationController()
     }()
 
+    private func cleanupAndFinish() {
+        for media in state.pendingMedia {
+            guard let encryptedFileURL = media.encryptedFileUrl else { continue }
+            do {
+                try FileManager.default.removeItem(at: encryptedFileURL)
+                DDLogInfo("NewPostViewController/cleanup/\(encryptedFileURL.absoluteString)/deleted")
+            } catch {
+                DDLogInfo("NewPostViewController/cleanup/\(encryptedFileURL.absoluteString)/error [\(error)]")
+            }
+        }
+        didFinish()
+    }
+
     private func didFinishPickingMedia(showAddMoreMediaButton: Bool = true) {
         containedNavigationController.pushViewController(
             makeComposerViewController(showAddMoreMediaButton: showAddMoreMediaButton), animated: true)
@@ -107,7 +120,7 @@ final class NewPostViewController: UIViewController {
     private func makeNewCameraViewController() -> UIViewController {
         return CameraViewController(
             showCancelButton: state.isPostComposerCancellable,
-            didFinish: { [weak self] in self?.didFinish() },
+            didFinish: { [weak self] in self?.cleanupAndFinish() },
             didPickImage: { [weak self] uiImage in self?.onCameraImagePicked(uiImage) },
             didPickVideo: { [weak self] videoURL in self?.onCameraVideoPicked(videoURL) }
         )
@@ -132,7 +145,7 @@ final class NewPostViewController: UIViewController {
             guard let self = self else { return }
             
             if cancel {
-                self.didFinish()
+                self.cleanupAndFinish()
             } else {
                 self.state.pendingMedia = media
                 self.didFinishPickingMedia()
@@ -203,7 +216,7 @@ extension NewPostViewController: PostComposerViewDelegate {
 
     func composerDidFinish(controller: PostComposerViewController, media: [PendingMedia], isBackAction: Bool) {
         guard isBackAction else {
-            didFinish()
+            cleanupAndFinish()
             return
         }
 
@@ -214,7 +227,7 @@ extension NewPostViewController: PostComposerViewDelegate {
         case .camera:
             break
         default:
-            didFinish()
+            cleanupAndFinish()
         }
     }
 
