@@ -69,6 +69,19 @@ class ThreadListCell: UITableViewCell {
             messageText = Localizations.chatMessageDeleted
         }
 
+        let messageStatusIcon: UIImage? = {
+            switch chatThread.lastMsgStatus {
+            case .sentOut:
+                return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray3)
+            case .delivered:
+                return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray3)
+            case .seen:
+                return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
+            default:
+                return nil
+            }
+        }()
+        
         var mediaIcon: UIImage?
         switch chatThread.lastMsgMediaType {
         case .image:
@@ -87,28 +100,7 @@ class ThreadListCell: UITableViewCell {
             break
         }
 
-        let messageStatusIcon: UIImage? = {
-            switch chatThread.lastMsgStatus {
-            case .seen:
-                return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
-
-            case .delivered:
-                return UIImage(named: "CheckmarkDouble")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
-
-            case .sentOut:
-                return UIImage(named: "CheckmarkSingle")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
-
-            default:
-                return nil
-            }
-        }()
-
-        let result = NSMutableAttributedString(string: contactNamePart)
-
-        if let mediaIcon = mediaIcon, chatThread.type == .oneToOne {
-            result.append(NSAttributedString(attachment: NSTextAttachment(image: mediaIcon)))
-            result.append(NSAttributedString(string: " "))
-        }
+        let result = NSMutableAttributedString(string: "")
 
         if let messageStatusIcon = messageStatusIcon {
             let imageSize = messageStatusIcon.size
@@ -118,6 +110,13 @@ class ThreadListCell: UITableViewCell {
             iconAttachment.bounds.size = CGSize(width: ceil(imageSize.width * scale), height: ceil(imageSize.height * scale))
 
             result.append(NSAttributedString(attachment: iconAttachment))
+            result.append(NSAttributedString(string: " "))
+        }
+        
+        result.append(NSAttributedString(string: contactNamePart))
+        
+        if let mediaIcon = mediaIcon, chatThread.type == .oneToOne {
+            result.append(NSAttributedString(attachment: NSTextAttachment(image: mediaIcon)))
             result.append(NSAttributedString(string: " "))
         }
 

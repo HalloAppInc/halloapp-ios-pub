@@ -512,7 +512,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             isLargeFontEmoji = true
         }
         
-        let textRatio = isLargeFontEmoji ? 0.8 : 1.7
+        let textRatio = isLargeFontEmoji ? 1.2 : 1.7
             
         var blanks = " \u{2800}" // extra space so links can work
         let numBlanks = timeAndStatusLabel.text?.count ?? 1
@@ -560,17 +560,17 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     
     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
         switch status {
+        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray3)
+        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray3)
         case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
-        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
-        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
         default: return nil }
     }
     
     func statusIcon(_ status: ChatGroupMessage.OutboundStatus) -> UIImage? {
         switch status {
+        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray3)
+        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray3)
         case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
-        case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
-        case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(UIColor.chatOwnMsg.withAlphaComponent(0.4))
         default: return nil }
     }
     

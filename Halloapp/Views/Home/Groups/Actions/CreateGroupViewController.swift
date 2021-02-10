@@ -16,7 +16,7 @@ fileprivate struct Constants {
 }
 
 protocol CreateGroupViewControllerDelegate: AnyObject {
-    func createGroupViewController(_ createGroupViewController: CreateGroupViewController)
+    func createGroupViewController(_ controller: CreateGroupViewController, didCreateGroup: GroupID)
 }
 
 class CreateGroupViewController: UIViewController {
@@ -279,14 +279,18 @@ class CreateGroupViewController: UIViewController {
         navigationItem.rightBarButtonItem?.isEnabled = false
         
         let name = textView.text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-       
+
         MainAppContext.shared.chatData.createGroup(name: name, members: selectedMembers, data: avatarData) { [weak self] result in
             guard let self = self else { return }
 
             switch result {
-            case .success:
-                DispatchQueue.main.async {
+            case .success(let groupID):
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
                     self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
+                    if ServerProperties.isGroupFeedEnabled {
+                        self.delegate?.createGroupViewController(self, didCreateGroup: groupID)
+                    }
                 }
             case .failure(let error):
                 DDLogError("CreateGroupViewController/createAction/error \(error)")
@@ -424,6 +428,7 @@ extension CreateGroupViewController: UITableViewDelegate, UITableViewDataSource 
         let abContacts = MainAppContext.shared.contactStore.contacts(withUserIds: [selectedMembers[index]])
         guard let contact = abContacts.first else { return cell }
         cell.configure(with: contact)
+        cell.isUserInteractionEnabled = false
         return cell
     }
     

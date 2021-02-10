@@ -202,17 +202,13 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
             permanentButton: .standardActionButton(
                 iconTemplate: UIImage(named: "icon_fab_group_add")?.withRenderingMode(.alwaysTemplate),
                 accessibilityLabel: Localizations.fabAccessibilityNewGroup,
-                action: { [weak self] in self?.showContacts() }))
+                action: { [weak self] in self?.openNewGroup() }))
     }()
 
     private func installFloatingActionMenu() {
         floatingMenu.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(floatingMenu)
         floatingMenu.constrain(to: view)
-    }
-
-    private func showContacts() {
-        present(UINavigationController(rootViewController: NewGroupMembersViewController(currentMembers: [])), animated: true)
     }
 
     // MARK: Invite friends
@@ -309,12 +305,8 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         case .update:
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { return }
             DDLogDebug("GroupsListView/frc/update [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
-            if trackPerRowFRCChanges && !isFiltering {
-                tableView.reloadRows(at: [ indexPath ], with: .automatic)
-            } else {
-                reloadTableViewInDidChangeContent = true
-            }
 
+            reloadTableViewInDidChangeContent = true
         default:
             break
         }
@@ -377,6 +369,12 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         let viewController = UserFeedViewController(userId: userId)
         navigationController?.pushViewController(viewController, animated: true)
     }
+    
+    private func openNewGroup() {
+        let viewController = NewGroupMembersViewController(currentMembers: [])
+        viewController.delegate = self
+        present(UINavigationController(rootViewController: viewController), animated: true)
+    }
 }
 
 extension GroupsListViewController: UIViewControllerScrollsToTop {
@@ -406,7 +404,7 @@ extension GroupsListViewController: UIViewControllerScrollsToTop {
         tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: animated)
 
         // after scrolling to the first row, move offset so the searchBar is shown
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             guard let self = self else { return }
             self.tableView.setContentOffset(offsetFromTop, animated: animated)
         }
@@ -416,7 +414,7 @@ extension GroupsListViewController: UIViewControllerScrollsToTop {
 // MARK: Table Header Delegate
 extension GroupsListViewController: GroupsListHeaderViewDelegate {
     func groupsListHeaderView(_ groupsListHeaderView: GroupsListHeaderView) {
-        present(UINavigationController(rootViewController: NewGroupMembersViewController()), animated: true)
+        openNewGroup()
     }
 }
 
@@ -582,15 +580,11 @@ extension GroupsListViewController: UISearchResultsUpdating {
     }
 }
 
-extension GroupsListViewController: NewChatViewControllerDelegate {
-    func newChatViewController(_ controller: NewChatViewController, didSelect userId: UserID) {
-        controller.dismiss(animated: true) {
-            let vc = ChatViewController(for: userId)
-            self.navigationController?.pushViewController(vc, animated: true)
-            DispatchQueue.main.async {
-                vc.showKeyboard()
-            }
-        }
+extension GroupsListViewController: NewGroupMembersViewControllerDelegate {
+    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, selected: [UserID]) {}
+    
+    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, didCreateGroup: GroupID) {
+        navigationController?.pushViewController(GroupFeedViewController(groupId: didCreateGroup), animated: true)
     }
 }
 

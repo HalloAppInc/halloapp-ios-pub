@@ -69,7 +69,10 @@ final class ProfileHeaderViewController: UIViewController {
             headerView.messageButton.isHidden = true
             headerView.secondaryLabel.isHidden = true
         }
-        headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
+        if MainAppContext.shared.contactStore.isContactInAddressBook(userId: userId) {
+            headerView.canMessage = true
+            headerView.messageButton.addTarget(self, action: #selector(openChatView), for: .touchUpInside)
+        }
     }
 
     func configureAsHorizontal() {
@@ -216,7 +219,16 @@ private final class ProfileHeaderView: UIView {
                 avatarViewButton.isUserInteractionEnabled = false
                 nameButton.isHidden = true
                 nameLabel.isHidden = false
+            }
+        }
+    }
+    
+    var canMessage: Bool = false {
+        didSet {
+            if canMessage {
                 messageButton.isHidden = false
+            } else {
+                messageButton.isHidden = true
             }
         }
     }
@@ -339,10 +351,16 @@ private final class ProfileHeaderView: UIView {
         button.tintColor = .primaryBlue
         
         button.titleLabel?.font = UIFont.systemFont(forTextStyle: .headline, weight: .medium)
-        button.setTitle("Message", for: .normal)
+        button.setTitle(Localizations.profileHeaderMessageUser, for: .normal)
         
         button.isHidden = true
         return button
         
     }()
+}
+
+private extension Localizations {
+    static var profileHeaderMessageUser: String {
+        NSLocalizedString("profile.header.message.user", value: "Message", comment: "Text for messaging user under profile header")
+    }
 }

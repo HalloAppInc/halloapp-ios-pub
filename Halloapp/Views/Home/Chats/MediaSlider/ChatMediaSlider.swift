@@ -6,6 +6,7 @@
 //
 
 import AVKit
+import Combine
 import Core
 import UIKit
 
@@ -17,8 +18,12 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
     weak var delegate: ChatMediaSliderDelegate?
     public var currentPage: Int = 0
     
-    private var imageViewList: [Int: UIImageView] = [:]
-    private var imageViewOverlayList: [Int: UIImageView] = [:]
+    private var msgID: String?
+    private var imageViewDict: [Int: UIImageView] = [:]
+    private var imageViewButtonDict: [Int: UIButton] = [:]
+    private var downloadProgressIndicatorDict: [Int: CircularProgressView] = [:]
+    
+    private var cancellableSet: Set<AnyCancellable> = []
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -27,7 +32,9 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
 
     required init?(coder: NSCoder) { fatalError("init(coder:) disabled") }
     
-    func configure(with sliderMedia: [SliderMedia], size: CGSize, currentPage: Int = 0) {
+    func configure(with sliderMedia: [SliderMedia], size: CGSize, currentPage: Int = 0, msgID: String? = nil) {
+        self.msgID = msgID
+        var shouldListenForProgress: Bool = false
         for (index, media) in sliderMedia.enumerated() {
 
             let imageView = ZoomableImageView(frame: CGRect(x: size.width * CGFloat(index),
@@ -37,49 +44,54 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
             
             imageView.image = media.image
             imageView.contentMode = .scaleAspectFit
-            
             imageView.roundCorner(20)
-            
             imageView.clipsToBounds = true
-
-            imageViewList[media.order] = imageView
-
-            scrollView.addSubview(imageViewList[media.order]!)
+            scrollView.addSubview(imageView)
+            imageViewDict[media.order] = imageView
             
-            if media.type == .image && media.image == nil {
-                let photoButtonOverlay = UIImageView(frame: CGRect(x: size.width * CGFloat(index),
-                                                          y: 0,
-                                                          width: size.width,
-                                                          height: size.height))
+            if media.type == .video || (media.type == .image && imageView.image == nil) {
+                let iconConfig = UIImage.SymbolConfiguration(pointSize: 30)
+                let iconColor = UIColor(red: 0.54, green: 0.53, blue: 0.48, alpha: 0.9)
+                let iconName = (media.type == .image) ? "photo.fill" : "play.fill"
+                let icon = UIImage(systemName: iconName, withConfiguration: iconConfig)!.withTintColor(iconColor, renderingMode: .alwaysOriginal)
 
-                let targetWidth: CGFloat = 30.0
-                photoButtonOverlay.image = self.resizeImage(image: UIImage(systemName: "photo.fill")!, newWidth: targetWidth)?.withRenderingMode(.alwaysTemplate)
+                let buttonSize: CGFloat = 80
+                let button:UIButton = UIButton(frame: CGRect(x: size.width * CGFloat(index), y: 0, width: size.width, height: size.height))
+                button.setImage(icon, for: .normal)
 
-                photoButtonOverlay.tintColor = UIColor.systemGray6
-                photoButtonOverlay.contentMode = .center
-                photoButtonOverlay.alpha = 0.8
-                
-                imageViewOverlayList[media.order] = photoButtonOverlay
-                scrollView.addSubview(imageViewOverlayList[media.order]!)
-            }
-            
-            if media.type == .video {
-                let playButtonOverlay = UIImageView(frame: CGRect(x: size.width * CGFloat(index),
-                                                          y: 0,
-                                                          width: size.width,
-                                                          height: size.height))
+                button.translatesAutoresizingMaskIntoConstraints = false
+                button.layer.cornerRadius = buttonSize / 2
+                button.clipsToBounds = true
 
-                let targetWidth = size.width * 0.20
-                playButtonOverlay.image = resizeImage(image: UIImage(systemName: "play.fill")!, newWidth: targetWidth)?.withRenderingMode(.alwaysTemplate)
+                let alphaSetting: CGFloat = media.type == .image ? 0.0 : 0.9
+                button.backgroundColor = UIColor(red: 0.92, green: 0.91, blue: 0.89, alpha: alphaSetting)
+                button.isUserInteractionEnabled = false
+                imageViewButtonDict[media.order] = button
+                scrollView.addSubview(button)
                 
-                playButtonOverlay.tintColor = UIColor.systemGray6
-                playButtonOverlay.contentMode = .center
-                playButtonOverlay.alpha = 0.8
-                
-                scrollView.addSubview(playButtonOverlay)
+                NSLayoutConstraint.activate([
+                    button.widthAnchor.constraint(equalToConstant: buttonSize),
+                    button.heightAnchor.constraint(equalToConstant: buttonSize),
+                    button.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
+                    button.centerYAnchor.constraint(equalTo: imageView.centerYAnchor),
+                ])
+     
+                if imageView.image == nil {
+                    shouldListenForProgress = true
+                    let progressView = createProgressView()
+                    downloadProgressIndicatorDict[media.order] = progressView
+                    
+                    scrollView.addSubview(progressView)
+                    progressView.centerXAnchor.constraint(equalTo: imageView.centerXAnchor).isActive = true
+                    progressView.centerYAnchor.constraint(equalTo: imageView.centerYAnchor).isActive = true
+                }
             }
         }
         
+        if shouldListenForProgress {
+            listenForProgress()
+        }
+                
         // Set the scrollView contentSize
         var contentSizeWidth = size.width * CGFloat(sliderMedia.count)
         if sliderMedia.count == 1 {
@@ -101,16 +113,45 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
         
     }
     
+    private func createProgressView() -> CircularProgressView {
+        let progressView = CircularProgressView()
+        progressView.barWidth = 2
+        progressView.trackTintColor = .systemGray5
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        progressView.heightAnchor.constraint(equalTo: progressView.widthAnchor, multiplier: 1).isActive = true
+        progressView.setProgress(0.01, animated: true)
+        return progressView
+    }
+    
+    func listenForProgress() {
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetMediaDownloadProgress.sink { [weak self] (msgID, mediaOrder, progress) in
+                guard let self = self else { return }
+                guard self.msgID == msgID else { return }
+                guard let progressIndicator = self.downloadProgressIndicatorDict[mediaOrder] else { return }
+                DispatchQueue.main.async {
+                    progressIndicator.setProgress(Float(progress), animated: true)
+                    if progress >= 1 {
+                        progressIndicator.isHidden = true
+                    }
+                }
+            }
+        )
+    }
+    
     func updateMedia(_ sliderMedia: SliderMedia) {
-        guard let imageView = self.imageViewList[sliderMedia.order] else { return }
+        guard let imageView = imageViewDict[sliderMedia.order] else { return }
         imageView.image = sliderMedia.image
         
         imageView.contentMode = .scaleAspectFit
         imageView.roundCorner(20)
         imageView.clipsToBounds = true
         
-        guard let imageViewOverlay = imageViewOverlayList[sliderMedia.order] else { return }
-        imageViewOverlay.removeFromSuperview()
+        guard let imageViewButton = imageViewButtonDict[sliderMedia.order] else { return }
+        if sliderMedia.type == .image {
+            imageViewButton.removeFromSuperview()
+        }
     }
     
     func reset() {
@@ -121,6 +162,9 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
         
         scrollView.contentSize = CGSize(width: 0, height: 0)
         scrollView.subviews.forEach({ $0.removeFromSuperview() })
+        
+        cancellableSet.forEach { $0.cancel() }
+        cancellableSet.removeAll()
     }
     
     private func setup() {
@@ -187,19 +231,7 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
         
         scrollView.scrollRectToVisible(CGRect(x: slideToX, y:0, width:pageWidth, height: scrollView.frame.height), animated: animated)
     }
-    
-    func resizeImage(image: UIImage, newWidth: CGFloat) -> UIImage? {
-        let scale = newWidth / image.size.width
-        let newHeight = image.size.height * scale
-        UIGraphicsBeginImageContext(CGSize(width: newWidth, height: newHeight))
-        image.draw(in: CGRect(x: 0, y: 0, width: newWidth, height: newHeight))
-
-        let newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-
-        return newImage
-    }
-    
+        
     // MARK: Scrollview Delegates
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -215,7 +247,7 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
     // MARK: MediaExplorerTransitionDelegate
 
     func getTransitionView(atPostion index: Int) -> UIView? {
-        return imageViewList[index]
+        return imageViewDict[index]
     }
 
     func scrollMediaToVisible(atPostion index: Int) {
@@ -235,8 +267,8 @@ struct SliderMedia {
     }
 }
 
-fileprivate extension UIImageView
-{
+fileprivate extension UIImageView {
+    
     func roundCorner(_ radius: CGFloat) {
         guard let image = image else { return }
         let boundsScale = bounds.size.width / bounds.size.height

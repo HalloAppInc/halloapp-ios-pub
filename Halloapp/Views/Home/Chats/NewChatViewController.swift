@@ -1,5 +1,4 @@
 //
-//  NewMessageViewController.swift
 //  HalloApp
 //
 //  Created by Tony Jiang on 4/29/20.
@@ -62,13 +61,13 @@ class NewChatViewController: NewChatTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        DDLogInfo("NewMessageViewController/viewDidLoad")
+        DDLogInfo("NewChatViewController/viewDidLoad")
 
         navigationItem.title = Localizations.chatNewMessageTitle
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
 
         tableView.backgroundColor = .feedBackground
-
+        
         let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)",
                                              ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
@@ -105,12 +104,12 @@ class NewChatViewController: NewChatTableViewController {
     // MARK: Appearance
 
     override func viewWillAppear(_ animated: Bool) {
-        DDLogInfo("NewMessageViewController/viewWillAppear")
+        DDLogInfo("NewChatViewController/viewWillAppear")
         super.viewWillAppear(animated)
     }
 
     override func viewDidAppear(_ animated: Bool) {
-        DDLogInfo("NewMessageViewController/viewDidAppear")
+        DDLogInfo("NewChatViewController/viewDidAppear")
         super.viewDidAppear(animated)
     }
 

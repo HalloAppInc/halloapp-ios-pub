@@ -437,6 +437,7 @@ extension GroupInfoViewController: GroupInfoFooterViewDelegate {
 }
 
 extension GroupInfoViewController: NewGroupMembersViewControllerDelegate {
+
     func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, selected selectedMembers: [UserID]) {
         MainAppContext.shared.service.modifyGroup(groupID: groupId, with: selectedMembers, groupAction: ChatGroupAction.modifyMembers, action: ChatGroupMemberAction.add) { [weak self] result in
             guard let self = self else { return }
@@ -444,6 +445,8 @@ extension GroupInfoViewController: NewGroupMembersViewControllerDelegate {
             self.refreshGroupInfo()
         }
     }
+    
+    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, didCreateGroup: GroupID) {}
 }
 
 

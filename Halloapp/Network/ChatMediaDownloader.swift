@@ -15,14 +15,17 @@ class ChatMediaDownloader: NSObject {
     private var waitBetweenRetries = 5.0
     private var retries = 0
     
+    typealias ProgressHandler = (Double) -> Void
     typealias Completion = (URL) -> Void
     
     private var downloadUrl: URL
+    private var progressHandler: ProgressHandler
     private var completion: Completion
     private var outputUrl: URL?
     
-    init(url: URL, completion: @escaping Completion) {
+    init(url: URL, progressHandler: @escaping ProgressHandler, completion: @escaping Completion) {
         self.downloadUrl = url
+        self.progressHandler = progressHandler
         self.completion = completion
         super.init()
         
@@ -66,6 +69,7 @@ extension ChatMediaDownloader: URLSessionDelegate, URLSessionDownloadDelegate {
         if totalBytesExpectedToWrite > 0 {
             let progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
             DDLogInfo("ChatMediaDownloader/\(downloadUrl)/progress \(progress)")
+            progressHandler(progress)
         }
     }
     

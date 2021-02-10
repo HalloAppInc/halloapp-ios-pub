@@ -531,7 +531,7 @@ class InboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 mediaImageView.widthAnchor.constraint(equalToConstant: preferredSize.width).isActive = true
                 mediaImageView.heightAnchor.constraint(equalToConstant: preferredHeight).isActive = true
                 
-                mediaImageView.configure(with: sliderMediaArr, size: preferredSize)
+                mediaImageView.configure(with: sliderMediaArr, size: preferredSize, msgID: messageID)
                 
                 mediaImageView.isHidden = false
                 

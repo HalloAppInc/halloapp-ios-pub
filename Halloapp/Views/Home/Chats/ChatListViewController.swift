@@ -82,7 +82,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         installEmptyView()
         installFloatingActionMenu()
-//        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
         tableView.backgroundColor = .feedBackground
         tableView.separatorStyle = .none
@@ -243,7 +242,13 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             NSSortDescriptor(key: "lastMsgTimestamp", ascending: false),
             NSSortDescriptor(key: "title", ascending: true)
         ]
-        fetchRequest.predicate = NSPredicate(format: "groupId != nil || chatWithUserId != nil")
+        
+        if ServerProperties.isGroupFeedEnabled {
+            fetchRequest.predicate = NSPredicate(format: "(groupId != nil && lastMsgId != nil) || chatWithUserId != nil")
+        } else {
+            fetchRequest.predicate = NSPredicate(format: "groupId != nil || chatWithUserId != nil")
+        }
+        
         return fetchRequest
     }
 
@@ -274,6 +279,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         reloadTableViewInDidChangeContent = false
         trackPerRowFRCChanges = self.view.window != nil && UIApplication.shared.applicationState == .active
+        
         DDLogDebug("ChatListView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
         
         if trackPerRowFRCChanges {
@@ -317,12 +323,10 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         case .update:
             guard let indexPath = indexPath, let chatThread = anObject as? ChatThread else { return }
             DDLogDebug("ChatListView/frc/update [\(chatThread.type):\(chatThread.groupId ?? chatThread.lastMsgId ?? "")] at [\(indexPath)]")
-            if trackPerRowFRCChanges && !isFiltering {
-                tableView.reloadRows(at: [ indexPath ], with: .automatic)
-            } else {
-                reloadTableViewInDidChangeContent = true
-            }
-
+            
+            // reload table instead of reloadRows due to overlapping issue when table exceeds 100+ rows
+            // ex: overlap can occur when user scrolls down, select a chat, send a msg, and then go back
+            reloadTableViewInDidChangeContent = true
         default:
             break
         }
@@ -447,7 +451,7 @@ extension ChatListViewController: UIViewControllerScrollsToTop {
         tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: animated)
 
         // after scrolling to the first row, move offset so the searchBar is shown
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             guard let self = self else { return }
             self.tableView.setContentOffset(offsetFromTop, animated: animated)
         }
@@ -469,7 +473,7 @@ extension ChatListViewController: ChatListHeaderViewDelegate {
 
 // MARK: UITableView Delegates
 extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
-    
+        
     func chatThread(at indexPath: IndexPath) -> ChatThread? {
         
         if isFiltering {
@@ -500,7 +504,7 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
         guard let sections = fetchedResultsController?.sections else { return 0 }
         return sections[section].numberOfObjects + 1
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let chatThread = chatThread(at: indexPath) else {
             let cell = tableView.dequeueReusableCell(withIdentifier: ChatListViewController.inviteFriendsReuseIdentifier, for: indexPath)

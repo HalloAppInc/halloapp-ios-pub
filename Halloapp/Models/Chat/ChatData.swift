@@ -38,7 +38,7 @@ class ChatData: ObservableObject {
     let didGetCurrentChatPresence = PassthroughSubject<(UserPresenceType, Date?), Never>()
     let didGetChatStateInfo = PassthroughSubject<Void, Never>()
     
-    let didGetMediaDownloadProgress = PassthroughSubject<Void, Never>()
+    let didGetMediaDownloadProgress = PassthroughSubject<(String, Int, Double), Never>()
     
     let didGetAGroupFeed = PassthroughSubject<GroupID, Never>()
     let didGetAChatMsg = PassthroughSubject<UserID, Never>()
@@ -498,7 +498,10 @@ class ChatData: ObservableObject {
                     }
                 }
                                 
-                _ = ChatMediaDownloader(url: url, completion: { [weak self] (outputUrl) in
+                _ = ChatMediaDownloader(url: url, progressHandler: { [weak self] progress in
+                    guard let self = self else { return }
+                    self.didGetMediaDownloadProgress.send((messageId, Int(order), progress))
+                }, completion: { [weak self] (outputUrl) in
                     guard let self = self else { return }
                     if let index = self.currentlyDownloading.firstIndex(of: url) {
                         self.currentlyDownloading.remove(at: index)
@@ -620,7 +623,10 @@ class ChatData: ObservableObject {
                     }
                 }
                 
-                _ = ChatMediaDownloader(url: url, completion: { [weak self] (outputUrl) in
+                _ = ChatMediaDownloader(url: url, progressHandler: { [weak self] progress in
+                    guard let self = self else { return }
+                    self.didGetMediaDownloadProgress.send((messageId, Int(order), progress))
+                }, completion: { [weak self] (outputUrl) in
                     guard let self = self else { return }
                     if let index = self.currentlyDownloading.firstIndex(of: url) {
                         self.currentlyDownloading.remove(at: index)
@@ -2328,7 +2334,7 @@ extension ChatData {
     
     // MARK: Group Actions
     
-    public func createGroup(name: String, members: [UserID], data: Data?, completion: @escaping ServiceRequestCompletion<Void>) {
+    public func createGroup(name: String, members: [UserID], data: Data?, completion: @escaping ServiceRequestCompletion<String>) {
         
         MainAppContext.shared.service.createGroup(name: name, members: members) { [weak self] result in
             guard let self = self else { return }
@@ -2337,10 +2343,10 @@ extension ChatData {
             case .success(let groupID):
                 if let data = data {
                     self.changeGroupAvatar(groupID: groupID, data: data) { result in
-                        completion(.success(())) // the group can be created regardless if avatar update succeeds or not
+                        completion(.success(groupID)) // the group can be created regardless if avatar update succeeds or not
                     }
                 } else {
-                    completion(.success(()))
+                    completion(.success(groupID))
                 }
             case .failure(let error):
                 DDLogError("ChatData/groups/createGroup/error \(error)")
@@ -3727,21 +3733,25 @@ extension ChatData {
         save(managedObjectContext)
         
         if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
-            chatThread.lastMsgId = chatGroupMessage.id
-            chatThread.lastMsgUserId = chatGroupMessage.userId
-            chatThread.lastMsgText = chatGroupMessageEvent.text
-            chatThread.lastMsgMediaType = .none
-            chatThread.lastMsgStatus = .none
+            
+            // if group feed is not enabled or if the chat already have a message or event
+            if !ServerProperties.isGroupFeedEnabled || chatThread.lastMsgId != nil {
+                chatThread.lastMsgId = chatGroupMessage.id
+                chatThread.lastMsgUserId = chatGroupMessage.userId
+                chatThread.lastMsgText = chatGroupMessageEvent.text
+                chatThread.lastMsgMediaType = .none
+                chatThread.lastMsgStatus = .none
+                
+                if ![.changeAvatar].contains(chatGroupMessageEvent.action) {
+                    chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
+                }
+            }
             
             chatThread.lastFeedUserID = chatGroupMessage.userId
             chatThread.lastFeedText = chatGroupMessageEvent.text
             
-            if chatGroupMessageEvent.action != .changeAvatar {
-                chatThread.lastMsgTimestamp = chatGroupMessage.timestamp
-                
-                if ![.modifyAdmins, .modifyMembers].contains(chatGroupMessageEvent.action) {
-                    chatThread.lastFeedTimestamp = chatGroupMessage.timestamp
-                }
+            if ![.changeAvatar, .modifyAdmins, .modifyMembers].contains(chatGroupMessageEvent.action) {
+                chatThread.lastFeedTimestamp = chatGroupMessage.timestamp
             }
             // unreadCount is not incremented for group event messages
         }

@@ -11,7 +11,8 @@ import CoreData
 import UIKit
 
 protocol NewGroupMembersViewControllerDelegate: AnyObject {
-    func newGroupMembersViewController(_ inputView: NewGroupMembersViewController, selected: [UserID])
+    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, selected: [UserID])
+    func newGroupMembersViewController(_ viewController: NewGroupMembersViewController, didCreateGroup: GroupID)
 }
 
 class NewGroupMembersViewController: UIViewController, NSFetchedResultsControllerDelegate {
@@ -25,10 +26,10 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     private var searchController: UISearchController!
    
     var isSearchBarEmpty: Bool {
-      return searchController.searchBar.text?.isEmpty ?? true
+        return searchController.searchBar.text?.isEmpty ?? true
     }
     var isFiltering: Bool {
-      return searchController.isActive && !isSearchBarEmpty
+        return searchController.isActive && !isSearchBarEmpty
     }
     private var filteredContacts: [ABContact] = []
     
@@ -47,12 +48,6 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     private var alreadyHaveMembers: Bool = false
     private var currentMembers: [UserID] = []
     
-//    init(currentMembers: [UserID] = []) {
-//        self.currentMembers = currentMembers
-//        self.alreadyHaveMembers = self.currentMembers.count > 0 ? true : false
-//        super.init(style: .plain)
-//    }
-
     init(currentMembers: [UserID] = []) {
         self.currentMembers = currentMembers
         self.alreadyHaveMembers = self.currentMembers.count > 0 ? true : false
@@ -71,7 +66,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext, style: .plain, target: self, action: #selector(nextAction))
         }
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
-//        self.navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
+        navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
         
         navigationItem.title = Localizations.chatSelectGroupMembersTitle
 
@@ -184,17 +179,18 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     // MARK: Top Nav Button Actions
 
     @objc private func cancelAction() {
-        self.dismiss(animated: true)
+        dismiss(animated: true)
     }
     
     @objc private func nextAction() {
         let controller = CreateGroupViewController(selectedMembers: selectedMembers)
-        self.navigationController?.pushViewController(controller, animated: true)
+        controller.delegate = self
+        navigationController?.pushViewController(controller, animated: true)
     }
 
     @objc private func addAction() {
-        self.navigationController?.popViewController(animated: true)
-        self.delegate?.newGroupMembersViewController(self, selected: selectedMembers)
+        navigationController?.popViewController(animated: true)
+        delegate?.newGroupMembersViewController(self, selected: selectedMembers)
     }
     
     
@@ -418,7 +414,7 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         }
         cell.setContact(selected: isSelected, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
-//        navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
+        navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
 
         searchController.isActive = false
         searchController.searchBar.text = ""
@@ -464,6 +460,12 @@ extension NewGroupMembersViewController: GroupMemberAvatarsDelegate {
         
         tableView.reloadData()
         
+    }
+}
+
+extension NewGroupMembersViewController: CreateGroupViewControllerDelegate {
+    func createGroupViewController(_ controller: CreateGroupViewController, didCreateGroup: GroupID) {
+        delegate?.newGroupMembersViewController(self, didCreateGroup: didCreateGroup)
     }
 }
 

@@ -589,6 +589,31 @@ class ChatViewController: UIViewController, NSFetchedResultsControllerDelegate {
         }
     }
     
+    private func jumpToMsg(_ indexPath: IndexPath) {
+        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
+      
+        guard let chatReplyMessageID = message.chatReplyMessageID else { return }
+
+        guard let allMessages = fetchedResultsController?.fetchedObjects else { return }
+        guard let replyMessage = allMessages.first(where: {$0.id == chatReplyMessageID}) else { return }
+        
+        guard let index = allMessages.firstIndex(of: replyMessage) else { return }
+        
+        let toIndexPath = IndexPath(row: index, section: ChatViewController.sectionMain)
+        
+        tableView.scrollToRow(at: toIndexPath, at: .middle, animated: true)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            if replyMessage.fromUserId == MainAppContext.shared.userData.userId {
+                guard let cell = self.tableView.cellForRow(at: toIndexPath) as? OutboundMsgViewCell else { return }
+                cell.highlight()
+            } else {
+                guard let cell = self.tableView.cellForRow(at: toIndexPath) as? InboundMsgViewCell else { return }
+                cell.highlight()
+            }
+        }
+    }
+    
     // MARK: Actions
     
     @IBAction func jumpDown(_ sender: Any?) {
@@ -832,8 +857,7 @@ extension ChatViewController: InboundMsgViewCellDelegate {
 
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell) {
         guard let indexPath = inboundMsgViewCell.indexPath else { return }
-        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
-        guard message.media != nil else { return }
+        jumpToMsg(indexPath)
     }
     
     func inboundMsgViewCell(_ inboundMsgViewCell: InboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {
@@ -879,6 +903,7 @@ extension ChatViewController: InboundMsgViewCellDelegate {
         
         self.present(actionSheet, animated: true)
     }
+    
 }
 
 // MARK: OutboundMsgViewCell Delegates
@@ -886,28 +911,7 @@ extension ChatViewController: OutboundMsgViewCellDelegate {
     
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell) {
         guard let indexPath = outboundMsgViewCell.indexPath else { return }
-        guard let message = fetchedResultsController?.object(at: indexPath) else { return }
-      
-        guard let chatReplyMessageID = message.chatReplyMessageID else { return }
-
-        guard let allMessages = fetchedResultsController?.fetchedObjects else { return }
-        guard let replyMessage = allMessages.first(where: {$0.id == chatReplyMessageID}) else { return }
-        
-        guard let index = allMessages.firstIndex(of: replyMessage) else { return }
-        
-        let toIndexPath = IndexPath(row: index, section: ChatViewController.sectionMain)
-        
-        tableView.scrollToRow(at: toIndexPath, at: .middle, animated: true)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            if replyMessage.fromUserId == MainAppContext.shared.userData.userId {
-                guard let cell = self.tableView.cellForRow(at: toIndexPath) as? OutboundMsgViewCell else { return }
-                cell.highlight()
-            } else {
-                guard let cell = self.tableView.cellForRow(at: toIndexPath) as? InboundMsgViewCell else { return }
-                cell.highlight()
-            }
-        }
+        jumpToMsg(indexPath)
     }
     
     func outboundMsgViewCell(_ outboundMsgViewCell: OutboundMsgViewCell, previewMediaAt index: Int, withDelegate delegate: MediaExplorerTransitionDelegate) {

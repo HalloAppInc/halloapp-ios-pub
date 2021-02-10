@@ -305,6 +305,42 @@ final class FeedItemHeaderView: UIView {
         return avatarViewButton
     }()
 
+    private lazy var nameColumn: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ userAndGroupNameRow, secondLineGroupNameLabel ])
+        view.axis = .vertical
+        view.spacing = 4
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        return view
+    }()
+    
+    private lazy var userAndGroupNameRow: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [ nameLabel, groupNameLabel ])
+        view.axis = .horizontal
+        view.spacing = 4
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        return view
+    }()
+    
+    private lazy var secondLineGroupNameLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.font = UIFont.gothamFont(forTextStyle: .subheadline, weight: .medium)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .label
+        label.textAlignment = .natural
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.setContentHuggingPriority(.defaultLow - 20, for: .horizontal)
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        label.isUserInteractionEnabled = true
+        label.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showGroupFeed)))
+        label.isHidden = true
+        return label
+    }()
+    
     // Gotham Medium, 15 pt (Subhead)
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
@@ -353,9 +389,11 @@ final class FeedItemHeaderView: UIView {
 
         addSubview(avatarViewButton)
 
-        let hStack = UIStackView(arrangedSubviews: [ nameLabel, groupNameLabel, timestampLabel ])
-        hStack.translatesAutoresizingMaskIntoConstraints = false
+        let hStack = UIStackView(arrangedSubviews: [ nameColumn, timestampLabel ])
+        hStack.axis = .horizontal
         hStack.spacing = 4
+        hStack.translatesAutoresizingMaskIntoConstraints = false
+ 
         configure(stackView: hStack, forVerticalLayout: UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory)
         addSubview(hStack)
 
@@ -384,7 +422,7 @@ final class FeedItemHeaderView: UIView {
             stackView.alignment = .fill
         } else {
             stackView.axis = .horizontal
-            stackView.alignment = .firstBaseline
+            stackView.alignment = .center
         }
     }
 
@@ -410,13 +448,26 @@ final class FeedItemHeaderView: UIView {
             attrText.append(NSAttributedString(string: " \(groupChat.name)"))
             
             groupNameLabel.attributedText = attrText
+            
+            if isRowTruncated() {
+                let shortAttrText = attrText.mutableCopy() as! NSMutableAttributedString
+                let range = (shortAttrText.string as NSString).range(of: " \(groupChat.name)")
+                shortAttrText.deleteCharacters(in: range)
+                groupNameLabel.attributedText = shortAttrText
+                
+                secondLineGroupNameLabel.attributedText = NSMutableAttributedString(string: "\(groupChat.name)")
+                secondLineGroupNameLabel.isHidden = false
+            } else {
+                secondLineGroupNameLabel.isHidden = true
+            }
             groupNameLabel.isHidden = false
         }
     }
-
+    
     func prepareForReuse() {
         avatarViewButton.avatarView.prepareForReuse()
         groupNameLabel.attributedText = nil
+        secondLineGroupNameLabel.attributedText = nil
     }
 
     @objc func showUser() {
@@ -427,6 +478,25 @@ final class FeedItemHeaderView: UIView {
         showGroupFeedAction?()
     }
 
+    private func isRowTruncated() -> Bool {
+        var totalTextWidth = getLabelTextWidth(nameLabel)
+        totalTextWidth += getLabelTextWidth(groupNameLabel)
+        totalTextWidth += getLabelTextWidth(timestampLabel)
+        totalTextWidth += 30 + 100 // rough estimate of avatar, margins, paddings, etc.
+        
+        if totalTextWidth > UIScreen.main.bounds.size.width {
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    private func getLabelTextWidth(_ label: UILabel) -> CGFloat {
+        let text = NSString(string: label.text ?? "")
+        let attr = [NSAttributedString.Key.font: label.font]
+        let size = text.size(withAttributes: attr as [NSAttributedString.Key : Any])
+        return size.width
+    }
 }
 
 final class FeedItemFooterView: UIView {
