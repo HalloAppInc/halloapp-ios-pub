@@ -17,8 +17,6 @@ class HomeViewController: UITabBarController {
 
     private var cancellableSet: Set<AnyCancellable> = []
     
-    private var showGroupsList: Bool = ServerProperties.isInternalUser
-
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
@@ -109,6 +107,32 @@ class HomeViewController: UITabBarController {
                 self.presentActivityViewController(forItems: items)
         })
         
+        // Temporary listener for adding/removing the groups tab
+        cancellableSet.insert(
+            MainAppContext.shared.service.didConnect.sink { [weak self] in
+                guard let self = self else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {                    
+                    if ServerProperties.isGroupFeedEnabled {
+                        if self.viewControllers?.count == 3 {
+                            self.viewControllers = [
+                                self.feedNavigationController(),
+                                self.groupsNavigationController(),
+                                self.chatsNavigationController(),
+                                self.profileNavigationController()
+                            ]
+                        }
+                    } else {
+                        if self.viewControllers?.count == 4 {
+                            self.viewControllers = [
+                                self.feedNavigationController(),
+                                self.chatsNavigationController(),
+                                self.profileNavigationController()
+                            ]
+                        }
+                    }
+                }
+        })
+        
         // When the app just started (had been force-quit before)
         if let metadata = NotificationMetadata.fromUserDefaults() {
             processNotification(metadata: metadata)
@@ -178,7 +202,7 @@ class HomeViewController: UITabBarController {
     private func updateGroupsNavigationControllerBadge(_ count: Int) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            guard self.showGroupsList else { return }
+            guard ServerProperties.isGroupFeedEnabled else { return }
             if let controller = self.viewControllers?[1] {
                 controller.tabBarItem.badgeValue = count == 0 ? nil : String(count)
             }
@@ -188,7 +212,7 @@ class HomeViewController: UITabBarController {
     private func updateChatNavigationControllerBadge(_ count: Int) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            if let controller = self.viewControllers?[self.showGroupsList ? 2 : 1] {
+            if let controller = self.viewControllers?[ServerProperties.isGroupFeedEnabled ? 2 : 1] {
                 controller.tabBarItem.badgeValue = count == 0 ? nil : String(count)
             }
         }
@@ -199,15 +223,12 @@ class HomeViewController: UITabBarController {
         
         if metadata.isFeedNotification {
             selectedIndex = 0
+        } else if metadata.isGroupChatNotification {
+            selectedIndex = 1
         } else if metadata.isChatNotification {
-            selectedIndex = showGroupsList ? 2 : 1
+            selectedIndex = ServerProperties.isGroupFeedEnabled ? 2 : 1
         }
-        
-//        if showGroupsList {
-//            if metadata.isGroupNotification {
-//                selectedIndex = 1
-//            }
-//        }
+
     }
     
     private func setTabBarDot(index: Int, count: Int) {

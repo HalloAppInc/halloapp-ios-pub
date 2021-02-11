@@ -83,6 +83,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         tableView.constrain(to: view)
 
         installEmptyView()
+        
         installFloatingActionMenu()
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
@@ -169,7 +170,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 0
-        label.text = Localizations.nuxChatEmpty
+        label.text = Localizations.nuxGroupsListEmpty
         label.textAlignment = .center
         label.textColor = .secondaryLabel
 
@@ -340,7 +341,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         guard metadata.isGroupNotification else {
             return
         }
-
+        
         // If the user tapped on a notification, move to the chat view
         DDLogInfo("GroupsListViewController/notification/open-chat \(metadata.fromId)")
 
@@ -351,6 +352,9 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
                 navigationController?.pushViewController(GroupFeedViewController(groupId: groupId), animated: false)
             }
+            break
+        case .groupChatMessage:
+            metadata.removeFromUserDefaults()
             break
         default:
             break

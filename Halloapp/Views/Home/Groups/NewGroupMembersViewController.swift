@@ -202,7 +202,8 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
             fetchRequest.sortDescriptors = [
                 NSSortDescriptor(keyPath: \ABContact.fullName, ascending: true)
             ]
-            fetchRequest.predicate = NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
+//            fetchRequest.predicate = NSPredicate(format: "statusValue = %d OR (statusValue = %d AND userId != nil)", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue)
+            fetchRequest.predicate = NSPredicate(format: "(statusValue = %d OR (statusValue = %d AND userId != nil)) AND userId != %@", ABContact.Status.in.rawValue, ABContact.Status.out.rawValue, MainAppContext.shared.userData.userId)
             return fetchRequest
         }
     }
@@ -496,7 +497,7 @@ private extension ContactTableViewCell {
 private extension Localizations {
     
     static var chatSelectGroupMembersTitle: String {
-        NSLocalizedString("chat.select.group.members.title", value: "Select Members", comment: "Title of screen where user chooses members to add to either a new group or an existing one")
+        NSLocalizedString("chat.select.group.members.title", value: "Create New Group", comment: "Title of screen where user chooses members to add to either a new group or an existing one")
     }
     
 }

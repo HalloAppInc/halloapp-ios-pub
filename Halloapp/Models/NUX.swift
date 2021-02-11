@@ -77,6 +77,13 @@ extension Localizations {
             value: "This is your activity center. Tap to see your most recent activity.",
             comment: "Text for new user popup pointing at activity center icon")
     }
+    static var nuxGroupsListEmpty: String {
+        NSLocalizedString(
+            "nux.groups.list.empty",
+            value: "Your groups will appear here",
+            comment: "Shown on groups list when there are no groups to display"
+        )
+    }
     static var nuxChatIntroContent: String {
         NSLocalizedString(
             "nux.chat.list",

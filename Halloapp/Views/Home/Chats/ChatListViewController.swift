@@ -402,9 +402,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         if metadata.contentType == .chatMessage {
             navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
-        } else if metadata.contentType == .groupChatMessage, let groupId = metadata.groupId {
-            navigationController?.pushViewController(ChatGroupViewController(for: groupId), animated: true)
         }
+
         metadata.removeFromUserDefaults()
     }
 

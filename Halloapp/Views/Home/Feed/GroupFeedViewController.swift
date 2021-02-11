@@ -96,6 +96,9 @@ class GroupFeedViewController: FeedCollectionViewController {
         titleView.update(with: groupId, isFeedView: true)
         
         navigationController?.navigationBar.tintColor = .primaryBlue
+        
+        MainAppContext.shared.chatData.syncGroupIfNeeded(for: groupId)
+        UNUserNotificationCenter.current().removeDeliveredChatNotifications(groupId: groupId)
     }
     
     override func viewWillDisappear(_ animated: Bool) {

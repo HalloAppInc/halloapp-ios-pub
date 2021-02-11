@@ -36,7 +36,7 @@ class GroupTitleView: UIView {
         
         if let chatGroup = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
             nameLabel.text = chatGroup.name
-            
+
             if !isFeedView {
                 var firstNameList: [String] = []
                 var fullNameList: [String] = []
@@ -64,6 +64,9 @@ class GroupTitleView: UIView {
                 
                 DDLogDebug("GroupTitleView/memberFirstNamesList [\(localizedFirstNameList)]")
                 DDLogDebug("GroupTitleView/fullNameList [\(localizedFullNameList)]")
+            } else {
+                memberNamesLabel.text = Localizations.groupTitleTapForInfo
+                memberNamesLabel.isHidden = false
             }
         }
         
@@ -169,4 +172,12 @@ class GroupTitleView: UIView {
     @objc private func avatarButtonTapped() {
         delegate?.groupTitleViewRequestsOpenGroupFeed(self)
     }
+}
+
+private extension Localizations {
+    
+    static var groupTitleTapForInfo: String {
+        NSLocalizedString("group.title.tap.for.info", value: "tap here for group info", comment: "Text shown to tell user the group title is tappable")
+    }
+    
 }

@@ -192,7 +192,11 @@ extension NotificationMetadata {
     var isChatNotification: Bool {
         return contentType == .chatMessage || contentType == .groupChatMessage
     }
-
+    
+    var isGroupChatNotification: Bool {
+        return contentType == .groupChatMessage
+    }
+    
     var isGroupNotification: Bool {
         switch contentType {
         case .groupFeedPost, .groupFeedComment, .groupChatMessage:
