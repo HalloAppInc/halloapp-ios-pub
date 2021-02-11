@@ -85,8 +85,6 @@ class ChatData: ObservableObject {
     private var currentlyDownloading: [URL] = []
     private let maxTries: Int = 10
     
-    
-    
     private let persistentContainer: NSPersistentContainer = {
         let storeDescription = NSPersistentStoreDescription(url: MainAppContext.chatStoreURL)
         storeDescription.setOption(NSNumber(booleanLiteral: true), forKey: NSMigratePersistentStoresAutomaticallyOption)
@@ -1112,7 +1110,7 @@ extension ChatData {
     func updateUnreadThreadCount() {
         performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
             guard let self = self else { return }
-            let threads = self.chatThreads(predicate: NSPredicate(format: "unreadCount > 0"), in: managedObjectContext)
+            let threads = self.chatThreads(predicate: NSPredicate(format: "groupId = nil && unreadCount > 0"), in: managedObjectContext)
             self.unreadThreadCount = Int(threads.count)
         }
     }

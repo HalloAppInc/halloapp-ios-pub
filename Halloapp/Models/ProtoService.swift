@@ -648,8 +648,8 @@ final class ProtoService: ProtoServiceCore {
             }
             sendAck(messageID: msg.id)
         case .groupChat(let pbGroupChat):
-            if let groupChatMessage = HalloGroupChatMessage(pbGroupChat, id: msg.id, retryCount: msg.retryCount) {
-                chatDelegate?.halloService(self, didReceiveGroupChatMessage: groupChatMessage)
+            if HalloGroupChatMessage(pbGroupChat, id: msg.id, retryCount: msg.retryCount) != nil {
+                DDLogError("proto/didReceive/\(msg.id)/group chat message - ignore")
             } else {
                 DDLogError("proto/didReceive/\(msg.id)/error could not read group chat message")
             }

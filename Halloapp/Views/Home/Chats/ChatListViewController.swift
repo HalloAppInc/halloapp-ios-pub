@@ -243,11 +243,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
             NSSortDescriptor(key: "title", ascending: true)
         ]
         
-        if ServerProperties.isGroupFeedEnabled {
-            fetchRequest.predicate = NSPredicate(format: "(groupId != nil && lastMsgId != nil) || chatWithUserId != nil")
-        } else {
-            fetchRequest.predicate = NSPredicate(format: "groupId != nil || chatWithUserId != nil")
-        }
+        fetchRequest.predicate = NSPredicate(format: "chatWithUserId != nil")
         
         return fetchRequest
     }
