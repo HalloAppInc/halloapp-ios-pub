@@ -38,6 +38,7 @@ public class FeedDownloadManager {
         public var error: Error?
         fileprivate var encryptedFilePath: String?
         public var decryptedFilePath: String?
+        public var fileSize: Int?
 
         fileprivate var filename: String {
             get {
@@ -120,6 +121,7 @@ public class FeedDownloadManager {
 
         request.downloadProgress { (progress) in
                 DDLogDebug("FeedDownloadManager/\(task.id)/download/progress [\(progress.fractionCompleted)]")
+                task.fileSize = Int(progress.totalUnitCount)
                 task.downloadProgress.send(Float(progress.fractionCompleted))
             }
             .responseData { (afDownloadResponse) in

@@ -31,7 +31,11 @@ final class MediaUploader {
     /**
      URL is media download url.
      */
-    typealias Completion = (Result<URL, Error>) -> ()
+    struct UploadDetails {
+        var downloadURL: URL
+        var fileSize: Int
+    }
+    typealias Completion = (Result<UploadDetails, Error>) -> ()
 
     class Task: Hashable, Equatable {
         let groupId: String // Could be FeedPostID or ChatMessageID.
@@ -74,7 +78,8 @@ final class MediaUploader {
             DDLogDebug("MediaUploader/task/\(groupId)-\(index)/finished")
 
             isFinished = true
-            completion(.success(downloadURL!))
+            let details = UploadDetails(downloadURL: downloadURL!, fileSize: Int(totalUploadSize))
+            completion(.success(details))
         }
 
         func failed(withError error: Error) {

@@ -9,8 +9,8 @@
 import Foundation
 
 public enum DiscreteEvent {
-    case mediaUpload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int)
-    case mediaDownload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int)
+    case mediaUpload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int, totalSize: Int)
+    case mediaDownload(postID: String, duration: TimeInterval, numPhotos: Int, numVideos: Int, totalSize: Int)
     case pushReceived(id: String, timestamp: Date)
 }
 
@@ -26,13 +26,15 @@ extension DiscreteEvent: Codable {
             let duration = try container.decode(TimeInterval.self, forKey: .duration)
             let numPhotos = try container.decode(Int.self, forKey: .numPhotos)
             let numVideos = try container.decode(Int.self, forKey: .numVideos)
-            self = .mediaUpload(postID: postID, duration: duration, numPhotos: numPhotos, numVideos: numVideos)
+            let totalSize = try container.decode(Int.self, forKey: .totalSize)
+            self = .mediaUpload(postID: postID, duration: duration, numPhotos: numPhotos, numVideos: numVideos, totalSize: totalSize)
         case .mediaDownload:
             let postID = try container.decode(String.self, forKey: .id)
             let duration = try container.decode(TimeInterval.self, forKey: .duration)
             let numPhotos = try container.decode(Int.self, forKey: .numPhotos)
             let numVideos = try container.decode(Int.self, forKey: .numVideos)
-            self = .mediaDownload(postID: postID, duration: duration, numPhotos: numPhotos, numVideos: numVideos)
+            let totalSize = try container.decode(Int.self, forKey: .totalSize)
+            self = .mediaDownload(postID: postID, duration: duration, numPhotos: numPhotos, numVideos: numVideos, totalSize: totalSize)
         case .pushReceived:
             let id = try container.decode(String.self, forKey: .id)
             let timestamp = try container.decode(Date.self, forKey: .timestamp)
@@ -44,18 +46,20 @@ extension DiscreteEvent: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         switch self {
-        case .mediaDownload(let postID, let duration, let numPhotos, let numVideos):
+        case .mediaDownload(let postID, let duration, let numPhotos, let numVideos, let totalSize):
             try container.encode(EventType.mediaDownload, forKey: .eventType)
             try container.encode(postID, forKey: .id)
             try container.encode(duration, forKey: .duration)
             try container.encode(numPhotos, forKey: .numPhotos)
             try container.encode(numVideos, forKey: .numVideos)
-        case .mediaUpload(let postID, let duration, let numPhotos, let numVideos):
+            try container.encode(totalSize, forKey: .totalSize)
+        case .mediaUpload(let postID, let duration, let numPhotos, let numVideos, let totalSize):
             try container.encode(EventType.mediaUpload, forKey: .eventType)
             try container.encode(postID, forKey: .id)
             try container.encode(duration, forKey: .duration)
             try container.encode(numPhotos, forKey: .numPhotos)
             try container.encode(numVideos, forKey: .numVideos)
+            try container.encode(totalSize, forKey: .totalSize)
         case .pushReceived(let id, let timestamp):
             try container.encode(EventType.pushReceived, forKey: .eventType)
             try container.encode(id, forKey: .id)
@@ -70,6 +74,7 @@ extension DiscreteEvent: Codable {
         case numPhotos
         case numVideos
         case timestamp
+        case totalSize
     }
 
     private enum EventType: String, Codable {

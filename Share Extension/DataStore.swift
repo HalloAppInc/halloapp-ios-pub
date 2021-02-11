@@ -65,8 +65,8 @@ class DataStore: ShareExtensionDataStore {
 
                 // Save URLs acquired during upload to the database.
                 switch uploadResult {
-                case .success(let url):
-                    mediaItem.url = url
+                case .success(let details):
+                    mediaItem.url = details.downloadURL
                     mediaItem.status = .uploaded
 
                 case .failure(_):

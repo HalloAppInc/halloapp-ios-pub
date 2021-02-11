@@ -1572,8 +1572,8 @@ extension ChatData {
                     guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
                     
                     switch uploadResult {
-                    case .success(let url):
-                        media.url = url
+                    case .success(let details):
+                        media.url = details.downloadURL
                         media.outgoingStatus = .uploaded
                     case .failure(_):
                         numberOfFailedUploads += 1
@@ -2742,8 +2742,8 @@ extension ChatData {
                 self.updateChatGroupMessage(with: groupChatMsgID, block: { msg in
                     guard let media = msg.media?.first(where: { $0.order == mediaIndex }) else { return }
                     switch uploadResult {
-                    case .success(let url):
-                        media.url = url
+                    case .success(let details):
+                        media.url = details.downloadURL
                         media.outgoingStatus = .uploaded
 
                     case .failure(_):

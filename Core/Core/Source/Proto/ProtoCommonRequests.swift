@@ -196,25 +196,29 @@ private extension DiscreteEvent {
     var eventData: Server_EventData {
         var eventData = Server_EventData()
         eventData.edata = eData
+        eventData.platform = .ios
+        eventData.version = AppContext.appVersionForService
         return eventData
     }
 
     private var eData: Server_EventData.OneOf_Edata {
         switch self {
-        case .mediaUpload(let postID, let duration, let numPhotos, let numVideos):
+        case .mediaUpload(let postID, let duration, let numPhotos, let numVideos, let totalSize):
             var upload = Server_MediaUpload()
             upload.id = postID
             upload.durationMs = UInt32(duration * 1000)
             upload.numPhotos = UInt32(numPhotos)
             upload.numVideos = UInt32(numVideos)
+            upload.totalSize = UInt32(totalSize)
             return .mediaUpload(upload)
 
-        case .mediaDownload(let postID, let duration, let numPhotos, let numVideos):
+        case .mediaDownload(let postID, let duration, let numPhotos, let numVideos, let totalSize):
             var download = Server_MediaDownload()
             download.id = postID
             download.durationMs = UInt32(duration * 1000)
             download.numPhotos = UInt32(numPhotos)
             download.numVideos = UInt32(numVideos)
+            download.totalSize = UInt32(totalSize)
             return .mediaDownload(download)
 
         case .pushReceived(let id, let timestamp):

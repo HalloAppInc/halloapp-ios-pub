@@ -1429,6 +1429,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             var startTime: Date?
             var photosDownloaded = 0
             var videosDownloaded = 0
+            var totalDownloadSize = 0
 
             feedPost.media?.forEach { feedPostMedia in
                 // Status could be "downloading" if download has previously started
@@ -1448,6 +1449,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         var isDownloadInProgress = true
                         cancellableSet.insert(task.downloadProgress.sink() { progress in
                             if isDownloadInProgress && progress == 1 {
+                                totalDownloadSize += task.fileSize ?? 0
                                 isDownloadInProgress = false
                                 postDownloadGroup.leave()
                             }
@@ -1472,7 +1474,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         postID: feedPost.id,
                         duration: duration,
                         numPhotos: photosDownloaded,
-                        numVideos: videosDownloaded))
+                        numVideos: videosDownloaded,
+                        totalSize: totalDownloadSize))
             }
         }
         // Use `downloadStarted` to prevent recursive saves when posting media.
@@ -1838,6 +1841,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
 
         var numberOfFailedUploads = 0
+        var totalUploadSize = 0
         let totalUploads = mediaItemsToUpload.count
         let startTime = Date()
         DDLogInfo("FeedData/upload-media/\(postId)/starting [\(totalUploads)]")
@@ -1870,8 +1874,9 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                                     block: { feedPost in
                                         if let media = feedPost.media?.first(where: { $0.order == mediaIndex }) {
                                             switch uploadResult {
-                                            case .success(let url):
-                                                media.url = url
+                                            case .success(let details):
+                                                totalUploadSize += details.fileSize
+                                                media.url = details.downloadURL
                                                 media.status = .uploaded
 
                                             case .failure(_):
@@ -1899,7 +1904,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                         postID: postId,
                         duration: Date().timeIntervalSince(startTime),
                         numPhotos: mediaItemsToUpload.filter { $0.type == .image }.count,
-                        numVideos: mediaItemsToUpload.filter { $0.type == .video }.count))
+                        numVideos: mediaItemsToUpload.filter { $0.type == .video }.count,
+                        totalSize: totalUploadSize))
             }
         }
     }
