@@ -14,6 +14,7 @@ import SwiftNoise
 private enum NoiseState {
     case disconnecting
     case disconnected
+    case connecting
     case handshake(HandshakeState)
     case authorizing(CipherState, CipherState)
     case connected(CipherState, CipherState)
@@ -35,9 +36,14 @@ public final class NoiseStream: NSObject {
     }
 
     public func connect(host: String, port: UInt16) {
+        guard isReadyToConnect else {
+            DDLogError("noise/connect/error not-ready")
+            return
+        }
         do {
             DDLogInfo("noise/connect [passiveMode: \(passiveMode), \(userAgent), \(UIDevice.current.getModelName()) (iOS \(UIDevice.current.systemVersion))]")
             try socket.connect(toHost: host, onPort: port)
+            state = .connecting
             protoService?.connectionState = .connecting
         } catch {
             DDLogError("noise/connect/error [\(error)]")
@@ -129,7 +135,7 @@ public final class NoiseStream: NSObject {
             return
         }
 
-        guard case .disconnected = state else {
+        guard case .connecting = state else {
             DDLogError("noise/startHandshake/error invalid state [\(state)]")
             return
         }
@@ -313,6 +319,8 @@ public final class NoiseStream: NSObject {
                 DDLogInfo("noise/receive/ignoring (disconnecting)")
             case .disconnected:
                 DDLogError("noise/receive/error received packet while disconnected")
+            case .connecting:
+                DDLogError("noise/receive/error received packet before handshake")
             case .handshake:
                 guard let noiseMessage = try? Server_NoiseMessage(serializedData: packetData) else {
                     DDLogError("noise/receive/error could not deserialize noise message [\(packetData.base64EncodedString())]")

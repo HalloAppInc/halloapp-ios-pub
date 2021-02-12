@@ -140,7 +140,8 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             connect(proto: proto)
         }
 
-        // Retry if we're not connected in 10 seconds
+        // Retry if we're not connected in 10 seconds (cancel pending retry if it exists)
+        retryConnectionTask?.cancel()
         let retryConnection = DispatchWorkItem { self.startConnectingIfNecessary() }
         DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: retryConnection)
         retryConnectionTask = retryConnection
