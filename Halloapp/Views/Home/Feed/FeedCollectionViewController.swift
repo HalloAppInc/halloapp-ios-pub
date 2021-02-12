@@ -373,41 +373,39 @@ extension FeedCollectionViewController: UICollectionViewDataSource {
         cell.maxWidth = collectionView.frame.width
         cell.configure(with: feedPost, contentWidth: contentWidth, gutterWidth: gutterWidth, showGroupName: showGroupName())
 
-        if let activePostCell = cell as? FeedPostCollectionViewCell {
-            activePostCell.commentAction = { [weak self] in
-                guard let self = self else { return }
-                self.showCommentsView(for: postId)
-            }
-            activePostCell.messageAction = { [weak self] in
-                guard let self = self else { return }
-                self.showMessageView(for: postId)
-            }
-            activePostCell.showSeenByAction = { [weak self] in
-                guard let self = self else { return }
-                self.showSeenByView(for: postId, isGroupPost: isGroupPost)
-            }
-            activePostCell.showUserAction = { [weak self] userID in
-                guard let self = self else { return }
-                self.showUserFeed(for: userID)
-            }
-            activePostCell.showGroupFeedAction = { [weak self] groupID in
-                guard let self = self else { return }
-                self.showGroupFeed(for: groupID)
-            }
-            activePostCell.cancelSendingAction = { [weak self] in
-                guard let self = self else { return }
-                self.cancelSending(postId: postId)
-            }
-            activePostCell.retrySendingAction = { [weak self] in
-                guard let self = self else { return }
-                self.retrySending(postId: postId)
-            }
-            activePostCell.deleteAction = { [weak self] in
-                guard let self = self else { return }
-                self.deleteUnsentPost(postID: postId)
-            }
-            activePostCell.delegate = self
+        cell.commentAction = { [weak self] in
+            guard let self = self else { return }
+            self.showCommentsView(for: postId)
         }
+        cell.messageAction = { [weak self] in
+            guard let self = self else { return }
+            self.showMessageView(for: postId)
+        }
+        cell.showSeenByAction = { [weak self] in
+            guard let self = self else { return }
+            self.showSeenByView(for: postId, isGroupPost: isGroupPost)
+        }
+        cell.showUserAction = { [weak self] userID in
+            guard let self = self else { return }
+            self.showUserFeed(for: userID)
+        }
+        cell.showGroupFeedAction = { [weak self] groupID in
+            guard let self = self else { return }
+            self.showGroupFeed(for: groupID)
+        }
+        cell.cancelSendingAction = { [weak self] in
+            guard let self = self else { return }
+            self.cancelSending(postId: postId)
+        }
+        cell.retrySendingAction = { [weak self] in
+            guard let self = self else { return }
+            self.retrySending(postId: postId)
+        }
+        cell.deleteAction = { [weak self] in
+            guard let self = self else { return }
+            self.deleteUnsentPost(postID: postId)
+        }
+        cell.delegate = self
         return cell
     }
 }
