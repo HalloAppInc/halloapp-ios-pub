@@ -34,11 +34,7 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         DDLogInfo("didReceiveRequest/begin \(request)")
 
         AppContext.shared.eventMonitor.observe(.pushReceived(id: request.identifier, timestamp: Date()))
-        do {
-            try AppContext.shared.eventMonitor.saveReport(to: AppContext.shared.userDefaults)
-        } catch {
-            DDLogError("didReceiveRequest/logPushEvent/error \(error)")
-        }
+        AppContext.shared.eventMonitor.saveReport(to: AppContext.shared.userDefaults)
 
         guard let content = (request.content.mutableCopy() as? UNMutableNotificationContent) else {
             contentHandler(request.content)
