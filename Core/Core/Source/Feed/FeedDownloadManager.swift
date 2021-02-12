@@ -142,8 +142,8 @@ public class FeedDownloadManager {
                     }
                 } else {
                     DDLogDebug("FeedDownloadManager/\(task.id)/download/error [\(String(describing: afDownloadResponse.error))]")
-                    if let nsError = afDownloadResponse.error?.underlyingError as? NSError,
-                       let resumeData = nsError.userInfo[NSURLSessionDownloadTaskResumeData] as? Data
+                    if let underlyingError = afDownloadResponse.error?.underlyingError,
+                       let resumeData = (underlyingError as NSError).userInfo[NSURLSessionDownloadTaskResumeData] as? Data
                     {
                         self.saveResumeData(resumeData, for: task)
                     }
