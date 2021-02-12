@@ -42,6 +42,9 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     @Published public var connectionState: ConnectionState = .notConnected {
         didSet {
             DDLogDebug("proto/connectionState/change [\(oldValue)] -> [\(connectionState)]")
+            if connectionState == .notConnected {
+                cancelAllRequests()
+            }
             runCallbacksForCurrentConnectionState()
             if oldValue == .connected && connectionState == .notConnected {
                 startReconnectTimerIfNecessary()
@@ -434,7 +437,6 @@ extension ProtoServiceCore: XMPPStreamDelegate {
         DDLogInfo("proto/stream/didDisconnect [\(String(describing: error))]")
 
         connectionState = .notConnected
-        cancelAllRequests()
     }
 
     public func xmppStream(_ sender: XMPPStream, socketDidConnect socket: GCDAsyncSocket) {
