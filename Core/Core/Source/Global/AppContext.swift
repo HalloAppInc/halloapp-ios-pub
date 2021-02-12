@@ -126,7 +126,7 @@ open class AppContext {
             #if DEBUG
             DDLogInfo("AppContext/sendEventReport skipping (debug)")
             return
-            #endif
+            #else
             guard !countable.isEmpty || !discrete.isEmpty else {
                 DDLogInfo("AppContext/sendEventReport skipping (no events)")
                 return
@@ -143,6 +143,7 @@ open class AppContext {
                     }
                 }
             }
+            #endif
         }
     }
     
