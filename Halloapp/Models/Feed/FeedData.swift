@@ -66,7 +66,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 DDLogInfo("Feed: Got event for didConnect")
 
                 self.deleteExpiredPosts()
-
+                self.resendStuckItems()
                 self.resendPendingReadReceipts()
 
                 // NB: This value is used to retain posts when a user logs back in to the same account.
@@ -251,6 +251,46 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
         }
     }
 
+    private func resendStuckItems() {
+        let commentsFetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
+        commentsFetchRequest.predicate = NSPredicate(format: "statusValue = %d", FeedPostComment.Status.sending.rawValue)
+        do {
+            let stuckComments = try viewContext.fetch(commentsFetchRequest)
+            for comment in stuckComments {
+                if comment.timestamp.addingTimeInterval(Date.days(1)) < Date() {
+                    DDLogInfo("FeedData/stuck-comments/\(comment.id)/canceling (too old)")
+                    updateFeedPostComment(with: comment.id) { comment in
+                        comment.status = .sendError
+                    }
+                } else {
+                    DDLogInfo("FeedData/stuck-comments/\(comment.id)/resending")
+                    send(comment: comment)
+                }
+            }
+        } catch {
+            DDLogError("FeedData/stuck-comments/error [\(error)]")
+        }
+
+        let postsFetchRequest: NSFetchRequest<FeedPost> = FeedPost.fetchRequest()
+        postsFetchRequest.predicate = NSPredicate(format: "statusValue = %d", FeedPost.Status.sending.rawValue)
+        do {
+            let stuckPosts = try viewContext.fetch(postsFetchRequest)
+            for post in stuckPosts {
+                if post.timestamp.addingTimeInterval(Date.days(1)) < Date() {
+                    DDLogInfo("FeedData/stuck-posts/\(post.id)/canceling (too old)")
+                    updateFeedPost(with: post.id) { post in
+                        post.status = .sendError
+                    }
+                } else {
+                    DDLogInfo("FeedData/stuck-posts/\(post.id)/resending")
+                    uploadMediaAndSend(feedPost: post)
+                }
+            }
+        } catch {
+            DDLogError("FeedData/stuck-posts/error [\(error)]")
+        }
+    }
+
     private func fetchFeedPosts() {
         do {
             try fetchedResultsController.performFetch()
@@ -258,16 +298,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 reloadFeedDataItems(using: feedPosts)
                 DDLogInfo("FeedData/fetch/completed \(feedDataItems.count) posts")
 
-                // 1. Turn tasks stuck in "sending" state into "sendError".
-                let idsOfTasksInProgress = mediaUploader.activeTaskGroupIdentifiers()
-                let stuckPosts = feedPosts.filter({ $0.status == .sending }).filter({ !idsOfTasksInProgress.contains($0.id) })
-                if !stuckPosts.isEmpty {
-                    stuckPosts.forEach({ $0.status = .sendError })
-                    save(fetchedResultsController.managedObjectContext)
-                }
-
-                // 2. Mitigate server bug when timestamps were sent in milliseconds.
-                // 2.1 Posts
+                // 1. Mitigate server bug when timestamps were sent in milliseconds.
+                // 1.1 Posts
                 let cutoffDate = Date(timeIntervalSinceNow: Date.days(1000))
                 let postsWithIncorrectTimestamp = feedPosts.filter({ $0.timestamp > cutoffDate })
                 if !postsWithIncorrectTimestamp.isEmpty {
@@ -280,7 +312,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                     save(fetchedResultsController.managedObjectContext)
                 }
-                // 2.2 Comments
+                // 1.2 Comments
                 let commentsFetchRequest: NSFetchRequest<FeedPostComment> = FeedPostComment.fetchRequest()
                 commentsFetchRequest.predicate = NSPredicate(format: "timestamp > %@", cutoffDate as NSDate)
                 do {
@@ -301,7 +333,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     fatalError("Failed to fetch feed items \(error)")
                 }
 
-                // 2.3 Notifications
+                // 1.3 Notifications
                 let notificationsFetchRequest: NSFetchRequest<FeedNotification> = FeedNotification.fetchRequest()
                 notificationsFetchRequest.predicate = NSPredicate(format: "timestamp > %@", cutoffDate as NSDate)
                 do {
@@ -1743,9 +1775,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedComment.status = .sent
                 }
 
-            case .failure(_):
-                self.updateFeedPostComment(with: commentId) { (feedComment) in
-                    feedComment.status = .sendError
+            case .failure(let error):
+                // TODO: Track this state more precisely. Even if this attempt was a definite failure, a previous attempt may have succeeded.
+                if error.isKnownFailure {
+                    self.updateFeedPostComment(with: commentId) { (feedComment) in
+                        feedComment.status = .sendError
+                    }
                 }
             }
         }
@@ -1774,9 +1809,12 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     feedPost.status = .sent
                 }
 
-            case .failure(_):
-                self.updateFeedPost(with: postId) { (feedPost) in
-                    feedPost.status = .sendError
+            case .failure(let error):
+                // TODO: Track this state more precisely. Even if this attempt was a definite failure, a previous attempt may have succeeded.
+                if error.isKnownFailure {
+                    self.updateFeedPost(with: postId) { (feedPost) in
+                        feedPost.status = .sendError
+                    }
                 }
             }
         }

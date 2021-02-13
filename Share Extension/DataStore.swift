@@ -216,8 +216,10 @@ class DataStore: ShareExtensionDataStore {
             case .failure(let error):
                 DDLogError("SharedDataStore/post/\(feedPost.id)/send/error \(error)")
 
-                feedPost.status = .sendError
-                self.save(managedObjectContext)
+                if error.isKnownFailure {
+                    feedPost.status = .sendError
+                    self.save(managedObjectContext)
+                }
 
                 completion(.failure(error))
             }

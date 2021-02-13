@@ -8,11 +8,24 @@
 
 import Foundation
 
-public enum XMPPError: Error {
+public enum RequestError: Error {
     case notConnected
     case timeout
     case canceled
     case aborted
-    case malformed
+    case malformedRequest
+    case malformedResponse
     case serverError(String)
+}
+
+extension RequestError {
+    /// `true` for errors that represent definite failure states (e.g., never sent request), `false` for indeterminate errors (e.g., never received response)
+    public var isKnownFailure: Bool {
+        switch self {
+        case .timeout, .canceled, .aborted, .malformedResponse:
+            return false
+        case .notConnected, .malformedRequest, .serverError:
+            return true
+        }
+    }
 }

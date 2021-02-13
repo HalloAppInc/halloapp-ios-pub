@@ -31,13 +31,13 @@ final class ProtoGetPrivacyListsRequest: ProtoRequest<([PrivacyListProtocol], Pr
 
         super.init(
             iqPacket: .iqPacket(type: .get, payload: .privacyLists(privacyLists)),
-            transform: { (iq) -> Result<([PrivacyListProtocol], PrivacyListType), Error> in
+            transform: { (iq) -> Result<([PrivacyListProtocol], PrivacyListType), RequestError> in
                 ProtoGetPrivacyListsRequest.process(response: iq)
             },
             completion: completion)
     }
 
-    static private func process(response iq: Server_Iq) -> Result<([PrivacyListProtocol], PrivacyListType), Error> {
+    static private func process(response iq: Server_Iq) -> Result<([PrivacyListProtocol], PrivacyListType), RequestError> {
 
         let pbPrivacyLists = iq.privacyLists
         let lists: [PrivacyListProtocol] = pbPrivacyLists.lists.compactMap { pbList in
@@ -66,7 +66,7 @@ final class ProtoGetPrivacyListsRequest: ProtoRequest<([PrivacyListProtocol], Pr
             return .success((lists, activeType))
         } else {
             DDLogError("ProtoGetPrivacyListsRequest/didFinish/error unknown active type")
-            return .failure(ProtoServiceError.unexpectedResponseFormat)
+            return .failure(RequestError.malformedResponse)
         }
     }
 }

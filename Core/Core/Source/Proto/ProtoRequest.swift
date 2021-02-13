@@ -50,7 +50,7 @@ open class ProtoRequestBase {
         DDLogWarn("protorequest/\(requestId)/failed: not-connected")
         state = .cancelled
         DispatchQueue.main.async {
-            self.fail(withError: XMPPError.notConnected)
+            self.fail(withError: RequestError.notConnected)
         }
     }
 
@@ -63,7 +63,7 @@ open class ProtoRequestBase {
             if !willRetry || retriesRemaining <= 0 {
                 state = .cancelled
                 DispatchQueue.main.async {
-                    self.fail(withError: XMPPError.aborted)
+                    self.fail(withError: RequestError.aborted)
                 }
                 return false
             }
@@ -87,7 +87,7 @@ open class ProtoRequestBase {
 
     fileprivate func finish(withResponse response: Server_Packet) { }
 
-    fileprivate func fail(withError error: Error) { }
+    fileprivate func fail(withError error: RequestError) { }
 }
 
 open class ProtoRequest<T>: ProtoRequestBase {
@@ -95,12 +95,12 @@ open class ProtoRequest<T>: ProtoRequestBase {
     public typealias Completion = ServiceRequestCompletion<T>
 
     /// Transform response packet into preferred format
-    private let transform: (Server_Iq) -> Result<T, Error>
+    private let transform: (Server_Iq) -> Result<T, RequestError>
 
     /// Handle transformed response
     private let completion: Completion
 
-    public init(iqPacket: Server_Packet, transform: @escaping (Server_Iq) -> Result<T, Error>, completion: @escaping Completion) {
+    public init(iqPacket: Server_Packet, transform: @escaping (Server_Iq) -> Result<T, RequestError>, completion: @escaping Completion) {
         self.transform = transform
         self.completion = completion
         super.init(request: iqPacket)
@@ -108,11 +108,11 @@ open class ProtoRequest<T>: ProtoRequestBase {
 
     fileprivate override func finish(withResponse response: Server_Packet) {
         guard case let .iq(serverIQ) = response.stanza else {
-            fail(withError: XMPPError.malformed)
+            fail(withError: RequestError.malformedResponse)
             return
         }
         if case .error = serverIQ.type {
-            fail(withError: XMPPError.serverError(serverIQ.errorStanza.reason))
+            fail(withError: RequestError.serverError(serverIQ.errorStanza.reason))
             return
         }
 
@@ -124,7 +124,7 @@ open class ProtoRequest<T>: ProtoRequestBase {
         }
     }
 
-    fileprivate override func fail(withError error: Error) {
+    fileprivate override func fail(withError error: RequestError) {
         DDLogDebug("request/\(Self.self)/\(requestId)/failed \(error)")
         completion(.failure(error))
     }

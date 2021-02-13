@@ -9,10 +9,6 @@
 import CocoaLumberjack
 import Foundation
 
-enum ProtoRequestError: Error {
-    case apiResponseMissingMediaURL
-}
-
 public final class ProtoPublishPostRequest: ProtoRequest<Date> {
 
     public init(post: FeedPostProtocol, feed: Feed, completion: @escaping Completion) {
@@ -121,7 +117,7 @@ public final class ProtoMediaUploadURLRequest: ProtoRequest<MediaURLInfo> {
             iqPacket: packet,
             transform: { (iq) in
                 guard iq.uploadMedia.hasURL else {
-                    return .failure(ProtoRequestError.apiResponseMissingMediaURL)
+                    return .failure(RequestError.malformedResponse)
                 }
                 let urls = iq.uploadMedia.url
                 if let getURL = URL(string: urls.get), let putURL = URL(string: urls.put) {
@@ -129,7 +125,7 @@ public final class ProtoMediaUploadURLRequest: ProtoRequest<MediaURLInfo> {
                 } else if let patchURL = URL(string: urls.patch) {
                     return .success(.patch(patchURL))
                 } else {
-                    return .failure(ProtoRequestError.apiResponseMissingMediaURL)
+                    return .failure(RequestError.malformedResponse)
                 }
             },
             completion: completion)

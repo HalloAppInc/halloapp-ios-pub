@@ -192,7 +192,7 @@ final class ProtoGroupCreateRequest: ProtoRequest<String> {
             iqPacket: .iqPacket(type: .set, payload: .groupStanza(group)),
             transform: { (iq) in
                 guard let group = HalloGroup(protoGroup: iq.groupStanza) else {
-                    return .failure(ProtoServiceError.unexpectedResponseFormat)
+                    return .failure(RequestError.malformedResponse)
                 }
                 return .success(group.groupId) },
             completion: completion)
@@ -211,7 +211,7 @@ final class ProtoGroupInfoRequest: ProtoRequest<HalloGroup> {
             iqPacket: .iqPacket(type: .get, payload: .groupStanza(group)),
             transform: { (iq) in
                 guard let group = HalloGroup(protoGroup: iq.groupStanza) else {
-                    return .failure(ProtoServiceError.unexpectedResponseFormat)
+                    return .failure(RequestError.malformedResponse)
                 }
                 return .success(group) },
             completion: completion)
@@ -228,7 +228,7 @@ final class ProtoGroupsListRequest: ProtoRequest<HalloGroups> {
             iqPacket: .iqPacket(type: .get, payload: .groupsStanza(groups)),
             transform: { (iq) in
                 guard let groups = HalloGroups(protoGroups: iq.groupsStanza) else {
-                    return .failure(ProtoServiceError.unexpectedResponseFormat)
+                    return .failure(RequestError.malformedResponse)
                 }
                 return .success(groups) },
             completion: completion)
@@ -293,7 +293,7 @@ final class ProtoChangeGroupAvatarRequest: ProtoRequest<String> {
             iqPacket: .iqPacket(type: .set, payload: .groupAvatar(uploadAvatar)),
             transform: { (iq) in
                 guard let group = HalloGroup(protoGroup: iq.groupStanza), let avatarID = group.avatarID else {
-                    return .failure(ProtoServiceError.unexpectedResponseFormat)
+                    return .failure(RequestError.malformedResponse)
                 }
                 return .success(avatarID) },
             completion: completion)

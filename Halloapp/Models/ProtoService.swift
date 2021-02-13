@@ -15,10 +15,6 @@ import XMPPFramework
 fileprivate let userDefaultsKeyForAPNSToken = "apnsPushToken"
 fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 
-enum ProtoServiceError: Error {
-    case unexpectedResponseFormat
-}
-
 final class ProtoService: ProtoServiceCore {
 
     public required init(userData: UserData) {

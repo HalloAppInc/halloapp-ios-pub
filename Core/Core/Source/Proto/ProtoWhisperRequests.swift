@@ -84,7 +84,7 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest<WhisperKeyBundle> 
             completion: completion)
     }
 
-    private static func processResponse(iq: Server_Iq) -> Result<WhisperKeyBundle, Error> {
+    private static func processResponse(iq: Server_Iq) -> Result<WhisperKeyBundle, RequestError> {
         let pbKey = iq.whisperKeys
         let protoContainer: Clients_SignedPreKey
         if let container = try? Clients_SignedPreKey(serializedData: pbKey.signedKey) {
@@ -96,7 +96,7 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest<WhisperKeyBundle> 
             protoContainer = container
         } else {
             DDLogError("ProtoWhisperGetBundleRequest/didFinish/error could not deserialize signed key")
-            return .failure(ProtoServiceCoreError.deserialization)
+            return .failure(RequestError.malformedResponse)
         }
 
         let oneTimeKeys: [PreKey] = pbKey.oneTimeKeys.compactMap { data in
@@ -125,7 +125,7 @@ final public class ProtoWhisperGetBundleRequest: ProtoRequest<WhisperKeyBundle> 
             protoIdentity = identity
         } else {
             DDLogError("ProtoWhisperGetBundleRequest/didFinish/error could not deserialize identity key")
-            return .failure(ProtoServiceCoreError.deserialization)
+            return .failure(RequestError.malformedResponse)
         }
 
         let bundle = WhisperKeyBundle(

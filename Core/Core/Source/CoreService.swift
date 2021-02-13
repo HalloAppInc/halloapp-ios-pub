@@ -21,7 +21,7 @@ public enum Feed {
     case group(GroupID)
 }
 
-public typealias ServiceRequestCompletion<T> = (Result<T, Error>) -> Void
+public typealias ServiceRequestCompletion<T> = (Result<T, RequestError>) -> Void
 
 public typealias AvatarInfo = (userID: UserID, avatarID: AvatarID)
 public typealias EncryptedData = (data: Data, identityKey: Data?, oneTimeKeyId: Int32)

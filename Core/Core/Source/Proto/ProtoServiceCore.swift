@@ -11,12 +11,6 @@ import Combine
 import Foundation
 import XMPPFramework
 
-enum ProtoServiceCoreError: Error {
-    case deserialization
-    case disconnected
-    case serialization
-}
-
 enum Stream {
     case proto(ProtoStream)
     case noise(NoiseStream)
@@ -268,7 +262,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
         makeChatStanza(message, encryption: encryption) { chat, error in
             guard let chat = chat else {
-                completion(.failure(ProtoServiceCoreError.serialization))
+                completion(.failure(RequestError.malformedRequest))
                 return
             }
 
@@ -285,14 +279,14 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             guard let packetData = try? packet.serializedData() else {
                 AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
                 DDLogError("ProtoServiceCore/sendSilentChatMessage/\(message.id)/error could not serialize chat message!")
-                completion(.failure(ProtoServiceCoreError.serialization))
+                completion(.failure(RequestError.malformedRequest))
                 return
             }
 
             DispatchQueue.main.async {
                 guard self.isConnected else {
                     DDLogInfo("ProtoServiceCore/sendSilentChatMessage/\(message.id) skipping (disconnected)")
-                    completion(.failure(ProtoServiceCoreError.disconnected))
+                    completion(.failure(RequestError.notConnected))
                     return
                 }
                 AppContext.shared.eventMonitor.count(.encryption(error: error))
@@ -552,7 +546,7 @@ extension ProtoServiceCore: CoreService {
     public func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>) {
         guard self.isConnected else {
             DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) skipping (disconnected)")
-            completion(.failure(ProtoServiceCoreError.disconnected))
+            completion(.failure(RequestError.notConnected))
             return
         }
 
@@ -560,7 +554,7 @@ extension ProtoServiceCore: CoreService {
 
         makeChatStanza(message, encryption: encryption) { chat, error in
             guard let chat = chat else {
-                completion(.failure(ProtoServiceCoreError.serialization))
+                completion(.failure(RequestError.malformedRequest))
                 return
             }
 
@@ -575,14 +569,14 @@ extension ProtoServiceCore: CoreService {
             guard let packetData = try? packet.serializedData() else {
                 AppContext.shared.eventMonitor.count(.encryption(error: .serialization))
                 DDLogError("ProtoServiceCore/sendChatMessage/\(message.id)/error could not serialize chat message!")
-                completion(.failure(ProtoServiceCoreError.serialization))
+                completion(.failure(RequestError.malformedRequest))
                 return
             }
 
             DispatchQueue.main.async {
                 guard self.isConnected else {
                     DDLogInfo("ProtoServiceCore/sendChatMessage/\(message.id) aborting (disconnected)")
-                    completion(.failure(ProtoServiceCoreError.disconnected))
+                    completion(.failure(RequestError.notConnected))
                     return
                 }
                 if let error = error {
