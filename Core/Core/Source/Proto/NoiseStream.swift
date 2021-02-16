@@ -130,8 +130,19 @@ public final class NoiseStream: NSObject {
     }
 
     private func startHandshake() {
+
+        // Generate new ephemeral keypair on every attempt for handshake
+        // we use it for all our noise patterns - xx, ik, xxfallback
+        self.clientEphemeralKeys = NoiseKeys()
+        DDLogInfo("noise/connect/generate/ephemeralKeys - done]")
+
         guard let noiseKeys = noiseKeys else {
-            DDLogError("noise/startHandshake/error missing keys")
+            DDLogError("noise/startHandshake/error missing noiseKeys")
+            return
+        }
+
+        guard let ephemeralKeys = clientEphemeralKeys else {
+            DDLogError("noise/startHandshake/error missing ephemeralKeys")
             return
         }
 
@@ -147,13 +158,14 @@ public final class NoiseStream: NSObject {
 
         writeToSocket(handshakeSignature, prependLengthHeader: false)
 
+        let ephemeralKeyPair = ephemeralKeys.makeX25519KeyPair()
         if let serverStaticKey = serverStaticKey {
 
             DDLogInfo("noise/startHandshake/ik")
 
             do {
                 let keypair = noiseKeys.makeX25519KeyPair()
-                let handshake = try HandshakeState(pattern: .IK, initiator: true, prologue: Data(), s: keypair, rs: serverStaticKey)
+                let handshake = try HandshakeState(pattern: .IK, initiator: true, prologue: Data(), s: keypair, e: ephemeralKeyPair, rs: serverStaticKey)
                 let serializedConfig = try makeClientConfig().serializedData()
                 let msgA = try handshake.writeMessage(payload: serializedConfig)
 
@@ -173,7 +185,7 @@ public final class NoiseStream: NSObject {
 
             do {
                 let keypair = noiseKeys.makeX25519KeyPair()
-                let handshake = try HandshakeState(pattern: .XX, initiator: true, prologue: Data(), s: keypair)
+                let handshake = try HandshakeState(pattern: .XX, initiator: true, prologue: Data(), s: keypair, e: ephemeralKeyPair)
                 let msgA = try handshake.writeMessage(payload: Data())
 
                 sendNoiseMessage(msgA, type: .xxA)
@@ -189,21 +201,41 @@ public final class NoiseStream: NSObject {
     }
 
     private func continueHandshake(_ noiseMessage: Server_NoiseMessage) {
-        guard case .handshake(let handshake) = state else {
-            DDLogError("noise/handshake/error invalid state [\(state)]")
-            return
+        if case .xxFallbackA = noiseMessage.messageType {
+            guard let noiseKeys = noiseKeys else {
+                DDLogError("noise/startHandshake/error missing noiseKeys")
+                return
+            }
+
+            guard let ephemeralKeys = clientEphemeralKeys else {
+                DDLogError("noise/startHandshake/error missing ephemeralKeys")
+                return
+            }
+
+            DDLogInfo("noise/handshake/xxfallback discard serverStaticKey. starting xxfallback")
+            serverStaticKey = nil
+            do {
+                let keypair = noiseKeys.makeX25519KeyPair()
+                let ephemeralKeypair = ephemeralKeys.makeX25519KeyPair()
+                let handshake = try HandshakeState(pattern: .XXfallback, initiator: false, prologue: Data(), s: keypair, e: ephemeralKeypair)
+                state = .handshake(handshake)
+                DDLogInfo("noise/handshake/xxfallback reset HandshakeState")
+            } catch {
+                DDLogError("noise/startHandshake/xxfallback/error \(error)")
+                reconnect()
+                return
+            }
         }
 
-        if case .xxFallbackA = noiseMessage.messageType {
-            DDLogInfo("noise/handshake/error server requested fallback (unimplemented). restarting xx.")
-            serverStaticKey = nil
-            reconnect()
+        guard case .handshake(let handshake) = state else {
+            DDLogError("noise/handshake/error invalid state [\(state)]")
             return
         }
 
         let data: Data
         do {
             data = try handshake.readMessage(message: noiseMessage.content)
+            DDLogInfo("noise/handshake/reading data")
         } catch {
             DDLogError("noise/handshake/error \(error)")
             failHandshake()
@@ -217,9 +249,31 @@ public final class NoiseStream: NSObject {
             failHandshake()
             return
         case .xxFallbackA:
-            DDLogError("noise/handshake/error unimplemented")
-            failHandshake()
-            return
+            guard let staticKey = handshake.remoteS else {
+                DDLogError("noise/handshake/xxfallback/error missing static key")
+                failHandshake()
+                return
+            }
+            guard verify(staticKey: staticKey, certificate: data) else {
+                DDLogError("noise/handshake/xxfallback/error unable to verify static key")
+                failHandshake()
+                return
+            }
+            serverStaticKey = staticKey
+            protoService?.receivedServerStaticKey(staticKey, for: userID)
+            do {
+                let serializedConfig = try makeClientConfig().serializedData()
+                let msgB = try handshake.writeMessage(payload: serializedConfig)
+                sendNoiseMessage(msgB, type: .xxFallbackB)
+                // server is the initiator and client is the responder, so key-split = (receive, send)
+                let (receive, send) = try handshake.split()
+                state = .authorizing(send, receive)
+                DDLogInfo("noise/handshake/xxfallback, obtained keys to send and receive")
+            } catch {
+                DDLogError("noise/handshake/xxfallback/error \(error)")
+                failHandshake()
+                return
+            }
         case .ikB:
             do {
                 let (send, receive) = try handshake.split()
@@ -386,7 +440,7 @@ public final class NoiseStream: NSObject {
     private let socketQueue = DispatchQueue(label: "hallo.noise", qos: .userInitiated)
     private var socketBuffer: Data?
 
-    private var clientKeyPair: NoiseKeys?
+    private var clientEphemeralKeys: NoiseKeys?
     private var serverStaticKey: Data?
 
     private var state: NoiseState = .disconnected

@@ -41,6 +41,7 @@ public enum HandshakePattern: String {
   case IN
   case IK
   case IX
+  case XXfallback
 }
 
 // Enumerates the handshake tokens.
@@ -181,6 +182,15 @@ let patterns: [HandshakePattern: PatternDetails] = [
     messagePatterns: [
       [ .e, .s ],
       [ .e, .ee, .se, .s, .es ]
+    ]
+  ),
+    // name of the protocol is used in the hashing - so it is important to be consistent with the server.
+  .XXfallback: PatternDetails(
+    initiatorPremessages: [],
+    responderPremessages: [.e],
+    messagePatterns: [
+      [ .e, .ee, .s, .se ],
+      [ .s, .es ]
     ]
   )
 ]
