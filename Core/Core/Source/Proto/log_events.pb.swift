@@ -22,26 +22,29 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
 
 public enum Server_Platform: SwiftProtobuf.Enum {
   public typealias RawValue = Int
-  case android // = 0
+  case unknown // = 0
   case ios // = 1
+  case android // = 2
   case UNRECOGNIZED(Int)
 
   public init() {
-    self = .android
+    self = .unknown
   }
 
   public init?(rawValue: Int) {
     switch rawValue {
-    case 0: self = .android
+    case 0: self = .unknown
     case 1: self = .ios
+    case 2: self = .android
     default: self = .UNRECOGNIZED(rawValue)
     }
   }
 
   public var rawValue: Int {
     switch self {
-    case .android: return 0
+    case .unknown: return 0
     case .ios: return 1
+    case .android: return 2
     case .UNRECOGNIZED(let i): return i
     }
   }
@@ -53,8 +56,9 @@ public enum Server_Platform: SwiftProtobuf.Enum {
 extension Server_Platform: CaseIterable {
   // The compiler won't synthesize support with the UNRECOGNIZED case.
   public static var allCases: [Server_Platform] = [
-    .android,
+    .unknown,
     .ios,
+    .android,
   ]
 }
 
@@ -68,10 +72,13 @@ public struct Server_EventData {
   public var uid: UInt64 = 0
 
   /// client platform `android` or `ios`
-  public var platform: Server_Platform = .android
+  public var platform: Server_Platform = .unknown
 
   /// client version (eg.`0.94`)
   public var version: String = String()
+
+  /// set by server to indicate when event was received
+  public var timestampMs: UInt64 = 0
 
   public var edata: Server_EventData.OneOf_Edata? = nil
 
@@ -399,8 +406,9 @@ fileprivate let _protobuf_package = "server"
 
 extension Server_Platform: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "ANDROID"),
+    0: .same(proto: "UNKNOWN"),
     1: .same(proto: "IOS"),
+    2: .same(proto: "ANDROID"),
   ]
 }
 
@@ -410,6 +418,7 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     1: .same(proto: "uid"),
     2: .same(proto: "platform"),
     3: .same(proto: "version"),
+    4: .standard(proto: "timestamp_ms"),
     10: .standard(proto: "media_upload"),
     11: .standard(proto: "media_download"),
     12: .standard(proto: "media_compose_load"),
@@ -422,6 +431,7 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case 1: try decoder.decodeSingularUInt64Field(value: &self.uid)
       case 2: try decoder.decodeSingularEnumField(value: &self.platform)
       case 3: try decoder.decodeSingularStringField(value: &self.version)
+      case 4: try decoder.decodeSingularUInt64Field(value: &self.timestampMs)
       case 10:
         var v: Server_MediaUpload?
         if let current = self.edata {
@@ -463,11 +473,14 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if self.uid != 0 {
       try visitor.visitSingularUInt64Field(value: self.uid, fieldNumber: 1)
     }
-    if self.platform != .android {
+    if self.platform != .unknown {
       try visitor.visitSingularEnumField(value: self.platform, fieldNumber: 2)
     }
     if !self.version.isEmpty {
       try visitor.visitSingularStringField(value: self.version, fieldNumber: 3)
+    }
+    if self.timestampMs != 0 {
+      try visitor.visitSingularUInt64Field(value: self.timestampMs, fieldNumber: 4)
     }
     switch self.edata {
     case .mediaUpload(let v)?:
@@ -487,6 +500,7 @@ extension Server_EventData: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if lhs.uid != rhs.uid {return false}
     if lhs.platform != rhs.platform {return false}
     if lhs.version != rhs.version {return false}
+    if lhs.timestampMs != rhs.timestampMs {return false}
     if lhs.edata != rhs.edata {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

@@ -219,6 +219,8 @@ public struct Server_Contact {
 
   public var name: String = String()
 
+  public var numPotentialFriends: Int64 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum Action: SwiftProtobuf.Enum {
@@ -322,6 +324,8 @@ public struct Server_ContactList {
     case full // = 0
     case delta // = 1
     case normal // = 2
+    case friendNotice // = 3
+    case inviterNotice // = 4
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -333,6 +337,8 @@ public struct Server_ContactList {
       case 0: self = .full
       case 1: self = .delta
       case 2: self = .normal
+      case 3: self = .friendNotice
+      case 4: self = .inviterNotice
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -342,6 +348,8 @@ public struct Server_ContactList {
       case .full: return 0
       case .delta: return 1
       case .normal: return 2
+      case .friendNotice: return 3
+      case .inviterNotice: return 4
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -359,6 +367,8 @@ extension Server_ContactList.TypeEnum: CaseIterable {
     .full,
     .delta,
     .normal,
+    .friendNotice,
+    .inviterNotice,
   ]
 }
 
@@ -1908,9 +1918,14 @@ public struct Server_Presence {
 
   public var type: Server_Presence.TypeEnum = .available
 
+  /// Clients must stop using this field.
   public var uid: Int64 = 0
 
   public var lastSeen: Int64 = 0
+
+  public var toUid: Int64 = 0
+
+  public var fromUid: Int64 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -2521,6 +2536,14 @@ public struct Server_Rerequest {
   public var id: String = String()
 
   public var identityKey: Data = SwiftProtobuf.Internal.emptyData
+
+  public var signedPreKeyID: Int64 = 0
+
+  public var oneTimePreKeyID: Int64 = 0
+
+  public var sessionSetupEphemeralKey: Data = SwiftProtobuf.Internal.emptyData
+
+  public var messageEphemeralKey: Data = SwiftProtobuf.Internal.emptyData
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -3166,6 +3189,7 @@ extension Server_Contact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     5: .standard(proto: "avatar_id"),
     6: .same(proto: "role"),
     7: .same(proto: "name"),
+    8: .standard(proto: "num_potential_friends"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3178,6 +3202,7 @@ extension Server_Contact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
       case 5: try decoder.decodeSingularStringField(value: &self.avatarID)
       case 6: try decoder.decodeSingularEnumField(value: &self.role)
       case 7: try decoder.decodeSingularStringField(value: &self.name)
+      case 8: try decoder.decodeSingularInt64Field(value: &self.numPotentialFriends)
       default: break
       }
     }
@@ -3205,6 +3230,9 @@ extension Server_Contact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if !self.name.isEmpty {
       try visitor.visitSingularStringField(value: self.name, fieldNumber: 7)
     }
+    if self.numPotentialFriends != 0 {
+      try visitor.visitSingularInt64Field(value: self.numPotentialFriends, fieldNumber: 8)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -3216,6 +3244,7 @@ extension Server_Contact: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
     if lhs.avatarID != rhs.avatarID {return false}
     if lhs.role != rhs.role {return false}
     if lhs.name != rhs.name {return false}
+    if lhs.numPotentialFriends != rhs.numPotentialFriends {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3293,6 +3322,8 @@ extension Server_ContactList.TypeEnum: SwiftProtobuf._ProtoNameProviding {
     0: .same(proto: "FULL"),
     1: .same(proto: "DELTA"),
     2: .same(proto: "NORMAL"),
+    3: .same(proto: "FRIEND_NOTICE"),
+    4: .same(proto: "INVITER_NOTICE"),
   ]
 }
 
@@ -5242,6 +5273,8 @@ extension Server_Presence: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     2: .same(proto: "type"),
     3: .same(proto: "uid"),
     4: .standard(proto: "last_seen"),
+    5: .standard(proto: "to_uid"),
+    6: .standard(proto: "from_uid"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -5251,6 +5284,8 @@ extension Server_Presence: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       case 2: try decoder.decodeSingularEnumField(value: &self.type)
       case 3: try decoder.decodeSingularInt64Field(value: &self.uid)
       case 4: try decoder.decodeSingularInt64Field(value: &self.lastSeen)
+      case 5: try decoder.decodeSingularInt64Field(value: &self.toUid)
+      case 6: try decoder.decodeSingularInt64Field(value: &self.fromUid)
       default: break
       }
     }
@@ -5269,6 +5304,12 @@ extension Server_Presence: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if self.lastSeen != 0 {
       try visitor.visitSingularInt64Field(value: self.lastSeen, fieldNumber: 4)
     }
+    if self.toUid != 0 {
+      try visitor.visitSingularInt64Field(value: self.toUid, fieldNumber: 5)
+    }
+    if self.fromUid != 0 {
+      try visitor.visitSingularInt64Field(value: self.fromUid, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -5277,6 +5318,8 @@ extension Server_Presence: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if lhs.type != rhs.type {return false}
     if lhs.uid != rhs.uid {return false}
     if lhs.lastSeen != rhs.lastSeen {return false}
+    if lhs.toUid != rhs.toUid {return false}
+    if lhs.fromUid != rhs.fromUid {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -5835,6 +5878,10 @@ extension Server_Rerequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
     2: .standard(proto: "identity_key"),
+    3: .standard(proto: "signed_pre_key_id"),
+    4: .standard(proto: "one_time_pre_key_id"),
+    5: .standard(proto: "session_setup_ephemeral_key"),
+    6: .standard(proto: "message_ephemeral_key"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -5842,6 +5889,10 @@ extension Server_Rerequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       switch fieldNumber {
       case 1: try decoder.decodeSingularStringField(value: &self.id)
       case 2: try decoder.decodeSingularBytesField(value: &self.identityKey)
+      case 3: try decoder.decodeSingularInt64Field(value: &self.signedPreKeyID)
+      case 4: try decoder.decodeSingularInt64Field(value: &self.oneTimePreKeyID)
+      case 5: try decoder.decodeSingularBytesField(value: &self.sessionSetupEphemeralKey)
+      case 6: try decoder.decodeSingularBytesField(value: &self.messageEphemeralKey)
       default: break
       }
     }
@@ -5854,12 +5905,28 @@ extension Server_Rerequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if !self.identityKey.isEmpty {
       try visitor.visitSingularBytesField(value: self.identityKey, fieldNumber: 2)
     }
+    if self.signedPreKeyID != 0 {
+      try visitor.visitSingularInt64Field(value: self.signedPreKeyID, fieldNumber: 3)
+    }
+    if self.oneTimePreKeyID != 0 {
+      try visitor.visitSingularInt64Field(value: self.oneTimePreKeyID, fieldNumber: 4)
+    }
+    if !self.sessionSetupEphemeralKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.sessionSetupEphemeralKey, fieldNumber: 5)
+    }
+    if !self.messageEphemeralKey.isEmpty {
+      try visitor.visitSingularBytesField(value: self.messageEphemeralKey, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Server_Rerequest, rhs: Server_Rerequest) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.identityKey != rhs.identityKey {return false}
+    if lhs.signedPreKeyID != rhs.signedPreKeyID {return false}
+    if lhs.oneTimePreKeyID != rhs.oneTimePreKeyID {return false}
+    if lhs.sessionSetupEphemeralKey != rhs.sessionSetupEphemeralKey {return false}
+    if lhs.messageEphemeralKey != rhs.messageEphemeralKey {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
