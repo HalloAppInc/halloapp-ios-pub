@@ -210,16 +210,12 @@ extension NewPostViewController: UIImagePickerControllerDelegate {
 extension NewPostViewController: UINavigationControllerDelegate {}
 
 extension NewPostViewController: PostComposerViewDelegate {
-    func composerShareAction(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia]) {
+    func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia]) {
         MainAppContext.shared.feedData.post(text: mentionText, media: media, to: destination)
+        cleanupAndFinish()
     }
 
-    func composerDidFinish(controller: PostComposerViewController, media: [PendingMedia], isBackAction: Bool) {
-        guard isBackAction else {
-            cleanupAndFinish()
-            return
-        }
-
+    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia]) {
         containedNavigationController.popViewController(animated: true)
         switch state.mediaSource {
         case .library:

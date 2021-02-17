@@ -5,8 +5,8 @@ import SwiftUI
 import UIKit
 
 protocol PostComposerViewDelegate: AnyObject {
-    func composerShareAction(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia])
-    func composerDidFinish(controller: PostComposerViewController, media: [PendingMedia], isBackAction: Bool)
+    func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia])
+    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia])
     func willDismissWithInput(mentionInput: MentionInput)
 }
 
@@ -266,16 +266,14 @@ class PostComposerViewController: UIViewController {
         isPosting = true
         updateShareButton()
         let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
-        delegate?.composerShareAction(controller: self, mentionText: mentionText, media: mediaItems.value)
-        inputToPost.value.text = ""
-        delegate?.composerDidFinish(controller: self, media: [], isBackAction: false)
+        delegate?.composerDidTapShare(controller: self, mentionText: mentionText, media: mediaItems.value)
     }
 
     @objc private func backAction() {
         if isMediaPost {
             imageServer?.cancel()
         }
-        delegate?.composerDidFinish(controller: self, media: self.mediaItems.value, isBackAction: true)
+        delegate?.composerDidTapBack(controller: self, media: self.mediaItems.value)
     }
 
     private func updateShareButton() {

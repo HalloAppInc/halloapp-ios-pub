@@ -723,17 +723,15 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
 
 // MARK: PostComposerView Delegates
 extension ChatGroupViewController: PostComposerViewDelegate {
-    func composerShareAction(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia]) {
+    func composerDidTapShare(controller: PostComposerViewController, mentionText: MentionText, media: [PendingMedia]) {
         sendGroupMessage(mentionText: mentionText, media: media)
+        controller.dismiss(animated: false)
+        dismissMediaPicker(animated: false)
     }
 
-    func composerDidFinish(controller: PostComposerViewController, media: [PendingMedia], isBackAction: Bool) {
+    func composerDidTapBack(controller: PostComposerViewController, media: [PendingMedia]) {
         controller.dismiss(animated: false)
-        if isBackAction {
-            mediaPickerController?.reset(selected: media)
-        } else {
-            dismissMediaPicker(animated: false)
-        }
+        mediaPickerController?.reset(selected: media)
     }
 
     func willDismissWithInput(mentionInput: MentionInput) {
