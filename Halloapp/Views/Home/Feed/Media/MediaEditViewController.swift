@@ -686,6 +686,7 @@ fileprivate struct CropImage: View {
 
     private let threshold = CGFloat(44)
     private let outThreshold = CGFloat(22)
+    private let epsilon = CGFloat(1e-6)
 
     let cropToCircle: Bool
     let maxAspectRatio: CGFloat
@@ -756,14 +757,16 @@ fileprivate struct CropImage: View {
         default:
             break
         }
-            
+
         if lastCropSection == .inside {
             crop.origin.x += deltaX
             crop.origin.y += deltaY
         }
         
-        if (crop.size.height / crop.size.width) > maxAspectRatio {
+        if (crop.size.height / crop.size.width) - maxAspectRatio > epsilon {
             switch lastCropSection {
+            case .none, .inside:
+                break
             case .left, .right:
                 let height = maxAspectRatio * crop.size.width
                 crop.origin.y -= (height - crop.size.height) / 2
@@ -779,7 +782,6 @@ fileprivate struct CropImage: View {
     }
     
     private func isCropRegionWithinLimit(_ crop: CGRect, limit: CGSize) -> Bool {
-        let epsilon: CGFloat = 1e-6
         return crop.minX >= -epsilon && crop.minY >= -epsilon && crop.maxX <= limit.width + epsilon && crop.maxY <= limit.height + epsilon
     }
     
@@ -788,13 +790,19 @@ fileprivate struct CropImage: View {
     }
     
     private func isCropRegionValid(_ crop: CGRect, limit: CGSize) -> Bool {
-        return isCropRegionWithinLimit(crop, limit: limit) &&
-            isCropRegionMinSize(crop)
+        return isCropRegionWithinLimit(crop, limit: limit) && isCropRegionMinSize(crop)
     }
     
     private func scaleCropRegion(_ crop: CGRect, from: CGSize, to: CGSize) -> CGRect {
         let scale = to.height / from.height
-        return crop.applying(CGAffineTransform(scaleX: scale, y: scale))
+        var scaledCrop = crop.applying(CGAffineTransform(scaleX: scale, y: scale))
+
+        scaledCrop.origin.x = max(0, scaledCrop.origin.x)
+        scaledCrop.origin.y = max(0, scaledCrop.origin.y)
+        scaledCrop.size.width -= max(0, scaledCrop.maxX - to.width)
+        scaledCrop.size.height -= max(0, scaledCrop.maxY - to.height)
+
+        return scaledCrop
     }
     
     private func scaleOffset(_ offset: CGPoint, containerSize: CGSize, imageSize: CGSize) -> CGSize {
