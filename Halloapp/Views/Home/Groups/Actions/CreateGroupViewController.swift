@@ -37,13 +37,13 @@ class CreateGroupViewController: UIViewController {
     override func viewDidLoad() {
         DDLogInfo("CreateGroupViewController/viewDidLoad")
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonCreate, style: .plain, target: self, action: #selector(createAction))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonCreate, style: .done, target: self, action: #selector(createAction))
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
         navigationItem.rightBarButtonItem?.isEnabled = canCreate
         
         navigationItem.title = Localizations.chatCreateGroupTitle
         navigationItem.standardAppearance = .transparentAppearance
-        navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
+        navigationItem.standardAppearance?.backgroundColor = UIColor.primaryBg
         
         setupView()
     }
@@ -129,6 +129,10 @@ class CreateGroupViewController: UIViewController {
         photoIcon.frame = CGRect(x: 0 - Constants.PhotoIconSize, y: viewHeight - Constants.PhotoIconSize, width: Constants.PhotoIconSize, height: Constants.PhotoIconSize)
         view.addSubview(photoIcon)
         
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(chooseAvatar))
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
+        
         return view
     }()
     
@@ -161,10 +165,6 @@ class CreateGroupViewController: UIViewController {
         icon.layer.cornerRadius = Constants.PhotoIconSize/2
         icon.clipsToBounds = true
         icon.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(chooseAvatar))
-        icon.isUserInteractionEnabled = true
-        icon.addGestureRecognizer(tapGesture)
         
         return icon
     }()

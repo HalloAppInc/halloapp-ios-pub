@@ -137,9 +137,9 @@ class GroupTitleView: UIView {
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 1
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.preferredFont(forTextStyle: .headline)
+        label.font = UIFont.gothamFont(ofFixedSize: 17, weight: .medium)
         label.textColor = .primaryBlue
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
@@ -177,7 +177,7 @@ class GroupTitleView: UIView {
 private extension Localizations {
     
     static var groupTitleTapForInfo: String {
-        NSLocalizedString("group.title.tap.for.info", value: "tap here for group info", comment: "Text shown to tell user the group title is tappable")
+        NSLocalizedString("group.title.tap.for.info", value: "Tap here for group info", comment: "Text shown to tell user the group title is tappable")
     }
     
 }

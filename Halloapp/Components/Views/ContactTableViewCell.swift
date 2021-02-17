@@ -15,8 +15,10 @@ class ContactTableViewCell: UITableViewCell {
         didSet {
             if isUserInteractionEnabled {
                 nameLabel.textColor = .label
+                checkMark.tintAdjustmentMode = .normal
             } else {
                 nameLabel.textColor = .systemGray
+                checkMark.tintAdjustmentMode = .dimmed
             }
         }
     }
@@ -40,6 +42,7 @@ class ContactTableViewCell: UITableViewCell {
 
         static let hasImage = Options(rawValue: 1 << 0)
         static let hasCheckmark = Options(rawValue: 1 << 1)
+        static let useBlueCheckmark = Options(rawValue: 1 << 2)
     }
     var options: Options = [ .hasImage ] {
         didSet {
@@ -59,6 +62,12 @@ class ContactTableViewCell: UITableViewCell {
             } else {
                 selectionStyle = .default
                 accessoryView = nil
+            }
+            
+            if options.contains(.useBlueCheckmark) {
+                checkMark.tintColor = .systemBlue
+            } else {
+                checkMark.tintColor = .lavaOrange
             }
         }
     }
@@ -198,6 +207,7 @@ class ContactTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         contactImage.prepareForReuse()
+        isUserInteractionEnabled = true
     }
 
 }

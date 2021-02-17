@@ -27,7 +27,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
     private static let cellReuseIdentifier = "ThreadListCell"
     private static let inviteFriendsReuseIdentifier = "GroupsListInviteFriendsCell"
-    private let tableView = UITableView()
+    private let tableView = UITableView(frame: CGRect.zero, style: .grouped)
     
     private var fetchedResultsController: NSFetchedResultsController<ChatThread>?
     
@@ -35,8 +35,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var filteredChats: [ChatThread] = []
-    private var searchController: UISearchController!
-    private var searchBarHeight: CGFloat = 0
+    private var searchController: HAUISearchController!
     
     private var isSearchBarEmpty: Bool {
         return searchController.searchBar.text?.isEmpty ?? true
@@ -61,7 +60,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         installLargeTitleUsingGothamFont()
         
-        searchController = UISearchController(searchResultsController: nil)
+        searchController = HAUISearchController(searchResultsController: nil)
         searchController.delegate = self
         searchController.searchResultsUpdater = self
         searchController.searchBar.autocapitalizationType = .none
@@ -71,31 +70,28 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
 
         searchController.searchBar.showsCancelButton = false
         
+        searchController.searchBar.backgroundImage = UIImage()
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
 
-        navigationItem.searchController = searchController
-        navigationItem.hidesSearchBarWhenScrolling = false
-        
-        searchBarHeight = searchController.searchBar.frame.height
-        
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.constrain(to: view)
 
         installEmptyView()
-        
         installFloatingActionMenu()
-        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-
-        tableView.backgroundColor = .feedBackground
-        tableView.separatorStyle = .none
+        
+        tableView.register(GroupsListHeaderView.self, forHeaderFooterViewReuseIdentifier: "sectionHeader")
         tableView.register(ThreadListCell.self, forCellReuseIdentifier: GroupsListViewController.cellReuseIdentifier)
         tableView.delegate = self
         tableView.dataSource = self
         
-        let groupsListHeaderView = GroupsListHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 21)) // height is 21, not 20, as requested
-        groupsListHeaderView.delegate = self
-        tableView.tableHeaderView = groupsListHeaderView
+        tableView.backgroundView = UIView() // fixes issue where bg color was off when pulled down from top
+        tableView.backgroundColor = .primaryBg
+        tableView.separatorStyle = .none
+        tableView.contentInset = UIEdgeInsets(top: -10, left: 0, bottom: 0, right: 0) // -10 to hide top padding on searchBar
+                
+        tableView.tableHeaderView = searchController.searchBar
+        tableView.tableHeaderView?.layoutMargins = UIEdgeInsets(top: 0, left: 21, bottom: 0, right: 21) // requested to be 21
         
         setupFetchedResultsController()
                 
@@ -121,10 +117,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         isVisible = true
-        
-        // after showing searchbar on top, turn on hidesSearchBarWhenScrolling so search will disappear when scrolling
-        navigationItem.hidesSearchBarWhenScrolling = true
-        
 //        showNUXIfNecessary()
     }
 
@@ -327,8 +319,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         updateEmptyView()
     }
 
-    private var lastCheckedForNewContacts: Date?
-        
     // MARK: Helpers
     
     func isScrolledFromTop(by fromTop: CGFloat) -> Bool {
@@ -342,8 +332,8 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
             return
         }
         
-        // If the user tapped on a notification, move to the chat view
-        DDLogInfo("GroupsListViewController/notification/open-chat \(metadata.fromId)")
+        // If the user tapped on a notification, move to group feed
+        DDLogInfo("GroupsListViewController/processNotification/open group feed \(metadata.fromId)")
 
         navigationController?.popToRootViewController(animated: false)
         
@@ -386,32 +376,7 @@ extension GroupsListViewController: UIViewControllerScrollsToTop {
     func scrollToTop(animated: Bool) {
         guard let firstSection = fetchedResultsController?.sections?.first else { return }
         guard firstSection.numberOfObjects > 0 else { return }
-
-        guard let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
-        let safeAreaHeight = keyWindow.safeAreaInsets.top
-        guard let navHeight = navigationController?.navigationBar.frame.size.height else { return }
-
-        var searchHeight: CGFloat = 0
-
-        // when search is visible navHeight contains the searchBarHeight already but not when table is scrolled up
-        if searchController.searchBar.frame.height == 0 {
-            searchHeight = searchBarHeight
-        }
-
-        let fromTop = CGFloat(safeAreaHeight) + CGFloat(navHeight) + CGFloat(searchHeight)
-
-        let offsetFromTop = CGPoint(x: 0, y: -(fromTop))
-
-        if tableView.contentOffset.y <= offsetFromTop.y { return }
-
-        // use row instead of offset to get to the top since table can change size after reloads
-        tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: animated)
-
-        // after scrolling to the first row, move offset so the searchBar is shown
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            guard let self = self else { return }
-            self.tableView.setContentOffset(offsetFromTop, animated: animated)
-        }
+        tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .middle, animated: animated)
     }
 }
 
@@ -437,6 +402,16 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
         return fetchedObjects[indexPath.row]
     }
 
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let view = tableView.dequeueReusableHeaderFooterView(withIdentifier: "sectionHeader") as! GroupsListHeaderView
+        view.delegate = self
+        return view
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 25
+    }
+    
     func numberOfSections(in tableView: UITableView) -> Int {
         
         if isFiltering {
@@ -596,11 +571,11 @@ protocol GroupsListHeaderViewDelegate: AnyObject {
     func groupsListHeaderView(_ groupsListHeaderView: GroupsListHeaderView)
 }
 
-class GroupsListHeaderView: UIView {
+class GroupsListHeaderView: UITableViewHeaderFooterView {
     weak var delegate: GroupsListHeaderViewDelegate?
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    override init(reuseIdentifier: String?) {
+        super.init(reuseIdentifier: reuseIdentifier)
         setup()
     }
 
@@ -609,7 +584,7 @@ class GroupsListHeaderView: UIView {
     private func setup() {
         preservesSuperviewLayoutMargins = true
 
-        vStack.addArrangedSubview(textLabel)
+        vStack.addArrangedSubview(createGroupLabel)
         addSubview(vStack)
 
         vStack.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 20)
@@ -623,7 +598,7 @@ class GroupsListHeaderView: UIView {
         vStackBottomConstraint.isActive = true
     }
     
-    private lazy var textLabel: UILabel = {
+    private lazy var createGroupLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 17)
         label.textColor = .systemBlue
@@ -638,13 +613,21 @@ class GroupsListHeaderView: UIView {
     }()
 
     private let vStack: UIStackView = {
-        let vStack = UIStackView()
-        vStack.translatesAutoresizingMaskIntoConstraints = false
-        vStack.axis = .vertical
-        return vStack
+        let view = UIStackView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.axis = .vertical
+        return view
     }()
 
     @objc func openNewGroupView (_ sender: UITapGestureRecognizer) {
         self.delegate?.groupsListHeaderView(self)
+    }
+}
+
+private class HAUISearchController: UISearchController {
+    override func viewWillDisappear(_ animated: Bool) {
+        // to avoid black screen when switching tabs while searching
+        isActive = false
+        dismiss(animated: false, completion: nil)
     }
 }

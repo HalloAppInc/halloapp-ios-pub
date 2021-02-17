@@ -10,6 +10,10 @@ import UIKit
 
 extension UIColor {
 
+    class var primaryBg: UIColor {
+        UIColor(named: "PrimaryBg")!
+    }
+    
     class var primaryBlue: UIColor {
         UIColor(named: "PrimaryBlue")!
     }
@@ -38,6 +42,10 @@ extension UIColor {
         UIColor(named: "SearchBarBg")!
     }
     
+    class var tabBar: UIColor {
+        UIColor(named: "TabBar")!
+    }
+    
     class var cameraButton: UIColor {
         UIColor(named: "CameraButton")!
     }
@@ -61,4 +69,5 @@ extension UIColor {
     class var avatarDefaultBg: UIColor {
         UIColor(named: "AvatarDefaultBg")!
     }
+    
 }

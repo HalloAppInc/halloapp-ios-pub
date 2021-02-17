@@ -79,7 +79,11 @@ class ChatData: ObservableObject {
             didChangeUnreadCount.send(unreadMessageCount)
         }
     }
-
+    
+    private let uploadQueue = DispatchQueue(label: "com.halloapp.chat.upload")
+    private var currentlyUploadingDict: [String:String] = [:]
+    private let maxNumUploads: Int = 3
+    
     private let downloadQueue = DispatchQueue(label: "com.halloapp.chat.download", qos: .userInitiated)
     private let maxNumDownloads: Int = 3
     private var currentlyDownloading: [URL] = []
@@ -743,6 +747,11 @@ class ChatData: ObservableObject {
             guard chatMessage.resendAttempts == 0 else { return }
             guard let serverTimestamp = chatAck.timestamp else { return }
             chatMessage.timestamp = serverTimestamp
+            
+            if let chatMessageId = self.currentlyUploadingDict[chatMessage.fromUserId], chatMessageId == chatMessage.id {
+                self.currentlyUploadingDict.removeValue(forKey: chatMessage.fromUserId)
+            }
+            self.processPendingChatMsgs()
 
         }
 
@@ -1524,8 +1533,7 @@ extension ChatData {
         save(bgContext)
 
         if !isMsgToYourself {
-            let xmppChatMsg = XMPPChatMessage(chatMessage: chatMessage)
-            uploadChatMsgMediaAndSend(xmppChatMsg)
+            processPendingChatMsgs()
         }
     }
 
@@ -1541,15 +1549,16 @@ extension ChatData {
         }
         
         var numberOfFailedUploads = 0
+        var isMsgStale: Bool = false
         let totalUploads = mediaItemsToUpload.count
-        DDLogInfo("ChatData/upload-media/\(msgID)/starting [\(totalUploads)]")
+        DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/starting [\(totalUploads)]")
 
         let uploadGroup = DispatchGroup()
         for mediaItem in mediaItemsToUpload {
             let mediaIndex = mediaItem.order
             uploadGroup.enter()
             mediaUploader.upload(media: mediaItem, groupId: msgID, didGetURLs: { (mediaURLs) in
-                DDLogInfo("ChatData/upload-media/\(msgID)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
+                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(mediaIndex)/acquired-urls [\(mediaURLs)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateChatMessage(with: msgID) { msg in
@@ -1565,7 +1574,7 @@ extension ChatData {
                     
                 }
             }) { (uploadResult) in
-                DDLogInfo("ChatData/upload-media/\(msgID)/\(mediaIndex)/finished result=[\(uploadResult)]")
+                DDLogInfo("ChatData/uploadChatMsgMediaAndSend/\(msgID)/\(mediaIndex)/finished result=[\(uploadResult)]")
 
                 // Save URLs acquired during upload to the database.
                 self.updateChatMessage(with: msgID, block: { msg in
@@ -1578,24 +1587,32 @@ extension ChatData {
                     case .failure(_):
                         numberOfFailedUploads += 1
                         media.outgoingStatus = .error
+                        media.numTries += 1
+                        
+                        if let msgTimestamp = chatMsg.timestamp, let diff = Calendar.current.dateComponents([.hour], from: msgTimestamp, to: Date()).hour, diff > 24 {
+                            isMsgStale = true
+                        }
                     }
-                    
+
                 }, performAfterSave: {
                     uploadGroup.leave()
                 })
             }
         }
 
-        uploadGroup.notify(queue: .main) { [weak self] in
+        uploadGroup.notify(queue: backgroundProcessingQueue) { [weak self] in
             guard let self = self else { return }
-            DDLogInfo("ChatData/upload-media/\(msgID)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
+            DDLogInfo("ChatData/uploadChatMsgMediaAndSend/finish/\(msgID) failed/total: \(numberOfFailedUploads)/\(totalUploads)")
             if numberOfFailedUploads > 0 {
-                self.updateChatMessage(with: msgID) { msg in
-                    msg.outgoingStatus = .error
+                if isMsgStale {
+                    self.updateChatMessage(with: msgID) { msg in
+                        msg.outgoingStatus = .error
+                    }
                 }
             } else {
                 self.send(message: XMPPChatMessage(chatMessage: chatMsg))
             }
+
         }
     }
 
@@ -2174,23 +2191,29 @@ extension ChatData {
 extension ChatData {
     
     private func processPendingChatMsgs() {
-        performSeriallyOnBackgroundContext { [weak self] (managedObjectContext) in
+        backgroundProcessingQueue.async { [weak self] in
             guard let self = self else { return }
-            let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: managedObjectContext)
+            let pendingOutgoingChatMessages = self.pendingOutgoingChatMessages(in: self.bgContext)
             DDLogInfo("ChatData/processPendingChatMsgs/num: \(pendingOutgoingChatMessages.count)")
 
-            // inject delay between batch sends so that they won't be timestamped the same time,
+            guard let pendingMsg = pendingOutgoingChatMessages.first(where: {
+                guard self.currentlyUploadingDict.count < self.maxNumUploads else { return false }
+                guard self.currentlyUploadingDict[$0.fromUserId] == nil else { return false }
+                return true
+            }) else { return }
+
+            self.currentlyUploadingDict[pendingMsg.fromUserId] = pendingMsg.id
+            
+            let xmppChatMsg = XMPPChatMessage(chatMessage: pendingMsg)
+
+            // inject delay between sends so that they won't be timestamped the same time,
             // which causes display of messages to be in mixed order
-            var timeDelay = 0.0
-            pendingOutgoingChatMessages.forEach {
-                DDLogInfo("ChatData/processPendingChatMsgs/msg \($0.id)")
-                let xmppChatMsg = XMPPChatMessage(chatMessage: $0)
-                self.backgroundProcessingQueue.asyncAfter(deadline: .now() + timeDelay) { [weak self] in
-                    guard let self = self else { return }
-                    self.uploadChatMsgMediaAndSend(xmppChatMsg)
-                }
-                timeDelay += 1.0
+            // will refactor in the future to display messages based on db insertion instead of time
+            self.backgroundProcessingQueue.asyncAfter(deadline: .now() + 1) { [weak self] in
+                guard let self = self else { return }
+                self.uploadChatMsgMediaAndSend(xmppChatMsg)
             }
+
         }
     }
     
@@ -2759,7 +2782,7 @@ extension ChatData {
 
         uploadGroup.notify(queue: .main) { [weak self] in
             guard let self = self else { return }
-            DDLogInfo("ChatData/group/upload-media/\(groupChatMsgID)/all/finished [\(totalUploads-numberOfFailedUploads)/\(totalUploads)]")
+            DDLogInfo("ChatData/group/upload-media/\(groupChatMsgID)/all/finished [\(numberOfFailedUploads)/\(totalUploads)]")
             if numberOfFailedUploads > 0 {
                 self.updateChatGroupMessage(with: groupChatMsgID) { msg in
                     msg.outboundStatus = .error
@@ -3731,6 +3754,17 @@ extension ChatData {
         save(managedObjectContext)
         
         if let chatThread = self.chatThread(type: .group, id: chatGroupMessage.groupId, in: managedObjectContext) {
+            
+            // hack, skip recording the event of an avatar change if the change is done when the group was created,
+            // since server api requires two  separate requests for it now but we want to show only the group creation event
+            // rough check by comparing if the last event was a group creation event and if avatar change happened right after
+            if [.changeAvatar].contains(chatGroupMessageEvent.action),
+                  chatThread.lastFeedId == nil,
+                  let senderName = chatGroupMessageEvent.senderName,
+                  chatThread.lastFeedText == String(format: Localizations.groupEventCreatedGroup, senderName, chatGroupMessageEvent.groupName ?? ""),
+                  let lastFeedTimestamp = chatThread.lastFeedTimestamp,
+                  let diff = Calendar.current.dateComponents([.second], from: lastFeedTimestamp, to: Date()).second,
+                  diff < 3 { return }
             
             // if group feed is not enabled or if the chat already have a message or event
             if !ServerProperties.isGroupFeedEnabled || chatThread.lastMsgId != nil {

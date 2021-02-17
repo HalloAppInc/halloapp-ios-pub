@@ -45,6 +45,7 @@ class SettingsViewController: UITableViewController {
     }
 
     private enum Row {
+        case profile
         case feed
         case archive
         case settings
@@ -56,6 +57,7 @@ class SettingsViewController: UITableViewController {
     }
 
     private var dataSource: UITableViewDiffableDataSource<Section, Row>!
+    private let cellProfile = UITableViewCell()
     private let cellMyPosts = SettingsTableViewCell(text: Localizations.titleMyPosts, image: UIImage(named: "settingsMyPosts"))
     private let cellArchive = SettingsTableViewCell(text: Localizations.archive, image: UIImage(named: "settingsArchive"))
     private let cellSettings = SettingsTableViewCell(text: Localizations.titleSettings, image: UIImage(named: "settingsSettings"))
@@ -68,7 +70,7 @@ class SettingsViewController: UITableViewController {
     // MARK: View Controller
 
     init(title: String) {
-        super.init(style: .grouped)
+        super.init(style: .insetGrouped)
         self.title = title
     }
 
@@ -92,10 +94,12 @@ class SettingsViewController: UITableViewController {
         }
 
         tableView.backgroundColor = .feedBackground
+        tableView.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 10))
 
         dataSource = UITableViewDiffableDataSource<Section, Row>(tableView: tableView, cellProvider: { [weak self] (_, _, row) -> UITableViewCell? in
             guard let self = self else { return nil }
             switch row {
+            case .profile: return self.cellProfile
             case .feed: return self.cellMyPosts
             case .archive: return self.cellArchive
             case .settings: return self.cellSettings
@@ -108,7 +112,7 @@ class SettingsViewController: UITableViewController {
         })
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         snapshot.appendSections([ .one, .two, .three ])
-        snapshot.appendItems([ .feed ], toSection: .one)
+        snapshot.appendItems([ .profile, .feed ], toSection: .one)
         snapshot.appendItems([ .notifications, .privacy ], toSection: .two)
         snapshot.appendItems([ .help, .about, .invite ], toSection: .three)
         dataSource.apply(snapshot, animatingDifferences: false)
@@ -116,17 +120,22 @@ class SettingsViewController: UITableViewController {
         headerViewController = ProfileHeaderViewController()
         headerViewController.isEditingAllowed = true
         headerViewController.configureAsHorizontal()
-        headerViewController.view.layoutMargins.bottom = 32
+        
+        addChild(headerViewController)
+        headerViewController.didMove(toParent: self)
+        
+        cellProfile.contentView.addSubview(headerViewController.view)
+        cellProfile.separatorInset = .zero
+
+        headerViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        headerViewController.view.constrain(to: cellProfile.contentView)
         
         cancellables.insert(MainAppContext.shared.userData.userNamePublisher.sink(receiveValue: { [weak self] (userName) in
             guard let self = self else { return }
             self.headerViewController.configureForCurrentUser(withName: userName)
             self.viewIfLoaded?.setNeedsLayout()
         }))
-        tableView.tableHeaderView = headerViewController.view
-        tableView.contentInset.top = 10
-        addChild(headerViewController)
-        headerViewController.didMove(toParent: self)
+        
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -159,6 +168,8 @@ class SettingsViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let row = dataSource.itemIdentifier(for: indexPath) else { return }
         switch row {
+        case .profile:
+            break
         case .feed:
             openMyFeed()
         case .archive:

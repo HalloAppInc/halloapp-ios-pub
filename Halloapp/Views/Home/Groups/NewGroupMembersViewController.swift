@@ -34,7 +34,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     private var filteredContacts: [ABContact] = []
     
     private var trackedContacts: [String:TrackedContact] = [:]
-
+    
     private var selectedMembers: [UserID] = [] {
         didSet {
             if selectedMembers.count == 0 {
@@ -60,17 +60,18 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         DDLogInfo("NewGroupMembersViewController/viewDidLoad")
 
         if alreadyHaveMembers {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", style: .plain, target: self, action: #selector(addAction))
+            navigationItem.title = Localizations.selectGroupMembersTitle
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Add", style: .done, target: self, action: #selector(addAction))
         } else {
+            navigationItem.title = Localizations.selectGroupMembersCreateGroupTitle
             navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(named: "NavbarClose"), style: .plain, target: self, action: #selector(cancelAction))
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext, style: .plain, target: self, action: #selector(nextAction))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: Localizations.buttonNext, style: .done, target: self, action: #selector(nextAction))
         }
+        
         navigationItem.rightBarButtonItem?.tintColor = UIColor.systemBlue
         navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
         
-        navigationItem.title = Localizations.chatSelectGroupMembersTitle
-
-        tableView.backgroundColor = .feedBackground
+        tableView.backgroundColor = .primaryBg
         tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: cellReuseIdentifier)
         
         searchController = UISearchController(searchResultsController: nil)
@@ -86,11 +87,16 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         tableView.tableHeaderView = nil
 
         view.addSubview(mainView)
-        view.backgroundColor = UIColor.feedBackground
+        view.backgroundColor = UIColor.primaryBg
+        
         mainView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         mainView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         mainView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        
+        let keyWindow = UIApplication.shared.windows.filter({$0.isKeyWindow}).first
+
+        let safeAreaInsetBottom = (keyWindow?.safeAreaInsets.bottom ?? 0) + 10
+        mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: safeAreaInsetBottom).isActive = true
         
         setupFetchedResultsController()
     }
@@ -118,7 +124,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         view.isLayoutMarginsRelativeArrangement = true
         
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        view.heightAnchor.constraint(equalToConstant: 120).isActive = true
         
         let subView = UIView(frame: view.bounds)
         subView.layer.masksToBounds = true
@@ -184,6 +190,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     
     @objc private func nextAction() {
         let controller = CreateGroupViewController(selectedMembers: selectedMembers)
+        controller.isModalInPresentation = true
         controller.delegate = self
         navigationController?.pushViewController(controller, animated: true)
     }
@@ -192,7 +199,6 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         navigationController?.popViewController(animated: true)
         delegate?.newGroupMembersViewController(self, selected: selectedMembers)
     }
-    
     
     // MARK: Customization
 
@@ -338,7 +344,7 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
             if let userId = abContact.userId {
                 cell.configure(with: abContact)
                 let isSelected = selectedMembers.contains(userId)
-                cell.setContact(selected: isSelected, animated: true)
+                cell.setContact(selected: isSelected, animated: false) // animation flickers if true due to too many reloads
             }
         }
         return cell
@@ -357,9 +363,9 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         }
         
         guard let userId = contact?.userId else { return 0 }
-        if currentMembers.contains(userId) {
-            return 0
-        }
+//        if currentMembers.contains(userId) {
+//            return 0
+//        }
         
         return UITableView.automaticDimension
     }
@@ -378,7 +384,11 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         
         guard let userId = contact?.userId else { return }
         if currentMembers.contains(userId) {
-            cell.isHidden = true
+            if let cell2 = cell as? ContactTableViewCell {
+                cell2.setContact(selected: true, animated: true)
+                cell2.isUserInteractionEnabled = false
+            }
+            
         }
     }
 
@@ -392,20 +402,20 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         } else {
             abContact = fetchedResultsController?.object(at: indexPath)
         }
-        
+
         guard let contact = abContact else { return }
-        
+
         var isSelected = false
         guard let userId = contact.userId else { return }
         if !selectedMembers.contains(userId) {
-            
+
             guard selectedMembers.count + currentMembers.count < ServerProperties.maxGroupSize else {
                 let alert = UIAlertController(title: "", message: "The max group size is \(ServerProperties.maxGroupSize)", preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
                 self.present(alert, animated: true)
                 return
             }
-            
+
             selectedMembers.append(userId)
             groupMemberAvatars.insert(with: [userId])
             isSelected = true
@@ -416,9 +426,6 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         cell.setContact(selected: isSelected, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
         navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
-
-        searchController.isActive = false
-        searchController.searchBar.text = ""
     }
 }
 
@@ -483,6 +490,7 @@ private extension ContactTableViewCell {
 
     func configure(with abContact: ABContact) {
         options.insert(.hasCheckmark)
+        options.insert(.useBlueCheckmark)
 
         nameLabel.text = abContact.fullName
         subtitleLabel.text = abContact.phoneNumber
@@ -496,8 +504,12 @@ private extension ContactTableViewCell {
 
 private extension Localizations {
     
-    static var chatSelectGroupMembersTitle: String {
-        NSLocalizedString("chat.select.group.members.title", value: "Create New Group", comment: "Title of screen where user chooses members to add to either a new group or an existing one")
+    static var selectGroupMembersCreateGroupTitle: String {
+        NSLocalizedString("select.group.members.create.group.title", value: "Create New Group", comment: "Title of screen where user chooses members to add to either a new group or an existing one")
+    }
+    
+    static var selectGroupMembersTitle: String {
+        NSLocalizedString("select.group.members.title", value: "Add New Members", comment: "Title of screen where user chooses members to add to either a new group or an existing one")
     }
     
 }

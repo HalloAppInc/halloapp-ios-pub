@@ -18,6 +18,7 @@ class SettingsTableViewCell: UITableViewCell {
             imageView?.image = image
             imageView?.tintColor = .lavaOrange
         }
+        separatorInset = .zero
     }
 
     required init?(coder: NSCoder) {

@@ -65,6 +65,14 @@ class ChatInputView: UIView, UITextViewDelegate, ContainerViewDelegate, MsgUIPro
 
     func didAppear(in viewController: UIViewController) {
         isVisible = true
+        
+        // fix for intermittent keyboard not showing up,
+        // dispatch to fix issue prior to iOS 14.4 where manual swipe back gets keyboard
+        // floating in the air when it's opened
+        // should revisit/refactor keyboard logic eventually
+        DispatchQueue.main.async {
+            viewController.becomeFirstResponder()
+        }
     }
 
     func willDisappear(in viewController: UIViewController) {

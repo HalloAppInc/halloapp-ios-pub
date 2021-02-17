@@ -32,11 +32,18 @@ class HomeViewController: UITabBarController {
     }
 
     private func commonSetup() {
-        
         self.delegate = self
         
+        // Set background color for navigation bar and search bar system-wide.
+        UINavigationBar.appearance().standardAppearance = .opaqueAppearance
+        // Setting background color through appearance proxy seems to be the only way
+        // to modify navigation bar in SwiftUI's NavigationView.
+        UINavigationBar.appearance().backgroundColor = .primaryBg
+        UISearchBar.appearance().backgroundColor = .primaryBg
+        
         // need to set UITabBarItem in addition to appearance as the very first load does not respect appearance (for font)
-        let fontAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 10.0, weight: .semibold)]
+        let fontAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 10.0, weight: .semibold),
+                              NSAttributedString.Key.foregroundColor: UIColor.tabBar]
         UITabBarItem.appearance().setTitleTextAttributes(fontAttributes, for: .normal)
         
         let appearance = UITabBarAppearance()
@@ -46,6 +53,8 @@ class HomeViewController: UITabBarController {
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = fontAttributes
         tabBar.standardAppearance = appearance
 
+        tabBar.tintColor = .primaryBlue
+        
         updateTabBarBackgroundEffect()
 
         if ServerProperties.isGroupFeedEnabled {
@@ -62,15 +71,6 @@ class HomeViewController: UITabBarController {
                 profileNavigationController()
             ]
         }
-        
-        tabBar.tintColor = .primaryBlue
-
-        // Set background color for navigation bar and search bar system-wide.
-        UINavigationBar.appearance().standardAppearance = .opaqueAppearance
-        // Setting background color through appearance proxy seems to be the only way
-        // to modify navigation bar in SwiftUI's NavigationView.
-        UINavigationBar.appearance().backgroundColor = .feedBackground
-        UISearchBar.appearance().backgroundColor = .feedBackground
         
         cancellableSet.insert(
             MainAppContext.shared.feedData.didFindUnreadFeed.sink { [weak self] (count) in
@@ -162,7 +162,7 @@ class HomeViewController: UITabBarController {
 
     private func feedNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: FeedViewController(title: Localizations.titleHome))
-        navigationController.tabBarItem.image = UIImage(named: "TabBarHome")
+        navigationController.tabBarItem.image = UIImage(named: "TabBarHome")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarHomeActive")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
@@ -170,15 +170,15 @@ class HomeViewController: UITabBarController {
 
     private func groupsNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: GroupsListViewController(title: Localizations.titleGroups))
+        navigationController.tabBarItem.image = UIImage(named: "TabBarGroups")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarGroupsActive")
-        navigationController.tabBarItem.image = UIImage(named: "TabBarGroups")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
     }
     
     private func chatsNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: ChatListViewController(title: Localizations.titleChats))
-        navigationController.tabBarItem.image = UIImage(named: "TabBarChats")
+        navigationController.tabBarItem.image = UIImage(named: "TabBarChats")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarChatsActive")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController
@@ -186,7 +186,7 @@ class HomeViewController: UITabBarController {
     
     private func profileNavigationController() -> UINavigationController {
         let navigationController = UINavigationController(rootViewController: SettingsViewController(title: Localizations.titleSettings))
-        navigationController.tabBarItem.image = UIImage(named: "TabBarSettings")
+        navigationController.tabBarItem.image = UIImage(named: "TabBarSettings")?.withTintColor(.tabBar, renderingMode: .alwaysOriginal)
         navigationController.tabBarItem.selectedImage = UIImage(named: "TabBarSettingsActive")
         navigationController.tabBarItem.imageInsets = HomeViewController.tabBarItemImageInsets
         return navigationController

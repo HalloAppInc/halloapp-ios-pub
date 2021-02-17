@@ -492,12 +492,19 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             }
         }
                 
+
         // time and status
         if let timestamp = timestamp {
             let result = NSMutableAttributedString(string: timestamp.chatTimestamp())
     
             if let icon = statusIcon {
+                let imageSize = icon.size
+                let font = UIFont.systemFont(ofSize: timeAndStatusLabel.font.pointSize - 1)
+                
+                let scale = font.capHeight / imageSize.height
                 let iconAttachment = NSTextAttachment(image: icon)
+                iconAttachment.bounds.size = CGSize(width: ceil(imageSize.width * scale), height: ceil(imageSize.height * scale))
+                
                 result.append(NSAttributedString(string: "  "))
                 result.append(NSAttributedString(attachment: iconAttachment))
             }
@@ -560,17 +567,21 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
     
     func statusIcon(_ status: ChatMessage.OutgoingStatus) -> UIImage? {
         switch status {
+        case .pending: return UIImage(named: "CheckmarkSingle")?.withTintColor(.clear)
         case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray3)
         case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray3)
         case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
+//        case .error: return UIImage(systemName: "arrow.counterclockwise.circle")?.withTintColor(.systemRed)
         default: return nil }
     }
     
     func statusIcon(_ status: ChatGroupMessage.OutboundStatus) -> UIImage? {
         switch status {
+        case .pending: return UIImage(named: "CheckmarkSingle")?.withTintColor(.clear)
         case .sentOut: return UIImage(named: "CheckmarkSingle")?.withTintColor(.systemGray3)
         case .delivered: return UIImage(named: "CheckmarkDouble")?.withTintColor(.systemGray3)
         case .seen: return UIImage(named: "CheckmarkDouble")?.withTintColor(.chatOwnMsg)
+//        case .error: return UIImage(systemName: "arrow.counterclockwise.circle")?.withTintColor(.systemRed)
         default: return nil }
     }
     

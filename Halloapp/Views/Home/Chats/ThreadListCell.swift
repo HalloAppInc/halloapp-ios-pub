@@ -104,8 +104,9 @@ class ThreadListCell: UITableViewCell {
 
         if let messageStatusIcon = messageStatusIcon {
             let imageSize = messageStatusIcon.size
-            let scale = Constants.LastMsgFont.capHeight / imageSize.height
-
+            let font = UIFont.systemFont(ofSize: Constants.LastMsgFont.pointSize - 1)
+            
+            let scale = font.capHeight / imageSize.height
             let iconAttachment = NSTextAttachment(image: messageStatusIcon)
             iconAttachment.bounds.size = CGSize(width: ceil(imageSize.width * scale), height: ceil(imageSize.height * scale))
 

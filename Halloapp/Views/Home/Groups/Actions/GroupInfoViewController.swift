@@ -549,23 +549,23 @@ class GroupInfoHeaderView: UIView {
     }()
     
     private lazy var photoIcon: UIImageView = {
-        let icon = UIImageView()
+        let view = UIImageView()
         let image = UIImage(named: "ProfileHeaderCamera")
-        icon.image = image?.imageResized(to: CGSize(width: 20, height: 20)).withRenderingMode(.alwaysTemplate)
+        view.image = image?.imageResized(to: CGSize(width: 20, height: 20)).withRenderingMode(.alwaysTemplate)
         
-        icon.contentMode = .center
-        icon.tintColor = UIColor.secondarySystemGroupedBackground
-        icon.backgroundColor = UIColor.systemBlue
-        icon.layer.masksToBounds = false
-        icon.layer.cornerRadius = Constants.PhotoIconSize/2
-        icon.clipsToBounds = true
-        icon.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
+        view.contentMode = .center
+        view.tintColor = UIColor.secondarySystemGroupedBackground
+        view.backgroundColor = UIColor.systemBlue
+        view.layer.masksToBounds = false
+        view.layer.cornerRadius = Constants.PhotoIconSize/2
+        view.clipsToBounds = true
+        view.autoresizingMask = [.flexibleLeftMargin, .flexibleBottomMargin]
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(groupAvatarAction(_:)))
-        icon.isUserInteractionEnabled = true
-        icon.addGestureRecognizer(tapGesture)
+        view.isUserInteractionEnabled = true
+        view.addGestureRecognizer(tapGesture)
         
-        return icon
+        return view
     }()
 
     
