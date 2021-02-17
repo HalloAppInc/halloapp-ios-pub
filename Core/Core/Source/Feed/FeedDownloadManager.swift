@@ -219,6 +219,8 @@ public class FeedDownloadManager {
             - Only after verifying both the hash and hmac we now read the file again to do streaming decryption.
             - we decrypt the file in chunks and the decrypted chunks are also written to file after that.
             - after writing all the chunks to the file, we then close and log success and return.
+         // FileHandle.readData has some issue with releasing memory when calling repeatedly inside a loop.
+         // reference: https://forums.swift.org/t/why-is-this-apparently-leaking-memory/34612
          */
         guard let encryptedFilePath = task.encryptedFilePath else {
             self.taskFailed(task)
@@ -266,8 +268,10 @@ public class FeedDownloadManager {
             while (curEncryptedDataChunk.count == chunkSize) {
                 try mediaChunkCrypter.hashUpdate(input: curEncryptedDataChunk)
                 try mediaChunkCrypter.hmacUpdate(input: prevEncryptedDataChunk)
-                prevEncryptedDataChunk = curEncryptedDataChunk
-                curEncryptedDataChunk = encryptedFileHandle.readData(ofLength: chunkSize)
+                autoreleasepool {
+                    prevEncryptedDataChunk = curEncryptedDataChunk
+                    curEncryptedDataChunk = encryptedFileHandle.readData(ofLength: chunkSize)
+                }
                 fileSize += curEncryptedDataChunk.count
             }
             DDLogInfo("FeedDownloadManager/\(task.id)/verifyHash/wip fileSize=[\(fileSize)]")
@@ -335,8 +339,10 @@ public class FeedDownloadManager {
 
             while (curEncryptedDataChunk.count == chunkSize) {
                 decryptedDataChunk = try mediaChunkCrypter.decryptUpdate(dataChunk: prevEncryptedDataChunk)
-                prevEncryptedDataChunk = curEncryptedDataChunk
-                curEncryptedDataChunk = encryptedFileHandle.readData(ofLength: chunkSize)
+                autoreleasepool {
+                    prevEncryptedDataChunk = curEncryptedDataChunk
+                    curEncryptedDataChunk = encryptedFileHandle.readData(ofLength: chunkSize)
+                }
                 decryptedFileHandle.write(decryptedDataChunk)
             }
 
