@@ -46,7 +46,7 @@ class MediaPickerSnapshotManager {
     func reset(with assets: PHFetchResult<PHAsset>) {
         snapshot.deleteAllItems()
         snapshot.appendSections([0])
-        
+
         self.assets = assets
         
         nextIndex = 0
@@ -62,7 +62,8 @@ class MediaPickerSnapshotManager {
         guard let assets = assets else { return nil }
         guard let details = change.changeDetails(for: assets) else { return nil }
 
-        let limit = nextIndex
+        // try keeping at least as many elements in the snapshot as there are now, to avoid scroll jumping
+        let limit = max(nextIndex, pageSize)
         reset(with: details.fetchResultAfterChanges)
 
         return next(limit: limit)

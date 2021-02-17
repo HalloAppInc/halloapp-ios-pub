@@ -238,6 +238,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
         bubble.layer.shadowOpacity = 0.25
         bubble.layer.shadowRadius = 4
         bubble.layer.shadowOffset = .init(width: 0, height: 4)
+        bubble.isHidden = true
         view.addSubview(bubble)
 
         let close = UIButton(type: .system)
