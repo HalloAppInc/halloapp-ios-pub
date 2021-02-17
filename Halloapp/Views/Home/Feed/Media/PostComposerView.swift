@@ -108,6 +108,9 @@ class PostComposerViewController: UIViewController {
     let closeIcon = UIImage(named: "NavbarClose")
     var imageServer: ImageServer?
 
+    private var isPosting = false
+    private var isReadyToShare = false
+
     private let mediaItems = ObservableMediaItems()
     private var inputToPost: GenericObservable<MentionInput>
     private var recipientName: String?
@@ -175,7 +178,10 @@ class PostComposerViewController: UIViewController {
                 self.present(editController, animated: true)
             },
             goBack: { [weak self] in self?.backAction() },
-            setShareVisibility: { [weak self] visibility in self?.setShareVisibility(visibility) }
+            setReadyToShare: { [weak self] isReady in
+                self?.isReadyToShare = isReady
+                self?.updateShareButton()
+            }
         )
 
         let postComposerViewController = UIHostingController(rootView: postComposerView)
@@ -257,6 +263,8 @@ class PostComposerViewController: UIViewController {
     }
 
     @objc private func shareAction() {
+        isPosting = true
+        updateShareButton()
         let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
         delegate?.composerShareAction(controller: self, mentionText: mentionText, media: mediaItems.value)
         inputToPost.value.text = ""
@@ -270,8 +278,8 @@ class PostComposerViewController: UIViewController {
         delegate?.composerDidFinish(controller: self, media: self.mediaItems.value, isBackAction: true)
     }
 
-    private func setShareVisibility(_ visibility: Bool) {
-        navigationItem.rightBarButtonItem?.isEnabled = visibility
+    private func updateShareButton() {
+        navigationItem.rightBarButtonItem?.isEnabled = isReadyToShare && !isPosting
     }
 }
 
@@ -365,11 +373,12 @@ fileprivate struct PostComposerView: View {
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
+    @ObservedObject private var isPosting = GenericObservable<Bool>(false)
     private let mentionableUsers: [MentionableUser]
     private let prepareImages: (Binding<Bool>, Binding<Bool>, Binding<Int>) -> Void
     private let crop: (GenericObservable<Int>) -> Void
     private let goBack: () -> Void
-    private let setShareVisibility: (Bool) -> Void
+    private let setReadyToShare: (Bool) -> Void
 
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject private var mediaState = ObservableMediaState()
@@ -402,7 +411,7 @@ fileprivate struct PostComposerView: View {
         .removeDuplicates()
         .eraseToAnyPublisher()
 
-    private var shareVisibilityPublisher: AnyPublisher<Bool, Never>!
+    private var readyToSharePublisher: AnyPublisher<Bool, Never>!
     private var pageChangedPublisher: AnyPublisher<Bool, Never>!
     private var postTextComputedHeightPublisher: AnyPublisher<CGFloat, Never>!
 
@@ -431,7 +440,7 @@ fileprivate struct PostComposerView: View {
         prepareImages: @escaping (Binding<Bool>, Binding<Bool>, Binding<Int>) -> Void,
         crop: @escaping (GenericObservable<Int>) -> Void,
         goBack: @escaping () -> Void,
-        setShareVisibility: @escaping (Bool) -> Void)
+        setReadyToShare: @escaping (Bool) -> Void)
     {
         self.mediaItems = mediaItems
         self.inputToPost = inputToPost
@@ -443,9 +452,9 @@ fileprivate struct PostComposerView: View {
         self.prepareImages = prepareImages
         self.crop = crop
         self.goBack = goBack
-        self.setShareVisibility = setShareVisibility
+        self.setReadyToShare = setReadyToShare
 
-        shareVisibilityPublisher =
+        readyToSharePublisher =
             Publishers.CombineLatest4(
                 self.mediaItems.$value,
                 self.mediaState.$isReady,
@@ -617,7 +626,7 @@ fileprivate struct PostComposerView: View {
                                     self.mediaState.isReady = true
                                 }
                             }
-                            .onReceive(self.shareVisibilityPublisher) { self.setShareVisibility($0) }
+                            .onReceive(self.readyToSharePublisher) { self.setReadyToShare($0) }
                             .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
                             .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
                             .onReceive(self.postTextComputedHeightPublisher) { self.postTextComputedHeight.value = $0 }
