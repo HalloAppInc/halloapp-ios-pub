@@ -74,8 +74,9 @@ class CameraViewController: UIViewController {
         super.viewDidLoad()
 
         setupBarButtons()
-        setTitle(orientation: UIDevice.current.orientation)
-        setBackBarButton(orientation: UIDevice.current.orientation)
+        let initialOrientation = UIDevice.current.orientation.isValidInterfaceOrientation ? UIDevice.current.orientation : .portrait
+        setTitle(orientation: initialOrientation)
+        setBackBarButton(orientation: initialOrientation)
 
         let cameraView = CameraView(
             didPickImage: didPickImage,
@@ -130,7 +131,7 @@ class CameraViewController: UIViewController {
     private func setTitle(orientation: UIDeviceOrientation) {
         if orientation.isLandscape || orientation == .portraitUpsideDown {
             navigationItem.title = nil
-        } else {
+        } else if orientation == .portrait {
             navigationItem.title = NSLocalizedString("title.camera", value: "Camera", comment: "Screen title")
         }
     }
@@ -143,7 +144,7 @@ class CameraViewController: UIViewController {
             if orientation.isLandscape {
                 navigationItem.leftBarButtonItem = nil
                 navigationItem.rightBarButtonItem = landscapeBackButton
-            } else {
+            } else if orientation.isPortrait {
                 navigationItem.leftBarButtonItem = defaultBackButton
                 navigationItem.rightBarButtonItem = nil
             }
@@ -166,6 +167,7 @@ fileprivate struct CameraView: View {
     @ObservedObject var alertState = AlertStateModel()
     @State var captureButtonColor = Color.cameraButton
     @State var captureIsPressed = false
+    @State var rotationAngle = Angle(degrees: 0)
 
     private let plainButtonStyle = PlainButtonStyle()
     private let orientationPublisher = NotificationCenter.default
@@ -177,21 +179,19 @@ fileprivate struct CameraView: View {
         return ((width - 4 * CameraViewLayoutConstants.horizontalPadding) * 4 / 3).rounded()
     }
 
-    private static func getIconRotation(_ orientation: UIDeviceOrientation) -> Angle {
-        var degrees: Double = 0
+    private func updateRotationAngle(orientation: UIDeviceOrientation) {
         switch orientation {
         case .portrait:
-            degrees = 0
+            rotationAngle = Angle(degrees: 0)
         case .landscapeLeft:
-            degrees = 90
+            rotationAngle = Angle(degrees: 90)
         case .portraitUpsideDown:
-            degrees = 180
+            rotationAngle = Angle(degrees: 180)
         case .landscapeRight:
-            degrees = 270
+            rotationAngle = Angle(degrees: 270)
         default:
-            degrees = 0
+            break // Retain the previous rotation angle
         }
-        return Angle(degrees: degrees)
     }
 
     var controls: some View {
@@ -201,11 +201,11 @@ fileprivate struct CameraView: View {
                 if cameraState.shouldUseFlashlight {
                     Image("CameraFlashOn")
                         .foregroundColor(.cameraButton)
-                        .rotationEffect(CameraView.getIconRotation(cameraState.orientation))
+                        .rotationEffect(rotationAngle)
                 } else {
                     Image("CameraFlashOff")
                         .foregroundColor(.cameraButton)
-                        .rotationEffect(CameraView.getIconRotation(cameraState.orientation))
+                        .rotationEffect(rotationAngle)
                 }
             }
             Spacer()
@@ -228,7 +228,7 @@ fileprivate struct CameraView: View {
             Button(action: self.flipCamera) {
                 Image("CameraFlip")
                     .foregroundColor(.cameraButton)
-                    .rotationEffect(CameraView.getIconRotation(cameraState.orientation))
+                    .rotationEffect(rotationAngle)
             }
             Spacer()
         }
@@ -269,6 +269,7 @@ fileprivate struct CameraView: View {
             .onReceive(self.orientationPublisher) { orientation in
                 self.cameraState.orientation = orientation
                 self.onOrientationChange(orientation)
+                self.updateRotationAngle(orientation: orientation)
             }
         }
     }
