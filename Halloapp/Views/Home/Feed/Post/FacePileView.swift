@@ -56,7 +56,7 @@ class FacePileView: UIControl {
 
     func configure(with post: FeedPost) {
         let seenReceipts = MainAppContext.shared.feedData.seenReceipts(for: post)
-        let usersToShow = seenReceipts.suffix(numberOfFaces).map { $0.userId }.reversed()
+        let usersToShow = seenReceipts.prefix(numberOfFaces).map { $0.userId }.reversed()
         let avatarsToShow = usersToShow.map { MainAppContext.shared.avatarStore.userAvatar(forUserId: $0) }
 
         if !avatarsToShow.isEmpty {
