@@ -587,8 +587,6 @@ fileprivate struct PostComposerView: View {
                                     ZStack(alignment: .bottom) {
                                         MediaPreviewSlider(
                                             mediaItems: self.mediaItemsBinding,
-                                            mediaIsReady: self.mediaIsReadyBinding,
-                                            numberOfFailedItems: self.numberOfFailedItemsBinding,
                                             shouldAutoPlay: self.shouldAutoPlayBinding,
                                             currentPosition: self.currentPosition)
                                         .frame(height: self.getMediaSliderHeight(width: scrollGeometry.size.width), alignment: .center)
@@ -867,12 +865,10 @@ fileprivate struct TextView: UIViewRepresentable {
 
 fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     @Binding var mediaItems: [PendingMedia]
-    @Binding var mediaIsReady: Bool
-    @Binding var numberOfFailedItems: Int
     @Binding var shouldAutoPlay: Bool
     var currentPosition: GenericObservable<Int>
 
-    var feedMediaItems: [FeedMedia] {
+    private var feedMediaItems: [FeedMedia] {
         mediaItems.map { FeedMedia($0, feedPostId: "") }
     }
 
@@ -889,7 +885,28 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     func updateUIView(_ uiView: MediaCarouselView, context: Context) {
         DDLogInfo("MediaPreviewSlider/updateUIView")
         uiView.shouldAutoPlay = shouldAutoPlay
-        uiView.refreshData(media: feedMediaItems, index: currentPosition.value)
+
+        let newFeedMedia = feedMediaItems
+        let previousFeedMedia = uiView.media
+        var needRefresh = false
+        if newFeedMedia.count != previousFeedMedia.count {
+            needRefresh = true
+        } else {
+            for (index, newFeedItem) in newFeedMedia.enumerated() {
+                let previousFeedItem = previousFeedMedia[index]
+                if newFeedItem.id != previousFeedItem.id ||
+                    newFeedItem.type != previousFeedItem.type ||
+                    newFeedItem.order != previousFeedItem.order ||
+                    newFeedItem.size.width * previousFeedItem.size.height != newFeedItem.size.height * previousFeedItem.size.width {
+                    needRefresh = true
+                    break
+                }
+            }
+        }
+        if needRefresh {
+            DDLogInfo("MediaPreviewSlider/updateUIView uiView.refreshData")
+            uiView.refreshData(media: newFeedMedia, index: currentPosition.value)
+        }
     }
 
     func makeCoordinator() -> Coordinator {

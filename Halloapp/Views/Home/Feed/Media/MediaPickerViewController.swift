@@ -607,6 +607,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                 let media = PendingMedia(type: .video)
                 media.order = 1
                 media.videoURL = url
+                media.originalVideoURL = url
 
                 if let size = VideoUtils.resolutionForLocalVideo(url: url) {
                     media.size = size
@@ -670,6 +671,7 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                         guard let video = avasset as? AVURLAsset else { return }
 
                         media.videoURL = video.url
+                        media.originalVideoURL = video.url
 
                         if let url = media.videoURL, let size = VideoUtils.resolutionForLocalVideo(url: url) {
                             media.size = size

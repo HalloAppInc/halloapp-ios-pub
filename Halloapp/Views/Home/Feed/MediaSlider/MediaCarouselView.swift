@@ -18,6 +18,11 @@ protocol MediaCarouselViewDelegate: AnyObject {
     func mediaCarouselView(_ view: MediaCarouselView, didZoomMediaAtIndex index: Int, withScale scale: CGFloat)
 }
 
+struct VideoPlaybackInfo {
+    var playbackTime: CMTime
+    var videoURL: URL
+}
+
 struct MediaCarouselViewConfiguration {
     var isPagingEnabled = true
     var isZoomEnabled = true
@@ -61,7 +66,8 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
 
     private let feedDataItem: FeedDataItem?
 
-    private var media: [FeedMedia]
+    private(set) var media: [FeedMedia]
+    private var playbackInfo: VideoPlaybackInfo? = nil
     public var shouldAutoPlay = false
 
     private var collectionBottomConstraint: NSLayoutConstraint!
@@ -213,19 +219,29 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
                 case .video: return Self.cellReuseIdentifierVideo
                 }
             }()
-            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as? MediaCarouselCollectionViewCell {
-                cell.apply(configuration: self.configuration)
-                cell.configure(with: feedMedia)
-                if self.shouldAutoPlay,
-                    indexPath.item == self.currentIndex,
-                    let videoCell = cell as? MediaCarouselVideoCollectionViewCell
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as?
+                MediaCarouselCollectionViewCell {
+                if indexPath.item == self.currentIndex,
+                   let videoCell = cell as? MediaCarouselVideoCollectionViewCell
                 {
-                    videoCell.startPlayback()
+                    videoCell.apply(configuration: self.configuration)
+                    if let playbackInfo = self.playbackInfo, playbackInfo.videoURL == feedMedia.fileURL {
+                        videoCell.setInitialPlaybackTime(time: playbackInfo.playbackTime)
+                    }
+                    self.playbackInfo = nil
+                    videoCell.configure(with: feedMedia)
+                    if self.shouldAutoPlay {
+                        videoCell.startPlayback()
+                    }
+                } else {
+                    cell.apply(configuration: self.configuration)
+                    cell.configure(with: feedMedia)
                 }
                 return cell
             }
             return MediaCarouselCollectionViewCell()
         }
+
         var snapshot = NSDiffableDataSourceSnapshot<MediaSliderSection, FeedMedia>()
         snapshot.appendSections([.main])
         if collectionView.effectiveUserInterfaceLayoutDirection == .rightToLeft {
@@ -282,7 +298,10 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
     }
 
     public func refreshData(media: [FeedMedia], index: Int) {
+        guard let dataSource = dataSource else { return }
+
         stopPlayback()
+        playbackInfo = getCurrentPlaybackInfo()
 
         var snapshot = NSDiffableDataSourceSnapshot<MediaSliderSection, FeedMedia>()
         snapshot.appendSections([.main])
@@ -292,9 +311,9 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             snapshot.appendItems(media)
         }
 
-        dataSource?.apply(snapshot, animatingDifferences: false)
-
+        dataSource.apply(snapshot, animatingDifferences: false)
         self.media = media
+
         updatePageControl()
 
         let newIndex = max(0, min(index, self.media.count - 1))
@@ -360,6 +379,13 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         if let videoCell = collectionView.cellForItem(at: IndexPath(row: currentIndex, section: MediaSliderSection.main.rawValue)) as? MediaCarouselVideoCollectionViewCell {
             videoCell.startPlayback()
         }
+    }
+
+    func getCurrentPlaybackInfo() -> VideoPlaybackInfo? {
+        if let videoCell = collectionView.cellForItem(at: IndexPath(row: currentIndex, section: MediaSliderSection.main.rawValue)) as? MediaCarouselVideoCollectionViewCell, let videoURL = videoCell.videoURL {
+            return VideoPlaybackInfo(playbackTime: videoCell.getCurrentPlaybackTime(), videoURL: videoURL)
+        }
+        return nil
     }
 
     // MARK: UICollectionViewDelegate
@@ -620,9 +646,10 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private var placeholderImageView: UIImageView!
-    private var videoURL: URL?
+    private(set) var videoURL: URL?
     private var avPlayerViewController: AVPlayerViewController!
     private var playButton: UIButton!
+    private var initialPlaybackTime: CMTime = .zero
 
     private var videoLoadingCancellable: AnyCancellable?
     private var videoPlaybackCancellable: AnyCancellable?
@@ -655,11 +682,13 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     }
 
     private static let videoDidStartPlaying = PassthroughSubject<URL, Never>()
+    private static var videoURLToAutoplay: URL? = nil
 
     override func prepareForReuse() {
         super.prepareForReuse()
 
         videoURL = nil
+        initialPlaybackTime = .zero
 
         videoLoadingCancellable?.cancel()
         videoLoadingCancellable = nil
@@ -789,6 +818,12 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
                 if self.showsVideoPlaybackControls {
                     self.playButton.isHidden = false
                 }
+                if let videoURLToAutoplay = Self.videoURLToAutoplay {
+                    if videoURLToAutoplay == videoURL {
+                        Self.videoURLToAutoplay = nil
+                        self.startPlayback()
+                    }
+                }
             }
         })
 
@@ -812,21 +847,36 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         placeholderImageView.isHidden = false
     }
 
+    func getCurrentPlaybackTime() -> CMTime {
+        return avPlayerViewController.player?.currentTime() ?? .zero
+    }
+
+    func setInitialPlaybackTime(time: CMTime) {
+        initialPlaybackTime = time
+    }
+
     func stopPlayback() {
+        if Self.videoURLToAutoplay == videoURL {
+            Self.videoURLToAutoplay = nil
+        }
         avPlayerViewController.player?.pause()
     }
 
     @objc func startPlayback() {
         guard !disablePlayback else { return }
 
+        Self.videoURLToAutoplay = avPlayerViewController.player == nil ? videoURL : nil
         if avPlayerViewController.player?.timeControlStatus == AVPlayer.TimeControlStatus.paused {
             if showsVideoPlaybackControls {
                 playButton.isHidden = true
             }
 
             if let player = avPlayerViewController.player {
-                if player.currentTime() == player.currentItem?.duration {
-                    player.seek(to: .zero)
+                if player.currentTime() == player.currentItem?.duration ||
+                    (initialPlaybackTime > .zero && initialPlaybackTime < player.currentItem?.duration ?? .zero) {
+
+                    player.seek(to: initialPlaybackTime)
+                    initialPlaybackTime = .zero
                 }
 
                 player.play()

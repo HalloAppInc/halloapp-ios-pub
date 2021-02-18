@@ -128,7 +128,7 @@ class FeedMedia: Identifiable, Hashable {
         self.type = media.type
         self.image = media.image
         self.size = media.size ?? CGSize(width: 100, height: 100)
-        self.fileURL = media.fileURL ?? media.videoURL
+        self.fileURL = media.originalVideoURL ?? media.fileURL ?? media.videoURL
         self.isMediaAvailable = true
     }
 

@@ -170,6 +170,7 @@ final class NewPostViewController: UIViewController {
         var pendingMedia = [PendingMedia]()
         let mediaToPost = PendingMedia(type: .video)
         mediaToPost.videoURL = videoURL
+        mediaToPost.originalVideoURL = videoURL
 
         if let videoSize = VideoUtils.resolutionForLocalVideo(url: videoURL) {
             mediaToPost.size = videoSize
@@ -193,6 +194,7 @@ extension NewPostViewController: UIImagePickerControllerDelegate {
         } else if let videoURL = info[.mediaURL] as? URL {
             let mediaToPost = PendingMedia(type: .video)
             mediaToPost.videoURL = videoURL
+            mediaToPost.originalVideoURL = videoURL
 
             if let videoSize = VideoUtils.resolutionForLocalVideo(url: videoURL) {
                 mediaToPost.size = videoSize

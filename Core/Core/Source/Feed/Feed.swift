@@ -161,6 +161,14 @@ public class PendingMedia {
     public var isResized = false
 
     // TODO(VL): Possibly create custom type for videoURL and fileURL, that manages their lifecycle?
+    public var originalVideoURL: URL? {
+        didSet {
+            if originalVideoURL != nil { DDLogDebug("PendingMedia: set originalVideoURL \(originalVideoURL!)") }
+            if let previousVideoURL = oldValue, !isInUseURL(previousVideoURL) {
+                clearTemporaryMedia(tempURL: previousVideoURL)
+            }
+        }
+    }
     public var videoURL: URL? {
         didSet {
             if videoURL != nil { DDLogDebug("PendingMedia: set videoURL \(videoURL!)") }
@@ -194,12 +202,11 @@ public class PendingMedia {
     }
 
     private func isInUseURL(_ previousURL: URL) -> Bool {
-        return previousURL == fileURL || previousURL == videoURL
+        return [fileURL, videoURL, originalVideoURL].contains(previousURL)
     }
     
     deinit {
-        clearTemporaryMedia(tempURL: fileURL)
-        clearTemporaryMedia(tempURL: videoURL)
+        [fileURL, videoURL, originalVideoURL].forEach { tempURL in clearTemporaryMedia(tempURL: tempURL) }
     }
 }
 
