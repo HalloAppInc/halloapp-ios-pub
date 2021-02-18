@@ -31,6 +31,7 @@ class NotificationMetadata {
         static let contentType = "content-type"
         static let fromId = "from-id"
         static let threadId = "thread-id"
+        static let messageID = "message-id"
         static let threadName = "thread-name"
         static let senderName = "sender-name"
         static let timestamp = "timestamp"
@@ -48,6 +49,7 @@ class NotificationMetadata {
     let fromId: UserID
     let timestamp: Date?
     let data: Data?
+    let messageID: String?
 
     private var threadId: String? = nil
     private var threadName: String? = nil
@@ -62,6 +64,9 @@ class NotificationMetadata {
             ]
             if let threadId = threadId {
                 result[Keys.threadId] = threadId
+            }
+            if let messageID = messageID {
+                result[Keys.messageID] = messageID
             }
             if let threadName = threadName {
                 result[Keys.threadName] = threadName
@@ -140,13 +145,15 @@ class NotificationMetadata {
         }
 
         self.threadId = metadata[Keys.threadId]
+        self.messageID = metadata[Keys.messageID]
         self.threadName = metadata[Keys.threadName]
         self.senderName = metadata[Keys.senderName]
     }
 
-    init(contentId: String, contentType: NotificationContentType, fromId: UserID, data: Data?, timestamp: Date?) {
+    init(contentId: String, contentType: NotificationContentType, messageID: String?, fromId: UserID, data: Data?, timestamp: Date?) {
         self.contentId = contentId
         self.contentType = contentType
+        self.messageID = messageID
         self.fromId = fromId
         self.data = data
         self.timestamp = timestamp
@@ -215,13 +222,6 @@ extension NotificationMetadata {
 
     var feedPostCommentId: FeedPostCommentID? {
         if contentType == .feedComment || contentType == .groupFeedComment {
-            return contentId
-        }
-        return nil
-    }
-
-    var messageId: String? {
-        if isChatNotification {
             return contentId
         }
         return nil

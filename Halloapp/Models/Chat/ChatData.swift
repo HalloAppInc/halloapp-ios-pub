@@ -2322,6 +2322,7 @@ extension ChatData {
         
         let metadata = NotificationMetadata(contentId: xmppChatMessage.id,
                                             contentType: .chatMessage,
+                                            messageID: xmppChatMessage.id,
                                             fromId: userID,
                                             data: protobufData,
                                             timestamp: timestamp)
@@ -3945,6 +3946,7 @@ extension ChatData {
                 
         let metadata = NotificationMetadata(contentId: xmppChatGroupMessage.id,
                                             contentType: .groupChatMessage,
+                                            messageID: xmppChatGroupMessage.id,
                                             fromId: userID,
                                             data: protobufData,
                                             timestamp: xmppChatGroupMessage.timestamp)

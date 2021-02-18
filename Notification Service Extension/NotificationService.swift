@@ -28,15 +28,18 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         return ProtoServiceCore(userData: $0)
     }
 
+    private func recordPushEvent(requestID: String, messageID: String?) {
+        AppContext.shared.eventMonitor.observe(.pushReceived(id: messageID ?? requestID, timestamp: Date()))
+        AppContext.shared.eventMonitor.saveReport(to: AppContext.shared.userDefaults)
+    }
+
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         initAppContext(AppExtensionContext.self, serviceBuilder: serviceBuilder, contactStoreClass: ContactStore.self)
 
         DDLogInfo("didReceiveRequest/begin \(request)")
 
-        AppContext.shared.eventMonitor.observe(.pushReceived(id: request.identifier, timestamp: Date()))
-        AppContext.shared.eventMonitor.saveReport(to: AppContext.shared.userDefaults)
-
         guard let content = (request.content.mutableCopy() as? UNMutableNotificationContent) else {
+            recordPushEvent(requestID: request.identifier, messageID: nil)
             contentHandler(request.content)
             return
         }
@@ -46,9 +49,12 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         
         guard let metadata = NotificationMetadata(notificationRequest: request) else {
             DDLogError("didReceiveRequest/error Invalid metadata. \(request.content.userInfo)")
+            recordPushEvent(requestID: request.identifier, messageID: nil)
             contentHandler(bestAttemptContent)
             return
         }
+
+        recordPushEvent(requestID: request.identifier, messageID: metadata.messageID)
 
         // Title:
         // "Contact" for feed posts / comments and 1-1 chat messages.
@@ -83,9 +89,9 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 invokeHandler = downloadTask == nil
             }
         }
-        if let messageId = metadata.messageId, protoContainer.hasChatMessage {
-            guard !dataStore.messages().contains(where: { $0.id == metadata.messageId }) else {
-                DDLogError("didReceiveRequest/error duplicate message ID [\(metadata.messageId ?? "nil")]")
+        if let messageId = metadata.messageID, protoContainer.hasChatMessage {
+            guard !dataStore.messages().contains(where: { $0.id == metadata.messageID }) else {
+                DDLogError("didReceiveRequest/error duplicate message ID [\(metadata.messageID ?? "nil")]")
                 contentHandler(bestAttemptContent)
                 return
             }

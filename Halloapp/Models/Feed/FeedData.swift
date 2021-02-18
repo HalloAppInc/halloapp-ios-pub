@@ -1096,6 +1096,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let contentType: NotificationContentType = comment.post.groupId == nil ? .feedComment : .groupFeedComment
                 let metadata = NotificationMetadata(contentId: comment.id,
                                                     contentType: contentType,
+                                                    messageID: nil,
                                                     fromId: comment.userId,
                                                     data: protobufData,
                                                     timestamp: comment.timestamp)
@@ -1148,6 +1149,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 let metadataContentType: NotificationContentType = feedPost.groupId == nil ? .feedPost : .groupFeedPost
                 let metadata = NotificationMetadata(contentId: feedPost.id,
                                                     contentType: metadataContentType,
+                                                    messageID: nil,
                                                     fromId: feedPost.userId,
                                                     data: protobufData,
                                                     timestamp: feedPost.timestamp)
