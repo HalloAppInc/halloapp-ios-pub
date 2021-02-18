@@ -426,6 +426,9 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         cell.setContact(selected: isSelected, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
         navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
+        
+        searchController.isActive = false
+        searchController.searchBar.text = ""
     }
 }
 
