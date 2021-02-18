@@ -772,13 +772,6 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                     }
                 }
 
-                // Check if parent comment has been retracted.
-                if parentComment?.isRetracted ?? false {
-                    DDLogError("FeedData/process-comments/retracted-parent [\(parentComment!.id)]")
-                    ignoredCommentIds.insert(xmppComment.id)
-                    continue
-                }
-
                 // Add new FeedPostComment to database.
                 DDLogDebug("FeedData/process-comments/new [\(xmppComment.id)]")
                 let comment = NSEntityDescription.insertNewObject(forEntityName: FeedPostComment.entity().name!, into: managedObjectContext) as! FeedPostComment
