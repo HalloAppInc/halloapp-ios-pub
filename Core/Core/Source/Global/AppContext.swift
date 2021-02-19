@@ -47,7 +47,7 @@ open class AppContext {
         return "\(version).\(buildNumber)"
     }()
 
-    public static let userAgent: String = { "HalloApp/iOS\(appVersionForService)" }()
+    public static let userAgent: String = { UserAgent(platform: .ios, version: appVersionForService).description }()
 
     open var applicationIconBadgeNumber: Int {
         get { userDefaults.integer(forKey: "ApplicationIconBadgeNumber") }

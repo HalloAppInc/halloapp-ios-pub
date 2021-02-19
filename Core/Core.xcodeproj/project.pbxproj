@@ -28,6 +28,7 @@
 		6832F50B24FEE9DF00A9C202 /* ProtoStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50624FEE9DF00A9C202 /* ProtoStream.swift */; };
 		6832F50C24FEE9DF00A9C202 /* ProtoServiceCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */; };
 		6832F50D24FEE9DF00A9C202 /* ProtoCommonRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */; };
+		685B509725E065AD00F782F9 /* UserAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B509625E065AD00F782F9 /* UserAgent.swift */; };
 		686814AE252BA91E003C8784 /* clients.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AC252BA91E003C8784 /* clients.pb.swift */; };
 		686814AF252BA91E003C8784 /* server.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686814AD252BA91E003C8784 /* server.pb.swift */; };
 		686A1034259152F100F7B53F /* SwiftNoise in Frameworks */ = {isa = PBXBuildFile; productRef = 686A1033259152F100F7B53F /* SwiftNoise */; };
@@ -119,6 +120,7 @@
 		6832F50624FEE9DF00A9C202 /* ProtoStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoStream.swift; sourceTree = "<group>"; };
 		6832F50724FEE9DF00A9C202 /* ProtoServiceCore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoServiceCore.swift; sourceTree = "<group>"; };
 		6832F50824FEE9DF00A9C202 /* ProtoCommonRequests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProtoCommonRequests.swift; sourceTree = "<group>"; };
+		685B509625E065AD00F782F9 /* UserAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAgent.swift; sourceTree = "<group>"; };
 		686814AC252BA91E003C8784 /* clients.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = clients.pb.swift; sourceTree = "<group>"; };
 		686814AD252BA91E003C8784 /* server.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = server.pb.swift; sourceTree = "<group>"; };
 		686A10392591539E00F7B53F /* swift-noise-protocol */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "swift-noise-protocol"; path = "../swift-noise-protocol"; sourceTree = "<group>"; };
@@ -362,6 +364,7 @@
 				768123F024860F67008C5216 /* UserData.swift */,
 				76925CFC24872E85008333FA /* UserData.xcdatamodeld */,
 				6880F391258A81C300D1F585 /* Keychain.swift */,
+				685B509625E065AD00F782F9 /* UserAgent.swift */,
 			);
 			path = Global;
 			sourceTree = "<group>";
@@ -622,6 +625,7 @@
 				EAF47E0B251D80930056196F /* GroupAvatar+CoreDataProperties.swift in Sources */,
 				24D743C724AEA821001111BF /* AvatarView.swift in Sources */,
 				768123F824861068008C5216 /* Contacts.xcdatamodeld in Sources */,
+				685B509725E065AD00F782F9 /* UserAgent.swift in Sources */,
 				249028A324C5DFDE0019C4D5 /* FeedPost+CoreDataProperties.swift in Sources */,
 				76925CFE24872E86008333FA /* UserData.xcdatamodeld in Sources */,
 				7605EA1F24F475A800CAD9AB /* Privacy.swift in Sources */,

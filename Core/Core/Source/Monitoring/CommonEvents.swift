@@ -9,9 +9,10 @@
 import Foundation
 
 public extension CountableEvent {
-    static func decryption(error: DecryptionError?, senderPlatform: String?) -> CountableEvent {
+    static func decryption(error: DecryptionError?, sender: UserAgent?) -> CountableEvent {
         var extraDimensions = ["result": error?.rawValue ?? "success"]
-        extraDimensions["senderPlatform"] = senderPlatform
+        extraDimensions["senderPlatform"] = sender?.platform.rawValue.lowercased()
+        extraDimensions["senderVersion"] = sender?.version
         return CountableEvent(namespace: "crypto", metric: "decryption", extraDimensions: extraDimensions)
     }
 

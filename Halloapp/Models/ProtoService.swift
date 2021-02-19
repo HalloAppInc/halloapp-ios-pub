@@ -520,17 +520,12 @@ final class ProtoService: ProtoServiceCore {
                     DDLogInfo("proto/didReceive/\(msg.id)/decrypt/success")
                 }
                 if !serverChat.senderClientVersion.isEmpty {
-                    DDLogError("proto/didReceive/\(msg.id)/senderClient [\(serverChat.senderClientVersion)]")
+                    DDLogInfo("proto/didReceive/\(msg.id)/senderClient [\(serverChat.senderClientVersion)]")
                 }
                 if !serverChat.senderLogInfo.isEmpty {
-                    DDLogError("proto/didReceive/\(msg.id)/senderLog [\(serverChat.senderLogInfo)]")
+                    DDLogInfo("proto/didReceive/\(msg.id)/senderLog [\(serverChat.senderLogInfo)]")
                 }
-                let senderPlatform: String? = {
-                    if msg.id == msg.id.lowercased() { return "android" }
-                    if msg.id == msg.id.uppercased() { return "ios" }
-                    return nil
-                }()
-                AppContext.shared.eventMonitor.count(.decryption(error: decryptionError, senderPlatform: senderPlatform))
+                AppContext.shared.eventMonitor.count(.decryption(error: decryptionError, sender: UserAgent(string: serverChat.senderClientVersion)))
                 self.sendAck(messageID: msg.id)
             }
         case .silentChatStanza(let silent):
@@ -543,7 +538,13 @@ final class ProtoService: ProtoServiceCore {
                 } else {
                     DDLogInfo("proto/didReceive/\(msg.id)/silent-decrypt/success")
                 }
-                AppContext.shared.eventMonitor.count(.decryption(error: decryptionError, senderPlatform: nil))
+                if !silent.chatStanza.senderClientVersion.isEmpty {
+                    DDLogInfo("proto/didReceive/\(msg.id)/senderClient [\(silent.chatStanza.senderClientVersion)]")
+                }
+                if !silent.chatStanza.senderLogInfo.isEmpty {
+                    DDLogInfo("proto/didReceive/\(msg.id)/senderLog [\(silent.chatStanza.senderLogInfo)]")
+                }
+                AppContext.shared.eventMonitor.count(.decryption(error: decryptionError, sender: UserAgent(string: silent.chatStanza.senderClientVersion)))
                 self.sendAck(messageID: msg.id)
             }
         case .rerequest(let rerequest):
