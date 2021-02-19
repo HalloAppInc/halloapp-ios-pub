@@ -1117,7 +1117,7 @@ extension KeyStore {
             var isNewReceiveSession: Bool
 
             if let savedKeyBundle = self.messageKeyBundle(for: userId, in: managedObjectContext)?.keyBundle,
-               savedKeyBundle.inboundEphemeralPublicKey == self.ephemeralPublicKey(in: encryptedPayload)
+               savedKeyBundle.inboundEphemeralPublicKey == nil || savedKeyBundle.inboundEphemeralPublicKey == self.ephemeralPublicKey(in: encryptedPayload)
             {
                 DDLogInfo("KeyData/decryptPayload/user/\(userId)/found key bundle with matching ephemeral key")
                 keyBundle = savedKeyBundle
