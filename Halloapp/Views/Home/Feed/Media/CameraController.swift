@@ -297,7 +297,7 @@ class CameraController: UIViewController {
             case .landscapeRight:
                 connection.videoOrientation = .landscapeLeft
             default:
-                connection.videoOrientation = .portrait
+                break // Retain the previous orientation
             }
         }
         if connection.isVideoMirroringSupported {
