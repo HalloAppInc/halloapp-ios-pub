@@ -134,7 +134,7 @@ public final class UserData: ObservableObject {
             DDLogInfo("UserData/init/password not found on keychain")
         }
 
-        if let password = password {
+        if let password = password, !password.isEmpty {
             self.needsKeychainMigration = isPasswordStoredInCoreData || Keychain.needsKeychainUpdate(userID: userId, password: password)
         }
 
@@ -249,7 +249,7 @@ public final class UserData: ObservableObject {
         user.name = name
 
         let passwordSaveSuccess: Bool = {
-            guard let password = password else { return false }
+            guard let password = password, !password.isEmpty else { return false }
             return Keychain.savePassword(userID: userId, password: password)
         }()
 
