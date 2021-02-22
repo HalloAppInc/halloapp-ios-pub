@@ -183,11 +183,6 @@ extension HandshakeState {
   // For "e": Sets e (which must be empty) to GENERATE_KEYPAIR(). Appends e.public_key to the
   // buffer. Calls MixHash(e.public_key).
   private func writeE() throws -> Data {
-    #if !DEBUG
-    if self.e != nil {
-      throw HandshakeStateError.ephemeralKeyAlreadyExist
-    }
-    #endif
     let e = try self.e ?? self.curveHelper.generateKeyPair()
     self.e = e
     self.symmetricState.mixHash(data: e.publicKey)
