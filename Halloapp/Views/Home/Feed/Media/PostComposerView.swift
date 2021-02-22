@@ -1,6 +1,8 @@
+import AVFoundation
 import Core
 import CocoaLumberjack
 import Combine
+import PhotosUI
 import SwiftUI
 import UIKit
 
@@ -92,6 +94,15 @@ private extension Localizations {
         let format = NSLocalizedString("media.prepare.failed.n.count", comment: "Error text displayed in post composer when some of the media selected couldn't be sent.")
         return String.localizedStringWithFormat(format, mediaCount)
     }
+
+    static func maxVideoLengthTitle(_ maxVideoLength: TimeInterval) -> String {
+        let format = NSLocalizedString("composer.max.video.length.title", value: "This video is over %.0f seconds long", comment: "Alert title in composer when a video is too long")
+        return String.localizedStringWithFormat(format, maxVideoLength)
+    }
+
+    static var maxVideoLengthMessage: String {
+        NSLocalizedString("composer.max.video.length.message", value: "Please select another video.", comment: "Alert message in composer when a video is too long")
+    }
 }
 
 class PostComposerViewController: UIViewController {
@@ -161,17 +172,31 @@ class PostComposerViewController: UIViewController {
             },
             crop: { [weak self] index in
                 guard let self = self else { return }
-                let editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value, maxAspectRatio: self.configuration.mediaEditMaxAspectRatio) { controller, media, selected, cancel in
-                    controller.dismiss(animated: true)
-                    
-                    guard !cancel else { return }
 
-                    index.value = selected
-                    self.mediaItems.value = media
-                    
-                    if media.count == 0 {
-                        self.backAction()
+                let editController: UIViewController
+                let media = self.mediaItems.value[index.value]
+
+                if media.type == .image {
+                    editController = MediaEditViewController(mediaToEdit: self.mediaItems.value, selected: index.value, maxAspectRatio: self.configuration.mediaEditMaxAspectRatio) { controller, media, selected, cancel in
+                        controller.dismiss(animated: true)
+
+                        guard !cancel else { return }
+
+                        index.value = selected
+                        self.mediaItems.value = media
+
+                        if media.count == 0 {
+                            self.backAction()
+                        }
                     }
+                } else {
+                    MediaCarouselView.stopAllPlayback()
+                    editController = VideoEditViewController(media: media) { controller, media, cancel in
+                        controller.dismiss(animated: true)
+                        guard !cancel else { return }
+                        media.isResized = false
+                        self.mediaItems.value[index.value] = media
+                    }.withNavigationController()
                 }
                 
                 editController.modalPresentationStyle = .fullScreen
@@ -263,10 +288,15 @@ class PostComposerViewController: UIViewController {
     }
 
     @objc private func shareAction() {
-        isPosting = true
-        updateShareButton()
-        let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
-        delegate?.composerDidTapShare(controller: self, mentionText: mentionText, media: mediaItems.value)
+        isVideoLengthWithinLimit { [weak self] isWithinLimit in
+            guard let self = self else { return }
+
+            if isWithinLimit {
+                self.share()
+            } else {
+                self.alertVideoLengthOverLimit()
+            }
+        }
     }
 
     @objc private func backAction() {
@@ -278,6 +308,43 @@ class PostComposerViewController: UIViewController {
 
     private func updateShareButton() {
         navigationItem.rightBarButtonItem?.isEnabled = isReadyToShare && !isPosting
+    }
+
+    private func share() {
+        isPosting = true
+        updateShareButton()
+        let mentionText = MentionText(expandedText: inputToPost.value.text, mentionRanges: inputToPost.value.mentions).trimmed()
+        delegate?.composerDidTapShare(controller: self, mentionText: mentionText, media: mediaItems.value)
+    }
+
+    private func alertVideoLengthOverLimit() {
+        let alert = UIAlertController(title: Localizations.maxVideoLengthTitle(configuration.maxVideoLength),
+                                      message: Localizations.maxVideoLengthMessage,
+                                      preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: Localizations.buttonOK, style: .default))
+        self.present(alert, animated: true)
+    }
+
+    private func isVideoLengthWithinLimit(action: @escaping (Bool) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+
+            for item in self.mediaItems.value {
+                guard item.type == .video else { continue }
+                guard let url = item.videoURL else { continue }
+
+                if AVURLAsset(url: url).duration.seconds > self.configuration.maxVideoLength {
+                    DispatchQueue.main.async {
+                        action(false)
+                    }
+                    return
+                }
+            }
+
+            DispatchQueue.main.async {
+                action(true)
+            }
+        }
     }
 }
 
@@ -367,7 +434,6 @@ fileprivate struct PostComposerLayoutConstants {
 fileprivate struct PostComposerView: View {
     private let showAddMoreMediaButton: Bool
     private let mediaCarouselMaxAspectRatio: CGFloat
-    private let maxVideoLength: TimeInterval
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
@@ -426,7 +492,7 @@ fileprivate struct PostComposerView: View {
     }
 
     private var showCropButton: Bool {
-        currentPosition.value < mediaCount && mediaItems.value[currentPosition.value].type == FeedMediaType.image
+        currentPosition.value < mediaCount
     }
 
     init(
@@ -446,7 +512,6 @@ fileprivate struct PostComposerView: View {
         self.shouldAutoPlay = shouldAutoPlay
         self.showAddMoreMediaButton = configuration.showAddMoreMediaButton
         self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
-        self.maxVideoLength = configuration.maxVideoLength
         self.prepareImages = prepareImages
         self.crop = crop
         self.goBack = goBack
@@ -510,7 +575,7 @@ fileprivate struct PostComposerView: View {
     }
 
     var picker: some View {
-        Picker(maxVideoLength: maxVideoLength, mediaItems: mediaItemsBinding) { newMediaItems, cancel in
+        Picker(mediaItems: mediaItemsBinding) { newMediaItems, cancel in
             presentPicker = false
             guard !cancel else { return }
 
@@ -874,11 +939,15 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MediaCarouselView {
         DDLogInfo("MediaPreviewSlider/makeUIView")
+        context.coordinator.apply(media: mediaItems)
+
         var configuration = MediaCarouselViewConfiguration.composer
         configuration.gutterWidth = PostComposerLayoutConstants.horizontalPadding
+
         let carouselView = MediaCarouselView(media: feedMediaItems, configuration: configuration)
         carouselView.delegate = context.coordinator
         carouselView.shouldAutoPlay = shouldAutoPlay
+
         return carouselView
     }
 
@@ -886,26 +955,8 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
         DDLogInfo("MediaPreviewSlider/updateUIView")
         uiView.shouldAutoPlay = shouldAutoPlay
 
-        let newFeedMedia = feedMediaItems
-        let previousFeedMedia = uiView.media
-        var needRefresh = false
-        if newFeedMedia.count != previousFeedMedia.count {
-            needRefresh = true
-        } else {
-            for (index, newFeedItem) in newFeedMedia.enumerated() {
-                let previousFeedItem = previousFeedMedia[index]
-                if newFeedItem.id != previousFeedItem.id ||
-                    newFeedItem.type != previousFeedItem.type ||
-                    newFeedItem.order != previousFeedItem.order ||
-                    newFeedItem.size.width * previousFeedItem.size.height != newFeedItem.size.height * previousFeedItem.size.width {
-                    needRefresh = true
-                    break
-                }
-            }
-        }
-        if needRefresh {
-            DDLogInfo("MediaPreviewSlider/updateUIView uiView.refreshData")
-            uiView.refreshData(media: newFeedMedia, index: currentPosition.value)
+        if context.coordinator.apply(media: mediaItems) {
+            uiView.refreshData(media: feedMediaItems, index: currentPosition.value)
         }
     }
 
@@ -914,10 +965,58 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
     }
 
     class Coordinator: MediaCarouselViewDelegate {
-        var parent: MediaPreviewSlider
+        private struct MediaState: Equatable {
+            public var order: Int
+            public var type: FeedMediaType
+            public var image: UIImage?
+            public var originalVideoURL: URL?
+            public var videoURL: URL?
+            public var fileURL: URL?
+            public var asset: PHAsset?
+            public var edit: PendingMediaEdit?
+            public var videoEdit: PendingVideoEdit?
+
+            init(media: PendingMedia) {
+                order = media.order
+                type = media.type
+                image = media.image
+                originalVideoURL = media.originalVideoURL
+                videoURL = media.videoURL
+                fileURL = media.fileURL
+                asset = media.asset
+                edit = media.edit
+                videoEdit = media.videoEdit
+            }
+        }
+
+        private var parent: MediaPreviewSlider
+        private var state: [MediaState]?
 
         init(_ view: MediaPreviewSlider) {
             parent = view
+        }
+
+        func apply(media: [PendingMedia]) -> Bool {
+            let newState = media.map { MediaState(media: $0) }
+
+            guard let currentState = state else {
+                state = newState
+                return true
+            }
+
+            if currentState.count != newState.count {
+                state = newState
+                return true
+            }
+
+            for (i, item) in newState.enumerated() {
+                if currentState[i] != item {
+                    state = newState
+                    return true
+                }
+            }
+
+            return false
         }
 
         func mediaCarouselView(_ view: MediaCarouselView, indexChanged newIndex: Int) {
@@ -941,13 +1040,13 @@ fileprivate struct MediaPreviewSlider: UIViewRepresentable {
 fileprivate struct Picker: UIViewControllerRepresentable {
     typealias UIViewControllerType = UINavigationController
 
-    let maxVideoLength: TimeInterval
     @Binding var mediaItems: [PendingMedia]
     let complete: ([PendingMedia], Bool) -> Void
 
     func makeUIViewController(context: Context) -> UINavigationController {
         DDLogInfo("Picker/makeUIViewController")
-        let controller = MediaPickerViewController(maxVideoLength: maxVideoLength, selected: mediaItems) { controller, media, cancel in
+        MediaCarouselView.stopAllPlayback()
+        let controller = MediaPickerViewController(selected: mediaItems) { controller, media, cancel in
             self.complete(media, cancel)
         }
 

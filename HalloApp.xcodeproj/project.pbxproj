@@ -238,6 +238,7 @@
 		EAF3A1E52334192000805FF9 /* HalloappUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF3A1E42334192000805FF9 /* HalloappUITests.swift */; };
 		F5E5842640950E619AA50E59 /* Pods_HalloAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6B5578700125D5FF5728637 /* Pods_HalloAppTests.framework */; };
 		F8003DDE24D7C30D00628719 /* MediaPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */; };
+		F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */; };
 		F851E9512500E47300BC0FAA /* MediaPickerSnapshotManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */; };
 		F8606DD1257E7340006CD1A6 /* MediaExplorerVideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DD0257E7340006CD1A6 /* MediaExplorerVideoCell.swift */; };
 		F8606DD6257E7402006CD1A6 /* MediaExplorerImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8606DD5257E7402006CD1A6 /* MediaExplorerImageCell.swift */; };
@@ -568,6 +569,7 @@
 		EAF3A1E42334192000805FF9 /* HalloappUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalloappUITests.swift; sourceTree = "<group>"; };
 		EAF3A1E62334192000805FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F8003DDD24D7C30D00628719 /* MediaPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerViewController.swift; sourceTree = "<group>"; };
+		F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEditViewController.swift; sourceTree = "<group>"; };
 		F851E9502500E47300BC0FAA /* MediaPickerSnapshotManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickerSnapshotManager.swift; sourceTree = "<group>"; };
 		F8606DD0257E7340006CD1A6 /* MediaExplorerVideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerVideoCell.swift; sourceTree = "<group>"; };
 		F8606DD5257E7402006CD1A6 /* MediaExplorerImageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExplorerImageCell.swift; sourceTree = "<group>"; };
@@ -1076,6 +1078,7 @@
 				681E0DA924C8E0190073A03E /* NewPostViewController.swift */,
 				5B64B56124F3FA2E00BCBEA8 /* CameraController.swift */,
 				5BF5D12224F5295300F272D8 /* CameraViewController.swift */,
+				F84A8E5825D408C3003A8528 /* VideoEditViewController.swift */,
 			);
 			path = Media;
 			sourceTree = "<group>";
@@ -1860,6 +1863,7 @@
 				76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				7626CCDE24C738F50023FC2E /* CrashlyticsLogger.swift in Sources */,
+				F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */,
 				7639BA39251944920023850E /* NextLevelSessionExporter.swift in Sources */,
 				EAD476F52458F03700EF8591 /* ChatThread+CoreDataProperties.swift in Sources */,
 				EAAA5C0D25644A9600B81630 /* Utils.swift in Sources */,

@@ -74,6 +74,25 @@ final class VideoSettings: ObservableObject {
     }
 }
 
+public enum VideoUtilsError: Error, CustomStringConvertible {
+    case missingVideoTrack
+    case setupFailure
+    case processingFailure
+
+    public var description: String {
+        get {
+            switch self {
+            case .setupFailure:
+                return "Setup failure"
+            case .missingVideoTrack:
+                return "Missing video track"
+            case .processingFailure:
+                return "Processing failure"
+            }
+        }
+    }
+}
+
 final class VideoUtils {
 
     static func resizeVideo(inputUrl: URL, completion: @escaping (Swift.Result<(URL, CGSize), Error>) -> Void) {
@@ -213,6 +232,66 @@ final class VideoUtils {
             DDLogDebug("VideoUtils/videoPreviewImage/error \(error.localizedDescription) - [\(url)]")
             return nil
         }
+    }
+
+    static func trim(start: CMTime, end: CMTime, url: URL, mute: Bool, completion: @escaping (Swift.Result<URL, Error>) -> Void) {
+        var asset: AVAsset = AVURLAsset(url: url, options: nil)
+
+        if mute {
+            DDLogInfo("video-processing/trim/mute")
+
+            let originalVideoTracks = asset.tracks(withMediaType: .video)
+            guard originalVideoTracks.count > 0 else {
+                completion(.failure(VideoUtilsError.missingVideoTrack))
+                return
+            }
+
+            let composition = AVMutableComposition()
+            guard let videoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) else {
+                completion(.failure(VideoUtilsError.setupFailure))
+                return
+            }
+
+            videoTrack.preferredTransform = originalVideoTracks[0].preferredTransform
+
+            do {
+                try videoTrack.insertTimeRange(CMTimeRange(start: .zero, duration: asset.duration), of: originalVideoTracks[0], at: CMTime.zero)
+            } catch {
+                completion(.failure(error))
+                return
+            }
+
+            asset = composition
+        }
+
+        guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
+            completion(.failure(VideoUtilsError.setupFailure))
+            return
+        }
+
+        exporter.outputFileType = AVFileType.mp4
+        exporter.outputURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent(ProcessInfo().globallyUniqueString)
+            .appendingPathExtension("mp4")
+        exporter.timeRange = CMTimeRange(start: start, end: end)
+
+        DDLogInfo("video-processing/trim/start")
+        exporter.exportAsynchronously {
+             switch exporter.status {
+                case .completed:
+                    DDLogInfo("video-processing/trim/completed url=[\(exporter.outputURL?.description ?? "")] input=[\(url.description)]")
+                    completion(.success(exporter.outputURL!))
+                default:
+                    if let error = exporter.error {
+                        DDLogWarn("video-processing/trim/error status=[\(exporter.status)] url=[\(exporter.outputURL?.description ?? "")] input=[\(url.description)] error=[\(error.localizedDescription)]")
+                        completion(.failure(error))
+                    } else {
+                        DDLogWarn("video-processing/trim/finished status=[\(exporter.status)] url=[\(exporter.outputURL?.description ?? "")] input=[\(url.description)]")
+                        completion(.failure(VideoUtilsError.processingFailure))
+                    }
+                }
+
+         }
     }
 }
 

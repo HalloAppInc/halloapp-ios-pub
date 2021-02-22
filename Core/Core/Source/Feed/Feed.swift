@@ -133,7 +133,19 @@ extension FeedMediaProtocol {
     }
 }
 
-public struct PendingMediaEdit {
+public struct PendingVideoEdit: Equatable {
+    public var start: CGFloat = 0.0
+    public var end: CGFloat = 1.0
+    public var muted: Bool = false
+
+    public init(start: CGFloat, end: CGFloat, muted: Bool) {
+        self.start = start
+        self.end = end
+        self.muted = muted
+    }
+}
+
+public struct PendingMediaEdit: Equatable {
     public var image: UIImage?
     public var cropRect: CGRect = CGRect.zero
     public var hFlipped: Bool = false
@@ -190,6 +202,7 @@ public class PendingMedia {
     public var asset: PHAsset?
     
     public var edit: PendingMediaEdit?
+    public var videoEdit: PendingVideoEdit?
 
     public init(type: FeedMediaType) {
         self.type = type

@@ -107,6 +107,10 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         collectionView.setContentOffset(contentOffset, animated: animated)
     }
 
+    class func stopAllPlayback() {
+        MediaCarouselVideoCollectionViewCell.videoDidStartPlaying.send(nil)
+    }
+
     class func preferredHeight(for media: [FeedMedia], width: CGFloat, maxAllowedAspectRatio: CGFloat = 5 / 4) -> CGFloat {
         let aspectRatios: [CGFloat] = media.compactMap {
             guard $0.size.width > 0 else { return nil }
@@ -681,7 +685,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         }
     }
 
-    private static let videoDidStartPlaying = PassthroughSubject<URL, Never>()
+    public static let videoDidStartPlaying = PassthroughSubject<URL?, Never>()
     private static var videoURLToAutoplay: URL? = nil
 
     override func prepareForReuse() {

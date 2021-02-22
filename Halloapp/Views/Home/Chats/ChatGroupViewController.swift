@@ -680,7 +680,7 @@ class ChatGroupViewController: UIViewController, NSFetchedResultsControllerDeleg
     private func presentMediaPicker() {
         guard mediaPickerController == nil else { return }
 
-        mediaPickerController = MediaPickerViewController(maxVideoLength: ServerProperties.maxChatVideoDuration, camera: true) { [weak self] controller, media, cancel in
+        mediaPickerController = MediaPickerViewController(camera: true) { [weak self] controller, media, cancel in
             guard let self = self else { return }
 
             if cancel {
