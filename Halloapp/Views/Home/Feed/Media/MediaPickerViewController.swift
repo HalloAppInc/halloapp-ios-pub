@@ -638,9 +638,20 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
                     let options = PHImageRequestOptions()
                     options.isSynchronous = true
                     options.isNetworkAccessAllowed = true
+                    options.progressHandler = { progress, error, stop, _ in
+                        DDLogInfo("MediaPickerViewController/next/image/progress [\(progress)] asset=[\(asset)]")
+
+                        if let error = error {
+                            DDLogError("MediaPickerViewController/next/image error=[\(error)] asset=[\(asset)]")
+                        }
+                    }
                     
                     group.enter()
                     manager.requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .default, options: options) { image, _ in
+                        if image == nil {
+                            DDLogWarn("MediaPickerViewController/next/image Unable to fetch image")
+                        }
+
                         media.image = image
                         group.leave()
                     }
@@ -653,11 +664,21 @@ class MediaPickerViewController: UIViewController, UICollectionViewDelegate, UIC
 
                     let options = PHVideoRequestOptions()
                     options.isNetworkAccessAllowed = true
+                    options.progressHandler = { progress, error, stop, _ in
+                        DDLogInfo("MediaPickerViewController/next/video/progress [\(progress)] asset=[\(asset)]")
+
+                        if let error = error {
+                            DDLogError("MediaPickerViewController/next/video error=[\(error)] asset=[\(asset)]")
+                        }
+                    }
 
                     group.enter()
                     manager.requestAVAsset(forVideo: asset, options: options) { avasset, _, _ in
                         defer { group.leave() }
-                        guard let video = avasset as? AVURLAsset else { return }
+                        guard let video = avasset as? AVURLAsset else {
+                            DDLogWarn("MediaPickerViewController/next/video Unable to fetch video")
+                            return
+                        }
 
                         media.videoURL = video.url
                         media.originalVideoURL = video.url
