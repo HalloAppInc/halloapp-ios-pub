@@ -37,11 +37,11 @@ public struct ServerProperties {
 
     private struct Defaults {
         static let internalUser = false
-        static let groups = false
-        static let groupFeed = false
+        static let groups = true
+        static let groupFeed = true
         static let groupChat = true
-        static let combineFeed = false
-        static let maxGroupSize = 25
+        static let combineFeed = true
+        static let maxGroupSize = 50
         static let silentChatMessages = 0
         static let maxFeedVideoDuration = 60.0
         static let maxChatVideoDuration = 120.0

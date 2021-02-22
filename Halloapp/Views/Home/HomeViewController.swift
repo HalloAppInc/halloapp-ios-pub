@@ -223,10 +223,10 @@ class HomeViewController: UITabBarController {
         
         if metadata.isFeedNotification {
             selectedIndex = 0
-        } else if metadata.isGroupChatNotification {
+        } else if metadata.isGroupAddNotification {
             selectedIndex = 1
         } else if metadata.isChatNotification {
-            selectedIndex = ServerProperties.isGroupFeedEnabled ? 2 : 1
+            selectedIndex = 2
         }
 
     }

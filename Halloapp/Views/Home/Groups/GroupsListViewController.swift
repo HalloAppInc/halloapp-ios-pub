@@ -333,15 +333,29 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         }
         
         // If the user tapped on a notification, move to group feed
-        DDLogInfo("GroupsListViewController/processNotification/open group feed \(metadata.fromId)")
+        DDLogInfo("GroupsListViewController/processNotification/open group feed [\(metadata.groupId ?? "")]")
 
         navigationController?.popToRootViewController(animated: false)
         
         switch metadata.contentType {
         case .groupFeedPost, .groupFeedComment:
             if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
-                navigationController?.pushViewController(GroupFeedViewController(groupId: groupId), animated: false)
+                self.navigationController?.pushViewController(GroupFeedViewController(groupId: groupId), animated: false)
             }
+            break
+        case .groupAdd:
+            if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                self.navigationController?.pushViewController(GroupFeedViewController(groupId: groupId), animated: false)
+            } else {
+                // for offline groupAdd notifications, the app needs some time to get and create the new group when the user
+                // taps on the notification so we do a simple retry
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    if let groupId = metadata.groupId, let _ = MainAppContext.shared.chatData.chatGroup(groupId: groupId) {
+                        self.navigationController?.pushViewController(GroupFeedViewController(groupId: groupId), animated: false)
+                    }
+                }
+            }
+            metadata.removeFromUserDefaults()
             break
         case .groupChatMessage:
             metadata.removeFromUserDefaults()

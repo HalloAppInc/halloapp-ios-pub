@@ -748,8 +748,8 @@ class ChatData: ObservableObject {
             guard let serverTimestamp = chatAck.timestamp else { return }
             chatMessage.timestamp = serverTimestamp
             
-            if let chatMessageId = self.currentlyUploadingDict[chatMessage.fromUserId], chatMessageId == chatMessage.id {
-                self.currentlyUploadingDict.removeValue(forKey: chatMessage.fromUserId)
+            if let chatMessageId = self.currentlyUploadingDict[chatMessage.toUserId], chatMessageId == chatMessage.id {
+                self.currentlyUploadingDict.removeValue(forKey: chatMessage.toUserId)
             }
             self.processPendingChatMsgs()
 
@@ -2198,11 +2198,11 @@ extension ChatData {
 
             guard let pendingMsg = pendingOutgoingChatMessages.first(where: {
                 guard self.currentlyUploadingDict.count < self.maxNumUploads else { return false }
-                guard self.currentlyUploadingDict[$0.fromUserId] == nil else { return false }
+                guard self.currentlyUploadingDict[$0.toUserId] == nil else { return false }
                 return true
             }) else { return }
 
-            self.currentlyUploadingDict[pendingMsg.fromUserId] = pendingMsg.id
+            self.currentlyUploadingDict[pendingMsg.toUserId] = pendingMsg.id
             
             let xmppChatMsg = XMPPChatMessage(chatMessage: pendingMsg)
 
@@ -3592,6 +3592,18 @@ extension ChatData {
             if let name = xmppGroupMember.name, !name.isEmpty {
                 contactNames[xmppGroupMember.userId] = name
             }
+            
+            if xmppGroupMember.userId == MainAppContext.shared.userData.userId, xmppGroup.retryCount == 0 {
+                DispatchQueue.main.async {
+                    // dummy avatarview to preload group avatar for new groups with avatar
+                    // nice to show avatar but not required, 2 seconds given for chance to finish downloading
+                    let view = AvatarView()
+                    view.configure(groupId: xmppGroup.groupId, using: MainAppContext.shared.avatarStore)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        self.showGroupAddNotification(for: xmppGroup)
+                    }
+                }
+            }
         }
         
         if !contactNames.isEmpty {
@@ -3655,11 +3667,18 @@ extension ChatData {
 //            }
             
             recordGroupMessageEvent(xmppGroup: xmppGroup, xmppGroupMember: xmppGroupMember, in: managedObjectContext)
+            
+            if xmppGroupMember.action == .add, xmppGroupMember.userId == MainAppContext.shared.userData.userId, xmppGroup.retryCount == 0 {
+                showGroupAddNotification(for: xmppGroup)
+            }
+            
         }
         
         if syncGroup {
             getAndSyncGroup(groupId: xmppGroup.groupId)
         }
+        
+
     }
     
     private func processGroupChangeNameAction(xmppGroup: XMPPGroup, in managedObjectContext: NSManagedObjectContext) {
@@ -3877,6 +3896,22 @@ extension ChatData {
 // MARK: Group Notifications
 extension ChatData {
     
+    private func showGroupAddNotification(for xmppGroup: XMPPGroup) {
+        DDLogVerbose("ChatData/showGroupAddNotification/id \(xmppGroup.groupId)")
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            switch UIApplication.shared.applicationState {
+            case .background, .inactive:
+                self.presentLocalGroupAddNotifications(for: xmppGroup)
+            case .active:
+                self.presentGroupAddBanner(for: xmppGroup)
+            @unknown default:
+                self.presentLocalGroupAddNotifications(for: xmppGroup)
+            }
+        }
+    }
+    
     private func showGroupNotification(for xmppChatGroupMessage: XMPPChatGroupMessage) {
         DDLogVerbose("ChatData/showGroupNotification/id \(xmppChatGroupMessage.id)")
         DispatchQueue.main.async { [weak self] in
@@ -3899,6 +3934,20 @@ extension ChatData {
                 self.presentLocalGroupNotifications(for: xmppChatGroupMessage)
             }
         }
+    }
+    
+    private func presentGroupAddBanner(for xmppGroup: XMPPGroup) {
+        DDLogDebug("ChatData/presentGroupAddBanner/id \(xmppGroup.groupId)")
+        let groupID = xmppGroup.groupId
+        guard let userID = xmppGroup.sender else { return }
+        let groupName = xmppGroup.name
+        
+        let name = contactStore.fullName(for: userID)
+        
+        let title = "\(name) @ \(groupName)"
+        let body = Localizations.groupsAddNotificationBody
+        
+        Banner.show(title: title, body: body, groupID: groupID, using: MainAppContext.shared.avatarStore)
     }
     
     private func presentGroupBanner(for xmppChatGroupMessage: XMPPChatGroupMessage) {
@@ -3933,6 +3982,38 @@ extension ChatData {
         }
         
         Banner.show(title: title, body: body, groupID: groupID, using: MainAppContext.shared.avatarStore)
+    }
+    
+    private func presentLocalGroupAddNotifications(for xmppGroup: XMPPGroup) {
+        DDLogDebug("ChatData/presentLocalGroupAddNotifications/groupID \(xmppGroup.groupId)")
+        guard let messageID = xmppGroup.messageId else { return }
+        guard let userID = xmppGroup.sender else { return }
+
+        var notifications: [UNMutableNotificationContent] = []
+        
+        let metadata = NotificationMetadata(contentId: messageID,
+                                            contentType: .groupAdd,
+                                            messageID: messageID,
+                                            fromId: xmppGroup.groupId,
+                                            data: nil,
+                                            timestamp: nil)
+        metadata.groupId = xmppGroup.groupId
+        metadata.groupName = xmppGroup.name
+
+        let notification = UNMutableNotificationContent()
+        let userName = contactStore.fullName(for: userID)
+        
+        notification.title = "\(userName) @ \(metadata.groupName ?? "")"
+        notification.body = Localizations.groupsAddNotificationBody
+
+        notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
+        notifications.append(notification)
+
+        let notificationCenter = UNUserNotificationCenter.current()
+        notifications.forEach { (notificationContent) in
+            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
+        }
+        
     }
     
     private func presentLocalGroupNotifications(for xmppChatGroupMessage: XMPPChatGroupMessage) {
@@ -4099,3 +4180,12 @@ extension Clients_ChatMessage {
         }
     }
 }
+
+extension Localizations {
+    
+    static var groupsAddNotificationBody: String {
+        NSLocalizedString("groups.add.notification", value: "You got added to new group", comment: "Text shown in notification when the user is added to a new group")
+    }
+    
+}
+

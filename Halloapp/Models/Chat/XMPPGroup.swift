@@ -54,6 +54,7 @@ struct XMPPGroup {
     let groupId: GroupID
     let name: String
     var avatarID: String? = nil
+    var retryCount: Int32 = 0
 
     private(set) var messageId: String? = nil
     private(set) var sender: UserID? = nil
@@ -68,7 +69,7 @@ struct XMPPGroup {
     }
 
     // used for inbound and outbound
-    init?(protoGroup: Server_GroupStanza, msgId: String? = nil) {
+    init?(protoGroup: Server_GroupStanza, msgId: String? = nil, retryCount: Int32 = 0) {
         // msgId used only for inbound group events
         if let msgId = msgId {
             self.messageId = msgId
@@ -96,6 +97,8 @@ struct XMPPGroup {
             case .UNRECOGNIZED(_): return nil
             }
         }()
+        
+        self.retryCount = retryCount
     }
 }
 

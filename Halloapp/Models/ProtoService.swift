@@ -638,7 +638,7 @@ final class ProtoService: ProtoServiceCore {
                 }
             }
         case .groupStanza(let pbGroup):
-            if let group = HalloGroup(protoGroup: pbGroup, msgId: msg.id) {
+            if let group = HalloGroup(protoGroup: pbGroup, msgId: msg.id, retryCount: msg.retryCount) {
                 chatDelegate?.halloService(self, didReceiveGroupMessage: group)
             } else {
                 DDLogError("proto/didReceive/\(msg.id)/error could not read group stanza")

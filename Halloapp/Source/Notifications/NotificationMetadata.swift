@@ -19,6 +19,8 @@ enum NotificationContentType: String, RawRepresentable {
 
     case chatMessage = "chat"
     case groupChatMessage = "group_chat"
+    
+    case groupAdd = "group_add"
 }
 
 class NotificationMetadata {
@@ -132,12 +134,12 @@ class NotificationMetadata {
         }
         self.fromId = fromId
 
-        guard let base64Data = metadata[Keys.data] else {
-            DDLogError("NotificationMetadata/init/error Missing Data")
-            return nil
+        if let base64Data = metadata[Keys.data] {
+            self.data = Data(base64Encoded: base64Data)
+        } else {
+            self.data = nil
         }
-        self.data = Data(base64Encoded: base64Data)
-
+        
         if let timestamp = TimeInterval(metadata[Keys.timestamp] ?? "") {
             self.timestamp = Date(timeIntervalSince1970: timestamp)
         } else {
@@ -191,7 +193,7 @@ extension NotificationMetadata {
         switch contentType {
         case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment:
             return true
-        case .chatMessage, .groupChatMessage:
+        case .chatMessage, .groupChatMessage, .groupAdd:
             return false
         }
     }
@@ -204,9 +206,13 @@ extension NotificationMetadata {
         return contentType == .groupChatMessage
     }
     
+    var isGroupAddNotification: Bool {
+        return contentType == .groupAdd
+    }
+    
     var isGroupNotification: Bool {
         switch contentType {
-        case .groupFeedPost, .groupFeedComment, .groupChatMessage:
+        case .groupFeedPost, .groupFeedComment, .groupChatMessage, .groupAdd:
             return true
         case .feedPost, .feedComment, .chatMessage:
             return false

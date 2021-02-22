@@ -191,7 +191,7 @@ class BannerView: UIView, UIGestureRecognizerDelegate {
             notificationType = .chatMessage
             id = userID
         } else {
-            notificationType = .groupChatMessage
+            notificationType = .groupAdd
             id = groupID
         }
         

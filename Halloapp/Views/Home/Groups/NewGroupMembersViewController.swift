@@ -99,8 +99,23 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         mainView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: safeAreaInsetBottom).isActive = true
         
         setupFetchedResultsController()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 
+    @objc private func keyboardWillShow(notification: Notification) {
+        animateWithKeyboard(notification: notification) { (keyboardFrame) in
+            self.mainView.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: keyboardFrame.height, right: 0)
+        }
+    }
+    
+    @objc private func keyboardWillHide(notification: Notification) {
+        animateWithKeyboard(notification: notification) { (keyboardFrame) in
+            self.mainView.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+        }
+    }
+    
     private lazy var mainView: UIStackView = {
         let spacer = UIView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
@@ -312,6 +327,27 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         }
         return trackedContacts[id]?.isDuplicate ?? false
     }
+    
+    // MARK: Helpers
+    
+    private func animateWithKeyboard(notification: Notification, animations: ((_ keyboardFrame: CGRect) -> Void)?) {
+        
+        let durationKey = UIResponder.keyboardAnimationDurationUserInfoKey
+        guard let duration = notification.userInfo?[durationKey] as? Double else { return }
+        
+        let frameKey = UIResponder.keyboardFrameEndUserInfoKey
+        guard let keyboardFrameValue = notification.userInfo?[frameKey] as? NSValue else { return }
+        
+        let curveKey = UIResponder.keyboardAnimationCurveUserInfoKey
+        guard let curveValue = notification.userInfo?[curveKey] as? Int else { return }
+        guard let curve = UIView.AnimationCurve(rawValue: curveValue) else { return }
+
+        let animator = UIViewPropertyAnimator(duration: duration, curve: curve) {
+            animations?(keyboardFrameValue.cgRectValue)
+            self.view?.layoutIfNeeded()
+        }
+        animator.startAnimation()
+    }
 }
 
 // MARK: UITableView Delegates
@@ -362,11 +398,8 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
             return 0
         }
         
-        guard let userId = contact?.userId else { return 0 }
-//        if currentMembers.contains(userId) {
-//            return 0
-//        }
-        
+        guard contact?.userId != nil else { return 0 }
+
         return UITableView.automaticDimension
     }
 
@@ -427,7 +460,6 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         tableView.deselectRow(at: indexPath, animated: true)
         navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
         
-        searchController.isActive = false
         searchController.searchBar.text = ""
     }
 }
@@ -516,3 +548,4 @@ private extension Localizations {
     }
     
 }
+
