@@ -90,15 +90,7 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
             transitionContext.containerView.addSubview(view)
         }
 
-        // Ensurees that the toView and fromView have rendered their transition views
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else {
-                transitionContext.completeTransition(true)
-                return
-            }
-
-            self.runTransition(using: transitionContext)
-        }
+        runTransition(using: transitionContext)
     }
 
     func runTransition(using transitionContext: UIViewControllerContextTransitioning) {
