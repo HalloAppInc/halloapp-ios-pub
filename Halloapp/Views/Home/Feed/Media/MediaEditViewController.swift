@@ -104,6 +104,34 @@ fileprivate class MediaEdit : ObservableObject {
     private var cancellable: AnyCancellable?
     private let cropToCircle: Bool
     private let maxAspectRatio: CGFloat
+
+    private var defaultEdit: PendingMediaEdit {
+        get {
+            var edit = PendingMediaEdit(image: original)
+            edit.cropRect = initialCrop()
+            edit.hFlipped = false
+            edit.vFlipped = false
+            edit.numberOfRotations = 0
+            edit.scale = 1.0
+            edit.offset = .zero
+
+            return edit
+        }
+    }
+
+    private var edit: PendingMediaEdit {
+        get {
+            var edit = PendingMediaEdit(image: original)
+            edit.cropRect = cropRect
+            edit.hFlipped = hFlipped
+            edit.vFlipped = vFlipped
+            edit.numberOfRotations = numberOfRotations
+            edit.scale = scale
+            edit.offset = offset
+
+            return edit
+        }
+    }
     
     init(cropToCircle: Bool, maxAspectRatio: CGFloat, media: PendingMedia) {
         self.cropToCircle = cropToCircle
@@ -140,14 +168,14 @@ fileprivate class MediaEdit : ObservableObject {
                         self.updateImage()
                         
                         if self.media.edit == nil {
-                            self.initialCrop()
+                            self.cropRect = self.initialCrop()
                         }
                     }
             } else {
                 updateImage()
                 
                 if media.edit == nil {
-                    initialCrop()
+                    cropRect = initialCrop()
                 }
             }
         case .video:
@@ -174,16 +202,12 @@ fileprivate class MediaEdit : ObservableObject {
     deinit {
         cancellable?.cancel()
     }
+
+    func isEdited() -> Bool {
+        return (media.edit ?? defaultEdit) != edit
+    }
     
     func process() -> PendingMedia {
-        var edit = media.edit ?? PendingMediaEdit(image: original)
-        edit.cropRect = cropRect
-        edit.hFlipped = hFlipped
-        edit.vFlipped = vFlipped
-        edit.numberOfRotations = numberOfRotations
-        edit.scale = scale
-        edit.offset = offset
-        
         let image = crop()
         guard let data = image?.jpegData(compressionQuality: 0.8) else { return media }
         
@@ -206,7 +230,7 @@ fileprivate class MediaEdit : ObservableObject {
         media.size = image!.size
         media.fileURL = url
         media.edit = edit
-        
+
         return media
     }
     
@@ -228,19 +252,21 @@ fileprivate class MediaEdit : ObservableObject {
         }
     }
     
-    private func initialCrop() {
-        guard let image = image else { return }
+    private func initialCrop() -> CGRect {
+        guard let image = original else { return .zero }
 
         if cropToCircle {
             let size = min(image.size.width, image.size.height)
-            cropRect = CGRect(x: image.size.width / 2 - size / 2, y: image.size.height / 2  - size / 2, width: size, height: size)
+            return CGRect(x: image.size.width / 2 - size / 2, y: image.size.height / 2  - size / 2, width: size, height: size)
         } else {
             var crop = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
 
-            let ratio = crop.size.height / crop.size.width
-            crop.size.height = crop.size.width * min(maxAspectRatio, ratio)
+            if crop.size.height / crop.size.width > maxAspectRatio {
+                crop.size.height = (crop.size.width * maxAspectRatio).rounded()
+                crop.origin.y = image.size.height / 2 - crop.size.height / 2
+            }
 
-            cropRect = crop;
+            return crop;
         }
     }
     
@@ -252,7 +278,7 @@ fileprivate class MediaEdit : ObservableObject {
         offset = CGPoint.zero
         
         updateImage()
-        initialCrop()
+        cropRect = initialCrop()
     }
     
     func rotate() {
@@ -933,10 +959,23 @@ fileprivate struct MediaEditView : View {
     var complete: (([MediaEdit], Int, Bool) -> Void)?
 
     @State private var showDiscardSheet = false
+
+    func cancel() {
+        complete?([], -1, true)
+    }
     
     var topBar: some View {
         HStack {
-            Button(action: { self.showDiscardSheet = true }) {
+            Button(action: {
+                for item in media.items {
+                    if item.type == .image && item.isEdited() {
+                        self.showDiscardSheet = true
+                        return
+                    }
+                }
+
+                cancel()
+            }) {
                 Image(systemName: "xmark")
                     .foregroundColor(.white)
                     .font(.system(size: 22, weight: .medium))
@@ -947,7 +986,7 @@ fileprivate struct MediaEditView : View {
                 ActionSheet(
                     title: Text(Localizations.discardConfirmationPrompt),
                     message: nil,
-                    buttons: [.destructive(Text(Localizations.buttonDiscard)) { self.complete?([], -1, true) }, .cancel()]
+                    buttons: [.destructive(Text(Localizations.buttonDiscard)) { cancel() }, .cancel()]
                 )
             }
             
