@@ -10,11 +10,6 @@ import CocoaLumberjack
 import Foundation
 import SwiftProtobuf
 
-enum XMPPFeedMediaType: String {
-    case image = "image"
-    case video = "video"
-}
-
 // MARK: Concrete classes
 
 public struct XMPPFeedPost: FeedPostProtocol {
@@ -34,7 +29,7 @@ public struct XMPPFeedPost: FeedPostProtocol {
         get { media }
     }
 
-    public let media: [XMPPFeedMedia]
+    public let media: [FeedMediaData]
     public let mentions: [XMPPFeedMention]
 
     public init?(_ serverPost: Server_Post) {
@@ -51,7 +46,7 @@ public struct XMPPFeedPost: FeedPostProtocol {
         self.id = serverPost.id
         self.userId = UserID(serverPost.publisherUid)
         self.text = protoPost.text.isEmpty ? nil : protoPost.text
-        self.media = protoPost.media.enumerated().compactMap { XMPPFeedMedia(id: "\(serverPost.id)-\($0)", protoMedia: $1) }
+        self.media = protoPost.media.enumerated().compactMap { FeedMediaData(id: "\(serverPost.id)-\($0)", protoMedia: $1) }
         self.mentions = protoPost.mentions.map { XMPPFeedMention(index: Int($0.index), userID: $0.userID, name: $0.name) }
         self.timestamp = Date(timeIntervalSince1970: TimeInterval(serverPost.timestamp))
     }
@@ -64,7 +59,16 @@ public struct XMPPFeedMention: FeedMentionProtocol {
     public let name: String
 }
 
-public struct XMPPFeedMedia: FeedMediaProtocol {
+public struct FeedMediaData: FeedMediaProtocol {
+
+    public init(id: String, url: URL?, type: FeedMediaType, size: CGSize, key: String, sha256: String) {
+        self.id = id
+        self.url = url
+        self.type = type
+        self.size = size
+        self.key = key
+        self.sha256 = sha256
+    }
 
     public let id: String
     public let url: URL?

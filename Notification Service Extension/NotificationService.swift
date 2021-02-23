@@ -96,8 +96,8 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
                 return
             }
             if let chatMedia = protoContainer.chatMessage.media.first,
-               let xmppMedia = XMPPFeedMedia(id: "\(messageId)", protoMedia: chatMedia) {
-                let downloadTask = startDownloading(media: xmppMedia)
+               let mediaData = FeedMediaData(id: "\(messageId)", protoMedia: chatMedia) {
+                let downloadTask = startDownloading(media: mediaData)
                 invokeHandler = downloadTask == nil
             }
 

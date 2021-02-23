@@ -1441,6 +1441,10 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     func suspendMediaDownloads() {
         downloadManager.suspendMediaDownloads()
     }
+
+    func resumeMediaDownloads() {
+        downloadManager.resumeSuspendedMediaDownloads()
+    }
     /**
      This method must be run on the main queue to avoid race condition.
      */

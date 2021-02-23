@@ -13,7 +13,6 @@ import CoreData
 import Foundation
 
 public protocol FeedDownloadManagerDelegate: AnyObject {
-
     func feedDownloadManager(_ manager: FeedDownloadManager, didFinishTask task: FeedDownloadManager.Task)
 }
 
@@ -23,13 +22,8 @@ public class FeedDownloadManager {
         public let id: String
 
         // Input parameters.
-        let downloadURL: URL
+        var mediaData: FeedMediaData
         public var feedMediaObjectId: NSManagedObjectID?
-
-        // These are required for decrypting.
-        let mediaType: FeedMediaType
-        let key: String
-        let sha256: String
 
         // Output parameters.
         public let downloadProgress = CurrentValueSubject<Float, Never>(0)
@@ -42,16 +36,19 @@ public class FeedDownloadManager {
 
         fileprivate var filename: String {
             get {
-                return "\(id).\(FeedDownloadManager.fileExtension(forMediaType: mediaType))"
+                return "\(id).\(FeedDownloadManager.fileExtension(forMediaType: mediaData.type))"
             }
         }
 
         public init(media: FeedMediaProtocol) {
             self.id = Self.taskId(for: media)
-            self.downloadURL = media.url! // Safe to unwrap - there's validation happening at receive time.
-            self.mediaType = media.type
-            self.key = media.key
-            self.sha256 = media.sha256
+            self.mediaData = FeedMediaData(
+                id: media.id,
+                url: media.url,
+                type: media.type,
+                size: media.size,
+                key: media.key,
+                sha256: media.sha256)
         }
 
         public static func == (lhs: Task, rhs: Task) -> Bool {
@@ -96,11 +93,15 @@ public class FeedDownloadManager {
     }
 
     @discardableResult private func addTask(_ task: Task) -> Bool {
-        guard !self.tasks.contains(task) else {
-            DDLogError("FeedDownloadManager/\(task.id)/duplicate [\(task.downloadURL)]")
+        guard let downloadURL = task.mediaData.url else {
+            DDLogError("FeedDownloadManager/\(task.id)/missing-url")
             return false
         }
-        DDLogDebug("FeedDownloadManager/\(task.id)/download/start [\(task.downloadURL)]")
+        guard !self.tasks.contains(task) else {
+            DDLogError("FeedDownloadManager/\(task.id)/duplicate [\(downloadURL)]")
+            return false
+        }
+        DDLogDebug("FeedDownloadManager/\(task.id)/download/start [\(downloadURL)]")
         let fileURL = self.fileURL(forMediaFilename: task.filename).appendingPathExtension("enc")
         let destination: DownloadRequest.Destination = { _, _ in
             return (fileURL, [.removePreviousFile, .createIntermediateDirectories])
@@ -113,7 +114,7 @@ public class FeedDownloadManager {
                 return AF.download(resumingWith: resumeData, to: destination)
             } else {
                 DDLogInfo("FeedDownloadManager/\(task.id)/initiating")
-                return AF.download(task.downloadURL, to: destination)
+                return AF.download(downloadURL, to: destination)
             }
         }()
 
@@ -161,6 +162,10 @@ public class FeedDownloadManager {
         return self.tasks.first(where: { $0.id == taskId })
     }
 
+    // MARK: Suspending and resuming
+
+    private var suspendedMedia = [FeedMediaData]()
+
     public func suspendMediaDownloads() {
         for task in tasks {
             guard let request = task.downloadRequest else { continue }
@@ -169,6 +174,19 @@ public class FeedDownloadManager {
                     self.saveResumeData(resumeData, for: task)
                 }
             }
+            DispatchQueue.main.async { self.suspendedMedia.append(task.mediaData) }
+        }
+    }
+
+    public func resumeSuspendedMediaDownloads() {
+        DispatchQueue.main.async {
+            for mediaData in self.suspendedMedia {
+                let (taskAdded, task) = self.downloadMedia(for: mediaData)
+                if taskAdded {
+                    DDLogInfo("FeedDownloadManager/\(task.id)/resuming-suspended-download")
+                }
+            }
+            self.suspendedMedia.removeAll()
         }
     }
 
@@ -230,7 +248,7 @@ public class FeedDownloadManager {
         let ts = Date()
 
         // Fetch keys
-        guard let mediaKey = Data(base64Encoded: task.key), let sha256Hash = Data(base64Encoded: task.sha256) else {
+        guard let mediaKey = Data(base64Encoded: task.mediaData.key), let sha256Hash = Data(base64Encoded: task.mediaData.sha256) else {
             DDLogError("FeedDownloadManager/\(task.id)/load/error Invalid key or hash.")
             task.error = NSError(domain: "com.halloapp.downloadmanager", code: 1, userInfo: nil)
             self.taskFailed(task)
@@ -246,7 +264,7 @@ public class FeedDownloadManager {
         let encryptedFileHandle: FileHandle
         var fileSize: Int = 0
         do {
-            mediaChunkCrypter  = try MediaChunkCrypter.init(mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: task.mediaType)
+            mediaChunkCrypter  = try MediaChunkCrypter.init(mediaKey: mediaKey, sha256hash: sha256Hash, mediaType: task.mediaData.type)
             DDLogError("FeedDownloadManager/\(task.id)/init/MediaChunkCrypter duration: \(-ts.timeIntervalSinceNow) s]")
         } catch {
             DDLogError("FeedDownloadManager/\(task.id)/load/error Failed to create chunkCrypter: [\(error)]")

@@ -37,6 +37,7 @@
 		6832F4FC24FEE97800A9C202 /* HalloService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4F924FEE97800A9C202 /* HalloService.swift */; };
 		6832F4FD24FEE97800A9C202 /* ProtoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FB24FEE97800A9C202 /* ProtoService.swift */; };
 		6832F4FF24FEE9A500A9C202 /* ProtoRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832F4FE24FEE9A500A9C202 /* ProtoRequests.swift */; };
+		685B509B25E075FE00F782F9 /* Reachability in Frameworks */ = {isa = PBXBuildFile; productRef = 685B509A25E075FE00F782F9 /* Reachability */; };
 		685B76C124E262AF00BF666A /* MentionInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76BF24E262AF00BF666A /* MentionInputTests.swift */; };
 		685B76CC24E4A37600BF666A /* FloatingMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B76CB24E4A37600BF666A /* FloatingMenu.swift */; };
 		686CDFBC2548A6C200DB7266 /* RegistrationDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686CDFBB2548A6C200DB7266 /* RegistrationDemo.swift */; };
@@ -605,6 +606,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				768123E02485DFB7008C5216 /* Core.framework in Frameworks */,
+				685B509B25E075FE00F782F9 /* Reachability in Frameworks */,
 				49D1CB440C7C90B50F4E2332 /* Pods_HalloApp.framework in Frameworks */,
 				761E9AAD2465E83900864AE9 /* Zip in Frameworks */,
 			);
@@ -1404,6 +1406,7 @@
 			name = HalloApp;
 			packageProductDependencies = (
 				761E9AAC2465E83900864AE9 /* Zip */,
+				685B509A25E075FE00F782F9 /* Reachability */,
 			);
 			productName = Halloapp;
 			productReference = EAF3A1BF2334191E00805FF9 /* HalloApp.app */;
@@ -1489,6 +1492,7 @@
 			packageReferences = (
 				761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */,
 				76E5153124A1770A003F1273 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				685B509925E075FE00F782F9 /* XCRemoteSwiftPackageReference "Reachability" */,
 			);
 			productRefGroup = EAF3A1C02334191E00805FF9 /* Products */;
 			projectDirPath = "";
@@ -2851,6 +2855,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		685B509925E075FE00F782F9 /* XCRemoteSwiftPackageReference "Reachability" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ashleymills/Reachability.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.0;
+			};
+		};
 		761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/marmelroy/Zip.git";
@@ -2870,6 +2882,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		685B509A25E075FE00F782F9 /* Reachability */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 685B509925E075FE00F782F9 /* XCRemoteSwiftPackageReference "Reachability" */;
+			productName = Reachability;
+		};
 		761E9AAC2465E83900864AE9 /* Zip */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 761E9AAB2465E83900864AE9 /* XCRemoteSwiftPackageReference "Zip" */;

@@ -11,6 +11,7 @@ import CocoaLumberjack
 import Contacts
 import Core
 import CoreData
+import Reachability
 import UIKit
 
 fileprivate let BackgroundFeedRefreshTaskIdentifier = "com.halloapp.hallo.feed.refresh"
@@ -39,6 +40,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UIApplication.shared.registerForRemoteNotifications()
         
         UNUserNotificationCenter.current().delegate = self
+
+        setUpReachability()
 
         return true
     }
@@ -181,6 +184,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 // time to request access to notifications.
                 self.checkNotificationsAuthorizationStatus()
             }
+        }
+    }
+
+    // MARK: Reachability
+
+    var reachability: Reachability?
+
+    func setUpReachability() {
+        reachability = try? Reachability()
+        reachability?.whenReachable = { reachability in
+            DDLogInfo("Reachability/reachable/\(reachability.connection)")
+            MainAppContext.shared.feedData.resumeMediaDownloads()
+        }
+        reachability?.whenUnreachable = { reachability in
+            DDLogInfo("Reachability/unreachable/\(reachability.connection)")
+            MainAppContext.shared.feedData.suspendMediaDownloads()
         }
     }
 
