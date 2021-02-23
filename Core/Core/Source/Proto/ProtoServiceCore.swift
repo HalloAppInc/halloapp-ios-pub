@@ -32,12 +32,13 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
 
     // MARK: Connection State
-    @Published public private(set) var connectionState: ConnectionState = .notConnected {
+    public private(set) var connectionState: ConnectionState = .notConnected {
         didSet {
             if oldValue == connectionState { return }
             DDLogDebug("proto/connectionState/change [\(oldValue)] -> [\(connectionState)]")
             if connectionState == .notConnected {
                 cancelAllRequests()
+                didDisconnect.send()
             }
             runCallbacksForCurrentConnectionState()
             if oldValue == .connected && connectionState == .notConnected {
@@ -52,6 +53,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     public var isDisconnected: Bool { get { connectionState == .disconnecting || connectionState == .notConnected } }
 
     public let didConnect = PassthroughSubject<Void, Never>()
+    public let didDisconnect = PassthroughSubject<Void, Never>()
 
     private var stream: Stream?
     public let userData: UserData

@@ -43,6 +43,7 @@
 		68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E8D24D33DEF00F40F1F /* Mentions.swift */; };
 		68A64E9224D33E0F00F40F1F /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
 		68C8264B251A77A000BB8F3A /* NUX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68C8264A251A77A000BB8F3A /* NUX.swift */; };
+		68CD603425E463FA0056D13E /* ConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CD603325E463FA0056D13E /* ConnectionBanner.swift */; };
 		68CFF38F2551FF6F009B0D81 /* Localizations+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */; };
 		68D2915125096F0700AF5061 /* MentionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */; };
 		68D45A0E25544813000BF04E /* ContactsPermissionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D45A0D25544813000BF04E /* ContactsPermissionsViewController.swift */; };
@@ -363,6 +364,7 @@
 		68A64E9124D33E0F00F40F1F /* MentionPickerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MentionPickerView.swift; sourceTree = "<group>"; };
 		68C8264A251A77A000BB8F3A /* NUX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NUX.swift; sourceTree = "<group>"; };
 		68CBEB1CAF0191E230206CAE /* Pods-HalloApp.external beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HalloApp.external beta.xcconfig"; path = "Target Support Files/Pods-HalloApp/Pods-HalloApp.external beta.xcconfig"; sourceTree = "<group>"; };
+		68CD603325E463FA0056D13E /* ConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionBanner.swift; sourceTree = "<group>"; };
 		68CFF38E2551FF6F009B0D81 /* Localizations+Registration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Localizations+Registration.swift"; sourceTree = "<group>"; };
 		68D45A0D25544813000BF04E /* ContactsPermissionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsPermissionsViewController.swift; sourceTree = "<group>"; };
 		68E4619525C9C93B008B5698 /* ExpiredVersionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpiredVersionViewController.swift; sourceTree = "<group>"; };
@@ -1180,6 +1182,7 @@
 				685B76CB24E4A37600BF666A /* FloatingMenu.swift */,
 				762EDBDC244E5A7800986617 /* HomeViewController.swift */,
 				680FB660250C45C000CA5D40 /* OverlayView.swift */,
+				68CD603325E463FA0056D13E /* ConnectionBanner.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -1900,6 +1903,7 @@
 				7626CCD724C69EDC0023FC2E /* CircularProgressView.swift in Sources */,
 				EAD476F42458F03700EF8591 /* ChatThread+CoreDataClass.swift in Sources */,
 				76E00DF624FEC4A800E06252 /* ProfileHeaderViewController.swift in Sources */,
+				68CD603425E463FA0056D13E /* ConnectionBanner.swift in Sources */,
 				68A64E9024D33DEF00F40F1F /* Mentions.swift in Sources */,
 				76538093243D4B33000AD9A1 /* FeedPost+CoreDataProperties.swift in Sources */,
 				F851E9512500E47300BC0FAA /* MediaPickerSnapshotManager.swift in Sources */,

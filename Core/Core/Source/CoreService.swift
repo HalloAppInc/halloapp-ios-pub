@@ -36,6 +36,7 @@ public protocol CoreService {
 
     // MARK: Connection
     var didConnect: PassthroughSubject<Void, Never> { get }
+    var didDisconnect: PassthroughSubject<Void, Never> { get }
     var connectionState: ConnectionState { get }
     var isConnected: Bool { get }
     var isDisconnected: Bool { get }

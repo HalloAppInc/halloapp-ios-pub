@@ -55,6 +55,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         collectionView.constrain(to: view)
 
         setupFetchedResultsController()
+        setupNoConnectionBanner()
 
         cancellableSet.insert(MainAppContext.shared.feedData.willDestroyStore.sink { [weak self] in
             guard let self = self else { return }
@@ -70,6 +71,18 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
                 self.setupFetchedResultsController()
                 self.collectionView.reloadData()
         })
+
+        cancellableSet.insert(
+            MainAppContext.shared.service.didDisconnect.sink { [weak self] in
+                self?.updateNoConnectionBanner(animated: true)
+            }
+        )
+
+        cancellableSet.insert(
+            MainAppContext.shared.service.didConnect.sink { [weak self] in
+                self?.updateNoConnectionBanner(animated: true)
+            }
+        )
 
         cancellableSet.insert(
             NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification).sink { [weak self] (_) in
@@ -103,6 +116,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
         super.viewDidAppear(animated)
 
         updateNavigationBarStyleUsing(scrollView: collectionView)
+        updateNoConnectionBanner(animated: true)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -286,6 +300,50 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     private func deleteUnsentPost(postID: FeedPostID) {
         MainAppContext.shared.feedData.deleteUnsentPost(postID: postID)
+    }
+
+    // MARK: No Connection Banner
+
+    private let noConnectionBanner = ConnectionBanner()
+
+    private func setupNoConnectionBanner() {
+        noConnectionBanner.translatesAutoresizingMaskIntoConstraints = false
+        noConnectionBanner.isHidden = true
+        view.addSubview(noConnectionBanner)
+        noConnectionBanner.constrain([.leading, .trailing, .top], to: view.safeAreaLayoutGuide)
+    }
+
+    /// Hides banner immediately if connected, otherwise waits for timeout to decide whether to show banner
+    private func updateNoConnectionBanner(animated: Bool, timeout: TimeInterval = 10) {
+        if MainAppContext.shared.service.isConnected {
+            hideNoConnectionBanner(animated: animated)
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + timeout) {
+                if MainAppContext.shared.service.isConnected {
+                    self.hideNoConnectionBanner(animated: animated)
+                } else {
+                    self.showNoConnectionBanner(animated: animated)
+                }
+            }
+        }
+    }
+
+    private func showNoConnectionBanner(animated: Bool) {
+        guard noConnectionBanner.isHidden else { return }
+        noConnectionBanner.isHidden = false
+        noConnectionBanner.transform = .init(translationX: 0, y: -self.noConnectionBanner.frame.height)
+        UIView.animate(withDuration: animated ? 0.3: 0) {
+                self.noConnectionBanner.superview?.bringSubviewToFront(self.noConnectionBanner)
+                self.noConnectionBanner.transform = .identity
+        }
+    }
+
+    private func hideNoConnectionBanner(animated: Bool) {
+        guard !noConnectionBanner.isHidden else { return }
+        UIView.animate(
+            withDuration: animated ? 0.3: 0,
+            animations: { self.noConnectionBanner.transform = .init(translationX: 0, y: -self.noConnectionBanner.frame.height) },
+            completion: { _ in self.noConnectionBanner.isHidden = true })
     }
 
     // MARK: Misc
