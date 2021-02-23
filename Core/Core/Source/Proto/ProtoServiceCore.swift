@@ -32,9 +32,9 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
 
     // MARK: Connection State
-    // TODO: Only allow stream to set this value (e.g. via delegate callback)
-    @Published public var connectionState: ConnectionState = .notConnected {
+    @Published public private(set) var connectionState: ConnectionState = .notConnected {
         didSet {
+            if oldValue == connectionState { return }
             DDLogDebug("proto/connectionState/change [\(oldValue)] -> [\(connectionState)]")
             if connectionState == .notConnected {
                 cancelAllRequests()
@@ -61,12 +61,6 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         super.init()
 
         configureStream(with: userData)
-    }
-
-    // MARK: Credentials
-
-    public func receivedServerStaticKey(_ key: Data, for userID: UserID) {
-        Keychain.saveServerStaticKey(key, for: userID)
     }
 
     // MARK: Connection management
@@ -101,9 +95,9 @@ open class ProtoServiceCore: NSObject, ObservableObject {
             let noise = NoiseStream(
                             userAgent: AppContext.userAgent,
                             userID: userID,
-                            serverStaticKey: Keychain.loadServerStaticKey(for: userID))
-            noise.noiseKeys = noiseKeys
-            noise.protoService = self
+                            noiseKeys: noiseKeys,
+                            serverStaticKey: Keychain.loadServerStaticKey(for: userID),
+                            delegate: self)
             stream = .noise(noise)
         case .none:
             return
@@ -363,7 +357,9 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     open func authenticationSucceeded(with authResult: Server_AuthResult) {
         DDLogInfo("ProtoServiceCore/authenticationSucceeded")
         connectionState = .connected
-        performOnConnect()
+        DispatchQueue.main.async {
+            self.performOnConnect()
+        }
     }
 
     open func authenticationFailed(with authResult: Server_AuthResult) {
@@ -412,6 +408,33 @@ open class ProtoServiceCore: NSObject, ObservableObject {
                 request.process(response: packet)
             }
         }
+    }
+}
+
+extension ProtoServiceCore: NoiseDelegate {
+    public func receivedPacket(_ packet: Server_Packet) {
+        guard let requestID = packet.requestID else {
+            // TODO: Remove this limitation (only present for parity with XMPP/ProtoStream behavior)
+            DDLogError("proto/receivedPacket/error packet missing request ID [\(packet)]")
+            return
+        }
+        didReceive(packet: packet, requestID: requestID)
+    }
+
+    public func receivedAuthResult(_ authResult: Server_AuthResult) {
+        if authResult.result == "success" {
+            authenticationSucceeded(with: authResult)
+        } else {
+            authenticationFailed(with: authResult)
+        }
+    }
+
+    public func updateConnectionState(_ connectionState: ConnectionState) {
+        self.connectionState = connectionState
+    }
+
+    public func receivedServerStaticKey(_ key: Data, for userID: UserID) {
+        Keychain.saveServerStaticKey(key, for: userID)
     }
 }
 

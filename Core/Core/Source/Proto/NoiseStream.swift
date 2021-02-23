@@ -20,14 +20,30 @@ private enum NoiseState {
     case connected(CipherState, CipherState)
 }
 
+public protocol NoiseDelegate: AnyObject {
+    func receivedPacket(_ packet: Server_Packet)
+    func receivedAuthResult(_ authResult: Server_AuthResult)
+    func updateConnectionState(_ connectionState: ConnectionState)
+    func receivedServerStaticKey(_ key: Data, for userID: UserID)
+}
+
 public final class NoiseStream: NSObject {
 
-    public init(userAgent: String, userID: UserID, serverStaticKey: Data?, passiveMode: Bool = false) {
+    public init(
+        userAgent: String,
+        userID: UserID,
+        noiseKeys: NoiseKeys,
+        serverStaticKey: Data?,
+        delegate: NoiseDelegate,
+        passiveMode: Bool = false)
+    {
         self.userAgent = userAgent
         self.userID = userID
         self.passiveMode = passiveMode
+        self.noiseKeys = noiseKeys
         self.serverStaticKey = serverStaticKey
         self.socket = GCDAsyncSocket()
+        self.delegate = delegate
 
         super.init()
 
@@ -44,7 +60,6 @@ public final class NoiseStream: NSObject {
             DDLogInfo("noise/connect [passiveMode: \(passiveMode), \(userAgent), \(UIDevice.current.getModelName()) (iOS \(UIDevice.current.systemVersion))]")
             try socket.connect(toHost: host, onPort: port)
             state = .connecting
-            protoService?.connectionState = .connecting
         } catch {
             DDLogError("noise/connect/error [\(error)]")
         }
@@ -53,7 +68,6 @@ public final class NoiseStream: NSObject {
     public func disconnect(afterSending: Bool = false) {
         DDLogInfo("noise/disconnect [afterSending=\(afterSending)]")
         state = .disconnecting
-        protoService?.connectionState = .disconnecting
         if afterSending {
             socket.disconnectAfterWriting()
         } else {
@@ -76,14 +90,10 @@ public final class NoiseStream: NSObject {
         }
     }
 
-    // TODO: Move this to a delegate relationship (stream should not depend on service)
-    public weak var protoService: ProtoServiceCore?
-    public var noiseKeys: NoiseKeys?
-
     public var isReadyToConnect: Bool {
         switch state {
         case .disconnecting, .disconnected:
-            return noiseKeys != nil
+            return true
         default:
             return false
         }
@@ -135,11 +145,6 @@ public final class NoiseStream: NSObject {
         // we use it for all our noise patterns - xx, ik, xxfallback
         self.clientEphemeralKeys = NoiseKeys()
         DDLogInfo("noise/connect/generate/ephemeralKeys - done]")
-
-        guard let noiseKeys = noiseKeys else {
-            DDLogError("noise/startHandshake/error missing noiseKeys")
-            return
-        }
 
         guard let ephemeralKeys = clientEphemeralKeys else {
             DDLogError("noise/startHandshake/error missing ephemeralKeys")
@@ -202,11 +207,6 @@ public final class NoiseStream: NSObject {
 
     private func continueHandshake(_ noiseMessage: Server_NoiseMessage) {
         if case .xxFallbackA = noiseMessage.messageType {
-            guard let noiseKeys = noiseKeys else {
-                DDLogError("noise/startHandshake/error missing noiseKeys")
-                return
-            }
-
             guard let ephemeralKeys = clientEphemeralKeys else {
                 DDLogError("noise/startHandshake/error missing ephemeralKeys")
                 return
@@ -260,7 +260,7 @@ public final class NoiseStream: NSObject {
                 return
             }
             serverStaticKey = staticKey
-            protoService?.receivedServerStaticKey(staticKey, for: userID)
+            delegate?.receivedServerStaticKey(staticKey, for: userID)
             do {
                 let serializedConfig = try makeClientConfig().serializedData()
                 let msgB = try handshake.writeMessage(payload: serializedConfig)
@@ -298,7 +298,7 @@ public final class NoiseStream: NSObject {
             }
 
             serverStaticKey = staticKey
-            protoService?.receivedServerStaticKey(staticKey, for: userID)
+            delegate?.receivedServerStaticKey(staticKey, for: userID)
 
             do {
                 let serializedConfig = try makeClientConfig().serializedData()
@@ -400,12 +400,7 @@ public final class NoiseStream: NSObject {
                     DDLogError("noise/receive/error could not deserialize packet [\(decryptedData.base64EncodedString())]")
                     break
                 }
-                guard let requestID = packet.requestID else {
-                    // TODO: Remove this limitation (only present for parity with XMPP/ProtoStream behavior)
-                    DDLogError("noise/receive/error packet missing request ID [\(packet)]")
-                    break
-                }
-                protoService?.didReceive(packet: packet, requestID: requestID)
+                delegate?.receivedPacket(packet)
             }
 
             offset = packetEnd
@@ -422,14 +417,11 @@ public final class NoiseStream: NSObject {
         }
         if authResult.result == "success" {
             state = .connected(send, recv)
-
-            DispatchQueue.main.async {
-                self.protoService?.authenticationSucceeded(with: authResult)
-            }
         } else {
             state = .disconnected
-            protoService?.authenticationFailed(with: authResult)
         }
+
+        self.delegate?.receivedAuthResult(authResult)
     }
 
     private let userAgent: String
@@ -440,10 +432,29 @@ public final class NoiseStream: NSObject {
     private let socketQueue = DispatchQueue(label: "hallo.noise", qos: .userInitiated)
     private var socketBuffer: Data?
 
+    private let noiseKeys: NoiseKeys
     private var clientEphemeralKeys: NoiseKeys?
     private var serverStaticKey: Data?
 
-    private var state: NoiseState = .disconnected
+    private weak var delegate: NoiseDelegate?
+
+    private var state: NoiseState = .disconnected {
+        didSet {
+            switch state {
+            case .connected:
+                delegate?.updateConnectionState(.connected)
+            case .connecting:
+                delegate?.updateConnectionState(.connecting)
+            case .disconnected:
+                delegate?.updateConnectionState(.notConnected)
+            case .disconnecting:
+                delegate?.updateConnectionState(.disconnecting)
+            case .authorizing, .handshake:
+                // internal states
+                break
+            }
+        }
+    }
 }
 
 // MARK: GCDAsyncSocketDelegate
@@ -491,7 +502,6 @@ extension NoiseStream: GCDAsyncSocketDelegate {
             DDLogInfo("noise/socket-did-disconnect")
         }
         state = .disconnected
-        protoService?.connectionState = .notConnected
     }
 
     public func socket(_ sock: GCDAsyncSocket, didConnectTo url: URL) {
