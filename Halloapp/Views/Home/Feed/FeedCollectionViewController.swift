@@ -74,13 +74,13 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
         cancellableSet.insert(
             MainAppContext.shared.service.didDisconnect.sink { [weak self] in
-                self?.updateNoConnectionBanner(animated: true)
+                DispatchQueue.main.async { self?.updateNoConnectionBanner(animated: true) }
             }
         )
 
         cancellableSet.insert(
             MainAppContext.shared.service.didConnect.sink { [weak self] in
-                self?.updateNoConnectionBanner(animated: true)
+                DispatchQueue.main.async { self?.updateNoConnectionBanner(animated: true) }
             }
         )
 
@@ -315,6 +315,9 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     /// Hides banner immediately if connected, otherwise waits for timeout to decide whether to show banner
     private func updateNoConnectionBanner(animated: Bool, timeout: TimeInterval = 10) {
+        guard UIApplication.shared.applicationState == .active else {
+            return
+        }
         if MainAppContext.shared.service.isConnected {
             hideNoConnectionBanner(animated: animated)
         } else {
