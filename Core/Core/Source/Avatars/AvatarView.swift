@@ -135,7 +135,6 @@ public class AvatarView: UIView {
         avatarUpdatingCancellable?.cancel()
         avatar.image = AvatarView.defaultImage
         hasImage = false
-        applyCornerRadius()
     }
     
     public func resetImage() {

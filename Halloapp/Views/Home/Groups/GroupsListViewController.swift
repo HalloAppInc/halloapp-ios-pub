@@ -61,15 +61,12 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         installLargeTitleUsingGothamFont()
         
         searchController = HAUISearchController(searchResultsController: nil)
-        searchController.delegate = self
         searchController.searchResultsUpdater = self
         searchController.searchBar.autocapitalizationType = .none
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.definesPresentationContext = true
         searchController.hidesNavigationBarDuringPresentation = false
 
-        searchController.searchBar.showsCancelButton = false
-        
         searchController.searchBar.backgroundImage = UIImage()
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
 
@@ -462,23 +459,12 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
             cell.highlightTitle(searchItems)
         }
         
-        switch chatThread.type {
-        case .oneToOne:
-            cell.avatarTappedAction = { [weak self] in
-                guard let self = self, let userId = chatThread.chatWithUserId else { return }
-                self.openProfile(forUserId: userId)
-            }
-        case .group:
-            let groupId = chatThread.groupId
-            cell.avatarTappedAction = { [weak self] in
-                guard let self = self, let groupId = groupId else { return }
-                self.openFeed(forGroupId: groupId)
-            }
-        }
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+
+        searchController.isActive = false // dismiss early to prevent unsightly transition when searchbar is active
         
         guard let chatThread = chatThread(at: indexPath) else {
             tableView.deselectRow(at: indexPath, animated: true)
@@ -498,43 +484,46 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
-    
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if (editingStyle == .delete) {
-            let actionSheet = UIAlertController(title: "Are you sure you want to clear this group?", message: nil, preferredStyle: .actionSheet)
-            actionSheet.addAction(UIAlertAction(title: "Clear Group", style: .destructive) { [weak self] action in
+        
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard let chatThread = self.chatThread(at: indexPath) else { return UISwipeActionsConfiguration(actions: []) }
+        guard let groupId = chatThread.groupId else { return UISwipeActionsConfiguration(actions: []) }
+        
+        let moreInfoAction = UIContextualAction(style: .normal, title: "") { [weak self] (_, _, completionHandler) in
+            guard let self = self else { return }
+            let vc = GroupInfoViewController(for: groupId)
+            vc.hidesBottomBarWhenPushed = true
+            self.navigationController?.pushViewController(vc, animated: true)
+            completionHandler(true)
+        }
+        moreInfoAction.backgroundColor = .primaryBlue
+        moreInfoAction.image = UIImage(systemName: "ellipsis")
+        
+        let removeAction = UIContextualAction(style: .destructive, title: Localizations.buttonRemove) { [weak self] (_, _, completionHandler) in
+            guard let self = self else { return }
+            let actionSheet = UIAlertController(title: chatThread.title, message: Localizations.groupsListRemoveMessage, preferredStyle: .actionSheet)
+            actionSheet.addAction(UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { [weak self] action in
                 guard let self = self else { return }
-                if let chatThread = self.chatThread(at: indexPath) {
-                    if chatThread.type == .oneToOne {
-                        guard let chatWithUserId = chatThread.chatWithUserId else { return }
-                        MainAppContext.shared.chatData.deleteChat(chatThreadId: chatWithUserId)
-                    } else {
-                        guard let groupId = chatThread.groupId else { return }
-                        MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId)
-                    }
-                }
-                
+                MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId)
                 if self.isFiltering {
                     self.filteredChats.remove(at: indexPath.row)
                 }
-                
             })
             actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-            present(actionSheet, animated: true)
+            self.present(actionSheet, animated: true)
+            completionHandler(true)
+        }
+
+        if MainAppContext.shared.chatData.chatGroupMember(groupId: groupId, memberUserId: MainAppContext.shared.userData.userId) != nil {
+            return UISwipeActionsConfiguration(actions: [moreInfoAction])
+        } else {
+            return UISwipeActionsConfiguration(actions: [removeAction])
         }
     }
-    
+
     // resign keyboard so the entire tableview can be seen
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         searchController.searchBar.resignFirstResponder()
-    }
-
-}
-
-extension GroupsListViewController: UISearchControllerDelegate {
-    func willDismissSearchController(_ searchController: UISearchController) {
-        searchController.dismiss(animated: false, completion: {
-        })
     }
 
 }
@@ -644,4 +633,12 @@ private class HAUISearchController: UISearchController {
         isActive = false
         dismiss(animated: false, completion: nil)
     }
+}
+
+private extension Localizations {
+
+    static var groupsListRemoveMessage: String {
+        NSLocalizedString("groups.list.remove.message", value: "Are you sure you want to remove this group and its content from your device?", comment: "Text shown when user is about to remove the group")
+    }
+    
 }

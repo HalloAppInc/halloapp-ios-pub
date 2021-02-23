@@ -59,14 +59,11 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         installLargeTitleUsingGothamFont()
 
         searchController = HAUISearchController(searchResultsController: nil)
-        searchController.delegate = self
         searchController.searchResultsUpdater = self
         searchController.searchBar.autocapitalizationType = .none
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.definesPresentationContext = true
         searchController.hidesNavigationBarDuringPresentation = false
-
-        searchController.searchBar.showsCancelButton = false
     
         searchController.searchBar.backgroundImage = UIImage()
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
@@ -509,6 +506,8 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
+        searchController.isActive = false // dismiss early to prevent unsightly transition when searchbar is active
+        
         guard let chatThread = chatThread(at: indexPath) else {
             // Must be invite friends cell
             startInviteFriendsFlow()
@@ -529,7 +528,34 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
         }
         
         tableView.deselectRow(at: indexPath, animated: true)
+        
+        // dismiss early to prevent unsightly transition when searchbar is active
+        searchController.dismiss(animated: false, completion: nil)
     }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard let chatThread = self.chatThread(at: indexPath) else { return UISwipeActionsConfiguration(actions: []) }
+        guard let chatWithUserId = chatThread.chatWithUserId else { return UISwipeActionsConfiguration(actions: []) }
+        
+
+        let removeAction = UIContextualAction(style: .destructive, title: Localizations.buttonRemove) { [weak self] (_, _, completionHandler) in
+            guard let self = self else { return }
+            let actionSheet = UIAlertController(title: chatThread.title, message: Localizations.chatsListRemoveMessage, preferredStyle: .actionSheet)
+            actionSheet.addAction(UIAlertAction(title: Localizations.buttonRemove, style: .destructive) { [weak self] action in
+                guard let self = self else { return }
+                MainAppContext.shared.chatData.deleteChat(chatThreadId: chatWithUserId)
+                if self.isFiltering {
+                    self.filteredChats.remove(at: indexPath.row)
+                }
+            })
+            actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
+            self.present(actionSheet, animated: true)
+            completionHandler(true)
+        }
+
+        return UISwipeActionsConfiguration(actions: [removeAction])
+    }
+    
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == .delete) {
@@ -559,14 +585,6 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
     // resign keyboard so the entire tableview can be seen
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         searchController.searchBar.resignFirstResponder()
-    }
-
-}
-
-extension ChatListViewController: UISearchControllerDelegate {
-    func willDismissSearchController(_ searchController: UISearchController) {
-        searchController.dismiss(animated: false, completion: {
-        })
     }
 
 }
@@ -739,4 +757,12 @@ private class HAUISearchController: UISearchController {
         isActive = false
         dismiss(animated: false, completion: nil)
     }
+}
+
+private extension Localizations {
+
+    static var chatsListRemoveMessage: String {
+        NSLocalizedString("chats.list.remove.message", value: "By removing this chat you'll be clearing its chat history and content from your device.", comment: "Text shown when user is about to remove the chat")
+    }
+    
 }

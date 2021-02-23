@@ -44,6 +44,10 @@ extension Localizations {
         NSLocalizedString("button.dismiss", value: "Dismiss", comment: "Title for generic Dismiss button. Mostly used to complete some modal flow.")
     }
     
+    static var buttonRemove: String {
+        NSLocalizedString("button.remove", value: "Remove", comment: "Title for generic Remove button. Mostly used to complete some modal flow.")
+    }
+    
     // MARK: Links
 
     static var linkLearnMore: String {
