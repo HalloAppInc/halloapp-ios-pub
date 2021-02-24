@@ -505,9 +505,6 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        searchController.isActive = false // dismiss early to prevent unsightly transition when searchbar is active
-        
         guard let chatThread = chatThread(at: indexPath) else {
             // Must be invite friends cell
             startInviteFriendsFlow()
@@ -515,28 +512,20 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
             return
         }
         
-        if chatThread.type == .oneToOne {
-            guard let chatWithUserId = chatThread.chatWithUserId else { return }
-            let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
-            vc.hidesBottomBarWhenPushed = true
-            self.navigationController?.pushViewController(vc, animated: true)
-        } else {
-            guard let groupId = chatThread.groupId else { return }
-            let vc = ChatGroupViewController(for: groupId)
-            vc.hidesBottomBarWhenPushed = true
-            self.navigationController?.pushViewController(vc, animated: true)
-        }
+        guard let chatWithUserId = chatThread.chatWithUserId else { return }
+        
+        searchController.isActive = false // dismiss early to prevent unsightly transition when searchbar is active
+        
+        let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
+        vc.hidesBottomBarWhenPushed = true
+        self.navigationController?.pushViewController(vc, animated: true)
         
         tableView.deselectRow(at: indexPath, animated: true)
-        
-        // dismiss early to prevent unsightly transition when searchbar is active
-        searchController.dismiss(animated: false, completion: nil)
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let chatThread = self.chatThread(at: indexPath) else { return UISwipeActionsConfiguration(actions: []) }
         guard let chatWithUserId = chatThread.chatWithUserId else { return UISwipeActionsConfiguration(actions: []) }
-        
 
         let removeAction = UIContextualAction(style: .destructive, title: Localizations.buttonRemove) { [weak self] (_, _, completionHandler) in
             guard let self = self else { return }
@@ -555,33 +544,7 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
 
         return UISwipeActionsConfiguration(actions: [removeAction])
     }
-    
-    
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if (editingStyle == .delete) {
-            let actionSheet = UIAlertController(title: "Are you sure you want to clear this chat?", message: nil, preferredStyle: .actionSheet)
-            actionSheet.addAction(UIAlertAction(title: "Clear Chat", style: .destructive) { [weak self] action in
-                guard let self = self else { return }
-                if let chatThread = self.chatThread(at: indexPath) {
-                    if chatThread.type == .oneToOne {
-                        guard let chatWithUserId = chatThread.chatWithUserId else { return }
-                        MainAppContext.shared.chatData.deleteChat(chatThreadId: chatWithUserId)
-                    } else {
-                        guard let groupId = chatThread.groupId else { return }
-                        MainAppContext.shared.chatData.deleteChatGroup(groupId: groupId)
-                    }
-                }
-                
-                if self.isFiltering {
-                    self.filteredChats.remove(at: indexPath.row)
-                }
-                
-            })
-            actionSheet.addAction(UIAlertAction(title: Localizations.buttonCancel, style: .cancel))
-            present(actionSheet, animated: true)
-        }
-    }
-    
+        
     // resign keyboard so the entire tableview can be seen
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         searchController.searchBar.resignFirstResponder()

@@ -463,24 +463,15 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-
-        searchController.isActive = false // dismiss early to prevent unsightly transition when searchbar is active
-        
         guard let chatThread = chatThread(at: indexPath) else {
             tableView.deselectRow(at: indexPath, animated: true)
             return
         }
+        guard let groupId = chatThread.groupId else { return }
         
-        switch chatThread.type {
-        case .oneToOne:
-            guard let chatWithUserId = chatThread.chatWithUserId else { return }
-            let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
-            vc.hidesBottomBarWhenPushed = true
-            navigationController?.pushViewController(vc, animated: true)
-        case .group:
-            guard let groupId = chatThread.groupId else { return }
-            openFeed(forGroupId: groupId)
-        }
+        searchController.isActive = false // dismiss early to prevent unsightly transition when searchbar is active
+        
+        openFeed(forGroupId: groupId)
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
