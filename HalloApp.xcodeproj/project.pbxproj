@@ -213,6 +213,7 @@
 		EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA424F924ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift */; };
 		EAA4250524F0DE360025CBBE /* ChatGroupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */; };
 		EAA4906625311CD1003348B5 /* OutboundMsgViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */; };
+		EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */; };
 		EAAA5C0D25644A9600B81630 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAAA5C0C25644A9600B81630 /* Utils.swift */; };
 		EAB1FFEE2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */; };
 		EAB1FFEF2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAB1FFED2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift */; };
@@ -540,6 +541,7 @@
 		EAA4250424F0DE360025CBBE /* ChatGroupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGroupViewController.swift; sourceTree = "<group>"; };
 		EAA43DA223DB59B900B9C0CA /* Halloapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Halloapp.entitlements; sourceTree = "<group>"; };
 		EAA4906525311CD1003348B5 /* OutboundMsgViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundMsgViewCell.swift; sourceTree = "<group>"; };
+		EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotInGroupBannerView.swift; sourceTree = "<group>"; };
 		EAAA5C0C25644A9600B81630 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		EAB1FFEC2509D73000256365 /* ChatGroupMessageEvent+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageEvent+CoreDataClass.swift"; sourceTree = "<group>"; };
 		EAB1FFED2509D73000256365 /* ChatGroupMessageEvent+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatGroupMessageEvent+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -1103,6 +1105,7 @@
 				76B95CDD24295AB5007435AC /* CommentView.swift */,
 				76B95CD62429331D007435AC /* CommentsViewController.swift */,
 				76B95CE3242A7A3F007435AC /* CommentInputView.swift */,
+				EAA85A0A25E5D510006D0BC9 /* NotInGroupBannerView.swift */,
 			);
 			path = Comment;
 			sourceTree = "<group>";
@@ -1885,6 +1888,7 @@
 				EAD476F22458F03700EF8591 /* ChatMedia+CoreDataClass.swift in Sources */,
 				766103A42461E65300728870 /* Receipt.swift in Sources */,
 				76271389252D250E00389FBC /* FacePileView.swift in Sources */,
+				EAA85A0B25E5D510006D0BC9 /* NotInGroupBannerView.swift in Sources */,
 				EA45712F23EB7D94008C2E44 /* FeedDataItem.swift in Sources */,
 				EA0D20152368B04B008B8289 /* FeedData.swift in Sources */,
 				761BD0FE24B3EE0A00B567F6 /* InvitePeopleView.swift in Sources */,

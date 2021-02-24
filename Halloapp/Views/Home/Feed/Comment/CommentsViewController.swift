@@ -62,6 +62,8 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
             mentionableUsers = computeMentionableUsers()
         }
     }
+    
+    private var isCommentingEnabled: Bool = true
 
     var highlightedCommentId: FeedPostCommentID?
     private var replyContext: ReplyContext? {
@@ -147,6 +149,10 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         if view.window == nil {
             setNeedsScrollToTarget(withAnimation: false)
         }
+        
+        if let feedPost = MainAppContext.shared.feedData.feedPost(with: feedPostId) {
+            showNotInGroupBannerIfNeeded(with: feedPost)
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -176,8 +182,12 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }
 
         commentsInputView.willDisappear(in: self)
-    }
 
+        if !isCommentingEnabled {
+            notInGroupBanner.removeFromSuperview()
+        }
+    }
+    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
@@ -239,7 +249,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }
 
         commentsInputView.isEnabled = true
-
+        
         if let highlightedCommentId = highlightedCommentId {
             setNeedsScroll(toComment: highlightedCommentId, highlightAfterScroll: false, animated: false)
         }
@@ -276,6 +286,28 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }
     }
 
+    private func showNotInGroupBannerIfNeeded(with feedPost: FeedPost) {
+        guard let groupID = feedPost.groupId else { return }
+        guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId) == nil else { return }
+        
+        guard let superView = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
+        
+        isCommentingEnabled = false
+        commentsInputView.isEnabled = false
+        commentsInputView.isHidden = true
+
+        superView.addSubview(notInGroupBanner)
+        notInGroupBanner.leadingAnchor.constraint(equalTo: superView.leadingAnchor).isActive = true
+        notInGroupBanner.trailingAnchor.constraint(equalTo: superView.trailingAnchor).isActive = true
+        notInGroupBanner.bottomAnchor.constraint(equalTo: superView.bottomAnchor).isActive = true
+    }
+    
+    private lazy var notInGroupBanner: NotInGroupBannerView = {
+        let view = NotInGroupBannerView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     // MARK: Scrolling / highlighting
 
     private var preventAdjustContentOffsetOnChatBarBottomInsetChangeCounter = 0
@@ -618,6 +650,9 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }
         cell.commentView.textLabel.delegate = self
         cell.isCellHighlighted = self.replyContext?.parentCommentId == commentId || self.highlightedCommentId == commentId
+        if !isCommentingEnabled {
+            cell.isReplyingEnabled = false
+        }
         return cell
     }
 
@@ -799,6 +834,11 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
     var openProfileAction: (() -> ()) = {}
     var replyAction: (() -> ()) = {}
     var retryAction: (() -> ()) = {}
+    var isReplyingEnabled: Bool = true {
+        didSet {
+            commentView.replyButton.isHidden = !isReplyingEnabled
+        }
+    }
 
     var isCellHighlighted: Bool = false {
         didSet {
@@ -835,6 +875,7 @@ fileprivate class CommentsTableViewCell: UITableViewCell {
         super.prepareForReuse()
         self.replyAction = {}
         commentId = nil
+        isReplyingEnabled = true
     }
 
     @objc private func profileButtonAction() {
