@@ -255,7 +255,6 @@ class PostComposerViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        shouldAutoPlay.value = true
 
         guard configuration.useTransparentNavigationBar, let navigationController = navigationController else { return }
 
@@ -271,7 +270,6 @@ class PostComposerViewController: UIViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        self.shouldAutoPlay.value = false
         delegate?.willDismissWithInput(mentionInput: inputToPost.value)
 
         guard configuration.useTransparentNavigationBar, let navigationController = navigationController, let barState = barState else { return }
