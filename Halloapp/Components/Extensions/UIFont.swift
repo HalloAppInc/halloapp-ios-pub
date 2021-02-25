@@ -54,4 +54,11 @@ extension UIFont {
         let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style, compatibleWith: traitCollection)
         return UIFontMetrics(forTextStyle: style).scaledFont(for: UIFont.systemFont(ofSize: fontDescriptor.pointSize, weight: weight))
     }
+    
+    class func systemFont(forTextStyle style: UIFont.TextStyle, weight: UIFont.Weight = .regular, maximumPointSize: CGFloat) -> UIFont {
+        let traitCollection = UITraitCollection(preferredContentSizeCategory: .large)
+        let fontDescriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style, compatibleWith: traitCollection)
+        let baseFont = UIFont.systemFont(ofSize: fontDescriptor.pointSize, weight: weight)
+        return UIFontMetrics(forTextStyle: style).scaledFont(for: baseFont, maximumPointSize: maximumPointSize)
+    }
 }

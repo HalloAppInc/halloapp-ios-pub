@@ -10,15 +10,8 @@ import CocoaLumberjack
 import Core
 import UIKit
 
-private extension Localizations {
-
-    static var takeOrChoosePhoto: String {
-        NSLocalizedString("profile.take.choose.photo", value: "Take or Choose Photo", comment: "Title for the button allowing to select a new profile photo.")
-    }
-
-    static var deletePhoto: String {
-        NSLocalizedString("profile.delete.photo", value: "Delete Photo", comment: "Title for the button allowing to delete current profile photo.")
-    }
+fileprivate struct Constants {
+    static let MaxFontPointSize: CGFloat = 34
 }
 
 final class ProfileHeaderViewController: UIViewController {
@@ -289,30 +282,33 @@ private final class ProfileHeaderView: UIView {
         avatarViewButton.widthAnchor.constraint(equalTo: avatarViewButton.heightAnchor).isActive = true
         avatarViewButtonHeightAnchor?.isActive = true
         
-        let nameFont = UIFont.gothamFont(forTextStyle: .headline, pointSizeChange: 1, weight: .medium)
+        let nameFont = UIFont.gothamFont(forTextStyle: .headline, pointSizeChange: 1, weight: .medium, maximumPointSize: Constants.MaxFontPointSize)
 
         nameLabel = UILabel()
         nameLabel.textColor = UIColor.label.withAlphaComponent(0.8)
-        nameLabel.numberOfLines = 0
+        nameLabel.numberOfLines = 1
         nameLabel.textAlignment = .center
-        nameLabel.adjustsFontForContentSizeCategory = true
         nameLabel.font = nameFont
+        nameLabel.adjustsFontForContentSizeCategory = true
         nameLabel.isHidden = isEditingAllowed
 
         nameButton = UIButton(type: .system)
         nameButton.tintColor = nameLabel.textColor
-        nameButton.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
-        nameButton.titleLabel?.numberOfLines = 0
-        nameButton.titleLabel?.adjustsFontForContentSizeCategory = true
+        nameButton.titleLabel?.numberOfLines = 1
+        nameButton.titleLabel?.textAlignment = .left
         nameButton.titleLabel?.font = nameFont
+        nameButton.titleLabel?.adjustsFontForContentSizeCategory = true
         nameButton.isHidden = !isEditingAllowed
+        
+        nameButton.titleEdgeInsets = UIEdgeInsets(top: .leastNormalMagnitude, left: .leastNormalMagnitude, bottom: .leastNormalMagnitude, right: .leastNormalMagnitude)
+        nameButton.contentEdgeInsets = UIEdgeInsets(top: .leastNormalMagnitude, left: .leastNormalMagnitude, bottom: .leastNormalMagnitude, right: .leastNormalMagnitude)
 
         secondaryLabel = UILabel()
-        secondaryLabel.numberOfLines = 0
+        secondaryLabel.numberOfLines = 1
         secondaryLabel.textColor = .secondaryLabel
-        secondaryLabel.textAlignment = .center
+        secondaryLabel.textAlignment = .left
+        secondaryLabel.font = .systemFont(forTextStyle: .callout, maximumPointSize: Constants.MaxFontPointSize - 2)
         secondaryLabel.adjustsFontForContentSizeCategory = true
-        secondaryLabel.font = .preferredFont(forTextStyle: .callout)
 
         addSubview(vStack)
         vStackTopAnchorConstraint = vStack.topAnchor.constraint(equalTo: self.topAnchor, constant: 32)
@@ -325,11 +321,9 @@ private final class ProfileHeaderView: UIView {
     
     private lazy var vStack: UIStackView = {
         let view = UIStackView(arrangedSubviews: [ avatarViewButton, nameColumn ])
-        view.spacing = 8
         view.axis = .vertical
         view.alignment = .center
-        view.setCustomSpacing(12, after: avatarViewButton)
-        view.setCustomSpacing(view.spacing - nameButton.contentEdgeInsets.bottom, after: nameButton)
+        view.spacing = 12
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -338,7 +332,7 @@ private final class ProfileHeaderView: UIView {
         let view = UIStackView(arrangedSubviews: [ nameLabel, nameButton, secondaryLabel, messageButton ])
         view.axis = .vertical
         view.alignment = .center
-        view.spacing = 0
+        view.spacing = 5
         
         view.translatesAutoresizingMaskIntoConstraints = false
     
@@ -360,6 +354,14 @@ private final class ProfileHeaderView: UIView {
 }
 
 private extension Localizations {
+    static var takeOrChoosePhoto: String {
+        NSLocalizedString("profile.take.choose.photo", value: "Take or Choose Photo", comment: "Title for the button allowing to select a new profile photo.")
+    }
+
+    static var deletePhoto: String {
+        NSLocalizedString("profile.delete.photo", value: "Delete Photo", comment: "Title for the button allowing to delete current profile photo.")
+    }
+    
     static var profileHeaderMessageUser: String {
         NSLocalizedString("profile.header.message.user", value: "Message", comment: "Text for messaging user under profile header")
     }
