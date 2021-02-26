@@ -654,6 +654,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
     private var avPlayerViewController: AVPlayerViewController!
     private var playButton: UIButton!
     private var initialPlaybackTime: CMTime = .zero
+    private var isPlayerAtStart = true
 
     private var videoLoadingCancellable: AnyCancellable?
     private var videoPlaybackCancellable: AnyCancellable?
@@ -712,6 +713,7 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         avPlayerViewController.showsPlaybackControls = false
 
         playButton.isHidden = true
+        isPlayerAtStart = true
     }
 
     private func commonInit() {
@@ -813,15 +815,30 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
             if player.rate == 0 && self.showsVideoPlaybackControls {
                 self.playButton.isHidden = false
             }
+
+            if player.rate == 0 {
+                self.isPlayerAtStart = player.currentTime() == .zero || player.currentTime() == player.currentItem?.duration
+
+                if self.isPlayerAtStart {
+                    self.showInitialFrame()
+                }
+            }
         })
         // Monitor when the video is ready for playing and only then attach the player to the view controller.
         avPlayerStatusObservation = avPlayer.observe(\.status, options: [ .new ], changeHandler: { [weak self] (player, change) in
             guard let self = self else { return }
             if player.status == .readyToPlay {
                 self.avPlayerViewController.player = player
+
+                if self.initialPlaybackTime == .zero {
+                    self.isPlayerAtStart = true
+                    self.showInitialFrame()
+                }
+
                 if self.showsVideoPlaybackControls {
                     self.playButton.isHidden = false
                 }
+
                 if let videoURLToAutoplay = Self.videoURLToAutoplay {
                     if videoURLToAutoplay == videoURL {
                         Self.videoURLToAutoplay = nil
@@ -844,6 +861,18 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
         videoLoadingCancellable = nil
 
         updatePlayerViewFrame()
+    }
+
+    private func showInitialFrame() {
+        guard let player = avPlayerViewController.player else { return }
+        guard let item = player.currentItem else { return }
+
+        if item.duration.seconds < 1 {
+            player.seek(to: CMTimeMultiplyByRatio(item.duration, multiplier: 1, divisor: 2))
+        } else {
+            player.seek(to: CMTime(value: 1, timescale: 1))
+        }
+
     }
 
     private func showPlaceholderImage() {
@@ -875,12 +904,12 @@ fileprivate class MediaCarouselVideoCollectionViewCell: MediaCarouselCollectionV
                 playButton.isHidden = true
             }
 
-            if let player = avPlayerViewController.player {
-                if player.currentTime() == player.currentItem?.duration ||
-                    (initialPlaybackTime > .zero && initialPlaybackTime < player.currentItem?.duration ?? .zero) {
-
+            if let player = avPlayerViewController.player, let duration = player.currentItem?.duration {
+                if initialPlaybackTime > .zero && initialPlaybackTime < duration {
                     player.seek(to: initialPlaybackTime)
                     initialPlaybackTime = .zero
+                } else if player.currentTime() == duration || isPlayerAtStart {
+                    player.seek(to: .zero)
                 }
 
                 player.play()
