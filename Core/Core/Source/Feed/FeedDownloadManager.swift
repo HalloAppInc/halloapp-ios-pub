@@ -125,7 +125,7 @@ public class FeedDownloadManager {
                 task.fileSize = Int(progress.totalUnitCount)
                 task.downloadProgress.send(Float(progress.fractionCompleted))
             }
-            .responseData { (afDownloadResponse) in
+            .responseURL { (afDownloadResponse) in
                 task.downloadProgress.send(completion: .finished)
                 task.downloadRequest = nil
 
@@ -223,7 +223,7 @@ public class FeedDownloadManager {
     private func decryptDataInChunks(for task: Task) {
         /*
          First we create an object of MediaChunkCrypter and initialize it with all the keys and hash of the whole file.
-         Then, we read the encrypted file chunk by chunk (2MB at a time) and calculate the sha256 of the entire file.
+         Then, we read the encrypted file chunk by chunk and calculate the sha256 of the entire file.
          At the same time, we try and calculate the hmac-sha256 signature on the file using the symmetric key.
          To avoid multiple reads of the file here - we do an iteration of the file and keep track of the last chunk and the current chunk.
          We always send the current chunk to do streaming hash computation and send the previous chunk to do streaming hmac computation.
@@ -255,7 +255,7 @@ public class FeedDownloadManager {
             return
         }
 
-        let chunkSize = 2 * 1024 * 1024 // 2MB
+        let chunkSize = 512 * 1024 // 0.5MB
         let attachedMacLength = 32
         var prevEncryptedDataChunk: Data
         var curEncryptedDataChunk: Data
