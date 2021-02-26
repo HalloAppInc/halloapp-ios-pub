@@ -73,6 +73,10 @@ class MediaExplorerAnimator: NSObject, UIViewControllerTransitioningDelegate, UI
             videoView.player = AVPlayer(url: url)
             videoView.playerLayer.videoGravity = media.size.width > media.size.height ? .resizeAspect : .resizeAspectFill
 
+            if presenting, let index = originIndex, let time = delegate?.currentTimeForVideo(atPostion: index) {
+                videoView.player?.seek(to: time)
+            }
+
             return videoView
         }
 

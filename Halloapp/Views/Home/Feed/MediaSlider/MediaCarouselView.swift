@@ -452,6 +452,16 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
             collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
         }
     }
+
+    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
+        let indexPath = IndexPath(row: index, section: MediaSliderSection.main.rawValue)
+
+        if let cell = collectionView.cellForItem(at: indexPath) as? MediaCarouselVideoCollectionViewCell {
+            return cell.getCurrentPlaybackTime()
+        }
+
+        return nil
+    }
 }
 
 fileprivate class MediaCarouselCollectionViewCell: UICollectionViewCell {

@@ -253,6 +253,10 @@ class ChatMediaSlider: UIView, UIScrollViewDelegate, MediaExplorerTransitionDele
     func scrollMediaToVisible(atPostion index: Int) {
         scrollToIndex(index: index, animated: false)
     }
+
+    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
+        return nil
+    }
 }
 
 struct SliderMedia {

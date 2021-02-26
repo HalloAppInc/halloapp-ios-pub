@@ -17,46 +17,26 @@ class MediaExplorerVideoCell: UICollectionViewCell {
 
     private let spaceBetweenPages: CGFloat = 20
 
-    private var statusObservation: NSKeyValueObservation?
-    private var videoBoundsObservation: NSKeyValueObservation?
-
-    private lazy var playerController: AVPlayerViewController = {
-        let controller = AVPlayerViewController()
-        controller.view.backgroundColor = .clear
-        controller.allowsPictureInPicturePlayback = false
-
-        return controller
+    private lazy var video: VideoView = {
+        let view = VideoView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
 
-    var isSystemUIHidden = false {
-        didSet {
-            playerController.showsPlaybackControls = !isSystemUIHidden
-        }
-    }
+    var isSystemUIHidden = false
 
     override func prepareForReuse() {
         super.prepareForReuse()
-
-        statusObservation = nil
-        videoBoundsObservation = nil
         url = nil
-        playerController.view.frame = bounds.insetBy(dx: spaceBetweenPages, dy: 0)
     }
 
     var url: URL! {
         didSet {
             if url != nil {
-                let player = AVPlayer(url: url)
-
-                statusObservation = player.observe(\.status) { [weak self] player, change in
-                    guard let self = self else { return }
-                    guard player.status == .readyToPlay else { return }
-                    self.playerController.player = player
-                }
+                video.player = AVPlayer(url: url)
             } else {
-                playerController.player?.pause()
-                statusObservation = nil
-                playerController.player = nil
+                video.player?.pause()
+                video.player = nil
             }
         }
     }
@@ -64,43 +44,36 @@ class MediaExplorerVideoCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        playerController.view.frame = bounds.insetBy(dx: spaceBetweenPages, dy: 0)
-        contentView.addSubview(playerController.view)
-        videoBoundsObservation = playerController.observe(\.videoBounds) { controller, change in
-            guard controller.videoBounds.size != .zero else { return }
+        addSubview(video)
 
-            let bounds = controller.videoBounds
-            let x = controller.view.frame.midX - bounds.width / 2
-            let y = controller.view.frame.midY - bounds.height / 2
-
-            controller.view.frame = CGRect(x: x, y: y, width: bounds.width, height: bounds.height)
-        }
+        NSLayoutConstraint.activate([
+            video.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: spaceBetweenPages),
+            video.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -spaceBetweenPages),
+            video.topAnchor.constraint(equalTo: self.topAnchor),
+            video.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+        ])
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func resetVideoSize() {
-        playerController.view.frame = bounds.insetBy(dx: spaceBetweenPages, dy: 0)
-    }
-
     func play(time: CMTime = .zero) {
-        playerController.player?.seek(to: time)
-        playerController.player?.play()
+        video.player?.seek(to: time)
+        video.player?.play()
     }
 
     func pause() {
-        playerController.player?.pause()
+        video.player?.pause()
     }
 
     func currentTime() -> CMTime {
-        guard let player = playerController.player else { return .zero }
+        guard let player = video.player else { return .zero }
         return player.currentTime()
     }
 
     func isPlaying() -> Bool {
-        guard let player = playerController.player else { return false }
+        guard let player = video.player else { return false }
         return player.rate > 0
     }
 }

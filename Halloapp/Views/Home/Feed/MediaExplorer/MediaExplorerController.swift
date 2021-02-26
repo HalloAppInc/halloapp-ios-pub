@@ -14,6 +14,7 @@ import UIKit
 protocol MediaExplorerTransitionDelegate: AnyObject {
     func getTransitionView(atPostion index: Int) -> UIView?
     func scrollMediaToVisible(atPostion index: Int)
+    func currentTimeForVideo(atPostion index: Int) -> CMTime?
 }
 
 class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate, UIViewControllerTransitioningDelegate {
@@ -46,7 +47,6 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
                 }
 
                 if let cell = currentCell as? MediaExplorerVideoCell {
-                    cell.resetVideoSize()
                     cell.play()
                 } else if let cell = currentCell as? MediaExplorerImageCell {
                     cell.computeConstraints()
@@ -71,7 +71,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         super.init(nibName: nil, bundle: nil)
     }
 
-    init(media: [ChatMedia], index: Int) {
+    init(media: [ChatMedia], index: Int, startTime: CMTime = .zero) {
         self.media = media.map {
             let url = MainAppContext.chatMediaDirectoryURL.appendingPathComponent($0.relativeFilePath ?? "", isDirectory: false)
             let image: UIImage? = $0.type == .image ? UIImage(contentsOfFile: url.path) : nil
@@ -161,7 +161,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         super.viewDidAppear(animated)
 
         if let cell = collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0)) as? MediaExplorerVideoCell {
-            cell.play()
+            cell.play(time: delegate?.currentTimeForVideo(atPostion: currentIndex) ?? .zero)
         }
     }
 
@@ -185,9 +185,7 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
         coordinator.animate(alongsideTransition: { [weak self] context in
             guard let self = self else { return }
 
-            if let cell = self.collectionView.cellForItem(at: indexPath) as? MediaExplorerVideoCell {
-                cell.resetVideoSize()
-            } else if let cell = self.collectionView.cellForItem(at: indexPath) as? MediaExplorerImageCell {
+            if let cell = self.collectionView.cellForItem(at: indexPath) as? MediaExplorerImageCell {
                 cell.computeConstraints()
                 cell.reset()
             }
@@ -484,6 +482,10 @@ class MediaExplorerController : UIViewController, UICollectionViewDelegateFlowLa
 }
 
 extension MediaExplorerController: MediaExplorerTransitionDelegate {
+    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
+        return nil
+    }
+
     func getTransitionView(atPostion index: Int) -> UIView? {
         return collectionView.cellForItem(at: IndexPath(item: index, section: 0))
     }
@@ -529,5 +531,9 @@ extension UIImageView: MediaExplorerTransitionDelegate {
     }
 
     func scrollMediaToVisible(atPostion index: Int) {
+    }
+
+    func currentTimeForVideo(atPostion index: Int) -> CMTime? {
+        return nil
     }
 }
