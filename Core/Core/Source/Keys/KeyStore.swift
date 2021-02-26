@@ -424,34 +424,7 @@ extension KeyStore {
         if let oneTimePreKey = inboundOneTimeKey {
             outboundOneTimePreKeyId = oneTimePreKey.id
         }
-        
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let messageKeyBundle = NSEntityDescription.insertNewObject(forEntityName: MessageKeyBundle.entity().name!, into: managedObjectContext) as! MessageKeyBundle
-            
-            messageKeyBundle.userId = targetUserId
-            messageKeyBundle.inboundIdentityPublicEdKey = inboundIdentityPublicEdKey
-            
-            messageKeyBundle.inboundEphemeralPublicKey = nil
-            messageKeyBundle.inboundEphemeralKeyId = -1
-            messageKeyBundle.inboundChainKey = Data(inboundChainKey)
-            messageKeyBundle.inboundPreviousChainLength = 0
-            messageKeyBundle.inboundChainIndex = 0
-            
-            messageKeyBundle.rootKey = Data(rootKey)
-            
-            messageKeyBundle.outboundEphemeralPrivateKey = outboundEphemeralPrivateKey
-            messageKeyBundle.outboundEphemeralPublicKey = outboundEphemeralPublicKey
-            messageKeyBundle.outboundEphemeralKeyId = 1
-            messageKeyBundle.outboundChainKey = Data(outboundChainKey)
-            messageKeyBundle.outboundPreviousChainLength = 0
-            messageKeyBundle.outboundChainIndex = 0
-            
-            messageKeyBundle.outboundIdentityPublicEdKey = Data(outboundIdentityPublicEdKey)
-            messageKeyBundle.outboundOneTimePreKeyId = Int32(outboundOneTimePreKeyId)
-            
-            self.save(managedObjectContext)
-        }
-        
+
         let keyBundle = KeyBundle(userId: targetUserId,
                                   inboundIdentityPublicEdKey: inboundIdentityPublicEdKey,
                                   
@@ -472,7 +445,8 @@ extension KeyStore {
                                   
                                   outboundIdentityPublicEdKey: outboundIdentityPublicEdKey,
                                   outboundOneTimePreKeyId: outboundOneTimePreKeyId)
-        
+        saveKeyBundle(keyBundle)
+
         return keyBundle
     }
 
@@ -557,31 +531,7 @@ extension KeyStore {
             // delete the prekey once used
             self.deleteUserOneTimePreKey(oneTimeKeyId: inboundOneTimePreKeyId)
         }
-        
-        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            
-            let messageKeyBundle = NSEntityDescription.insertNewObject(forEntityName: MessageKeyBundle.entity().name!, into: managedObjectContext) as! MessageKeyBundle
-            messageKeyBundle.userId = userId
-            messageKeyBundle.inboundIdentityPublicEdKey = inboundIdentityPublicEdKey
-            
-            messageKeyBundle.inboundEphemeralPublicKey = Data(inboundEphemeralPublicKey)
-            messageKeyBundle.inboundEphemeralKeyId = Int32(inboundEphemeralKeyIdInt)
-            messageKeyBundle.inboundChainKey = Data(inboundChainKey)
-            messageKeyBundle.inboundPreviousChainLength = Int32(inboundPreviousChainLengthInt)
-            messageKeyBundle.inboundChainIndex = Int32(inboundChainIndexInt)
-            
-            messageKeyBundle.rootKey = Data(rootKey)
-            
-            messageKeyBundle.outboundEphemeralPrivateKey = outboundEphemeralPrivateKey
-            messageKeyBundle.outboundEphemeralPublicKey = outboundEphemeralPublicKey
-            messageKeyBundle.outboundEphemeralKeyId = 1
-            messageKeyBundle.outboundChainKey = Data(outboundChainKey)
-            messageKeyBundle.outboundPreviousChainLength = 0
-            messageKeyBundle.outboundChainIndex = 0
-            
-            self.save(managedObjectContext)
-        }
-        
+
         let keyBundle = KeyBundle(userId: userId,
                                   inboundIdentityPublicEdKey: inboundIdentityPublicEdKey,
                                   
@@ -599,8 +549,37 @@ extension KeyStore {
                                   outboundChainKey: Data(outboundChainKey),
                                   outboundPreviousChainLength: 0,
                                   outboundChainIndex: 0)
-        
+        saveKeyBundle(keyBundle)
+
         return .success(keyBundle)
+    }
+
+    private func saveKeyBundle(_ keyBundle: KeyBundle) {
+        self.performSeriallyOnBackgroundContext { (managedObjectContext) in
+            let messageKeyBundle = NSEntityDescription.insertNewObject(forEntityName: MessageKeyBundle.entity().name!, into: managedObjectContext) as! MessageKeyBundle
+            messageKeyBundle.userId = keyBundle.userId
+            messageKeyBundle.inboundIdentityPublicEdKey = keyBundle.inboundIdentityPublicEdKey
+
+            messageKeyBundle.inboundEphemeralPublicKey = keyBundle.inboundEphemeralPublicKey
+            messageKeyBundle.inboundEphemeralKeyId = keyBundle.inboundEphemeralKeyId
+            messageKeyBundle.inboundChainKey = keyBundle.inboundChainKey
+            messageKeyBundle.inboundPreviousChainLength = keyBundle.inboundPreviousChainLength
+            messageKeyBundle.inboundChainIndex = keyBundle.inboundChainIndex
+
+            messageKeyBundle.rootKey = keyBundle.rootKey
+
+            messageKeyBundle.outboundEphemeralPrivateKey = keyBundle.outboundEphemeralPrivateKey
+            messageKeyBundle.outboundEphemeralPublicKey = keyBundle.outboundEphemeralPublicKey
+            messageKeyBundle.outboundEphemeralKeyId = keyBundle.outboundEphemeralKeyId
+            messageKeyBundle.outboundChainKey = keyBundle.outboundChainKey
+            messageKeyBundle.outboundPreviousChainLength = keyBundle.outboundPreviousChainLength
+            messageKeyBundle.outboundChainIndex = keyBundle.outboundChainIndex
+
+            messageKeyBundle.outboundIdentityPublicEdKey = keyBundle.outboundIdentityPublicEdKey
+            messageKeyBundle.outboundOneTimePreKeyId = keyBundle.outboundOneTimePreKeyId
+
+            self.save(managedObjectContext)
+        }
     }
 
     /// Note: must be called on background processing queue!
