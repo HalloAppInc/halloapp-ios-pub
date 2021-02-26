@@ -13,11 +13,14 @@ import Core
 import CoreData
 import Reachability
 import UIKit
+import FirebaseCrashlytics
 
 fileprivate let BackgroundFeedRefreshTaskIdentifier = "com.halloapp.hallo.feed.refresh"
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
+
+    private let appCrashKey: String = "appCrashKey"
 
     private let serviceBuilder: ServiceBuilder = {
         return ProtoService(userData: $0)
@@ -43,10 +46,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         setUpReachability()
 
+        // Check and log if crashlytics detects a crash.
+        if Crashlytics.crashlytics().didCrashDuringPreviousExecution() {
+            DDLogError("application/didFinishLaunching - crashed - didCrashDuringPreviousExecution")
+        }
+
+        if (AppContext.shared.userDefaults.value(forKey: appCrashKey) != nil) {
+            DDLogError("application/didFinishLaunching/appCrashKey is not nil - app could have crashed.")
+        }
+        // Set a value for crashKey that will be cleared if the app terminates cleanly.
+        AppContext.shared.userDefaults.set(1, forKey: appCrashKey)
+        DDLogInfo("application/didFinishLaunching/update/appCrashKey")
+
         return true
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
+        // remove appCrashKey value to indicate a clean termination (no crash)
+        AppContext.shared.userDefaults.removeObject(forKey: appCrashKey)
+        DDLogInfo("application/willTerminate/remove/appCrashKey")
         DDLogInfo("application/willTerminate")
     }
 
