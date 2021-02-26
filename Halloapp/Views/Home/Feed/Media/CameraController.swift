@@ -97,6 +97,16 @@ class CameraController: UIViewController {
 
     private var sessionIsStarted = false
 
+    private var timer: Timer?
+    private var timerSeconds = 0
+    private var timerLabel: UILabel!
+    private let timerTextAttributes: [NSAttributedString.Key : Any] = [
+        .strokeWidth: -0.5,
+        .foregroundColor: UIColor.white,
+        .strokeColor: UIColor.black.withAlphaComponent(0.4),
+        .font: UIFont.gothamFont(ofFixedSize: 17)
+    ]
+
     private static func checkCapturePermissions(type: AVMediaType, permissionHandler: @escaping (Bool) -> Void) {
         switch AVCaptureDevice.authorizationStatus(for: type) {
         case .authorized:
@@ -142,6 +152,14 @@ class CameraController: UIViewController {
         view.layer.masksToBounds = true
         let pinchToZoomRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(pinchToZoom(_:)))
         view.addGestureRecognizer(pinchToZoomRecognizer)
+
+        timerLabel = UILabel()
+        timerLabel.textAlignment = .center
+        timerLabel.isHidden = true
+        timerLabel.layer.shadowColor = UIColor.black.cgColor
+        timerLabel.layer.shadowOffset = CGSize(width: 0, height: 0)
+        timerLabel.layer.shadowOpacity = 0.4
+        timerLabel.layer.shadowRadius = 2.0
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -174,7 +192,13 @@ class CameraController: UIViewController {
                     }
                     DDLogInfo("CameraController/startCaptureSession attach preview layer")
                     self.view.layer.addSublayer(self.previewLayer!)
+                    self.view.layer.insertSublayer(self.timerLabel.layer, above: self.previewLayer)
                     self.previewLayer!.frame = self.view.layer.frame
+                    self.timerLabel.layer.frame = CGRect(
+                        x: self.previewLayer!.frame.minX,
+                        y: self.previewLayer!.frame.minY,
+                        width: self.previewLayer!.frame.width,
+                        height: 30)
                 }
             }
         }
@@ -183,6 +207,7 @@ class CameraController: UIViewController {
     private func stopCaptureSession() {
         DDLogInfo("CameraController/stopCaptureSession detach preview layer")
         previewLayer?.removeFromSuperlayer()
+        timerLabel.layer.removeFromSuperlayer()
         guard let captureSession = captureSession else { return }
         sessionIsStarted = false
         DispatchQueue.global(qos: .userInitiated).async{
@@ -399,6 +424,33 @@ class CameraController: UIViewController {
         videoTimeout = nil
     }
 
+    private func startRecordingTimer() {
+        timerSeconds = 0
+        updateTimerLabel()
+        timerLabel.isHidden = false
+        if timer == nil {
+            timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] timer in
+                guard let self = self else { return }
+                self.timerSeconds += 1
+                self.updateTimerLabel()
+            }
+            RunLoop.current.add(timer!, forMode: .common)
+        }
+    }
+
+    private func stopRecordingTimer() {
+        timerLabel.isHidden = true
+        timer?.invalidate()
+        timer = nil
+    }
+
+    private func updateTimerLabel() {
+        self.timerLabel.attributedText = NSAttributedString(
+            string: String(format: "%02d:%02d", self.timerSeconds / 60, self.timerSeconds % 60),
+            attributes: self.timerTextAttributes
+        )
+    }
+
     @objc private func pinchToZoom(_ pinchRecognizer: UIPinchGestureRecognizer) {
         guard let captureSession = captureSession,
             captureSession.isRunning,
@@ -498,6 +550,7 @@ class CameraController: UIViewController {
             isRecordingMovie = true
             DDLogInfo("CameraController/startRecordingVideo")
             AudioServicesPlaySystemSound(1117)
+            startRecordingTimer()
             movieOutput.startRecording(to: to, recordingDelegate: cameraDelegate)
             setVideoTimeout()
         }
@@ -511,6 +564,7 @@ class CameraController: UIViewController {
             isRecordingMovie = false
             DDLogInfo("CameraController/stopRecordingVideo")
             movieOutput.stopRecording()
+            stopRecordingTimer()
             AudioServicesPlaySystemSound(1118)
         }
     }
