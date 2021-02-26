@@ -56,7 +56,7 @@ public protocol CoreService {
 
     // MARK: Chat
     func sendChatMessage(_ message: ChatMessageProtocol, encryption: EncryptOperation, completion: @escaping ServiceRequestCompletion<Void>)
-    func rerequestMessage(_ messageID: String, senderID: UserID, identityKey: Data, completion: @escaping ServiceRequestCompletion<Void>)
+    func rerequestMessage(_ messageID: String, senderID: UserID, rerequestData: RerequestData, completion: @escaping ServiceRequestCompletion<Void>)
 
     // MARK: Event Logging
     func log(countableEvents: [CountableEvent], discreteEvents: [DiscreteEvent], completion: @escaping ServiceRequestCompletion<Void>)
@@ -69,3 +69,18 @@ public protocol ServiceAvatarDelegate: AnyObject {
     func service(_ service: CoreService, didReceiveAvatarInfo avatarInfo: AvatarInfo)
 }
 
+public struct RerequestData {
+    public init(identityKey: Data, signedPreKeyID: Int, oneTimePreKeyID: Int? = nil, sessionSetupEphemeralKey: Data, messageEphemeralKey: Data) {
+        self.identityKey = identityKey
+        self.signedPreKeyID = signedPreKeyID
+        self.oneTimePreKeyID = oneTimePreKeyID
+        self.sessionSetupEphemeralKey = sessionSetupEphemeralKey
+        self.messageEphemeralKey = messageEphemeralKey
+    }
+
+    public var identityKey: Data
+    public var signedPreKeyID: Int
+    public var oneTimePreKeyID: Int?
+    public var sessionSetupEphemeralKey: Data
+    public var messageEphemeralKey: Data
+}

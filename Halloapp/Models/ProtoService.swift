@@ -384,8 +384,17 @@ final class ProtoService: ProtoServiceCore {
                 DDLogError("ProtoService/rerequestMessage/\(message.id)/error could not retrieve identity key")
                 return
             }
+
+            // TODO: Fill this struct out
+            let rerequestData = RerequestData(
+                identityKey: identityKey,
+                signedPreKeyID: 0,
+                oneTimePreKeyID: nil,
+                sessionSetupEphemeralKey: Data(),
+                messageEphemeralKey: Data())
+
             DDLogInfo("ProtoService/rerequestMessage/\(message.id) rerequesting")
-            self.rerequestMessage(message.id, senderID: UserID(message.fromUid), identityKey: identityKey) { _ in }
+            self.rerequestMessage(message.id, senderID: UserID(message.fromUid), rerequestData: rerequestData) { _ in }
         }
     }
 

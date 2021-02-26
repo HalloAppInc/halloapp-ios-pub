@@ -150,10 +150,14 @@ public final class ProtoGetServerPropertiesRequest: ProtoRequest<ServerPropertie
 
 public final class ProtoMessageRerequest: ProtoRequest<Void> {
 
-    public init(messageID: String, fromUserID: UserID, toUserID: UserID, identityKey: Data, completion: @escaping Completion) {
+    public init(messageID: String, fromUserID: UserID, toUserID: UserID, rerequestData: RerequestData, completion: @escaping Completion) {
         var rerequest = Server_Rerequest()
         rerequest.id = messageID
-        rerequest.identityKey = identityKey
+        rerequest.identityKey = rerequestData.identityKey
+        rerequest.signedPreKeyID = Int64(rerequestData.signedPreKeyID)
+        rerequest.oneTimePreKeyID = Int64(rerequestData.oneTimePreKeyID ?? 0)
+        rerequest.sessionSetupEphemeralKey = rerequestData.sessionSetupEphemeralKey
+        rerequest.messageEphemeralKey = rerequestData.messageEphemeralKey
 
         super.init(
             iqPacket: .msgPacket(from: fromUserID, to: toUserID, type: .chat, payload: .rerequest(rerequest)),
