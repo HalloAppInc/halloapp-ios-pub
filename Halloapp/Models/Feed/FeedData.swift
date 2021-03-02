@@ -1067,7 +1067,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func presentLocalNotifications(forComments comments: [FeedPostComment]) {
-        guard UIApplication.shared.applicationState == .background else { return }
+        // present local notifications when applicationState is either .background or .inactive
+        guard UIApplication.shared.applicationState != .active else { return }
 
         let userIds = Set(comments.map { $0.userId })
         let contactNames = contactStore.fullNames(forUserIds: userIds)
@@ -1120,7 +1121,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
     }
 
     private func presentLocalNotifications(forFeedPosts feedPosts: [FeedPost]) {
-        guard UIApplication.shared.applicationState == .background else { return }
+        // present local notifications when applicationState is either .background or .inactive
+        guard UIApplication.shared.applicationState != .active else { return }
 
         let userIds = Set(feedPosts.map { $0.userId })
         let contactNames = contactStore.fullNames(forUserIds: userIds)
