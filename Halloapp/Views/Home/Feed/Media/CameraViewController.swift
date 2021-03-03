@@ -317,8 +317,6 @@ fileprivate struct CameraView: View {
 fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
     private static let videoOutputURL =
         URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp_camera_video.mov")
-    private static let videoPendingURL =
-        URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("pending_camera_video.mov")
 
     let didPickImage: DidPickImageCallback
     let didPickVideo: DidPickVideoCallback
@@ -459,18 +457,21 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
                 return showCameraFailureAlert(mediaType: .video)
             }
 
+            let pendingVideoURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                .appendingPathComponent(UUID().uuidString, isDirectory: false)
+                .appendingPathExtension("mp4")
             do {
-                if FileManager.default.fileExists(atPath: CameraControllerRepresentable.videoPendingURL.path) {
-                    try FileManager.default.removeItem(at: CameraControllerRepresentable.videoPendingURL)
+                if FileManager.default.fileExists(atPath: pendingVideoURL.path) {
+                    try FileManager.default.removeItem(at: pendingVideoURL)
                 }
-                try FileManager.default.moveItem(at: outputFileURL, to: CameraControllerRepresentable.videoPendingURL)
+                try FileManager.default.moveItem(at: outputFileURL, to: pendingVideoURL)
             } catch {
-                DDLogError("CameraControllerRepresentable/Coordinator/fileOutput: could not copy to \(CameraControllerRepresentable.videoPendingURL)")
+                DDLogError("CameraControllerRepresentable/Coordinator/fileOutput: could not copy to \(pendingVideoURL)")
                 return showCameraFailureAlert(mediaType: .video)
             }
 
             DispatchQueue.main.async {
-                self.parent.didPickVideo(CameraControllerRepresentable.videoPendingURL)
+                self.parent.didPickVideo(pendingVideoURL)
             }
         }
     }
