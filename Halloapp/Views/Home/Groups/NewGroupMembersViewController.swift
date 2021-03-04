@@ -77,9 +77,12 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
         searchController = UISearchController(searchResultsController: nil)
         searchController.delegate = self
         searchController.searchResultsUpdater = self
-        searchController.searchBar.autocapitalizationType = .none
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.definesPresentationContext = true
+        searchController.hidesNavigationBarDuringPresentation = false
+        
+        searchController.searchBar.showsCancelButton = false
+        searchController.searchBar.autocapitalizationType = .none
         
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
@@ -200,6 +203,7 @@ class NewGroupMembersViewController: UIViewController, NSFetchedResultsControlle
     // MARK: Top Nav Button Actions
 
     @objc private func cancelAction() {
+        searchController.isActive = false
         dismiss(animated: true)
     }
     
@@ -462,6 +466,10 @@ extension NewGroupMembersViewController: UITableViewDelegate, UITableViewDataSou
         
         searchController.searchBar.text = ""
     }
+
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        searchController.searchBar.endEditing(true)
+    }
 }
 
 extension NewGroupMembersViewController: UISearchControllerDelegate {
@@ -495,14 +503,13 @@ extension NewGroupMembersViewController: UISearchResultsUpdating {
     }
 }
 
+// MARK: GroupMemberAvatars Delegates
 extension NewGroupMembersViewController: GroupMemberAvatarsDelegate {
     
     func groupMemberAvatarsDelegate(_ view: GroupMemberAvatars, selectedUser: String) {
-        
         selectedMembers.removeAll(where: { $0 == selectedUser })
-        
+        navigationItem.rightBarButtonItem?.isEnabled = selectedMembers.count > 0 ? true : false
         tableView.reloadData()
-        
     }
 }
 

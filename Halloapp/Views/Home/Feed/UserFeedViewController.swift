@@ -80,10 +80,16 @@ class UserFeedViewController: FeedCollectionViewController {
         )
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
+        DispatchQueue.main.async {
+            self.tabBarController?.tabBar.isHidden = false
+        }
+    }
+    
     override func showGroupName() -> Bool {
         return true
     }
-
 
     private func installExchangeNumbersView() {
         view.addSubview(exchangeNumbersView)

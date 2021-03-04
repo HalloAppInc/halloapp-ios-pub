@@ -33,7 +33,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var filteredChats: [ChatThread] = []
-    private var searchController: HAUISearchController!
+    private var searchController: UISearchController!
     
     private var isSearchBarEmpty: Bool {
         return searchController.searchBar.text?.isEmpty ?? true
@@ -58,12 +58,15 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         installLargeTitleUsingGothamFont()
 
-        searchController = HAUISearchController(searchResultsController: nil)
+        definesPresentationContext = true
+        
+        searchController = UISearchController(searchResultsController: nil)
         searchController.searchResultsUpdater = self
-        searchController.searchBar.autocapitalizationType = .none
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.definesPresentationContext = true
         searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchBar.autocapitalizationType = .none
+        searchController.searchBar.delegate = self
     
         searchController.searchBar.backgroundImage = UIImage()
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
@@ -132,8 +135,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         isVisible = false
 
         floatingMenu.setState(.collapsed, animated: true)
-        
-        searchController.isActive = false
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -403,11 +404,6 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
         viewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(viewController, animated: true)
     }
-
-    private func openProfile(forUserId userId: UserID) {
-        let viewController = UserFeedViewController(userId: userId)
-        navigationController?.pushViewController(viewController, animated: true)
-    }
 }
 
 extension ChatListViewController: UIViewControllerScrollsToTop {
@@ -486,21 +482,7 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
             let searchItems = strippedString.components(separatedBy: " ")
             cell.highlightTitle(searchItems)
         }
-        
-        switch chatThread.type {
-        case .oneToOne:
-            cell.avatarTappedAction = { [weak self] in
-                guard let self = self, let userId = chatThread.chatWithUserId else { return }
-                self.openProfile(forUserId: userId)
-            }
-        case .group:
-            let groupId = chatThread.groupId
-            cell.avatarTappedAction = { [weak self] in
-                guard let self = self, let groupId = groupId else { return }
-                self.openFeed(forGroupId: groupId)
-            }
-        }
-        
+
         return cell
     }
 
@@ -513,8 +495,6 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
         }
         
         guard let chatWithUserId = chatThread.chatWithUserId else { return }
-        
-        searchController.isActive = false // dismiss early to prevent unsightly transition when searchbar is active
         
         let vc = ChatViewController(for: chatWithUserId, with: nil, at: 0)
         vc.hidesBottomBarWhenPushed = true
@@ -552,7 +532,7 @@ extension ChatListViewController: UITableViewDelegate, UITableViewDataSource {
 
 }
 
-// MARK: Search Updating Delegates
+// MARK: UISearchController Updating Delegates
 extension ChatListViewController: UISearchResultsUpdating {
     
     func updateSearchResults(for searchController: UISearchController) {
@@ -583,6 +563,15 @@ extension ChatListViewController: UISearchResultsUpdating {
         DDLogDebug("ChatListViewController/updateSearchResults/filteredChats count \(filteredChats.count) for: \(searchBarText)")
         
         tableView.reloadData()
+    }
+}
+
+// MARK: UISearchController SearchBar Delegates
+extension ChatListViewController: UISearchBarDelegate {
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        DispatchQueue.main.async {
+            self.scrollToTop(animated: false)
+        }
     }
 }
 
@@ -711,14 +700,6 @@ private class ChatListInviteFriendsTableViewCell: UITableViewCell {
 
             contentView.heightAnchor.constraint(greaterThanOrEqualToConstant: 40),
         ])
-    }
-}
-
-private class HAUISearchController: UISearchController {
-    override func viewWillDisappear(_ animated: Bool) {
-        // to avoid black screen when switching tabs while searching
-        isActive = false
-        dismiss(animated: false, completion: nil)
     }
 }
 

@@ -35,7 +35,7 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
     private var cancellableSet: Set<AnyCancellable> = []
     
     private var filteredChats: [ChatThread] = []
-    private var searchController: HAUISearchController!
+    private var searchController: UISearchController!
     
     private var isSearchBarEmpty: Bool {
         return searchController.searchBar.text?.isEmpty ?? true
@@ -60,12 +60,15 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         navigationItem.standardAppearance?.backgroundColor = UIColor.feedBackground
         installLargeTitleUsingGothamFont()
         
-        searchController = HAUISearchController(searchResultsController: nil)
+        definesPresentationContext = true
+        
+        searchController = UISearchController(searchResultsController: nil)
         searchController.searchResultsUpdater = self
-        searchController.searchBar.autocapitalizationType = .none
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.definesPresentationContext = true
         searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchBar.autocapitalizationType = .none
+        searchController.searchBar.delegate = self
 
         searchController.searchBar.backgroundImage = UIImage()
         searchController.searchBar.searchTextField.backgroundColor = .searchBarBg
@@ -123,8 +126,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         isVisible = false
 
         floatingMenu.setState(.collapsed, animated: true)
-        
-        searchController.isActive = false
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -183,7 +184,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         let isEmpty = (fetchedResultsController?.sections?.first?.numberOfObjects ?? 0) == 0
         emptyView.alpha = isEmpty ? 1 : 0
     }
-
 
     // MARK: New Chat
 
@@ -370,11 +370,6 @@ class GroupsListViewController: UIViewController, NSFetchedResultsControllerDele
         navigationController?.pushViewController(viewController, animated: true)
     }
 
-    private func openProfile(forUserId userId: UserID) {
-        let viewController = UserFeedViewController(userId: userId)
-        navigationController?.pushViewController(viewController, animated: true)
-    }
-    
     private func openNewGroup() {
         let viewController = NewGroupMembersViewController(currentMembers: [])
         viewController.delegate = self
@@ -468,9 +463,7 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
             return
         }
         guard let groupId = chatThread.groupId else { return }
-        
-        searchController.isActive = false // dismiss early to prevent unsightly transition when searchbar is active
-        
+
         openFeed(forGroupId: groupId)
         
         tableView.deselectRow(at: indexPath, animated: true)
@@ -519,7 +512,16 @@ extension GroupsListViewController: UITableViewDelegate, UITableViewDataSource {
 
 }
 
-// MARK: Search Updating Delegates
+// MARK: UISearchController SearchBar Delegates
+extension GroupsListViewController: UISearchBarDelegate {
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        DispatchQueue.main.async {
+            self.scrollToTop(animated: false)
+        }
+    }
+}
+
+// MARK: UISearchController Updating Delegates
 extension GroupsListViewController: UISearchResultsUpdating {
     
     func updateSearchResults(for searchController: UISearchController) {
@@ -615,14 +617,6 @@ class GroupsListHeaderView: UITableViewHeaderFooterView {
 
     @objc func openNewGroupView (_ sender: UITapGestureRecognizer) {
         self.delegate?.groupsListHeaderView(self)
-    }
-}
-
-private class HAUISearchController: UISearchController {
-    override func viewWillDisappear(_ animated: Bool) {
-        // to avoid black screen when switching tabs while searching
-        isActive = false
-        dismiss(animated: false, completion: nil)
     }
 }
 

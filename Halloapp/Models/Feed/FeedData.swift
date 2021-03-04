@@ -1222,6 +1222,8 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
                 self.didProcessGroupFeedPostRetract.send(feedPost.id)
             }
             
+            self.checkForUnreadFeed()
+            
             completion()
         }
     }

@@ -191,7 +191,6 @@ class SettingsViewController: UITableViewController {
 
     private func openMyFeed() {
         let viewController = UserFeedViewController(userId: MainAppContext.shared.userData.userId)
-        viewController.hidesBottomBarWhenPushed = false
         navigationController?.pushViewController(viewController, animated: true)
     }
 
