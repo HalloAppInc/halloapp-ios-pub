@@ -227,7 +227,6 @@ class CommentsTableHeaderView: UIView {
 
     let textLabel: TextLabel = {
         let label = TextLabel()
-        label.numberOfLines = 0
         return label
     }()
 

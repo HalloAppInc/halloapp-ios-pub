@@ -64,6 +64,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
     
     private var isCommentingEnabled: Bool = true
+    private var isPostTextExpanded = false
 
     var highlightedCommentId: FeedPostCommentID?
     private var replyContext: ReplyContext? {
@@ -252,6 +253,7 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
 
         let headerView = CommentsTableHeaderView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: 200))
         headerView.configure(withPost: feedPost)
+        headerView.textLabel.numberOfLines = isPostTextExpanded ? 0 : 8
         headerView.textLabel.delegate = self
         headerView.profilePictureButton.addTarget(self, action: #selector(showUserFeedForPostAuthor), for: .touchUpInside)
         tableView.tableHeaderView = headerView
@@ -789,7 +791,9 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     }
 
     func textLabelDidRequestToExpand(_ label: TextLabel) {
-        // Text in comments is never collapsed.
+        label.numberOfLines = 0
+        isPostTextExpanded = true
+        tableView.reloadData()
     }
 }
 
