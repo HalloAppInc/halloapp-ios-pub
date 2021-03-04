@@ -734,6 +734,7 @@ final class ProtoService: ProtoServiceCore {
         }
         guard let keys = NoiseKeys() else {
             DDLogError("ProtoService/establishNoiseKeys/error unable to generate keys")
+            AppContext.shared.eventMonitor.count(.noiseMigration(success: false))
             return
         }
 
@@ -743,8 +744,10 @@ final class ProtoService: ProtoServiceCore {
             case .success(let credentials):
                 DDLogInfo("ProtoService/establishNoiseKeys/success")
                 self.userData.update(credentials: credentials)
+                AppContext.shared.eventMonitor.count(.noiseMigration(success: true))
             case .failure(let error):
                 DDLogError("ProtoService/establishNoiseKeys/error [\(error)]")
+                AppContext.shared.eventMonitor.count(.noiseMigration(success: false))
             }
         }
     }

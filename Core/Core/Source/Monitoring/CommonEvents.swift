@@ -28,4 +28,8 @@ public extension CountableEvent {
     static func passwordMigrationSucceeded() -> CountableEvent {
         return CountableEvent(namespace: "keychain", metric: "migration", extraDimensions: ["status": "succeeded"])
     }
+
+    static func noiseMigration(success: Bool) -> CountableEvent {
+        return CountableEvent(namespace: "noise", metric: "migration", extraDimensions: ["status": success ? "succeeded" : "failed"])
+    }
 }
