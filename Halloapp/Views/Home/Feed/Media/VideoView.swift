@@ -89,6 +89,10 @@ class VideoView: UIView {
             if let rate = player?.rate, rate > 0 {
                 player?.pause()
             } else {
+                if player?.currentTime() == player?.currentItem?.duration {
+                    player?.seek(to: .zero)
+                }
+
                 player?.play()
             }
         }
