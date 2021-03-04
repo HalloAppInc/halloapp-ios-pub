@@ -34,8 +34,8 @@ public final class NoiseStream: NSObject {
         userID: UserID,
         noiseKeys: NoiseKeys,
         serverStaticKey: Data?,
-        delegate: NoiseDelegate,
-        passiveMode: Bool = false)
+        passiveMode: Bool,
+        delegate: NoiseDelegate)
     {
         self.userAgent = userAgent
         self.userID = userID

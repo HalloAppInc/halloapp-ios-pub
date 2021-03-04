@@ -17,8 +17,8 @@ fileprivate let userDefaultsKeyForNameSync = "xmpp.name-sent"
 
 final class ProtoService: ProtoServiceCore {
 
-    public required init(userData: UserData) {
-        super.init(userData: userData)
+    public required init(userData: UserData, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
+        super.init(userData: userData, passiveMode: passiveMode, automaticallyReconnect: automaticallyReconnect)
 
         self.cancellableSet.insert(
             userData.didLogIn.sink {

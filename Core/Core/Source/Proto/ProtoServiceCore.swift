@@ -58,14 +58,19 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     private var stream: Stream?
     public let userData: UserData
 
-    required public init(userData: UserData) {
+    required public init(userData: UserData, passiveMode: Bool = false, automaticallyReconnect: Bool = true) {
         self.userData = userData
+        self.isPassiveMode = passiveMode
+        self.isAutoReconnectEnabled = automaticallyReconnect
         super.init()
 
         configureStream(with: userData)
     }
 
     // MARK: Connection management
+
+    private let isPassiveMode: Bool
+    private let isAutoReconnectEnabled: Bool
 
     public func send(_ data: Data) {
         switch stream {
@@ -99,6 +104,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
                             userID: userID,
                             noiseKeys: noiseKeys,
                             serverStaticKey: Keychain.loadServerStaticKey(for: userID),
+                            passiveMode: isPassiveMode,
                             delegate: self)
             stream = .noise(noise)
         case .none:
@@ -159,7 +165,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     public func disconnect() {
         DDLogInfo("proto/disconnect")
 
-        isAutoReconnectEnabled = false
+        shouldReconnectOnConnectionLoss = false
         retryConnectionTask?.cancel()
         connectionState = .disconnecting
         switch stream {
@@ -175,7 +181,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     public func disconnectImmediately() {
         DDLogInfo("proto/disconnectImmediately")
 
-        isAutoReconnectEnabled = false
+        shouldReconnectOnConnectionLoss = false
         retryConnectionTask?.cancel()
         connectionState = .notConnected
         switch stream {
@@ -189,7 +195,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
     }
 
     private func startReconnectTimerIfNecessary() {
-        guard isAutoReconnectEnabled else {
+        guard shouldReconnectOnConnectionLoss else {
             return
         }
         DDLogInfo("proto/reconnect/timer start")
@@ -200,7 +206,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
         }
     }
 
-    private var isAutoReconnectEnabled = false
+    private var shouldReconnectOnConnectionLoss = false
 
     private var retryConnectionTask: DispatchWorkItem?
 
@@ -380,7 +386,7 @@ open class ProtoServiceCore: NSObject, ObservableObject {
 
     open func performOnConnect() {
         didConnect.send()
-        isAutoReconnectEnabled = true
+        shouldReconnectOnConnectionLoss = isAutoReconnectEnabled
         resendAllPendingRequests()
     }
 
