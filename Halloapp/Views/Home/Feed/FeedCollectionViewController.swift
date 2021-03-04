@@ -16,6 +16,10 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     private(set) var collectionView: UICollectionView!
     private(set) var fetchedResultsController: NSFetchedResultsController<FeedPost>?
+    private let feedLayout = FeedLayout()
+    
+    private var newPostsList: [FeedPostID] = []
+    
     private var cancellableSet: Set<AnyCancellable> = []
 
     init(title: String?) {
@@ -29,18 +33,17 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
         DDLogInfo("FeedCollectionView/viewDidLoad")
 
         view.backgroundColor = .feedBackground
 
-        let layout = UICollectionViewFlowLayout()
-        layout.estimatedItemSize.width = view.frame.width
-        layout.estimatedItemSize.height = view.frame.width
-        layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 0
+        feedLayout.estimatedItemSize.width = view.frame.width
+        feedLayout.estimatedItemSize.height = view.frame.width
 
-        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: layout)
+        feedLayout.minimumInteritemSpacing = 0
+        feedLayout.minimumLineSpacing = 0
+
+        collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: feedLayout)
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.allowsSelection = false
@@ -126,9 +129,10 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView == collectionView {
-            updateNavigationBarStyleUsing(scrollView: collectionView)
-        }
+        guard scrollView == collectionView else { return }
+        updateNavigationBarStyleUsing(scrollView: collectionView)
+        guard isNearTop() else { return }
+        removeNewPostsIndicator()
     }
 
     // MARK: FeedCollectionViewController Customization
@@ -185,6 +189,7 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         trackPerRowFRCChanges = view.window != nil && UIApplication.shared.applicationState == .active
         DDLogDebug("FeedCollectionView/frc/will-change perRowChanges=[\(trackPerRowFRCChanges)]")
+
         if trackPerRowFRCChanges {
             collectionViewUpdates.removeAll()
             collectionViewUpdates.append(BlockOperation {
@@ -203,8 +208,12 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
                     DDLogDebug("FeedCollectionView/frc/batch-updates/insert at [\(indexPath)]")
                     self.collectionView.insertItems(at: [ indexPath ])
                 })
+                if !isNearTop() {
+                    feedLayout.maintainVisualPosition = true
+                    newPostsList.append(feedPost.id)
+                    showNewPostsIndicator()
+                }
             }
-
         case .delete:
             guard let indexPath = indexPath, let feedPost = anObject as? FeedPost else { break }
             DDLogDebug("FeedCollectionView/frc/delete [\(feedPost)] at [\(indexPath)]")
@@ -248,9 +257,15 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
             collectionViewUpdates.append(BlockOperation {
                 DDLogDebug("FeedCollectionView/frc/batch-updates Finish")
             })
-            collectionView.performBatchUpdates {
+            
+            collectionView.performBatchUpdates({
                 collectionViewUpdates.forEach({ $0.start() })
-            }
+            }, completion: { [weak self] _ in
+                guard let self = self else { return }
+                guard self.feedLayout.maintainVisualPosition else { return }
+                self.feedLayout.maintainVisualPosition = false
+            })
+            
             collectionViewUpdates.removeAll()
         } else {
             collectionView.reloadData()
@@ -349,11 +364,43 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
             completion: { _ in self.noConnectionBanner.isHidden = true })
     }
 
+    // MARK: New Posts Indicator
+    
+    private let newPostsIndicator = NewPostsIndicator()
+    
+    private func showNewPostsIndicator() {
+        guard !view.subviews.contains(newPostsIndicator) else { return }
+        newPostsIndicator.translatesAutoresizingMaskIntoConstraints = false
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(newPostsIndicatorTapped))
+        newPostsIndicator.isUserInteractionEnabled = true
+        newPostsIndicator.addGestureRecognizer(tapGesture)
+        
+        view.addSubview(newPostsIndicator)
+        newPostsIndicator.alpha = 0
+        newPostsIndicator.constrain([.leading, .trailing, .top], to: view.safeAreaLayoutGuide)
+        
+        UIView.animate(withDuration: 0.35) { () -> Void in
+            self.newPostsIndicator.alpha = 1.0
+        }
+    }
+    
+    private func removeNewPostsIndicator() {
+        guard view.subviews.contains(newPostsIndicator) else { return }
+        newPostsList.removeAll()
+        newPostsIndicator.removeFromSuperview()
+    }
+    
+    @objc private func newPostsIndicatorTapped() {
+        removeNewPostsIndicator()
+        scrollToTop(animated: true)
+    }
+    
     // MARK: Misc
 
     private func stopAllVideoPlayback() {
         guard isViewLoaded else {
-            // Turns out viewWillDisappear might be called even if view isn't loaded. 
+            // Turns out viewWillDisappear might be called even if view isn't loaded.
             return
         }
         for cell in collectionView.visibleCells {
@@ -390,6 +437,10 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
             }
         }
     }
+    
+    private func isNearTop() -> Bool {
+        return collectionView.contentOffset.y < 100
+    }
 }
 
 extension FeedCollectionViewController: UIViewControllerScrollsToTop {
@@ -411,7 +462,7 @@ extension FeedCollectionViewController: UICollectionViewDataSource {
         }
         return sections[section].numberOfObjects
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let feedPost = fetchedResultsController?.object(at: indexPath) else {
             return UICollectionViewCell(frame: .zero)
@@ -425,7 +476,7 @@ extension FeedCollectionViewController: UICollectionViewDataSource {
             DDLogError("FeedCollectionViewController/error FeedPostCollectionViewCell reuse identifier not registered correctly")
             return UICollectionViewCell(frame: .zero)
         }
-
+        
         let postId = feedPost.id
         let isGroupPost = feedPost.groupId != nil
         let contentWidth = collectionView.frame.size.width - collectionView.layoutMargins.left - collectionView.layoutMargins.right
@@ -494,6 +545,7 @@ extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
             DDLogError("FeedCollectionView Automatic size for index path [\(indexPath)]")
             return UICollectionViewFlowLayout.automaticSize
         }
+
         let cellClass: FeedPostHeightDetermining.Type = feedPost.isPostRetracted ? DeletedPostCollectionViewCell.self : FeedPostCollectionViewCell.self
         let feedItem = MainAppContext.shared.feedData.feedDataItem(with: feedPost.id)
         let cellWidth = collectionView.frame.width
@@ -504,7 +556,9 @@ extension FeedCollectionViewController: UICollectionViewDelegateFlowLayout {
         let contentWidth = feedPost.isPostRetracted ? collectionView.frame.width : collectionView.frame.size.width - collectionView.layoutMargins.left - collectionView.layoutMargins.right
         let cellHeight = cellClass.height(forPost: feedPost, contentWidth: contentWidth)
         feedItem?.cachedCellHeight = cellHeight
+        
         DDLogDebug("FeedCollectionView Calculated cell height [\(cellHeight)] for [\(feedPost.id)] at [\(indexPath)]")
+
         return CGSize(width: cellWidth, height: cellHeight)
     }
 }
@@ -552,5 +606,41 @@ extension FeedCollectionViewController: PostDashboardViewControllerDelegate {
             }
         }
         controller.dismiss(animated: true, completion: actionToPerformOnDashboardDismiss)
+    }
+}
+
+private class FeedLayout: UICollectionViewFlowLayout {
+    
+    var maintainVisualPosition: Bool = false
+    var newItemsHeight: CGFloat = 0.0
+
+    override func prepare(forCollectionViewUpdates updateItems: [UICollectionViewUpdateItem]) {
+        super.prepare(forCollectionViewUpdates: updateItems)
+        guard maintainVisualPosition else { return }
+        var totalHeight: CGFloat = 0.0
+        updateItems.forEach { item in
+            guard item.updateAction == .insert else { return }
+            guard let index = item.indexPathAfterUpdate else { return }
+            guard let attrs = layoutAttributesForItem(at: index) else { return }
+            totalHeight += attrs.frame.height
+        }
+
+        newItemsHeight = totalHeight
+    }
+    
+    override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
+        guard maintainVisualPosition else { return proposedContentOffset }
+        var offset = proposedContentOffset
+        offset.y +=  newItemsHeight
+        newItemsHeight = 0.0
+        return offset
+    }
+
+    override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
+        guard maintainVisualPosition else { return proposedContentOffset }
+        var offset = proposedContentOffset
+        offset.y += newItemsHeight
+        newItemsHeight = 0.0
+        return offset
     }
 }

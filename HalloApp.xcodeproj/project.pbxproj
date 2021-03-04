@@ -195,6 +195,7 @@
 		EA5B9FC5237CF2B300184F76 /* CameraPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */; };
 		EA62C28C2563577D008EA9C9 /* MsgUIProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA62C28B2563577D008EA9C9 /* MsgUIProtocol.swift */; };
 		EA6DE2CD25C3768C00C83001 /* GroupTitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA6DE2CC25C3768C00C83001 /* GroupTitleView.swift */; };
+		EA73DF4025E88D9B0070875D /* NewPostsIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA73DF3F25E88D9B0070875D /* NewPostsIndicator.swift */; };
 		EA796B9B2469DDF100BC795E /* ChatQuoted+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B972469DDF100BC795E /* ChatQuoted+CoreDataClass.swift */; };
 		EA796B9C2469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B982469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift */; };
 		EA796B9D2469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA796B992469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift */; };
@@ -523,6 +524,7 @@
 		EA5B9FC4237CF2B300184F76 /* CameraPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPickerView.swift; sourceTree = "<group>"; };
 		EA62C28B2563577D008EA9C9 /* MsgUIProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MsgUIProtocol.swift; sourceTree = "<group>"; };
 		EA6DE2CC25C3768C00C83001 /* GroupTitleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupTitleView.swift; sourceTree = "<group>"; };
+		EA73DF3F25E88D9B0070875D /* NewPostsIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPostsIndicator.swift; sourceTree = "<group>"; };
 		EA796B972469DDF100BC795E /* ChatQuoted+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuoted+CoreDataClass.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuoted+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
 		EA796B982469DDF100BC795E /* ChatQuoted+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuoted+CoreDataProperties.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuoted+CoreDataProperties.swift"; sourceTree = SOURCE_ROOT; };
 		EA796B992469DDF100BC795E /* ChatQuotedMedia+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ChatQuotedMedia+CoreDataClass.swift"; path = "Halloapp/Models/Chat/CoreData Stack/ChatQuotedMedia+CoreDataClass.swift"; sourceTree = SOURCE_ROOT; };
@@ -1051,6 +1053,7 @@
 				76A92443244E659600794859 /* FeedViewController.swift */,
 				76654789252BE44C00379BEF /* GroupFeedViewController.swift */,
 				6829F78624D0A62800207F6B /* UserFeedViewController.swift */,
+				EA73DF3F25E88D9B0070875D /* NewPostsIndicator.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -1874,6 +1877,7 @@
 				EAA424FF24ECF1480025CBBE /* ChatGroup+CoreDataProperties.swift in Sources */,
 				EAD476F32458F03700EF8591 /* ChatMedia+CoreDataProperties.swift in Sources */,
 				76FE37ED2523EC9600372FB1 /* ContactPickerViewController.swift in Sources */,
+				EA73DF4025E88D9B0070875D /* NewPostsIndicator.swift in Sources */,
 				EA45713323EB7DB3008C2E44 /* FeedMedia.swift in Sources */,
 				7626CCDE24C738F50023FC2E /* CrashlyticsLogger.swift in Sources */,
 				F84A8E5925D408C3003A8528 /* VideoEditViewController.swift in Sources */,

@@ -182,10 +182,6 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
         }
 
         commentsInputView.willDisappear(in: self)
-
-        if !isCommentingEnabled {
-            notInGroupBanner.removeFromSuperview()
-        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -289,17 +285,13 @@ class CommentsViewController: UITableViewController, CommentInputViewDelegate, N
     private func showNotInGroupBannerIfNeeded(with feedPost: FeedPost) {
         guard let groupID = feedPost.groupId else { return }
         guard MainAppContext.shared.chatData.chatGroupMember(groupId: groupID, memberUserId: MainAppContext.shared.userData.userId) == nil else { return }
-        
-        guard let superView = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return }
-        
+
         isCommentingEnabled = false
         commentsInputView.isEnabled = false
         commentsInputView.isHidden = true
 
-        superView.addSubview(notInGroupBanner)
-        notInGroupBanner.leadingAnchor.constraint(equalTo: superView.leadingAnchor).isActive = true
-        notInGroupBanner.trailingAnchor.constraint(equalTo: superView.trailingAnchor).isActive = true
-        notInGroupBanner.bottomAnchor.constraint(equalTo: superView.bottomAnchor).isActive = true
+        view.addSubview(notInGroupBanner)
+        notInGroupBanner.constrain([.leading, .trailing, .bottom], to: view.safeAreaLayoutGuide)
     }
     
     private lazy var notInGroupBanner: NotInGroupBannerView = {
