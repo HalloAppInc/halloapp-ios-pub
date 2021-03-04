@@ -157,15 +157,6 @@ class FeedCollectionViewController: UIViewController, NSFetchedResultsController
 
     @Published var isFeedEmpty = true
 
-    func reloadTableView() {
-        guard fetchedResultsController != nil else { return }
-        fetchedResultsController?.delegate = nil
-        setupFetchedResultsController()
-        if isViewLoaded {
-            collectionView.reloadData()
-        }
-    }
-
     private func setupFetchedResultsController() {
         fetchedResultsController = newFetchedResultsController()
         do {
