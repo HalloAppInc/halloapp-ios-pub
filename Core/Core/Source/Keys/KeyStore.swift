@@ -468,6 +468,11 @@ extension KeyStore {
             return .failure(.x25519Conversion)
         }
         let I_initiator = Data(x25519Key)
+
+        guard encryptedPayload.count >= 44 else {
+            DDLogError("KeyStore/receiveSessionSetup/error encryptedPayload too small [\(encryptedPayload.count)]")
+            return .failure(.invalidPayload)
+        }
         
         let inboundEphemeralPublicKey = encryptedPayload[0...31]
         let inboundEphemeralKeyId = encryptedPayload[32...35]
