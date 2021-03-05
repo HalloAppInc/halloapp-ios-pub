@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import AVFoundation
 import CocoaLumberjack
 import Core
 import SwiftUI
@@ -42,9 +43,11 @@ class ImageServer {
     private let imageProcessingGroup = DispatchGroup()
     private var isCancelled = false
     private var maxAllowedAspectRatio: CGFloat? = nil
+    private var maxVideoLength: TimeInterval?
 
-    init(maxAllowedAspectRatio: CGFloat? = nil) {
+    init(maxAllowedAspectRatio: CGFloat? = nil, maxVideoLength: TimeInterval? = nil) {
         self.maxAllowedAspectRatio = maxAllowedAspectRatio
+        self.maxVideoLength = maxVideoLength
     }
 
     func prepare(mediaItems: [PendingMedia], completion: @escaping (Bool) -> ()) {
@@ -117,6 +120,15 @@ class ImageServer {
                 }
 
             case .video:
+                if let url = item.videoURL, let max = self.maxVideoLength {
+                    let asset = AVURLAsset(url: url)
+
+                    if asset.duration.seconds > max {
+                        DDLogWarn("ImageServer/video/prepare/warn  video is \(asset.duration.seconds) seconds long. Maximum is \(max) seconds. \(item)")
+                        return
+                    }
+                }
+
                 mediaResizeCropGroup.enter()
                 defer { mediaResizeCropGroup.leave() }
 

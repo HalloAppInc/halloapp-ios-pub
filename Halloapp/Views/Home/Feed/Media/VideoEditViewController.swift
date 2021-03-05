@@ -284,6 +284,7 @@ class VideoEditViewController : UIViewController {
         end = 1
         isMuted = false
         range.updateRange(start: start, end: end)
+        updateDuration()
         reset()
     }
 

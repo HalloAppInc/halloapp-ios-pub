@@ -101,7 +101,7 @@ private extension Localizations {
     }
 
     static var maxVideoLengthMessage: String {
-        NSLocalizedString("composer.max.video.length.message", value: "Please select another video.", comment: "Alert message in composer when a video is too long")
+        NSLocalizedString("composer.max.video.length.message", value: "Please select another video or tap the edit button.", comment: "Alert message in composer when a video is too long")
     }
 }
 
@@ -167,7 +167,7 @@ class PostComposerViewController: UIViewController {
                 guard let self = self else { return }
                 self.imageServer?.cancel()
 
-                self.imageServer = ImageServer(maxAllowedAspectRatio: self.configuration.imageServerMaxAspectRatio)
+                self.imageServer = ImageServer(maxAllowedAspectRatio: self.configuration.imageServerMaxAspectRatio, maxVideoLength: self.configuration.maxVideoLength)
                 self.imageServer!.prepare(mediaItems: self.mediaItems.value, isReady: isReady, imagesAreProcessed: imagesAreProcessed, numberOfFailedItems: numberOfFailedItems)
             },
             crop: { [weak self] index in
@@ -432,6 +432,7 @@ fileprivate struct PostComposerLayoutConstants {
 fileprivate struct PostComposerView: View {
     private let showAddMoreMediaButton: Bool
     private let mediaCarouselMaxAspectRatio: CGFloat
+    private let maxVideoLength: TimeInterval
     @ObservedObject private var mediaItems: ObservableMediaItems
     @ObservedObject private var inputToPost: GenericObservable<MentionInput>
     @ObservedObject private var shouldAutoPlay: GenericObservable<Bool>
@@ -451,6 +452,7 @@ fileprivate struct PostComposerView: View {
     @State private var keyboardHeight: CGFloat = 0
     @State private var presentPicker = false
     @State private var imagesAreProcessed = false
+    @State private var videoTooLong = false
     private var mediaItemsBinding = Binding.constant([PendingMedia]())
     private var mediaIsReadyBinding = Binding.constant(false)
     private var numberOfFailedItemsBinding = Binding.constant(0)
@@ -476,6 +478,7 @@ fileprivate struct PostComposerView: View {
     private var readyToSharePublisher: AnyPublisher<Bool, Never>!
     private var pageChangedPublisher: AnyPublisher<Bool, Never>!
     private var postTextComputedHeightPublisher: AnyPublisher<CGFloat, Never>!
+    private var longestVideoLengthPublisher: AnyPublisher<TimeInterval?, Never>!
 
     private var mediaCount: Int {
         mediaItems.value.count
@@ -510,6 +513,7 @@ fileprivate struct PostComposerView: View {
         self.shouldAutoPlay = shouldAutoPlay
         self.showAddMoreMediaButton = configuration.showAddMoreMediaButton
         self.mediaCarouselMaxAspectRatio = configuration.mediaCarouselMaxAspectRatio
+        self.maxVideoLength = configuration.maxVideoLength
         self.prepareImages = prepareImages
         self.crop = crop
         self.goBack = goBack
@@ -546,6 +550,21 @@ fileprivate struct PostComposerView: View {
                     itemsCount: mediaItems.count, keyboardHeight: keyboardHeight, postTextHeight: postTextHeight)
             }
             .removeDuplicates()
+            .eraseToAnyPublisher()
+
+        longestVideoLengthPublisher = self.mediaItems.$value
+            .receive(on: DispatchQueue.global(qos: .userInitiated))
+            .map { items in
+                return items.map { item -> TimeInterval in
+                    if item.type == .image {
+                        return 0
+                    } else {
+                        guard let url = item.videoURL else { return 0 }
+                        return AVURLAsset(url: url).duration.seconds
+                    }
+                }.max()
+            }
+            .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
 
         self.mediaItemsBinding = self.$mediaItems.value
@@ -664,6 +683,18 @@ fileprivate struct PostComposerView: View {
                                             .multilineTextAlignment(.center)
                                             .foregroundColor(.red)
                                             .padding(.horizontal)
+                                            .padding(.bottom, 10)
+                                    } else if videoTooLong {
+                                        Text(Localizations.maxVideoLengthTitle(maxVideoLength))
+                                            .multilineTextAlignment(.center)
+                                            .foregroundColor(.red)
+                                            .padding(.horizontal)
+                                            .padding(.bottom, 4)
+                                        Text(Localizations.maxVideoLengthMessage)
+                                            .multilineTextAlignment(.center)
+                                            .foregroundColor(.red)
+                                            .padding(.horizontal)
+                                            .padding(.bottom, 10)
                                     }
                                 } else {
                                     self.postTextView
@@ -689,6 +720,13 @@ fileprivate struct PostComposerView: View {
                             .onReceive(self.keyboardHeightPublisher) { self.keyboardHeight = $0 }
                             .onReceive(self.pageChangedPublisher) { _ in PostComposerView.stopTextEdit() }
                             .onReceive(self.postTextComputedHeightPublisher) { self.postTextComputedHeight.value = $0 }
+                            .onReceive(longestVideoLengthPublisher) {
+                                guard let length = $0 else {
+                                    videoTooLong = false
+                                    return
+                                }
+                                videoTooLong = length > maxVideoLength
+                            }
                         }
                         .frame(minHeight: scrollGeometry.size.height)
                         .background(
