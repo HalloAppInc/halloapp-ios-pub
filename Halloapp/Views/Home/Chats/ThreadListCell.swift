@@ -60,7 +60,11 @@ class ThreadListCell: UITableViewCell {
 
         var defaultText = ""
         if chatThread.type == .oneToOne && chatThread.lastMsgMediaType == .none && chatThread.chatWithUserId != MainAppContext.shared.userData.userId {
-            defaultText = Localizations.chatListMessageDefault(name: chatThread.title)
+            if chatThread.isNew {
+                defaultText = Localizations.threadListPreviewNewUserDefault(name: chatThread.title ?? "")
+            } else {
+                defaultText = Localizations.threadListPreviewAlreadyUserDefault(name: chatThread.title ?? "")
+            }
         }
 
         var messageText = chatThread.lastMsgText ?? defaultText

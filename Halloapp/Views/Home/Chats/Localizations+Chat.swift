@@ -27,13 +27,16 @@ extension Localizations {
     static var chatMessageVideo: String {
         NSLocalizedString("chat.message.video", value: "Video", comment: "Message text shown in a message that have video media but no text")
     }
-
-    static func chatListMessageDefault(name: String?) -> String {
-        guard let name = name else {
-            return NSLocalizedString("chat.list.using.app", value: "Hi there! I’m using HalloApp", comment: "Message text shown for a symmetric contact in the chat list screen that the user haven't messaged yet")
-        }
+    
+    static func threadListPreviewAlreadyUserDefault(name: String) -> String {
         return String(
-            format: NSLocalizedString("chat.list.message.default", value: "%@ is on HalloApp! 🎉", comment: "Message text shown for a symmetric contact in the chat list screen that the user haven't messaged yet"),
+            format: NSLocalizedString("thread.list.preview.already.user.default", value: "%@ is on HalloApp", comment: "Default preview text shown for a symmetric contact in the chats list screen that the user haven't messaged yet"),
+            name)
+    }
+    
+    static func threadListPreviewNewUserDefault(name: String) -> String {
+        return String(
+            format: NSLocalizedString("thread.list.preview.new.user.default", value: "%@ is on HalloApp! 🎉", comment: "Default preview text shown for a symmetric contact who just joined Halloapp"),
             name)
     }
     

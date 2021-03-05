@@ -443,7 +443,9 @@ class ChatData: ObservableObject {
                     chatThread.chatWithUserId = userId
                     chatThread.lastMsgUserId = userId
                     chatThread.lastMsgText = nil
-                    chatThread.lastMsgTimestamp = timestampForNewThreads
+                    if areNewUsers {
+                        chatThread.lastMsgTimestamp = timestampForNewThreads
+                    }
                     chatThread.unreadCount = 0
                     chatThread.isNew = areNewUsers
                 }
