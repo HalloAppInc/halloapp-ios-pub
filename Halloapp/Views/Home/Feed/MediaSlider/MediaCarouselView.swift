@@ -56,7 +56,7 @@ fileprivate struct LayoutConstants {
     static let pageControlSpacingBottom: CGFloat = -12
 }
 
-class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIGestureRecognizerDelegate, MediaExplorerTransitionDelegate {
+class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MediaExplorerTransitionDelegate {
 
     private let configuration: MediaCarouselViewConfiguration
 
@@ -261,7 +261,6 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapAction))
         tapRecognizer.numberOfTouchesRequired = 1
         tapRecognizer.numberOfTapsRequired = 1
-        tapRecognizer.delegate = self
         collectionView.addGestureRecognizer(tapRecognizer)
 
         let doubleTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(doubleTapAction))
@@ -425,17 +424,6 @@ class MediaCarouselView: UIView, UICollectionViewDelegate, UICollectionViewDeleg
         } else {
             currentIndex = pageIndex
         }
-    }
-
-    // MARK: UIGestureRecognizerDelegate
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        if let current = gestureRecognizer as? UITapGestureRecognizer, current.numberOfTapsRequired == 1, current.numberOfTouchesRequired == 1 {
-            if let other = otherGestureRecognizer as? UITapGestureRecognizer  {
-                return other.numberOfTapsRequired > 1
-            }
-        }
-
-        return false
     }
 
     // MARK: MediaExplorerTransitionDelegate
