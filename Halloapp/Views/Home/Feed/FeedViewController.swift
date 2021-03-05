@@ -463,7 +463,7 @@ class FeedViewController: FeedCollectionViewController {
         let layout = collectionViewLayout as! UICollectionViewFlowLayout
         var inset = layout.sectionInset
         if section == 0 {
-            inset.top = 20
+            inset.top = 0
         }
         return inset
     }
