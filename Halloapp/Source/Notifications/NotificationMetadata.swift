@@ -21,6 +21,9 @@ enum NotificationContentType: String, RawRepresentable {
     case groupChatMessage = "group_chat"
     
     case groupAdd = "group_add"
+
+    case newInvitee = "inviter_notice"
+    case newFriend = "friend_notice"
 }
 
 class NotificationMetadata {
@@ -38,6 +41,7 @@ class NotificationMetadata {
         static let senderName = "sender-name"
         static let timestamp = "timestamp"
         static let data = "data"
+        static let messagePacketData = "message"
     }
 
     /*
@@ -51,6 +55,7 @@ class NotificationMetadata {
     let fromId: UserID
     let timestamp: Date?
     let data: Data?
+    let messagePacketData: Data?
     let messageID: String?
 
     private var threadId: String? = nil
@@ -82,6 +87,9 @@ class NotificationMetadata {
             if let timestamp = timestamp {
                 result[Keys.timestamp] = String(timestamp.timeIntervalSince1970)
             }
+            if let messagePacketData = messagePacketData {
+                result[Keys.messagePacketData] = messagePacketData.base64EncodedString()
+            }
             return result
         }
     }
@@ -92,7 +100,18 @@ class NotificationMetadata {
             return try Clients_Container(serializedData: protobufData)
         }
         catch {
-            DDLogError("NotificationMetadata/protobuf/error Invalid protobuf. \(error)")
+            DDLogError("NotificationMetadata/protoContainer/protobuf/error Invalid protobuf. \(error)")
+        }
+        return nil
+    }
+
+    var msg: Server_Msg? {
+        guard let packetData = messagePacketData else { return nil }
+        do {
+            return try Server_Msg(serializedData: packetData)
+        }
+        catch {
+            DDLogError("NotificationMetadata/messagePacketData/error Invalid protobuf. \(error)")
         }
         return nil
     }
@@ -146,19 +165,31 @@ class NotificationMetadata {
             self.timestamp = nil
         }
 
+        if let base64PacketData = metadata[Keys.messagePacketData] {
+            self.messagePacketData = Data(base64Encoded: base64PacketData)
+        } else {
+            self.messagePacketData = nil
+        }
+
         self.threadId = metadata[Keys.threadId]
         self.messageID = metadata[Keys.messageID]
         self.threadName = metadata[Keys.threadName]
         self.senderName = metadata[Keys.senderName]
     }
 
-    init(contentId: String, contentType: NotificationContentType, messageID: String?, fromId: UserID, data: Data?, timestamp: Date?) {
+    init(contentId: String, contentType: NotificationContentType, messageID: String?, fromId: UserID, data: Data?, timestamp: Date?, message: Server_Msg? = nil) {
         self.contentId = contentId
         self.contentType = contentType
         self.messageID = messageID
         self.fromId = fromId
         self.data = data
         self.timestamp = timestamp
+        do {
+            self.messagePacketData = try message?.serializedData().base64EncodedData()
+        } catch {
+            DDLogError("NotificationMetadata/could not initialize messagePacketData, error: \(error)")
+            self.messagePacketData = nil
+        }
     }
 
     convenience init?(notificationRequest: UNNotificationRequest) {
@@ -193,7 +224,7 @@ extension NotificationMetadata {
         switch contentType {
         case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment:
             return true
-        case .chatMessage, .groupChatMessage, .groupAdd:
+        case .chatMessage, .groupChatMessage, .groupAdd, .newFriend, .newInvitee:
             return false
         }
     }
@@ -210,11 +241,20 @@ extension NotificationMetadata {
         return contentType == .groupAdd
     }
     
+    var isContactNotification: Bool {
+        switch contentType {
+        case .newFriend, .newInvitee:
+            return true
+        case .feedPost, .groupFeedPost, .feedComment, .groupFeedComment, .chatMessage, .groupChatMessage, .groupAdd:
+            return false
+        }
+    }
+
     var isGroupNotification: Bool {
         switch contentType {
         case .groupFeedPost, .groupFeedComment, .groupChatMessage, .groupAdd:
             return true
-        case .feedPost, .feedComment, .chatMessage:
+        case .feedPost, .feedComment, .chatMessage, .newFriend, .newInvitee:
             return false
         }
     }

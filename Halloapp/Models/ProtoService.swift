@@ -499,6 +499,9 @@ final class ProtoService: ProtoServiceCore {
             let contacts = pbContactList.contacts.compactMap { HalloContact($0) }
             MainAppContext.shared.syncManager.processNotification(contacts: contacts) {
                 self.sendAck(messageID: msg.id)
+                // client might be disconnected - if we generate one and dont send an ack, server will also send one notification.
+                // todo(murali@): check with the team about this.
+                self.showContactNotification(for: msg)
             }
         case .avatar(let pbAvatar):
             avatarDelegate?.service(self, didReceiveAvatarInfo: (userID: UserID(pbAvatar.uid), avatarID: pbAvatar.id))
@@ -781,6 +784,62 @@ final class ProtoService: ProtoServiceCore {
             case .failure(let error):
                 completion(plainTextMessage, error)
             }
+        }
+    }
+
+    // i dont think this is the right place to generate local notifications.
+    // todo(murali@): fix this!
+    private func showContactNotification(for msg: Server_Msg) {
+        DDLogVerbose("ProtoService/showContactNotification")
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            switch UIApplication.shared.applicationState {
+            case .background, .inactive:
+                self.presentLocalContactNotifications(for: msg)
+            case .active:
+                return
+            @unknown default:
+                self.presentLocalContactNotifications(for: msg)
+            }
+        }
+    }
+
+    private func presentLocalContactNotifications(for msg: Server_Msg) {
+        DDLogDebug("ProtoService/presentLocalContactNotifications")
+        guard let contact = msg.contactList.contacts.first else {
+            return
+        }
+
+        let contentType: NotificationContentType
+        switch msg.contactList.type {
+        case .friendNotice:
+            contentType = .newFriend
+        case .inviterNotice:
+            contentType = .newInvitee
+        default:
+            return
+        }
+        let contactUid = String(contact.uid)
+
+        var notifications: [UNMutableNotificationContent] = []
+        let metadata = NotificationMetadata(contentId: contact.normalized,
+                                            contentType: contentType,
+                                            messageID: nil,
+                                            fromId: contactUid,
+                                            data: nil,
+                                            timestamp: nil,
+                                            message: msg)
+
+        let notification = UNMutableNotificationContent()
+        notification.populate(withMsg: msg, notificationMetadata: metadata, contactStore: AppContext.shared.contactStore)
+        notification.userInfo[NotificationMetadata.userInfoKey] = metadata.rawData
+        notifications.append(notification)
+
+        let notificationCenter = UNUserNotificationCenter.current()
+        notifications.forEach { (notificationContent) in
+            notificationCenter.add(UNNotificationRequest(identifier: UUID().uuidString, content: notificationContent, trigger: nil))
         }
     }
 }

@@ -97,6 +97,51 @@ extension UNMutableNotificationContent {
         }
     }
 
+    func populate(withMsg msg: Server_Msg, notificationMetadata: NotificationMetadata, contactStore: ContactStore) {
+        // Currently, this function only supports contact notifications.
+        // Extend this to support other notification types as well.
+        DDLogInfo("populate/msg populating content from msg \(msg)")
+
+        switch msg.payload {
+        case .contactList(let contactList):
+            guard let contact = contactList.contacts.first else {
+                DDLogError("populate/contactList Invalid contact.")
+                return
+            }
+            if contact.uid <= 0 {
+                DDLogError("populate/contactList Invalid contactUid.")
+                return
+            }
+            let contactUid = String(contact.uid)
+            // Look up contact using phone number as the user ID probably hasn't synced yet
+            let contactName = contactStore.fullNameIfAvailable(forNormalizedPhone: contact.normalized) ?? nil
+            DDLogInfo("populate/msg contact notification, type:\(contactList.type), uid:\(String(describing: contactUid)), name:\(String(describing: contactName))")
+
+            guard let Name = contactName else {
+                title = NSLocalizedString("notification.invite.accepted",
+                                          value: "New contact 🎉",
+                                          comment: "Title for unknown contact notification.")
+                body = "One of your contacts is now on HalloApp"
+                return
+            }
+            if contactList.type == .inviterNotice {
+                title = NSLocalizedString("notification.invite.accepted",
+                                          value: "Invite accepted 🎉",
+                                          comment: "Title for inviter notification.")
+                body = "\(Name) just accepted your invite to join HalloApp"
+            } else if contactList.type == .friendNotice {
+                title = NSLocalizedString("notification.new.friend",
+                                          value: "New friend 🎉",
+                                          comment: "Title for friend notification.")
+                body = "\(Name) is now on HalloApp"
+            }
+            return
+        default:
+            DDLogInfo("populate/msg invalid payload:\(String(describing: msg.payload))")
+            return
+        }
+    }
+
 }
 
 extension UNUserNotificationCenter {

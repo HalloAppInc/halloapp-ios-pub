@@ -217,6 +217,18 @@ open class ContactStore {
         }
     }
 
+    public func contact(withNormalizedPhone normalizedPhoneNumber: String) -> ABContact? {
+        let fetchRequest: NSFetchRequest<ABContact> = ABContact.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "normalizedPhoneNumber == %@", normalizedPhoneNumber)
+        do {
+            let contacts = try persistentContainer.viewContext.fetch(fetchRequest)
+            return contacts.first
+        }
+        catch {
+            fatalError("Unable to fetch contacts: \(error)")
+        }
+    }
+
     public func fullNameIfAvailable(for userId: UserID) -> String? {
         if userId == self.userData.userId {
             // TODO: return correct pronoun.
@@ -232,6 +244,21 @@ open class ContactStore {
         // Try push name as necessary.
         if let pushName = pushNames[userId] {
             return "~\(pushName)"
+        }
+
+        return nil
+    }
+
+    public func fullNameIfAvailable(forNormalizedPhone normalizedPhoneNumber: String) -> String? {
+        if normalizedPhoneNumber == self.userData.normalizedPhoneNumber {
+            // TODO: return correct pronoun.
+            return "Me"
+        }
+
+        // Fetch from the address book.
+        if let contact = contact(withNormalizedPhone: normalizedPhoneNumber),
+           let fullName = contact.fullName {
+            return fullName
         }
 
         return nil

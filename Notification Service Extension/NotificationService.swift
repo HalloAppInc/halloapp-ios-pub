@@ -64,6 +64,23 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
         bestAttemptContent.title = [contactName ?? Localizations.unknownContact, metadata.groupName].compactMap({ $0 }).joined(separator: " @ ")
         DDLogVerbose("didReceiveRequest/ Updated title: \(bestAttemptContent.title)")
 
+        // If notification is a contact notification
+        // extract data from msg and return bestAttemptContent
+        if (metadata.isContactNotification) {
+            guard let msg = metadata.msg else {
+                DDLogError("populate/error Invalid msg - protoPacket.")
+                contentHandler(self.bestAttemptContent)
+                return
+            }
+
+            // Populate notification body.
+            bestAttemptContent.populate(withMsg: msg, notificationMetadata: metadata, contactStore: AppExtensionContext.shared.contactStore)
+            invokeCompletionHandler(bestAttemptContent: bestAttemptContent)
+            return
+        }
+
+        // If notification is anything else other than contact notification
+        // use payload and other fields in metadata
         guard let protoContainer = metadata.protoContainer else {
             DDLogError("didReceiveRequest/error Invalid protobuf.")
             contentHandler(bestAttemptContent)
@@ -109,9 +126,13 @@ class NotificationService: UNNotificationServiceExtension, FeedDownloadManagerDe
 
         // Invoke completion handler now if there was nothing to download.
         if invokeHandler {
-            DDLogInfo("Invoking completion handler now")
-            contentHandler(bestAttemptContent)
+            invokeCompletionHandler(bestAttemptContent: bestAttemptContent)
         }
+    }
+
+    private func invokeCompletionHandler(bestAttemptContent: UNMutableNotificationContent) {
+        DDLogInfo("Invoking completion handler now")
+        contentHandler(bestAttemptContent)
     }
 
     /**
