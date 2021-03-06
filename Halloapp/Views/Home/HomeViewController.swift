@@ -225,7 +225,8 @@ class HomeViewController: UITabBarController {
             selectedIndex = 0
         } else if metadata.isGroupAddNotification {
             selectedIndex = 1
-        } else if metadata.isChatNotification {
+        } else if metadata.isChatNotification || metadata.isContactNotification {
+            // we need to show the chatscreen when the notification tapped is chat/friend/inviter notification.
             selectedIndex = 2
         }
 

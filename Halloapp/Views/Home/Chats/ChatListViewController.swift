@@ -383,7 +383,8 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
     // MARK: Tap Notification
     
     private func processNotification(metadata: NotificationMetadata) {
-        guard metadata.isChatNotification else {
+        // If the user tapped on the chat notification or inviter/friend notification - show the chat screen.
+        guard metadata.isChatNotification || metadata.isContactNotification else {
             return
         }
 
@@ -392,7 +393,7 @@ class ChatListViewController: UIViewController, NSFetchedResultsControllerDelega
 
         navigationController?.popToRootViewController(animated: false)
 
-        if metadata.contentType == .chatMessage {
+        if metadata.contentType == .chatMessage || metadata.contentType == .newInvitee || metadata.contentType == .newFriend {
             navigationController?.pushViewController(ChatViewController(for: metadata.fromId, with: nil, at: 0), animated: true)
         }
 
