@@ -501,7 +501,10 @@ final class ProtoService: ProtoServiceCore {
                 self.sendAck(messageID: msg.id)
                 // client might be disconnected - if we generate one and dont send an ack, server will also send one notification.
                 // todo(murali@): check with the team about this.
-                self.showContactNotification(for: msg)
+                if msg.retryCount == 0 {
+                    // Ignore messages with retryCount > 0 so we don't show duplicate pushes
+                    self.showContactNotification(for: msg)
+                }
             }
         case .avatar(let pbAvatar):
             avatarDelegate?.service(self, didReceiveAvatarInfo: (userID: UserID(pbAvatar.uid), avatarID: pbAvatar.id))
