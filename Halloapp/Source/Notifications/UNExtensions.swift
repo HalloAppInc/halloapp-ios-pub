@@ -117,23 +117,17 @@ extension UNMutableNotificationContent {
             let contactName = contactStore.fullNameIfAvailable(forNormalizedPhone: contact.normalized) ?? nil
             DDLogInfo("populate/msg contact notification, type:\(contactList.type), uid:\(String(describing: contactUid)), name:\(String(describing: contactName))")
 
-            guard let Name = contactName else {
-                title = NSLocalizedString("notification.invite.accepted",
-                                          value: "New contact 🎉",
-                                          comment: "Title for unknown contact notification.")
-                body = "One of your contacts is now on HalloApp"
+            guard let name = contactName else {
+                title = Localizations.contactNotificationUnknownTitle
+                body = Localizations.contactNotificationUnknownContent
                 return
             }
             if contactList.type == .inviterNotice {
-                title = NSLocalizedString("notification.invite.accepted",
-                                          value: "Invite accepted 🎉",
-                                          comment: "Title for inviter notification.")
-                body = "\(Name) just accepted your invite to join HalloApp"
+                title = Localizations.contactNotificationInviteTitle
+                body = String(format: Localizations.contactNotificationInviteContent, name)
             } else if contactList.type == .friendNotice {
-                title = NSLocalizedString("notification.new.friend",
-                                          value: "New friend 🎉",
-                                          comment: "Title for friend notification.")
-                body = "\(Name) is now on HalloApp"
+                title = Localizations.contactNotificationFriendTitle
+                body = String(format: Localizations.contactNotificationFriendContent, name)
             }
             return
         default:
@@ -208,3 +202,46 @@ extension UNUserNotificationCenter {
     }
 }
 
+extension Localizations {
+    static var contactNotificationUnknownTitle: String {
+        NSLocalizedString(
+            "notification.contact.unknown.title",
+            value: "New contact 🎉",
+            comment: "Title for unknown contact notification.")
+    }
+
+    static var contactNotificationUnknownContent: String {
+        NSLocalizedString(
+            "notification.contact.unknown.content",
+            value: "One of your contacts is now on HalloApp",
+            comment: "Content for unknown contact notification.")
+    }
+
+    static var contactNotificationInviteTitle: String {
+        NSLocalizedString(
+            "notification.invite.accepted.title",
+            value: "Invite accepted 🎉",
+            comment: "Title for inviter notification.")
+    }
+
+    static var contactNotificationInviteContent: String {
+        NSLocalizedString(
+            "notification.invite.accepted.content",
+            value: "%@ just accepted your invite to join HalloApp",
+            comment: "Content for inviter notification.")
+
+    }
+    static var contactNotificationFriendTitle: String {
+        NSLocalizedString(
+            "notification.new.friend.title",
+            value: "New friend 🎉",
+            comment: "Title for friend notification.")
+    }
+
+    static var contactNotificationFriendContent: String {
+        NSLocalizedString(
+            "notification.new.friend.content",
+            value: "%@ is now on HalloApp",
+            comment: "Content for friend notification.")
+    }
+}
