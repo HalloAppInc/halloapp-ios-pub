@@ -837,14 +837,16 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
             case .post(let post):
                 feedPosts.append(post)
                 post.orderedMentions.forEach {
+                    guard !$0.name.isEmpty else { return }
                     contactNames[$0.userID] = $0.name
                 }
             case .comment(let comment, let name):
                 comments.append(comment)
                 comment.orderedMentions.forEach {
+                    guard !$0.name.isEmpty else { return }
                     contactNames[$0.userID] = $0.name
                 }
-                if let name = name {
+                if let name = name, !name.isEmpty {
                     contactNames[comment.userId] = name
                 }
             }
