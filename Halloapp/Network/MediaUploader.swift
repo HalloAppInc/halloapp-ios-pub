@@ -15,6 +15,13 @@ import Foundation
 enum MediaUploadError: Error {
     case canceled
     case malformedResponse
+    case invalidUrls
+    case unknownError
+}
+
+enum MediaUploadType {
+    case directUpload
+    case resumableUpload
 }
 
 protocol MediaUploadable {
@@ -36,6 +43,7 @@ final class MediaUploader {
         var fileSize: Int
     }
     typealias Completion = (Result<UploadDetails, Error>) -> ()
+    typealias FetchUrls = (MediaURLInfo) -> ()
 
     class Task: Hashable, Equatable {
         let groupId: String // Could be FeedPostID or ChatMessageID.
@@ -51,10 +59,16 @@ final class MediaUploader {
         var totalUploadSize: Int64 = 0
         var completedSize: Int64 = 0
 
-        init(groupId: String, index: Int, fileURL: URL, completion: @escaping Completion) {
+        var mediaUploadType: MediaUploadType = .resumableUpload
+        var didGetUrls: FetchUrls
+        var failureCount: Int64 = 0
+        var mediaUrls: MediaURLInfo?
+
+        init(groupId: String, index: Int, fileURL: URL, didGetUrls: @escaping FetchUrls, completion: @escaping Completion) {
             self.groupId = groupId
             self.index = index
             self.fileURL = fileURL
+            self.didGetUrls = didGetUrls
             self.completion = completion
         }
 
@@ -134,6 +148,73 @@ final class MediaUploader {
         tasks.remove(task)
     }
 
+    // Tus is the name of the protocol we use for resumable file uploads.
+    // This function handles all failures in the resumable upload responses.
+    private func handleTusFailure(task: Task, withResponse response: AFDataResponse<Data?>) {
+        task.failureCount += 1
+        DDLogInfo("MediaUploader/handleTusFailure/\(task.groupId)/\(task.index)/ failureCount: \(task.failureCount), response: \(response)")
+
+        // After three failures try direct upload by sending IQ without size attribute.
+        if task.failureCount > 3 {
+            task.mediaUrls = nil
+            task.mediaUploadType = .directUpload
+            // fetch new urls for direct upload and start task freshly again!
+            startTask(task: task)
+        } else {
+            // FailureCount is less than or equal to 3: so inspect the error code and act accordingly.
+            let error = response.error as Error? ?? MediaUploadError.unknownError
+            guard let statusCode = response.response?.statusCode else {
+                fail(task: task, withError: error)
+                return
+            }
+            DDLogInfo("MediaUploader/handleTusFailure/\(task.groupId)/\(task.index)/statusCode: \(statusCode)")
+
+            switch statusCode {
+            /*
+             Missing or invalid Content-Type/Upload-Offset header, or Indication that Upload has been stopped by the server;
+             Fix the header (in case of header problem) and start by sending HEAD to fetch the offset and send PATCH to upload content.
+             Upload can be stopped by the server in case the client sends HEAD request while a PATCH request is ongoing.
+             */
+            case 400:
+                fail(task: task, withError: error)
+
+            /*
+             Object not found; Retry by sending IQ with size request to ejabberd.
+             This condition is possible in case upload server looses its state and the upload needs to be started from the very begining.
+             */
+            case 404:
+                task.mediaUrls = nil
+                task.mediaUploadType = .resumableUpload
+                // fetch new urls for resumable upload and start task freshly again!
+                startTask(task: task)
+
+            /*
+             Precondition failed; Try direct upload by sending IQ without size attribute.
+             Here we are checking Tus-Resumable header to be compatible. The current expected value is 1.0.0.
+             */
+            case 412:
+                task.mediaUrls = nil
+                task.mediaUploadType = .directUpload
+                // fetch new urls for direct upload and start task freshly again!
+                startTask(task: task)
+
+            /*
+             Requested Entity too large; Cann't upload this large an object (We don't impose any limits right now, but we will in future).
+             */
+            case 413:
+                fail(task: task, withError: error)
+
+            default:
+                // For any other 4XX errors or 5XX errors
+                // Retry three time after (5, 10, 20) seconds. After three failures try direct upload by sending IQ without size attribute.
+                let timeDelay = Double(task.failureCount) * 5.0
+                DispatchQueue.main.asyncAfter(deadline: .now() + timeDelay) {
+                    self.startMediaUpload(task: task)
+                }
+            }
+        }
+    }
+
     // MARK: Upload progress
 
     let uploadProgressDidChange = PassthroughSubject<(String, Float), Never>()
@@ -174,54 +255,75 @@ final class MediaUploader {
 
     func upload(media mediaItem: MediaUploadable, groupId: String, didGetURLs: @escaping (MediaURLInfo) -> (), completion: @escaping Completion) {
         let fileURL = resolveMediaPath(mediaItem.encryptedFilePath!)
-        let task = Task(groupId: groupId, index: Int(mediaItem.index), fileURL: fileURL, completion: completion)
+        let task = Task(groupId: groupId, index: Int(mediaItem.index), fileURL: fileURL, didGetUrls: didGetURLs, completion: completion)
         // Task might fail immediately so make sure it's added before being started.
         tasks.insert(task)
-        if let urlInfo = mediaItem.urlInfo {
-            // Initiate media upload.
-            switch urlInfo {
-            case .getPut(let getURL, let putURL):
-                task.downloadURL = getURL
-                startUpload(forTask: task, to: putURL)
 
-            case .patch(let patchURL):
-                startResumableUpload(forTask: task, to: patchURL)
-            }
+        // Fetch urls if necessary and start media upload.
+        startTask(task: task)
+    }
 
+    // Fetch urls and then start media upload.
+    private func startTask(task: Task) {
+        if task.mediaUrls != nil {
+            startMediaUpload(task: task)
         } else {
             // Request URLs first.
-            let fileSize = (try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+            let fileSize: Int
+            // When sending out an iq - try our preference of urls.
+            // we'll update the task-type again depending on what the server responds with.
+            switch task.mediaUploadType {
+            case .resumableUpload:
+                fileSize = (try? task.fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+            case .directUpload:
+                fileSize = 0
+            }
             service.requestMediaUploadURL(size: fileSize) { result in
                 guard !task.isCanceled else { return }
-
                 switch result {
                 case .success(let mediaURLs):
-                    didGetURLs(mediaURLs)
-                    switch mediaURLs {
-                    case .getPut(let getURL, let putURL):
-                        task.downloadURL = getURL
-                        self.startUpload(forTask: task, to: putURL)
-
-                    case .patch(let patchURL):
-                        self.startResumableUpload(forTask: task, to: patchURL)
-                    }
-
+                    task.mediaUrls = mediaURLs
+                    task.didGetUrls(mediaURLs)
+                    self.startMediaUpload(task: task)
                 case .failure(let error):
+                    DDLogError("MediaUploader/startTask/\(task.groupId)/\(task.index)/error [\(error)]")
                     self.fail(task: task, withError: error)
                 }
             }
         }
     }
 
+    // Check the urls in the task and start direct upload or the resumable upload accordingly.
+    private func startMediaUpload(task: Task) {
+        let mediaURLs = task.mediaUrls
+        // Initiate media upload.
+        switch mediaURLs {
+        case .getPut(let getURL, let putURL):
+            DDLogInfo("MediaUploader/startMediaUpload/\(task.groupId)/\(task.index)/ startDirectUpload")
+            task.mediaUploadType = .directUpload
+            task.downloadURL = getURL
+            startUpload(forTask: task, to: putURL)
+
+        case .patch(let patchURL):
+            DDLogInfo("MediaUploader/startMediaUpload/\(task.groupId)/\(task.index)/ startResumableUpload")
+            task.mediaUploadType = .resumableUpload
+            startResumableUpload(forTask: task, to: patchURL)
+
+        case .none:
+            DDLogError("MediaUploader/startMediaUpload/\(task.groupId)/\(task.index)/ invalidUrls")
+            fail(task: task, withError: MediaUploadError.invalidUrls)
+        }
+    }
+
     private func startUpload(forTask task: Task, to url: URL) {
-        DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/begin url=[\(url)]")
+        DDLogDebug("MediaUploader/startUpload/\(task.groupId)/\(task.index)/begin url=[\(url)]")
 
         task.uploadRequest = AF.upload(task.fileURL, to: url, method: .put, headers: [ .contentType("application/octet-stream") ])
             .uploadProgress { [weak task, weak self] (progress) in
                 guard let self = self, let task = task, !task.isCanceled else {
                     return
                 }
-                DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/progress \(progress.fractionCompleted)")
+                DDLogDebug("MediaUploader/startUpload/\(task.groupId)/\(task.index)/progress \(progress.fractionCompleted)")
                 task.totalUploadSize = progress.totalUnitCount
                 task.completedSize = progress.completedUnitCount
                 self.updateUploadProgress(forGroupId: task.groupId)
@@ -233,18 +335,18 @@ final class MediaUploader {
                 }
                 switch response.result {
                 case .success(_):
-                    DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/success")
+                    DDLogDebug("MediaUploader/startUpload/\(task.groupId)/\(task.index)/success")
                     self.finish(task: task)
 
                 case .failure(let error):
-                    DDLogError("MediaUploader/upload/\(task.groupId)/\(task.index)/error [\(error)]")
+                    DDLogError("MediaUploader/startUpload/\(task.groupId)/\(task.index)/error [\(error)]")
                     self.fail(task: task, withError: error)
                 }
         }
     }
 
     private func startResumableUpload(forTask task: Task, to url: URL) {
-        DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/begin url=[\(url)]")
+        DDLogDebug("MediaUploader/startResumableUpload/\(task.groupId)/\(task.index)/begin url=[\(url)]")
 
         task.uploadRequest = AF.request(url, method: .head, headers: [ "Tus-Resumable": "1.0.0" ])
             .validate()
@@ -255,16 +357,16 @@ final class MediaUploader {
                 switch response.result {
                 case .success(_):
                     if let uploadOffsetStr = response.response?.headers["Upload-Offset"], let uploadOffset = Int(uploadOffsetStr) {
-                        DDLogDebug("MediaUploader/upload/\(task.groupId)/\(task.index)/head/success Offset [\(uploadOffset)]")
+                        DDLogDebug("MediaUploader/startResumableUpload/\(task.groupId)/\(task.index)/head/success Offset [\(uploadOffset)]")
                         self.continueResumableUpload(forTask: task, to: url, from: uploadOffset)
                     } else {
-                        DDLogError("MediaUploader/upload/\(task.groupId)/\(task.index)/head/malformed")
-                        self.fail(task: task, withError: MediaUploadError.malformedResponse)
+                        DDLogError("MediaUploader/startResumableUpload/\(task.groupId)/\(task.index)/head/malformed")
+                        self.handleTusFailure(task: task, withResponse: response)
                     }
 
                 case .failure(let error):
-                    DDLogError("MediaUploader/upload/\(task.groupId)/\(task.index)/head/error [\(error)]")
-                    self.fail(task: task, withError: error)
+                    DDLogError("MediaUploader/startResumableUpload/\(task.groupId)/\(task.index)/head/error [\(error)]")
+                    self.handleTusFailure(task: task, withResponse: response)
                 }
             }
 
@@ -324,12 +426,12 @@ final class MediaUploader {
                         self.finish(task: task)
                     } else {
                         DDLogError("MediaUploader/upload/\(task.groupId)/\(task.index)/malformed-response [\(response)]")
-                        self.fail(task: task, withError: MediaUploadError.malformedResponse)
+                        self.handleTusFailure(task: task, withResponse: response)
                     }
 
                 case .failure(let error):
                     DDLogError("MediaUploader/upload/\(task.groupId)/\(task.index)/error [\(error)]")
-                    self.fail(task: task, withError: error)
+                    self.handleTusFailure(task: task, withResponse: response)
                 }
         }
     }
