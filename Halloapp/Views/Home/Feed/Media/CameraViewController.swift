@@ -275,32 +275,41 @@ fileprivate struct CameraView: View {
     }
 
     private func capturePressed() {
+        defer {
+            withAnimation {
+                captureButtonColor = Color.cameraButton.opacity(0.7)
+            }
+        }
         guard !captureIsPressed else { return }
         captureIsPressed = true
-        withAnimation {
-            captureButtonColor = Color.cameraButton.opacity(0.7)
-        }
     }
 
     private func captureLongPressed() {
+        defer {
+            withAnimation {
+                captureButtonColor = .lavaOrange
+            }
+        }
         guard captureIsPressed else { return }
-        cameraState.shouldRecordVideo = true
-        withAnimation {
-            captureButtonColor = .lavaOrange
+        if !cameraState.shouldTakePhoto && !cameraState.shouldRecordVideo {
+            cameraState.shouldRecordVideo = true
         }
     }
 
     private func captureReleased(shouldTakePhoto: Bool) {
-        if captureIsPressed {
-            captureIsPressed = false
+        defer {
             withAnimation {
                 captureButtonColor = .cameraButton
             }
         }
-        if cameraState.shouldRecordVideo {
-            cameraState.shouldRecordVideo = false
-        } else if shouldTakePhoto {
-            cameraState.shouldTakePhoto = true
+        guard captureIsPressed else { return }
+        captureIsPressed = false
+        if !cameraState.shouldTakePhoto {
+            if cameraState.shouldRecordVideo {
+                cameraState.shouldRecordVideo = false
+            } else if shouldTakePhoto {
+                cameraState.shouldTakePhoto = true
+            }
         }
     }
 
@@ -325,12 +334,11 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
     @ObservedObject var cameraState: CameraStateModel
     var alertState: AlertStateModel
     @ObservedObject var focusPoint = GenericObservable<CGPoint?>(nil)
-    var isTakingPhoto = GenericObservable(false)
 
     func makeUIViewController(context: Context) -> CameraController {
         let controller = CameraController(
             cameraDelegate: context.coordinator,
-            orientation: context.coordinator.parent.cameraState.orientation)
+            orientation: cameraState.orientation)
         let tappedGesture =
             UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.tapped))
         tappedGesture.numberOfTapsRequired = 1
@@ -343,31 +351,35 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
     }
 
     func updateUIViewController(_ cameraController: CameraController, context: Context) {
-        if context.coordinator.parent.cameraState.shouldUseBackCamera != cameraController.isUsingBackCamera {
-            cameraController.switchCamera(context.coordinator.parent.cameraState.shouldUseBackCamera)
+        if cameraState.shouldUseBackCamera != cameraController.isUsingBackCamera {
+            cameraController.switchCamera(cameraState.shouldUseBackCamera)
         }
-        if context.coordinator.parent.cameraState.orientation != cameraController.orientation {
-            cameraController.setOrientation(context.coordinator.parent.cameraState.orientation)
+        if cameraState.orientation != cameraController.orientation {
+            cameraController.setOrientation(cameraState.orientation)
         }
-        if !context.coordinator.parent.cameraState.shouldRecordVideo &&
-            context.coordinator.parent.cameraState.shouldTakePhoto &&
-            !context.coordinator.parent.isTakingPhoto.value {
+        if let selectedFocusPoint = focusPoint.value {
+            cameraController.focusOnPoint(selectedFocusPoint)
+            focusPoint.value = nil
+        }
 
-            context.coordinator.parent.isTakingPhoto.value = true
-            cameraController.takePhoto(useFlashlight: context.coordinator.parent.cameraState.shouldUseFlashlight)
-        }
-        if !context.coordinator.parent.cameraState.shouldTakePhoto &&
-            cameraController.isRecordingMovie != context.coordinator.parent.cameraState.shouldRecordVideo {
+        if cameraState.shouldTakePhoto &&
+            !context.coordinator.isTakingPhoto &&
+            !cameraState.shouldRecordVideo &&
+            !context.coordinator.isRecordingVideo {
 
-            if context.coordinator.parent.cameraState.shouldRecordVideo {
+            context.coordinator.isTakingPhoto = true
+            cameraController.takePhoto(useFlashlight: cameraState.shouldUseFlashlight)
+        }
+        if !cameraState.shouldTakePhoto &&
+            !context.coordinator.isTakingPhoto &&
+            cameraState.shouldRecordVideo != context.coordinator.isRecordingVideo {
+
+            if cameraState.shouldRecordVideo {
                 cameraController.startRecordingVideo(CameraControllerRepresentable.videoOutputURL)
+                context.coordinator.isRecordingVideo = cameraController.isRecordingVideo
             } else {
                 cameraController.stopRecordingVideo()
             }
-        }
-        if let focusPoint = context.coordinator.parent.focusPoint.value {
-            cameraController.focusOnPoint(focusPoint)
-            context.coordinator.parent.focusPoint.value = nil
         }
     }
 
@@ -382,6 +394,8 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
         }
 
         var parent: CameraControllerRepresentable
+        var isTakingPhoto = false
+        var isRecordingVideo = false
 
         init(_ controller: CameraControllerRepresentable) {
             parent = controller
@@ -407,12 +421,22 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
             parent.goBack()
         }
 
+        func volumeButtonPressed() {
+            if !parent.cameraState.shouldTakePhoto &&
+                !isTakingPhoto &&
+                !parent.cameraState.shouldRecordVideo &&
+                !isRecordingVideo {
+
+                parent.cameraState.shouldTakePhoto = true
+            }
+        }
+
         func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
             DDLogInfo("CameraControllerRepresentable/Coordinator/photoOutput")
 
             defer {
                 DispatchQueue.main.async {
-                    self.parent.isTakingPhoto.value = false
+                    self.isTakingPhoto = false
                     self.parent.cameraState.shouldTakePhoto = false
                 }
             }
@@ -444,6 +468,7 @@ fileprivate struct CameraControllerRepresentable: UIViewControllerRepresentable{
 
             defer {
                 DispatchQueue.main.async {
+                    self.isRecordingVideo = false
                     self.parent.cameraState.shouldRecordVideo = false
                 }
             }

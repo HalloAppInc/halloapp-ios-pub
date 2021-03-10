@@ -13,6 +13,7 @@ import AVFoundation
 
 protocol CameraDelegate: AVCapturePhotoCaptureDelegate, AVCaptureFileOutputRecordingDelegate {
     func goBack() -> Void
+    func volumeButtonPressed() -> Void
 }
 
 enum CameraInitError: Error, LocalizedError {
@@ -72,6 +73,12 @@ private extension Localizations {
 }
 
 class CameraController: UIViewController {
+    private static let volumeDidChangeNotificationName =
+        NSNotification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification")
+    private static let volumeNotificationParameter = "AVSystemController_AudioVolumeNotificationParameter"
+    private static let reasonNotificationParameter = "AVSystemController_AudioVolumeChangeReasonNotificationParameter"
+    private static let explicitVolumeChangeReason = "ExplicitVolumeChange"
+
     private static let maxVideoTimespan = DispatchTimeInterval.seconds(60)
 
     private let cameraDelegate: CameraDelegate
@@ -92,7 +99,7 @@ class CameraController: UIViewController {
 
     private(set) var orientation: UIDeviceOrientation
     private var videoTimeout: DispatchWorkItem?
-    private(set) var isRecordingMovie =  false
+    private(set) var isRecordingVideo =  false
     private(set) var isUsingBackCamera = true
 
     private var sessionIsStarted = false
@@ -172,10 +179,27 @@ class CameraController: UIViewController {
         }
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+        NotificationCenter.default.addObserver(self, selector: #selector(volumeDidChange(_:)), name: CameraController.volumeDidChangeNotificationName, object: nil)
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         DDLogInfo("CameraController/viewWillDisappear")
         super.viewWillDisappear(animated)
+        NotificationCenter.default.removeObserver(self, name: CameraController.volumeDidChangeNotificationName, object: nil)
+        UIApplication.shared.endReceivingRemoteControlEvents()
         stopCaptureSession()
+    }
+
+    @objc func volumeDidChange(_ notification: NSNotification) {
+        if let volume = notification.userInfo![CameraController.volumeNotificationParameter] as? Float,
+           let reason = notification.userInfo![CameraController.reasonNotificationParameter] as? String,
+           reason == CameraController.explicitVolumeChangeReason {
+            DDLogInfo("CameraController/volumeDidChange \(volume) \(reason)")
+            cameraDelegate.volumeButtonPressed()
+        }
     }
 
     private func startCaptureSession() {
@@ -546,8 +570,8 @@ class CameraController: UIViewController {
             sessionIsStarted,
             let movieOutput = movieOutput else { return }
 
-        if !isRecordingMovie {
-            isRecordingMovie = true
+        if !isRecordingVideo {
+            isRecordingVideo = true
             DDLogInfo("CameraController/startRecordingVideo")
             AudioServicesPlaySystemSound(1117)
             startRecordingTimer()
@@ -560,8 +584,8 @@ class CameraController: UIViewController {
         guard let movieOutput = movieOutput else { return }
 
         clearVieoTimeout()
-        if isRecordingMovie {
-            isRecordingMovie = false
+        if isRecordingVideo {
+            isRecordingVideo = false
             DDLogInfo("CameraController/stopRecordingVideo")
             movieOutput.stopRecording()
             stopRecordingTimer()
