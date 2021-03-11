@@ -557,80 +557,6 @@ final class FeedItemFooterView: UIView {
 
     }
 
-    class PostingProgressView: UIView {
-
-        override init(frame: CGRect) {
-            super.init(frame: frame)
-            commonInit()
-        }
-
-        required init?(coder: NSCoder) {
-            super.init(coder: coder)
-            commonInit()
-        }
-
-        var isIndeterminate = false {
-            didSet {
-                progressView.isHidden = isIndeterminate
-                cancelButton.isHidden = isIndeterminate
-                textLabel.isHidden = !isIndeterminate
-                if isIndeterminate {
-                    activityIndicatorView.startAnimating()
-                } else {
-                    activityIndicatorView.stopAnimating()
-                }
-            }
-        }
-
-        var progress: Float {
-            get { progressView.progress }
-            set { progressView.progress = newValue }
-        }
-
-        var indeterminateProgressText: String? {
-            get { textLabel.text }
-            set { textLabel.text = newValue }
-        }
-
-        lazy private var progressView = UIProgressView(progressViewStyle: .default)
-        lazy private var textLabel: UILabel = {
-            let label = UILabel()
-            label.text = Localizations.feedPosting
-            label.font = .preferredFont(forTextStyle: .subheadline)
-            label.textColor = .secondaryLabel
-            return label
-        }()
-        lazy private var activityIndicatorView = UIActivityIndicatorView()
-        lazy private(set) var cancelButton: UIButton = {
-            let button = UIButton(type: .system)
-            button.setImage(UIImage(systemName: "xmark.circle", withConfiguration: UIImage.SymbolConfiguration(textStyle: .headline)), for: .normal)
-            return button
-        }()
-
-        private func commonInit() {
-            addSubview(progressView)
-            progressView.translatesAutoresizingMaskIntoConstraints = false
-            progressView.constrainMargin(anchor: .leading, to: self)
-            progressView.centerYAnchor.constraint(equalTo: self.layoutMarginsGuide.centerYAnchor).isActive = true
-
-            addSubview(textLabel)
-            textLabel.translatesAutoresizingMaskIntoConstraints = false
-            textLabel.constrain([ .leading, .trailing ], to: progressView)
-            textLabel.constrainMargins([ .top, .bottom ], to: self)
-
-            addSubview(cancelButton)
-            cancelButton.translatesAutoresizingMaskIntoConstraints = false
-            cancelButton.constrainMargins([ .trailing, .top, .bottom ], to: self)
-            cancelButton.widthAnchor.constraint(equalTo: cancelButton.heightAnchor).isActive = true
-            cancelButton.leadingAnchor.constraint(equalToSystemSpacingAfter: progressView.trailingAnchor, multiplier: 2).isActive = true
-
-            addSubview(activityIndicatorView)
-            activityIndicatorView.translatesAutoresizingMaskIntoConstraints = false
-            activityIndicatorView.centerXAnchor.constraint(equalTo: cancelButton.centerXAnchor).isActive = true
-            activityIndicatorView.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor).isActive = true
-        }
-    }
-
     private enum State {
         case normal
         case ownPost
@@ -882,6 +808,80 @@ final class FeedItemFooterView: UIView {
 
     @objc private func deleteButtonAction() {
         deleteAction?()
+    }
+}
+
+class PostingProgressView: UIView {
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        commonInit()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        commonInit()
+    }
+
+    var isIndeterminate = false {
+        didSet {
+            progressView.isHidden = isIndeterminate
+            cancelButton.isHidden = isIndeterminate
+            textLabel.isHidden = !isIndeterminate
+            if isIndeterminate {
+                activityIndicatorView.startAnimating()
+            } else {
+                activityIndicatorView.stopAnimating()
+            }
+        }
+    }
+
+    var progress: Float {
+        get { progressView.progress }
+        set { progressView.progress = newValue }
+    }
+
+    var indeterminateProgressText: String? {
+        get { textLabel.text }
+        set { textLabel.text = newValue }
+    }
+
+    lazy private var progressView = UIProgressView(progressViewStyle: .default)
+    lazy private var textLabel: UILabel = {
+        let label = UILabel()
+        label.text = Localizations.feedPosting
+        label.font = .preferredFont(forTextStyle: .subheadline)
+        label.textColor = .secondaryLabel
+        return label
+    }()
+    lazy private var activityIndicatorView = UIActivityIndicatorView()
+    lazy private(set) var cancelButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "xmark.circle", withConfiguration: UIImage.SymbolConfiguration(textStyle: .headline)), for: .normal)
+        return button
+    }()
+
+    private func commonInit() {
+        addSubview(progressView)
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.constrainMargin(anchor: .leading, to: self)
+        progressView.centerYAnchor.constraint(equalTo: self.layoutMarginsGuide.centerYAnchor).isActive = true
+
+        addSubview(textLabel)
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        textLabel.constrain([ .leading, .trailing ], to: progressView)
+        textLabel.constrainMargins([ .top, .bottom ], to: self)
+
+        addSubview(cancelButton)
+        cancelButton.translatesAutoresizingMaskIntoConstraints = false
+        cancelButton.constrainMargins([ .trailing, .top, .bottom ], to: self)
+        cancelButton.widthAnchor.constraint(equalTo: cancelButton.heightAnchor).isActive = true
+        cancelButton.leadingAnchor.constraint(equalToSystemSpacingAfter: progressView.trailingAnchor, multiplier: 2).isActive = true
+
+        addSubview(activityIndicatorView)
+        activityIndicatorView.translatesAutoresizingMaskIntoConstraints = false
+        activityIndicatorView.centerXAnchor.constraint(equalTo: cancelButton.centerXAnchor).isActive = true
+        activityIndicatorView.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor).isActive = true
     }
 }
 

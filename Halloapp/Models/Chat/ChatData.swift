@@ -38,6 +38,7 @@ class ChatData: ObservableObject {
     let didGetCurrentChatPresence = PassthroughSubject<(UserPresenceType, Date?), Never>()
     let didGetChatStateInfo = PassthroughSubject<Void, Never>()
     
+    let didGetMediaUploadProgress = PassthroughSubject<(String, Float), Never>()
     let didGetMediaDownloadProgress = PassthroughSubject<(String, Int, Double), Never>()
     
     let didGetAGroupFeed = PassthroughSubject<GroupID, Never>()
@@ -134,6 +135,14 @@ class ChatData: ObservableObject {
             return MainAppContext.chatMediaDirectoryURL.appendingPathComponent(relativePath, isDirectory: false)
         }
         
+        cancellableSet.insert(
+            mediaUploader.uploadProgressDidChange.sink { [weak self] (groupId, progress) in
+                guard let self = self else { return }
+                guard let chatMessage = self.chatMessage(with: groupId) else { return }                
+                self.didGetMediaUploadProgress.send((chatMessage.id, progress))
+            }
+        )
+                
         var shouldGetGroupsList = false
         
         cancellableSet.insert(

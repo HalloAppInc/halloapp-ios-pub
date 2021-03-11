@@ -6,6 +6,7 @@
 //  Copyright © 2020 Halloapp, Inc. All rights reserved.
 //
 
+import Combine
 import Core
 import UIKit
 
@@ -31,6 +32,8 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
             return mediaImageView.currentPage
         }
     }
+    
+    private var cancellableSet: Set<AnyCancellable> = []
  
     // MARK: Lifecycle
     
@@ -235,13 +238,20 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         spacer.translatesAutoresizingMaskIntoConstraints = false
         
         let view = UIStackView(arrangedSubviews: [ spacer, textStackView ])
-        view.translatesAutoresizingMaskIntoConstraints = false
         view.axis = .horizontal
-        view.layoutMargins = UIEdgeInsets(top: 10, left: 7, bottom: 7, right: 7)
-        view.isLayoutMarginsRelativeArrangement = true
         view.alignment = .bottom
         view.spacing = 1
+        
+        view.layoutMargins = UIEdgeInsets(top: 10, left: 7, bottom: 7, right: 7)
+        view.isLayoutMarginsRelativeArrangement = true
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
 
+        view.addSubview(uploadProgressView)
+        uploadProgressView.topAnchor.constraint(equalTo: view.topAnchor, constant: -17).isActive = true
+        uploadProgressView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 5).isActive = true
+        uploadProgressView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 35).isActive = true
+        
         return view
     }()
     
@@ -301,6 +311,20 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         return label
     }()
     
+    private lazy var uploadProgressView: PostingProgressView = {
+        let view = PostingProgressView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+//        view.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+//        view.tag = Self.progressViewTag
+//        view.cancelButton.addTarget(self, action: #selector(cancelButtonAction), for: .touchUpInside)
+        view.isIndeterminate = false
+        view.cancelButton.isHidden = true
+        view.progress = 0.0
+        view.isHidden = true
+        
+        return view
+    }()
+    
     func highlight() {
         UIView.animate(withDuration: 1.0, animations: {
             self.contentView.backgroundColor = .systemYellow
@@ -350,6 +374,10 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(gotoMsgInfo(_:)))
         bubbleWrapper.isUserInteractionEnabled = true
         bubbleWrapper.addGestureRecognizer(tapGesture)
+        
+        if chatMessage.outgoingStatus == .pending {
+            listenForUploadProgress()
+        }
     }
     
     func updateWithChatGroupMessage(with chatGroupMessage: ChatGroupMessage, isPreviousMsgSameSender: Bool, isNextMsgSameSender: Bool, isNextMsgSameTime: Bool) {
@@ -441,7 +469,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         } else {
             contentView.layoutMargins = UIEdgeInsets(top: 0, left: 18, bottom: 12, right: 18)
         }
-        
+
         // media
         if let media = media {
             
@@ -472,7 +500,7 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                     }
                 }
             }
-            
+
             if !media.isEmpty {                
                 var preferredHeight = preferredSize.height
                 if media.count > 1 {
@@ -491,7 +519,6 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
                 mediaRow.isHidden = false
             }
         }
-                
 
         // time and status
         if let timestamp = timestamp {
@@ -585,6 +612,20 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         default: return nil }
     }
     
+    private func listenForUploadProgress() {
+        cancellableSet.insert(
+            MainAppContext.shared.chatData.didGetMediaUploadProgress.sink { [weak self] (msgID, progress) in
+                guard let self = self else { return }
+                guard self.messageID == msgID else { return }
+                self.uploadProgressView.isHidden = false
+                self.uploadProgressView.progress = progress
+                if progress >= 1 {
+                    self.uploadProgressView.isHidden = true
+                }
+            }
+        )
+    }
+    
     // MARK: Reuse
     
     func reset() {
@@ -613,6 +654,9 @@ class OutboundMsgViewCell: MsgViewCell, MsgUIProtocol {
         textView.text = ""
 
         timeAndStatusLabel.attributedText = nil
+        
+        cancellableSet.forEach { $0.cancel() }
+        cancellableSet.removeAll()
     }
     
     @objc func jumpToQuotedMsg(_ sender: UIView) {
