@@ -2068,7 +2068,7 @@ class FeedData: NSObject, ObservableObject, FeedDownloadManagerDelegate, NSFetch
 
     private func deleteExpiredPosts() {
         self.performSeriallyOnBackgroundContext { (managedObjectContext) in
-            let cutoffDate = Date(timeIntervalSinceNow: -Date.days(30))
+            let cutoffDate = Date(timeIntervalSinceNow: -Date.days(31))
             DDLogInfo("FeedData/delete-expired  date=[\(cutoffDate)]")
             let expiredPostIDs = self.deletePosts(olderThan: cutoffDate, in: managedObjectContext)
             self.deleteNotifications(olderThan: cutoffDate, in: managedObjectContext)
