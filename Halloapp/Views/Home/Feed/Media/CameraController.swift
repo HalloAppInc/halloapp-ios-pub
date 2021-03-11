@@ -194,8 +194,9 @@ class CameraController: UIViewController {
     }
 
     @objc func volumeDidChange(_ notification: NSNotification) {
-        if let volume = notification.userInfo![CameraController.volumeNotificationParameter] as? Float,
-           let reason = notification.userInfo![CameraController.reasonNotificationParameter] as? String,
+        if let userInfo = notification.userInfo, 
+           let volume = userInfo[CameraController.volumeNotificationParameter] as? Float,
+           let reason = userInfo[CameraController.reasonNotificationParameter] as? String,
            reason == CameraController.explicitVolumeChangeReason {
             DDLogInfo("CameraController/volumeDidChange \(volume) \(reason)")
             cameraDelegate.volumeButtonPressed()
